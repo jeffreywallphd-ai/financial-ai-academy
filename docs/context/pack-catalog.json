@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "baselinePack": "index",
+  "defaultAdditionalPackLimit": 2,
+  "packs": [
+    {
+      "id": "index",
+      "path": "docs/context/packs/index.pack.md",
+      "keywords": ["any task", "baseline"],
+      "pathGlobs": ["**/*"],
+      "canonicalSources": [
+        "docs/README.md",
+        "docs/adr/decision-readiness.md",
+        "docs/standards/change-impact-matrix.md"
+      ],
+      "adjacentPacks": [],
+      "stopConditions": ["Canonical sources conflict"]
+    },
+    {
+      "id": "product-domain",
+      "path": "docs/context/packs/product-domain.pack.md",
+      "keywords": ["scope", "edition", "user", "domain", "glossary"],
+      "pathGlobs": ["docs/product/**", "docs/domain/**"],
+      "canonicalSources": ["docs/product/product-vision-and-scope.md", "docs/domain/README.md"],
+      "adjacentPacks": ["security-risk"],
+      "stopConditions": ["New regulated or commercial product boundary"]
+    },
+    {
+      "id": "architecture-contracts",
+      "path": "docs/context/packs/architecture-contracts.pack.md",
+      "keywords": ["architecture", "module", "API", "event", "contract", "provider", "plugin"],
+      "pathGlobs": ["backend/**", "contracts/**", "extensions/**", "sdk/**", "docs/architecture/**", "docs/contracts/**"],
+      "canonicalSources": ["docs/architecture/README.md", "docs/architecture/contracts/contract-architecture.md"],
+      "adjacentPacks": ["testing-quality", "security-risk"],
+      "stopConditions": ["Dependency reversal or breaking contract without accepted decision"]
+    },
+    {
+      "id": "learning-adaptation",
+      "path": "docs/context/packs/learning-adaptation.pack.md",
+      "keywords": ["curriculum", "assessment", "mastery", "learner state", "adaptive", "recommendation"],
+      "pathGlobs": ["backend/**/curriculum/**", "backend/**/assessment/**", "backend/**/learner_model/**", "backend/**/adaptation/**", "docs/architecture/learning/**"],
+      "canonicalSources": ["docs/architecture/learning/adaptive-pathway-architecture.md", "docs/domain/README.md"],
+      "adjacentPacks": ["ai-ml", "testing-quality"],
+      "stopConditions": ["Model output bypasses deterministic eligibility or policy"]
+    },
+    {
+      "id": "financial-data",
+      "path": "docs/context/packs/financial-data.pack.md",
+      "keywords": ["market data", "instrument", "portfolio", "backtest", "price", "feature", "provenance"],
+      "pathGlobs": ["backend/**/market_data/**", "backend/**/portfolio/**", "data/**", "docs/risk-compliance/market-data-*", "docs/architecture/data/**"],
+      "canonicalSources": ["docs/architecture/data/data-architecture.md", "docs/risk-compliance/market-data-licensing-and-attribution.md"],
+      "adjacentPacks": ["security-risk", "testing-quality"],
+      "stopConditions": ["Provider terms or financial calculation semantics are unresolved"]
+    },
+    {
+      "id": "ai-ml",
+      "path": "docs/context/packs/ai-ml.pack.md",
+      "keywords": ["AI", "ML", "model", "prompt", "tutor", "embedding", "dataset", "evaluation"],
+      "pathGlobs": ["backend/**/ai_orchestration/**", "notebooks/**", "docs/ai-ml/**", "docs/architecture/ai-ml/**"],
+      "canonicalSources": ["docs/ai-ml/README.md", "docs/architecture/ai-ml/ai-ml-system-boundaries.md"],
+      "adjacentPacks": ["learning-adaptation", "financial-data", "security-risk"],
+      "stopConditions": ["Model authority, data use, or evaluation threshold is unresolved"]
+    },
+    {
+      "id": "security-risk",
+      "path": "docs/context/packs/security-risk.pack.md",
+      "keywords": ["security", "privacy", "license", "advice", "claim", "identity", "tenant", "plugin", "external"],
+      "pathGlobs": ["docs/security/**", "docs/risk-compliance/**", "docs/external-sources/**"],
+      "canonicalSources": ["docs/security/README.md", "docs/risk-compliance/README.md"],
+      "adjacentPacks": ["architecture-contracts", "deployment-operations"],
+      "stopConditions": ["Unresolved trust, legal, license, privacy, or financial-claims decision"]
+    },
+    {
+      "id": "deployment-operations",
+      "path": "docs/context/packs/deployment-operations.pack.md",
+      "keywords": ["local", "cloud", "deployment", "job", "storage", "backup", "migration", "recovery"],
+      "pathGlobs": ["deployments/**", "docs/operations/**", "docs/architecture/deployment/**"],
+      "canonicalSources": ["docs/operations/README.md", "docs/architecture/deployment/local-cloud-capability-parity.md"],
+      "adjacentPacks": ["security-risk", "testing-quality"],
+      "stopConditions": ["Provider, tenancy, encryption, or recovery policy is unresolved"]
+    },
+    {
+      "id": "testing-quality",
+      "path": "docs/context/packs/testing-quality.pack.md",
+      "keywords": ["test", "bug", "diagnostic", "verification", "architecture check", "docs check"],
+      "pathGlobs": ["tests/**", "dev-tools/**", "docs/assurance/**", "**/tests/**"],
+      "canonicalSources": ["docs/standards/testing-and-verification-standards.md", "docs/assurance/architecture-verification.md"],
+      "adjacentPacks": [],
+      "stopConditions": ["A failing check exposes an unresolved architecture decision"]
+    }
+  ]
+}
+

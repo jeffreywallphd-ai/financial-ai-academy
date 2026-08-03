@@ -1,0 +1,23 @@
+# Local Codex configuration and contributor helpers
+/.local-codex/
+
+# Local environments and generated state
+/.venv/
+/node_modules/
+__pycache__/
+*.py[cod]
+
+# Local application and test data
+/.local-data/
+/.test-data/
+
+# Build, coverage, and tool output
+/artifacts/
+/coverage/
+/dist/
+/build/
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
