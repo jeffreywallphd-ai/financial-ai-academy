@@ -11,6 +11,6 @@
 - [Testing and Verification Standards](testing-and-verification-standards.md)
 - [Contract Compatibility Standards](contract-compatibility-standards.md)
 - [Security and Privacy Standards](security-and-privacy-standards.md)
+- [Interface Design Standards](interface-design-standards.md)
 
 Standards describe repeatable repository behavior. Architecture decisions belong in ADRs; product and domain meaning belongs in their owning canonical documents.
-

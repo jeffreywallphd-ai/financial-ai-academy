@@ -2,6 +2,7 @@
 
 - Status: directional reference
 - Canonical: no
+- Derived production baseline: [Interface Style Guide](../style-guide.md)
 
 ## Purpose
 
@@ -30,6 +31,8 @@ The mockups do not define:
 
 Generated content in the images is illustrative and may be inaccurate or internally inconsistent. Implementation decisions must come from accepted product, domain, architecture, risk, accessibility, and contract documentation. When a mockup conflicts with a canonical source, the canonical source governs.
 
+For production colors, spacing, layout, cards, charts, themes, and iconography, use the [Interface Design System](../README.md) and its executable assets rather than sampling values or extracting icons from these images.
+
 ## Mockup Catalog
 
 | Page concept | Light and dark comparison |
@@ -46,6 +49,9 @@ Generated content in the images is illustrative and may be inaccurate or interna
 | Progress and Competencies | [10-progress-competencies-light-dark.png](10-progress-competencies-light-dark.png) |
 | Learning Library | [11-learning-library-light-dark.png](11-learning-library-light-dark.png) |
 | My Workspace | [12-my-workspace-light-dark.png](12-my-workspace-light-dark.png) |
+| Data Sources and Integrations | [13-data-sources-integrations-light-dark.png](13-data-sources-integrations-light-dark.png) |
+| Profile and Preferences | [14-profile-preferences-light-dark.png](14-profile-preferences-light-dark.png) |
+| Help, Glossary, and Methodology | [15-help-glossary-methodology-light-dark.png](15-help-glossary-methodology-light-dark.png) |
 
 ## Design Review Expectation
 

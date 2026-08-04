@@ -1,0 +1,4 @@
+interface:
+  display_name: "Shape Capability"
+  short_description: "Shape a bounded capability proposal"
+  default_prompt: "Use $shape-capability to turn accepted product intent into a bounded capability proposal."

@@ -13,6 +13,9 @@ Baseline context for every non-trivial task.
 - PostgreSQL transactional and Parquet/DuckDB analytical separation
 - Provenance for learner, market-data, dataset, model, and portfolio evidence
 - Educational scope without personalized financial-advice claims
+- Canonical semantic design tokens and iconography for interface work; mockups remain directional
+- Separate human approvals for capability framing, decisions, slice selection, plan readiness, implementation activation, and completion
+- Planning advice, readiness, and roadmaps never imply implementation authority
 
 ## Workflow
 
@@ -21,4 +24,3 @@ Read `docs/README.md`, apply the change-impact matrix, select only task-relevant
 ## Authority
 
 This pack is derived. Canonical product, domain, architecture, ADR, risk, security, and standards sources win.
-

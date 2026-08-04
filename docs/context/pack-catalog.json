@@ -80,14 +80,31 @@
       "stopConditions": ["Provider, tenancy, encryption, or recovery policy is unresolved"]
     },
     {
+      "id": "delivery-planning",
+      "path": "docs/context/packs/delivery-planning.pack.md",
+      "keywords": ["plan", "capability", "vertical slice", "work packet", "decision request", "approval", "planning skill", "ID reservation", "packet claim", "concurrent agent", "what next", "roadmap", "sequence"],
+      "pathGlobs": ["docs/planning/**", "docs/roadmaps/**", "dev-tools/planning/**"],
+      "canonicalSources": ["docs/planning/README.md", "docs/planning/concurrent-work.md", "docs/planning/skills/README.md", "docs/standards/ai-agent-development-standards.md", "docs/adr/decision-readiness.md", "docs/roadmaps/README.md"],
+      "adjacentPacks": ["product-domain", "architecture-contracts", "testing-quality"],
+      "stopConditions": ["Planning would bypass unresolved authority or approval, self-approve, or assign overlapping active work"]
+    },
+    {
+      "id": "interface-design",
+      "path": "docs/context/packs/interface-design.pack.md",
+      "keywords": ["UI", "theme", "design token", "layout", "component style", "chart", "accessibility", "icon"],
+      "pathGlobs": ["apps/web/src/design-system/**", "apps/web/src/components/**", "apps/web/src/features/**", "docs/design/**", "docs/standards/interface-design-standards.md"],
+      "canonicalSources": ["docs/design/README.md", "docs/design/style-guide.md", "docs/standards/interface-design-standards.md"],
+      "adjacentPacks": ["testing-quality", "product-domain"],
+      "stopConditions": ["Mockup becomes implementation authority or theme/accessibility parity is weakened"]
+    },
+    {
       "id": "testing-quality",
       "path": "docs/context/packs/testing-quality.pack.md",
-      "keywords": ["test", "bug", "diagnostic", "verification", "architecture check", "docs check"],
-      "pathGlobs": ["tests/**", "dev-tools/**", "docs/assurance/**", "**/tests/**"],
+      "keywords": ["test", "bug", "diagnostic", "verification", "architecture check", "docs check", "agent readiness", "prompt evaluation", "CI"],
+      "pathGlobs": ["tests/**", "dev-tools/**", "docs/assurance/**", ".github/workflows/**", "**/tests/**"],
       "canonicalSources": ["docs/standards/testing-and-verification-standards.md", "docs/assurance/architecture-verification.md"],
       "adjacentPacks": [],
       "stopConditions": ["A failing check exposes an unresolved architecture decision"]
     }
   ]
 }
-

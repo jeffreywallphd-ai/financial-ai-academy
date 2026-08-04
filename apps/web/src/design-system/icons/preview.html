@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Financial AI Academy Iconography Preview</title>
+    <link rel="stylesheet" href="../tokens.css">
+    <link rel="stylesheet" href="./icons.css">
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--faa-font-sans);
+        background: #d8d5cc;
+      }
+
+      main {
+        width: min(100%, 96rem);
+        margin: 0 auto;
+        padding: var(--faa-space-8);
+      }
+
+      h1 {
+        margin: 0 0 var(--faa-space-6);
+        color: #14231c;
+        font: var(--faa-font-weight-semibold) var(--faa-font-size-section) / var(--faa-line-height-section) var(--faa-font-display);
+      }
+
+      .themes {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--faa-space-6);
+      }
+
+      .theme-panel {
+        min-width: 0;
+        padding: var(--faa-space-6);
+        color: var(--faa-color-text-primary);
+        background: var(--faa-color-canvas);
+        border: var(--faa-border-width) solid var(--faa-color-border);
+        border-radius: var(--faa-radius-panel);
+      }
+
+      .theme-panel h2 {
+        margin: 0 0 var(--faa-space-5);
+        color: var(--faa-color-text-primary);
+        font: var(--faa-font-weight-semibold) var(--faa-font-size-card-title) / var(--faa-line-height-card-title) var(--faa-font-display);
+      }
+
+      .icon-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+        gap: var(--faa-space-3);
+      }
+
+      .icon-card {
+        display: grid;
+        min-height: 6.5rem;
+        place-items: center;
+        align-content: center;
+        gap: var(--faa-space-3);
+        padding: var(--faa-space-4);
+        color: var(--faa-color-text-secondary);
+        background: var(--faa-color-surface);
+        border: var(--faa-border-width) solid var(--faa-color-border);
+        border-radius: var(--faa-radius-card);
+      }
+
+      .icon-card .faa-icon {
+        --faa-icon-size: var(--faa-icon-size-lg);
+        color: var(--faa-color-icon-active);
+      }
+
+      .icon-card code {
+        overflow-wrap: anywhere;
+        color: var(--faa-color-text-secondary);
+        font: var(--faa-font-weight-medium) var(--faa-font-size-caption) / var(--faa-line-height-caption) var(--faa-font-mono);
+        text-align: center;
+      }
+
+      @media (max-width: 64rem) {
+        .themes {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Financial AI Academy Iconography</h1>
+      <div class="themes">
+        <section class="theme-panel" data-theme="light" aria-labelledby="light-title">
+          <h2 id="light-title">Light mode</h2>
+          <div class="icon-grid" data-icon-grid></div>
+        </section>
+        <section class="theme-panel" data-theme="dark" aria-labelledby="dark-title">
+          <h2 id="dark-title">Dark mode</h2>
+          <div class="icon-grid" data-icon-grid></div>
+        </section>
+      </div>
+    </main>
+    <script>
+      const renderIcon = ({ id, name, label }) => {
+        const card = document.createElement("div");
+        card.className = "icon-card";
+
+        const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        icon.classList.add("faa-icon");
+        icon.setAttribute("role", "img");
+        icon.setAttribute("aria-label", label);
+
+        const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+        use.setAttribute("href", `./faa-icons.svg#${id}`);
+        icon.append(use);
+
+        const iconName = document.createElement("code");
+        iconName.textContent = name;
+        card.append(icon, iconName);
+        return card;
+      };
+
+      fetch("./manifest.json")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Manifest request failed: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(({ icons }) => {
+          document.querySelectorAll("[data-icon-grid]").forEach((grid) => {
+            icons.forEach((icon) => grid.append(renderIcon(icon)));
+          });
+        })
+        .catch((error) => {
+          document.querySelectorAll("[data-icon-grid]").forEach((grid) => {
+            grid.textContent = error.message;
+          });
+        });
+    </script>
+  </body>
+</html>

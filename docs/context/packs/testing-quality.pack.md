@@ -11,6 +11,7 @@ Work affects tests, defects, diagnostics, architecture checks, docs checks, cont
 - Keep financial fixtures deterministic and independently expected.
 - Keep model evaluation separate from deterministic correctness.
 - Treat coverage claims as direct, representative, or gap.
+- Run the fixed agent-readiness gate for repository support evidence, then add focused checks for the affected boundary.
 
 ## Canonical Sources
 
@@ -18,8 +19,8 @@ Work affects tests, defects, diagnostics, architecture checks, docs checks, cont
 - `docs/architecture/assurance/testing-architecture.md`
 - `docs/assurance/architecture-verification.md`
 - `docs/assurance/known-verification-gaps.md`
+- `dev-tools/agent/README.md`
 
 ## Stop When
 
 A failing check exposes a missing product or architecture decision rather than a local implementation defect.
-

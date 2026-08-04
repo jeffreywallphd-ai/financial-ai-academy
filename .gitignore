@@ -1,5 +1,6 @@
 # Local Codex configuration and contributor helpers
 /.local-codex/
+/.agents/skills/
 
 # Local environments and generated state
 /.venv/

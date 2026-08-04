@@ -1,0 +1,4 @@
+interface:
+  display_name: "Approve Planned Work"
+  short_description: "Review and record planning approval gates"
+  default_prompt: "Use $approve-planned-work to review a planning artifact and record an authorized approval decision."

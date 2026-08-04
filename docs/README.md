@@ -21,9 +21,10 @@ This documentation is the control system for Financial AI Academy. It preserves 
 | `context/` | Compact task routing derived from canonical sources | No; routing only |
 | `assurance/` | Verification maps, mismatches, traceability, and known gaps | Yes for evidence status |
 | `operations/` | Installation, backup, migrations, outages, rollback, and qualification | Yes after acceptance |
+| `planning/` | Capability shaping, vertical slices, agent work packets, and decision requests | Canonical for planning lifecycle only; never product meaning or implementation authority |
 | `roadmaps/` | Accepted sequencing for bounded delivery | Only for sequence, never product semantics |
 | `templates/` | Reusable authoring structures | No |
-| `design/` | Directional interface mockups and visual references | No; guidance only, never implementation authority |
+| `design/` | Interface style guide, design-system authority, iconography, and directional mockups | Style guide and production asset rules are canonical; mockups are guidance only |
 
 ## Authority Precedence
 
@@ -48,7 +49,9 @@ For non-trivial work:
 2. Use `context/prompt-routing.md` and `context/pack-catalog.json`.
 3. Apply `standards/change-impact-matrix.md`.
 4. Consult `adr/decision-readiness.md` for architecture-sensitive work.
-5. Read only the task-specific canonical sources and inspect affected implementation/tests.
+5. For interface work, read `design/README.md`, `design/style-guide.md`, and `standards/interface-design-standards.md`.
+6. For planning work, read `planning/README.md`, `planning/register.md`, `planning/concurrent-work.md`, and `planning/skills/README.md`.
+7. Read only the task-specific canonical sources and inspect affected implementation/tests.
 
 ## Current Foundation
 
@@ -62,8 +65,15 @@ For non-trivial work:
 - [Risk and Compliance Posture](risk-compliance/README.md)
 - [Decision Readiness](adr/decision-readiness.md)
 - [Repository Standards](standards/README.md)
-- [Interface Mockups](design/mockups/README.md)
+- [Interface Design System](design/README.md)
+- [Automated Development Planning](planning/README.md)
+- [Governed Planning Skill Suite](planning/skills/README.md)
+- [Concurrent Automated Work](planning/concurrent-work.md)
 
 ## Documentation Update Rule
 
 Update canonical documentation, related ADRs, affected context packs, and verification evidence in the same change when behavior or boundaries change. Do not update a context pack without first reconciling its canonical source.
+
+Shared interface changes must also keep the style guide, executable design tokens, icon assets and manifest, consuming components, and applicable visual/accessibility tests synchronized.
+
+Planning-system changes must keep the planning guide, register, concurrent-work protocol, artifact templates, approval and ownership metadata, suite manifest, router, prompt evaluations, developer tools, and affected context guidance synchronized. Run `python dev-tools/agent/check_ready.py`; add `--base-ref <revision>` when validating lifecycle transitions against a known base.

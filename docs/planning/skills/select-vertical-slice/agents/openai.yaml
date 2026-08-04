@@ -1,0 +1,4 @@
+interface:
+  display_name: "Select Vertical Slice"
+  short_description: "Choose the next valuable vertical slice"
+  default_prompt: "Use $select-vertical-slice to compare candidates and recommend the next vertical slice."

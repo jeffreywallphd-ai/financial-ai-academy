@@ -24,7 +24,9 @@
 | Models, prompts, tutoring, datasets, features, evaluations | `ai-ml` | owning learning/finance pack |
 | Privacy, financial claims, licenses, external sources, executable plugins | `security-risk` | owning feature pack |
 | Local/cloud configuration, storage, jobs, backup, migrations, recovery | `deployment-operations` | `security-risk` |
-| Tests, defects, diagnostics, architecture checks, documentation checks | `testing-quality` | pack owning the failing seam |
+| Capability shaping, vertical slices, work packets, approvals, planning skills, ID reservation, packet claims, concurrent ownership, “what next?” routing, delivery sequencing | `delivery-planning` | `testing-quality` when changing planning automation |
+| User interface, themes, design tokens, layouts, charts, accessibility presentation, iconography | `interface-design` | `testing-quality` |
+| Tests, defects, diagnostics, architecture checks, documentation checks, agent readiness, prompt evaluations, CI gates | `testing-quality` | pack owning the failing seam |
 
 ## Stop Conditions
 
@@ -37,4 +39,3 @@ Stop when:
 - model output would become authoritative for protected state,
 - identity, tenancy, encryption, external execution, recovery, or commercial licensing policy is unresolved,
 - required authority, credentials, destructive action, production mutation, or external publication is absent.
-

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Implement Vertical Slice"
+  short_description: "Execute an approved vertical slice safely"
+  default_prompt: "Use $implement-vertical-slice to execute an approved slice under its authorized work packets."

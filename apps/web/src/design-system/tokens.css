@@ -1,0 +1,297 @@
+/*
+ * Financial AI Academy design tokens
+ * Canonical usage guidance: docs/design/style-guide.md
+ * Theme values are semantic contracts. Feature code should not redeclare them.
+ */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Typography */
+  --faa-font-display: Georgia, Cambria, "Times New Roman", serif;
+  --faa-font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --faa-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --faa-font-weight-regular: 400;
+  --faa-font-weight-medium: 500;
+  --faa-font-weight-semibold: 600;
+  --faa-font-weight-bold: 700;
+  --faa-font-size-caption: 0.75rem;
+  --faa-font-size-ui: 0.875rem;
+  --faa-font-size-body: 1rem;
+  --faa-font-size-body-lg: 1.125rem;
+  --faa-font-size-card-title: 1.25rem;
+  --faa-font-size-section: 1.75rem;
+  --faa-font-size-page: 2.25rem;
+  --faa-font-size-display: 3rem;
+  --faa-line-height-caption: 1rem;
+  --faa-line-height-ui: 1.25rem;
+  --faa-line-height-body: 1.5rem;
+  --faa-line-height-body-lg: 1.75rem;
+  --faa-line-height-card-title: 1.75rem;
+  --faa-line-height-section: 2.25rem;
+  --faa-line-height-page: 2.75rem;
+  --faa-line-height-display: 3.5rem;
+
+  /* Spacing */
+  --faa-space-0: 0;
+  --faa-space-1: 0.25rem;
+  --faa-space-2: 0.5rem;
+  --faa-space-3: 0.75rem;
+  --faa-space-4: 1rem;
+  --faa-space-5: 1.25rem;
+  --faa-space-6: 1.5rem;
+  --faa-space-8: 2rem;
+  --faa-space-10: 2.5rem;
+  --faa-space-12: 3rem;
+  --faa-space-16: 4rem;
+
+  /* Shape and size */
+  --faa-radius-sm: 0.375rem;
+  --faa-radius-control: 0.5rem;
+  --faa-radius-card: 0.75rem;
+  --faa-radius-panel: 1rem;
+  --faa-radius-pill: 999px;
+  --faa-border-width: 1px;
+  --faa-border-width-selected: 2px;
+  --faa-control-height-compact: 2.5rem;
+  --faa-control-height: 2.75rem;
+  --faa-target-min: 2.75rem;
+  --faa-icon-size-sm: 1rem;
+  --faa-icon-size-md: 1.25rem;
+  --faa-icon-size-lg: 1.5rem;
+  --faa-icon-size-xl: 2rem;
+
+  /* Layout */
+  --faa-layout-nav-expanded: 15rem;
+  --faa-layout-nav-compact: 4.5rem;
+  --faa-layout-topbar: 4rem;
+  --faa-layout-content-max: 90rem;
+  --faa-layout-rail: 20rem;
+  --faa-layout-reading-max: 46rem;
+  --faa-layout-grid-gap: 1.5rem;
+  --faa-layout-page-gutter: 2rem;
+  --faa-layout-page-gutter-wide: 3rem;
+
+  /* Motion */
+  --faa-duration-fast: 100ms;
+  --faa-duration-standard: 160ms;
+  --faa-duration-deliberate: 240ms;
+  --faa-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --faa-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Layering */
+  --faa-z-base: 0;
+  --faa-z-sticky: 100;
+  --faa-z-dropdown: 200;
+  --faa-z-overlay: 300;
+  --faa-z-modal: 400;
+  --faa-z-toast: 500;
+
+  /* Theme surfaces and text */
+  --faa-color-canvas: #f7f4ec;
+  --faa-color-surface: #fffdf8;
+  --faa-color-surface-raised: #ffffff;
+  --faa-color-surface-subtle: #f1ecdd;
+  --faa-color-surface-selected: #e6efe9;
+  --faa-color-text-primary: #14231c;
+  --faa-color-text-secondary: #43534a;
+  --faa-color-text-muted: #65736b;
+  --faa-color-text-disabled: #858e88;
+  --faa-color-text-inverse: #f7f3e8;
+  --faa-color-border: #d9d2c2;
+  --faa-color-border-strong: #afa58f;
+  --faa-color-overlay: rgb(8 23 19 / 0.56);
+
+  /* Identity and actions */
+  --faa-color-brand: #0f4d3a;
+  --faa-color-brand-hover: #0b3f30;
+  --faa-color-brand-active: #082f25;
+  --faa-color-on-brand: #ffffff;
+  --faa-color-accent: #c79a3b;
+  --faa-color-accent-hover: #b5892f;
+  --faa-color-accent-strong: #9a6410;
+  --faa-color-on-accent: #2b210d;
+  --faa-color-action-primary: #0f4d3a;
+  --faa-color-action-primary-hover: #0b3f30;
+  --faa-color-on-action-primary: #ffffff;
+  --faa-color-link: #0b5d47;
+  --faa-color-focus-ring: #1f6a50;
+
+  /* Controls and navigation */
+  --faa-color-control: #fffdf8;
+  --faa-color-control-hover: #f1ecdd;
+  --faa-color-control-disabled: #e7e3da;
+  --faa-color-nav-bg: #073d2f;
+  --faa-color-nav-text: #f7f3e8;
+  --faa-color-nav-muted: #cfd9d2;
+  --faa-color-nav-active-bg: #245d4b;
+  --faa-color-nav-active-text: #ffffff;
+  --faa-color-icon-default: #43534a;
+  --faa-color-icon-muted: #65736b;
+  --faa-color-icon-active: #0f4d3a;
+  --faa-color-icon-accent: #9a6410;
+
+  /* Semantic feedback */
+  --faa-color-success: #287a4b;
+  --faa-color-success-surface: #e8f2eb;
+  --faa-color-warning: #7a5700;
+  --faa-color-warning-surface: #f6edda;
+  --faa-color-danger: #a63d39;
+  --faa-color-danger-surface: #f8e8e6;
+  --faa-color-info: #285f8f;
+  --faa-color-info-surface: #e8f0f6;
+
+  /* Data visualization */
+  --faa-color-chart-1: #0f4d3a;
+  --faa-color-chart-2: #9a6410;
+  --faa-color-chart-3: #2c6e9b;
+  --faa-color-chart-4: #76508f;
+  --faa-color-chart-5: #a5483f;
+  --faa-color-chart-grid: #d9d2c2;
+  --faa-color-chart-axis: #65736b;
+  --faa-color-chart-reference: #7a827d;
+
+  /* Elevation */
+  --faa-shadow-sm: 0 1px 2px rgb(20 35 28 / 0.08);
+  --faa-shadow-md: 0 8px 24px rgb(20 35 28 / 0.12);
+  --faa-shadow-lg: 0 20px 48px rgb(20 35 28 / 0.16);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --faa-color-canvas: #081713;
+  --faa-color-surface: #0e211b;
+  --faa-color-surface-raised: #132a22;
+  --faa-color-surface-subtle: #10261f;
+  --faa-color-surface-selected: #1b3b30;
+  --faa-color-text-primary: #f7f3e8;
+  --faa-color-text-secondary: #c4cec6;
+  --faa-color-text-muted: #97a69c;
+  --faa-color-text-disabled: #738078;
+  --faa-color-text-inverse: #14231c;
+  --faa-color-border: #2d4a3f;
+  --faa-color-border-strong: #4c6b5e;
+  --faa-color-overlay: rgb(0 0 0 / 0.68);
+  --faa-color-brand: #75c08f;
+  --faa-color-brand-hover: #8acb9e;
+  --faa-color-brand-active: #a0d7ae;
+  --faa-color-on-brand: #102019;
+  --faa-color-accent: #d6ad55;
+  --faa-color-accent-hover: #e0bc69;
+  --faa-color-accent-strong: #e8c77b;
+  --faa-color-on-accent: #152019;
+  --faa-color-action-primary: #d6ad55;
+  --faa-color-action-primary-hover: #e0bc69;
+  --faa-color-on-action-primary: #152019;
+  --faa-color-link: #e0bc69;
+  --faa-color-focus-ring: #e0bc69;
+  --faa-color-control: #0e211b;
+  --faa-color-control-hover: #18372c;
+  --faa-color-control-disabled: #183027;
+  --faa-color-nav-bg: #06130f;
+  --faa-color-nav-text: #f7f3e8;
+  --faa-color-nav-muted: #aab8ae;
+  --faa-color-nav-active-bg: #1f4437;
+  --faa-color-nav-active-text: #ffffff;
+  --faa-color-icon-default: #c4cec6;
+  --faa-color-icon-muted: #97a69c;
+  --faa-color-icon-active: #e0bc69;
+  --faa-color-icon-accent: #d6ad55;
+  --faa-color-success: #75c08f;
+  --faa-color-success-surface: #173425;
+  --faa-color-warning: #e0b85a;
+  --faa-color-warning-surface: #382e17;
+  --faa-color-danger: #f08b80;
+  --faa-color-danger-surface: #3a201d;
+  --faa-color-info: #82b4d9;
+  --faa-color-info-surface: #182e3c;
+  --faa-color-chart-1: #7bc09a;
+  --faa-color-chart-2: #e0b85a;
+  --faa-color-chart-3: #84b7d8;
+  --faa-color-chart-4: #c39be3;
+  --faa-color-chart-5: #f08f85;
+  --faa-color-chart-grid: #2d4a3f;
+  --faa-color-chart-axis: #97a69c;
+  --faa-color-chart-reference: #75867c;
+  --faa-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.32);
+  --faa-shadow-md: 0 8px 24px rgb(0 0 0 / 0.4);
+  --faa-shadow-lg: 0 20px 48px rgb(0 0 0 / 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-theme="system"] {
+    color-scheme: dark;
+    --faa-color-canvas: #081713;
+    --faa-color-surface: #0e211b;
+    --faa-color-surface-raised: #132a22;
+    --faa-color-surface-subtle: #10261f;
+    --faa-color-surface-selected: #1b3b30;
+    --faa-color-text-primary: #f7f3e8;
+    --faa-color-text-secondary: #c4cec6;
+    --faa-color-text-muted: #97a69c;
+    --faa-color-text-disabled: #738078;
+    --faa-color-text-inverse: #14231c;
+    --faa-color-border: #2d4a3f;
+    --faa-color-border-strong: #4c6b5e;
+    --faa-color-overlay: rgb(0 0 0 / 0.68);
+    --faa-color-brand: #75c08f;
+    --faa-color-brand-hover: #8acb9e;
+    --faa-color-brand-active: #a0d7ae;
+    --faa-color-on-brand: #102019;
+    --faa-color-accent: #d6ad55;
+    --faa-color-accent-hover: #e0bc69;
+    --faa-color-accent-strong: #e8c77b;
+    --faa-color-on-accent: #152019;
+    --faa-color-action-primary: #d6ad55;
+    --faa-color-action-primary-hover: #e0bc69;
+    --faa-color-on-action-primary: #152019;
+    --faa-color-link: #e0bc69;
+    --faa-color-focus-ring: #e0bc69;
+    --faa-color-control: #0e211b;
+    --faa-color-control-hover: #18372c;
+    --faa-color-control-disabled: #183027;
+    --faa-color-nav-bg: #06130f;
+    --faa-color-nav-text: #f7f3e8;
+    --faa-color-nav-muted: #aab8ae;
+    --faa-color-nav-active-bg: #1f4437;
+    --faa-color-nav-active-text: #ffffff;
+    --faa-color-icon-default: #c4cec6;
+    --faa-color-icon-muted: #97a69c;
+    --faa-color-icon-active: #e0bc69;
+    --faa-color-icon-accent: #d6ad55;
+    --faa-color-success: #75c08f;
+    --faa-color-success-surface: #173425;
+    --faa-color-warning: #e0b85a;
+    --faa-color-warning-surface: #382e17;
+    --faa-color-danger: #f08b80;
+    --faa-color-danger-surface: #3a201d;
+    --faa-color-info: #82b4d9;
+    --faa-color-info-surface: #182e3c;
+    --faa-color-chart-1: #7bc09a;
+    --faa-color-chart-2: #e0b85a;
+    --faa-color-chart-3: #84b7d8;
+    --faa-color-chart-4: #c39be3;
+    --faa-color-chart-5: #f08f85;
+    --faa-color-chart-grid: #2d4a3f;
+    --faa-color-chart-axis: #97a69c;
+    --faa-color-chart-reference: #75867c;
+    --faa-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.32);
+    --faa-shadow-md: 0 8px 24px rgb(0 0 0 / 0.4);
+    --faa-shadow-lg: 0 20px 48px rgb(0 0 0 / 0.5);
+  }
+}
+
+@media (min-width: 96rem) {
+  :root {
+    --faa-layout-page-gutter: var(--faa-layout-page-gutter-wide);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --faa-duration-fast: 0ms;
+    --faa-duration-standard: 0ms;
+    --faa-duration-deliberate: 0ms;
+  }
+}

@@ -1,0 +1,86 @@
+.faa-icon {
+  display: inline-block;
+  width: var(--faa-icon-size, var(--faa-icon-size-md));
+  height: var(--faa-icon-size, var(--faa-icon-size-md));
+  flex: 0 0 auto;
+  color: var(--faa-color-icon-default);
+  vertical-align: -0.125em;
+}
+
+.faa-icon--sm {
+  --faa-icon-size: var(--faa-icon-size-sm);
+}
+
+.faa-icon--lg {
+  --faa-icon-size: var(--faa-icon-size-lg);
+}
+
+.faa-icon--xl {
+  --faa-icon-size: var(--faa-icon-size-xl);
+}
+
+.faa-icon--muted {
+  color: var(--faa-color-icon-muted);
+}
+
+.faa-icon--active {
+  color: var(--faa-color-icon-active);
+}
+
+.faa-icon--accent {
+  color: var(--faa-color-icon-accent);
+}
+
+.faa-icon--success {
+  color: var(--faa-color-success);
+}
+
+.faa-icon--warning {
+  color: var(--faa-color-warning);
+}
+
+.faa-icon--danger {
+  color: var(--faa-color-danger);
+}
+
+.faa-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--faa-target-min);
+  min-width: var(--faa-target-min);
+  height: var(--faa-target-min);
+  padding: 0;
+  color: var(--faa-color-icon-default);
+  background: var(--faa-color-control);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+}
+
+.faa-icon-button:hover {
+  color: var(--faa-color-icon-active);
+  background: var(--faa-color-control-hover);
+  border-color: var(--faa-color-border-strong);
+}
+
+.faa-icon-button:focus-visible {
+  outline: 3px solid var(--faa-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.faa-icon-button:disabled {
+  color: var(--faa-color-text-disabled);
+  background: var(--faa-color-control-disabled);
+  cursor: not-allowed;
+}
+
+@media (forced-colors: active) {
+  .faa-icon,
+  .faa-icon-button {
+    color: ButtonText;
+  }
+
+  .faa-icon-button:focus-visible {
+    outline-color: Highlight;
+  }
+}

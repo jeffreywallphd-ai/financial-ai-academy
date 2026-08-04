@@ -25,8 +25,10 @@
 | Identity, tenancy, entitlement | Decision readiness, request/job propagation, policies, database/storage scope | ADR, security architecture, hosts, contracts | Denial, cross-tenant isolation, missing-context failure |
 | Local/cloud deployment | Shared artifacts, config, storage, secrets, health/recovery | Deployment and operations docs | Configuration, startup failure, parity and qualification checks |
 | Dependency or build change | Provenance, license, advisories, compatibility, generated artifacts | Lock/build config, security/licensing docs | Clean install/build, relevant tests, reviewed advisories |
+| Shared UI token, layout, component style, or icon | Style guide, executable tokens, icon manifest/sprite, both themes, responsive and accessibility consumers | Design docs/assets, consuming UI, visual/accessibility tests, context guidance | Design-system check plus focused light/dark, keyboard, contrast, zoom, and responsive evidence |
+| Planning artifact, approval stage, ownership field, or planning skill | Planning guide/register/concurrent-work protocol/templates, suite manifest/router/evaluations, decision readiness, owning canonical sources, current authority | Artifact metadata/history, register, skills/assets/scripts, planning tools, roadmap/context guidance | Planning integrity and tool tests, planning-skill suite and prompt evaluations, approval/claim evidence, aggregate readiness check |
 | Canonical docs only | Implementation/tests, ADRs, context packs, links | Only sources made stale | Documentation structure/link checks |
-| Agent/context guidance | Canonical sources, catalog, scenarios, pack budget | Context packs/catalog/evaluations | Catalog integrity and routing scenarios |
+| Agent/context/readiness guidance | Canonical sources, catalog, scenarios, pack budget, relevant planning skills, fixed readiness allowlist, CI workflow | Context packs/catalog/evaluations, suite manifest/router, agent tooling and CI | Aggregate agent-readiness check plus focused routing or runner refusal tests when affected |
 
 ## Ordering
 
@@ -44,4 +46,3 @@ For cross-boundary work:
 ## Escalation
 
 Stop before implementation when work would select an unresolved identity, tenancy, financial-claims, provider-license, model-authority, external-execution, encryption, recovery, public exposure, commercial-license, or breaking-compatibility policy.
-

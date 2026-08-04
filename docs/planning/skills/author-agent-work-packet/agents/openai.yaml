@@ -1,0 +1,4 @@
+interface:
+  display_name: "Author Agent Work Packet"
+  short_description: "Create an executable agent work packet"
+  default_prompt: "Use $author-agent-work-packet to create bounded, verifiable work packets for an approved slice."

@@ -23,13 +23,20 @@ The repository is in its architecture and documentation foundation stage. Applic
 - Architecture: begin with [architecture principles](docs/architecture/system/architecture-principles.md) and the [system overview](docs/architecture/system/system-overview.md).
 - Decisions: use the [ADR index](docs/adr/README.md) and [decision-readiness register](docs/adr/decision-readiness.md).
 - Contracts: use the [contract architecture](docs/architecture/contracts/contract-architecture.md) and top-level [contracts map](contracts/README.md).
+- Interface work: use the [interface design system](docs/design/README.md), semantic tokens, and production iconography.
+- Planned work: use the [automated development planning system](docs/planning/README.md) for capabilities, vertical slices, and agent-ready work packets.
+- Planning automation: use the [governed planning skill suite](docs/planning/skills/README.md), beginning with `guide-next-planning-action` for broad next-step questions.
+- Concurrent agents: reserve planning IDs and claim approved packets through the [concurrent-work protocol](docs/planning/concurrent-work.md).
 
 ## License
 
 This repository is currently licensed under the GNU General Public License v3.0. Commercial packaging, hosted services, separately distributed extensions, and any additional licensing model require explicit legal and product decisions; the existing license must not be silently reinterpreted.
 
-## Documentation Validation
+## Automated-Development Readiness
 
 ```text
-python dev-tools/documentation/check_docs.py
+python docs/planning/skills/sync_skills.py --mode auto
+python dev-tools/agent/check_ready.py
 ```
+
+The first command installs the canonical planning skills into the ignored local Codex discovery path. The readiness command is read-only and runs the deterministic planning, skill, prompt-evaluation, documentation, and design-system gates. Boundary-specific implementation checks remain additional requirements.

@@ -1,0 +1,19 @@
+{
+  "suite": "governed-planning",
+  "contractVersion": 2,
+  "discoveryTarget": ".agents/skills",
+  "workPacketOwnershipFields": ["write_scope", "generated_artifacts", "base_revision", "claim_id", "claimed_by", "claimed_at"],
+  "planningStates": ["captured", "shaping", "decision-blocked", "ready", "active", "verifying", "complete", "superseded"],
+  "approvalDecisions": ["pending", "approved", "changes-requested", "rejected"],
+  "approvalPrefixes": ["capability", "decision", "selection", "planning", "implementation", "completion"],
+  "skills": [
+    {"name": "shape-capability", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/capability-template.md", "scripts/validate_capability.py"]},
+    {"name": "review-decision-gates", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/decision-request-template.md", "scripts/validate_decision_request.py"]},
+    {"name": "select-vertical-slice", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/vertical-slice-template.md", "scripts/validate_vertical_slice.py"]},
+    {"name": "author-agent-work-packet", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/work-packet-template.md", "scripts/validate_work_packet.py"]},
+    {"name": "approve-planned-work", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/approval-checklist.md", "scripts/validate_approval.py"]},
+    {"name": "implement-vertical-slice", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/implementation-preflight.md", "scripts/check_implementation_gate.py"]},
+    {"name": "verify-and-close-slice", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/completion-evidence.md", "scripts/check_completion_gate.py"]},
+    {"name": "guide-next-planning-action", "requiredFiles": ["SKILL.md", "agents/openai.yaml", "assets/next-action-report.md", "scripts/recommend_next.py"]}
+  ]
+}

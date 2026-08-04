@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Decision Gates"
+  short_description: "Identify and route unresolved decisions"
+  default_prompt: "Use $review-decision-gates to identify unresolved decisions before planning or implementation proceeds."
