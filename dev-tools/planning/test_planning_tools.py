@@ -12,7 +12,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from check_planning import run  # noqa: E402
-from claim_packet import claim_updates  # noqa: E402
+from claim_packet import claim_updates, finalize_updates, release_updates  # noqa: E402
+from approval_store import empty_store, save_store, store_path  # noqa: E402
 from planning_model import frontmatter_from_path, update_frontmatter  # noqa: E402
 from reserve_id import reserve  # noqa: E402
 
@@ -37,8 +38,8 @@ def fixture_root(path: Path) -> Path:
         """
 # Planning Register
 
-| ID | Kind | Title | Planning status | Approval summary | Parent | Dependencies | Decision gates | Owner | Updated |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ID | Kind | Title | Planning status | Parent | Dependencies | Decision gates | Owner | Updated |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 """,
     )
     return path
@@ -68,17 +69,28 @@ base_revision: {base_revision}
 claim_id: {claim_id}
 claimed_by: {claimed_by}
 claimed_at: {claimed_at}
-planning_approval: approved
-planning_approved_by: project-owner
-planning_approved_at: {TODAY}
-implementation_approval: approved
-implementation_approved_by: project-owner
-implementation_approved_at: {TODAY}
-implementation_authority: task-42
 ---
 
 # Agent Work Packet: Test
 """
+
+
+def approve_packet(root: Path, identifier: str) -> None:
+    store = empty_store()
+    for stage in ("planning", "implementation"):
+        record = {
+            "subject": identifier,
+            "stage": stage,
+            "decision": "approved",
+            "actor_label": "test authority",
+            "decided_at": TODAY,
+            "authority": "task-42",
+            "recorded_at": "2026-08-04T12:00:00Z",
+        }
+        if stage == "implementation":
+            record["scope"] = '["modules/learning"]'
+        store["records"].append(record)
+    save_store(store_path(root), store)
 
 
 def main() -> int:
@@ -88,6 +100,7 @@ def main() -> int:
         first = reserve(root, "CAP", "agent-a")
         second = reserve(root, "CAP", "agent-b")
         assert first["id"] == "CAP-0001" and second["id"] == "CAP-0002"
+        approve_packet(root, "WRK-0001")
         packet = write(root / "docs/planning/work-packets/WRK-0001-test.md", packet_text())
         updates = claim_updates(root, packet, "agent-a", "task-42", "base123")
         assert updates["planning_status"] == "active"
@@ -98,12 +111,38 @@ def main() -> int:
             root / "docs/planning/work-packets/WRK-0002-competing.md",
             packet_text("WRK-0002"),
         )
+        store_path(root).unlink()
+        approve_packet(root, "WRK-0002")
         try:
             claim_updates(root, competing, "agent-b", "task-42", "base456")
         except ValueError as exception:
             assert "overlaps active packet WRK-0001" in str(exception)
         else:
             raise AssertionError("overlapping active write scope must be refused")
+        update_frontmatter(packet, release_updates(packet, "agent-a", "verifying"))
+        update_frontmatter(packet, finalize_updates(packet, "agent-a"))
+        assert frontmatter_from_path(packet)["planning_status"] == "complete"
+
+    with tempfile.TemporaryDirectory(prefix="planning-dependencies-") as directory:
+        root = fixture_root(Path(directory))
+        dependency = write(
+            root / "docs/planning/work-packets/WRK-0001-dependency.md",
+            packet_text("WRK-0001"),
+        )
+        dependent = write(
+            root / "docs/planning/work-packets/WRK-0002-dependent.md",
+            packet_text("WRK-0002").replace(
+                "depends_on: []", 'depends_on: ["WRK-0001"]'
+            ),
+        )
+        approve_packet(root, "WRK-0002")
+        try:
+            claim_updates(root, dependent, "agent-b", "task-42", "base456")
+        except ValueError as exception:
+            assert "dependency WRK-0001 must be complete" in str(exception)
+        else:
+            raise AssertionError("incomplete dependencies must prevent claim")
+        assert frontmatter_from_path(dependency)["planning_status"] == "ready"
 
     with tempfile.TemporaryDirectory(prefix="planning-duplicates-") as directory:
         root = fixture_root(Path(directory))
@@ -117,9 +156,6 @@ updated: {TODAY}
 parent: null
 depends_on: []
 decision_gates: []
-capability_approval: pending
-capability_approved_by: null
-capability_approved_at: null
 ---
 """
         write(root / "docs/planning/capabilities/CAP-0001-first.md", capability)

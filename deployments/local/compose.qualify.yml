@@ -1,0 +1,20 @@
+name: financial-ai-academy-qualification
+
+services:
+  postgres:
+    image: postgres:18.4
+    environment:
+      POSTGRES_DB: financial_ai_academy
+      POSTGRES_PASSWORD: qualification-only
+      POSTGRES_USER: financial_ai_academy
+    ports:
+      - "127.0.0.1:${FAA_QUALIFICATION_POSTGRES_PORT:-55432}:5432"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U financial_ai_academy -d financial_ai_academy
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    tmpfs:
+      - /var/lib/postgresql

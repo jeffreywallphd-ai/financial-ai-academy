@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a vertical-slice artifact and its approval contract."""
+"""Validate a public vertical-slice artifact contract."""
 
 from __future__ import annotations
 
@@ -10,9 +10,7 @@ from pathlib import Path
 
 KEYS = {
     "id", "kind", "planning_status", "authority", "owner", "updated",
-    "parent", "depends_on", "decision_gates", "selection_approval",
-    "selection_approved_by", "selection_approved_at", "completion_approval",
-    "completion_approved_by", "completion_approved_at",
+    "parent", "depends_on", "decision_gates",
 }
 HEADINGS = {
     "# Vertical Slice:", "## Outcome and User Scenario",
@@ -22,13 +20,12 @@ HEADINGS = {
     "## Contracts, Data, and Provenance", "## Acceptance Scenarios",
     "## Agent Work Packets", "## Verification and Qualification",
     "## Rollback and Migration", "## Stop Conditions",
-    "## Documentation Impact and Completion Evidence", "## Approval History",
+    "## Documentation Impact and Completion Evidence", "## Planning History",
 }
 STATUSES = {
     "captured", "shaping", "decision-blocked", "ready", "active",
     "verifying", "complete", "superseded",
 }
-APPROVALS = {"pending", "approved", "changes-requested", "rejected"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -69,27 +66,12 @@ def main() -> int:
         errors.append("parent must be a non-placeholder CAP-* identifier")
     if data.get("planning_status") not in STATUSES:
         errors.append("invalid planning_status")
-    for field in ("selection_approval", "completion_approval"):
-        if data.get(field) not in APPROVALS:
-            errors.append(f"invalid {field}")
     if not DATE_RE.match(data.get("updated", "")):
         errors.append("updated must be YYYY-MM-DD")
     if data.get("planning_status") == "decision-blocked" and data.get("decision_gates") == "[]":
         errors.append("decision-blocked requires at least one decision gate")
-    if data.get("planning_status") in {"ready", "active", "verifying", "complete"} and data.get("selection_approval") != "approved":
-        errors.append("ready or later requires selection_approval: approved")
-    if data.get("selection_approval") == "approved":
-        if data.get("selection_approved_by") in {"", "null", "unassigned"}:
-            errors.append("approved selection requires selection_approved_by")
-        if not DATE_RE.match(data.get("selection_approved_at", "")):
-            errors.append("approved selection requires selection_approved_at YYYY-MM-DD")
-    if data.get("completion_approval") == "approved":
-        if data.get("completion_approved_by") in {"", "null", "unassigned"}:
-            errors.append("approved completion requires completion_approved_by")
-        if not DATE_RE.match(data.get("completion_approved_at", "")):
-            errors.append("approved completion requires completion_approved_at YYYY-MM-DD")
-    if data.get("planning_status") == "complete" and data.get("completion_approval") != "approved":
-        errors.append("complete slice requires completion_approval: approved")
+    if any(key.endswith(("_approval", "_approved_by", "_approved_at")) for key in data):
+        errors.append("approval metadata must remain in the ignored local ledger")
     for heading in HEADINGS:
         if heading not in text:
             errors.append(f"missing heading: {heading}")

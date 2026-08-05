@@ -26,21 +26,21 @@ Use this precedence:
 
 1. `verify-and-close-slice`: a slice is verifying or awaiting completion acceptance.
 2. `implement-vertical-slice`: authorized work is already active and not blocked.
-3. `review-decision-gates`: any artifact is decision-blocked or an unresolved DEC request blocks progress.
+3. `review-decision-gates`: any artifact is decision-blocked or one or more related unresolved DEC requests block progress; route the related set to one consolidated decision table and response.
 4. `shape-capability`: a capability is captured, shaping, or needs requested changes.
-5. `approve-planned-work`: the next stage is waiting for an explicit human decision.
+5. `approve-planned-work`: the next stage is waiting for an explicit human decision; group a closed related `DEC-*` set or one slice's closed `WRK-*` set when eligible.
 6. `select-vertical-slice`: an approved capability needs a slice, or slice selection needs revision.
 7. `author-agent-work-packet`: an approved slice needs packets, or packet planning needs revision.
-8. `approve-planned-work`: packets are plan-approved but still need separate implementation activation.
+8. `approve-planned-work`: the closed slice packet set is plan-approved but still needs one separate slice-wide implementation response.
 9. `implement-vertical-slice`: packets are fully approved and ready; recommend implementation but do not start it without a current explicit instruction.
 10. `shape-capability`: no planned artifacts exist.
 
-Within one precedence level, choose the lowest stable artifact ID unless repository priority authority specifies another order. Never use model preference, novelty, or estimated excitement as a tie-breaker.
+Within one precedence level, choose the lowest stable artifact ID unless repository priority authority specifies another order. When multiple related decisions share one planning boundary, or multiple packets share one selected slice and approval stage, return the complete deterministic member list rather than one arbitrary member. Never use model preference, novelty, or estimated excitement as a tie-breaker.
 
 ## Workflow
 
 1. Inspect planning state without modifying it.
-2. Run `python scripts/recommend_next.py <planning-root>` when the repository uses compatible frontmatter.
+2. Run `python scripts/recommend_next.py <planning-root>` when the repository uses compatible frontmatter. The router reads approval state from the ignored local ledger and public lifecycle state from tracked artifacts.
 3. Reconcile the script result with accepted roadmap priority, explicit user priority, current decisions, and active work. Canonical authority may invalidate a mechanically eligible action.
 4. Select one primary skill and list any prerequisite skill.
 5. If the selected skill is installed, invoke it only to the extent authorized by the user. If unavailable, name it and provide the next input it requires; do not silently emulate an implementation workflow.
@@ -54,13 +54,13 @@ This router recognizes:
 - `DEC-*` decision requests;
 - `SLI-*` vertical slices;
 - `WRK-*` work packets;
-- the common planning states and six flat approval prefixes used by the companion skills.
+- the common public planning states and six local ledger stages used by the companion skills.
 
 The companion skills are soft dependencies: this folder remains valid when zipped alone, but routed execution requires the named skill to be installed.
 
 ## Required Output
 
-Return current state, recommended next action, selected skill, subject artifact, reason, prerequisites, approval required, blockers, and what follows. State explicitly whether the response is advice only.
+Return current state, recommended next action, selected skill, subject artifact, exact bundle members when applicable, reason, prerequisites, approval required, blockers, and what follows. State explicitly whether the response is advice only.
 
 ## Stop Conditions
 

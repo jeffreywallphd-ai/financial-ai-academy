@@ -27,8 +27,8 @@ Never infer completion from code presence, an agent claim, a passing subset, or 
 6. Reconcile canonical documentation, ADR/readiness entries, derived context, planning register, roadmap state, migrations, and operational instructions made stale by the change.
 7. Complete [the evidence checklist](assets/completion-evidence.md) in the slice's Documentation Impact and Completion Evidence section.
 8. Report gaps honestly. Return to implementation, packet shaping, or decision review when evidence is incomplete.
-9. Request explicit completion acceptance. Keep `completion_approval: pending` and the slice `verifying` until an authorized human decides.
-10. When explicit acceptance is supplied, use `approve-planned-work` to record it, move the slice to `complete`, update the register, and archive only the roadmap records whose lifecycle permits it.
+9. Request explicit completion acceptance. Keep the slice `verifying` until an authorized human decides.
+10. When explicit acceptance is supplied, use `approve-planned-work` to record it only in the ignored local ledger, move the slice to `complete`, update the register without an approval summary, and archive only the roadmap records whose lifecycle permits it.
 
 ## Evidence Contract
 
@@ -41,7 +41,7 @@ Completion evidence must identify:
 - documentation and migration impact;
 - environment or external qualification not performed;
 - assumptions, residual risk, known gaps, and follow-up work;
-- approver, approval date, and completion decision.
+- a reference that local completion acceptance was validated, without copying the actor, date, decision, or authority into tracked evidence.
 
 Do not rewrite expected results after observing failures. Do not claim a check passed unless it ran successfully.
 

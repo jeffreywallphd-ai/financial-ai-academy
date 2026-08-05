@@ -5,25 +5,37 @@
 
 ## Decision Gaps
 
-- Exact Python and TypeScript framework/version baselines
-- Authentication providers and local identity flow
+- Organization identity/tenancy administration and identity-mode migration
 - Cloud infrastructure provider and deployment tooling
 - Job-queue implementation and delivery guarantees
 - Exact multi-tenant placement and row-policy design
-- Content authoring and packaging format
+- Content authoring workflow and tooling
 - External learning interoperability scope
 - Model-provider admission and local-model support matrix
 - Market-data licensing policy by provider and edition
 - Experiment governance and consent details
-- Encryption, recovery objectives, and managed key strategy
+- Managed-cloud encryption, key custody, backup automation, retention, availability, RPO, and RTO
 
 ## Evidence Gaps
 
-- No implementation dependency checks exist yet.
-- No executable contract catalog or generated bindings exist yet.
+- Current dependency checks cover the implemented Content, Curriculum,
+  Identity, generated-client, browser, and local-composition seams; remaining
+  modules, events, providers, workers, and analytical boundaries lack equivalent
+  executable fitness functions.
+- Python/Node manifests, exact locks, the Windows Node 24 build, dependency
+  inventory, and the static/no-Node-server runtime boundary are executable.
+  Multi-platform clean-install/build and production-distribution qualification
+  remain absent.
+- Executable lesson-package schemas, compatibility fixtures, OpenAPI, and the
+  generated TypeScript client exist. Event, provider/plugin, finance, and
+  external-learning contract families remain unimplemented.
 - No provider conformance suite exists yet.
-- No local or cloud deployment qualification exists yet.
+- The loopback private-host approved-lesson composition is directly qualified
+  with PostgreSQL 18.4, filesystem objects, Python same-origin static/API
+  serving, and pinned Chromium. Complete local distribution, workers,
+  analytics, built-in/OIDC identity, passive assets, remote operation, and all
+  managed-cloud qualification remain absent.
+- No community backup/restore tooling, manifest contract, supported-platform permission profile, compatibility matrix, or controlled restore qualification exists yet.
 - No model or adaptive-learning evaluation harness exists yet.
 
 These gaps are not authorization to choose a design silently. Move a gap into an accepted ADR and the applicable architecture/verification documents before relying on it for implementation.
-

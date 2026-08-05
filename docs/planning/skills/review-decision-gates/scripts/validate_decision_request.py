@@ -10,21 +10,19 @@ from pathlib import Path
 
 KEYS = {
     "id", "kind", "planning_status", "authority", "owner", "updated",
-    "depends_on", "decision_gates", "decision_approval",
-    "decision_approved_by", "decision_approved_at", "decision_record",
+    "depends_on", "decision_gates", "decision_record",
 }
 HEADINGS = {
     "# Decision Request:", "## Decision Needed", "## Why Now",
     "## Current Authority and Constraints", "## Options",
-    "## Recommendation", "## Evidence Required", "## Required Approver",
+    "## Recommendation", "## Evidence Required", "## Required Authority",
     "## Decision Record and Promotion", "## Dependent Planning Updates",
-    "## Approval History",
+    "## Planning History",
 }
 STATUSES = {
     "captured", "shaping", "decision-blocked", "ready", "active",
     "verifying", "complete", "superseded",
 }
-APPROVALS = {"pending", "approved", "changes-requested", "rejected"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -63,18 +61,11 @@ def main() -> int:
         errors.append("kind must be decision-request")
     if data.get("planning_status") not in STATUSES:
         errors.append("invalid planning_status")
-    if data.get("decision_approval") not in APPROVALS:
-        errors.append("invalid decision_approval")
     if not DATE_RE.match(data.get("updated", "")):
         errors.append("updated must be YYYY-MM-DD")
-    if data.get("decision_approval") == "approved":
-        if data.get("decision_approved_by") in {"", "null", "unassigned"}:
-            errors.append("approved decision requires decision_approved_by")
-        if not DATE_RE.match(data.get("decision_approved_at", "")):
-            errors.append("approved decision requires decision_approved_at YYYY-MM-DD")
+    if any(key.endswith(("_approval", "_approved_by", "_approved_at")) for key in data):
+        errors.append("approval metadata must remain in the ignored local ledger")
     if data.get("planning_status") == "complete":
-        if data.get("decision_approval") != "approved":
-            errors.append("complete decision request requires approved decision")
         if data.get("decision_record") in {"", "null"}:
             errors.append("complete decision request requires canonical decision_record")
     for heading in HEADINGS:

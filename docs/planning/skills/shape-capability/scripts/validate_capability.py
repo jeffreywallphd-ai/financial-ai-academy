@@ -10,21 +10,19 @@ from pathlib import Path
 
 REQUIRED_KEYS = {
     "id", "kind", "planning_status", "authority", "owner", "updated",
-    "depends_on", "decision_gates", "capability_approval",
-    "capability_approved_by", "capability_approved_at",
+    "depends_on", "decision_gates",
 }
 REQUIRED_HEADINGS = {
     "# Capability:", "## Outcome", "## Users and Value", "## In Scope",
     "## Out of Scope", "## Canonical Context",
     "## Decision Gates and Constraints", "## Proposed Vertical Slices",
     "## Capability Acceptance", "## Risks and Non-Goals",
-    "## Documentation Impact", "## Approval History",
+    "## Documentation Impact", "## Planning History",
 }
 STATUSES = {
     "captured", "shaping", "decision-blocked", "ready", "active",
     "verifying", "complete", "superseded",
 }
-APPROVALS = {"pending", "approved", "changes-requested", "rejected"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -59,19 +57,12 @@ def main() -> int:
         errors.append("kind must be capability")
     if data.get("planning_status") not in STATUSES:
         errors.append("invalid planning_status")
-    if data.get("capability_approval") not in APPROVALS:
-        errors.append("invalid capability_approval")
     if not DATE_RE.match(data.get("updated", "")):
         errors.append("updated must be YYYY-MM-DD")
     if data.get("planning_status") == "decision-blocked" and data.get("decision_gates") == "[]":
         errors.append("decision-blocked requires at least one decision gate")
-    if data.get("planning_status") == "ready" and data.get("capability_approval") != "approved":
-        errors.append("ready requires capability_approval: approved")
-    if data.get("capability_approval") == "approved":
-        if data.get("capability_approved_by") in {"", "null", "unassigned"}:
-            errors.append("approved capability requires capability_approved_by")
-        if not DATE_RE.match(data.get("capability_approved_at", "")):
-            errors.append("approved capability requires capability_approved_at YYYY-MM-DD")
+    if any(key.endswith(("_approval", "_approved_by", "_approved_at")) for key in data):
+        errors.append("approval metadata must remain in the ignored local ledger")
     for heading in REQUIRED_HEADINGS:
         if heading not in text:
             errors.append(f"missing heading: {heading}")

@@ -24,3 +24,4 @@ Compatibility changes require:
 
 Breaking changes require an accepted ADR or explicit compatibility decision. Version translation belongs at adapters or migration boundaries, not throughout domain behavior.
 
+Published lesson packages additionally preserve the immutable identity/version/digest rule in the [content-package contract](content-package-contract.md). A new schema version does not authorize mutation of an existing package version or silent substitution of a newer lesson or assessment.

@@ -8,12 +8,6 @@ updated: YYYY-MM-DD
 parent: CAP-0000
 depends_on: []
 decision_gates: []
-selection_approval: pending
-selection_approved_by: null
-selection_approved_at: null
-completion_approval: pending
-completion_approved_by: null
-completion_approved_at: null
 ---
 
 # Vertical Slice: Short Observable Increment
@@ -83,6 +77,6 @@ List ambiguity, conflicting authority, missing permission, failed evidence, or s
 
 Identify sources to update and the evidence that must be recorded before completion.
 
-## Approval History
+## Planning History
 
-Record explicit authorized selection and completion decisions. Neither approval may be inferred from planning status.
+Record public shaping and delivery state changes. Selection and completion evidence remains only in the ignored local ledger.

@@ -11,4 +11,4 @@ Replace every placeholder, remove inapplicable prompts, and retain the machine-r
 
 Reserve a collision-resistant ID first with `python dev-tools/planning/reserve_id.py reserve --kind <CAP|DEC|SLI|WRK> --owner <owner>`. For work packets, declare bounded repository-relative write scopes and generated artifacts before planning approval; leave activation claim fields null until authorized implementation begins.
 
-Retain the artifact-specific approval fields. Record authorized human decisions with the matching approver and date; never use an earlier approval to populate a later stage. The [planning skill suite](../skills/README.md) validates and operates these templates.
+Do not add approval fields or approval-history sections. Record authorized human decisions only in the ignored local ledger; never use an earlier approval to populate a later stage. A consolidated response may cover only an explicitly enumerated homogeneous DEC or slice-packet set, with one local record per artifact. The [planning skill suite](../skills/README.md) validates and operates these templates.

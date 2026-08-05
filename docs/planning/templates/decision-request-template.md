@@ -8,9 +8,6 @@ updated: YYYY-MM-DD
 parent: null
 depends_on: []
 decision_gates: []
-decision_approval: pending
-decision_approved_by: null
-decision_approved_at: null
 decision_record: null
 ---
 
@@ -41,18 +38,18 @@ Provide a reasoned recommendation when evidence is sufficient. Separate verified
 
 List discovery, prototype, legal/product review, security analysis, provider-term review, or operational qualification needed before approval.
 
-## Required Approver
+## Required Authority
 
-Identify the role or authority required to decide; an agent cannot self-approve.
+Identify the role or authority required to decide without recording a person or approval in this tracked artifact.
 
 ## Decision Record and Promotion
 
-Record the approver, date, selected option, and rationale. Link the resulting ADR or owning canonical document and decision-readiness update; this request does not replace them.
+Link the resulting ADR or owning canonical document and decision-readiness update after local authorization; this request does not replace them.
 
 ## Dependent Planning Updates
 
 List artifacts that must be reshaped or unblocked after the accepted decision is recorded canonically.
 
-## Approval History
+## Planning History
 
-Record explicit authorized decisions and canonical promotion without treating this request as decision authority.
+Record public shaping changes and canonical promotion. Approval and reviewer evidence remains only in the ignored local ledger.

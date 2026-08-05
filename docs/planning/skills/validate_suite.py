@@ -41,10 +41,17 @@ def main() -> int:
         print(f"ERROR: unable to load manifest: {error}")
         return 2
     names = [entry["name"] for entry in manifest.get("skills", [])]
-    if manifest.get("contractVersion") != 2:
-        errors.append("manifest contractVersion must be 2")
+    if manifest.get("contractVersion") != 4:
+        errors.append("manifest contractVersion must be 4")
     if manifest.get("discoveryTarget") != ".agents/skills":
         errors.append("manifest discoveryTarget must be .agents/skills")
+    if manifest.get("approvalStore") != ".local-codex/approvals/ledger.json":
+        errors.append("manifest approvalStore must be the ignored local ledger")
+    bundles = manifest.get("approvalBundles", {})
+    if set(bundles) != {"decision", "planning", "implementation"}:
+        errors.append("manifest approvalBundles must define decision, planning, and implementation")
+    if manifest.get("packetExecution") != "serial-dependency-order":
+        errors.append("manifest packetExecution must be serial-dependency-order")
     expected_ownership = {
         "write_scope", "generated_artifacts", "base_revision", "claim_id",
         "claimed_by", "claimed_at",
@@ -104,13 +111,45 @@ def main() -> int:
         if name != "guide-next-planning-action" and name not in router:
             errors.append(f"router does not reference {name}")
     implement = (ROOT / "implement-vertical-slice" / "SKILL.md").read_text(encoding="utf-8")
-    for token in ("selection_approval", "planning_approval", "implementation_approval", "current explicit"):
+    for token in ("approved local selection", "approved local planning", "approved local implementation", "current explicit"):
         if token not in implement:
             errors.append(f"implementation skill missing gate token: {token}")
     approval = (ROOT / "approve-planned-work" / "SKILL.md").read_text(encoding="utf-8")
-    for prefix in manifest.get("approvalPrefixes", []):
-        if ("`" + prefix + "`") not in approval:
-            errors.append(f"approval skill missing prefix: {prefix}")
+    for stage in manifest.get("approvalStages", []):
+        if ("`" + stage + "`") not in approval:
+            errors.append(f"approval skill missing local stage: {stage}")
+    for token in (".local-codex/approvals/ledger.json", "never copy"):
+        if token not in approval:
+            errors.append(f"approval skill missing local-only rule: {token}")
+    for token in ("record-bundle", "homogeneous closed", "one local-ledger entry per artifact"):
+        if token not in approval:
+            errors.append(f"approval skill missing bundle contract: {token}")
+    decision_review = (ROOT / "review-decision-gates" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    decision_table_header = (
+        "| Decision | Readiness | Viable options | Recommendation | Blocking DEC |"
+    )
+    for token in (
+        decision_table_header,
+        "at least two materially distinct options",
+        "Never omit the viable-options column",
+    ):
+        if token not in decision_review:
+            errors.append(f"decision-review skill missing table contract: {token}")
+    for token in ("one consolidated table", "one closed decision set"):
+        if token not in decision_review:
+            errors.append(f"decision-review skill missing consolidation contract: {token}")
+    decision_table_asset = (
+        ROOT
+        / "review-decision-gates"
+        / "assets"
+        / "decision-classification-table.md"
+    )
+    if decision_table_asset.is_file() and decision_table_header not in (
+        decision_table_asset.read_text(encoding="utf-8")
+    ):
+        errors.append("decision classification table asset has an invalid header")
     for support in (
         ROOT / "sync_skills.py",
         ROOT / "evaluate_scenarios.py",

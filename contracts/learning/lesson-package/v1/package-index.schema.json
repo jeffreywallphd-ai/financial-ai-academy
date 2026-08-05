@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/lesson-package/v1/package-index.schema.json",
+  "title": "Canonical logical package index",
+  "type": "array",
+  "minItems": 1,
+  "maxItems": 128,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["path", "media_type", "size_bytes", "sha256"],
+    "properties": {
+      "path": {"type": "string", "minLength": 1, "maxLength": 240},
+      "media_type": {"type": "string", "minLength": 1, "maxLength": 100},
+      "size_bytes": {"type": "integer", "minimum": 0, "maximum": 8388608},
+      "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+    }
+  }
+}

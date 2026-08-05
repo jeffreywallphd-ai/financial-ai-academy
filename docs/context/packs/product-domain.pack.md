@@ -14,6 +14,7 @@ Work affects scope, users, editions, non-goals, domain language, or capability o
 ## Canonical Sources
 
 - `docs/product/product-vision-and-scope.md`
+- `docs/product/capability-catalog.md`
 - `docs/product/community-and-commercial-editions.md`
 - `docs/product/non-goals.md`
 - `docs/domain/README.md`
@@ -22,4 +23,3 @@ Work affects scope, users, editions, non-goals, domain language, or capability o
 ## Stop When
 
 A change adds a regulated, commercial, licensing, or externally consequential product boundary without an accepted decision.
-

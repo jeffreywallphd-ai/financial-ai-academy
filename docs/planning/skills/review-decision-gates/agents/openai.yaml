@@ -1,4 +1,4 @@
 interface:
   display_name: "Review Decision Gates"
-  short_description: "Identify and route unresolved decisions"
-  default_prompt: "Use $review-decision-gates to identify unresolved decisions before planning or implementation proceeds."
+  short_description: "Classify decisions and compare viable options"
+  default_prompt: "Use $review-decision-gates to compare viable options and request one response for the closed set of related DEC records."

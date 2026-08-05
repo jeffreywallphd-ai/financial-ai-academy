@@ -1,0 +1,7 @@
+{
+  "package_id": "intro-risk-return",
+  "package_version": "1.0.0",
+  "accepted_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "conflicting_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "expected_code": "package.immutable_conflict"
+}

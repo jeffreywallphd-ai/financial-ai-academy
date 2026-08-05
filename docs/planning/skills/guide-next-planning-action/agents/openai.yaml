@@ -1,4 +1,4 @@
 interface:
   display_name: "Guide Next Planning Action"
   short_description: "Recommend the next governed planning action"
-  default_prompt: "Use $guide-next-planning-action to determine what governed planning action should happen next."
+  default_prompt: "Use $guide-next-planning-action to choose the next governed action and consolidate eligible approval sets."

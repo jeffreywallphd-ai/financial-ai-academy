@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Canonical for: contract classes, sources, generation, and ownership
-- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`
+- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`, `identity-provider-contract.md`, `content-package-contract.md`
 
 ## Contract Classes
 
@@ -14,6 +14,8 @@
 | Portable learning and finance records | JSON Schema | Schema files under `contracts/learning/` and `contracts/finance/` |
 | Internal application operations | Typed Python request/result models | Owning module public application surface |
 | Frontend client | Generated TypeScript | Generated from reviewed OpenAPI; never hand-edited |
+
+Portable versioned lesson packages additionally follow the [content-package contract](content-package-contract.md). Its logical package, immutability, integrity, ownership, and safe-rendering rules are canonical; exact field shapes belong in later executable JSON Schemas.
 
 ## Ownership
 
@@ -32,4 +34,3 @@
 ## Validation
 
 Validate at every trust boundary. Validation confirms shape; application and domain code still enforce semantic invariants and authorization.
-

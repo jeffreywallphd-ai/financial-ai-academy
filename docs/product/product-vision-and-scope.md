@@ -17,6 +17,8 @@ Financial AI Academy will help learners build financial-investing, quantitative,
 - Financial AI/ML datasets, experiments, and evaluation
 - Local open-source operation and a managed cloud offering
 
+The [Product Capability Catalog](capability-catalog.md) expands these themes and the page concepts below into outcome-oriented candidate capabilities that governed planning can shape individually.
+
 ## Potential Major Pages
 
 The following working page concepts describe the intended learner experience. They are a directional capability map, not an implementation specification, contractual commitment, or delivery sequence.

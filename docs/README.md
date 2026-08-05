@@ -8,7 +8,7 @@ This documentation is the control system for Financial AI Academy. It preserves 
 
 | Directory | Role | Canonical? |
 | --- | --- | --- |
-| `product/` | Vision, users, editions, scope, and non-goals | Yes for product intent |
+| `product/` | Vision, users, editions, capability inventory, scope, and non-goals | Yes for product intent |
 | `domain/` | Financial-learning vocabulary, rules, evidence, and lifecycle meaning | Yes for domain meaning |
 | `architecture/` | System structure, module ownership, contracts, data, AI, and deployment | Yes for technical architecture |
 | `contracts/` | Contract catalog, semantic ownership, and conformance policy | Yes for contract governance |
@@ -56,6 +56,7 @@ For non-trivial work:
 ## Current Foundation
 
 - [Product Vision and Scope](product/product-vision-and-scope.md)
+- [Product Capability Catalog](product/capability-catalog.md)
 - [Community and Commercial Editions](product/community-and-commercial-editions.md)
 - [Non-Goals](product/non-goals.md)
 - [Domain Map](domain/README.md)
@@ -76,4 +77,4 @@ Update canonical documentation, related ADRs, affected context packs, and verifi
 
 Shared interface changes must also keep the style guide, executable design tokens, icon assets and manifest, consuming components, and applicable visual/accessibility tests synchronized.
 
-Planning-system changes must keep the planning guide, register, concurrent-work protocol, artifact templates, approval and ownership metadata, suite manifest, router, prompt evaluations, developer tools, and affected context guidance synchronized. Run `python dev-tools/agent/check_ready.py`; add `--base-ref <revision>` when validating lifecycle transitions against a known base.
+Planning-system changes must keep the planning guide, register, concurrent-work protocol, artifact templates, ignored local approval-ledger contract, public ownership and claim metadata, suite manifest, router, prompt evaluations, developer tools, and affected context guidance synchronized. Approval stages remain separate, but one human response may cover a closed homogeneous DEC set or one slice's closed packet set at planning or implementation; write one local record per member, and require renewed approval for new or materially revised members. Approval and reviewer records must remain only under ignored `.local-codex/approvals/` and must not be copied into tracked artifacts, histories, summaries, fixtures, or examples. Run `python dev-tools/agent/check_ready.py`; add `--base-ref <revision>` when validating lifecycle transitions against a known base.

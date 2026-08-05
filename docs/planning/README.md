@@ -9,6 +9,8 @@ This directory shapes future work so an automated development agent can execute 
 
 Planning artifacts are working coordination records. They do not override product, domain, architecture, contract, risk, security, standard, or ADR authority. A `ready` planning state means an artifact is sufficiently specified for scheduling; it does not grant implementation authority by itself.
 
+The proposed [Product Capability Catalog](../product/capability-catalog.md) is the current outcome-oriented inventory from which capability shaping may draw. Catalog entries are planning inputs only; each must be bounded, checked against current decisions, recorded as its own `CAP-*` artifact, and explicitly approved before slice selection.
+
 ## Work Hierarchy
 
 | Level | Stored in | Purpose |
@@ -39,22 +41,30 @@ Every artifact uses exactly one `planning_status` value:
 | `complete` | Acceptance evidence and documentation impact are recorded |
 | `superseded` | The artifact is replaced or intentionally abandoned, with a reason and replacement when applicable |
 
-State changes update both the artifact and `register.md` in the same change. Moving from `ready` to `active` requires recorded implementation approval and a current explicit user instruction to implement the named work.
+State changes update both the artifact and `register.md` in the same change. Moving from `ready` to `active` requires an approved local implementation decision and a current explicit user instruction to implement the named work.
 
 ## Approval Stages
 
-Approval decisions use `pending`, `approved`, `changes-requested`, or `rejected`. An agent may prepare a review and record an explicit authorized human decision; it may not self-approve.
+An absent local record means a stage is pending. Recorded decisions use `approved`, `changes-requested`, or `rejected`. An agent may prepare a review and record an explicit authorized human decision; it may not self-approve.
 
-| Stage | Artifact | Required before |
+| Stage | Subject and local ledger stage | Required before |
 | --- | --- | --- |
-| Capability framing | `capability_approval` on `CAP-*` | Candidate slices are selected |
-| Durable decision | `decision_approval` on `DEC-*`, followed by canonical promotion | Dependent planning or implementation is unblocked |
-| Slice selection | `selection_approval` on `SLI-*` | Work packets are authored |
-| Plan readiness | `planning_approval` on `WRK-*` | Implementation activation is considered |
-| Implementation activation | `implementation_approval` plus `implementation_authority` on `WRK-*` | A current explicit implementation request may start work |
-| Completion acceptance | `completion_approval` on `SLI-*` | The slice moves from verifying to complete |
+| Capability framing | `CAP-*` / `capability` | Candidate slices are selected |
+| Durable decision | `DEC-*` / `decision`, followed by canonical promotion | Dependent planning or implementation is unblocked |
+| Slice selection | `SLI-*` / `selection` | Work packets are authored |
+| Plan readiness | `WRK-*` / `planning` | Implementation activation is considered |
+| Implementation activation | `WRK-*` / `implementation`, with local authority and reviewed scope | A current explicit implementation request may start work |
+| Completion acceptance | `SLI-*` / `completion` | The slice moves from verifying to complete |
 
-Every non-pending stage records `<stage>_approved_by` and `<stage>_approved_at`. Earlier approval, planning readiness, an accepted roadmap, or a general advice request never supplies a later approval automatically. External, destructive, credentialed, production, publication, commit, and push actions retain their own authority requirements.
+Earlier approval, planning readiness, an accepted roadmap, or a general advice request never supplies a later approval automatically. External, destructive, credentialed, production, publication, commit, and push actions retain their own authority requirements.
+
+Approval stages remain independent, while eligible members at one stage may share one human decision point. Use one consolidated response for an explicitly enumerated related `DEC-*` set, one selected slice's closed `WRK-*` planning set, or the same frozen `WRK-*` implementation set. Record one local entry per artifact. A later or materially revised decision, packet, or `write_scope` is outside the bundle and requires renewed approval. After slice-wide implementation approval, claim, implement, verify, and complete packets serially in dependency order without another approval prompt between unchanged preauthorized packets.
+
+### Local-only approval storage
+
+Every approval and reviewer record lives only in `.local-codex/approvals/ledger.json`, which is ignored. Use `python dev-tools/planning/manage_approval.py` or the portable `approve-planned-work` scripts to record or inspect it. The local record contains the decision or review status, a local actor/reviewer label, date, authority reference, optional reviewed scope, and note.
+
+Tracked artifacts and the planning register retain only public planning state, canonical decision links, scope, claims, and non-sensitive planning history. They must never contain approval metadata, approval histories, approval summaries, approver/reviewer labels or identifiers, approval dates, authority references, or reviewed scope copied from the local ledger. Public CI validates structure; guarded local actions validate the ledger. Losing the ignored ledger requires the human decisions to be re-established locally—it must not be reconstructed by inferring approval from public state.
 
 ## Planning Flow
 
@@ -93,7 +103,7 @@ A vertical slice or work packet is `ready` only when it:
 - names one observable outcome and a parent capability;
 - links the minimum canonical context instead of copying it;
 - identifies all applicable decision gates from `docs/adr/decision-readiness.md`;
-- carries the approval fields required for its artifact kind;
+- has the required local approval stage for its lifecycle state;
 - names affected boundaries, contracts, consumers, data, and documentation;
 - has explicit in-scope and out-of-scope work;
 - declares dependencies and whether parallel execution is safe;
@@ -110,9 +120,9 @@ Acceptance scenarios should cover the relevant subset of success, malformed inpu
 - Route context through `docs/context/prompt-routing.md` and read current canonical sources at execution time.
 - Treat the packet as bounded coordination input, not as higher authority than the repository or current user instruction.
 - Stop when a packet depends on a `proposed` or `decision-required` boundary, or when its assumptions conflict with current canonical sources.
-- Do not start implementation until slice selection, packet planning, and implementation activation approvals are recorded and the user currently asks to implement the named work.
+- Do not start implementation until slice selection, packet planning, and implementation activation approvals are recorded locally and the user currently asks to implement the named slice or work. A slice-wide instruction covers only its exact frozen packet bundle and scopes.
 - Give one agent ownership of an active packet. Run multiple packets concurrently only when dependencies and write scopes are explicitly independent.
-- Reserve new IDs before authoring, declare repository-relative write scopes before planning approval, and claim approved packets before moving them to `active`.
+- Reserve new IDs before authoring, declare repository-relative write scopes before planning approval, and claim locally approved packets before moving them to `active`.
 - Treat `.agents/skills/` as an ignored discovery installation; `docs/planning/skills/` remains canonical.
 - Keep implementation, tests, contract updates, canonical documentation, derived context, and completion evidence in the same change when they describe one behavior change.
 - Record exact verification results and residual gaps before marking work `complete`.

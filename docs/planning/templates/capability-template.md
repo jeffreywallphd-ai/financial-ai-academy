@@ -8,9 +8,6 @@ updated: YYYY-MM-DD
 parent: null
 depends_on: []
 decision_gates: []
-capability_approval: pending
-capability_approved_by: null
-capability_approved_at: null
 ---
 
 # Capability: Short Outcome Name
@@ -59,6 +56,6 @@ Identify likely scope expansion, harmful claims, authority mistakes, data-use co
 
 List canonical and derived documentation expected to change as slices are delivered.
 
-## Approval History
+## Planning History
 
-Record material state changes, approvals, supersession, and links to accepted roadmaps without copying implementation history.
+Record material public state changes, canonical promotions, supersession, and links to accepted roadmaps. Never copy approval or reviewer evidence from the ignored local ledger.

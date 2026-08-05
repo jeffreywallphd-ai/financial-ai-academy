@@ -1,0 +1,52 @@
+[
+  {
+    "id": "unsupported-schema-version",
+    "mutation": {"op": "manifest-set", "path": "schema_version", "value": "2.0.0"},
+    "expected_code": "schema.invalid"
+  },
+  {
+    "id": "unsafe-traversal",
+    "mutation": {"op": "manifest-set", "path": "lesson.path", "value": "../lesson.md"},
+    "expected_code": "package.path_invalid"
+  },
+  {
+    "id": "missing-declared-file",
+    "mutation": {"op": "delete", "path": "lesson.md"},
+    "expected_code": "package.file_set_mismatch"
+  },
+  {
+    "id": "undeclared-extra-file",
+    "mutation": {"op": "write", "path": "extra.txt", "value": "not declared"},
+    "expected_code": "package.file_set_mismatch"
+  },
+  {
+    "id": "raw-html",
+    "mutation": {"op": "append", "path": "lesson.md", "value": "\n<script>alert(1)</script>\n", "refresh_declaration": true},
+    "expected_code": "markup.unsafe_html"
+  },
+  {
+    "id": "unsafe-link",
+    "mutation": {"op": "append", "path": "lesson.md", "value": "\n[unsafe](javascript:alert(1))\n", "refresh_declaration": true},
+    "expected_code": "markup.unsafe_url"
+  },
+  {
+    "id": "undeclared-image",
+    "mutation": {"op": "append", "path": "lesson.md", "value": "\n![missing](assets/missing.png)\n", "refresh_declaration": true},
+    "expected_code": "markup.undeclared_asset"
+  },
+  {
+    "id": "integrity-mismatch",
+    "mutation": {"op": "append", "path": "lesson.md", "value": "\nChanged bytes.\n"},
+    "expected_code": "package.integrity_mismatch"
+  },
+  {
+    "id": "media-mismatch",
+    "mutation": {"op": "manifest-set", "path": "lesson.media_type", "value": "application/json"},
+    "expected_code": "package.media_mismatch"
+  },
+  {
+    "id": "individual-size-limit",
+    "mutation": {"op": "limit", "name": "max_file_bytes", "value": 64},
+    "expected_code": "package.limit_exceeded"
+  }
+]

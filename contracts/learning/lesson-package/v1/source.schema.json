@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/lesson-package/v1/source.schema.json",
+  "title": "Lesson educational source",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source_id", "title", "publisher", "locator", "reviewed_on"],
+  "properties": {
+    "source_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 240},
+    "publisher": {"type": "string", "minLength": 1, "maxLength": 160},
+    "locator": {"type": "string", "pattern": "^https://[^\\s]+$", "maxLength": 2048},
+    "reviewed_on": {"type": "string", "format": "date"},
+    "license_note": {"type": "string", "minLength": 1, "maxLength": 500}
+  }
+}

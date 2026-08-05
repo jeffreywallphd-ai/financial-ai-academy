@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+import json
 import sys
 from pathlib import Path
 
@@ -35,6 +36,42 @@ def section_body(text: str, heading: str) -> str:
     return tail.split("\n## ", 1)[0].strip()
 
 
+def repository_root(path: Path) -> Path:
+    current = path.resolve().parent
+    for candidate in (current, *current.parents):
+        if (candidate / ".git").exists() and (candidate / "docs").is_dir():
+            return candidate
+    raise ValueError("unable to locate repository root")
+
+
+def load_ledger(root: Path) -> dict[str, object]:
+    path = root / ".local-codex/approvals/ledger.json"
+    if not path.is_file():
+        raise ValueError(f"local approval ledger not found: {path}")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("version") != 1 or not isinstance(data.get("records"), list):
+        raise ValueError("local approval ledger is invalid")
+    return data
+
+
+def latest(ledger: dict[str, object], subject: str, stage: str) -> dict[str, object] | None:
+    records = [
+        item for item in ledger["records"]
+        if isinstance(item, dict)
+        and item.get("subject") == subject
+        and item.get("stage") == stage
+    ]
+    return records[-1] if records else None
+
+
+def require_approved(
+    ledger: dict[str, object], subject: str, stage: str, errors: list[str]
+) -> None:
+    record = latest(ledger, subject, stage)
+    if not record or record.get("decision") != "approved":
+        errors.append(f"{subject}: missing approved local {stage} decision")
+
+
 def main() -> int:
     if len(sys.argv) < 3:
         print("Usage: check_completion_gate.py <SLI markdown> <WRK markdown> [<WRK markdown> ...]", file=sys.stderr)
@@ -49,14 +86,19 @@ def main() -> int:
     slice_data = metadata(slice_path)
     slice_id = slice_data.get("id", str(slice_path))
     errors: list[str] = []
+    try:
+        ledger = load_ledger(repository_root(slice_path))
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"Completion gate failed: {error}", file=sys.stderr)
+        return 1
     if slice_data.get("kind") != "vertical-slice":
         errors.append("first artifact must be a vertical-slice")
     if slice_data.get("planning_status") != "verifying":
         errors.append(f"{slice_id}: status must be verifying before acceptance")
-    if slice_data.get("selection_approval") != "approved":
-        errors.append(f"{slice_id}: selection approval is missing")
-    if slice_data.get("completion_approval") not in {"pending", "changes-requested"}:
-        errors.append(f"{slice_id}: completion approval must still await a human decision")
+    require_approved(ledger, slice_id, "selection", errors)
+    completion = latest(ledger, slice_id, "completion")
+    if completion and completion.get("decision") == "approved":
+        errors.append(f"{slice_id}: completion is already locally approved; update public state")
     evidence = section_body(slice_text, "## Documentation Impact and Completion Evidence")
     if len(evidence) < 80:
         errors.append(f"{slice_id}: completion evidence section is incomplete")
@@ -69,8 +111,8 @@ def main() -> int:
             errors.append(f"{label}: parent does not match {slice_id}")
         if data.get("planning_status") != "complete":
             errors.append(f"{label}: packet must be complete")
-        if data.get("planning_approval") != "approved" or data.get("implementation_approval") != "approved":
-            errors.append(f"{label}: required approvals are missing")
+        require_approved(ledger, label, "planning", errors)
+        require_approved(ledger, label, "implementation", errors)
         for field in ("base_revision", "claim_id", "claimed_by"):
             if data.get(field) in {None, "", "null", "unassigned"}:
                 errors.append(f"{label}: completion requires retained {field}")

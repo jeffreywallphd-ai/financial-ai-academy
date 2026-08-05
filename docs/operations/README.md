@@ -1,7 +1,11 @@
 # Operations Documentation
 
-- Status: proposed
+- Status: partially accepted
 - Canonical for: operations-document routing
+
+## Accepted Design Boundaries
+
+- [Community Backup and Restore](community-backup-and-restore.md) defines the user-invoked, maintenance-mode backup, empty-target restore, and no-RPO/RTO support-claim boundary. Its tooling and controlled qualification remain gaps.
 
 Operational documents will cover:
 
@@ -14,5 +18,4 @@ Operational documents will cover:
 - cloud deployment qualification,
 - incident response and recovery objectives.
 
-Operations claims require executable or controlled-environment evidence. Exact procedures remain gaps until implementation and deployment decisions exist.
-
+Operations claims require executable or controlled-environment evidence. An accepted workflow design is not evidence that commands, platform support, or recovery guarantees exist.

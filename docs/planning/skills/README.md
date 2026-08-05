@@ -9,7 +9,7 @@
 | --- | --- | --- |
 | [`guide-next-planning-action`](guide-next-planning-action/SKILL.md) | Recommend the next governed action and route to another skill | Read-only |
 | [`shape-capability`](shape-capability/SKILL.md) | Shape one bounded capability | Writes only when authorized |
-| [`review-decision-gates`](review-decision-gates/SKILL.md) | Classify and route unresolved decisions | Writes only when authorized |
+| [`review-decision-gates`](review-decision-gates/SKILL.md) | Classify decisions, compare viable options, recommend a path, and route unresolved choices | Writes only when authorized |
 | [`select-vertical-slice`](select-vertical-slice/SKILL.md) | Score candidates and recommend one vertical slice | Writes only when authorized |
 | [`author-agent-work-packet`](author-agent-work-packet/SKILL.md) | Author bounded agent work packets | Writes only when authorized |
 | [`approve-planned-work`](approve-planned-work/SKILL.md) | Record an explicit authorized human decision | Writes only after explicit approval |
@@ -24,13 +24,16 @@ The suite uses:
 
 - IDs `CAP-*`, `DEC-*`, `SLI-*`, and `WRK-*`;
 - planning states `captured`, `shaping`, `decision-blocked`, `ready`, `active`, `verifying`, `complete`, and `superseded`;
-- approval decisions `pending`, `approved`, `changes-requested`, and `rejected`;
-- six independent approval prefixes: `capability`, `decision`, `selection`, `planning`, `implementation`, and `completion`;
-- flat `<stage>_approval`, `<stage>_approved_by`, and `<stage>_approved_at` metadata;
-- a separate `implementation_authority` reference on work packets.
+- an absent record for pending stages and local decisions `approved`, `changes-requested`, and `rejected`;
+- six independent local ledger stages: `capability`, `decision`, `selection`, `planning`, `implementation`, and `completion`;
+- ignored local storage at `.local-codex/approvals/ledger.json`, including scoped implementation authority;
 - repository-relative `write_scope` and `generated_artifacts`, plus durable activation evidence in `base_revision`, `claim_id`, `claimed_by`, and `claimed_at`.
 
 An agent may prepare a review and record an explicit human decision. It may not self-approve. Planning readiness, a roadmap, or an earlier approval never supplies a later approval automatically.
+
+One response may cover one closed homogeneous approval bundle: related `DEC-*` requests, one `SLI-*` packet set at planning, or that frozen packet set at implementation. The ledger still contains one record per artifact. Bundle membership and implementation scopes are exact; additions or material revisions require a new response. Approved packet bundles execute serially in dependency order unless separately authorized otherwise.
+
+Tracked files contain no approval or reviewer records. Skills must never copy ledger decisions, labels, identities, dates, authority references, reviewed scope, or notes into artifacts, histories, summaries, tests, fixtures, or examples.
 
 Every file-changing skill prominently requires applicable `AGENTS.md` and repository-root `docs/README.md` to be read and followed before editing.
 

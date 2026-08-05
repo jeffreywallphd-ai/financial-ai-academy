@@ -30,9 +30,10 @@
 - Resolve decision requests before dependent work becomes `ready`; record accepted durable decisions in their canonical location rather than in a plan.
 - Treat planning state as coordination metadata. It never overrides current canonical sources, repository authority, or explicit user authorization.
 - Use the governed planning skills for repeatable workflows and `guide-next-planning-action` for broad next-step requests. Advice-only prompts do not authorize file changes.
-- Keep capability framing, durable decision, slice selection, plan readiness, implementation activation, and completion acceptance as separate human decisions. Agents may record but never originate approval.
-- Require approved selection, approved packet planning, separate implementation approval with scoped authority, and a current explicit implementation request before moving work to `active`.
-- Claim each approved packet against a base revision before implementation. Keep one owner and durable claim evidence from activation through handoff; concurrent active packets require reciprocal parallel-safety declarations and disjoint scopes.
+- Keep capability framing, durable decision, slice selection, plan readiness, implementation activation, and completion acceptance as separate human stages. One response may cover an explicitly enumerated homogeneous set of related decisions or one slice's packet set at one stage; agents record one local decision per artifact and may never originate approval.
+- Store approval and reviewer records only in the ignored local approval ledger. Tracked artifacts and registers contain public state and canonical links, never approval identity, decision, date, authority, scope, history, or summary.
+- Require approved selection, approved packet planning, separate implementation approval exactly bound to each packet `write_scope`, and a current explicit implementation request before moving work to `active`. New or materially revised bundle members require renewed approval.
+- Claim each approved packet against a base revision before implementation. Execute a slice bundle one dependency-ready packet at a time unless separately authorized for reviewed parallel work. Keep one owner and durable claim evidence from activation through handoff; concurrent active packets require reciprocal parallel-safety declarations and disjoint scopes.
 - Update planning lifecycle and completion evidence as part of the same change that advances the work.
 
 ## Prohibited Shortcuts

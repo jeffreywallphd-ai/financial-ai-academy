@@ -6,4 +6,4 @@ Name files `SLI-####-short-name.md` and start from [the vertical-slice template]
 
 Avoid horizontal slices such as “build all persistence” or “build all UI” unless they are independently valuable platform-enabling outcomes with explicit consumers and acceptance evidence.
 
-Use `select-vertical-slice` for deterministic eligibility and scoring. Work-packet authoring requires explicit `selection_approval`; closure requires a separate `completion_approval`.
+Use `select-vertical-slice` for deterministic eligibility and scoring. Work-packet authoring requires explicit local selection approval; closure requires separate local completion approval.

@@ -21,7 +21,7 @@
       "path": "docs/context/packs/product-domain.pack.md",
       "keywords": ["scope", "edition", "user", "domain", "glossary"],
       "pathGlobs": ["docs/product/**", "docs/domain/**"],
-      "canonicalSources": ["docs/product/product-vision-and-scope.md", "docs/domain/README.md"],
+      "canonicalSources": ["docs/product/product-vision-and-scope.md", "docs/product/capability-catalog.md", "docs/domain/README.md"],
       "adjacentPacks": ["security-risk"],
       "stopConditions": ["New regulated or commercial product boundary"]
     },
@@ -30,7 +30,7 @@
       "path": "docs/context/packs/architecture-contracts.pack.md",
       "keywords": ["architecture", "module", "API", "event", "contract", "provider", "plugin"],
       "pathGlobs": ["backend/**", "contracts/**", "extensions/**", "sdk/**", "docs/architecture/**", "docs/contracts/**"],
-      "canonicalSources": ["docs/architecture/README.md", "docs/architecture/contracts/contract-architecture.md"],
+      "canonicalSources": ["docs/architecture/README.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0006-setup-selectable-learner-identity.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0009-initial-application-framework-runtime-baseline.md", "docs/architecture/modules/module-map.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/architecture/contracts/content-package-contract.md"],
       "adjacentPacks": ["testing-quality", "security-risk"],
       "stopConditions": ["Dependency reversal or breaking contract without accepted decision"]
     },
@@ -39,7 +39,7 @@
       "path": "docs/context/packs/learning-adaptation.pack.md",
       "keywords": ["curriculum", "assessment", "mastery", "learner state", "adaptive", "recommendation"],
       "pathGlobs": ["backend/**/curriculum/**", "backend/**/assessment/**", "backend/**/learner_model/**", "backend/**/adaptation/**", "docs/architecture/learning/**"],
-      "canonicalSources": ["docs/architecture/learning/adaptive-pathway-architecture.md", "docs/domain/README.md"],
+      "canonicalSources": ["docs/architecture/learning/adaptive-pathway-architecture.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/architecture/contracts/content-package-contract.md", "docs/architecture/modules/module-map.md", "docs/domain/README.md"],
       "adjacentPacks": ["ai-ml", "testing-quality"],
       "stopConditions": ["Model output bypasses deterministic eligibility or policy"]
     },
@@ -66,7 +66,7 @@
       "path": "docs/context/packs/security-risk.pack.md",
       "keywords": ["security", "privacy", "license", "advice", "claim", "identity", "tenant", "plugin", "external"],
       "pathGlobs": ["docs/security/**", "docs/risk-compliance/**", "docs/external-sources/**"],
-      "canonicalSources": ["docs/security/README.md", "docs/risk-compliance/README.md"],
+      "canonicalSources": ["docs/security/README.md", "docs/security/local-identity-architecture.md", "docs/security/community-learner-evidence-protection.md", "docs/adr/ADR-0006-setup-selectable-learner-identity.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0008-community-learner-evidence-protection-and-recovery.md", "docs/architecture/contracts/content-package-contract.md", "docs/risk-compliance/README.md"],
       "adjacentPacks": ["architecture-contracts", "deployment-operations"],
       "stopConditions": ["Unresolved trust, legal, license, privacy, or financial-claims decision"]
     },
@@ -75,7 +75,7 @@
       "path": "docs/context/packs/deployment-operations.pack.md",
       "keywords": ["local", "cloud", "deployment", "job", "storage", "backup", "migration", "recovery"],
       "pathGlobs": ["deployments/**", "docs/operations/**", "docs/architecture/deployment/**"],
-      "canonicalSources": ["docs/operations/README.md", "docs/architecture/deployment/local-cloud-capability-parity.md"],
+      "canonicalSources": ["docs/operations/README.md", "docs/operations/community-backup-and-restore.md", "docs/adr/ADR-0006-setup-selectable-learner-identity.md", "docs/adr/ADR-0008-community-learner-evidence-protection-and-recovery.md", "docs/adr/ADR-0009-initial-application-framework-runtime-baseline.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/architecture/deployment/local-cloud-capability-parity.md"],
       "adjacentPacks": ["security-risk", "testing-quality"],
       "stopConditions": ["Provider, tenancy, encryption, or recovery policy is unresolved"]
     },
@@ -102,7 +102,7 @@
       "path": "docs/context/packs/testing-quality.pack.md",
       "keywords": ["test", "bug", "diagnostic", "verification", "architecture check", "docs check", "agent readiness", "prompt evaluation", "CI"],
       "pathGlobs": ["tests/**", "dev-tools/**", "docs/assurance/**", ".github/workflows/**", "**/tests/**"],
-      "canonicalSources": ["docs/standards/testing-and-verification-standards.md", "docs/assurance/architecture-verification.md"],
+      "canonicalSources": ["docs/standards/testing-and-verification-standards.md", "docs/architecture/assurance/architecture-verification.md"],
       "adjacentPacks": [],
       "stopConditions": ["A failing check exposes an unresolved architecture decision"]
     }

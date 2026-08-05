@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
-"""Validate planning artifacts, approvals, references, and ownership."""
+"""Validate public planning artifacts, references, lifecycle, and ownership."""
 
 from __future__ import annotations
 
 import argparse
 import itertools
+import json
 import re
 import sys
 from pathlib import Path
+
+from approval_store import ApprovalStoreError, load_store, require_decision
 
 from planning_model import (
     ARTIFACT_LOCATIONS,
@@ -31,39 +34,37 @@ STATUSES = {
     "captured", "shaping", "decision-blocked", "ready", "active",
     "verifying", "complete", "superseded",
 }
-APPROVALS = {"pending", "approved", "changes-requested", "rejected"}
 REQUIRED_FIELDS = {
     "capability": {
         "id", "kind", "planning_status", "authority", "owner", "updated",
-        "parent", "depends_on", "decision_gates", "capability_approval",
-        "capability_approved_by", "capability_approved_at",
+        "parent", "depends_on", "decision_gates",
     },
     "decision-request": {
         "id", "kind", "planning_status", "authority", "owner", "updated",
-        "parent", "depends_on", "decision_gates", "decision_approval",
-        "decision_approved_by", "decision_approved_at", "decision_record",
+        "parent", "depends_on", "decision_gates", "decision_record",
     },
     "vertical-slice": {
         "id", "kind", "planning_status", "authority", "owner", "updated",
-        "parent", "depends_on", "decision_gates", "selection_approval",
-        "selection_approved_by", "selection_approved_at", "completion_approval",
-        "completion_approved_by", "completion_approved_at",
+        "parent", "depends_on", "decision_gates",
     },
     "work-packet": {
         "id", "kind", "planning_status", "authority", "owner", "updated",
         "parent", "capability", "depends_on", "decision_gates",
         "parallel_safe_with", "write_scope", "generated_artifacts",
         "base_revision", "claim_id", "claimed_by", "claimed_at",
-        "planning_approval", "planning_approved_by", "planning_approved_at",
-        "implementation_approval", "implementation_approved_by",
-        "implementation_approved_at", "implementation_authority",
     },
 }
-APPROVAL_PREFIXES = {
-    "capability": ("capability",),
-    "decision-request": ("decision",),
-    "vertical-slice": ("selection", "completion"),
-    "work-packet": ("planning", "implementation"),
+LOCAL_GATES = {
+    "capability": (({"ready", "active", "verifying", "complete"}, "capability"),),
+    "decision-request": (({"ready", "verifying", "complete"}, "decision"),),
+    "vertical-slice": (
+        ({"ready", "active", "verifying", "complete"}, "selection"),
+        ({"complete"}, "completion"),
+    ),
+    "work-packet": (
+        ({"ready", "active", "verifying", "complete"}, "planning"),
+        ({"active", "verifying", "complete"}, "implementation"),
+    ),
 }
 ALLOWED_TRANSITIONS = {
     "captured": {"captured", "shaping", "superseded"},
@@ -86,6 +87,19 @@ def validate_identity(artifact: Artifact, errors: list[str]) -> None:
     missing = REQUIRED_FIELDS.get(artifact.kind, set()) - set(data)
     for field in sorted(missing):
         error(errors, artifact, f"missing metadata field {field}")
+    forbidden = [
+        field for field in data
+        if field.endswith(("_approval", "_approved_by", "_approved_at"))
+        or field == "implementation_authority"
+    ]
+    for field in sorted(forbidden):
+        error(errors, artifact, f"local-only approval metadata must not be tracked: {field}")
+    if re.search(
+        r"^## Approval History\s*$",
+        artifact.path.read_text(encoding="utf-8"),
+        re.MULTILINE,
+    ):
+        error(errors, artifact, "approval history must remain in the ignored local ledger")
 
     match = ID_RE.match(artifact.identifier)
     if not match:
@@ -105,58 +119,17 @@ def validate_identity(artifact: Artifact, errors: list[str]) -> None:
         error(errors, artifact, "updated must be YYYY-MM-DD")
 
 
-def validate_approval(
-    artifact: Artifact, prefix: str, errors: list[str]
-) -> None:
-    data = artifact.metadata
-    state = as_text(data.get(f"{prefix}_approval"))
-    if state not in APPROVALS:
-        error(errors, artifact, f"invalid {prefix}_approval {state!r}")
-        return
-    actor = data.get(f"{prefix}_approved_by")
-    date = as_text(data.get(f"{prefix}_approved_at"))
-    if state == "pending":
-        if is_present(actor) or is_present(date):
-            error(errors, artifact, f"pending {prefix} approval cannot carry decision evidence")
-    elif not is_present(actor) or not DATE_RE.match(date):
-        error(errors, artifact, f"non-pending {prefix} approval requires actor and YYYY-MM-DD date")
-
-
-def require_approved(
-    artifact: Artifact, prefix: str, errors: list[str], reason: str
-) -> None:
-    if as_text(artifact.metadata.get(f"{prefix}_approval")) != "approved":
-        error(errors, artifact, f"{reason} requires approved {prefix} gate")
-
-
 def validate_lifecycle(artifact: Artifact, errors: list[str]) -> None:
     data = artifact.metadata
     status = artifact.status
-    for prefix in APPROVAL_PREFIXES.get(artifact.kind, ()):
-        validate_approval(artifact, prefix, errors)
     if status == "decision-blocked" and not as_list(data.get("decision_gates")):
         error(errors, artifact, "decision-blocked requires at least one decision gate")
 
-    if artifact.kind == "capability" and status in {
-        "ready", "active", "verifying", "complete"
-    }:
-        require_approved(artifact, "capability", errors, status)
-    elif artifact.kind == "decision-request" and status in {"ready", "verifying", "complete"}:
-        require_approved(artifact, "decision", errors, status)
-        if status == "complete" and not is_present(data.get("decision_record")):
+    if artifact.kind == "decision-request" and status == "complete":
+        if not is_present(data.get("decision_record")):
             error(errors, artifact, "complete decision request requires decision_record")
-    elif artifact.kind == "vertical-slice":
-        if status in {"ready", "active", "verifying", "complete"}:
-            require_approved(artifact, "selection", errors, status)
-        if status == "complete":
-            require_approved(artifact, "completion", errors, status)
     elif artifact.kind == "work-packet":
-        if status in {"ready", "active", "verifying", "complete"}:
-            require_approved(artifact, "planning", errors, status)
         if status in {"active", "verifying", "complete"}:
-            require_approved(artifact, "implementation", errors, status)
-            if not is_present(data.get("implementation_authority")):
-                error(errors, artifact, f"{status} requires implementation_authority")
             for field in ("base_revision", "claim_id", "claimed_by", "claimed_at"):
                 if not is_present(data.get(field)):
                     error(errors, artifact, f"{status} requires {field}")
@@ -231,7 +204,7 @@ def validate_references(
                     error(errors, artifact, f"unknown decision request {gate}")
                 elif artifact.status in {"ready", "active", "verifying", "complete"} and (
                     by_id[gate].status != "complete"
-                    or by_id[gate].metadata.get("decision_approval") != "approved"
+                    or not is_present(by_id[gate].metadata.get("decision_record"))
                 ):
                     error(errors, artifact, f"decision gate {gate} is unresolved")
             elif gate not in readiness:
@@ -332,10 +305,10 @@ def validate_register(root: Path, artifacts: list[Artifact], errors: list[str]) 
                 f"docs/planning/register.md: {identifier} status {cells[3]!r} "
                 f"does not match {by_id[identifier].status!r}"
             )
-        if len(cells) >= 10:
-            if cells[8] != as_text(by_id[identifier].metadata.get("owner")):
+        if len(cells) >= 9:
+            if cells[7] != as_text(by_id[identifier].metadata.get("owner")):
                 errors.append(f"docs/planning/register.md: {identifier} owner is stale")
-            if cells[9] != as_text(by_id[identifier].metadata.get("updated")):
+            if cells[8] != as_text(by_id[identifier].metadata.get("updated")):
                 errors.append(f"docs/planning/register.md: {identifier} updated date is stale")
 
 
@@ -363,7 +336,49 @@ def validate_transitions(
                 )
 
 
-def run(root: Path, base_ref: str | None = None) -> list[str]:
+def validate_local_gates(root: Path, artifacts: list[Artifact], errors: list[str]) -> None:
+    try:
+        store, _path = load_store(root, required=True)
+    except ApprovalStoreError as exception:
+        errors.append(str(exception))
+        return
+    for artifact in artifacts:
+        for statuses, stage in LOCAL_GATES.get(artifact.kind, ()):
+            if artifact.status not in statuses:
+                continue
+            try:
+                record = require_decision(store, artifact.identifier, stage)
+                if stage == "implementation":
+                    raw_scope = record.get("scope")
+                    if isinstance(raw_scope, str) and raw_scope.strip().startswith("["):
+                        try:
+                            raw_scope = json.loads(raw_scope)
+                        except json.JSONDecodeError as exception:
+                            raise ApprovalStoreError(
+                                f"invalid implementation scope for {artifact.identifier}"
+                            ) from exception
+                    approved_scope = sorted({
+                        normalize_repo_path(item)
+                        for item in as_list(raw_scope)
+                        if normalize_repo_path(item)
+                    })
+                    packet_scope = sorted({
+                        normalize_repo_path(item)
+                        for item in as_list(artifact.metadata.get("write_scope"))
+                        if normalize_repo_path(item)
+                    })
+                    if approved_scope != packet_scope:
+                        raise ApprovalStoreError(
+                            f"approved implementation scope for {artifact.identifier} "
+                            "does not match write_scope"
+                        )
+            except ApprovalStoreError as exception:
+                error(errors, artifact, str(exception))
+
+
+def run(
+    root: Path, base_ref: str | None = None, *, require_local_approvals: bool = False
+) -> list[str]:
     errors: list[str] = []
     artifacts = load_artifacts(root)
     by_id: dict[str, Artifact] = {}
@@ -385,6 +400,8 @@ def run(root: Path, base_ref: str | None = None) -> list[str]:
     validate_dependency_cycles(artifacts, by_id, errors)
     validate_concurrency(artifacts, errors)
     validate_register(root, artifacts, errors)
+    if require_local_approvals:
+        validate_local_gates(root, artifacts, errors)
     if base_ref:
         validate_transitions(root, artifacts, base_ref, errors)
     return errors
@@ -394,10 +411,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, help="repository root")
     parser.add_argument("--base-ref", help="git revision used to validate state transitions")
+    parser.add_argument(
+        "--require-local-approvals", action="store_true",
+        help="require approval evidence from the ignored local ledger",
+    )
     args = parser.parse_args()
     try:
         root = (args.root or repository_root()).resolve()
-        errors = run(root, args.base_ref)
+        errors = run(
+            root, args.base_ref, require_local_approvals=args.require_local_approvals
+        )
     except (OSError, RuntimeError, ValueError) as exception:
         print(f"Planning integrity check could not run: {exception}", file=sys.stderr)
         return 2

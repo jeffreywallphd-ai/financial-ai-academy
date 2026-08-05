@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/lesson-package/v1/manifest.schema.json",
+  "title": "Financial AI Academy lesson package manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "package_id", "package_version", "title", "objectives", "lesson", "sources", "assessments", "assets", "provenance", "capabilities"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "package_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "package_version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 240},
+    "objectives": {"type": "array", "minItems": 1, "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 500}},
+    "lesson": {"$ref": "file.schema.json"},
+    "sources": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "source.schema.json"}},
+    "assessments": {"type": "array", "maxItems": 20, "items": {"$ref": "assessment-file.schema.json"}},
+    "assets": {"type": "array", "maxItems": 50, "items": {"$ref": "image-asset.schema.json"}},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["published_by", "published_at", "content_reviewed_on", "educational_use_notice"],
+      "properties": {
+        "published_by": {"type": "string", "minLength": 1, "maxLength": 160},
+        "published_at": {"type": "string", "format": "date-time"},
+        "content_reviewed_on": {"type": "string", "format": "date"},
+        "educational_use_notice": {"type": "string", "minLength": 1, "maxLength": 500}
+      }
+    },
+    "capabilities": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "enum": ["lesson.commonmark.v1", "asset.raster.v1", "assessment.reference.v1"]}}
+  }
+}

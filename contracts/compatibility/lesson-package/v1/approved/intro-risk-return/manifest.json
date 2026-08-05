@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "package_id": "intro-risk-return",
+  "package_version": "1.0.0",
+  "title": "Understanding Risk and Return",
+  "objectives": [
+    "Explain why potential return and risk must be considered together.",
+    "Identify review questions that support an educational comparison of investment choices."
+  ],
+  "lesson": {
+    "path": "lesson.md",
+    "media_type": "text/markdown",
+    "size_bytes": 734,
+    "sha256": "b798285ee691f7c242a05076daa5c343aeb3e5ac86940d57416374106661b075"
+  },
+  "sources": [
+    {
+      "source_id": "sec-investor-introduction",
+      "title": "Introduction to Investing",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "locator": "https://www.investor.gov/introduction-investing",
+      "reviewed_on": "2026-08-04",
+      "license_note": "Linked as a public educational source; source text is not redistributed."
+    }
+  ],
+  "assessments": [
+    {
+      "assessment_id": "risk-return-check-1",
+      "schema_version": "1.0.0",
+      "path": "assessments/check-1.json",
+      "media_type": "application/json",
+      "size_bytes": 130,
+      "sha256": "4118d8dd7ea597db18dc087afe3d7cdc28db2eafae82ab17e600fe20a9d422db"
+    }
+  ],
+  "assets": [],
+  "provenance": {
+    "published_by": "Financial AI Academy fixture publisher",
+    "published_at": "2026-08-04T00:00:00Z",
+    "content_reviewed_on": "2026-08-04",
+    "educational_use_notice": "Educational material only; this package does not provide personalized financial advice or predict investment performance."
+  },
+  "capabilities": [
+    "lesson.commonmark.v1",
+    "assessment.reference.v1"
+  ]
+}

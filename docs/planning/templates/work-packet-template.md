@@ -16,13 +16,6 @@ base_revision: null
 claim_id: null
 claimed_by: null
 claimed_at: null
-planning_approval: pending
-planning_approved_by: null
-planning_approved_at: null
-implementation_approval: pending
-implementation_approved_by: null
-implementation_approved_at: null
-implementation_authority: null
 ---
 
 # Agent Work Packet: Short Objective
@@ -87,6 +80,6 @@ Stop and return the packet to `shaping` or `decision-blocked` when canonical sou
 
 Report the outcome, affected boundaries, exact checks and results, documentation impact, assumptions, residual risks, unresolved decisions, and any work deliberately left out.
 
-## Approval History
+## Planning History
 
-Record planning and implementation decisions separately. Planning approval does not authorize implementation.
+Record public packet state and claim changes. Planning, implementation, and scoped-authority evidence remains only in the ignored local ledger.

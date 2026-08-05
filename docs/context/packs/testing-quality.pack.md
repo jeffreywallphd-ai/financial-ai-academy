@@ -17,7 +17,7 @@ Work affects tests, defects, diagnostics, architecture checks, docs checks, cont
 
 - `docs/standards/testing-and-verification-standards.md`
 - `docs/architecture/assurance/testing-architecture.md`
-- `docs/assurance/architecture-verification.md`
+- `docs/architecture/assurance/architecture-verification.md`
 - `docs/assurance/known-verification-gaps.md`
 - `dev-tools/agent/README.md`
 

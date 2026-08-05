@@ -8,9 +8,6 @@ updated: YYYY-MM-DD
 parent: null
 depends_on: []
 decision_gates: []
-capability_approval: pending
-capability_approved_by: null
-capability_approved_at: null
 ---
 
 # Capability: Short Outcome Name
@@ -38,6 +35,6 @@ capability_approved_at: null
 
 ## Documentation Impact
 
-## Approval History
+## Planning History
 
-Record authorized decisions without treating this artifact as decision authority.
+Record public shaping changes without copying approval or reviewer evidence from the ignored local ledger.

@@ -22,13 +22,13 @@ This skill and its plans are subordinate to repository guidance and current user
 Require all of the following:
 
 - a current explicit user instruction to implement this named slice or packets;
-- `selection_approval: approved` on the parent slice;
-- `planning_approval: approved` on every packet to execute;
-- `implementation_approval: approved` with approver, date, and scoped `implementation_authority`;
+- an approved local selection decision for the parent slice;
+- an approved local planning decision for every packet to execute;
+- one separate slice-wide implementation response for the closed packet set, recorded as an approved local implementation decision per packet with actor label, date, authority, and exact reviewed `write_scope`;
 - no `decision-blocked` artifact or newly unresolved decision;
 - dependencies satisfied and no uncoordinated overlapping active write scope.
 
-Claim each packet with `python dev-tools/planning/claim_packet.py claim <packet> --owner <owner> --authority <implementation_authority> --confirm-current-instruction --apply` before implementation. Update the planning register in the same change and run the repository planning integrity check. The claim records the base revision and exclusive ownership evidence; it does not replace the approval gates above.
+One current instruction naming the slice may authorize all packets in its frozen implementation bundle. It does not authorize new packets or changed scopes. Claim only one packet at a time with `python dev-tools/planning/claim_packet.py claim <packet> --owner <owner> --authority <local-authority-reference> --confirm-current-instruction --apply`. The claim helper verifies exact approved scope and completed dependencies. Update the planning register in the same change and run the repository planning integrity check with local approvals enabled.
 
 A general request for advice, planning, prioritization, review, or "what next" is not implementation authority. Run `python scripts/check_implementation_gate.py <slice> <packet> [<packet> ...]` before editing.
 
@@ -36,7 +36,7 @@ A general request for advice, planning, prioritization, review, or "what next" i
 
 1. Complete the mandatory repository gate and authorization gate.
 2. Revalidate every packet against current canonical sources and repository state. Return stale packets to `shaping`; never implement through drift.
-3. Confirm the exact packet order. Run packets concurrently only when their accepted interfaces and write scopes are explicitly independent.
+3. Confirm exact bundle membership and dependency order. Execute one packet at a time unless a later user instruction explicitly authorizes a reviewed parallel-safe set.
 4. Claim the first packet, move the slice to `active`, and update the planning register in the same change.
 5. Implement narrowly in dependency order:
    1. decision and domain meaning already accepted;
@@ -48,7 +48,7 @@ A general request for advice, planning, prioritization, review, or "what next" i
    7. documentation and derived context;
    8. end-to-end and operational qualification.
 6. For each packet, run the focused verification and applicable repository gates specified in the packet. Verify relevant denial, malformed, timeout, degraded, replay, stale-version, provenance, parity, accessibility, and theme paths.
-7. Record exact evidence and documentation impact. Mark a packet `complete` only when its required handoff is satisfied.
+7. Record exact evidence and documentation impact. Move the active packet to `verifying`, then finalize it as `complete` only when its required handoff is satisfied. Claim the next preauthorized packet without another approval prompt after revalidating its unchanged scope, dependencies, and bundle membership.
 8. If a check exposes a missing decision or scope expansion, stop, record the blocker, and route to `review-decision-gates` or packet reshaping.
 9. When all packets are complete, move the slice to `verifying` and invoke `verify-and-close-slice` when available.
 

@@ -47,7 +47,7 @@ Recommend the highest total. Break ties by fewer dependencies, then lower irreve
 
 ## Workflow
 
-1. Confirm the parent capability has explicit capability-framing approval.
+1. Confirm the ignored local ledger contains explicit capability-framing approval for the parent.
 2. Enumerate at least two candidates when materially different increments exist. State when only one viable candidate exists.
 3. Apply the eligibility gate before scoring.
 4. Score eligible candidates and identify dependencies that must precede selection.
@@ -55,14 +55,14 @@ Recommend the highest total. Break ties by fewer dependencies, then lower irreve
 6. Define the boundary path, affected contracts/data, acceptance scenarios, rollback needs, and proposed work-packet seams.
 7. Run `python scripts/validate_vertical_slice.py <artifact>`.
 8. Update the planning register when required.
-9. Request explicit slice-selection approval. Do not record approval from agent recommendation alone and do not begin packet authoring or implementation.
+9. Request explicit slice-selection approval. Route the human decision to `approve-planned-work` for local-only storage; do not begin packet authoring or implementation.
 
 ## Compatibility Contract
 
 - Consume an approved `CAP-*` parent and resolved `decision_gates`.
-- Produce one `SLI-*` artifact with `selection_approval` and `completion_approval` metadata.
+- Produce one `SLI-*` artifact with public planning state but no approval metadata or history.
 - Use `decision-blocked` whenever a required DEC item is unresolved.
-- Move to `ready` only after authorized `selection_approval: approved`.
+- Move to `ready` only after the ignored local ledger records an approved selection decision.
 - Selection approval does not approve work packets or implementation.
 
 ## Required Output

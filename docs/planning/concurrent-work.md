@@ -46,9 +46,11 @@ artifacts count as owned write scope even when their source inputs differ.
 
 ## Claim Approved Work
 
-A claim requires a ready packet, approved planning and implementation gates,
-recorded `implementation_authority`, a current explicit instruction for the
-named work, and a non-empty scope. Preview first by omitting `--apply`; then use:
+A claim requires a ready packet, approved planning and implementation decisions
+in the ignored local ledger, a local authority reference and scope exactly equal
+to the current public `write_scope`, a current explicit instruction for the named
+packet or its frozen parent-slice bundle, completed dependencies, and a non-empty
+public write scope. Preview first by omitting `--apply`; then use:
 
 ```text
 python dev-tools/planning/claim_packet.py claim <packet> --owner <owner> --authority <authority> --confirm-current-instruction --apply
@@ -58,15 +60,20 @@ The helper records `base_revision`, `claim_id`, `claimed_by`, and `claimed_at`,
 and moves the packet to `active`. Update `register.md` in the same repository
 change. The helper refuses overlap with another active packet.
 
+For a slice-wide implementation bundle, claim only the next dependency-ready
+packet. Finish its focused verification, move it to `verifying`, and finalize it:
+
 Move a finished implementation into evidence gathering with:
 
 ```text
 python dev-tools/planning/claim_packet.py release <packet> --owner <owner> --to verifying --apply
+python dev-tools/planning/claim_packet.py finalize <packet> --owner <owner> --apply
 ```
 
-Use `--to ready` when safely abandoning an activation. Preserve claim fields as
-audit evidence. Never transfer ownership silently: return to `ready`, update the
-owner/authority as approved, and create a new claim.
+Only after finalization may a dependent packet be claimed. Use `--to ready` when safely abandoning an activation. Preserve claim fields as
+audit evidence. Never transfer ownership silently: return to `ready`, update
+public ownership, record any new authority only in the local ledger, and create
+a new claim. New packets or changed scopes require renewed implementation approval.
 
 ## Failure and Recovery
 

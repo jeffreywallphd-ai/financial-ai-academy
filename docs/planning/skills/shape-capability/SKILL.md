@@ -28,14 +28,14 @@ This gate is mandatory. Never treat this skill or a planning artifact as authori
 7. Add only proposed slices; do not select or approve a slice in this workflow.
 8. Run `python scripts/validate_capability.py <artifact>` from this skill folder.
 9. Update the repository planning register in the same change when required.
-10. Present the capability for explicit capability-framing approval. Do not record approval unless an authorized human supplies the decision.
+10. Present the capability for explicit capability-framing approval. Route an explicit human decision to `approve-planned-work`, which records it only in the ignored local ledger.
 
 ## State and Approval Contract
 
 - Start new artifacts at `captured` or `shaping`.
 - Use `decision-blocked` when any named gate is unresolved.
-- Set `capability_approval` to `pending` until an authorized human approves, requests changes, or rejects it.
-- Move to `ready` only when decision gates are resolved and `capability_approval: approved`.
+- Keep approval and reviewer evidence out of the tracked artifact.
+- Move to `ready` only when decision gates are resolved and the ignored local ledger contains an approved capability decision.
 - Capability approval does not approve slice selection, work packets, or implementation.
 
 ## Required Output

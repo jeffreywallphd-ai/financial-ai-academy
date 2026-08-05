@@ -9,7 +9,7 @@ The platform requires modern learner-facing web UX, financial data processing, A
 
 ## Decision
 
-Use a TypeScript web application and a Python backend organized as a module-first modular monolith. The backend exposes API, worker, and CLI hosts from one domain/application package. FastAPI and Pydantic are the intended API boundary; exact framework versions remain deferred.
+Use a TypeScript web application and a Python backend organized as a module-first modular monolith. The backend exposes API, worker, and CLI hosts from one domain/application package. FastAPI and Pydantic are the API boundary. [ADR-0009](ADR-0009-initial-application-framework-runtime-baseline.md) establishes the initial executable runtime, framework, routing, and rendering lines.
 
 ## Consequences
 
@@ -23,4 +23,3 @@ Use a TypeScript web application and a Python backend organized as a module-firs
 - TypeScript-only application core
 - Python-based browser UI
 - Microservices as the initial architecture
-

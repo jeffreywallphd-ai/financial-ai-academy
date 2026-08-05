@@ -16,13 +16,6 @@ base_revision: null
 claim_id: null
 claimed_by: null
 claimed_at: null
-planning_approval: pending
-planning_approved_by: null
-planning_approved_at: null
-implementation_approval: pending
-implementation_approved_by: null
-implementation_approved_at: null
-implementation_authority: null
 ---
 
 # Agent Work Packet: Short Objective
@@ -61,4 +54,4 @@ Prominently require the implementing agent to read and follow applicable `AGENTS
 
 ## Required Handoff
 
-## Approval History
+## Planning History

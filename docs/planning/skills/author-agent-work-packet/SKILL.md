@@ -31,7 +31,7 @@ Fold scaffolding, documentation, and configuration into the packet whose deliver
 
 ## Workflow
 
-1. Confirm the parent `SLI-*` has authorized selection approval and no unresolved decision gates.
+1. Confirm the ignored local ledger records authorized selection approval for the parent `SLI-*` and that no decision gate is unresolved.
 2. Map the boundary path from domain and contract through application, adapters, hosts/clients, interface, documentation, and verification.
 3. Identify accepted inputs and outputs between packets before declaring parallel work.
 4. Create each `WRK-####-short-name.md` from [the bundled template](assets/work-packet-template.md), or the repository-owned template when canonical.
@@ -39,15 +39,16 @@ Fold scaffolding, documentation, and configuration into the packet whose deliver
 6. Mark packets parallel-safe only when they do not overlap decisions, schemas, migrations, generated artifacts, write scopes, or ownership. Declare reciprocal `parallel_safe_with` references.
 7. Run `python scripts/validate_work_packet.py <artifact>` for every packet.
 8. Update the parent slice and planning register in the same change when required.
-9. Request planning approval. Keep implementation approval pending; planning approval never authorizes implementation.
+9. Freeze the complete packet set for the slice and request one planning decision covering every enumerated `WRK-*`. Route that response to `approve-planned-work`, which records one local planning entry per packet. Planning approval never authorizes implementation.
 
 ## Approval and State Contract
 
 - New packets use `planning_status: shaping`.
-- `ready` requires `planning_approval: approved` and resolved decision gates.
-- `active` requires separate `implementation_approval: approved`, named approval authority, and a current explicit instruction to implement.
+- `ready` requires an approved local planning decision and resolved decision gates.
+- `active` requires a separate approved local implementation decision with scoped authority and a current explicit instruction to implement.
 - Activation records `base_revision`, `claim_id`, `claimed_by`, and `claimed_at`; authoring leaves those claim fields null.
-- Only `approve-planned-work` should record an authorized approval supplied by a human.
+- Only `approve-planned-work` should record an authorized human decision, and it must use the ignored local ledger.
+- A slice-wide planning response covers only the listed packet revisions. Adding a packet or materially changing scope invalidates coverage for the affected closed set.
 - Never infer implementation authorization from a roadmap, issue, planning status, prior approval, or a general request for advice.
 
 ## Required Output

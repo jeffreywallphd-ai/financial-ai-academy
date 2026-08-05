@@ -1,0 +1,125 @@
+name: Approved lesson slice
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: approved-lesson-slice-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualification:
+    name: Qualification
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED: "true"
+      FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN: postgresql://financial_ai_academy:qualification-only@127.0.0.1:5432/financial_ai_academy
+      PYTHONPATH: backend/src
+
+    services:
+      postgres:
+        image: postgres:18.4
+        env:
+          POSTGRES_DB: financial_ai_academy
+          POSTGRES_PASSWORD: qualification-only
+          POSTGRES_USER: financial_ai_academy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U financial_ai_academy -d financial_ai_academy"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+
+    steps:
+      - name: Check out repository history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Install exact Python environment manager
+        run: python -m pip install uv==0.11.29
+
+      - name: Restore exact Python environment
+        run: uv sync --project backend --frozen
+
+      - name: Run backend contract, unit, integration, API, and architecture tests
+        run: uv run --project backend pytest backend/tests
+
+      - name: Verify reviewed OpenAPI snapshot
+        run: uv run --project backend python -m financial_ai_academy.hosts.api.generate_openapi --check
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24.14.0"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Restore exact web dependencies
+        run: npm --prefix apps/web ci
+
+      - name: Verify generated browser client
+        run: npm --prefix apps/web run generate:api -- --check
+
+      - name: Type-check, lint, and test browser code
+        run: |
+          npm --prefix apps/web run typecheck
+          npm --prefix apps/web run lint
+          npm --prefix apps/web test -- --run
+
+      - name: Build static browser artifacts
+        run: npm --prefix apps/web run build
+
+      - name: Install pinned Chromium runtime
+        run: npm --prefix apps/web exec -- playwright install --with-deps chromium
+
+      - name: Run focused browser qualification
+        run: npm --prefix apps/web run test:browser -- apps/web/tests/browser/lesson-reading
+
+      - name: Run live cross-system qualification
+        run: >-
+          uv run --project backend python
+          tests/e2e/approved-lesson/run.py
+          --postgres-dsn
+          "$FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN"
+
+      - name: Run architecture and security fitness functions
+        run: |
+          uv run --project backend python dev-tools/architecture/check_architecture.py
+          uv run --project backend python dev-tools/security/check_slice_security.py
+
+      - name: Review JavaScript dependency advisories
+        run: npm --prefix apps/web audit --audit-level=high
+
+      - name: Run documentation, planning, and design checks
+        run: |
+          uv run --project backend python dev-tools/design/check_design_system.py
+          uv run --project backend python dev-tools/documentation/check_docs.py
+          uv run --project backend python dev-tools/planning/check_planning.py
+
+      - name: Check pull-request readiness and lifecycle transitions
+        if: github.event_name == 'pull_request'
+        run: >-
+          uv run --project backend python dev-tools/agent/check_ready.py
+          --profile ci
+          --base-ref "${{ github.event.pull_request.base.sha }}"
+
+      - name: Check main-branch readiness
+        if: github.event_name == 'push'
+        run: >-
+          uv run --project backend python dev-tools/agent/check_ready.py
+          --profile ci

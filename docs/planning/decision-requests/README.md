@@ -6,4 +6,4 @@ Name files `DEC-####-short-name.md` and start from [the decision-request templat
 
 A decision request is not decision authority. Record an accepted durable architecture decision as an ADR and update the decision-readiness register. Record product, domain, risk, security, or commercial outcomes in their canonical locations as applicable, then update dependent planning artifacts.
 
-Use `review-decision-gates` to prepare the request. An approved decision is not resolved for dependent work until its canonical `decision_record` and readiness update are complete.
+Use `review-decision-gates` to prepare the request. A locally approved decision is not resolved for dependent work until its canonical `decision_record` and readiness update are complete.

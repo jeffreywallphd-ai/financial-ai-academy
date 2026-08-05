@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Canonical for: repository-wide architectural constraints
-- Related ADRs: ADR-0001 through ADR-0004
+- Related ADRs: ADR-0001 through ADR-0007
 
 ## Principles
 
@@ -18,4 +18,3 @@
 10. **Architecture claims require evidence.** Important constraints should eventually be backed by executable checks. Unverified claims remain visibly recorded as gaps.
 11. **Generated artifacts are not hand-edited.** Generated API clients, schema bindings, and contract snapshots identify their source and regeneration command.
 12. **No speculative distribution.** Abstractions and deployable units are introduced to protect a current boundary, not to imitate a hypothetical future microservice estate.
-

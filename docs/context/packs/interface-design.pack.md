@@ -26,6 +26,7 @@ Work affects user-facing layouts, themes, typography, spacing, cards, controls, 
 - `python dev-tools/design/check_design_system.py`
 - `python dev-tools/documentation/check_docs.py`
 - focused browser, keyboard, contrast, zoom, forced-color, reduced-motion, responsive, and assistive-technology checks for implemented UI
+- live approved-fixture axe and same-origin browser checks when a cross-system route is qualified
 
 ## Stop When
 

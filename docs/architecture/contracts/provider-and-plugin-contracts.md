@@ -41,3 +41,6 @@ Every installable provider declares:
 
 Each provider family has reusable conformance tests for successful behavior, missing capabilities, malformed results, timeouts, quota failures, cancellation, safe diagnostics, provenance, and idempotency where applicable.
 
+Identity providers additionally follow the [identity provider and learner-context contract](identity-provider-contract.md). Identity mode, subject mapping, session, recovery, and authorization semantics cannot be replaced by a generic provider payload.
+
+Content providers additionally follow the [versioned lesson content-package contract](content-package-contract.md). Provider packages remain untrusted input; provider identity or signatures do not bypass schema, semantic, path, media, integrity, resource-bound, or renderer validation.

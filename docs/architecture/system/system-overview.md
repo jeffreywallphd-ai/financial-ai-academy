@@ -8,7 +8,7 @@
 
 ```mermaid
 flowchart LR
-    WEB["TypeScript web application"] --> API["Python API host"]
+    WEB["React/TypeScript static client"] --> API["Python/FastAPI API host"]
     API --> CORE["Modular application core"]
     WORKER["Python worker host"] --> CORE
 
@@ -27,12 +27,14 @@ flowchart LR
 
 ## Primary Processes
 
-- **Web application:** TypeScript browser experience for learners, instructors, administrators, and local users.
-- **API host:** FastAPI composition exposing authenticated application operations and generated OpenAPI.
+- **Web application:** React 19 and TypeScript 7 browser experience using React Router 8 Data Mode and Vite 8. It produces static client assets and consumes only the generated API client.
+- **API host:** CPython 3.14, FastAPI 0.141, and Pydantic 2.13 composition exposing authenticated application operations and generated OpenAPI.
 - **Worker host:** asynchronous ingestion, backtesting, document processing, model evaluation, embeddings, and recommendation projection work.
 - **CLI host:** local setup, diagnostics, backup, restore, contract inspection, and administrative operations.
 
 The API, worker, and CLI are entry points into the same Python application package. They do not contain domain policy.
+
+Node.js 24 LTS is build and test tooling, not a production application host. The initial system has no Node server, server-side rendering, React Server Components, server actions, or backend-for-frontend. [ADR-0009](../../adr/ADR-0009-initial-application-framework-runtime-baseline.md) governs this baseline.
 
 ## Storage Responsibilities
 
@@ -54,4 +56,3 @@ The API, worker, and CLI are entry points into the same Python application packa
 - LLM-controlled grading, financial calculation, authorization, or portfolio mutation
 - Separate community and cloud domain implementations
 - A notebook serving as production application logic
-

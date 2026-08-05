@@ -8,12 +8,6 @@ updated: YYYY-MM-DD
 parent: CAP-0000
 depends_on: []
 decision_gates: []
-selection_approval: pending
-selection_approved_by: null
-selection_approved_at: null
-completion_approval: pending
-completion_approved_by: null
-completion_approved_at: null
 ---
 
 # Vertical Slice: Short Observable Increment
@@ -57,4 +51,4 @@ completion_approved_at: null
 
 ## Documentation Impact and Completion Evidence
 
-## Approval History
+## Planning History

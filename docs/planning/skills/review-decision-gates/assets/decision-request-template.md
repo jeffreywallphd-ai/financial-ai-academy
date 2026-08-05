@@ -8,9 +8,6 @@ updated: YYYY-MM-DD
 parent: null
 depends_on: []
 decision_gates: []
-decision_approval: pending
-decision_approved_by: null
-decision_approved_at: null
 decision_record: null
 ---
 
@@ -33,10 +30,10 @@ Separate verified facts, assumptions, and inference.
 
 ## Evidence Required
 
-## Required Approver
+## Required Authority
 
 ## Decision Record and Promotion
 
 ## Dependent Planning Updates
 
-## Approval History
+## Planning History
