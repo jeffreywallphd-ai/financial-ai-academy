@@ -1,7 +1,7 @@
 ---
 id: CAP-0010
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -55,6 +55,7 @@ and the learner can choose any eligible path.
 
 - [Adaptive Pathway Architecture](../../architecture/learning/adaptive-pathway-architecture.md)
 - [AI/ML System Boundaries](../../architecture/ai-ml/ai-ml-system-boundaries.md)
+- [ADR-0014: Governed Adaptive-Learning Research Plane](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
 - [CAP-0004](CAP-0004-discover-learning-opportunities.md)
 - [CAP-0005](CAP-0005-navigate-competency-based-curriculum.md)
@@ -66,8 +67,8 @@ and the learner can choose any eligible path.
 - Curriculum and Learner model supply approved projections; Adaptation owns
   eligibility, ranking orchestration, deterministic policy, and recommendation
   records without mutating those sources.
-- DEC-0009 establishes usable competency evidence. DEC-0010 establishes the
-  initial ranking, experimentation, consent, evaluation, and fallback posture.
+- ADR-0014 establishes governed competency estimates and publication plus the
+  phased ranking, experimentation, consent, evaluation, and fallback posture.
 - Deterministic prerequisites, permissions, exclusions, and accessibility
   constraints always run before ranking and after any advisory model output.
 
@@ -112,4 +113,5 @@ architecture verification, and known-gap evidence.
 
 - 2026-10-15: Shaped from catalog candidate 7 with manifest SLI-0042 through
   SLI-0045. DEC-0009 and DEC-0010 must be promoted before CAP approval.
+- 2026-10-15: DEC-0009 and DEC-0010 were promoted through ADR-0014; the CAP returned to shaping for package revalidation before CAP-level approval.
 

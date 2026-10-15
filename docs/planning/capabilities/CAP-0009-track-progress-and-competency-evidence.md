@@ -1,7 +1,7 @@
 ---
 id: CAP-0009
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -54,6 +54,7 @@ score or mutable summary.
 - [Initial Glossary](../../domain/glossary.md)
 - [Module Map](../../architecture/modules/module-map.md)
 - [Adaptive Pathway Architecture](../../architecture/learning/adaptive-pathway-architecture.md)
+- [ADR-0014: Governed Adaptive-Learning Research Plane](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
 - [CAP-0001](CAP-0001-complete-structured-introductory-lesson.md)
 - [CAP-0006](CAP-0006-practice-and-demonstrate-understanding.md)
@@ -63,9 +64,10 @@ score or mutable summary.
 - Learner model owns derived progress; source modules retain their evidence and
   Audit retains integrity references rather than becoming a second business
   database.
-- Completion does not silently become mastery. DEC-0009 must establish the
-  initial competency/mastery projection policy, evidence threshold, uncertainty
-  language, and correction behavior.
+- Completion does not silently become mastery. ADR-0014 requires a governed
+  probabilistic estimate, deterministic publication policy, explicit
+  uncertainty/freshness, abstention to evidence-only progress, and replayable
+  correction behavior.
 - Authorization, evidence inclusion, projection policy, and durable state
   changes are deterministic. AI output cannot create or override evidence.
 
@@ -108,4 +110,5 @@ accessibility behavior, architecture verification, and known gaps.
 
 - 2026-10-15: Shaped from catalog candidate 6 with the complete provisional
   manifest SLI-0038 through SLI-0041. DEC-0009 blocks CAP approval and delivery.
+- 2026-10-15: DEC-0009 was promoted through ADR-0014; the CAP returned to shaping for package revalidation before CAP-level approval.
 

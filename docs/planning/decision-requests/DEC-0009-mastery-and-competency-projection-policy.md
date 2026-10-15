@@ -1,14 +1,14 @@
 ---
 id: DEC-0009
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: ["DEC-0010"]
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0014-governed-adaptive-learning-research-plane.md
 ---
 
 # Decision Request: Choose Learner-Facing Competency and Adaptive Guidance Policy
@@ -116,10 +116,10 @@ education-risk, privacy, and accessibility review.
 
 ## Decision Record and Promotion
 
-Promote the chosen policy to an ADR or learner-model architecture document and
-update the decision-readiness register before dependent CAP approval. Approval
-does not by itself approve a model, dataset, provider, online experiment, or
-learner-facing implementation.
+[ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md)
+establishes Option C with the deterministic Option A publication layer and the
+Option B evidence-only fallback. It does not approve a concrete model, dataset,
+provider, online experiment, or learner-facing implementation.
 
 ## Dependent Planning Updates
 
@@ -130,4 +130,5 @@ language, and evaluation evidence with DEC-0010 and the selected policy.
 
 - 2026-10-15: Captured while shaping catalog candidates 6 and 7.
 - 2026-10-15: Refined through adaptive-learning research; separated learner-facing publication policy from the inference and experimentation techniques governed by DEC-0010.
+- 2026-10-15: ADR-0014 established governed probabilistic competency publication with deterministic labels and evidence-only abstention fallback.
 

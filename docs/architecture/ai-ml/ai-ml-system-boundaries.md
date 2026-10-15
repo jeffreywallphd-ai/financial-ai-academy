@@ -12,6 +12,7 @@ All model access passes through platform-owned application ports and the AI-orch
 - tutoring and explanation,
 - grounded question or content drafting,
 - recommendation ranking,
+- competency estimation and active-assessment research within ADR-0014,
 - embeddings and retrieval support,
 - content classification,
 - experiment analysis,
@@ -32,6 +33,14 @@ Model output is not authoritative for:
 ## Execution Record
 
 Record the model-provider identity, model/policy version, prompt/template version, input references or hashes, retrieval sources, parameters, output status, validation result, latency, cost where available, and safety/policy outcome. Sensitive prompts and learner data require redaction and retention controls.
+
+Adaptive executions additionally retain the evidence cutoff and prediction
+horizon, competency-map, dataset, feature, estimator, calibration, selection
+policy, eligible candidate set, assignment propensity where applicable,
+uncertainty, applicability, abstention, drift, and qualification status required
+by ADR-0014. AI orchestration may execute a capability but cannot publish a
+competency label, bypass deterministic eligibility, or own durable learner
+state.
 
 ## Local and Cloud
 

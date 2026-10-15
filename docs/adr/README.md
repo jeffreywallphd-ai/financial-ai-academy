@@ -31,6 +31,7 @@ Create or update an ADR when a change selects or reverses a durable architecture
 - [ADR-0011: Keep Applied-Project Artifacts Inert](ADR-0011-inert-applied-project-artifacts.md)
 - [ADR-0012: Reusable Project Workspace with Learning and Domain Links](ADR-0012-reusable-project-workspace.md)
 - [ADR-0013: Explicit Model-Provider Opt-In](ADR-0013-explicit-model-provider-opt-in.md)
+- [ADR-0014: Governed Adaptive-Learning Research Plane](ADR-0014-governed-adaptive-learning-research-plane.md)
 
 ## Superseded Decisions
 

@@ -1,14 +1,14 @@
 ---
 id: DEC-0010
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: []
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0014-governed-adaptive-learning-research-plane.md
 ---
 
 # Decision Request: Choose Adaptive Inference, Assessment, Ranking, and Experiment Policy
@@ -164,10 +164,10 @@ privacy, security, accessibility, education-risk, and research-ethics review.
 
 ## Decision Record and Promotion
 
-Promote the selected technique and experiment posture to an ADR and adaptive
-architecture/evaluation guidance; update decision readiness. Approval selects
-the governed portfolio and phased authority boundary, not a particular dataset,
-provider, online experiment, or production model.
+[ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md)
+establishes Option C's governed portfolio and phased authority boundary. It does
+not approve a particular dataset, provider, online experiment, or production
+model.
 
 ## Dependent Planning Updates
 
@@ -178,4 +178,5 @@ or learner-consent planning.
 
 - 2026-10-15: Captured while shaping CAP-0010.
 - 2026-10-15: Refined through adaptive-learning research; expanded from recommendation ranking to the governed inference, active-assessment, ranking, and experiment technique portfolio consumed by DEC-0009.
+- 2026-10-15: ADR-0014 established the phased champion-challenger inference, active-assessment, ranking, qualification, and experiment-control architecture.
 

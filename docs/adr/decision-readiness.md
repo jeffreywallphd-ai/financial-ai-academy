@@ -22,8 +22,8 @@
 | Applied-project lifecycle ownership | ready | ADR-0012 and architecture module map | Use Project for learning-initiated and independent workspaces and immutable snapshots; keep Assessment submissions and domain-owned resources separate |
 | Project links to portfolios and other domain resources | constrained | ADR-0012 | Permit typed many-valued references without copying domain state; do not implement a live Portfolio link until Portfolio public contracts and semantics are accepted |
 | Applied-project artifact handling and execution | constrained | ADR-0011 and security architecture | Treat project artifacts as untrusted inert data with learner-managed external execution; require a new decision for any platform or provider execution |
-| Adaptive-learning authority | constrained | Adaptive architecture | Deterministic policy is fixed; detailed mastery/ranking models need decisions |
-| AI/ML authority | constrained | AI/ML boundaries | Use only bounded, validated capabilities; provider/model details need decisions |
+| Adaptive-learning authority | constrained | ADR-0014 and adaptive architecture | Use the phased governed portfolio, deterministic eligibility/publication, evidence-only and rule fallbacks, and qualification envelope; concrete model promotion and every online experiment require their own evidence and applicable review |
+| AI/ML authority | constrained | ADR-0014 and AI/ML boundaries | Adaptive estimation and ranking may use bounded, versioned challengers under deterministic policy; provider, dataset, concrete promotion, and online experiment details remain separately governed |
 | Learner identity and local authentication | ready | ADR-0006, identity-provider contract, and local identity security architecture | Preserve setup-selected single-profile, built-in, or OIDC adapters behind one learner-context contract |
 | Organization tenancy and database policies | decision-required | Cloud profile | Do not infer tenant or placement policy |
 | Cloud platform and deployment tooling | decision-required | Cloud profile | Keep documentation provider-neutral |

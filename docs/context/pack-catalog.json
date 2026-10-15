@@ -39,7 +39,7 @@
       "path": "docs/context/packs/learning-adaptation.pack.md",
       "keywords": ["curriculum", "assessment", "mastery", "learner state", "adaptive", "recommendation"],
       "pathGlobs": ["backend/**/curriculum/**", "backend/**/assessment/**", "backend/**/learner_model/**", "backend/**/adaptation/**", "docs/architecture/learning/**"],
-      "canonicalSources": ["docs/architecture/learning/adaptive-pathway-architecture.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0011-inert-applied-project-artifacts.md", "docs/adr/ADR-0012-reusable-project-workspace.md", "docs/architecture/contracts/content-package-contract.md", "docs/architecture/modules/module-map.md", "docs/domain/README.md"],
+      "canonicalSources": ["docs/architecture/learning/adaptive-pathway-architecture.md", "docs/adr/ADR-0014-governed-adaptive-learning-research-plane.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0011-inert-applied-project-artifacts.md", "docs/adr/ADR-0012-reusable-project-workspace.md", "docs/architecture/contracts/content-package-contract.md", "docs/architecture/modules/module-map.md", "docs/domain/README.md"],
       "adjacentPacks": ["ai-ml", "testing-quality"],
       "stopConditions": ["Model output bypasses deterministic eligibility or policy"]
     },
@@ -57,7 +57,7 @@
       "path": "docs/context/packs/ai-ml.pack.md",
       "keywords": ["AI", "ML", "model", "prompt", "tutor", "embedding", "dataset", "evaluation"],
       "pathGlobs": ["backend/**/ai_orchestration/**", "notebooks/**", "docs/ai-ml/**", "docs/architecture/ai-ml/**"],
-      "canonicalSources": ["docs/ai-ml/README.md", "docs/architecture/ai-ml/ai-ml-system-boundaries.md"],
+      "canonicalSources": ["docs/ai-ml/README.md", "docs/architecture/ai-ml/ai-ml-system-boundaries.md", "docs/adr/ADR-0014-governed-adaptive-learning-research-plane.md"],
       "adjacentPacks": ["learning-adaptation", "financial-data", "security-risk"],
       "stopConditions": ["Model authority, data use, or evaluation threshold is unresolved"]
     },

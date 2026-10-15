@@ -11,6 +11,9 @@ Work affects model providers, prompts, tutoring, retrieval, embeddings, adaptive
 - Executions retain model/policy/template/source/version evidence.
 - Essential workflows have deterministic policy and fallback.
 - Evaluation distinguishes task quality, grounding, safety, learning outcomes, and operational cost.
+- Adaptive-learning models follow ADR-0014's champion-challenger, calibration,
+  abstention, leakage-control, shadow, deterministic-fallback, and separately
+  reviewed online-experiment envelope.
 - Automation-harness evaluations use deterministic fixtures and privacy-minimized
   operational metrics; they do not collect prompts/model output or become model
   promotion authority.
@@ -20,6 +23,7 @@ Work affects model providers, prompts, tutoring, retrieval, embeddings, adaptive
 - `docs/ai-ml/README.md`
 - `docs/architecture/ai-ml/ai-ml-system-boundaries.md`
 - `docs/architecture/learning/adaptive-pathway-architecture.md`
+- `docs/adr/ADR-0014-governed-adaptive-learning-research-plane.md`
 
 ## Stop When
 

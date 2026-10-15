@@ -23,6 +23,7 @@ Baseline context for every non-trivial task.
 - Projects may link to multiple Portfolio-owned or other domain-owned resources without copying their state; live Portfolio behavior remains gated on accepted Portfolio contracts
 - Project datasets, notebooks, code, environments, and results remain inert untrusted evidence under ADR-0011; learner-managed execution does not authorize a platform or provider runtime
 - Planning advice, readiness, and roadmaps never replace CAP authority; packets execute in dependency order, conforming detail may evolve, and material CAP drift requires renewed CAP approval
+- ADR-0014 governs adaptive competency estimation and guidance through independently versioned estimate/publication policies, deterministic eligibility and fallbacks, calibrated abstention, phased champion-challenger qualification, and separate consented experiment review
 
 ## Workflow
 

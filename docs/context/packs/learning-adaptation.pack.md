@@ -17,10 +17,15 @@ Work affects curriculum, competencies, assessments, learner evidence/state, elig
 - Adaptation applies deterministic eligibility and policy around ranking.
 - Recommendations retain strategy, input-version, reason, and outcome evidence.
 - Rule-based fallback remains available for essential flows.
+- ADR-0014 separates versioned competency estimation from deterministic learner-
+  facing publication, requires uncertainty and abstention, and phases research
+  from rule baseline through offline/shadow qualification before any separately
+  reviewed consented experiment.
 
 ## Canonical Sources
 
 - `docs/architecture/learning/adaptive-pathway-architecture.md`
+- `docs/adr/ADR-0014-governed-adaptive-learning-research-plane.md`
 - `docs/adr/ADR-0005-first-learning-loop-module-ownership.md`
 - `docs/adr/ADR-0011-inert-applied-project-artifacts.md`
 - `docs/adr/ADR-0012-reusable-project-workspace.md`

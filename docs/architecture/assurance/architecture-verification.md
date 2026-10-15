@@ -39,6 +39,9 @@ Coverage values are `direct`, `representative`, or `gap`. A general passing test
 | Providers pass reusable conformance suites | Provider-family contract tests | gap |
 | Local and cloud use the same domain/application packages | Local build/composition inspection plus a future managed-cloud deployment-manifest comparison | representative |
 | Adaptation applies deterministic eligibility and policy after ranking | Application tests with unsafe ranking fixtures | gap |
+| ADR-0014 competency estimates retain evidence, horizon, calibration, uncertainty, applicability, model/data/feature/selection versions, and deterministic replay while learner-facing publication abstains on weak, stale, uncalibrated, drifting, or out-of-distribution state | Learner-model projection, calibration, replay, selective-risk, claims-language, and evidence-only fallback suites | gap |
+| ADR-0014 adaptive assessment and ranking operate only inside deterministic eligibility, accessibility, exposure, burden, and learner-choice bounds, with rule fallback and no engagement-only objective | Adaptation policy, active-assessment stopping, unsafe-candidate, fallback, accessibility, and objective-contract suites | gap |
+| ADR-0014 online exploration requires separate consented experiment authority, complete candidate/propensity support evidence, bounded assignment, subgroup monitoring, stopping, and rollback | Experiment admission, consent/opt-out, off-policy support, interruption, rollback, and protected-outcome denial suites | gap |
 | AI output cannot directly mutate authoritative state | Application-port and use-case boundary tests | gap |
 | Portfolio consumes canonical rather than raw provider data | Import and type-boundary checks | gap |
 | Content and Curriculum lesson-read metadata runs from empty migrations on a real PostgreSQL server, including downgrade/reapply behavior | `backend/tests/integration/lesson_read` against PostgreSQL 18.4 | direct |
