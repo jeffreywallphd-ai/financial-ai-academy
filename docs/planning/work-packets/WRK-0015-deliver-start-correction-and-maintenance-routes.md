@@ -1,5 +1,5 @@
 ---
-id: WRK-0014
+id: WRK-0015
 kind: work-packet
 planning_status: complete
 authority: noncanonical
@@ -7,13 +7,13 @@ owner: codex-control-plane
 updated: 2026-10-15
 parent: SLI-0007
 capability: CAP-0002
-depends_on: ["WRK-0013"]
+depends_on: ["WRK-0014"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/agent/check_ready.py", "dev-tools/control-plane", "dev-tools/planning/README.md", "docs/context/packs/delivery-planning.pack.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/concurrent-work.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0007-close-packet-start-and-bound-recovery-routes.md", "docs/planning/work-packets/WRK-0014-deliver-start-correction-and-maintenance-routes.md", "docs/standards/testing-and-verification-standards.md"]
+write_scope: ["dev-tools/agent/check_ready.py", "dev-tools/control-plane", "dev-tools/planning/README.md", "docs/context/packs/delivery-planning.pack.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/concurrent-work.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0007-close-packet-start-and-bound-recovery-routes.md", "docs/planning/work-packets/WRK-0015-deliver-start-correction-and-maintenance-routes.md", "docs/standards/testing-and-verification-standards.md"]
 generated_artifacts: [".local-codex/control-plane/starts", ".local-codex/control-plane/corrections", ".local-codex/control-plane/maintenance"]
 base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
-claim_id: WRK-0014:0d1555ba-7614-47c7-80cb-839a7651a49c
+claim_id: WRK-0015:0d1555ba-7614-47c7-80cb-839a7651a49c
 claimed_by: codex-control-plane
 claimed_at: 2026-10-15T12:58:17Z
 ---
@@ -71,7 +71,7 @@ maintenance handlers, and health; stable refusal codes and one remediation.
 
 ## Dependencies and Parallel Safety
 
-WRK-0013 is complete. This packet is serial because it adds exceptional-route
+WRK-0014 is complete. This packet is serial because it adds exceptional-route
 guards to the shared CLI entry point.
 
 ## Acceptance Scenarios
@@ -114,7 +114,7 @@ remaining gaps, and the next slice action.
 ## Planning History
 
 - 2026-10-15: Authored just in time as the single conforming SLI-0007 packet
-  after SLI-0006 and WRK-0013 completed.
+  after SLI-0006 and WRK-0014 completed.
 - 2026-10-15: Delivered reusable start, correction, and maintenance cores;
   Financial AI Academy adapters; CLI mutation blocking; readiness integration;
   operational documentation; and focused anti-rigidity/anti-bypass coverage.

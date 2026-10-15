@@ -107,7 +107,7 @@ health validation.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0014 | Deliver packet-start closure, correction routing, bounded maintenance, adapters, CLI, docs, and anti-rigidity tests | WRK-0013 | none | ready |
+| WRK-0015 | Deliver packet-start closure, correction routing, bounded maintenance, adapters, CLI, docs, and anti-rigidity tests | WRK-0014 | none | ready |
 
 ## Verification and Qualification
 

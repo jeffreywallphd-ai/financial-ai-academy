@@ -1,5 +1,5 @@
 ---
-id: WRK-0012
+id: WRK-0013
 kind: work-packet
 planning_status: complete
 authority: noncanonical
@@ -7,13 +7,13 @@ owner: codex-control-plane
 updated: 2026-10-15
 parent: SLI-0005
 capability: CAP-0002
-depends_on: ["WRK-0011"]
+depends_on: ["WRK-0012"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/control-plane", "dev-tools/planning/README.md", "docs/context/packs/delivery-planning.pack.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0005-record-review-findings-and-corrected-descendants.md", "docs/planning/work-packets/WRK-0012-deliver-review-and-resubmission-lineage.md", "docs/standards/testing-and-verification-standards.md"]
+write_scope: ["dev-tools/control-plane", "dev-tools/planning/README.md", "docs/context/packs/delivery-planning.pack.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0005-record-review-findings-and-corrected-descendants.md", "docs/planning/work-packets/WRK-0013-deliver-review-and-resubmission-lineage.md", "docs/standards/testing-and-verification-standards.md"]
 generated_artifacts: []
 base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
-claim_id: WRK-0012:e7452417-7d6d-464a-8ed0-1db1e35f18d0
+claim_id: WRK-0013:e7452417-7d6d-464a-8ed0-1db1e35f18d0
 claimed_by: codex-control-plane
 claimed_at: 2026-10-15T12:46:18Z
 ---
@@ -74,8 +74,8 @@ paths.
 
 ## Dependencies and Parallel Safety
 
-WRK-0011 is complete. This packet is serial and extends its exact receipt and
-the lifecycle state established by WRK-0010.
+WRK-0012 is complete. This packet is serial and extends its exact receipt and
+the lifecycle state established by WRK-0011.
 
 ## Acceptance Scenarios
 
@@ -141,4 +141,4 @@ limits, documentation impact, and the next slice action without reviewer data.
 ## Planning History
 
 - 2026-10-15: Authored just in time as the single SLI-0005 packet after SLI-0004
-  and WRK-0011 completed.
+  and WRK-0012 completed.

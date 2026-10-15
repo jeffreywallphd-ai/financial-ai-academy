@@ -106,7 +106,7 @@ even on failure.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0013 | Deliver shared policy reports, operator projection, readiness/CI integration, retained artifacts, docs, and anti-rigidity tests | WRK-0012 | none | ready |
+| WRK-0014 | Deliver shared policy reports, operator projection, readiness/CI integration, retained artifacts, docs, and anti-rigidity tests | WRK-0013 | none | ready |
 
 ## Verification and Qualification
 

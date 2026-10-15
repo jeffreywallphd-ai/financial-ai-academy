@@ -1,5 +1,5 @@
 ---
-id: WRK-0013
+id: WRK-0014
 kind: work-packet
 planning_status: complete
 authority: noncanonical
@@ -7,13 +7,13 @@ owner: codex-control-plane
 updated: 2026-10-15
 parent: SLI-0006
 capability: CAP-0002
-depends_on: ["WRK-0012"]
+depends_on: ["WRK-0013"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: [".github/workflows/agent-readiness.yml", "dev-tools/agent/README.md", "dev-tools/agent/check_ci_workflow.py", "dev-tools/agent/check_ready.py", "dev-tools/control-plane", "dev-tools/planning/README.md", "docs/assurance/known-verification-gaps.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0006-enforce-policy-and-project-operator-status.md", "docs/planning/work-packets/WRK-0013-deliver-policy-reports-and-operator-status.md", "docs/standards/testing-and-verification-standards.md"]
+write_scope: [".github/workflows/agent-readiness.yml", "dev-tools/agent/README.md", "dev-tools/agent/check_ci_workflow.py", "dev-tools/agent/check_ready.py", "dev-tools/control-plane", "dev-tools/planning/README.md", "docs/assurance/known-verification-gaps.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0006-enforce-policy-and-project-operator-status.md", "docs/planning/work-packets/WRK-0014-deliver-policy-reports-and-operator-status.md", "docs/standards/testing-and-verification-standards.md"]
 generated_artifacts: ["artifacts/control-plane"]
 base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
-claim_id: WRK-0013:bc0d75ad-f363-4f5b-9ca7-99fd726aa7f4
+claim_id: WRK-0014:bc0d75ad-f363-4f5b-9ca7-99fd726aa7f4
 claimed_by: codex-control-plane
 claimed_at: 2026-10-15T12:52:20Z
 ---
@@ -70,7 +70,7 @@ and CI artifact name/path contract.
 
 ## Dependencies and Parallel Safety
 
-WRK-0012 is complete. This packet is serial because it integrates every prior
+WRK-0013 is complete. This packet is serial because it integrates every prior
 control-plane projection into shared readiness and CI surfaces.
 
 ## Acceptance Scenarios
@@ -113,7 +113,7 @@ impact, remaining external configuration gaps, and next slice action.
 ## Planning History
 
 - 2026-10-15: Authored just in time as the single SLI-0006 integration packet
-  after SLI-0005 and WRK-0012 completed.
+  after SLI-0005 and WRK-0013 completed.
 - 2026-10-15: Delivered the reusable policy/report and operator-status cores,
   Financial AI Academy adapters, readiness/CI integration, retained sanitized
   reports, and focused anti-rigidity tests. All four control-plane suites,

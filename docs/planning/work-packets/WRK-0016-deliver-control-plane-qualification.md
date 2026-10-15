@@ -1,5 +1,5 @@
 ---
-id: WRK-0015
+id: WRK-0016
 kind: work-packet
 planning_status: complete
 authority: noncanonical
@@ -7,13 +7,13 @@ owner: codex-control-plane
 updated: 2026-10-15
 parent: SLI-0008
 capability: CAP-0002
-depends_on: ["WRK-0014"]
+depends_on: ["WRK-0015"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/agent/README.md", "dev-tools/agent/check_ready.py", "dev-tools/control-plane", "dev-tools/planning/README.md", "docs/architecture/assurance/testing-architecture.md", "docs/assurance/known-verification-gaps.md", "docs/context/packs/ai-ml.pack.md", "docs/context/packs/delivery-planning.pack.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/capabilities/CAP-0002-operate-ai-development-control-plane.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0008-qualify-control-plane-safety-and-friction.md", "docs/planning/work-packets/WRK-0015-deliver-control-plane-qualification.md", "docs/standards/ai-agent-development-standards.md", "docs/standards/testing-and-verification-standards.md"]
+write_scope: ["dev-tools/agent/README.md", "dev-tools/agent/check_ready.py", "dev-tools/control-plane", "dev-tools/planning/README.md", "docs/architecture/assurance/testing-architecture.md", "docs/assurance/known-verification-gaps.md", "docs/context/packs/ai-ml.pack.md", "docs/context/packs/delivery-planning.pack.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/capabilities/CAP-0002-operate-ai-development-control-plane.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0008-qualify-control-plane-safety-and-friction.md", "docs/planning/work-packets/WRK-0016-deliver-control-plane-qualification.md", "docs/standards/ai-agent-development-standards.md", "docs/standards/testing-and-verification-standards.md"]
 generated_artifacts: [".local-codex/control-plane/telemetry", "artifacts/control-plane"]
 base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
-claim_id: WRK-0015:34f64c2e-e1e5-4242-8717-4403bb451e96
+claim_id: WRK-0016:34f64c2e-e1e5-4242-8717-4403bb451e96
 claimed_by: codex-control-plane
 claimed_at: 2026-10-15T13:03:01Z
 ---
@@ -74,7 +74,7 @@ confinement; additive receipt/result provenance; explicit forbidden fields.
 
 ## Dependencies and Parallel Safety
 
-WRK-0014 is complete. This packet is serial because it wraps shared execution
+WRK-0015 is complete. This packet is serial because it wraps shared execution
 and qualifies the complete control plane.
 
 ## Acceptance Scenarios
@@ -120,7 +120,7 @@ documentation/assurance impact, residual gaps, and CAP closure state.
 ## Planning History
 
 - 2026-10-15: Authored just in time as the final conforming CAP-0002 packet
-  after SLI-0007 and WRK-0014 completed.
+  after SLI-0007 and WRK-0015 completed.
 - 2026-10-15: Delivered exact command/effect/path grants, receipt and CLI
   provenance, anonymous append-only telemetry/metrics, seven tracked multi-turn
   scenarios, evaluator/readiness integration, documentation, and privacy,

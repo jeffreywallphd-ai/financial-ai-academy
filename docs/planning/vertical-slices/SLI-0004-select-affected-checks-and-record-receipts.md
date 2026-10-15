@@ -106,7 +106,7 @@ returns one qualifying or actionable non-qualifying disposition to the CLI.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0011 | Deliver deterministic affected-check selection, exact verification receipts, adapters, commands, docs, and anti-rigidity tests | WRK-0010 | none | ready |
+| WRK-0012 | Deliver deterministic affected-check selection, exact verification receipts, adapters, commands, docs, and anti-rigidity tests | WRK-0011 | none | ready |
 
 ## Verification and Qualification
 
@@ -140,7 +140,7 @@ deferred checks, exact focused commands/results, failure and anti-rigidity
 coverage, environment limits, and CAP conformance without copying local approval
 or reviewer records into tracked files.
 
-Delivered evidence is recorded in WRK-0011. The slice provides deterministic
+Delivered evidence is recorded in WRK-0012. The slice provides deterministic
 path/risk selection, a tracked allowlisted catalog, exact-candidate stability
 checks before and after execution, privacy-minimized attempts, append-only
 receipt chaining, freshness validation, and explicit non-qualification for

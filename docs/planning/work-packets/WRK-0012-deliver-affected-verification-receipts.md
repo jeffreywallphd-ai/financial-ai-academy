@@ -1,5 +1,5 @@
 ---
-id: WRK-0011
+id: WRK-0012
 kind: work-packet
 planning_status: complete
 authority: noncanonical
@@ -7,13 +7,13 @@ owner: codex-control-plane
 updated: 2026-10-15
 parent: SLI-0004
 capability: CAP-0002
-depends_on: ["WRK-0010"]
+depends_on: ["WRK-0011"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/control-plane", "dev-tools/planning/README.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0011-deliver-affected-verification-receipts.md", "docs/standards/testing-and-verification-standards.md"]
+write_scope: ["dev-tools/control-plane", "dev-tools/planning/README.md", "docs/context/packs/testing-quality.pack.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0012-deliver-affected-verification-receipts.md", "docs/standards/testing-and-verification-standards.md"]
 generated_artifacts: []
 base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
-claim_id: WRK-0011:3a416dfa-cd92-406f-9c70-935b9385c226
+claim_id: WRK-0012:3a416dfa-cd92-406f-9c70-935b9385c226
 claimed_by: codex-control-plane
 claimed_at: 2026-10-15T12:44:07Z
 ---
@@ -30,7 +30,7 @@ direct safety and anti-rigidity evidence.
 ## Required Context
 
 Read applicable `AGENTS.md`, `docs/README.md`, CAP-0002, SLI-0004, SLI-0003 and
-WRK-0010 contracts, planning/concurrent-work guides, testing standards,
+WRK-0011 contracts, planning/concurrent-work guides, testing standards,
 agent-readiness allowlist and CI workflow, affected control-plane code/tests,
 and nearest READMEs before editing.
 
@@ -73,7 +73,7 @@ codes and remediation.
 
 ## Dependencies and Parallel Safety
 
-WRK-0010 is complete. This packet is serial because it extends its submission
+WRK-0011 is complete. This packet is serial because it extends its submission
 and state contracts and is not parallel-safe with another control-plane change.
 
 ## Acceptance Scenarios
@@ -139,4 +139,4 @@ next deterministic slice action.
 ## Planning History
 
 - 2026-10-15: Authored just in time as the single bounded SLI-0004 packet after
-  WRK-0010 and SLI-0003 completed.
+  WRK-0011 and SLI-0003 completed.

@@ -1,5 +1,5 @@
 ---
-id: WRK-0010
+id: WRK-0011
 kind: work-packet
 planning_status: complete
 authority: noncanonical
@@ -10,10 +10,10 @@ capability: CAP-0002
 depends_on: []
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/control-plane", "dev-tools/planning/claim_packet.py", "dev-tools/planning/README.md", "dev-tools/planning/test_planning_tools.py", "docs/context/packs/delivery-planning.pack.md", "docs/planning/concurrent-work.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0003-resume-submit-interrupted-work-packet.md", "docs/planning/work-packets/WRK-0010-deliver-interruption-safe-packet-lifecycle.md", "docs/standards/testing-and-verification-standards.md"]
+write_scope: ["dev-tools/control-plane", "dev-tools/planning/claim_packet.py", "dev-tools/planning/README.md", "dev-tools/planning/test_planning_tools.py", "docs/context/packs/delivery-planning.pack.md", "docs/planning/concurrent-work.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0003-resume-submit-interrupted-work-packet.md", "docs/planning/work-packets/WRK-0011-deliver-interruption-safe-packet-lifecycle.md", "docs/standards/testing-and-verification-standards.md"]
 generated_artifacts: []
 base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
-claim_id: WRK-0010:a142da6d-5923-4cf4-9a91-f2d5646cd4c1
+claim_id: WRK-0011:a142da6d-5923-4cf4-9a91-f2d5646cd4c1
 claimed_by: codex-control-plane
 claimed_at: 2026-10-15T12:30:14Z
 ---
@@ -114,7 +114,7 @@ slice.
 - `python dev-tools/control-plane/test_control_plane.py`
 - `python dev-tools/planning/test_planning_tools.py`
 - `python dev-tools/planning/check_planning.py --require-local-approvals`
-- `python docs/planning/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0010-deliver-interruption-safe-packet-lifecycle.md`
+- `python docs/planning/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0011-deliver-interruption-safe-packet-lifecycle.md`
 - `python dev-tools/agent/check_ready.py`
 
 ## Documentation and Evidence Update

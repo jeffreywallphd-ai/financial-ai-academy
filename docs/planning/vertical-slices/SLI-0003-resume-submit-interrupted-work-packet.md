@@ -205,9 +205,9 @@ and can be accepted or rejected as one observable result.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0010 | Deliver lifecycle contracts, atomic state, leases, recovery, exact-candidate commands, documentation, and qualification | none | none | ready |
+| WRK-0011 | Deliver lifecycle contracts, atomic state, leases, recovery, exact-candidate commands, documentation, and qualification | none | none | ready |
 
-Later CAP-0002 slices consume the stable outputs of WRK-0010 and remain serial.
+Later CAP-0002 slices consume the stable outputs of WRK-0011 and remain serial.
 Anti-rigidity evidence is required alongside safety evidence: the common path
 must not repeat approvals, require manual metadata repair, or run unrelated
 repository-wide checks.
@@ -277,7 +277,7 @@ evidence, compatibility fixtures, known platform gaps, affected documentation,
 and confirmation that no approval, external action, commit, push, deployment, or
 product-state authority was added.
 
-Delivered evidence is recorded in WRK-0010. The slice supplies a reusable core
+Delivered evidence is recorded in WRK-0011. The slice supplies a reusable core
 with repository adapters, direct Windows multi-process exclusion, recoverable
 state/projection publication, lease expiry and owner-protection scenarios,
 exact-candidate and scope denials, and a two-command happy-path assertion that

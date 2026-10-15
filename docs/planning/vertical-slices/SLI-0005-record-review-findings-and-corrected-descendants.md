@@ -108,7 +108,7 @@ SLI-0004 verification must run fresh before another review.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0012 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0011 | none | ready |
+| WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | ready |
 
 ## Verification and Qualification
 
@@ -137,7 +137,7 @@ testing guidance, artifacts, and register. Tracked completion evidence may
 describe behaviors and check results but must not copy any reviewer label,
 status, date, authority, finding ledger, or local review history.
 
-Delivered evidence is recorded in WRK-0012. The slice supplies append-only local
+Delivered evidence is recorded in WRK-0013. The slice supplies append-only local
 technical review rounds, deterministic independence checks, binding to exact
 candidate receipts, blocking/open-finding enforcement, explicit closure,
 strict-descendant lineage, fresh verification between rounds, and repeated-round

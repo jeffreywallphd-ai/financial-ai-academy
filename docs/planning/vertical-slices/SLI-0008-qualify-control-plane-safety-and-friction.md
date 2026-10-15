@@ -110,7 +110,7 @@ readiness executes the deterministic corpus.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0015 | Deliver confinement, provenance, telemetry, deterministic harness evaluation, readiness/docs/final CAP evidence, and anti-rigidity tests | WRK-0014 | none | ready |
+| WRK-0016 | Deliver confinement, provenance, telemetry, deterministic harness evaluation, readiness/docs/final CAP evidence, and anti-rigidity tests | WRK-0015 | none | ready |
 
 ## Verification and Qualification
 
