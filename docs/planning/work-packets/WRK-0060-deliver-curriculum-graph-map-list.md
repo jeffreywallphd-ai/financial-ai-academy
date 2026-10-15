@@ -1,9 +1,9 @@
 ---
 id: WRK-0060
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0005
 updated: 2026-10-15
 parent: SLI-0022
 capability: CAP-0005
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/curriculum-graph/api.ts", "apps/web/src/features/curriculum-graph/model.ts", "apps/web/src/features/curriculum-graph/CurriculumGraphPage.tsx", "apps/web/src/features/curriculum-graph/CurriculumGraphRoute.tsx", "apps/web/src/styles/curriculum-graph.css", "apps/web/tests/component/curriculumGraphFixture.ts", "apps/web/tests/component/curriculumGraph.test.tsx", "apps/web/tests/unit/curriculumGraphModel.test.ts", "apps/web/tests/browser/curriculum-graph/curriculum-graph.spec.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0022-open-versioned-curriculum-graph.md", "docs/planning/work-packets/WRK-0060-deliver-curriculum-graph-map-list.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 7b7d4fab58ab5e7e0d3632cc6706a8ba957bc00a
+claim_id: WRK-0060:7229c075-e594-43ac-aa45-3f71a3d8fc56
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-15T23:34:23Z
 ---
 
 # Agent Work Packet: Deliver the Curriculum Graph Map and List
