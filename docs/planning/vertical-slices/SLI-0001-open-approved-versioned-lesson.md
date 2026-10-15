@@ -1,7 +1,7 @@
 ---
 id: SLI-0001
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-agent
 updated: 2026-10-15
@@ -128,6 +128,7 @@ The selected slice decomposes into the following bounded, serial work packets.
 | [WRK-0003](../work-packets/WRK-0003-expose-single-profile-lesson-api.md) | Compose single-profile learner context, FastAPI/OpenAPI, and generated TypeScript client | WRK-0002 | none | complete |
 | [WRK-0004](../work-packets/WRK-0004-deliver-accessible-lesson-reading-page.md) | Deliver the accessible lesson-reading page in light, dark, and system modes | WRK-0003 | none | complete |
 | [WRK-0005](../work-packets/WRK-0005-qualify-approved-lesson-slice.md) | Qualify the cross-system, security, architecture, accessibility, and local-runtime path | WRK-0004 | none | complete |
+| [WRK-0028](../work-packets/WRK-0028-refresh-web-qualification-dependencies.md) | Refresh the exact vulnerable web qualification dependencies and re-run closure evidence | WRK-0005 | none | complete |
 
 ## Verification and Qualification
 
@@ -177,7 +178,8 @@ All required packets are complete: [WRK-0001](../work-packets/WRK-0001-establish
 [WRK-0002](../work-packets/WRK-0002-deliver-approved-lesson-read-core.md),
 [WRK-0003](../work-packets/WRK-0003-expose-single-profile-lesson-api.md),
 [WRK-0004](../work-packets/WRK-0004-deliver-accessible-lesson-reading-page.md),
-and [WRK-0005](../work-packets/WRK-0005-qualify-approved-lesson-slice.md).
+[WRK-0005](../work-packets/WRK-0005-qualify-approved-lesson-slice.md), and
+[WRK-0028](../work-packets/WRK-0028-refresh-web-qualification-dependencies.md).
 The WRK-0005 completion-evidence section retains exact topology, dependency,
 build, hash, failure, and residual-risk details.
 
@@ -206,7 +208,7 @@ build, hash, failure, and residual-risk details.
 - A clean `npm --prefix apps/web ci` under Node 24.14/npm 10.8.2 passed
   TypeScript, oxlint, 18 Vitest tests, 6 focused Playwright Chromium tests, the
   2-scenario live Playwright path, and the 97-module static Vite build.
-- `python dev-tools/architecture/check_architecture.py` passed 7 fitness
+- `python dev-tools/architecture/check_architecture.py` passed 8 fitness
   functions; `python dev-tools/security/check_slice_security.py` passed 10
   control groups.
 - npm audit and pip-audit over the exact runtime export found zero known
@@ -261,14 +263,16 @@ evidence, and lack of managed-cloud/deployment/recovery qualification. Later
 CAP-0001 slices must separately introduce Assessment evidence and retained
 learner completion; this slice does not complete the whole capability.
 
-The 2026-10-15 deterministic closure audit passed the structural completion
-gate for all five packets. The planning, documentation, design, security,
-control-plane, and other aggregate checks ran successfully, but the required
-one-command live PostgreSQL/browser requalification could not start because the
-local Docker Desktop engine was unavailable. The slice therefore remains
-`verifying`; under the current CAP-package workflow it will close
-deterministically after the required environment-backed check passes and does
-not require a slice-level or completion approval.
+The 2026-10-15 closure requalification passed the complete pinned
+`setup:dev -- --verify-only` workflow with Docker Desktop 4.95.0, disposable
+PostgreSQL 18.4, the live same-origin Python/browser path, current generated
+contracts, zero npm vulnerabilities, and all 27 aggregate-readiness checks.
+WRK-0028 moved Vitest and its family to 4.1.12 and pinned the minimum fixed
+nanoid 3.3.18, source-map-js 1.2.2, and undici 7.29.1 transitive versions.
+WRK-0029 corrected the separately owned Windows lease-race defect found during
+that audit; 500 consecutive fresh-state process races and all 109 control-plane
+tests passed before the full lesson qualification was repeated. No public
+lesson contract, runtime family, product scope, or decision posture changed.
 
 ## Planning History
 
@@ -280,3 +284,12 @@ not require a slice-level or completion approval.
 - 2026-08-05: WRK-0005 was reopened within its existing scope for an fnm-managed runtime bootstrap; slice completion acceptance remains separate.
 - 2026-08-05: WRK-0005 completed after the fnm-managed bootstrap, complete check handoff, and development smoke start passed; the slice returned to verifying for separate completion acceptance.
 - 2026-10-15: Reconciled the slice with the CAP-package approval topology. The structural completion gate passed, but current live requalification was unavailable because Docker Desktop was not running; the slice remains `verifying` without a lower-level approval requirement.
+- 2026-10-15: Live database and browser qualification resumed successfully after the local Docker engine was repaired, but current npm advisory data blocked closure. WRK-0028 was added as a bounded descendant correction without changing the approved CAP package.
+- 2026-10-15: WRK-0028 was claimed for the bounded dependency correction and the slice returned to `active` until fresh qualification evidence is complete.
+- 2026-10-15: WRK-0028 resolved the advisory paths and passed its focused web and live product qualification. Aggregate readiness exposed a reproducible pre-existing file-lease race classification defect, so the dependency packet moved to `verifying` while that completed-control-plane defect is corrected through its owning slice.
+- 2026-10-15: WRK-0029 corrected and requalified the owning file-lease seam;
+  WRK-0028 then passed the full Docker-backed workflow and completed. SLI-0001
+  returned to deterministic closure with no lower-level approval requirement.
+- 2026-10-15: The structural completion gate passed for all six packets and
+  SLI-0001 closed on fresh focused, live, security, accessibility, provenance,
+  advisory, and aggregate evidence.

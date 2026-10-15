@@ -154,7 +154,8 @@ def main() -> int:
         output = result("shape-capability", "finish capability shaping", item, "A capability is not ready for review.", "capability")
     elif (item := choose([
         a for a in capabilities
-        if decision(ledger, a.get("id", ""), "capability") != "approved"
+        if a.get("planning_status") not in {"complete", "superseded"}
+        and decision(ledger, a.get("id", ""), "capability") != "approved"
     ])):
         output = result("approve-planned-work", "review the complete CAP planning package", item, "A shaped CAP package lacks its one local human approval.", "capability")
     else:

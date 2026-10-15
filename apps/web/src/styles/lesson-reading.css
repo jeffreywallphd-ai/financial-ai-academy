@@ -153,6 +153,177 @@
   border-top: var(--faa-border-width) solid var(--faa-color-border);
 }
 
+.knowledge-check-card {
+  margin-top: var(--faa-space-12);
+  padding: var(--faa-space-6);
+  background: var(--faa-color-surface-subtle);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-card);
+}
+
+.knowledge-check-card--warning {
+  background: var(--faa-color-warning-surface);
+  border-color: var(--faa-color-warning);
+}
+
+.knowledge-check-card h2,
+.knowledge-check-card h3 {
+  margin: var(--faa-space-0) var(--faa-space-0) var(--faa-space-4);
+  font-family: var(--faa-font-display);
+}
+
+.knowledge-check-card fieldset {
+  margin: var(--faa-space-0);
+  padding: var(--faa-space-0);
+  border: 0;
+}
+
+.knowledge-check-card legend {
+  margin-bottom: var(--faa-space-4);
+  color: var(--faa-color-text-primary);
+  font-size: var(--faa-font-size-body-lg);
+  font-weight: var(--faa-font-weight-semibold);
+  line-height: var(--faa-line-height-body-lg);
+}
+
+.knowledge-check-options {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.knowledge-check-options label {
+  display: flex;
+  min-height: var(--faa-target-min);
+  align-items: center;
+  gap: var(--faa-space-3);
+  padding: var(--faa-space-3) var(--faa-space-4);
+  color: var(--faa-color-text-primary);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+  cursor: pointer;
+}
+
+.knowledge-check-options label:has(input:checked) {
+  background: var(--faa-color-surface-selected);
+  border-color: var(--faa-color-action-primary);
+}
+
+.knowledge-check-options input {
+  width: var(--faa-space-5);
+  height: var(--faa-space-5);
+  accent-color: var(--faa-color-action-primary);
+}
+
+.knowledge-check-card button {
+  min-height: var(--faa-target-min);
+  margin-top: var(--faa-space-5);
+  padding: var(--faa-space-2) var(--faa-space-5);
+  color: var(--faa-color-on-action-primary);
+  background: var(--faa-color-action-primary);
+  border: var(--faa-border-width) solid var(--faa-color-action-primary);
+  border-radius: var(--faa-radius-control);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.knowledge-check-card button:hover:not(:disabled) {
+  background: var(--faa-color-action-primary-hover);
+}
+
+.knowledge-check-card button:disabled {
+  color: var(--faa-color-text-disabled);
+  background: var(--faa-color-control-disabled);
+  border-color: var(--faa-color-border);
+  cursor: not-allowed;
+}
+
+.knowledge-check-feedback,
+.knowledge-check-message {
+  margin: var(--faa-space-5) var(--faa-space-0) var(--faa-space-0);
+  padding: var(--faa-space-4);
+  border: var(--faa-border-width) solid;
+  border-radius: var(--faa-radius-control);
+}
+
+.knowledge-check-feedback--success {
+  background: var(--faa-color-success-surface);
+  border-color: var(--faa-color-success);
+}
+
+.knowledge-check-feedback--review,
+.knowledge-check-message {
+  background: var(--faa-color-warning-surface);
+  border-color: var(--faa-color-warning);
+}
+
+.knowledge-check-feedback p:last-child {
+  margin-bottom: var(--faa-space-0);
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-ui);
+}
+
+.completion-summary,
+.completion-history,
+.completion-history dl {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.completion-summary {
+  margin: var(--faa-space-5) var(--faa-space-0) var(--faa-space-6);
+}
+
+.completion-summary > div,
+.completion-history dl > div {
+  padding-bottom: var(--faa-space-3);
+  border-bottom: var(--faa-border-width) solid var(--faa-color-border);
+}
+
+.completion-summary dt,
+.completion-history dt {
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-caption);
+  font-weight: var(--faa-font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.completion-summary dd,
+.completion-history dd {
+  margin: var(--faa-space-1) var(--faa-space-0) var(--faa-space-0);
+  color: var(--faa-color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.completion-summary code,
+.completion-history code {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: var(--faa-font-size-caption);
+}
+
+.completion-history {
+  margin: var(--faa-space-0);
+  padding: var(--faa-space-0);
+  list-style: none;
+}
+
+.completion-history article {
+  padding: var(--faa-space-4);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+}
+
+.completion-limitation {
+  margin: var(--faa-space-5) var(--faa-space-0) var(--faa-space-0);
+  padding: var(--faa-space-4);
+  color: var(--faa-color-text-secondary);
+  background: var(--faa-color-info-surface);
+  border: var(--faa-border-width) solid var(--faa-color-info);
+  border-radius: var(--faa-radius-control);
+}
+
 .sources-section h2,
 .context-card h2 {
   display: flex;
@@ -285,7 +456,8 @@
 @media (max-width: 39.99rem) {
   .lesson-reading-card,
   .objectives-card,
-  .context-card {
+  .context-card,
+  .knowledge-check-card {
     padding: var(--faa-space-4);
   }
 
@@ -300,6 +472,12 @@
   .objectives-card,
   .source-list li,
   .context-card,
+  .knowledge-check-card,
+  .knowledge-check-options label,
+  .knowledge-check-feedback,
+  .knowledge-check-message,
+  .completion-history article,
+  .completion-limitation,
   .lesson-body pre,
   .lesson-body img {
     color: CanvasText;

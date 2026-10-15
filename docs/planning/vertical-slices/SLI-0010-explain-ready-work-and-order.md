@@ -87,6 +87,7 @@ identity, decision history, or inferred priority.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0018 | Deliver hierarchy-aware readiness and proposed ordering with explicit priority, CLI, docs, and tests | WRK-0017 | none | complete |
+| WRK-0030 | Ignore terminal CAP history when selecting current approval and delivery actions | WRK-0018 | none | complete |
 
 ## Verification and Qualification
 
@@ -116,10 +117,30 @@ No roadmap is currently active, so accepted-sequence ingestion is covered by
 the reusable contract rather than a live repository fixture. No migration or
 external qualification was required. The slice conforms to CAP-0003.
 
+WRK-0030 corrected next-action routing so terminal `complete` or `superseded`
+CAP history can satisfy dependencies without becoming a fresh approval gate.
+An unapproved terminal fixture no longer blocks an approved actionable CAP,
+while every nonterminal package retains exact approval enforcement. Planning
+skill behavior, 8-skill validation, 17 prompt scenarios, installed discovery,
+planning/docs, and all 27 readiness checks passed. This removes an excessive
+workflow barrier without weakening authority.
+
 ## Planning History
+
+- 2026-10-15: WRK-0041 was added as a bounded descendant correction after a
+  valid between-slice handoff exposed a repository-state-dependent test
+  assumption. Completed SLI-0010 and WRK-0018 history remains terminal.
+- 2026-10-15: WRK-0041 completed with seven focused ordering tests and all 27
+  aggregate readiness checks passing; authority confinement remains explicit
+  without requiring artificial in-progress work.
 
 - 2026-10-15: Refined just in time after SLI-0009 completed; Candidate A scored
   14/14 and conforms to CAP-0003.
 - 2026-10-15: Delivered multi-level ready sets, dependency-respecting order,
   explicit priority, visible ties, current-authority projection, CLI/docs, and
   focused anti-rigidity and authority tests.
+- 2026-10-15: Added WRK-0030 as a bounded anti-rigidity correction after the
+  next-action router treated an unapproved terminal CAP as a new approval gate.
+- 2026-10-15: WRK-0030 completed after the canonical router regression, skill
+  synchronization, and aggregate readiness passed; the slice returned to its
+  complete state.

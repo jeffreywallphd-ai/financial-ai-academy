@@ -29,11 +29,30 @@ OpenAPI client. It renders only the closed safe body-node union and presents
 objectives, reviewed sources, package version/digest, and publication
 provenance. Unknown nodes, unsafe locators, denial, missing exact placement,
 integrity failure, and unavailable responses fail to bounded page states.
+The same route reads the exact Assessment presentation and submits one
+single-choice response through the generated client. Scoring and learner
+identity remain server-authoritative; the browser never receives the answer
+key.
+
+The route first calls the protected exact-placement completion-history query.
+When retained completion exists, it shows the reproduced bounded result,
+source-set digest, exact lesson and Assessment versions/digests, score, time,
+and source event/attempt/evidence references without requesting another
+knowledge-check presentation. Empty history continues to the answer-safe form.
+Denied, malformed, or unavailable history fails closed without fabricating a
+completion or erasing evidence. The browser sends no learner selector and
+receives no answer key, Audit row, or mastery interpretation.
 
 The browser never selects the learner, reads the HttpOnly cookie, imports
 backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference
 persisted by this slice.
+
+The application shell uses the canonical primary sidebar: expanded at wide
+desktop widths, compact with labeled hover/focus disclosures at intermediate
+desktop widths, and an accessible menu drawer on narrow viewports. `Learn` is
+the only active destination in this slice. Future product areas are visibly
+marked as planned and are not exposed as dead links or fictional routes.
 
 ## Commands
 
@@ -119,8 +138,9 @@ accessibility scan, keyboard focus, responsive reflow, reduced motion, forced
 colors, denial, and unknown-content paths. Visual baselines are
 platform-specific. The live cross-system suite additionally owns the real
 PostgreSQL/filesystem, single-profile session, generated-client,
-static-serving, success, missing-context, stale-placement, security-header,
-education-boundary, and axe path. Real screen-reader operation, actual browser
+static-serving, submission, repeated retained-completion reopen,
+missing-context, stale-placement, security-header, education-boundary, and axe
+path. Real screen-reader operation, actual browser
 200-percent zoom controls, and browsers beyond the pinned Chromium runtime
 require controlled manual or later multi-browser qualification.
 

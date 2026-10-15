@@ -378,6 +378,534 @@
         "title": "InlineTextModel",
         "type": "object"
       },
+      "KnowledgeCheckFeedbackModel": {
+        "additionalProperties": false,
+        "properties": {
+          "feedback_id": {
+            "title": "Feedback Id",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feedback_id",
+          "text"
+        ],
+        "title": "KnowledgeCheckFeedbackModel",
+        "type": "object"
+      },
+      "KnowledgeCheckOptionModel": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "option_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Option Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "option_id",
+          "label"
+        ],
+        "title": "KnowledgeCheckOptionModel",
+        "type": "object"
+      },
+      "KnowledgeCheckPresentationResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "assessment_version": {
+            "const": "1.0.0",
+            "title": "Assessment Version",
+            "type": "string"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_type": {
+            "const": "single_select",
+            "title": "Item Type",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeCheckOptionModel"
+            },
+            "maxItems": 6,
+            "minItems": 2,
+            "title": "Options",
+            "type": "array"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "const": "1.1.0",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "prompt": {
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "default": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scoring_policy_id": {
+            "const": "single-select-exact-match",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "assessment_id",
+          "assessment_version",
+          "definition_digest",
+          "item_type",
+          "item_id",
+          "item_version",
+          "scoring_policy_id",
+          "scoring_policy_version",
+          "prompt",
+          "options"
+        ],
+        "title": "KnowledgeCheckPresentationResponseModel",
+        "type": "object"
+      },
+      "KnowledgeCheckResultResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "assessment_version": {
+            "const": "1.0.0",
+            "title": "Assessment Version",
+            "type": "string"
+          },
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "correct": {
+            "title": "Correct",
+            "type": "boolean"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "evidence_id": {
+            "format": "uuid",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/KnowledgeCheckFeedbackModel"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "const": "1.1.0",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "default": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "scoring_policy_id": {
+            "const": "single-select-exact-match",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          },
+          "submission_id": {
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "evidence_id",
+          "submission_id",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "assessment_id",
+          "assessment_version",
+          "definition_digest",
+          "item_id",
+          "item_version",
+          "scoring_policy_id",
+          "scoring_policy_version",
+          "score",
+          "max_score",
+          "correct",
+          "feedback",
+          "submitted_at"
+        ],
+        "title": "KnowledgeCheckResultResponseModel",
+        "type": "object"
+      },
+      "KnowledgeCheckSubmissionRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "assessment_version": {
+            "const": "1.0.0",
+            "title": "Assessment Version",
+            "type": "string"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "const": "1.1.0",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "scoring_policy_id": {
+            "const": "single-select-exact-match",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          },
+          "selected_option_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Selected Option Id",
+            "type": "string"
+          },
+          "submission_id": {
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "submission_id",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "assessment_id",
+          "assessment_version",
+          "definition_digest",
+          "item_id",
+          "item_version",
+          "scoring_policy_id",
+          "scoring_policy_version",
+          "selected_option_id"
+        ],
+        "title": "KnowledgeCheckSubmissionRequestModel",
+        "type": "object"
+      },
+      "LessonCompletionHistoryEntryModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_id": {
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "assessment_version": {
+            "const": "1.0.0",
+            "title": "Assessment Version",
+            "type": "string"
+          },
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "completed_at": {
+            "format": "date-time",
+            "title": "Completed At",
+            "type": "string"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "event_id": {
+            "format": "uuid",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "evidence_id": {
+            "format": "uuid",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "item_id": {
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "const": "1.1.0",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "scoring_policy_id": {
+            "const": "single-select-exact-match",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "event_id",
+          "attempt_id",
+          "evidence_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "assessment_id",
+          "assessment_version",
+          "definition_digest",
+          "item_id",
+          "item_version",
+          "scoring_policy_id",
+          "scoring_policy_version",
+          "score",
+          "max_score",
+          "completed_at"
+        ],
+        "title": "LessonCompletionHistoryEntryModel",
+        "type": "object"
+      },
+      "LessonCompletionResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "completed": {
+            "title": "Completed",
+            "type": "boolean"
+          },
+          "completion_meaning": {
+            "enum": [
+              "not_completed",
+              "bounded_knowledge_check_completed"
+            ],
+            "title": "Completion Meaning",
+            "type": "string"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/LessonCompletionHistoryEntryModel"
+            },
+            "title": "History",
+            "type": "array"
+          },
+          "placement_id": {
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "projection_version": {
+            "const": "1.0.0",
+            "default": "1.0.0",
+            "title": "Projection Version",
+            "type": "string"
+          },
+          "rebuilt_at": {
+            "format": "date-time",
+            "title": "Rebuilt At",
+            "type": "string"
+          },
+          "source_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "placement_id",
+          "completed",
+          "completion_meaning",
+          "source_digest",
+          "rebuilt_at",
+          "history"
+        ],
+        "title": "LessonCompletionResponseModel",
+        "type": "object"
+      },
       "LessonReadingResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -943,6 +1471,346 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/curriculum/placements/{placement_id}/completion": {
+      "get": {
+        "operationId": "getLessonCompletion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "placement_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Placement Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonCompletionResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Lesson Completion",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/curriculum/placements/{placement_id}/knowledge-check": {
+      "get": {
+        "operationId": "getPlacedKnowledgeCheck",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "placement_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Placement Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeCheckPresentationResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Placed Knowledge Check",
+        "tags": [
+          "assessment"
+        ]
+      }
+    },
+    "/api/v1/curriculum/placements/{placement_id}/knowledge-check/submissions": {
+      "post": {
+        "operationId": "submitPlacedKnowledgeCheck",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "placement_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Placement Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KnowledgeCheckSubmissionRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnowledgeCheckResultResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Submit Placed Knowledge Check",
+        "tags": [
+          "assessment"
+        ]
+      }
+    },
     "/api/v1/curriculum/placements/{placement_id}/lesson": {
       "get": {
         "operationId": "getPlacedLesson",

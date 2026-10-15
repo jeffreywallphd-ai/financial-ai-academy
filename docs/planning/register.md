@@ -9,7 +9,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 
 | ID | Kind | Title | Planning status | Parent | Dependencies | Decision gates | Owner | Updated |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CAP-0001 | Capability | [Complete a Structured Introductory Lesson](capabilities/CAP-0001-complete-structured-introductory-lesson.md) | ready | none | none | resolved by ADR-0005 through ADR-0008 | unassigned | 2026-10-15 |
+| CAP-0001 | Capability | [Complete a Structured Introductory Lesson](capabilities/CAP-0001-complete-structured-introductory-lesson.md) | active | none | none | resolved by ADR-0005 through ADR-0008 | unassigned | 2026-10-15 |
 | CAP-0002 | Capability | [Operate the AI-Development Control Plane](capabilities/CAP-0002-operate-ai-development-control-plane.md) | complete | none | none | none | codex-control-plane | 2026-10-15 |
 | CAP-0003 | Capability | [Plan and Orchestrate Capability Portfolios](capabilities/CAP-0003-plan-and-orchestrate-capability-portfolios.md) | complete | none | CAP-0002 | none | codex-cap-0003 | 2026-10-15 |
 | CAP-0004 | Capability | [Discover Learning Opportunities](capabilities/CAP-0004-discover-learning-opportunities.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
@@ -17,7 +17,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | CAP-0006 | Capability | [Practice and Demonstrate Understanding](capabilities/CAP-0006-practice-and-demonstrate-understanding.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
 | CAP-0007 | Capability | [Complete Applied Projects](capabilities/CAP-0007-complete-applied-projects.md) | ready | none | CAP-0005, CAP-0006 | resolved by ADR-0011 and ADR-0012 | unassigned | 2026-10-15 |
 | CAP-0008 | Capability | [Review Capability Delivery Roadmaps](capabilities/CAP-0008-review-capability-delivery-roadmaps.md) | complete | none | CAP-0003 | none | codex-roadmap-review | 2026-10-15 |
-| SLI-0001 | Vertical slice | [Open an Approved Versioned Lesson](vertical-slices/SLI-0001-open-approved-versioned-lesson.md) | verifying | CAP-0001 | none | none | codex-agent | 2026-10-15 |
+| SLI-0001 | Vertical slice | [Open an Approved Versioned Lesson](vertical-slices/SLI-0001-open-approved-versioned-lesson.md) | complete | CAP-0001 | none | none | codex-agent | 2026-10-15 |
 | SLI-0003 | Vertical slice | [Resume and Submit an Interrupted Work Packet](vertical-slices/SLI-0003-resume-submit-interrupted-work-packet.md) | complete | CAP-0002 | none | none | codex-control-plane | 2026-10-15 |
 | SLI-0004 | Vertical slice | [Select Affected Checks and Record Verification Receipts](vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md) | complete | CAP-0002 | SLI-0003 | none | codex-control-plane | 2026-10-15 |
 | SLI-0005 | Vertical slice | [Record Review Findings and Corrected Descendants](vertical-slices/SLI-0005-record-review-findings-and-corrected-descendants.md) | complete | CAP-0002 | SLI-0004 | none | codex-control-plane | 2026-10-15 |
@@ -30,6 +30,9 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0012 | Vertical slice | [Coordinate Exclusive File Edits](vertical-slices/SLI-0012-coordinate-exclusive-file-edits.md) | complete | CAP-0003 | SLI-0011 | none | codex-cap-0003 | 2026-10-15 |
 | SLI-0013 | Vertical slice | [Propose Hierarchy-Aware Agent Allocations](vertical-slices/SLI-0013-propose-hierarchy-aware-agent-allocations.md) | complete | CAP-0003 | SLI-0010, SLI-0011, SLI-0012 | none | codex-cap-0003 | 2026-10-15 |
 | SLI-0014 | Vertical slice | [Qualify the Portfolio Control Plane](vertical-slices/SLI-0014-qualify-portfolio-control-plane.md) | complete | CAP-0003 | SLI-0009, SLI-0010, SLI-0011, SLI-0012, SLI-0013 | none | codex-cap-0003 | 2026-10-15 |
+| SLI-0015 | Vertical slice | [Submit a Deterministic Knowledge Check](vertical-slices/SLI-0015-submit-deterministic-knowledge-check.md) | complete | CAP-0001 | SLI-0001 | none | codex-cap-0001 | 2026-10-15 |
+| SLI-0016 | Vertical slice | [Reopen Retained Lesson Completion](vertical-slices/SLI-0016-reopen-retained-lesson-completion.md) | complete | CAP-0001 | SLI-0015 | none | codex-cap-0001 | 2026-10-15 |
+| SLI-0017 | Vertical slice | [Qualify the Complete Introductory Lesson Loop](vertical-slices/SLI-0017-qualify-complete-introductory-lesson-loop.md) | complete | CAP-0001 | SLI-0001, SLI-0015, SLI-0016 | none | codex-cap-0001 | 2026-10-15 |
 | SLI-0034 | Vertical slice | [Project Dynamic Roadmap Review Data](vertical-slices/SLI-0034-project-dynamic-roadmap-review-data.md) | complete | CAP-0008 | none | none | codex-roadmap-review | 2026-10-15 |
 | SLI-0035 | Vertical slice | [Review Capability Order and Parallelism](vertical-slices/SLI-0035-review-capability-order-and-parallelism.md) | complete | CAP-0008 | SLI-0034 | none | codex-roadmap-review | 2026-10-15 |
 | SLI-0036 | Vertical slice | [Navigate Capability, Slice, and Work Plans](vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md) | complete | CAP-0008 | SLI-0034, SLI-0035 | none | codex-roadmap-review | 2026-10-15 |
@@ -56,6 +59,21 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0025 | Work packet | [Deliver Capability Roadmap Overview](work-packets/WRK-0025-deliver-capability-roadmap-overview.md) | complete | SLI-0035 | WRK-0024 | none | codex-roadmap-review | 2026-10-15 |
 | WRK-0026 | Work packet | [Deliver Dynamic Roadmap Plan Details](work-packets/WRK-0026-deliver-dynamic-roadmap-plan-details.md) | complete | SLI-0036 | WRK-0025 | none | codex-roadmap-review | 2026-10-15 |
 | WRK-0027 | Work packet | [Qualify and Close Roadmap Review](work-packets/WRK-0027-qualify-and-close-roadmap-review.md) | complete | SLI-0037 | WRK-0026 | none | codex-roadmap-review | 2026-10-15 |
+| WRK-0028 | Work packet | [Refresh Web Qualification Dependencies](work-packets/WRK-0028-refresh-web-qualification-dependencies.md) | complete | SLI-0001 | WRK-0005 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0029 | Work packet | [Stabilize File-Lease Process Races](work-packets/WRK-0029-stabilize-file-lease-process-races.md) | complete | SLI-0012 | WRK-0023 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0030 | Work packet | [Ignore Terminal CAPs in Next-Action Routing](work-packets/WRK-0030-ignore-terminal-caps-in-next-action-routing.md) | complete | SLI-0010 | WRK-0018 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0031 | Work packet | [Deliver the Assessment Evidence Core](work-packets/WRK-0031-deliver-assessment-evidence-core.md) | complete | SLI-0015 | none | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0032 | Work packet | [Expose the Knowledge-Check API](work-packets/WRK-0032-expose-knowledge-check-api.md) | complete | SLI-0015 | WRK-0031 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0033 | Work packet | [Deliver the Lesson Knowledge-Check UI](work-packets/WRK-0033-deliver-lesson-knowledge-check-ui.md) | complete | SLI-0015 | WRK-0032 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0034 | Work packet | [Qualify the Deterministic Knowledge Check](work-packets/WRK-0034-qualify-deterministic-knowledge-check.md) | complete | SLI-0015 | WRK-0033 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0035 | Work packet | [Expose the Assessment Event Replay Source](work-packets/WRK-0035-expose-assessment-event-replay-source.md) | complete | SLI-0016 | none | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0036 | Work packet | [Deliver the Learner Completion Projection](work-packets/WRK-0036-deliver-learner-completion-projection.md) | complete | SLI-0016 | WRK-0035 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0037 | Work packet | [Deliver Assessment Audit References](work-packets/WRK-0037-deliver-assessment-audit-references.md) | complete | SLI-0016 | WRK-0035, WRK-0036 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0038 | Work packet | [Expose the Lesson Completion History API](work-packets/WRK-0038-expose-lesson-completion-history-api.md) | complete | SLI-0016 | WRK-0037 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0039 | Work packet | [Deliver the Reopened Completion View](work-packets/WRK-0039-deliver-reopened-completion-view.md) | complete | SLI-0016 | WRK-0038 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0040 | Work packet | [Qualify Replay and Completion History](work-packets/WRK-0040-qualify-replay-and-completion-history.md) | complete | SLI-0016 | WRK-0039 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0041 | Work packet | [Remove the Transient In-Progress Assumption](work-packets/WRK-0041-remove-transient-in-progress-assumption.md) | complete | SLI-0010 | WRK-0018 | none | codex-cap-0001 | 2026-10-15 |
+| WRK-0042 | Work packet | [Reconcile Capability Acceptance](work-packets/WRK-0042-reconcile-capability-acceptance.md) | complete | SLI-0017 | WRK-0005, WRK-0034, WRK-0040 | none | codex-cap-0001 | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

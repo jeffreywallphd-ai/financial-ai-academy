@@ -30,6 +30,7 @@ from financial_ai_academy.modules.content.public import (  # noqa: E402
     AdmitLessonPackageRequest,
 )
 from financial_ai_academy.modules.curriculum.public import (  # noqa: E402
+    CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (  # noqa: E402
@@ -46,7 +47,13 @@ APPROVED_FIXTURE = (
     / "lesson-package"
     / "v1"
     / "approved"
-    / "intro-risk-return"
+    / "intro-risk-return-knowledge-check"
+)
+
+ASSESSMENT_ID = "risk-return-check-1"
+ASSESSMENT_VERSION = "1.0.0"
+DEFINITION_DIGEST = (
+    "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b"
 )
 
 
@@ -102,12 +109,27 @@ def build_local_app(
         accepted = services.content.admit_lesson_package(
             AdmitLessonPackageRequest(APPROVED_FIXTURE)
         )
-        services.curriculum.create_lesson_placement(
+        placement = services.curriculum.create_lesson_placement(
             CreateLessonPlacementRequest(
                 placement_id=PLACEMENT_ID,
                 package_id=accepted.package_id,
                 package_version=accepted.package_version,
                 package_digest=accepted.package_digest,
+            )
+        )
+        services.curriculum.create_assessment_placement(
+            CreateAssessmentPlacementRequest(
+                placement_id=placement.placement_id,
+                package_id=accepted.package_id,
+                package_version=accepted.package_version,
+                package_digest=accepted.package_digest,
+                assessment_id=ASSESSMENT_ID,
+                assessment_version=ASSESSMENT_VERSION,
+                definition_digest=DEFINITION_DIGEST,
+                item_id="risk-return-tradeoff",
+                item_version="1.0.0",
+                scoring_policy_id="single-select-exact-match",
+                scoring_policy_version="1.0.0",
             )
         )
 
@@ -116,6 +138,9 @@ def build_local_app(
             identity=services.identity,
             curriculum=services.curriculum,
             request_policy=services.request_policy,
+            assessment=services.assessment,
+            learner_model=services.learner_model,
+            audit=services.audit,
         )
     )
 

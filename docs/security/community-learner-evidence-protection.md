@@ -46,6 +46,37 @@ This boundary does not protect data from a compromised host, malware running wit
 
 ## Status of Evidence
 
+The initial Assessment core directly retains attempts, selected responses,
+scores, reviewed feedback, completion evidence, and a bounded completion event
+in module-owned PostgreSQL tables. Inserts are one transaction, accepted rows
+reject ordinary update/delete, public application errors are bounded, and the
+event excludes the selected response, private answer, and feedback. This
+evidence is limited to an isolated private-host PostgreSQL 18.4 test boundary;
+least-privileged deployment roles and supported-platform data-root
+permissions remain unqualified.
+
+The bounded Learner-model projection now retains exact source references in a
+separate rebuildable schema, and Audit appends one canonical integrity/
+provenance reference per Assessment completion event. Replay, conflicting
+same-event content, append-only Audit mutation denial, and transactional
+interruption are covered against PostgreSQL 18.4. These records remain
+confidential learner evidence; they are not a backup, retention policy,
+recovery guarantee, or qualification of production database roles.
+
+The protected completion-history API accepts no learner selector, rejects
+missing or client-authority context before consumer access, reconciles Audit
+before returning newly rebuilt completion state, and omits learner/provider,
+answer, feedback, Audit-row, and storage details. This HTTP evidence remains
+limited to the accepted private-host single-profile boundary.
+
+The reviewed static browser calls that protected history before offering
+another response. A fresh private-host reload shows only bounded exact-version
+provenance and suppresses the Assessment form when completion exists; denied,
+malformed, or unavailable history does not fabricate completion or expose
+private evidence. Component, Chromium/axe, and live PostgreSQL/Python
+close/reopen checks cover this path. They do not qualify remote exposure,
+multi-user isolation, built-in/OIDC, production database roles, or recovery.
+
 The threat boundary is accepted. No backup or restore tool, permission profile, manifest schema, compatibility matrix, controlled restore drill, or recovery guarantee is qualified merely by this document. Delivery must satisfy the [community backup and restore qualification](../operations/community-backup-and-restore.md) before claiming operational support.
 
 Managed-cloud encryption, key custody, backup automation, availability, retention, RPO, and RTO remain outside this boundary and require separate decisions.

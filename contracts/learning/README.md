@@ -20,3 +20,19 @@ uv run --project backend pytest backend/tests/contract/lesson_package
 ```
 
 These contracts establish portable admission behavior only. They do not establish Content persistence, Assessment scoring, API, browser rendering, or local/cloud storage conformance.
+
+## Assessment v1
+
+[`assessment/v1/`](assessment/v1/README.md) defines the private single-select
+definition, answer-safe learner presentation, exact-version submission, and
+retained result/evidence shapes. The paired corpus in
+[`../compatibility/assessment/v1/`](../compatibility/assessment/v1/README.md)
+fixes correct and incorrect outcomes, denial behavior, definition/package
+digests, and cross-record consistency.
+
+```powershell
+uv run --project backend pytest backend/tests/contract/assessment
+```
+
+This is direct contract evidence only; application scoring and persistence are
+introduced separately.

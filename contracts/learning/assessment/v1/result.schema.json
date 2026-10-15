@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/assessment/v1/result.schema.json",
+  "title": "Deterministic knowledge-check result and retained evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "attempt_id", "evidence_id", "learner_id", "submission_id", "placement_id", "package_id", "package_version", "package_digest", "assessment_id", "assessment_version", "definition_digest", "item_id", "item_version", "scoring_policy_id", "scoring_policy_version", "selected_option_id", "score", "max_score", "correct", "feedback", "submitted_at"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "attempt_id": {"$ref": "#/$defs/opaqueId"},
+    "evidence_id": {"$ref": "#/$defs/opaqueId"},
+    "learner_id": {"$ref": "#/$defs/opaqueId"},
+    "submission_id": {"$ref": "#/$defs/opaqueId"},
+    "placement_id": {"$ref": "#/$defs/id"},
+    "package_id": {"$ref": "#/$defs/id"},
+    "package_version": {"const": "1.1.0"},
+    "package_digest": {"$ref": "#/$defs/digest"},
+    "assessment_id": {"$ref": "#/$defs/id"},
+    "assessment_version": {"const": "1.0.0"},
+    "definition_digest": {"$ref": "#/$defs/digest"},
+    "item_id": {"$ref": "#/$defs/id"},
+    "item_version": {"const": "1.0.0"},
+    "scoring_policy_id": {"const": "single-select-exact-match"},
+    "scoring_policy_version": {"const": "1.0.0"},
+    "selected_option_id": {"$ref": "#/$defs/id"},
+    "score": {"type": "integer", "minimum": 0, "maximum": 1},
+    "max_score": {"const": 1},
+    "correct": {"type": "boolean"},
+    "feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["feedback_id", "text"],
+      "properties": {
+        "feedback_id": {"$ref": "#/$defs/id"},
+        "text": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 400}]}
+      }
+    },
+    "submitted_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "opaqueId": {"type": "string", "format": "uuid"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "plainText": {"type": "string", "minLength": 1, "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$"}
+  }
+}
+

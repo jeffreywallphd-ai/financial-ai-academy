@@ -19,6 +19,21 @@ class SingleProfileApplicationSettings:
     migrations_dir: Path
     security: SingleProfileSecuritySettings
 
+    @property
+    def assessment_schema_dir(self) -> Path:
+        """Return the Assessment v1 schema beside the lesson-package schema."""
+        return self.lesson_schema_dir.parents[1] / "assessment" / "v1"
+
+    @property
+    def assessment_event_schema_dir(self) -> Path:
+        """Return the Assessment v1 event schema from the contract root."""
+        return (
+            self.lesson_schema_dir.parents[2]
+            / "events"
+            / "assessment"
+            / "v1"
+        )
+
     def validate(self) -> SingleProfileRequestPolicy:
         if not self.postgres_dsn.startswith(
             ("postgresql://", "postgres://")
@@ -26,6 +41,10 @@ class SingleProfileApplicationSettings:
             raise ValueError("A PostgreSQL DSN is required.")
         if not self.lesson_schema_dir.is_dir():
             raise ValueError("Lesson schema directory is unavailable.")
+        if not self.assessment_schema_dir.is_dir():
+            raise ValueError("Assessment schema directory is unavailable.")
+        if not self.assessment_event_schema_dir.is_dir():
+            raise ValueError("Assessment event schema directory is unavailable.")
         if not self.migrations_dir.is_dir():
             raise ValueError("Migration directory is unavailable.")
         return SingleProfileRequestPolicy(self.security)

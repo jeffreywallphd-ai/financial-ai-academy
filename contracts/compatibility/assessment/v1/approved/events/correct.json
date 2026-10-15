@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "event_id": "66666666-6666-4666-8666-666666666666",
+  "event_type": "assessment.knowledge-check.completed",
+  "event_version": "1.0.0",
+  "owner": "assessment",
+  "occurred_at": "2026-08-05T12:00:00Z",
+  "idempotency_key": "55555555-5555-4555-8555-555555555555",
+  "aggregate": {
+    "aggregate_type": "knowledge_check_attempt",
+    "aggregate_id": "44444444-4444-4444-8444-444444444444"
+  },
+  "source": {"evidence_id": "55555555-5555-4555-8555-555555555555"},
+  "payload": {
+    "learner_id": "11111111-1111-4111-8111-111111111111",
+    "placement_id": "intro-risk-return",
+    "package_id": "intro-risk-return",
+    "package_version": "1.1.0",
+    "package_digest": "7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc",
+    "assessment_id": "risk-return-check-1",
+    "assessment_version": "1.0.0",
+    "definition_digest": "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b",
+    "item_id": "risk-return-tradeoff",
+    "item_version": "1.0.0",
+    "scoring_policy_id": "single-select-exact-match",
+    "scoring_policy_version": "1.0.0",
+    "score": 1,
+    "max_score": 1,
+    "completed_at": "2026-08-05T12:00:00Z"
+  }
+}

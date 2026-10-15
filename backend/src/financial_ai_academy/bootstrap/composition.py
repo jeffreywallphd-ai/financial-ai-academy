@@ -4,6 +4,38 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from financial_ai_academy.modules.assessment.adapters.content_gateway import (
+    PublicContentDefinitionGateway,
+)
+from financial_ai_academy.modules.assessment.adapters.contract import (
+    ContractAssessmentDefinitionParser,
+)
+from financial_ai_academy.modules.assessment.adapters.curriculum_gateway import (
+    PublicCurriculumAssessmentGateway,
+)
+from financial_ai_academy.modules.assessment.adapters.event_contract import (
+    ContractAssessmentEventParser,
+)
+from financial_ai_academy.modules.assessment.adapters.postgres_repository import (
+    PostgresAssessmentRepository,
+)
+from financial_ai_academy.modules.assessment.adapters.system import (
+    UtcClock,
+    UuidGenerator,
+)
+from financial_ai_academy.modules.assessment.application.service import (
+    AssessmentService,
+)
+from financial_ai_academy.modules.audit.adapters.assessment_gateway import (
+    AssessmentAuditEventSource,
+)
+from financial_ai_academy.modules.audit.adapters.postgres_repository import (
+    PostgresAuditRepository,
+)
+from financial_ai_academy.modules.audit.adapters.system import (
+    UtcClock as AuditUtcClock,
+)
+from financial_ai_academy.modules.audit.application.service import AuditService
 from financial_ai_academy.modules.content.adapters.lesson_package import (
     ContractLessonPackageValidator,
 )
@@ -24,6 +56,18 @@ from financial_ai_academy.modules.identity.adapters.postgres_repository import (
     PostgresIdentityRepository,
 )
 from financial_ai_academy.modules.identity.application.service import IdentityService
+from financial_ai_academy.modules.learner_model.adapters.assessment_gateway import (
+    AssessmentCompletionEvidenceSource,
+)
+from financial_ai_academy.modules.learner_model.adapters.postgres_repository import (
+    PostgresCompletionProjectionRepository,
+)
+from financial_ai_academy.modules.learner_model.adapters.system import (
+    UtcClock as LearnerModelUtcClock,
+)
+from financial_ai_academy.modules.learner_model.application.service import (
+    LearnerModelService,
+)
 from financial_ai_academy.platform.database.migrations import (
     PostgresMigrationRunner,
 )
@@ -41,6 +85,9 @@ from .settings import SingleProfileApplicationSettings
 class ApplicationServices:
     content: ContentService
     curriculum: CurriculumService
+    assessment: AssessmentService
+    learner_model: LearnerModelService
+    audit: AuditService
     identity: IdentityService
     request_policy: SingleProfileRequestPolicy
 
@@ -56,6 +103,18 @@ def build_application_services(
             settings.postgres_dsn, settings.migrations_dir
         ).apply_all()
         PostgresMigrationRunner(
+            settings.postgres_dsn, settings.migrations_dir / "curriculum"
+        ).apply_all()
+        PostgresMigrationRunner(
+            settings.postgres_dsn, settings.migrations_dir / "assessment"
+        ).apply_all()
+        PostgresMigrationRunner(
+            settings.postgres_dsn, settings.migrations_dir / "learner_model"
+        ).apply_all()
+        PostgresMigrationRunner(
+            settings.postgres_dsn, settings.migrations_dir / "audit"
+        ).apply_all()
+        PostgresMigrationRunner(
             settings.postgres_dsn, settings.migrations_dir / "identity"
         ).apply_all()
     content = ContentService(
@@ -67,6 +126,25 @@ def build_application_services(
         PostgresCurriculumRepository(settings.postgres_dsn),
         PublicContentGateway(content),
     )
+    assessment = AssessmentService(
+        PublicCurriculumAssessmentGateway(curriculum),
+        PublicContentDefinitionGateway(content),
+        ContractAssessmentDefinitionParser(settings.assessment_schema_dir),
+        ContractAssessmentEventParser(settings.assessment_event_schema_dir),
+        PostgresAssessmentRepository(settings.postgres_dsn),
+        UtcClock(),
+        UuidGenerator(),
+    )
+    learner_model = LearnerModelService(
+        AssessmentCompletionEvidenceSource(assessment),
+        PostgresCompletionProjectionRepository(settings.postgres_dsn),
+        LearnerModelUtcClock(),
+    )
+    audit = AuditService(
+        AssessmentAuditEventSource(assessment),
+        PostgresAuditRepository(settings.postgres_dsn),
+        AuditUtcClock(),
+    )
     identity = IdentityService(
         PostgresIdentityRepository(settings.postgres_dsn),
         configured_mode=settings.security.identity_mode,
@@ -74,6 +152,9 @@ def build_application_services(
     return ApplicationServices(
         content=content,
         curriculum=curriculum,
+        assessment=assessment,
+        learner_model=learner_model,
+        audit=audit,
         identity=identity,
         request_policy=request_policy,
     )

@@ -1,6 +1,7 @@
 import { useLoaderData, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
+import { KnowledgeCheck } from "./KnowledgeCheck";
 import { LessonReadingPage } from "./LessonReadingPage";
 import type { LessonRouteState } from "./model";
 
@@ -36,7 +37,14 @@ export function LessonRouteView({
     case "loading":
       return <LessonLoadingState />;
     case "ready":
-      return <LessonReadingPage lesson={state.lesson} />;
+      return (
+        <LessonReadingPage
+          knowledgeCheck={
+            <KnowledgeCheck placementId={state.lesson.placement_id} />
+          }
+          lesson={state.lesson}
+        />
+      );
     case "unauthorized":
       return (
         <StatusPanel

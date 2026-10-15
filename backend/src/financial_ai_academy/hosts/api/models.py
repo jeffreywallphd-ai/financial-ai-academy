@@ -4,11 +4,19 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from typing import Annotated, Literal, Union
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from financial_ai_academy.modules.assessment.public import (
+    KnowledgeCheckPresentation,
+    KnowledgeCheckResult,
+)
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import LessonReadingResult
+from financial_ai_academy.modules.learner_model.public import (
+    LessonCompletionView,
+)
 
 
 class ApiModel(BaseModel):
@@ -174,6 +182,131 @@ class LessonReadingResponseModel(ApiModel):
     provenance: PublicationProvenanceModel
 
 
+class KnowledgeCheckOptionModel(ApiModel):
+    option_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    label: str = Field(min_length=1, max_length=160)
+
+
+class KnowledgeCheckPresentationResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"] = "1.0.0"
+    placement_id: str
+    package_id: str
+    package_version: Literal["1.1.0"]
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    assessment_id: str
+    assessment_version: Literal["1.0.0"]
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    item_type: Literal["single_select"]
+    item_id: str
+    item_version: Literal["1.0.0"]
+    scoring_policy_id: Literal["single-select-exact-match"]
+    scoring_policy_version: Literal["1.0.0"]
+    prompt: str = Field(min_length=1, max_length=400)
+    options: list[KnowledgeCheckOptionModel] = Field(
+        min_length=2, max_length=6
+    )
+
+
+class KnowledgeCheckSubmissionRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    submission_id: UUID
+    placement_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_version: Literal["1.1.0"]
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    assessment_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    assessment_version: Literal["1.0.0"]
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    item_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    item_version: Literal["1.0.0"]
+    scoring_policy_id: Literal["single-select-exact-match"]
+    scoring_policy_version: Literal["1.0.0"]
+    selected_option_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+
+
+class KnowledgeCheckFeedbackModel(ApiModel):
+    feedback_id: str
+    text: str = Field(min_length=1, max_length=400)
+
+
+class KnowledgeCheckResultResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"] = "1.0.0"
+    attempt_id: UUID
+    evidence_id: UUID
+    submission_id: UUID
+    placement_id: str
+    package_id: str
+    package_version: Literal["1.1.0"]
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    assessment_id: str
+    assessment_version: Literal["1.0.0"]
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    item_id: str
+    item_version: Literal["1.0.0"]
+    scoring_policy_id: Literal["single-select-exact-match"]
+    scoring_policy_version: Literal["1.0.0"]
+    score: int = Field(ge=0, le=1)
+    max_score: Literal[1]
+    correct: bool
+    feedback: KnowledgeCheckFeedbackModel
+    submitted_at: datetime
+
+
+class LessonCompletionHistoryEntryModel(ApiModel):
+    event_id: UUID
+    attempt_id: UUID
+    evidence_id: UUID
+    package_id: str
+    package_version: Literal["1.1.0"]
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    assessment_id: str
+    assessment_version: Literal["1.0.0"]
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    item_id: str
+    item_version: Literal["1.0.0"]
+    scoring_policy_id: Literal["single-select-exact-match"]
+    scoring_policy_version: Literal["1.0.0"]
+    score: int = Field(ge=0, le=1)
+    max_score: Literal[1]
+    completed_at: datetime
+
+
+class LessonCompletionResponseModel(ApiModel):
+    projection_version: Literal["1.0.0"] = "1.0.0"
+    placement_id: str
+    completed: bool
+    completion_meaning: Literal[
+        "not_completed", "bounded_knowledge_check_completed"
+    ]
+    source_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    rebuilt_at: datetime
+    history: list[LessonCompletionHistoryEntryModel]
+
+
 class HealthResponseModel(ApiModel):
     status: Literal["ok", "ready", "not_ready"]
 
@@ -234,6 +367,95 @@ def lesson_response(
                 reading.provenance.educational_use_notice
             ),
         ),
+    )
+
+
+def knowledge_check_presentation_response(
+    presentation: KnowledgeCheckPresentation,
+) -> KnowledgeCheckPresentationResponseModel:
+    return KnowledgeCheckPresentationResponseModel(
+        placement_id=presentation.placement_id,
+        package_id=presentation.package_id,
+        package_version=presentation.package_version,  # type: ignore[arg-type]
+        package_digest=presentation.package_digest,
+        assessment_id=presentation.assessment_id,
+        assessment_version=presentation.assessment_version,  # type: ignore[arg-type]
+        definition_digest=presentation.definition_digest,
+        item_type=presentation.item_type,  # type: ignore[arg-type]
+        item_id=presentation.item_id,
+        item_version=presentation.item_version,  # type: ignore[arg-type]
+        scoring_policy_id=presentation.scoring_policy_id,  # type: ignore[arg-type]
+        scoring_policy_version=presentation.scoring_policy_version,  # type: ignore[arg-type]
+        prompt=presentation.prompt,
+        options=[
+            KnowledgeCheckOptionModel(
+                option_id=option.option_id,
+                label=option.label,
+            )
+            for option in presentation.options
+        ],
+    )
+
+
+def knowledge_check_result_response(
+    result: KnowledgeCheckResult,
+) -> KnowledgeCheckResultResponseModel:
+    return KnowledgeCheckResultResponseModel(
+        attempt_id=result.attempt_id,
+        evidence_id=result.evidence_id,
+        submission_id=result.submission_id,
+        placement_id=result.placement_id,
+        package_id=result.package_id,
+        package_version=result.package_version,  # type: ignore[arg-type]
+        package_digest=result.package_digest,
+        assessment_id=result.assessment_id,
+        assessment_version=result.assessment_version,  # type: ignore[arg-type]
+        definition_digest=result.definition_digest,
+        item_id=result.item_id,
+        item_version=result.item_version,  # type: ignore[arg-type]
+        scoring_policy_id=result.scoring_policy_id,  # type: ignore[arg-type]
+        scoring_policy_version=result.scoring_policy_version,  # type: ignore[arg-type]
+        score=result.score,
+        max_score=result.max_score,  # type: ignore[arg-type]
+        correct=result.correct,
+        feedback=KnowledgeCheckFeedbackModel(
+            feedback_id=result.feedback.feedback_id,
+            text=result.feedback.text,
+        ),
+        submitted_at=result.submitted_at,
+    )
+
+
+def lesson_completion_response(
+    view: LessonCompletionView,
+) -> LessonCompletionResponseModel:
+    return LessonCompletionResponseModel(
+        placement_id=view.placement_id,
+        completed=view.completed,
+        completion_meaning=view.completion_meaning,  # type: ignore[arg-type]
+        source_digest=view.source_digest,
+        rebuilt_at=view.rebuilt_at,
+        history=[
+            LessonCompletionHistoryEntryModel(
+                event_id=entry.event_id,
+                attempt_id=entry.attempt_id,
+                evidence_id=entry.evidence_id,
+                package_id=entry.package_id,
+                package_version=entry.package_version,  # type: ignore[arg-type]
+                package_digest=entry.package_digest,
+                assessment_id=entry.assessment_id,
+                assessment_version=entry.assessment_version,  # type: ignore[arg-type]
+                definition_digest=entry.definition_digest,
+                item_id=entry.item_id,
+                item_version=entry.item_version,  # type: ignore[arg-type]
+                scoring_policy_id=entry.scoring_policy_id,  # type: ignore[arg-type]
+                scoring_policy_version=entry.scoring_policy_version,  # type: ignore[arg-type]
+                score=entry.score,
+                max_score=entry.max_score,  # type: ignore[arg-type]
+                completed_at=entry.completed_at,
+            )
+            for entry in view.history
+        ],
     )
 
 

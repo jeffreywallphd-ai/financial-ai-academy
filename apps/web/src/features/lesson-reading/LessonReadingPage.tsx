@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { Icon } from "../../components/Icon";
 import { LessonBody } from "./LessonBody";
 import type { Lesson } from "./model";
@@ -12,7 +14,13 @@ function formatDate(value: string) {
   return DATE_FORMAT.format(new Date(value));
 }
 
-export function LessonReadingPage({ lesson }: { lesson: Lesson }) {
+export function LessonReadingPage({
+  knowledgeCheck,
+  lesson,
+}: {
+  knowledgeCheck?: ReactNode;
+  lesson: Lesson;
+}) {
   return (
     <div className="lesson-layout">
       <article
@@ -49,6 +57,8 @@ export function LessonReadingPage({ lesson }: { lesson: Lesson }) {
           </h2>
           <LessonBody lesson={lesson} />
         </section>
+
+        {knowledgeCheck}
 
         <section
           aria-labelledby="educational-sources"

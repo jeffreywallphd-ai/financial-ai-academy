@@ -84,8 +84,24 @@ class PortfolioOrderingTests(unittest.TestCase):
         graph = project(ROOT)
         result = plan(graph, level="slice", authority_current=current)
         by_id = {item["id"]: item for item in graph["nodes"]}
-        self.assertTrue(result["in_progress"])
-        self.assertTrue(all(by_id[item]["parent"] in current for item in result["in_progress"]))
+        delivery_candidates = [
+            *result["in_progress"],
+            *(item["id"] for item in result["ready"]),
+            *(
+                item["id"]
+                for item in result["blocked"]
+                if "authority.cap-package-not-current" not in item["reasons"]
+            ),
+        ]
+        self.assertTrue(
+            all(by_id[item]["parent"] in current for item in delivery_candidates)
+        )
+        for item in result["blocked"]:
+            if by_id[item["id"]]["parent"] not in current:
+                self.assertIn(
+                    "authority.cap-package-not-current",
+                    item["reasons"],
+                )
 
     def test_cli_plan_is_read_only(self) -> None:
         before = (ROOT / "docs/planning/register.md").read_bytes()

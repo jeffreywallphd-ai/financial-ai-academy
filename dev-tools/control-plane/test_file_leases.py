@@ -21,6 +21,7 @@ from contracts import ControlError  # noqa: E402
 from file_leases import FileLeaseStore, canonical_file  # noqa: E402
 from financial_academy_editing import FinancialAcademyEditingService  # noqa: E402
 from planning_model import load_artifacts  # noqa: E402
+from store import normalize_resolved_path  # noqa: E402
 
 
 class Clock:
@@ -155,9 +156,21 @@ class FileLeaseCoreTests(unittest.TestCase):
             root, _store = self.fixture(directory)
             commands = [[sys.executable, str(Path(__file__)), "--worker", str(root), owner] for owner in ("one", "two")]
             processes = [subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8") for command in commands]
-            results = [json.loads(process.communicate(timeout=10)[0]) for process in processes]
-            self.assertEqual(1, sum(item["outcome"] == "succeeded" for item in results))
-            self.assertEqual(1, sum(item["code"] == "edit.lease-contended" for item in results))
+            outputs = [process.communicate(timeout=10) for process in processes]
+            diagnostics = [
+                {"returncode": process.returncode, "stdout": stdout, "stderr": stderr}
+                for process, (stdout, stderr) in zip(processes, outputs, strict=True)
+            ]
+            self.assertTrue(all(item["returncode"] == 0 and item["stdout"] for item in diagnostics), diagnostics)
+            results = [json.loads(item["stdout"]) for item in diagnostics]
+            self.assertEqual(1, sum(item["outcome"] == "succeeded" for item in results), results)
+            self.assertEqual(1, sum(item["code"] == "edit.lease-contended" for item in results), results)
+
+    @unittest.skipUnless(sys.platform == "win32", "Windows device-prefix normalization")
+    def test_equivalent_windows_device_prefixes_share_one_resolved_path(self) -> None:
+        ordinary = Path(r"C:\repository\work")
+        extended = Path(r"\\?\C:\repository\work")
+        self.assertEqual(ordinary, normalize_resolved_path(extended))
 
 
 class FinancialAcademyEditingTests(unittest.TestCase):

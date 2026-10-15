@@ -271,6 +271,16 @@ def cap_package_main() -> int:
         if json.loads(output)["skill"] != "shape-capability":
             raise AssertionError("empty planning root must route to shape-capability")
 
+        ready_capability = capability.replace("planning_status: captured", "planning_status: ready")
+        terminal_capability = ready_capability.replace("CAP-0001", "CAP-0002").replace("planning_status: ready", "planning_status: complete")
+        write(routing / "capabilities/CAP-0001-learn-safely.md", ready_capability)
+        write(routing / "capabilities/CAP-0002-complete-history.md", terminal_capability)
+        output = json.loads(run(ROOT / "guide-next-planning-action/scripts/recommend_next.py", routing))
+        if output["skill"] != "select-vertical-slice" or output["subject"] != "CAP-0001":
+            raise AssertionError(f"terminal CAP without local approval must not block current approved work: {output}")
+        if output["approval_required"] != "none":
+            raise AssertionError("terminal CAP history must not create an approval requirement")
+
     print("Planning skill behavior tests passed: CAP authority, incremental gates, and routing verified.")
     return 0
 

@@ -19,16 +19,19 @@
 ## Evidence Gaps
 
 - Current dependency checks cover the implemented Content, Curriculum,
-  Identity, generated-client, browser, and local-composition seams; remaining
-  modules, events, providers, workers, and analytical boundaries lack equivalent
-  executable fitness functions.
+  Assessment, Learner-model, Identity, generated-client, browser, and local-
+  composition seams. Assessment event creation and synchronous Learner-model
+  replay and Audit integrity references are covered, but background delivery,
+  remaining modules, providers, workers, and analytical boundaries lack
+  equivalent executable fitness functions.
 - Python/Node manifests, exact locks, the Windows Node 24 build, dependency
   inventory, and the static/no-Node-server runtime boundary are executable.
   Multi-platform clean-install/build and production-distribution qualification
   remain absent.
-- Executable lesson-package schemas, compatibility fixtures, OpenAPI, and the
-  generated TypeScript client exist. Event, provider/plugin, finance, and
-  external-learning contract families remain unimplemented.
+- Executable lesson-package and deterministic Assessment schemas,
+  compatibility fixtures, the Assessment completion event, OpenAPI, and the
+  generated TypeScript client exist. Other event, provider/plugin, finance,
+  and external-learning contract families remain unimplemented.
 - No provider conformance suite exists yet.
 - The loopback private-host approved-lesson composition is directly qualified
   with PostgreSQL 18.4, filesystem objects, Python same-origin static/API

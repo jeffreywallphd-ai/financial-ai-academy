@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from ..public import LessonPlacement
+from ..public import AssessmentPlacement, LessonPlacement
 
 
 class PlacementConflict(RuntimeError):
@@ -17,3 +17,11 @@ class CurriculumRepositoryPort(Protocol):
     def save_if_absent(
         self, placement: LessonPlacement
     ) -> tuple[LessonPlacement, bool]: ...
+
+    def get_assessment(
+        self, placement_id: str
+    ) -> AssessmentPlacement | None: ...
+
+    def save_assessment_if_absent(
+        self, placement: AssessmentPlacement
+    ) -> tuple[AssessmentPlacement, bool]: ...

@@ -55,7 +55,9 @@ isolated PostgreSQL 18.4 composition, and runs all required project checks. It
 then recreates a clean disposable database and starts the Python API on
 `http://127.0.0.1:8000` plus the Vite hot-reload application on
 `http://127.0.0.1:5173`. Open
-`http://127.0.0.1:5173/learn/placements/intro-risk-return-primary`.
+`http://127.0.0.1:5173/learn/placements/intro-risk-return-primary`. The seeded
+successor package includes the exact Assessment-owned single-choice knowledge
+check and deterministic feedback path.
 
 Press Ctrl+C once to stop both development processes and tear down only the
 runner's uniquely named Compose project and ignored synthetic data root. Node

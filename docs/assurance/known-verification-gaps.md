@@ -5,16 +5,16 @@
 
 - Canonical-document metadata/status checks outside the governed planning artifacts
 - Agent routing scenarios outside the governed planning-skill approval and authority paths
-- Python module dependency and public-surface checks beyond the directly covered Content/Curriculum seam
+- Python module dependency and public-surface checks beyond the directly covered first-loop Content, Curriculum, Assessment, Learner model, Audit, and Identity seams
+- Assessment background outbox delivery, recovery, production-role, additional item/scoring-family, built-in/OIDC, and managed-cloud behavior beyond the directly covered v1 contracts, deterministic scoring/evidence, typed synchronous replay, Learner-model/Audit consumption, protected HTTP/generated client, accessible UI, and private-host live close/reopen path
 - OpenAPI compatibility and version-change policy checks beyond the directly covered deterministic snapshot and generated-client drift evidence
 - ADR-0009 multi-platform clean-install/build qualification, non-Chromium browser compatibility, and managed-cloud deployment-manifest parity beyond the directly covered Windows/CI-targeted Node 24 static build, no-Node-server source/artifact checks, exact lockfiles, generated client, dependency/license/vulnerability inspection, and loopback Python same-origin runtime
 - Provider conformance suites
 - Built-in-credential, recovery, OIDC, provider-parity, and identity-mode migration conformance beyond the directly covered local `single_profile` binding/session/context path
 - Managed object-storage and real passive-asset retrieval conformance beyond the directly covered portable admission, PostgreSQL Content metadata, local filesystem objects, safe-node creation, integrity revalidation, exact Curriculum placement/read, and closed browser-renderer evidence
 - Manual screen-reader operation, actual browser 200-percent zoom controls, non-Chromium browsers, and non-Windows visual baselines beyond the directly covered axe, keyboard/focus, narrow/zoom-equivalent reflow, reduced-motion, forced-color, and Chromium theme evidence
-- Dynamic roadmap-review non-Chromium and non-Windows visual baselines, manual screen-reader operation, and actual browser 200-percent zoom controls beyond the directly covered Chromium axe, keyboard/focus, narrow reflow, light/dark/system themes, reduced motion, forced colors, live loopback routes, inert plan content, and bounded failure evidence
 - Community coordinated-backup, recovery-set validation, empty-target restore, projection reconciliation, restored-session/recovery revocation, failure-path, redaction, and supported-platform qualification
-- PostgreSQL integration and migration checks beyond the directly covered Content/Curriculum lesson-read and single-profile Identity tables with PostgreSQL 18.4 empty-database upgrade/downgrade paths
+- PostgreSQL integration and migration checks beyond the directly covered Content, Curriculum, single-profile Identity, Assessment, Learner-model, and Audit streams with PostgreSQL 18.4 empty-database apply/reapply/teardown and focused rollback paths
 - Managed-cloud deployment composition and direct local/cloud artifact-parity comparison beyond the qualified local approved-lesson topology
 - Adaptive policy and fallback verification
 - Model evaluation and promotion harness
@@ -23,9 +23,7 @@
 - End-to-end evidence that the repository host successfully retains and serves
   the configured privacy-minimized readiness artifact; the workflow contract is
   checked locally, but hosted execution remains external qualification
-- Multi-host or remote control-plane confinement, distributed file leases,
-  telemetry transport, automatic agent startup, and hosted portfolio evaluation;
-  direct graph/order/conflict/allocation/file-race/friction qualification is
-  deliberately repository-local
+- Multi-host or remote control-plane confinement, telemetry transport, and
+  hosted evaluation; current qualification is deliberately repository-local
 
 Close a gap only when executable evidence or an explicitly documented controlled qualification owns the claim.

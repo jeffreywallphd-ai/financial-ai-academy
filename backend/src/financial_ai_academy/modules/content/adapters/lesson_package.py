@@ -263,15 +263,109 @@ def _declarations(manifest: Mapping[str, object]) -> list[dict[str, object]]:
     return result
 
 
+def _validate_assessment_file(
+    value: bytes,
+    declaration: Mapping[str, object],
+    validator: Draft202012Validator,
+) -> None:
+    try:
+        document = json.loads(value.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        _reject(
+            "assessment.schema_invalid",
+            declaration.get("assessment_id", "assessment"),
+            "Assessment definition is not valid UTF-8 JSON.",
+        )
+    if not isinstance(document, dict) or _json_depth(document) > 16:
+        _reject(
+            "assessment.schema_invalid",
+            declaration.get("assessment_id", "assessment"),
+            "Assessment definition structure is invalid.",
+        )
+    legacy = {
+        "schema_version": "1.0.0",
+        "assessment_id": declaration.get("assessment_id"),
+        "owner": "assessment",
+        "status": "referenced-only",
+    }
+    if document == legacy:
+        return
+    if document.get("schema_version") != "1.0.0":
+        _reject(
+            "assessment.unsupported_version",
+            "schema_version",
+            "Assessment definition version is unsupported.",
+        )
+    errors = sorted(
+        validator.iter_errors(document),
+        key=lambda error: tuple(str(item) for item in error.absolute_path),
+    )
+    if errors:
+        reference = (
+            ".".join(str(item) for item in errors[0].absolute_path)
+            or str(declaration.get("assessment_id", "assessment"))
+        )
+        _reject(
+            "assessment.schema_invalid",
+            reference,
+            "Assessment definition does not satisfy the accepted contract.",
+        )
+    assessment = document["assessment"]
+    if assessment["assessment_id"] != declaration.get("assessment_id"):
+        _reject(
+            "assessment.stale_reference",
+            "assessment_id",
+            "Assessment identity does not match its package declaration.",
+        )
+    canonical = json.dumps(
+        assessment,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    if _sha256(canonical) != document["definition_digest"]:
+        _reject(
+            "assessment.definition_digest_mismatch",
+            "definition_digest",
+            "Assessment definition digest does not match its meaning.",
+        )
+    item = assessment["item"]
+    option_ids = [option["option_id"] for option in item["options"]]
+    if (
+        len(option_ids) != len(set(option_ids))
+        or item["correct_option_id"] not in option_ids
+    ):
+        _reject(
+            "assessment.invalid_definition",
+            "options",
+            "Assessment option membership is invalid.",
+        )
+
+
 class ContractLessonPackageValidator:
     """Applies WRK-0001 schemas and compatibility-sensitive semantic rules."""
 
     def __init__(
-        self, schema_dir: Path, limits: PackageLimits | None = None
+        self,
+        schema_dir: Path,
+        limits: PackageLimits | None = None,
+        assessment_schema_dir: Path | None = None,
     ) -> None:
         self._schema_dir = schema_dir
         self._limits = limits or PackageLimits()
         self._schema_validator = _load_schema_validator(schema_dir)
+        assessment_dir = (
+            assessment_schema_dir
+            if assessment_schema_dir is not None
+            else schema_dir.parents[1] / "assessment/v1"
+        )
+        assessment_schema = json.loads(
+            (assessment_dir / "definition.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        Draft202012Validator.check_schema(assessment_schema)
+        self._assessment_validator = Draft202012Validator(assessment_schema)
 
     def validate_directory(self, root: Path) -> ValidatedLessonPackage:
         if root.is_symlink():
@@ -462,6 +556,12 @@ class ContractLessonPackageValidator:
                         logical,
                         "Image dimensions exceed the accepted limit.",
                     )
+        for declaration in manifest["assessments"]:
+            _validate_assessment_file(
+                measured[str(declaration["path"])],
+                declaration,
+                self._assessment_validator,
+            )
 
         try:
             lesson_text = measured[lesson_path].decode("utf-8")

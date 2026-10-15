@@ -2,32 +2,25 @@
 
 - Status: partially accepted
 - Canonical for: accepted first learning-loop ownership and remaining module hypotheses
-- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0011](../../adr/ADR-0011-inert-applied-project-artifacts.md), [ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md)
+- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md)
 - Decision gate: use accepted first-loop boundaries; refine every still-proposed boundary before implementation
 
 | Module | Status | Primary responsibility | Publishes |
 | --- | --- | --- | --- |
 | Identity | accepted for first learner context | Provider-neutral actors and learners, provider bindings, authentication context, sessions, and application permission inputs | Identity, binding, and session changes |
-| Content | accepted; lesson read core implemented | Versioned learning resources and published learning-project briefs, provenance, publication state, safe body nodes, supplied-resource declarations, and private content storage references | Content-version events remain future work |
-| Curriculum | accepted; lesson placement/read core implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and applied-project milestone identity and ordering | Curriculum-version events remain future work |
-| Assessment | accepted for learning and applied-project evidence | Items, attempts, responses, immutable submissions by Project snapshot, deterministic validation and scoring evidence, review state, and bounded completion evidence | Assessment evidence |
-| Learner model | accepted for learning and applied-project projections | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes |
-| Project | accepted for reusable project workspaces | Learning-initiated and independent project identity, charter, lifecycle, bounded mutable workspace, versioned inert-artifact manifests, immutable snapshots, and typed learning/domain resource links | Project lifecycle, snapshot, and link events |
+| Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
+| Curriculum | accepted; lesson and initial Assessment placement/read core implemented | Competencies, prerequisites, pathways, course structure, and exact versioned activity placement | Curriculum-version events remain future work |
+| Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
+| Learner model | accepted; bounded completion projection implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | proposed | Eligibility, ranking, deterministic policy, recommendations | Recommendation decisions and outcomes |
 | Market data | proposed | Instruments, observations, calendars, corporate actions, provider provenance | Canonical market-data events |
-| Portfolio | proposed; link target boundary accepted | Simulated accounts, positions, transactions, valuation, backtests, and portfolio provenance; remains authoritative when referenced by Project | Portfolio and simulation results |
+| Portfolio | proposed | Simulated accounts, positions, transactions, valuation, backtests | Portfolio and simulation results |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
-| Audit | accepted for first learning loop | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records |
+| Audit | accepted; Assessment completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
 ## Boundary Notes
 
 - Assessment evidence is an input to the learner model; assessment does not directly decide mastery.
-- Project owns mutable project work and immutable workspace snapshots;
-  Assessment owns only learning submissions and completion evidence that
-  reference an exact snapshot.
-- A Project may retain typed references to zero or more Portfolio-owned or other
-  domain-owned resources. Project never copies or recalculates their business
-  state, and the owning domain never depends on Project internals.
 - Curriculum may retain immutable Content and Assessment version identifiers but cannot access those modules' internals or persistence.
 - Learner-model completion and progress are projections that retain source-evidence references and never replace Assessment evidence.
 - Adaptation reads approved learner and curriculum projections; it does not mutate curriculum or assessment history.
@@ -46,14 +39,6 @@ and local filesystem objects now exist for the approved lesson-read seam.
 Archive transport, managed object storage, removal policy, and broader content
 operations remain subject to later approved delivery planning.
 
-ADR-0012 supersedes ADR-0010 and accepts Project as the owner of reusable
-learning-initiated and independent workspaces, inert-artifact manifests,
-immutable snapshots, and typed domain links. Content and Curriculum retain
-learning definition and placement authority. Assessment owns immutable learning
-submissions and completion evidence by snapshot reference; Learner model owns
-rebuildable projections; and Audit owns trace and integrity references. Project
-does not create a general Workspace module or absorb Portfolio invariants.
-
 ## Implemented Lesson-Read Seams
 
 - Content exposes package admission and exact published-version reads through
@@ -71,6 +56,95 @@ does not create a general Workspace module or absorb Portfolio invariants.
   browser layers must consume that union and cannot request raw CommonMark or
   an HTML fragment.
 
-Assessment execution, learner evidence, projections, Audit delivery, module
-events, API hosts, and managed-cloud adapters remain outside this implemented
-seam.
+The deterministic Assessment seam is described separately below. Audit
+consumption, background event delivery, managed-cloud adapters, and broader
+completion-history API behavior remain outside the lesson-read seam.
+
+## Implemented Deterministic Assessment Seams
+
+- Curriculum separately owns `curriculum.assessment_placements`, retaining the
+  exact package, definition, item, and scoring-policy identities/versions for
+  an existing lesson placement. It does not interpret Assessment meaning.
+- Content validates complete Assessment v1 bytes at package admission and
+  exposes an exact private-definition query through its public module facade.
+  It does not expose paths/object keys or become a scorer.
+- Assessment calls only the Curriculum and Content public facades through
+  owned gateways. Architecture tests reject imports of their internals and
+  cross-schema persistence access.
+- Assessment owns answer-safe presentation, option validation, exact-match
+  scoring, reviewed feedback selection, and the public application operations
+  for opening/submitting one placed knowledge check.
+- Assessment owns `assessment.attempts`, `responses`, `scores`,
+  `completion_evidence`, and `outbox`. One PostgreSQL transaction appends one
+  evidence/event set; unique constraints distinguish exact replay, conflicting
+  submission reuse, and already-completed submissions. Accepted rows reject
+  ordinary update/delete.
+- `assessment.knowledge-check.completed@1.0.0` refers to its durable evidence
+  and excludes private answers, selected responses, and feedback. A synchronous
+  validated replay source now feeds the implemented Learner-model and Audit
+  consumers; background delivery remains unimplemented.
+
+The protected completion-history FastAPI/generated-client seam and accessible
+completion-first browser presentation are implemented. A fresh lesson load
+shows exact retained provenance without requesting another Assessment
+presentation; empty history continues to the answer-safe form. Background
+event delivery, recovery, managed-cloud adapters, and additional item or
+scoring types remain outside this implemented core.
+
+## Implemented Learner-model Completion Seam
+
+- Assessment exposes a typed, validated, learner/placement-filtered completion
+  event query. The Learner-model adapter imports only that public surface and
+  maps events into owned domain values.
+- Learner model derives `completed` only from accepted bounded Assessment
+  evidence. It retains exact event, attempt, evidence, package, Assessment,
+  item, policy, score, and time references and makes no mastery claim.
+- `learner_model.lesson_completion_projections` and
+  `learner_model.lesson_completion_history` are transactionally replaceable,
+  rebuildable tables with a stable source-set digest. They have no
+  cross-schema foreign keys and never mutate Assessment evidence.
+- Unit, architecture, and real PostgreSQL 18.4 tests cover empty and exact
+  evidence, repeated replay, invalid source data, and interrupted rebuild.
+  Audit-first HTTP/client/browser delivery and private-host close/reopen are
+  directly covered. Recovery and background event transport remain outside
+  this seam.
+
+## Implemented Audit Completion Seam
+
+- Audit imports only Assessment's public completion-event query and maps the
+  validated event into an owned integrity/provenance value.
+- A deterministic Audit record ID and SHA-256 over the canonical event bind
+  the source event, evidence, attempt, actor/action, exact package/Assessment
+  versions and digests, and occurrence time.
+- `audit.assessment_completion_records` is append-only and has no cross-schema
+  foreign keys. Exact replay is idempotent; the same event identity with
+  different content is rejected without replacing the original.
+- Audit remains evidence about the event, not a second source for attempt,
+  score, completion, or learner-state facts. HTTP exposure, exports, retention
+  automation, recovery, background delivery, and managed-cloud posture remain
+  outside this seam.
+
+## Implemented Completion-History API Seam
+
+- The local composition applies separate Assessment, Learner-model, Audit, and
+  Identity migration streams and constructs each module through its owned
+  adapters.
+- The protected exact-placement endpoint accepts no learner selector. It
+  resolves Identity context, reconciles Audit first, atomically rebuilds
+  Learner-model state, and returns only bounded completion/history provenance.
+- OpenAPI and the generated TypeScript client carry the exact response shape;
+  the host owns only operation ordering and transport error mapping, not
+  scoring, evidence, completion, or integrity policy.
+
+## Implemented Completion-History Browser Seam
+
+- The lesson route calls the protected completion operation before requesting
+  another answer-safe Assessment presentation.
+- Completed history shows only bounded meaning, score, time, exact package and
+  Assessment provenance, and source event/attempt/evidence references. It
+  exposes no learner/provider identity, answer, feedback, Audit row, mastery,
+  advice, suitability, or performance interpretation.
+- Component and Chromium checks cover empty, completed, denied, malformed, and
+  unavailable states plus light/dark accessibility and narrow reflow. The live
+  private-host path submits once and reproduces the same source-set identity on
+  repeated reopen through PostgreSQL and the Python same-origin host.

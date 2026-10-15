@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/events/assessment/v1/knowledge-check-completed.schema.json",
+  "title": "Assessment knowledge-check completion event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "event_id", "event_type", "event_version", "owner", "occurred_at", "idempotency_key", "aggregate", "source", "payload"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "event_id": {"$ref": "#/$defs/opaqueId"},
+    "event_type": {"const": "assessment.knowledge-check.completed"},
+    "event_version": {"const": "1.0.0"},
+    "owner": {"const": "assessment"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "idempotency_key": {"$ref": "#/$defs/opaqueId"},
+    "aggregate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["aggregate_type", "aggregate_id"],
+      "properties": {
+        "aggregate_type": {"const": "knowledge_check_attempt"},
+        "aggregate_id": {"$ref": "#/$defs/opaqueId"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_id"],
+      "properties": {"evidence_id": {"$ref": "#/$defs/opaqueId"}}
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["learner_id", "placement_id", "package_id", "package_version", "package_digest", "assessment_id", "assessment_version", "definition_digest", "item_id", "item_version", "scoring_policy_id", "scoring_policy_version", "score", "max_score", "completed_at"],
+      "properties": {
+        "learner_id": {"$ref": "#/$defs/opaqueId"},
+        "placement_id": {"$ref": "#/$defs/id"},
+        "package_id": {"$ref": "#/$defs/id"},
+        "package_version": {"const": "1.1.0"},
+        "package_digest": {"$ref": "#/$defs/digest"},
+        "assessment_id": {"$ref": "#/$defs/id"},
+        "assessment_version": {"const": "1.0.0"},
+        "definition_digest": {"$ref": "#/$defs/digest"},
+        "item_id": {"$ref": "#/$defs/id"},
+        "item_version": {"const": "1.0.0"},
+        "scoring_policy_id": {"const": "single-select-exact-match"},
+        "scoring_policy_version": {"const": "1.0.0"},
+        "score": {"type": "integer", "minimum": 0, "maximum": 1},
+        "max_score": {"const": 1},
+        "completed_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "opaqueId": {"type": "string", "format": "uuid"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}
+

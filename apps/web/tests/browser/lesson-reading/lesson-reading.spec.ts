@@ -10,6 +10,69 @@ const LESSON_PATH =
 const SESSION_PATTERN = "**/api/v1/session/single-profile";
 const LESSON_PATTERN =
   "**/api/v1/curriculum/placements/*/lesson";
+const COMPLETION_PATTERN =
+  "**/api/v1/curriculum/placements/*/completion";
+const KNOWLEDGE_CHECK_PATTERN =
+  "**/api/v1/curriculum/placements/*/knowledge-check**";
+const KNOWLEDGE_CHECK = {
+  schema_version: "1.0.0",
+  placement_id: "intro-risk-return-primary",
+  package_id: "intro-risk-return",
+  package_version: "1.1.0",
+  package_digest: "a".repeat(64),
+  assessment_id: "risk-return-check-1",
+  assessment_version: "1.0.0",
+  definition_digest: "b".repeat(64),
+  item_type: "single_select",
+  item_id: "risk-return-question-1",
+  item_version: "1.0.0",
+  scoring_policy_id: "single-select-exact-match",
+  scoring_policy_version: "1.0.0",
+  prompt: "Which statement best describes risk and return?",
+  options: [
+    {
+      option_id: "higher-potential-higher-uncertainty",
+      label: "Higher potential return generally comes with higher uncertainty.",
+    },
+    {
+      option_id: "higher-risk-guarantees-return",
+      label: "Taking more risk guarantees a higher return.",
+    },
+  ],
+};
+const INCOMPLETE_COMPLETION = {
+  projection_version: "1.0.0",
+  placement_id: "intro-risk-return-primary",
+  completed: false,
+  completion_meaning: "not_completed",
+  source_digest: "c".repeat(64),
+  rebuilt_at: "2026-10-15T12:00:00Z",
+  history: [],
+};
+const COMPLETION_ENTRY = {
+  event_id: "77777777-7777-4777-8777-777777777777",
+  attempt_id: "55555555-5555-4555-8555-555555555555",
+  evidence_id: "66666666-6666-4666-8666-666666666666",
+  package_id: KNOWLEDGE_CHECK.package_id,
+  package_version: KNOWLEDGE_CHECK.package_version,
+  package_digest: KNOWLEDGE_CHECK.package_digest,
+  assessment_id: KNOWLEDGE_CHECK.assessment_id,
+  assessment_version: KNOWLEDGE_CHECK.assessment_version,
+  definition_digest: KNOWLEDGE_CHECK.definition_digest,
+  item_id: KNOWLEDGE_CHECK.item_id,
+  item_version: KNOWLEDGE_CHECK.item_version,
+  scoring_policy_id: KNOWLEDGE_CHECK.scoring_policy_id,
+  scoring_policy_version: KNOWLEDGE_CHECK.scoring_policy_version,
+  score: 1,
+  max_score: 1,
+  completed_at: "2026-10-15T12:00:00Z",
+};
+const COMPLETED_COMPLETION = {
+  ...INCOMPLETE_COMPLETION,
+  completed: true,
+  completion_meaning: "bounded_knowledge_check_completed",
+  history: [COMPLETION_ENTRY],
+};
 
 function json(route: Route, status: number, body: unknown) {
   return route.fulfill({
@@ -22,6 +85,7 @@ function json(route: Route, status: number, body: unknown) {
 async function mockReadyLesson(
   page: Page,
   lesson: unknown = lessonFixture,
+  completion: unknown = INCOMPLETE_COMPLETION,
 ) {
   await page.route(SESSION_PATTERN, (route) =>
     json(route, 201, {
@@ -33,6 +97,39 @@ async function mockReadyLesson(
   await page.route(LESSON_PATTERN, (route) =>
     json(route, 200, lesson),
   );
+  await page.route(COMPLETION_PATTERN, (route) =>
+    json(route, 200, completion),
+  );
+  await page.route(KNOWLEDGE_CHECK_PATTERN, (route) => {
+    if (route.request().method() === "POST") {
+      const request = route.request().postDataJSON() as {
+        submission_id: string;
+        selected_option_id: string;
+      };
+      return json(route, 200, {
+        attempt_id: "55555555-5555-4555-8555-555555555555",
+        evidence_id: "66666666-6666-4666-8666-666666666666",
+        submission_id: request.submission_id,
+        ...KNOWLEDGE_CHECK,
+        selected_option_id: request.selected_option_id,
+        score:
+          request.selected_option_id ===
+          "higher-potential-higher-uncertainty"
+            ? 1
+            : 0,
+        max_score: 1,
+        correct:
+          request.selected_option_id ===
+          "higher-potential-higher-uncertainty",
+        feedback: {
+          feedback_id: "risk-return-correct",
+          text: "Correct. Risk and potential return should be considered together.",
+        },
+        submitted_at: "2026-10-15T12:00:00Z",
+      });
+    }
+    return json(route, 200, KNOWLEDGE_CHECK);
+  });
   await page.route("**/api/v1/content/assets/risk-spectrum", (route) =>
     route.fulfill({
       status: 200,
@@ -61,6 +158,9 @@ test("renders equivalent light, dark, and system content accessibly", async ({
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Educational sources" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Knowledge check" }),
   ).toBeVisible();
 
   const baselineText = await page.locator("main").innerText();
@@ -123,6 +223,94 @@ test("preserves keyboard focus and safe external-source meaning", async ({
   await expect(source).toBeFocused();
   await expect(source).toHaveAttribute("target", "_blank");
   await expect(source).toHaveAttribute("rel", "noopener noreferrer");
+});
+
+test("submits the exact knowledge check without client learner authority", async ({
+  page,
+}) => {
+  let requestBody: Record<string, unknown> | null = null;
+  await mockReadyLesson(page);
+  await page.route(KNOWLEDGE_CHECK_PATTERN, async (route) => {
+    if (route.request().method() !== "POST") {
+      return route.fallback();
+    }
+    requestBody = route.request().postDataJSON() as Record<string, unknown>;
+    return json(route, 200, {
+      attempt_id: "55555555-5555-4555-8555-555555555555",
+      evidence_id: "66666666-6666-4666-8666-666666666666",
+      submission_id: requestBody.submission_id,
+      ...KNOWLEDGE_CHECK,
+      selected_option_id: requestBody.selected_option_id,
+      score: 1,
+      max_score: 1,
+      correct: true,
+      feedback: {
+        feedback_id: "risk-return-correct",
+        text: "Correct. Risk and potential return should be considered together.",
+      },
+      submitted_at: "2026-10-15T12:00:00Z",
+    });
+  });
+
+  await page.goto(LESSON_PATH);
+  await page.getByRole("radio", { name: /Higher potential return/i }).check();
+  await page.getByRole("button", { name: "Check answer" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Knowledge check complete" }),
+  ).toBeVisible();
+  expect(requestBody).not.toBeNull();
+  expect(requestBody).not.toHaveProperty("learner_id");
+  await expect(page.getByText(/not mastery or certification/i)).toBeVisible();
+});
+
+test("reopens exact retained completion accessibly without another assessment request", async ({
+  page,
+}) => {
+  let knowledgeCheckRequests = 0;
+  await mockReadyLesson(page, lessonFixture, COMPLETED_COMPLETION);
+  await page.route(KNOWLEDGE_CHECK_PATTERN, (route) => {
+    knowledgeCheckRequests += 1;
+    return route.fallback();
+  });
+
+  await page.goto(LESSON_PATH);
+  await expect(
+    page.getByRole("heading", { name: "Retained lesson completion" }),
+  ).toBeVisible();
+  await expect(page.getByText("1 of 1", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(COMPLETION_ENTRY.package_digest, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(COMPLETION_ENTRY.definition_digest, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(COMPLETION_ENTRY.event_id, { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/not a mastery or certification/i)).toBeVisible();
+  await expect(
+    page.getByText(/does not provide investment advice/i),
+  ).toBeVisible();
+  await expect(page.getByRole("radio")).toHaveCount(0);
+  expect(knowledgeCheckRequests).toBe(0);
+
+  await page.getByLabel("Theme").selectOption("light");
+  const lightText = await page.locator("main").innerText();
+  const lightAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(lightAccessibility.violations).toEqual([]);
+
+  await page.getByLabel("Theme").selectOption("dark");
+  expect(await page.locator("main").innerText()).toBe(lightText);
+  const darkAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(darkAccessibility.violations).toEqual([]);
+
+  await page.setViewportSize({ width: 375, height: 720 });
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 });
 
 test("reflows at narrow and 200-percent-equivalent widths", async ({

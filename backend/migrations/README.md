@@ -12,3 +12,21 @@ read.
 Module-specific migration streams live in named subdirectories. The Identity
 stream is applied after the root Content and Curriculum stream so later slices
 do not invalidate the earlier stream's deterministic migration inventory.
+
+The Curriculum Assessment-reference stream under `curriculum/` is applied
+after the root stream. The Assessment evidence/outbox stream under
+`assessment/` is applied after Curriculum. Migration IDs are globally unique
+in `platform.schema_migrations`; controlled teardown removes module streams in
+reverse dependency order before rolling back the root stream.
+
+The Learner-model stream under `learner_model/` owns only rebuildable completion
+projection/history tables. It retains Assessment identifiers as source
+references without a cross-schema foreign key or direct Assessment-table read.
+Dropping that stream removes derived state only; rebuilding still requires the
+authoritative Assessment evidence set to remain available.
+
+The Audit stream under `audit/` owns append-only Assessment-event integrity and
+provenance references. It has no cross-schema foreign keys. Unlike the
+Learner-model projection, accepted Audit records reject ordinary update/delete;
+teardown is limited to controlled development/test rollback and must not be
+described as harmless evidence rebuilding.

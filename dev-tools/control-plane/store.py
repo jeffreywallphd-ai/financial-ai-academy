@@ -17,6 +17,18 @@ from ports import ProjectionPort
 SCHEMA_VERSION = "1.0"
 
 
+def normalize_resolved_path(path: Path) -> Path:
+    """Resolve a path while normalizing equivalent Windows device prefixes."""
+
+    value = str(path.resolve(strict=False))
+    if os.name == "nt":
+        if value.startswith("\\\\?\\UNC\\"):
+            value = "\\\\" + value[8:]
+        elif value.startswith("\\\\?\\"):
+            value = value[4:]
+    return Path(value)
+
+
 def canonical_bytes(value: object) -> bytes:
     return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
 
@@ -36,27 +48,40 @@ def confined_path(root: Path, relative: str) -> Path:
             ["Use a normalized repository-relative path without parent traversal."],
         )
     target = root.joinpath(*posix.parts)
-    resolved_root = root.resolve()
-    resolved_parent = target.parent.resolve()
+    resolved_root = normalize_resolved_path(root)
+    resolved_parent = normalize_resolved_path(target.parent)
     try:
         resolved_parent.relative_to(resolved_root)
     except ValueError as error:
         raise ControlError(
             "path.outside-repository",
             "The resolved path escapes the repository boundary.",
-            {"path": relative, "resolved_parent": str(resolved_parent)},
+            {"path": relative, "resolved_root": str(resolved_root), "resolved_parent": str(resolved_parent)},
             ["Remove the symlink or junction escape and retry."],
         ) from error
     if target.exists():
+        resolved_target = normalize_resolved_path(target)
         try:
-            target.resolve().relative_to(resolved_root)
+            resolved_target.relative_to(resolved_root)
         except ValueError as error:
-            raise ControlError(
-                "path.outside-repository",
-                "The resolved target escapes the repository boundary.",
-                {"path": relative, "resolved_target": str(target.resolve())},
-                ["Use a path contained by the repository."],
-            ) from error
+            # A short-lived lock file can disappear between exists() and
+            # resolve() on Windows, where NTFS reports the removed object below
+            # C:\$Extend\$Deleted. Revalidate the current pathname once so the
+            # vanished object is not mistaken for a stable symlink escape.
+            current_target = normalize_resolved_path(target)
+            try:
+                current_target.relative_to(resolved_root)
+            except ValueError:
+                raise ControlError(
+                    "path.outside-repository",
+                    "The resolved target escapes the repository boundary.",
+                    {
+                        "path": relative,
+                        "resolved_root": str(resolved_root),
+                        "resolved_target": str(current_target),
+                    },
+                    ["Use a path contained by the repository."],
+                ) from error
     return target
 
 

@@ -41,30 +41,36 @@ do not resolve a newer version. Knowledge-check meaning, attempts, scoring,
 completion evidence, and mastery remain Assessment/Learner-model work and are
 not implied by the packaged assessment file.
 
-## Accepted Applied-Project Semantics
+## Deterministic Knowledge-Check Contract Terms
 
-[ADR-0012](../adr/ADR-0012-reusable-project-workspace.md) accepts Project as the
-owner of learning-initiated and independent project identity, learner-authored
-charter, lifecycle, bounded mutable workspace, versioned artifact manifests,
-immutable snapshots, and typed links to learning and domain resources. A
-learning-initiated project retains exact Content and Curriculum provenance but
-may continue outside the lesson that created it.
+The first executable Assessment contract establishes these terms without yet
+claiming application behavior:
 
-Content owns published learning-project briefs and supplied resources;
-Curriculum owns placement, prerequisites, and milestone requirements;
-Assessment owns immutable submissions and source completion evidence by exact
-Project snapshot reference; Learner model owns rebuildable learning projections;
-and Audit owns trace and integrity references. Independent project activity has
-no learning-progress meaning until an authorized Assessment submission creates
-evidence.
+- **Private definition:** immutable Assessment-owned item, ordered options,
+  correct option, exact-match policy, and reviewed feedback identified by an
+  assessment/item/policy version chain and definition digest.
+- **Learner presentation:** the public prompt and options plus exact version
+  tokens, with correct-answer and feedback internals excluded.
+- **Submission:** one opaque submission identity and one selected option tied
+  to the exact placement, package, assessment, item, and policy versions.
+- **Assessment evidence:** the append-oriented semantic record of learner,
+  attempt, response, deterministic score, feedback, provenance, and server
+  time. It is not a mastery or lesson-completion projection.
+- **Knowledge-check completion event:** a bounded Assessment-owned reference
+  to durable evidence for later idempotent consumers. Event delivery and
+  projection behavior remain unimplemented.
 
-A Project can reference zero or more Portfolio-owned resources, but Portfolio
-continues to own positions, transactions, valuation, rebalancing, performance,
-risk calculations, and market-data provenance. The same reference-only rule
-applies to other domain aggregates. Removing a live link cannot rewrite an
-immutable Project snapshot or Assessment submission.
+## Implemented Deterministic Assessment Core
 
-Under [ADR-0011](../adr/ADR-0011-inert-applied-project-artifacts.md), notebooks,
-code, datasets, environments, and results remain untrusted inert evidence.
-Artifact validation does not mean code safety, result correctness, independent
-reproduction, mastery, certification, or investment performance.
+The private-host core implements the first contract terms through two public
+Assessment operations: open one placed knowledge check and submit one exact
+response. Curriculum resolves the exact placement reference; Content returns
+the exact validated private definition bytes; Assessment alone produces the
+safe presentation and score.
+
+One learner may complete the exact placed assessment once. Repeating the same
+submission identity and payload returns the original evidence. Reusing that
+identity for different input is a conflict. A different submission after
+accepted completion is `already_completed`; none of these paths creates a
+retake. Evidence and its completion event append atomically. This behavior
+still makes no lesson-completion or mastery projection.

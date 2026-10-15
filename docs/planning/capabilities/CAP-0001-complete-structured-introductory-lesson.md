@@ -1,7 +1,7 @@
 ---
 id: CAP-0001
 kind: capability
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -130,10 +130,10 @@ evidence rather than a mutable flag or model inference.
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
-| SLI-0001 | A learner opens one approved, versioned lesson placement and can identify its objectives, sources, exact package version and digest, and publication provenance through the protected generated-client route. | First foundation; its existing completed packets establish Content, Curriculum, Identity, API, generated-client, renderer, and local qualification seams. | Broadening the package trust profile, identity modes, storage authority, or browser rendering contract changes the CAP package. | verifying |
-| SLI-0015 | The authorized learner submits the lesson's bounded knowledge check and receives deterministic, reproducible feedback while one idempotent attempt and score evidence chain is retained against the exact assessment and lesson versions. | After SLI-0001; introduces Assessment public operations, evidence contracts, persistence, API/client behavior, and focused denial paths without reopening the lesson-read contract. | Adding model or manual grading, open-ended/executable responses, unrelated assessment families, or mutable score history changes the CAP package. | captured |
-| SLI-0016 | The learner closes and reopens the lesson and sees the correct completion state and evidence history rebuilt from retained Assessment evidence, including safe duplicate, stale-version, missing-context, and replay handling. | After SLI-0015; introduces the Learner-model projection and Audit references after the evidence source is stable. | Inferring mastery, replacing source evidence, adding adaptive recommendations, or expanding recovery and retention claims changes the CAP package. | captured |
-| SLI-0017 | The complete lesson loop is qualified across domain, event, persistence, API, generated-client, accessible browser, security, provenance, interruption, and community protection boundaries, with unsupported deployment profiles reported rather than fabricated as passing. | Last; depends on SLI-0001, SLI-0015, and SLI-0016 and closes only after their exact contracts and evidence are current. | Qualifying built-in/OIDC identity, managed-cloud operations or recovery, unrelated curricula, or a broader browser/content profile changes the CAP package. | captured |
+| SLI-0001 | A learner opens one approved, versioned lesson placement and can identify its objectives, sources, exact package version and digest, and publication provenance through the protected generated-client route. | First foundation; its existing completed packets establish Content, Curriculum, Identity, API, generated-client, renderer, and local qualification seams. | Broadening the package trust profile, identity modes, storage authority, or browser rendering contract changes the CAP package. | complete |
+| SLI-0015 | The authorized learner submits the lesson's bounded knowledge check and receives deterministic, reproducible feedback while one idempotent attempt and score evidence chain is retained against the exact assessment and lesson versions. | After SLI-0001; introduces Assessment public operations, evidence contracts, persistence, API/client behavior, and focused denial paths without reopening the lesson-read contract. | Adding model or manual grading, open-ended/executable responses, unrelated assessment families, or mutable score history changes the CAP package. | complete |
+| SLI-0016 | The learner closes and reopens the lesson and sees the correct completion state and evidence history rebuilt from retained Assessment evidence, including safe duplicate, stale-version, missing-context, and replay handling. | After SLI-0015; introduces the Learner-model projection and Audit references after the evidence source is stable. | Inferring mastery, replacing source evidence, adding adaptive recommendations, or expanding recovery and retention claims changes the CAP package. | complete |
+| SLI-0017 | The complete lesson loop is qualified across domain, event, persistence, API, generated-client, accessible browser, security, provenance, interruption, and community protection boundaries, with unsupported deployment profiles reported rather than fabricated as passing. | Last; depends on SLI-0001, SLI-0015, and SLI-0016 and closes only after their exact contracts and evidence are current. | Qualifying built-in/OIDC identity, managed-cloud operations or recovery, unrelated curricula, or a broader browser/content profile changes the CAP package. | complete |
 
 ## Capability Acceptance
 
@@ -190,6 +190,37 @@ client contracts, security and recovery evidence, interface behavior, module
 README files, architecture verification, and known verification gaps. Derived
 context packs change only after their canonical sources change.
 
+## Capability Completion Evidence
+
+- All four approved manifest slices are complete. SLI-0001 delivers and
+  qualifies the protected exact lesson-read path; SLI-0015 delivers and
+  qualifies deterministic knowledge-check evidence; SLI-0016 delivers and
+  qualifies Audit reconciliation plus rebuildable retained completion; and
+  SLI-0017 traces the whole loop to every capability acceptance criterion.
+- The completed candidate passed 196 backend tests under Python 3.14.3 with
+  disposable PostgreSQL 18.4, 26 web tests, eight focused Chromium scenarios,
+  and two live same-origin scenarios. The live learner submitted the exact
+  approved check and reopened twice with an unchanged completion source-set.
+- OpenAPI and the generated client were current. Node 24 typecheck, lint, and
+  production build passed; dependency audit reported zero vulnerabilities.
+  Eight architecture fitness functions, ten security control groups, and the
+  125-token/56-icon design-system validation passed. The fixed aggregate
+  readiness gate passed all 27 checks against the capability base revision.
+- Assessment evidence remains append-oriented; Learner-model state is a
+  rebuildable projection; identity, content, assessment, audit, provider, and
+  persistence internals remain behind owned seams. No contract, migration, or
+  compatibility gap is concealed by capability closure.
+- Qualification is deliberately limited to the private-host `single_profile`,
+  synchronous replay, PostgreSQL/Python same-origin, and reviewed Chromium
+  profile. Built-in/OIDC, multi-user and managed-cloud identity, background
+  delivery, production database roles, automated backup/restore and RPO/RTO,
+  non-Chromium/manual screen-reader coverage, broader assessment families,
+  mastery, adaptation, advice, suitability, and performance remain outside the
+  completed capability rather than being represented as passing.
+- All disposable containers and temporary build output were removed. Closure
+  required no new decision gate, approval stage, material CAP-package change,
+  or product behavior beyond the approved manifest.
+
 ## Planning History
 
 - 2026-08-04: The initial capability was shaped and its four durable decisions
@@ -202,3 +233,6 @@ context packs change only after their canonical sources change.
   completion projection, and whole-capability qualification. This material
   package revision requires one current CAP-level approval before delivery
   resumes; no slice- or packet-level approval is introduced.
+- 2026-10-15: Completed all four approved manifest slices. Direct cumulative
+  evidence satisfies every capability criterion and preserves explicit limits
+  for identity, recovery, cloud, queue, browser, mastery, and advice profiles.

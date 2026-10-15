@@ -29,6 +29,12 @@ The suite uses:
 - ignored local storage at `.local-codex/approvals/ledger.json`, including the CAP package digest and exact slice manifest;
 - repository-relative `write_scope` and `generated_artifacts`, plus durable activation evidence in `base_revision`, `claim_id`, `claimed_by`, and `claimed_at`.
 
+Terminal `complete` and `superseded` capabilities are historical state: they
+satisfy dependency and evidence interpretation but never become candidates for
+a new planning approval. Missing local approval history for a terminal CAP does
+not block routing to a current approved CAP; nonterminal packages still require
+their exact current capability approval.
+
 An agent may prepare a review and record an explicit human decision. It may not self-approve. A roadmap or artifact state is not approval evidence.
 
 One response may cover one closed homogeneous set of related `DEC-*` requests; the ledger still contains one record per decision. CAP delivery has exactly one approval bound to governed CAP content and all `slice_ids`. Detailed SLI/WRK refinement, activation, verification, and closure are deterministic and add no approval requests. Material CAP change requires renewed CAP approval.

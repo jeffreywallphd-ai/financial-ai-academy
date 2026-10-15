@@ -66,9 +66,21 @@ def test_bootstrap_requires_exact_host_origin_and_same_origin_fetch() -> None:
 
 @pytest.mark.parametrize(
     "header",
-    ["x-actor-id", "x-learner-id", "x-session-id", "x-identity-provider"],
+    [
+        "x-actor-id",
+        "x-learner-id",
+        "x-session-id",
+        "x-identity-provider",
+        "x-permission",
+        "x-score",
+        "x-correct",
+        "x-feedback-id",
+        "x-attempt-id",
+        "x-evidence-id",
+        "x-submitted-at",
+    ],
 )
-def test_client_selected_identity_headers_are_rejected(header: str) -> None:
+def test_client_selected_authority_headers_are_rejected(header: str) -> None:
     policy = SingleProfileRequestPolicy(settings())
 
     with pytest.raises(RequestPolicyViolation):

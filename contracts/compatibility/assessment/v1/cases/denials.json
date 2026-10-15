@@ -1,0 +1,22 @@
+[
+  {"id": "unsupported-contract-version", "target": "definition", "op": "set", "path": ["schema_version"], "value": "2.0.0", "expected_code": "assessment.unsupported_version"},
+  {"id": "unsupported-assessment-version", "target": "definition", "op": "set", "path": ["assessment", "assessment_version"], "value": "2.0.0", "expected_code": "assessment.unsupported_version"},
+  {"id": "unsupported-item-type", "target": "definition", "op": "set", "path": ["assessment", "item_type"], "value": "free_text", "expected_code": "assessment.unsupported_item_type"},
+  {"id": "unsupported-scoring-policy", "target": "definition", "op": "set", "path": ["assessment", "scoring_policy", "policy_version"], "value": "2.0.0", "expected_code": "assessment.unsupported_policy"},
+  {"id": "duplicate-option-id", "target": "definition", "op": "set", "path": ["assessment", "item", "options", 2, "option_id"], "value": "higher-risk-guarantees-return", "refresh_definition_digest": true, "expected_code": "assessment.invalid_definition"},
+  {"id": "correct-option-not-declared", "target": "definition", "op": "set", "path": ["assessment", "item", "correct_option_id"], "value": "not-declared", "refresh_definition_digest": true, "expected_code": "assessment.invalid_definition"},
+  {"id": "missing-correct-option", "target": "definition", "op": "remove", "path": ["assessment", "item", "correct_option_id"], "refresh_definition_digest": true, "expected_code": "assessment.schema_invalid"},
+  {"id": "unsafe-feedback", "target": "definition", "op": "set", "path": ["assessment", "item", "feedback", "incorrect", "text"], "value": "<script>unsafe</script>", "refresh_definition_digest": true, "expected_code": "assessment.schema_invalid"},
+  {"id": "oversize-option-label", "target": "definition", "op": "set", "path": ["assessment", "item", "options", 0, "label"], "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", "refresh_definition_digest": true, "expected_code": "assessment.schema_invalid"},
+  {"id": "unknown-definition-field", "target": "definition", "op": "set", "path": ["assessment", "item", "randomize"], "value": true, "refresh_definition_digest": true, "expected_code": "assessment.schema_invalid"},
+  {"id": "missing-selected-option", "target": "submission", "op": "remove", "path": ["selected_option_id"], "expected_code": "assessment.schema_invalid"},
+  {"id": "multiple-selected-options", "target": "submission", "op": "set", "path": ["selected_option_ids"], "value": ["higher-risk-guarantees-return", "higher-potential-higher-uncertainty"], "expected_code": "assessment.schema_invalid"},
+  {"id": "unknown-selected-option", "target": "submission", "op": "set", "path": ["selected_option_id"], "value": "not-declared", "expected_code": "assessment.unknown_option"},
+  {"id": "stale-package-digest", "target": "submission", "op": "set", "path": ["package_digest"], "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "expected_code": "assessment.stale_reference"},
+  {"id": "malformed-definition-digest", "target": "presentation", "op": "set", "path": ["definition_digest"], "value": "not-a-digest", "expected_code": "assessment.schema_invalid"},
+  {"id": "inconsistent-score", "target": "result", "op": "set", "path": ["score"], "value": 0, "expected_code": "assessment.inconsistent_evidence"},
+  {"id": "malformed-result-timestamp", "target": "result", "op": "set", "path": ["submitted_at"], "value": "not-a-time", "expected_code": "assessment.schema_invalid"},
+  {"id": "unsupported-event-version", "target": "event", "op": "set", "path": ["event_version"], "value": "2.0.0", "expected_code": "assessment.unsupported_event_version"},
+  {"id": "event-evidence-mismatch", "target": "event", "op": "set", "path": ["source", "evidence_id"], "value": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "expected_code": "assessment.inconsistent_event"},
+  {"id": "event-private-response-leak", "target": "event", "op": "set", "path": ["payload", "selected_option_id"], "value": "higher-potential-higher-uncertainty", "expected_code": "assessment.schema_invalid"}
+]

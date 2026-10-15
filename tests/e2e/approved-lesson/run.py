@@ -265,7 +265,7 @@ def main() -> int:
             "browser": "Playwright pinned Chromium",
             "database": postgres_topology,
             "filesystem": "isolated temporary data root",
-            "fixture": "intro-risk-return@1.0.0",
+            "fixture": "intro-risk-return@1.1.0 with risk-return-check-1@1.0.0",
             "http_origin": origin,
             "production_application_process": Path(sys.executable).name,
             "static_index_sha256": hashlib.sha256(

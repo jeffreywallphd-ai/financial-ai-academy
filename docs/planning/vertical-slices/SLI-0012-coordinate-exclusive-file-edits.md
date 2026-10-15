@@ -96,6 +96,7 @@ prompts, credentials, approval/reviewer data, or personal identity requirements.
 | --- | --- | --- | --- | --- |
 | WRK-0020 | Deliver the local edit-intent and exclusive file-lease plane, repository authority adapter, CLI/docs, and tests | WRK-0019 | none | complete |
 | WRK-0023 | Revalidate active WRK authority on lease renewal while preserving post-completion release | WRK-0020 | none | complete |
+| WRK-0029 | Stabilize independent-process same-file races while preserving disjoint-file and read concurrency | WRK-0023 | none | complete |
 
 ## Verification and Qualification
 
@@ -136,6 +137,15 @@ and declared paths before lease renewal. Focused tests prove active renewal stil
 succeeds, post-completion renewal is refused, and the recorded owner/claim can
 release after completion so cleanup never requires reactivation.
 
+WRK-0029 additionally normalizes equivalent Windows device paths and safely
+revalidates a short-lived lock pathname that resolves through NTFS
+`$Extend\$Deleted` after a concurrent release. The correction preserves stable
+symlink/junction escape refusal and adds diagnostic worker evidence. Twelve
+focused scenarios, 500 consecutive fresh-state two-process races, all 109
+control-plane tests, and all 27 aggregate readiness checks passed. Disjoint
+files and reads remain concurrent, so the correction strengthens single-writer
+safety without adding a broad coordination barrier.
+
 ## Planning History
 
 - 2026-10-15: Refined just in time after SLI-0011; Candidate A scored 14/14
@@ -144,3 +154,10 @@ release after completion so cleanup never requires reactivation.
   Financial AI Academy authority adapter, CLI/docs, and anti-rigidity coverage.
 - 2026-10-15: Closed WRK-0023 as a bounded descendant correction enforcing
   active packet authority on renewal while preserving post-completion release.
+- 2026-10-15: Added WRK-0029 through the completed-work correction route after
+  aggregate readiness reproduced intermittent non-contention classification in
+  the independent-process same-file race; CAP-0003 scope and semantics are
+  unchanged.
+- 2026-10-15: WRK-0029 completed after Windows path normalization, deleted-lock
+  revalidation, 500 consecutive race passes, and full control-plane and
+  aggregate readiness qualification; the slice returned to its complete state.

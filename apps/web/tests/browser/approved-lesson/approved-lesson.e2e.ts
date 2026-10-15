@@ -7,7 +7,9 @@ const LESSON_PATH = `/learn/placements/${PLACEMENT_ID}`;
 const LESSON_API =
   `/api/v1/curriculum/placements/${PLACEMENT_ID}/lesson`;
 const DIGEST =
-  "576d543b404a7f70f2e5bebee55c32a3f945d8e8da73654c43ef92e656aee008";
+  "7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc";
+const DEFINITION_DIGEST =
+  "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b";
 
 test("opens the approved exact lesson through the live same-origin path", async ({
   context,
@@ -42,7 +44,7 @@ test("opens the approved exact lesson through the live same-origin path", async 
     "href",
     "https://www.investor.gov/introduction-investing",
   );
-  await expect(page.getByText("1.0.0", { exact: true })).toBeVisible();
+  await expect(page.getByText("1.1.0", { exact: true })).toBeVisible();
   await expect(page.getByText(DIGEST, { exact: true })).toBeVisible();
   await expect(
     page.getByText(
@@ -52,6 +54,69 @@ test("opens the approved exact lesson through the live same-origin path", async 
   await expect(
     page.getByRole("button", { name: /buy|sell|hold|trade/i }),
   ).toHaveCount(0);
+
+  await page
+    .getByRole("radio", {
+      name: /Higher potential returns generally come with greater uncertainty/i,
+    })
+    .check();
+  await page.getByRole("button", { name: "Check answer" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Knowledge check complete" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/not mastery or certification/i),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Retained lesson completion" }),
+  ).toBeVisible();
+  const completionEvent = page.getByRole("article", {
+    name: /Completion event/i,
+  });
+  await expect(page.getByText("1 of 1", { exact: true })).toBeVisible();
+  await expect(
+    completionEvent.getByText(DIGEST, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    completionEvent.getByText(DEFINITION_DIGEST, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    completionEvent.getByText("Attempt reference", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    completionEvent.getByText("Evidence reference", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    completionEvent.getByText("Source event", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("radio")).toHaveCount(0);
+  await expect(
+    page.getByText(/not a mastery or certification decision/i),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/does not provide investment advice/i),
+  ).toBeVisible();
+
+  const sourceDigest = page
+    .getByText("Source-set digest", { exact: true })
+    .locator("..")
+    .locator("code");
+  await expect(sourceDigest).toHaveText(/^[a-f0-9]{64}$/);
+  const retainedSourceDigest = await sourceDigest.textContent();
+
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Retained lesson completion" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByText("Source-set digest", { exact: true })
+      .locator("..")
+      .locator("code"),
+  ).toHaveText(retainedSourceDigest ?? "");
+  await expect(page.getByRole("radio")).toHaveCount(0);
 
   const cookies = await context.cookies();
   const session = cookies.find(

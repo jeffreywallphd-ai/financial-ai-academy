@@ -11,7 +11,7 @@ from typing import Any, Callable, Iterable
 
 from contracts import ControlError, success
 from state import parse_timestamp, timestamp, utc_now
-from store import atomic_write, canonical_bytes, confined_path, exclusive_lock
+from store import atomic_write, canonical_bytes, confined_path, exclusive_lock, normalize_resolved_path
 
 
 SCHEMA_VERSION = "file-edit-state-v1"
@@ -27,8 +27,8 @@ def canonical_file(root: Path, value: str) -> tuple[str, str]:
     target = confined_path(root.resolve(), value)
     if target.exists() and target.is_dir():
         raise ControlError("edit.path-is-directory", "File-edit leases require an exact file, not a directory.", {"path": value}, ["Name the exact repository file immediately before editing it."])
-    resolved_root = root.resolve()
-    resolved = target.resolve(strict=False)
+    resolved_root = normalize_resolved_path(root)
+    resolved = normalize_resolved_path(target)
     try:
         relative = resolved.relative_to(resolved_root).as_posix()
     except ValueError as error:
