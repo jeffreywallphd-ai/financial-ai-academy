@@ -25,7 +25,10 @@ from ..public import (
 
 
 _COOKIE_TOKEN = re.compile(r"^[A-Za-z0-9_-]{40,128}$")
-_READ_PERMISSION = "curriculum.lesson.read"
+_READ_PERMISSIONS = (
+    "curriculum.discovery.read",
+    "curriculum.lesson.read",
+)
 
 
 class IdentityService:
@@ -164,7 +167,7 @@ class IdentityService:
             authenticated_at=session.authenticated_at,
             expires_at=session.absolute_expires_at,
             authentication_method="single_profile",
-            permissions=(_READ_PERMISSION,),
+            permissions=_READ_PERMISSIONS,
         )
 
     def _utc_now(self) -> datetime:

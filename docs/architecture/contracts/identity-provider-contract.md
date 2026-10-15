@@ -22,6 +22,11 @@ The shared application context carries:
 | `authentication_method` | Normalized local-bootstrap, password, or OIDC method for evidence and policy |
 | `permissions` | Application-issued capabilities for the operation; provider claims are not direct authorization |
 
+The current private-host single-profile context issues separate
+`curriculum.discovery.read` and `curriculum.lesson.read` capabilities. The host
+checks the specific operation capability after resolving the opaque session;
+clients cannot select or augment either capability.
+
 Identity privately maps a normalized provider instance and provider subject to platform actor and learner identifiers. That binding is unique, status-bearing, and provenance-aware. Password material, recovery secrets, sessions, OIDC tokens, and raw claims never enter learner context.
 
 Trusted host middleware resolves context for each request. Missing, malformed, expired, revoked, or client-selected context fails closed. Owning modules still enforce operation-level authorization against the normalized context.

@@ -44,6 +44,14 @@ generation, or repository failure is bounded and fail closed. The projection
 contains no learner/provider identity, storage reference, ranking score,
 eligibility, recommendation, or execution promise.
 
-WRK-0043 establishes the public/application contract and repository port.
-PostgreSQL storage, composition, protected HTTP/OpenAPI exposure, generated
-client, and browser catalog remain subsequent SLI-0018 packets.
+`curriculum_0002_discovery_projection` persists immutable classifications and
+one complete ordered generation in Curriculum-owned PostgreSQL tables. The
+adapter serializes replacement with a transaction-scoped advisory lock and
+publishes the state pointer and all records in the same transaction; readers
+therefore see the prior or next complete generation, never a mixed one.
+
+The protected queryless `GET /api/v1/curriculum/opportunities` operation
+requires the server-issued `curriculum.discovery.read` permission and returns
+the same closed v1 browse shape through the reviewed OpenAPI snapshot and
+generated TypeScript client. Automatic rebuild orchestration, browser catalog
+presentation, and live-path qualification remain later SLI-0018 packets.

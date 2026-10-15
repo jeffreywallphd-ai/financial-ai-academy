@@ -10,5 +10,10 @@ authentication/expiry times, `single_profile` as the method, and
 application-issued permissions. Learning modules never receive the cookie,
 token digest, provider subject, or client-selected identity headers.
 
+The current single-profile context issues separate
+`curriculum.discovery.read` and `curriculum.lesson.read` permissions. Hosts
+enforce the permission for each protected operation; neither permission nor
+any actor or learner selector is accepted from the client.
+
 Built-in credentials, OIDC, multiple learners, identity-mode migration, and
 remote single-profile exposure are not implemented by this module.

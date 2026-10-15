@@ -38,7 +38,10 @@ from financial_ai_academy.modules.content.public import (
     LessonReadError,
 )
 from financial_ai_academy.modules.curriculum.public import (
+    BrowseLearningOpportunitiesRequest,
     CurriculumOperations,
+    DiscoveryError,
+    DiscoveryErrorCode,
     OpenPlacedLessonRequest,
 )
 from financial_ai_academy.modules.identity.public import (
@@ -65,12 +68,14 @@ from .models import (
     KnowledgeCheckPresentationResponseModel,
     KnowledgeCheckResultResponseModel,
     KnowledgeCheckSubmissionRequestModel,
+    LearningOpportunityBrowseResponseModel,
     LessonCompletionResponseModel,
     LessonReadingResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     knowledge_check_presentation_response,
     knowledge_check_result_response,
+    learning_opportunity_browse_response,
     lesson_completion_response,
     lesson_response,
 )
@@ -192,6 +197,29 @@ def create_app(services: ApiServices) -> FastAPI:
             request.state.correlation_id,
         )
 
+    @app.exception_handler(DiscoveryError)
+    async def discovery_error_handler(
+        request: Request, error: DiscoveryError
+    ) -> JSONResponse:
+        http_status = {
+            DiscoveryErrorCode.INVALID_RECORD: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            DiscoveryErrorCode.IMMUTABLE_CONFLICT: status.HTTP_409_CONFLICT,
+            DiscoveryErrorCode.STALE_SOURCE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            DiscoveryErrorCode.UNAVAILABLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.message,
+            request.state.correlation_id,
+        )
+
     @app.exception_handler(AssessmentError)
     async def assessment_error_handler(
         request: Request, error: AssessmentError
@@ -279,14 +307,28 @@ def create_app(services: ApiServices) -> FastAPI:
             request.state.correlation_id,
         )
 
-    def learner_context(
+    def resolved_context(
         cookie_value: str | None = Security(session_cookie),
     ) -> LearnerContext:
-        context = services.identity.resolve_session(cookie_value)
+        return services.identity.resolve_session(cookie_value)
+
+    def lesson_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
         if "curriculum.lesson.read" not in context.permissions:
             raise IdentityError(
                 IdentityErrorCode.FORBIDDEN,
                 "The learner session cannot read lessons.",
+            )
+        return context
+
+    def discovery_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "curriculum.discovery.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot browse learning opportunities.",
             )
         return context
 
@@ -350,6 +392,21 @@ def create_app(services: ApiServices) -> FastAPI:
         )
 
     @app.get(
+        "/api/v1/curriculum/opportunities",
+        response_model=LearningOpportunityBrowseResponseModel,
+        operation_id="browseLearningOpportunities",
+        responses=_ERROR_RESPONSES,
+        tags=["curriculum"],
+    )
+    def browse_learning_opportunities(
+        _context: LearnerContext = Depends(discovery_context),
+    ) -> LearningOpportunityBrowseResponseModel:
+        browse = services.curriculum.browse_learning_opportunities(
+            BrowseLearningOpportunitiesRequest()
+        )
+        return learning_opportunity_browse_response(browse)
+
+    @app.get(
         "/api/v1/curriculum/placements/{placement_id}/lesson",
         response_model=LessonReadingResponseModel,
         operation_id="getPlacedLesson",
@@ -362,7 +419,7 @@ def create_app(services: ApiServices) -> FastAPI:
             max_length=64,
             pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
         ),
-        _context: LearnerContext = Depends(learner_context),
+        _context: LearnerContext = Depends(lesson_context),
     ) -> LessonReadingResponseModel:
         reading = services.curriculum.open_placed_lesson(
             OpenPlacedLessonRequest(placement_id)
@@ -382,7 +439,7 @@ def create_app(services: ApiServices) -> FastAPI:
             max_length=64,
             pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
         ),
-        _context: LearnerContext = Depends(learner_context),
+        _context: LearnerContext = Depends(lesson_context),
     ) -> KnowledgeCheckPresentationResponseModel:
         assessment = _assessment_service(services.assessment)
         presentation = assessment.open_placed_knowledge_check(
@@ -404,7 +461,7 @@ def create_app(services: ApiServices) -> FastAPI:
             max_length=64,
             pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
         ),
-        context: LearnerContext = Depends(learner_context),
+        context: LearnerContext = Depends(lesson_context),
     ) -> KnowledgeCheckResultResponseModel:
         if request_model.placement_id != placement_id:
             raise AssessmentError(
@@ -448,7 +505,7 @@ def create_app(services: ApiServices) -> FastAPI:
             max_length=64,
             pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
         ),
-        context: LearnerContext = Depends(learner_context),
+        context: LearnerContext = Depends(lesson_context),
     ) -> LessonCompletionResponseModel:
         audit = _audit_service(services.audit)
         learner_model = _learner_model_service(services.learner_model)

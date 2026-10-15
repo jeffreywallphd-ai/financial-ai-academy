@@ -5,6 +5,8 @@ const client = createFinancialAcademyApiClient(
   "http://127.0.0.1:8000",
 );
 
+void client.GET("/api/v1/curriculum/opportunities");
+
 void client.GET(
   "/api/v1/curriculum/placements/{placement_id}/lesson",
   {

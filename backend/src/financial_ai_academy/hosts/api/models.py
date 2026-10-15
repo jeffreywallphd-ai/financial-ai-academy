@@ -6,14 +6,17 @@ from datetime import date, datetime
 from typing import Annotated, Literal, Union
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from financial_ai_academy.modules.assessment.public import (
     KnowledgeCheckPresentation,
     KnowledgeCheckResult,
 )
 from financial_ai_academy.modules.content import public as content_public
-from financial_ai_academy.modules.curriculum.public import LessonReadingResult
+from financial_ai_academy.modules.curriculum.public import (
+    LearningOpportunityBrowse,
+    LessonReadingResult,
+)
 from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
 )
@@ -180,6 +183,84 @@ class LessonReadingResponseModel(ApiModel):
     sources: list[EducationalSourceModel]
     assets: list[PassiveAssetModel]
     provenance: PublicationProvenanceModel
+
+
+class DiscoveryProvenanceResponseModel(ApiModel):
+    published_by: str = Field(min_length=1, max_length=160)
+    published_at: datetime
+    content_reviewed_on: date
+    educational_use_notice: str = Field(min_length=1, max_length=500)
+
+
+DiscoveryObjective = Annotated[str, Field(min_length=1, max_length=500)]
+DiscoveryTopic = Annotated[
+    str,
+    Field(pattern=r"^[a-z0-9][a-z0-9-]{1,49}$"),
+]
+
+
+class LearningOpportunityResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    opportunity_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    placement_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    destination: str = Field(
+        pattern=r"^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    kind: Literal["course", "lesson", "lab", "project"]
+    title: str = Field(min_length=1, max_length=240)
+    summary: str = Field(min_length=20, max_length=500)
+    objectives: list[DiscoveryObjective] = Field(
+        min_length=1,
+        max_length=20,
+        json_schema_extra={"uniqueItems": True},
+    )
+    topics: list[DiscoveryTopic] = Field(
+        min_length=1,
+        max_length=8,
+        json_schema_extra={"uniqueItems": True},
+    )
+    level: Literal["introductory", "intermediate", "advanced"]
+    estimated_minutes: int = Field(ge=1, le=1440)
+    prerequisite_summary: str = Field(min_length=2, max_length=500)
+    availability: Literal["available", "unavailable", "planned"]
+    availability_reason: str = Field(min_length=10, max_length=500)
+    package_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+        )
+    )
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    provenance: DiscoveryProvenanceResponseModel
+    source_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+    projected_at: datetime
+
+    @field_validator("objectives", "topics")
+    @classmethod
+    def require_unique_values(cls, values: list[str]) -> list[str]:
+        if len(values) != len(set(values)):
+            raise ValueError("Discovery list values must be unique.")
+        return values
+
+
+class LearningOpportunityBrowseResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    projection_generation: str = Field(pattern=r"^[a-f0-9]{64}$")
+    projected_at: datetime
+    records: list[LearningOpportunityResponseModel] = Field(max_length=500)
 
 
 class KnowledgeCheckOptionModel(ApiModel):
@@ -367,6 +448,50 @@ def lesson_response(
                 reading.provenance.educational_use_notice
             ),
         ),
+    )
+
+
+def learning_opportunity_browse_response(
+    browse: LearningOpportunityBrowse,
+) -> LearningOpportunityBrowseResponseModel:
+    return LearningOpportunityBrowseResponseModel(
+        schema_version=browse.schema_version,  # type: ignore[arg-type]
+        projection_generation=browse.projection_generation,
+        projected_at=browse.projected_at,
+        records=[
+            LearningOpportunityResponseModel(
+                schema_version=record.schema_version,  # type: ignore[arg-type]
+                opportunity_id=record.opportunity_id,
+                placement_id=record.placement_id,
+                destination=record.destination,
+                kind=record.kind.value,  # type: ignore[arg-type]
+                title=record.title,
+                summary=record.summary,
+                objectives=list(record.objectives),
+                topics=list(record.topics),
+                level=record.level.value,  # type: ignore[arg-type]
+                estimated_minutes=record.estimated_minutes,
+                prerequisite_summary=record.prerequisite_summary,
+                availability=record.availability.value,  # type: ignore[arg-type]
+                availability_reason=record.availability_reason,
+                package_id=record.package_id,
+                package_version=record.package_version,
+                package_digest=record.package_digest,
+                provenance=DiscoveryProvenanceResponseModel(
+                    published_by=record.provenance.published_by,
+                    published_at=record.provenance.published_at,
+                    content_reviewed_on=(
+                        record.provenance.content_reviewed_on
+                    ),
+                    educational_use_notice=(
+                        record.provenance.educational_use_notice
+                    ),
+                ),
+                source_fingerprint=record.source_fingerprint,
+                projected_at=record.projected_at,
+            )
+            for record in browse.records
+        ],
     )
 
 

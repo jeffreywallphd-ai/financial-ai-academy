@@ -144,7 +144,10 @@ def test_bootstrap_persists_stable_binding_and_rotates_sessions() -> None:
     assert first.context.learner_id == second.context.learner_id
     assert first.context.session_id != second.context.session_id
     assert second.context.authentication_method == "single_profile"
-    assert second.context.permissions == ("curriculum.lesson.read",)
+    assert second.context.permissions == (
+        "curriculum.discovery.read",
+        "curriculum.lesson.read",
+    )
     assert all(
         TOKEN_ONE not in session.token_hash
         and TOKEN_TWO not in session.token_hash

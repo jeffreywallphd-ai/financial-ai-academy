@@ -17,6 +17,13 @@ tests/
 
 The web application uses public generated clients. It does not import backend internals, own authoritative domain policy, or access databases/providers directly.
 
+The generated client now includes the protected, queryless
+`browseLearningOpportunities` operation for
+`GET /api/v1/curriculum/opportunities`. No feature UI consumes it yet;
+WRK-0045 owns the accessible `/learn` catalog and its bounded response states.
+The browser must not add learner, permission, ranking, or provider parameters
+around this operation.
+
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 
 Exact dependency patches and integrity data belong in committed project metadata and lockfiles when approved delivery work introduces them. Do not use floating resolution as the framework baseline.

@@ -9,7 +9,7 @@
 | --- | --- | --- | --- |
 | Identity | accepted for first learner context | Provider-neutral actors and learners, provider bindings, authentication context, sessions, and application permission inputs | Identity, binding, and session changes |
 | Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
-| Curriculum | accepted; lesson, initial Assessment placement/read, and discovery projection core implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and rebuildable discovery views | Curriculum-version events remain future work |
+| Curriculum | accepted; lesson, initial Assessment placement/read, and persisted protected discovery browse implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and rebuildable discovery views | Curriculum-version events remain future work |
 | Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
 | Learner model | accepted; bounded completion projection implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | proposed | Eligibility, ranking, deterministic policy, recommendations | Recommendation decisions and outcomes |
@@ -75,11 +75,17 @@ completion-history API behavior remain outside the lesson-read seam.
   one atomic Curriculum repository replacement. Missing, stale, conflicting,
   unavailable, unsorted, or digest-mismatched state fails closed without
   replacing the last valid generation.
-- Contract and unit tests cover schema/semantic denials, immutable source
+- `curriculum_0002_discovery_projection` stores immutable classification and
+  one complete ordered generation without a Content foreign key. Transactional
+  replacement preserves the prior generation when a rebuild is interrupted.
+- The protected queryless discovery GET requires the server-issued
+  `curriculum.discovery.read` permission and is represented in the reviewed
+  OpenAPI snapshot and generated TypeScript client.
+- Contract, unit, PostgreSQL, and API tests cover schema/semantic denials, immutable source
   registration, repeat rebuild, stable ordering, exact-source failure,
   replacement interruption, projection tamper, and absence of private/ranking
-  fields. PostgreSQL, API/client, browser, and live composition are later
-  SLI-0018 packet boundaries.
+  fields. Browser presentation, automatic rebuild composition, and full live
+  qualification are later SLI-0018 packet boundaries.
 
 ## Implemented Deterministic Assessment Seams
 

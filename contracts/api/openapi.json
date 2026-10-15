@@ -117,6 +117,41 @@
         "title": "CodeBlockModel",
         "type": "object"
       },
+      "DiscoveryProvenanceResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "content_reviewed_on": {
+            "format": "date",
+            "title": "Content Reviewed On",
+            "type": "string"
+          },
+          "educational_use_notice": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Educational Use Notice",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "published_by": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Published By",
+            "type": "string"
+          }
+        },
+        "required": [
+          "published_by",
+          "published_at",
+          "content_reviewed_on",
+          "educational_use_notice"
+        ],
+        "title": "DiscoveryProvenanceResponseModel",
+        "type": "object"
+      },
       "EducationalSourceModel": {
         "additionalProperties": false,
         "properties": {
@@ -747,6 +782,206 @@
           "selected_option_id"
         ],
         "title": "KnowledgeCheckSubmissionRequestModel",
+        "type": "object"
+      },
+      "LearningOpportunityBrowseResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "projected_at": {
+            "format": "date-time",
+            "title": "Projected At",
+            "type": "string"
+          },
+          "projection_generation": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Projection Generation",
+            "type": "string"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/LearningOpportunityResponseModel"
+            },
+            "maxItems": 500,
+            "title": "Records",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "projection_generation",
+          "projected_at",
+          "records"
+        ],
+        "title": "LearningOpportunityBrowseResponseModel",
+        "type": "object"
+      },
+      "LearningOpportunityResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "availability": {
+            "enum": [
+              "available",
+              "unavailable",
+              "planned"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "availability_reason": {
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Availability Reason",
+            "type": "string"
+          },
+          "destination": {
+            "pattern": "^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Destination",
+            "type": "string"
+          },
+          "estimated_minutes": {
+            "maximum": 1440.0,
+            "minimum": 1.0,
+            "title": "Estimated Minutes",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "course",
+              "lesson",
+              "lab",
+              "project"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "introductory",
+              "intermediate",
+              "advanced"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "objectives": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Objectives",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "opportunity_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Opportunity Id",
+            "type": "string"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "prerequisite_summary": {
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Prerequisite Summary",
+            "type": "string"
+          },
+          "projected_at": {
+            "format": "date-time",
+            "title": "Projected At",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/DiscoveryProvenanceResponseModel"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_fingerprint": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Fingerprint",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 500,
+            "minLength": 20,
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "topics": {
+            "items": {
+              "pattern": "^[a-z0-9][a-z0-9-]{1,49}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Topics",
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "schema_version",
+          "opportunity_id",
+          "placement_id",
+          "destination",
+          "kind",
+          "title",
+          "summary",
+          "objectives",
+          "topics",
+          "level",
+          "estimated_minutes",
+          "prerequisite_summary",
+          "availability",
+          "availability_reason",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "provenance",
+          "source_fingerprint",
+          "projected_at"
+        ],
+        "title": "LearningOpportunityResponseModel",
         "type": "object"
       },
       "LessonCompletionHistoryEntryModel": {
@@ -1471,6 +1706,92 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/curriculum/opportunities": {
+      "get": {
+        "operationId": "browseLearningOpportunities",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningOpportunityBrowseResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Browse Learning Opportunities",
+        "tags": [
+          "curriculum"
+        ]
+      }
+    },
     "/api/v1/curriculum/placements/{placement_id}/completion": {
       "get": {
         "operationId": "getLessonCompletion",

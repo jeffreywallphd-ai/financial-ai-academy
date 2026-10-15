@@ -145,6 +145,16 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
     assert "references content." not in assessment_reference
     assert "references assessment." not in assessment_reference
 
+    discovery_projection = (
+        REPOSITORY
+        / "backend/migrations/curriculum"
+        / "curriculum_0002_discovery_projection.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    assert "references content." not in discovery_projection
+    assert "references identity." not in discovery_projection
+    assert "curriculum.discovery_projection_state" in discovery_projection
+    assert "curriculum.discovery_projection_records" in discovery_projection
+
     assessment_evidence = (
         REPOSITORY
         / "backend/migrations/assessment/assessment_0001_knowledge_check_evidence.up.sql"
@@ -249,11 +259,20 @@ def test_discovery_projection_remains_curriculum_owned_and_rebuildable() -> None
     repository_port = (
         MODULES / "curriculum/ports/repositories.py"
     ).read_text(encoding="utf-8")
+    repository_adapter = (
+        MODULES / "curriculum/adapters/postgres_repository.py"
+    ).read_text(encoding="utf-8")
+    api_host = (
+        SOURCE / "hosts/api/app.py"
+    ).read_text(encoding="utf-8")
 
     assert "LearningOpportunityRecord" in curriculum_public
     assert "register_lesson_opportunity" in curriculum_service
     assert "replace_discovery_projection" in repository_port
     assert "projection_generation" in curriculum_service
+    assert "pg_advisory_xact_lock" in repository_adapter
+    assert '"/api/v1/curriculum/opportunities"' in api_host
+    assert '"curriculum.discovery.read"' in api_host
     for prohibited in (
         "personalized_rank",
         "recommendation_score",

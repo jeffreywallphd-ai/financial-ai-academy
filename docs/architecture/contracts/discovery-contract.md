@@ -53,6 +53,23 @@ generation. Adapter failure retains the last complete generation. Browse
 rejects an absent, unsorted, or digest-mismatched projection rather than
 returning stale or partial data.
 
+## Persistence and Protected Browse
+
+Curriculum migration `curriculum_0002_discovery_projection` stores immutable
+lesson classification separately from one replaceable ordered generation.
+Generation state and records are committed atomically behind a transaction
+lock; a failed replacement rolls back to the prior complete generation. Stored
+rows are reconstructed through the same public value types and are rejected if
+their count, order, fingerprint, generation, or bounded fields no longer
+validate.
+
+The queryless `GET /api/v1/curriculum/opportunities` operation exposes the
+closed browse envelope through the reviewed OpenAPI snapshot and generated
+TypeScript client. Identity issues `curriculum.discovery.read` in the current
+single-profile context, and the host checks it independently before invoking
+Curriculum. The client cannot select a learner, permission, projection, sort,
+or filter.
+
 ## Compatibility and Remaining Work
 
 The compatibility corpus fixes one synthetic exact approved lesson and bounded
@@ -61,8 +78,13 @@ source tamper, and generation tamper. Focused unit evidence covers replay,
 conflict, exact-source denial, all-or-nothing replacement, stable ordering, and
 output confidentiality.
 
-The PostgreSQL adapter/migration, protected API and Identity permission,
-OpenAPI/generated client, accessible browser catalog, live local composition,
-search/filter/pagination semantics, non-lesson destinations, background
-indexing, external providers, tenancy, and managed-cloud operation remain
-outside this core contract evidence.
+Real PostgreSQL evidence covers replay, immutable conflict, empty generations,
+transaction interruption, stored corruption, and the protected HTTP read of
+the exact persisted generation. Focused API evidence covers denial before
+disclosure, insufficient or client-selected permission, bounded failure, and
+stable OpenAPI/client generation.
+
+The accessible browser catalog, automatic/local rebuild composition, complete
+live qualification, search/filter/pagination semantics, non-lesson
+destinations, background indexing, external providers, tenancy, and
+managed-cloud operation remain later boundaries.

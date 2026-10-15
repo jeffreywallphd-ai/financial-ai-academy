@@ -21,6 +21,8 @@ assert.match(
   schema,
   /\/api\/v1\/curriculum\/placements\/\{placement_id\}\/lesson/,
 );
+assert.match(schema, /\/api\/v1\/curriculum\/opportunities/);
+assert.match(schema, /operations\["browseLearningOpportunities"\]/);
 assert.match(client, /createClient<paths>/);
 assert.match(client, /credentials: "same-origin"/);
 assert.doesNotMatch(combined, /financial_ai_academy/);

@@ -19,6 +19,14 @@ after the root stream. The Assessment evidence/outbox stream under
 in `platform.schema_migrations`; controlled teardown removes module streams in
 reverse dependency order before rolling back the root stream.
 
+The same Curriculum stream owns
+`curriculum_0002_discovery_projection`. It stores immutable catalog
+classifications separately from the replaceable singleton discovery generation
+and its ordered records. Replacement is one database transaction, so an
+interrupted rebuild retains the prior complete generation. These derived rows
+have no cross-module foreign key and may be dropped and rebuilt without
+removing Content versions or lesson placements.
+
 The Learner-model stream under `learner_model/` owns only rebuildable completion
 projection/history tables. It retains Assessment identifiers as source
 references without a cross-schema foreign key or direct Assessment-table read.

@@ -26,6 +26,10 @@ from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
     OpenLessonCompletionRequest,
 )
+from financial_ai_academy.modules.curriculum.public import (
+    BrowseLearningOpportunitiesRequest,
+    LearningOpportunityBrowse,
+)
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
     SingleProfileSecuritySettings,
@@ -56,6 +60,11 @@ class _SchemaCurriculum:
         raise NotImplementedError
 
     def open_placed_lesson(self, request: object) -> object:
+        raise NotImplementedError
+
+    def browse_learning_opportunities(
+        self, request: BrowseLearningOpportunitiesRequest
+    ) -> LearningOpportunityBrowse:
         raise NotImplementedError
 
 
