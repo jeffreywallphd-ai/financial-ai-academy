@@ -15,10 +15,12 @@ from financial_ai_academy.modules.assessment.public import (
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import (
     AppliedLearningOpportunityQuery,
+    CurriculumGraph,
     LearningOpportunityBrowse,
     LearningOpportunityQueryPage,
     LearningOpportunityRecord,
     LessonReadingResult,
+    curriculum_graph_payload,
 )
 from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
@@ -186,6 +188,150 @@ class LessonReadingResponseModel(ApiModel):
     sources: list[EducationalSourceModel]
     assets: list[PassiveAssetModel]
     provenance: PublicationProvenanceModel
+
+
+GraphIdentifier = Annotated[
+    str,
+    Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    ),
+]
+GraphVersion = Annotated[
+    str,
+    Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+        )
+    ),
+]
+GraphDigest = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+
+
+class CurriculumObjectiveResponseModel(ApiModel):
+    objective_id: GraphIdentifier
+    title: str = Field(min_length=1, max_length=240)
+    description: str = Field(min_length=1, max_length=1000)
+
+
+class CurriculumCompetencyResponseModel(ApiModel):
+    competency_id: GraphIdentifier
+    title: str = Field(min_length=1, max_length=240)
+    description: str = Field(min_length=1, max_length=1000)
+
+
+class LessonActivityReferenceResponseModel(ApiModel):
+    reference_kind: Literal["lesson_placement"]
+    placement_id: GraphIdentifier
+    package_id: GraphIdentifier
+    package_version: GraphVersion
+    package_digest: GraphDigest
+
+
+class AssessmentActivityReferenceResponseModel(ApiModel):
+    reference_kind: Literal["assessment_placement"]
+    placement_id: GraphIdentifier
+    assessment_id: GraphIdentifier
+    assessment_version: GraphVersion
+    definition_digest: GraphDigest
+
+
+CurriculumActivityReferenceResponseModel = Annotated[
+    Union[
+        LessonActivityReferenceResponseModel,
+        AssessmentActivityReferenceResponseModel,
+    ],
+    Field(discriminator="reference_kind"),
+]
+
+
+class CurriculumActivityResponseModel(ApiModel):
+    activity_id: GraphIdentifier
+    title: str = Field(min_length=1, max_length=240)
+    kind: Literal["lesson", "assessment"]
+    reference: CurriculumActivityReferenceResponseModel
+
+
+class CurriculumBranchResponseModel(ApiModel):
+    branch_id: GraphIdentifier
+    title: str = Field(min_length=1, max_length=240)
+    kind: Literal["required", "optional"]
+    activity_ids: list[GraphIdentifier] = Field(
+        min_length=1,
+        max_length=500,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+
+class CurriculumRelationshipResponseModel(ApiModel):
+    relationship_id: GraphIdentifier
+    kind: Literal[
+        "objective_competency",
+        "activity_develops_competency",
+        "activity_assesses_competency",
+        "competency_prerequisite",
+        "activity_prerequisite",
+    ]
+    source_id: GraphIdentifier
+    target_id: GraphIdentifier
+
+
+class CurriculumPresentationOrderResponseModel(ApiModel):
+    objective_ids: list[GraphIdentifier] = Field(
+        default_factory=list,
+        max_length=100,
+        json_schema_extra={"uniqueItems": True},
+    )
+    competency_ids: list[GraphIdentifier] = Field(
+        default_factory=list,
+        max_length=200,
+        json_schema_extra={"uniqueItems": True},
+    )
+    activity_ids: list[GraphIdentifier] = Field(
+        default_factory=list,
+        max_length=500,
+        json_schema_extra={"uniqueItems": True},
+    )
+    branch_ids: list[GraphIdentifier] = Field(
+        default_factory=list,
+        max_length=100,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+
+class CurriculumGraphResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    curriculum_id: GraphIdentifier
+    curriculum_version: GraphVersion
+    title: str = Field(min_length=1, max_length=240)
+    summary: str = Field(min_length=20, max_length=500)
+    publication_state: Literal["approved"]
+    published_at: datetime
+    source_references: list[str] = Field(
+        min_length=1,
+        max_length=20,
+        json_schema_extra={"uniqueItems": True},
+    )
+    presentation_order: CurriculumPresentationOrderResponseModel | None = None
+    objectives: list[CurriculumObjectiveResponseModel] = Field(
+        min_length=1,
+        max_length=100,
+    )
+    competencies: list[CurriculumCompetencyResponseModel] = Field(
+        min_length=1,
+        max_length=200,
+    )
+    activities: list[CurriculumActivityResponseModel] = Field(
+        min_length=1,
+        max_length=500,
+    )
+    branches: list[CurriculumBranchResponseModel] = Field(max_length=100)
+    relationships: list[CurriculumRelationshipResponseModel] = Field(
+        max_length=2000
+    )
+    graph_digest: GraphDigest
 
 
 class DiscoveryProvenanceResponseModel(ApiModel):
@@ -503,6 +649,14 @@ def lesson_response(
                 reading.provenance.educational_use_notice
             ),
         ),
+    )
+
+
+def curriculum_graph_response(
+    graph: CurriculumGraph,
+) -> CurriculumGraphResponseModel:
+    return CurriculumGraphResponseModel.model_validate(
+        curriculum_graph_payload(graph)
     )
 
 

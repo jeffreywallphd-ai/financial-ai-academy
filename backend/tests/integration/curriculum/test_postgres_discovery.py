@@ -124,6 +124,7 @@ def migrated_database() -> object:
     yield
     with psycopg.connect(POSTGRES_DSN) as connection:
         for migration_id in (
+            "curriculum_0003_curriculum_graphs",
             "curriculum_0002_discovery_projection",
             "curriculum_0001_assessment_placements",
         ):

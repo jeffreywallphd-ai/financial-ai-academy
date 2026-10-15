@@ -22,6 +22,9 @@ assert.match(
   /\/api\/v1\/curriculum\/placements\/\{placement_id\}\/lesson/,
 );
 assert.match(schema, /\/api\/v1\/curriculum\/opportunities/);
+assert.match(schema, /\/api\/v1\/curriculum\/graphs\/\{curriculum_id\}/);
+assert.match(schema, /operations\["getCurriculumGraphVersion"\]/);
+assert.match(schema, /CurriculumGraphResponseModel/);
 assert.match(schema, /operations\["browseLearningOpportunities"\]/);
 assert.match(schema, /operations\["queryLearningOpportunities"\]/);
 assert.match(schema, /LearningOpportunityQueryPageResponseModel/);

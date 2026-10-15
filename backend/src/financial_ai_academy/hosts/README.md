@@ -18,3 +18,10 @@ invalid, stale, or unavailable projection state maps to 503 without partial or
 queryless fallback results. Registration and rebuild remain internal
 application operations rather than public HTTP mutations.
 
+The API host also exposes the exact approved graph at
+`GET /api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}`.
+It independently requires `curriculum.graph.read`, accepts no identity,
+permission, or fallback-version selector, and maps unknown versions to bounded
+404 responses while corrupt or unavailable stored meaning maps to 503. Graph
+admission remains an internal Curriculum operation.
+

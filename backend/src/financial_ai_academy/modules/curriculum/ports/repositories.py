@@ -7,6 +7,7 @@ from typing import Protocol
 
 from ..public import (
     AssessmentPlacement,
+    CurriculumGraph,
     LearningOpportunityRecord,
     LessonOpportunityClassification,
     LessonPlacement,
@@ -18,6 +19,10 @@ class PlacementConflict(RuntimeError):
 
 
 class OpportunityConflict(RuntimeError):
+    pass
+
+
+class CurriculumGraphConflict(RuntimeError):
     pass
 
 
@@ -35,6 +40,17 @@ class CurriculumRepositoryPort(Protocol):
     def save_assessment_if_absent(
         self, placement: AssessmentPlacement
     ) -> tuple[AssessmentPlacement, bool]: ...
+
+    def get_graph_exact(
+        self,
+        curriculum_id: str,
+        curriculum_version: str,
+    ) -> CurriculumGraph | None: ...
+
+    def save_graph_if_absent(
+        self,
+        graph: CurriculumGraph,
+    ) -> tuple[CurriculumGraph, bool]: ...
 
     def get_opportunity_classification(
         self, opportunity_id: str

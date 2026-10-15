@@ -8,10 +8,16 @@ from typing import Any
 
 import psycopg
 from psycopg.rows import dict_row
+from psycopg.types.json import Jsonb
 
-from ..ports.repositories import OpportunityConflict, PlacementConflict
+from ..ports.repositories import (
+    CurriculumGraphConflict,
+    OpportunityConflict,
+    PlacementConflict,
+)
 from ..public import (
     AssessmentPlacement,
+    CurriculumGraph,
     DiscoveryProvenance,
     LearningOpportunityRecord,
     LessonOpportunityClassification,
@@ -19,6 +25,8 @@ from ..public import (
     OpportunityAvailability,
     OpportunityKind,
     OpportunityLevel,
+    curriculum_graph_from_mapping,
+    curriculum_graph_payload,
 )
 
 
@@ -209,6 +217,82 @@ class PostgresCurriculumRepository:
         ):
             raise PlacementConflict(
                 "Placement identity already maps to another assessment."
+            )
+        return existing, False
+
+    def get_graph_exact(
+        self,
+        curriculum_id: str,
+        curriculum_version: str,
+    ) -> CurriculumGraph | None:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    curriculum_id,
+                    curriculum_version,
+                    graph_digest,
+                    published_at,
+                    graph_payload
+                FROM curriculum.curriculum_graph_versions
+                WHERE curriculum_id = %s AND curriculum_version = %s
+                """,
+                (curriculum_id, curriculum_version),
+            ).fetchone()
+        return self._graph_from_row(row) if row else None
+
+    def save_graph_if_absent(
+        self,
+        graph: CurriculumGraph,
+    ) -> tuple[CurriculumGraph, bool]:
+        payload = curriculum_graph_payload(graph)
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                INSERT INTO curriculum.curriculum_graph_versions (
+                    curriculum_id,
+                    curriculum_version,
+                    graph_digest,
+                    published_at,
+                    graph_payload
+                ) VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (curriculum_id, curriculum_version) DO NOTHING
+                RETURNING
+                    curriculum_id,
+                    curriculum_version,
+                    graph_digest,
+                    published_at,
+                    graph_payload
+                """,
+                (
+                    graph.curriculum_id,
+                    graph.curriculum_version,
+                    graph.graph_digest,
+                    graph.published_at,
+                    Jsonb(payload),
+                ),
+            ).fetchone()
+            if row is not None:
+                return self._graph_from_row(row), True
+            row = connection.execute(
+                """
+                SELECT
+                    curriculum_id,
+                    curriculum_version,
+                    graph_digest,
+                    published_at,
+                    graph_payload
+                FROM curriculum.curriculum_graph_versions
+                WHERE curriculum_id = %s AND curriculum_version = %s
+                """,
+                (graph.curriculum_id, graph.curriculum_version),
+            ).fetchone()
+        if row is None:
+            raise RuntimeError("Curriculum graph insert did not become visible.")
+        existing = self._graph_from_row(row)
+        if existing != graph:
+            raise CurriculumGraphConflict(
+                "Curriculum graph identity already maps to different meaning."
             )
         return existing, False
 
@@ -515,6 +599,24 @@ class PostgresCurriculumRepository:
             scoring_policy_version=str(row["scoring_policy_version"]),
             created_at=created_at,
         )
+
+    @staticmethod
+    def _graph_from_row(row: dict[str, Any]) -> CurriculumGraph:
+        payload = row["graph_payload"]
+        published_at = row["published_at"]
+        if not isinstance(payload, dict) or not isinstance(
+            published_at, datetime
+        ):
+            raise ValueError("Stored curriculum graph is invalid.")
+        graph = curriculum_graph_from_mapping(payload)
+        if (
+            str(row["curriculum_id"]) != graph.curriculum_id
+            or str(row["curriculum_version"]) != graph.curriculum_version
+            or str(row["graph_digest"]) != graph.graph_digest
+            or published_at != graph.published_at
+        ):
+            raise ValueError("Stored curriculum graph root fields do not match.")
+        return graph
 
     @staticmethod
     def _classification_from_row(

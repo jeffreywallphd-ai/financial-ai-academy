@@ -27,6 +27,13 @@ interrupted rebuild retains the prior complete generation. These derived rows
 have no cross-module foreign key and may be dropped and rebuilt without
 removing Content versions or lesson placements.
 
+`curriculum_0003_curriculum_graphs` adds one append-only approved graph
+aggregate per Curriculum ID and semantic version. Root columns are constrained
+to the validated JSONB meaning, and a trigger rejects ordinary update/delete.
+The table has no Content or Assessment foreign key; graph admission proves the
+exact Curriculum-owned placement references before insert, and the adapter
+revalidates the whole portable graph on read.
+
 The Learner-model stream under `learner_model/` owns only rebuildable completion
 projection/history tables. It retains Assessment identifiers as source
 references without a cross-schema foreign key or direct Assessment-table read.

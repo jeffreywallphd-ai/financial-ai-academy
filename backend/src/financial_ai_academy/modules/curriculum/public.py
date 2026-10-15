@@ -95,6 +95,17 @@ class ResolvePlacedAssessmentRequest:
     placement_id: str
 
 
+@dataclass(frozen=True, slots=True)
+class PublishCurriculumGraphRequest:
+    graph: CurriculumGraph
+
+
+@dataclass(frozen=True, slots=True)
+class OpenCurriculumGraphRequest:
+    curriculum_id: str
+    curriculum_version: str
+
+
 class OpportunityKind(StrEnum):
     COURSE = "course"
     LESSON = "lesson"
@@ -305,6 +316,14 @@ class CurriculumOperations(Protocol):
     def resolve_placed_assessment(
         self, request: ResolvePlacedAssessmentRequest
     ) -> AssessmentPlacement: ...
+
+    def publish_curriculum_graph(
+        self, request: PublishCurriculumGraphRequest
+    ) -> CurriculumGraph: ...
+
+    def open_curriculum_graph(
+        self, request: OpenCurriculumGraphRequest
+    ) -> CurriculumGraph: ...
 
     def register_lesson_opportunity(
         self, request: RegisterLessonOpportunityRequest

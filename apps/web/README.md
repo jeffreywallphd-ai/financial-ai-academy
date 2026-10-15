@@ -28,6 +28,12 @@ canonical applied query and exact count/order, and fails closed on invalid,
 stale, denied, or unavailable results. Neither client operation accepts
 learner, permission, provider, or storage selectors.
 
+The same generated client now includes `getCurriculumGraphVersion` for the
+protected exact-version graph GET. Its path requires both curriculum identity
+and semantic version and has no current/latest alias. WRK-0060 will consume this
+typed seam for the learner map/list; this packet adds no browser route or
+client-side graph authority.
+
 The learning-catalog client also defines the reusable selection seam for
 detail and comparison routes. One detail ID or two through four distinct
 comparison IDs are accepted as navigation state; the protected queryless

@@ -13,6 +13,8 @@ package ID, semantic version, and digest.
 - `CurriculumService.rebuild_learning_opportunity_projection(RebuildLearningOpportunityProjectionRequest) -> LearningOpportunityBrowse`
 - `CurriculumService.browse_learning_opportunities(BrowseLearningOpportunitiesRequest) -> LearningOpportunityBrowse`
 - `CurriculumService.query_learning_opportunities(QueryLearningOpportunitiesRequest) -> LearningOpportunityQueryPage`
+- `CurriculumService.publish_curriculum_graph(PublishCurriculumGraphRequest) -> CurriculumGraph`
+- `CurriculumService.open_curriculum_graph(OpenCurriculumGraphRequest) -> CurriculumGraph`
 
 The Content gateway imports only `financial_ai_academy.modules.content.public`.
 Curriculum does not import Content internals, query Content tables, use object
@@ -103,7 +105,19 @@ prerequisite cycles,
 activity/reference mismatches, unsupported versions, and stale graph digests.
 Partial presentation order is only a hint: multiple entry activities, optional
 branches, same-kind shared activities, sibling reordering, and unbranched
-activities remain valid. Required-versus-optional reuse fails as ambiguous. The
-current boundary is contract and in-memory validation only; graph persistence,
-publication/read operations, API authorization, and learner UI arrive in later
-SLI-0022 packets.
+activities remain valid. Required-versus-optional reuse fails as ambiguous.
+
+Graph admission now verifies every lesson and assessment activity against the
+exact Curriculum-owned placement before idempotently inserting the immutable
+version. `curriculum_0003_curriculum_graphs` stores the complete validated JSONB
+aggregate behind `CurriculumRepositoryPort`, constrains root fields, and
+rejects ordinary update/delete. Exact reads reconstruct and revalidate public
+types and never fall forward to another version.
+
+The protected
+`GET /api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}`
+operation requires server-issued `curriculum.graph.read` and returns the closed
+graph through the reviewed OpenAPI snapshot and generated client. It accepts no
+learner, permission, or current-version selector. Learner map/list rendering,
+eligibility, completion context, and activity launch remain later CAP-0005
+packets.

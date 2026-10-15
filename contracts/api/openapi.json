@@ -177,6 +177,49 @@
         "title": "AppliedLearningOpportunityQueryResponseModel",
         "type": "object"
       },
+      "AssessmentActivityReferenceResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Assessment Id",
+            "type": "string"
+          },
+          "assessment_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$",
+            "title": "Assessment Version",
+            "type": "string"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "reference_kind": {
+            "const": "assessment_placement",
+            "title": "Reference Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "placement_id",
+          "assessment_id",
+          "assessment_version",
+          "definition_digest"
+        ],
+        "title": "AssessmentActivityReferenceResponseModel",
+        "type": "object"
+      },
       "AssetImageModel": {
         "additionalProperties": false,
         "properties": {
@@ -255,6 +298,397 @@
           "language"
         ],
         "title": "CodeBlockModel",
+        "type": "object"
+      },
+      "CurriculumActivityResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "lesson",
+              "assessment"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "reference": {
+            "discriminator": {
+              "mapping": {
+                "assessment_placement": "#/components/schemas/AssessmentActivityReferenceResponseModel",
+                "lesson_placement": "#/components/schemas/LessonActivityReferenceResponseModel"
+              },
+              "propertyName": "reference_kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LessonActivityReferenceResponseModel"
+              },
+              {
+                "$ref": "#/components/schemas/AssessmentActivityReferenceResponseModel"
+              }
+            ],
+            "title": "Reference"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "activity_id",
+          "title",
+          "kind",
+          "reference"
+        ],
+        "title": "CurriculumActivityResponseModel",
+        "type": "object"
+      },
+      "CurriculumBranchResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Activity Ids",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "branch_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Branch Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "required",
+              "optional"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "branch_id",
+          "title",
+          "kind",
+          "activity_ids"
+        ],
+        "title": "CurriculumBranchResponseModel",
+        "type": "object"
+      },
+      "CurriculumCompetencyResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "competency_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Competency Id",
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "competency_id",
+          "title",
+          "description"
+        ],
+        "title": "CurriculumCompetencyResponseModel",
+        "type": "object"
+      },
+      "CurriculumGraphResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/CurriculumActivityResponseModel"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Activities",
+            "type": "array"
+          },
+          "branches": {
+            "items": {
+              "$ref": "#/components/schemas/CurriculumBranchResponseModel"
+            },
+            "maxItems": 100,
+            "title": "Branches",
+            "type": "array"
+          },
+          "competencies": {
+            "items": {
+              "$ref": "#/components/schemas/CurriculumCompetencyResponseModel"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Competencies",
+            "type": "array"
+          },
+          "curriculum_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Curriculum Id",
+            "type": "string"
+          },
+          "curriculum_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$",
+            "title": "Curriculum Version",
+            "type": "string"
+          },
+          "graph_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Graph Digest",
+            "type": "string"
+          },
+          "objectives": {
+            "items": {
+              "$ref": "#/components/schemas/CurriculumObjectiveResponseModel"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Objectives",
+            "type": "array"
+          },
+          "presentation_order": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CurriculumPresentationOrderResponseModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publication_state": {
+            "const": "approved",
+            "title": "Publication State",
+            "type": "string"
+          },
+          "published_at": {
+            "format": "date-time",
+            "title": "Published At",
+            "type": "string"
+          },
+          "relationships": {
+            "items": {
+              "$ref": "#/components/schemas/CurriculumRelationshipResponseModel"
+            },
+            "maxItems": 2000,
+            "title": "Relationships",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "summary": {
+            "maxLength": 500,
+            "minLength": 20,
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "curriculum_id",
+          "curriculum_version",
+          "title",
+          "summary",
+          "publication_state",
+          "published_at",
+          "source_references",
+          "objectives",
+          "competencies",
+          "activities",
+          "branches",
+          "relationships",
+          "graph_digest"
+        ],
+        "title": "CurriculumGraphResponseModel",
+        "type": "object"
+      },
+      "CurriculumObjectiveResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "objective_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Objective Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "objective_id",
+          "title",
+          "description"
+        ],
+        "title": "CurriculumObjectiveResponseModel",
+        "type": "object"
+      },
+      "CurriculumPresentationOrderResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 500,
+            "title": "Activity Ids",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "branch_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Branch Ids",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "competency_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 200,
+            "title": "Competency Ids",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "objective_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Objective Ids",
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "title": "CurriculumPresentationOrderResponseModel",
+        "type": "object"
+      },
+      "CurriculumRelationshipResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "objective_competency",
+              "activity_develops_competency",
+              "activity_assesses_competency",
+              "competency_prerequisite",
+              "activity_prerequisite"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "relationship_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Relationship Id",
+            "type": "string"
+          },
+          "source_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "target_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Target Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "relationship_id",
+          "kind",
+          "source_id",
+          "target_id"
+        ],
+        "title": "CurriculumRelationshipResponseModel",
         "type": "object"
       },
       "DiscoveryProvenanceResponseModel": {
@@ -1186,6 +1620,49 @@
         "title": "LearningOpportunityResponseModel",
         "type": "object"
       },
+      "LessonActivityReferenceResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "reference_kind": {
+            "const": "lesson_placement",
+            "title": "Reference Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest"
+        ],
+        "title": "LessonActivityReferenceResponseModel",
+        "type": "object"
+      },
       "LessonCompletionHistoryEntryModel": {
         "additionalProperties": false,
         "properties": {
@@ -1946,6 +2423,116 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}": {
+      "get": {
+        "operationId": "getCurriculumGraphVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "curriculum_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Curriculum Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "curriculum_version",
+            "required": true,
+            "schema": {
+              "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$",
+              "title": "Curriculum Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurriculumGraphResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Curriculum Graph Version",
+        "tags": [
+          "curriculum"
+        ]
+      }
+    },
     "/api/v1/curriculum/opportunities": {
       "get": {
         "operationId": "browseLearningOpportunities",

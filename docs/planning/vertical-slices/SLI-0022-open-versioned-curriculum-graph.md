@@ -150,7 +150,7 @@ a schema version change.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0058 | Establish versioned curriculum-graph contracts, compatibility corpus, Curriculum domain records, validation policy, and focused anti-rigidity tests | none | none | complete |
-| WRK-0059 | Persist immutable approved graph versions and expose the protected Curriculum read operation through OpenAPI and the generated client | WRK-0058 | none | ready |
+| WRK-0059 | Persist immutable approved graph versions and expose the protected Curriculum read operation through OpenAPI and the generated client | WRK-0058 | none | active |
 | WRK-0060 | Deliver the accessible responsive curriculum map/list route using the public generated client and shared design system | WRK-0059 | none | captured |
 | WRK-0061 | Qualify the live graph path, provenance, authorization, invalid-state behavior, accessibility, theme parity, and documentation | WRK-0060 | none | captured |
 
@@ -210,3 +210,6 @@ confirmation that eligibility and adaptation remain outside this slice.
 - 2026-10-15: Refined WRK-0059 just in time around immutable JSONB aggregate
   storage behind the Curriculum repository port, exact placement admission,
   protected exact-version transport, and generated-client qualification.
+- 2026-10-15: Activated WRK-0059 after revalidating the approved CAP package,
+  completed dependency, decision posture, generated artifacts, and exact write
+  scope.

@@ -121,6 +121,7 @@ def migrated_database() -> object:
         "0002_curriculum_lesson_placements",
         "curriculum_0001_assessment_placements",
         "curriculum_0002_discovery_projection",
+        "curriculum_0003_curriculum_graphs",
         "assessment_0001_knowledge_check_evidence",
     }
     yield
@@ -128,6 +129,11 @@ def migrated_database() -> object:
         "assessment_0001_knowledge_check_evidence",
         MIGRATIONS
         / "assessment/assessment_0001_knowledge_check_evidence.down.sql",
+    )
+    _remove_stream(
+        "curriculum_0003_curriculum_graphs",
+        MIGRATIONS
+        / "curriculum/curriculum_0003_curriculum_graphs.down.sql",
     )
     _remove_stream(
         "curriculum_0002_discovery_projection",

@@ -13,14 +13,22 @@ from financial_ai_academy.modules.content.public import (
 )
 
 from ..ports.content_gateway import ContentLessonGatewayPort
-from ..ports.repositories import CurriculumRepositoryPort, PlacementConflict
+from ..ports.repositories import (
+    CurriculumGraphConflict,
+    CurriculumRepositoryPort,
+    PlacementConflict,
+)
 from ..domain.models import discovery_digest, projection_generation
 from ..ports.repositories import OpportunityConflict
 from ..public import (
     AssessmentPlacement,
+    AssessmentActivityReference,
     BrowseLearningOpportunitiesRequest,
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
+    CurriculumGraph,
+    CurriculumGraphError,
+    CurriculumGraphErrorCode,
     DiscoveryError,
     DiscoveryErrorCode,
     DiscoveryProvenance,
@@ -28,16 +36,20 @@ from ..public import (
     LearningOpportunityQueryPage,
     LearningOpportunityRecord,
     LessonOpportunityClassification,
+    LessonActivityReference,
     LessonPlacement,
     LessonReadingResult,
     OpenPlacedLessonRequest,
+    OpenCurriculumGraphRequest,
     OpportunityAvailability,
     OpportunityKind,
     OpportunityLevel,
     QueryLearningOpportunitiesRequest,
+    PublishCurriculumGraphRequest,
     RebuildLearningOpportunityProjectionRequest,
     RegisterLessonOpportunityRequest,
     ResolvePlacedAssessmentRequest,
+    validate_curriculum_graph,
 )
 from .query import (
     prepare_learning_opportunity_query,
@@ -220,6 +232,163 @@ class CurriculumService:
                 reference=request.placement_id,
             )
         return placement
+
+    def publish_curriculum_graph(
+        self,
+        request: PublishCurriculumGraphRequest,
+    ) -> CurriculumGraph:
+        if not isinstance(request, PublishCurriculumGraphRequest):
+            raise self._graph_error(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                "Curriculum graph publication request is invalid.",
+            )
+        graph = validate_curriculum_graph(request.graph)
+        self._verify_graph_activity_references(graph)
+        try:
+            stored, _created = self._repository.save_graph_if_absent(graph)
+        except CurriculumGraphConflict as error:
+            raise self._graph_error(
+                CurriculumGraphErrorCode.IMMUTABLE_CONFLICT,
+                "The curriculum graph version already maps to different meaning.",
+                reference=graph.curriculum_id,
+            ) from error
+        except CurriculumGraphError:
+            raise
+        except Exception as error:
+            raise self._graph_error(
+                CurriculumGraphErrorCode.UNAVAILABLE,
+                "Curriculum graph storage is unavailable.",
+                reference=graph.curriculum_id,
+            ) from error
+        return self._validated_stored_graph(
+            stored,
+            graph.curriculum_id,
+            graph.curriculum_version,
+        )
+
+    def open_curriculum_graph(
+        self,
+        request: OpenCurriculumGraphRequest,
+    ) -> CurriculumGraph:
+        if (
+            not isinstance(request, OpenCurriculumGraphRequest)
+            or not isinstance(request.curriculum_id, str)
+            or not _PLACEMENT_ID.fullmatch(request.curriculum_id)
+            or not isinstance(request.curriculum_version, str)
+            or not _SEMVER.fullmatch(request.curriculum_version)
+        ):
+            raise self._graph_error(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                "Curriculum graph reference is invalid.",
+            )
+        try:
+            graph = self._repository.get_graph_exact(
+                request.curriculum_id,
+                request.curriculum_version,
+            )
+        except CurriculumGraphError:
+            raise
+        except Exception as error:
+            raise self._graph_error(
+                CurriculumGraphErrorCode.UNAVAILABLE,
+                "Curriculum graph storage is unavailable.",
+                reference=request.curriculum_id,
+            ) from error
+        if graph is None:
+            raise self._graph_error(
+                CurriculumGraphErrorCode.NOT_FOUND,
+                "The exact curriculum graph version was not found.",
+                reference=request.curriculum_id,
+            )
+        return self._validated_stored_graph(
+            graph,
+            request.curriculum_id,
+            request.curriculum_version,
+        )
+
+    def _verify_graph_activity_references(
+        self,
+        graph: CurriculumGraph,
+    ) -> None:
+        for activity in graph.activities:
+            reference = activity.reference
+            try:
+                if isinstance(reference, LessonActivityReference):
+                    placement = self._repository.get(reference.placement_id)
+                    matches = placement is not None and (
+                        placement.package_id,
+                        placement.package_version,
+                        placement.package_digest,
+                    ) == (
+                        reference.package_id,
+                        reference.package_version,
+                        reference.package_digest,
+                    )
+                elif isinstance(reference, AssessmentActivityReference):
+                    placement = self._repository.get_assessment(
+                        reference.placement_id
+                    )
+                    matches = placement is not None and (
+                        placement.assessment_id,
+                        placement.assessment_version,
+                        placement.definition_digest,
+                    ) == (
+                        reference.assessment_id,
+                        reference.assessment_version,
+                        reference.definition_digest,
+                    )
+                else:
+                    matches = False
+            except Exception as error:
+                raise self._graph_error(
+                    CurriculumGraphErrorCode.UNAVAILABLE,
+                    "Curriculum graph reference storage is unavailable.",
+                    reference=activity.activity_id,
+                ) from error
+            if not matches:
+                raise self._graph_error(
+                    CurriculumGraphErrorCode.STALE_REFERENCE,
+                    "Curriculum graph activity reference is unavailable.",
+                    reference=activity.activity_id,
+                )
+
+    @staticmethod
+    def _validated_stored_graph(
+        graph: object,
+        curriculum_id: str,
+        curriculum_version: str,
+    ) -> CurriculumGraph:
+        try:
+            if not isinstance(graph, CurriculumGraph):
+                raise TypeError("stored graph type is invalid")
+            validated = validate_curriculum_graph(graph)
+            if (
+                validated.curriculum_id != curriculum_id
+                or validated.curriculum_version != curriculum_version
+            ):
+                raise ValueError("stored graph identity does not match")
+            return validated
+        except CurriculumGraphError as error:
+            raise CurriculumGraphError(
+                CurriculumGraphErrorCode.UNAVAILABLE,
+                "Stored curriculum graph is unavailable.",
+                reference=curriculum_id,
+            ) from error
+        except (AttributeError, TypeError, ValueError) as error:
+            raise CurriculumGraphError(
+                CurriculumGraphErrorCode.UNAVAILABLE,
+                "Stored curriculum graph is unavailable.",
+                reference=curriculum_id,
+            ) from error
+
+    @staticmethod
+    def _graph_error(
+        code: CurriculumGraphErrorCode,
+        message: str,
+        *,
+        reference: str = "curriculum-graph",
+    ) -> CurriculumGraphError:
+        return CurriculumGraphError(code, message, reference=reference)
 
     def register_lesson_opportunity(
         self, request: RegisterLessonOpportunityRequest

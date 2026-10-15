@@ -40,10 +40,13 @@ from financial_ai_academy.modules.content.public import (
 )
 from financial_ai_academy.modules.curriculum.public import (
     BrowseLearningOpportunitiesRequest,
+    CurriculumGraphError,
+    CurriculumGraphErrorCode,
     CurriculumOperations,
     DiscoveryError,
     DiscoveryErrorCode,
     OpenPlacedLessonRequest,
+    OpenCurriculumGraphRequest,
     OpportunityAvailability,
     OpportunityKind,
     OpportunityLevel,
@@ -70,6 +73,7 @@ from financial_ai_academy.platform.security.single_profile_policy import (
 
 from .models import (
     ApiErrorEnvelope,
+    CurriculumGraphResponseModel,
     DiscoveryTopic,
     HealthResponseModel,
     KnowledgeCheckPresentationResponseModel,
@@ -81,6 +85,7 @@ from .models import (
     LessonReadingResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
+    curriculum_graph_response,
     knowledge_check_presentation_response,
     knowledge_check_result_response,
     learning_opportunity_browse_response,
@@ -231,6 +236,59 @@ def create_app(services: ApiServices) -> FastAPI:
             request.state.correlation_id,
         )
 
+    @app.exception_handler(CurriculumGraphError)
+    async def curriculum_graph_error_handler(
+        request: Request, error: CurriculumGraphError
+    ) -> JSONResponse:
+        http_status = {
+            CurriculumGraphErrorCode.INVALID_RECORD: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.UNSUPPORTED_VERSION: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.IMMUTABLE_CONFLICT: (
+                status.HTTP_409_CONFLICT
+            ),
+            CurriculumGraphErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
+            CurriculumGraphErrorCode.STALE_REFERENCE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.UNAVAILABLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.DUPLICATE_IDENTITY: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.DANGLING_REFERENCE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.INVALID_RELATIONSHIP: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.DUPLICATE_BRANCH_MEMBERSHIP: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.AMBIGUOUS_BRANCH_MEMBERSHIP: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.PREREQUISITE_CYCLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.REFERENCE_KIND_MISMATCH: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            CurriculumGraphErrorCode.GRAPH_DIGEST_MISMATCH: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.message,
+            request.state.correlation_id,
+        )
+
     @app.exception_handler(AssessmentError)
     async def assessment_error_handler(
         request: Request, error: AssessmentError
@@ -343,6 +401,16 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         return context
 
+    def curriculum_graph_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "curriculum.graph.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read curriculum graphs.",
+            )
+        return context
+
     @app.get(
         "/health",
         response_model=HealthResponseModel,
@@ -401,6 +469,35 @@ def create_app(services: ApiServices) -> FastAPI:
         return SessionBootstrapResponseModel(
             expires_at=issued.context.expires_at
         )
+
+    @app.get(
+        "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",
+        response_model=CurriculumGraphResponseModel,
+        operation_id="getCurriculumGraphVersion",
+        responses=_ERROR_RESPONSES,
+        tags=["curriculum"],
+    )
+    def get_curriculum_graph_version(
+        curriculum_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        curriculum_version: str = Path(
+            pattern=(
+                r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+                r"(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+            ),
+        ),
+        _context: LearnerContext = Depends(curriculum_graph_context),
+    ) -> CurriculumGraphResponseModel:
+        graph = services.curriculum.open_curriculum_graph(
+            OpenCurriculumGraphRequest(
+                curriculum_id=curriculum_id,
+                curriculum_version=curriculum_version,
+            )
+        )
+        return curriculum_graph_response(graph)
 
     @app.get(
         "/api/v1/curriculum/opportunities",
@@ -615,6 +712,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/curriculum/opportunities/query"
             ]["get"]
             query_operation["responses"].pop("422", None)
+            graph_operation = schema["paths"][
+                "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}"
+            ]["get"]
+            graph_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 

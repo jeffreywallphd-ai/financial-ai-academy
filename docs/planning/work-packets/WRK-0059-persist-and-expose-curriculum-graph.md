@@ -1,7 +1,7 @@
 ---
 id: WRK-0059
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-15
@@ -10,12 +10,12 @@ capability: CAP-0005
 depends_on: ["WRK-0058"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/migrations/README.md", "backend/migrations/curriculum/curriculum_0003_curriculum_graphs.up.sql", "backend/migrations/curriculum/curriculum_0003_curriculum_graphs.down.sql", "backend/src/financial_ai_academy/modules/curriculum/domain/models.py", "backend/src/financial_ai_academy/modules/curriculum/public.py", "backend/src/financial_ai_academy/modules/curriculum/ports/repositories.py", "backend/src/financial_ai_academy/modules/curriculum/ports/__init__.py", "backend/src/financial_ai_academy/modules/curriculum/application/service.py", "backend/src/financial_ai_academy/modules/curriculum/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/curriculum/README.md", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/identity/README.md", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/curriculum/test_curriculum_graph_service.py", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/integration/curriculum/test_postgres_curriculum_graph.py", "backend/tests/integration/api/test_single_profile_curriculum_graph_api.py", "backend/tests/integration/assessment/test_postgres_assessment.py", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/README.md", "apps/web/src/generated/api-client", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/tests/contract/client-usage.ts", "docs/architecture/contracts/curriculum-graph-contract.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0022-open-versioned-curriculum-graph.md", "docs/planning/work-packets/WRK-0059-persist-and-expose-curriculum-graph.md"]
+write_scope: ["backend/migrations/README.md", "backend/migrations/curriculum/curriculum_0003_curriculum_graphs.up.sql", "backend/migrations/curriculum/curriculum_0003_curriculum_graphs.down.sql", "backend/src/financial_ai_academy/modules/curriculum/domain/models.py", "backend/src/financial_ai_academy/modules/curriculum/public.py", "backend/src/financial_ai_academy/modules/curriculum/ports/repositories.py", "backend/src/financial_ai_academy/modules/curriculum/ports/__init__.py", "backend/src/financial_ai_academy/modules/curriculum/application/service.py", "backend/src/financial_ai_academy/modules/curriculum/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/curriculum/README.md", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/identity/README.md", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/curriculum/test_curriculum_graph_service.py", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/integration/curriculum/test_postgres_curriculum_graph.py", "backend/tests/integration/curriculum/test_postgres_discovery.py", "backend/tests/integration/api/test_single_profile_curriculum_graph_api.py", "backend/tests/integration/assessment/test_postgres_assessment.py", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/README.md", "apps/web/src/generated/api-client", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/tests/contract/client-usage.ts", "docs/architecture/contracts/curriculum-graph-contract.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0022-open-versioned-curriculum-graph.md", "docs/planning/work-packets/WRK-0059-persist-and-expose-curriculum-graph.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d20a9d25946fb52055d3a09b4aef3bc03f93f257
+claim_id: WRK-0059:e94b53fc-962e-40c2-9c70-2ab3bee8e81a
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-15T23:16:03Z
 ---
 
 # Agent Work Packet: Persist and Expose the Curriculum Graph
@@ -189,9 +189,55 @@ evidence; permission and HTTP contract; generated artifact currency; checks and
 results; documentation impact; unsupported profiles and residual risks;
 CAP/SLI conformance; packet lifecycle result; and whether WRK-0060 is eligible.
 
+## Completion Evidence
+
+- Added checksum-locked `curriculum_0003_curriculum_graphs` up/down migrations.
+  The Curriculum-owned table stores one validated graph aggregate per exact
+  curriculum ID and semantic version, constrains root identity, digest,
+  approved state, and publication time, and rejects ordinary update/delete
+  through an append-only trigger. The down path removes only that trigger,
+  function, and table.
+- Added provider-neutral repository and application seams for immutable
+  idempotent admission and exact-version reads. Admission revalidates every
+  graph and exact lesson/assessment placement reference before persistence;
+  identity reuse with changed meaning, missing references, unavailable
+  storage, corrupt payloads, and unknown exact versions fail with bounded
+  errors. Reads never select a current or later version.
+- Added the protected exact-version graph GET, closed response models, and the
+  server-issued `curriculum.graph.read` permission. The OpenAPI snapshot and
+  generated TypeScript client are current and expose
+  `getCurriculumGraphVersion` without a learner, permission, provider,
+  storage, or fallback-version selector.
+- Anti-rigidity coverage round-trips a graph without presentation order and
+  retains the complete flexible graph aggregate behind one JSONB port/adapter
+  boundary. Optional/shared/unbranched graph structures remain governed by
+  the WRK-0058 contract rather than by storage columns or route variants.
+- A real PostgreSQL 18.4 qualification container passed migration, replay,
+  conflict, exact-read, corruption, and append-only checks. The complete
+  backend suite passed all 335 tests against that database. The web suite
+  passed all 93 tests; generated-client currency, TypeScript typecheck, lint,
+  and production build passed. OpenAPI currency, architecture, documentation,
+  planning, and diff checks passed, and aggregate readiness passed all 27
+  checks. Sandbox-only temporary-file and loopback restrictions were
+  reproduced, isolated, and rerun successfully through the established
+  workspace-temp and unsandboxed qualification routes.
+- Updated Curriculum, Identity, API host, migration, generated-client, module
+  map, graph-contract, and identity-provider documentation. This packet adds
+  no browser route, learner state, eligibility, mastery, recommendation,
+  authoring, tenancy, provider execution, or durable decision. WRK-0060 retains
+  the accessible learner-facing map/list.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0058 completion. The packet keeps
   the frozen graph meaning in Curriculum, chooses a flexible validated JSONB
   aggregate behind a reusable repository port, and introduces no new decision
   or approval gate.
+- 2026-10-15: Refined the exact write scope to include the existing discovery
+  migration-inventory test after the new migration made that consumer
+  materially affected; the prior claim and leases were released and replaced
+  before implementation continued.
+- 2026-10-15: Implemented and qualified immutable graph persistence,
+  exact-reference admission, protected exact-version transport, generated
+  client output, and cross-layer anti-rigidity behavior without changing the
+  approved slice outcome or decision posture.

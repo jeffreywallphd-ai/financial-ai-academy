@@ -9,7 +9,7 @@
 | --- | --- | --- | --- |
 | Identity | accepted for first learner context | Provider-neutral actors and learners, provider bindings, authentication context, sessions, and application permission inputs | Identity, binding, and session changes |
 | Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
-| Curriculum | accepted; lesson, initial Assessment placement/read, and persisted protected discovery browse implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and rebuildable discovery views | Curriculum-version events remain future work |
+| Curriculum | accepted; lesson, initial Assessment placement/read, protected discovery, and immutable exact graph read implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and rebuildable discovery views | Curriculum-version events remain future work |
 | Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
 | Learner model | accepted; bounded completion projection implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | proposed | Eligibility, ranking, deterministic policy, recommendations | Recommendation decisions and outcomes |
@@ -102,6 +102,23 @@ completion-history API behavior remain outside the lesson-read seam.
   replacement interruption, projection tamper, and absence of private/ranking
   fields. Browser presentation, automatic rebuild composition, and full live
   qualification are later SLI-0018 packet boundaries.
+
+## Implemented Curriculum Graph Persistence and API Seam
+
+- Curriculum admits only fully validated approved graph versions and confirms
+  every activity against its exact Curriculum-owned lesson or assessment
+  placement before storage.
+- `curriculum_0003_curriculum_graphs` stores one constrained append-only JSONB
+  aggregate per Curriculum ID/version without cross-module foreign keys. The
+  repository adapter reconstructs and revalidates the full public graph on
+  every read.
+- Exact replay is idempotent; changed meaning for an existing ID/version is an
+  immutable conflict. Reads require an exact semantic version and never choose
+  a current/latest replacement.
+- The protected graph GET requires server-issued `curriculum.graph.read` and is
+  represented in the reviewed OpenAPI snapshot and generated TypeScript client.
+  Browser map/list rendering, eligibility, completion context, and activity
+  launch remain later CAP-0005 boundaries.
 
 ## Implemented Deterministic Assessment Seams
 

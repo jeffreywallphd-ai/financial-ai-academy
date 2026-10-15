@@ -28,8 +28,10 @@ from financial_ai_academy.modules.learner_model.public import (
 )
 from financial_ai_academy.modules.curriculum.public import (
     BrowseLearningOpportunitiesRequest,
+    CurriculumGraph,
     LearningOpportunityBrowse,
     LearningOpportunityQueryPage,
+    OpenCurriculumGraphRequest,
     QueryLearningOpportunitiesRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
@@ -62,6 +64,11 @@ class _SchemaCurriculum:
         raise NotImplementedError
 
     def open_placed_lesson(self, request: object) -> object:
+        raise NotImplementedError
+
+    def open_curriculum_graph(
+        self, request: OpenCurriculumGraphRequest
+    ) -> CurriculumGraph:
         raise NotImplementedError
 
     def browse_learning_opportunities(

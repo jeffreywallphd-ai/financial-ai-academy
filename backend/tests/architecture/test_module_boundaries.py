@@ -273,6 +273,7 @@ def test_discovery_projection_remains_curriculum_owned_and_rebuildable() -> None
     assert "pg_advisory_xact_lock" in repository_adapter
     assert '"/api/v1/curriculum/opportunities"' in api_host
     assert '"curriculum.discovery.read"' in api_host
+    assert '"curriculum.graph.read"' in api_host
     for prohibited in (
         "personalized_rank",
         "recommendation_score",

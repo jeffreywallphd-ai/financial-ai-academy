@@ -40,6 +40,10 @@ class CurriculumRelationshipKind(StrEnum):
 class CurriculumGraphErrorCode(StrEnum):
     INVALID_RECORD = "invalid_record"
     UNSUPPORTED_VERSION = "unsupported_version"
+    IMMUTABLE_CONFLICT = "immutable_conflict"
+    NOT_FOUND = "not_found"
+    STALE_REFERENCE = "stale_reference"
+    UNAVAILABLE = "unavailable"
     DUPLICATE_IDENTITY = "duplicate_identity"
     DANGLING_REFERENCE = "dangling_reference"
     INVALID_RELATIONSHIP = "invalid_relationship"

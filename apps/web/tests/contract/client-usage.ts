@@ -7,6 +7,18 @@ const client = createFinancialAcademyApiClient(
 
 void client.GET("/api/v1/curriculum/opportunities");
 
+void client.GET(
+  "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",
+  {
+    params: {
+      path: {
+        curriculum_id: "investing-foundations",
+        curriculum_version: "1.0.0",
+      },
+    },
+  },
+);
+
 void client.GET("/api/v1/curriculum/opportunities/query", {
   params: {
     query: {

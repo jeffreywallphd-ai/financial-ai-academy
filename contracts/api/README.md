@@ -4,6 +4,13 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}`
+is the protected exact-version Curriculum graph read. It uses the opaque
+session and server-issued `curriculum.graph.read` permission, accepts no
+learner, permission, or latest-version selector, and returns only the closed
+graph v1 aggregate. Unknown exact versions map to 404; invalid or unavailable
+stored meaning maps to bounded 503 without partial or fallback data.
+
 `GET /api/v1/curriculum/opportunities` is the protected, queryless discovery
 browse operation. It requires the opaque session cookie, accepts no learner or
 permission selector, and returns the closed discovery v1 envelope with no
