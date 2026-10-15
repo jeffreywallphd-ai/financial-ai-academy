@@ -20,6 +20,13 @@ The proposed [Product Capability Catalog](../product/capability-catalog.md) is t
 | Agent work packet | `work-packets/` | Give one agent one independently verifiable implementation objective |
 | Decision request | `decision-requests/` | Isolate a choice that must be resolved before dependent work proceeds |
 
+User-facing progress, status, handoff, and next-work output uses dotted lineage
+notation: `CAP-####.SLI-####.WRK-####`. When a packet or slice has not yet been
+created, stop at the most specific known level. This notation makes ownership
+clear without renaming artifacts: stored IDs, links, front matter, register
+rows, and tool arguments continue to use independent `CAP-*`, `SLI-*`, and
+`WRK-*` identifiers.
+
 Use [the planning register](register.md) as the inventory. Use the files under [templates](templates/README.md) to create new artifacts; do not put feature plans in a README.
 
 Use the [governed planning skill suite](skills/README.md) for deterministic shaping, decision review, vertical selection, packet authoring, approvals, implementation, verification, and “what next?” routing. Skills assist the workflow but remain subordinate to this guide and all higher repository authority.

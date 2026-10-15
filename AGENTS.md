@@ -51,6 +51,8 @@ Stop before implementation when a task requires an unresolved identity, tenancy,
 
 When creating, reviewing, or executing a planning artifact, read `docs/planning/README.md` and the relevant entry in `docs/planning/register.md`. At the beginning of a capability, create one CAP planning package that bounds the outcome and enumerates and sequences every intended vertical slice. Refine each slice and its bounded agent work packets incrementally immediately before that slice or packet starts. Treat `ready` as sufficient implementation detail, not as independent authority; delivery authority comes from the current approved CAP package. Revalidate every packet against the approved CAP package, current canonical sources, and decision readiness before changing implementation.
 
+In user-facing progress, status, handoff, and next-work output, identify the full known planning lineage as `CAP-####.SLI-####.WRK-####`. If no packet or slice exists yet, stop the display at the most specific known level. This dotted form is reporting notation only; keep canonical artifact IDs, links, front matter, register rows, and tool arguments as their existing independent `CAP-*`, `SLI-*`, and `WRK-*` values.
+
 Use the compatible skills cataloged in `docs/planning/skills/README.md`; use `guide-next-planning-action` for broad “what next?” requests. General planning or advice requests are read-only unless the user explicitly authorizes a file-changing action.
 
 Keep `docs/planning/skills/` canonical and use `python docs/planning/skills/sync_skills.py --mode auto` when repository-local Codex discovery is needed. Verify an installed copy with `--check`; never edit the ignored `.agents/skills/` copy as a source.
