@@ -163,7 +163,7 @@ behind the same public semantics and compatibility corpus.
 | --- | --- | --- | --- | --- |
 | WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | complete |
 | WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | complete |
-| WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | active |
+| WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | verifying |
 | WRK-0051 | Qualify the complete local query path, pagination continuity, stale-cursor denial, security/accessibility, and cleanup | WRK-0050 | none | captured |
 
 ## Verification and Qualification
