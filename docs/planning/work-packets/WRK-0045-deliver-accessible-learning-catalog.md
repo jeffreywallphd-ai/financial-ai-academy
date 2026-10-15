@@ -1,7 +1,7 @@
 ---
 id: WRK-0045
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -151,6 +151,33 @@ result, unsupported behavior, and the inputs handed to WRK-0046. Do not modify
 canonical product meaning or derived packs unless a source change makes them
 stale.
 
+Completion evidence establishes `/learn` as the protected catalog and root
+destination over the generated queryless
+`GET /api/v1/curriculum/opportunities` operation. The route uses the shared
+single-profile session controller with one bounded 401 renewal; validates the
+whole closed response, owner-fact fingerprints, UTC-normalized publication
+times, ordered generation, projection coherence, and exact destinations before
+rendering; preserves Curriculum-owned ordering; and exposes navigation only
+for an exact available lesson. Empty, denied, unavailable, unexpected, and
+invalid responses remain bounded without partial records or internal detail.
+
+The complete web unit/component suite passed 48 tests. The affected catalog
+and lesson Chromium suites passed 12 tests across theme parity, per-theme axe,
+keyboard/focus, narrow and 200-percent-equivalent reflow, reduced motion,
+forced colors, denial, and malformed-response cases. TypeScript, lint,
+generated-client validation, the 103-module production build, 8 architecture
+checks, 10 security control groups, documentation over 203 Markdown files,
+design-system validation over 125 tokens and 56 icons, planning checks, and
+all 27 aggregate readiness checks passed. Exact candidate
+`de5a4ffac1e6ae977c5fb836493fc324772c503e` produced a qualifying affected
+verification receipt.
+
+Search, filters, pagination, personalization, non-lesson execution, automatic
+rebuild composition, and static/API live-path qualification remain outside
+this packet. Offset normalization has an independent TypeScript regression
+oracle rather than a shared Python-produced compatibility vector; WRK-0046's
+live backend/browser path remains the cross-runtime qualification boundary.
+
 ## Stop Conditions
 
 Stop if implementation requires changing discovery v1, generated API output,
@@ -182,8 +209,12 @@ result; and whether WRK-0046 is dependency-eligible.
   `a01c057d9060186c0481ac7ee578324c3ba3e745` after focused web, browser,
   architecture, security, design, documentation, planning, and aggregate
   readiness checks passed.
-- 2026-10-15: Independent review identified four bounded defects: an extra
+- 2026-10-15: Verification identified four bounded defects: an extra
   placement-uniqueness rule, syntax-only integrity checks, calendar-normalized
   invalid timestamps, and a hidden availability reason for actionable lessons.
   Corrections remove the added rigidity, recompute source/generation digests,
   validate calendar components, and show every availability reason.
+- 2026-10-15: Completed the protected accessible catalog with closed response
+  validation, exact navigation, flexible record/placement cardinality, and
+  responsive accessibility evidence. WRK-0046 is dependency-eligible for the
+  automatic rebuild and complete live local browse path.
