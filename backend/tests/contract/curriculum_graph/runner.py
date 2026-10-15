@@ -7,6 +7,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -15,6 +16,11 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 
 SUPPORTED_VERSION = "1.0.0"
+TIMESTAMP_PROFILE = re.compile(
+    r"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+    r"T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+    r"(?:\.[0-9]{1,6})?(?:Z|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])$"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,21 +79,27 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def canonical_graph_bytes(graph: Mapping[str, Any]) -> bytes:
-    meaning = deepcopy(
-        {key: value for key, value in graph.items() if key != "graph_digest"}
-    )
-    published_at = str(meaning["published_at"])
+def canonical_published_at(value: object) -> str:
+    if not isinstance(value, str) or TIMESTAMP_PROFILE.fullmatch(value) is None:
+        raise ValueError("published_at is outside the supported timestamp profile")
     parsed = datetime.fromisoformat(
-        published_at.removesuffix("Z")
-        + ("+00:00" if published_at.endswith("Z") else "")
+        value.removesuffix("Z") + ("+00:00" if value.endswith("Z") else "")
     )
-    meaning["published_at"] = (
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("published_at must contain a numeric UTC offset")
+    return (
         parsed.astimezone(timezone.utc)
         .isoformat()
         .removesuffix("+00:00")
         + "Z"
     )
+
+
+def canonical_graph_bytes(graph: Mapping[str, Any]) -> bytes:
+    meaning = deepcopy(
+        {key: value for key, value in graph.items() if key != "graph_digest"}
+    )
+    meaning["published_at"] = canonical_published_at(meaning["published_at"])
     presentation = meaning.get("presentation_order")
     if isinstance(presentation, dict):
         meaning["presentation_order"] = {
@@ -149,6 +161,17 @@ class CurriculumGraphContractValidator:
             reject(
                 "curriculum_graph.schema_invalid",
                 location or "curriculum-graph",
+                "Curriculum graph is malformed.",
+            )
+
+    @staticmethod
+    def _timestamp(graph: Mapping[str, Any]) -> None:
+        try:
+            canonical_published_at(graph["published_at"])
+        except (KeyError, TypeError, ValueError):
+            reject(
+                "curriculum_graph.schema_invalid",
+                "published_at",
                 "Curriculum graph is malformed.",
             )
 
@@ -303,6 +326,7 @@ class CurriculumGraphContractValidator:
     def validate_graph(self, graph: Mapping[str, Any]) -> None:
         self._version(graph)
         self._shape(graph)
+        self._timestamp(graph)
         groups = self._identities(graph)
         self._activity_references(graph)
         self._branches(graph, groups["activity"])

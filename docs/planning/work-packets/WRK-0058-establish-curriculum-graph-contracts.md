@@ -113,8 +113,10 @@ target IDs. Branches name a closed kind and one or more distinct activity IDs.
 An activity may be unbranched or shared by branches of the same kind; only
 conflicting required-versus-optional meaning is rejected.
 
-Canonical graph bytes omit `graph_digest`, normalize `published_at` to UTC with
-a trailing `Z`, omit empty arrays within an explicitly present
+`published_at` accepts a bounded, precision-preserving timestamp profile with
+uppercase `T`, uppercase `Z` or a numeric offset, valid non-leap seconds, and
+zero to six fractional digits. Canonical graph bytes omit `graph_digest`,
+normalize that timestamp to UTC with a trailing `Z`, omit empty arrays within an explicitly present
 `presentation_order` object, retain that object even when empty, preserve every
 other array order and value, then encode sorted-key compact JSON as UTF-8.
 
@@ -144,6 +146,7 @@ domain, contract, or planning files.
 | Invalid prerequisite topology | A competency or activity prerequisite is a self-loop or cycle | Validation runs | The graph fails with the relevant bounded topology code | contract/unit |
 | Exact-resource mismatch | Activity kind and exact placement/resource fields disagree or a version/digest is malformed | Validation runs | The graph is rejected before any persistence or consumer access | schema/unit |
 | Digest drift | Any semantic graph field changes without recomputing `graph_digest` | Validation runs | The graph fails with `graph_digest_mismatch` | contract/unit |
+| Timestamp profile | A malformed date, lowercase separator, leap second, or sub-microsecond fraction is supplied | Validation runs | The graph fails with a bounded error before parsing or digest comparison; supported offsets retain exact meaning | contract/unit |
 | Unsupported version | `schema_version` is not `1.0.0` | Validation runs | The graph fails with `unsupported_version` before interpretation | contract/unit |
 | Anti-rigidity | Valid siblings are reordered, entry activities are plural, an activity is unbranched, or optional branches are added within bounds | Validation runs | The graph remains valid and no visual layout or single linear path is required | contract/unit |
 | Safe CLI failure | A denial fixture is supplied | The conformance runner executes | Output is bounded JSON with no source payload, local path, or stack trace | contract CLI |
@@ -204,14 +207,17 @@ residual risks, and the concrete inputs handed to WRK-0059.
 - Added immutable Curriculum graph records plus a strict mapping converter,
   canonical serializer/digest, typed-edge enforcement, branch policy, cycle
   detection, and bounded public errors. Equivalent RFC 3339 offsets and empty
-  presentation hints share one canonical representation; unknown client-owned
-  fields, malformed public values, and stale digests fail closed.
+  presentation hints share one canonical representation. Publication
+  timestamps use an explicit six-digit-maximum precision profile so distinct
+  accepted instants cannot collapse during hashing; malformed timestamps,
+  unknown client-owned fields, malformed public values, and stale digests fail
+  closed.
 - Anti-rigidity coverage accepts missing/partial presentation hints, sibling
   reordering, multiple entry activities, unbranched activities, new optional
   branches, and reuse of one activity across branches of the same kind. An activity
   cannot silently acquire conflicting required and optional meaning.
-- The focused graph suite passed all 26 tests, including a bounded sanitized
-  CLI denial. The complete backend unit and contract suite passed all 249
+- The focused graph suite passed all 33 tests, including a bounded sanitized
+  CLI denial. The complete backend unit and contract suite passed all 256
   tests; Python 3.14 compilation passed; all 13
   architecture checks passed; work-packet, planning, documentation, and diff
   checks passed; and aggregate readiness passed all 27 checks. The architecture

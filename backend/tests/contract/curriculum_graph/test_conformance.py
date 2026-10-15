@@ -11,6 +11,8 @@ import pytest
 from jsonschema import Draft202012Validator
 
 from financial_ai_academy.modules.curriculum.public import (
+    CurriculumGraphError,
+    CurriculumGraphErrorCode,
     curriculum_graph_digest,
     curriculum_graph_from_mapping,
 )
@@ -78,6 +80,7 @@ def test_digest_vector_is_stable_and_independently_computed() -> None:
     [
         ("2026-10-14T20:00:00-04:00", None),
         ("2026-10-15T00:00:00+00:00", "competency_ids"),
+        ("2026-10-15T00:00:00.123456Z", None),
     ],
 )
 def test_contract_and_domain_share_one_canonical_representation(
@@ -92,6 +95,39 @@ def test_contract_and_domain_share_one_canonical_representation(
     CurriculumGraphContractValidator().validate_graph(graph)
     public_graph = curriculum_graph_from_mapping(graph)
     assert curriculum_graph_digest(public_graph) == graph["graph_digest"]
+
+
+@pytest.mark.parametrize(
+    "published_at",
+    [
+        "not-a-timestamp",
+        "2026-10-15t00:00:00z",
+        "2026-12-31T23:59:60Z",
+        "2026-10-15T00:00:00.1234567Z",
+        "2026-02-30T00:00:00Z",
+    ],
+)
+def test_timestamp_profile_fails_closed_without_lossy_canonicalization(
+    published_at: str,
+) -> None:
+    graph = copy.deepcopy(approved_graph())
+    graph["published_at"] = published_at
+    with pytest.raises(ConformanceFailure) as contract_failure:
+        CurriculumGraphContractValidator().validate_graph(graph)
+    assert contract_failure.value.diagnostic.code == (
+        "curriculum_graph.schema_invalid"
+    )
+    with pytest.raises(CurriculumGraphError) as domain_failure:
+        curriculum_graph_from_mapping(graph)
+    assert domain_failure.value.code is CurriculumGraphErrorCode.INVALID_RECORD
+
+
+def test_supported_fractional_precision_remains_digest_distinct() -> None:
+    earlier = copy.deepcopy(approved_graph())
+    later = copy.deepcopy(approved_graph())
+    earlier["published_at"] = "2026-10-15T00:00:00.123455Z"
+    later["published_at"] = "2026-10-15T00:00:00.123456Z"
+    assert graph_digest(earlier) != graph_digest(later)
 
 
 @pytest.mark.parametrize(

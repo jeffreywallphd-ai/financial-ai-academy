@@ -171,6 +171,11 @@ _VERSION = re.compile(
 )
 _DIGEST = re.compile(r"^[a-f0-9]{64}$")
 _SOURCE_REFERENCE = re.compile(r"^[a-z][a-z0-9+.-]{1,31}:[^\s]{1,255}$")
+_TIMESTAMP_PROFILE = re.compile(
+    r"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+    r"T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+    r"(?:\.[0-9]{1,6})?(?:Z|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])$"
+)
 
 
 def _invalid(
@@ -226,6 +231,33 @@ def _validate_text(
 def _datetime_text(value: datetime) -> str:
     normalized = value.astimezone(timezone.utc).isoformat()
     return normalized.removesuffix("+00:00") + "Z"
+
+
+def _published_at_from_text(value: str) -> datetime:
+    if _TIMESTAMP_PROFILE.fullmatch(value) is None:
+        _invalid(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "published_at",
+            "Curriculum graph publication timestamp is invalid.",
+        )
+    try:
+        parsed = datetime.fromisoformat(
+            value.removesuffix("Z")
+            + ("+00:00" if value.endswith("Z") else "")
+        )
+    except ValueError:
+        _invalid(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "published_at",
+            "Curriculum graph publication timestamp is invalid.",
+        )
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        _invalid(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "published_at",
+            "Curriculum graph publication timestamp is invalid.",
+        )
+    return parsed
 
 
 def curriculum_graph_payload(graph: CurriculumGraph) -> dict[str, object]:
@@ -850,11 +882,7 @@ def curriculum_graph_from_mapping(value: Mapping[str, object]) -> CurriculumGrap
                 "Curriculum graph version is unsupported.",
             )
         published_text = _text(value["published_at"], "published_at")
-        published_at = datetime.fromisoformat(
-            published_text.removesuffix("Z") + (
-                "+00:00" if published_text.endswith("Z") else ""
-            )
-        )
+        published_at = _published_at_from_text(published_text)
         objective_records = _records(value["objectives"], "objectives")
         for item in objective_records:
             _exact_keys(
