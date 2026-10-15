@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0.0",
+  "request_defaults": {
+    "schema_version": "1.0.0",
+    "query": null,
+    "prerequisite_query": null,
+    "topics": [],
+    "levels": [],
+    "kinds": [],
+    "availabilities": [],
+    "minimum_minutes": null,
+    "maximum_minutes": null,
+    "sort": "catalog",
+    "page_size": 20,
+    "cursor": null
+  },
+  "records": [
+    {
+      "opportunity_id": "beta-available",
+      "title": "Beta Budget",
+      "summary": "Budget foundations for new investors.",
+      "objectives": ["Describe a basic investment budget."],
+      "topics": ["investing-basics"],
+      "level": "introductory",
+      "kind": "lesson",
+      "availability": "available",
+      "estimated_minutes": 20,
+      "prerequisite_summary": "No prior lesson is required."
+    },
+    {
+      "opportunity_id": "alpha-available",
+      "title": "Alpha Investing",
+      "summary": "Investment risk foundations.",
+      "objectives": ["Compare investment risk."],
+      "topics": ["investing-basics", "risk-and-return"],
+      "level": "introductory",
+      "kind": "lesson",
+      "availability": "available",
+      "estimated_minutes": 20,
+      "prerequisite_summary": "No prior lesson is required."
+    },
+    {
+      "opportunity_id": "alpha-planned",
+      "title": "Alpha Investing",
+      "summary": "Portfolio risk practice.",
+      "objectives": ["Compare portfolio risk."],
+      "topics": ["portfolio", "risk-and-return"],
+      "level": "intermediate",
+      "kind": "lesson",
+      "availability": "planned",
+      "estimated_minutes": 30,
+      "prerequisite_summary": "Complete investing basics first."
+    },
+    {
+      "opportunity_id": "zulu-unavailable",
+      "title": "Zulu Markets",
+      "summary": "Advanced market structure.",
+      "objectives": ["Describe market structure."],
+      "topics": ["markets"],
+      "level": "advanced",
+      "kind": "lesson",
+      "availability": "unavailable",
+      "estimated_minutes": 10,
+      "prerequisite_summary": "Complete investing basics first."
+    }
+  ],
+  "query_cases": [
+    {
+      "id": "tolerant-raw-canonicalization",
+      "overrides": {
+        "query": "  ALPHA   Investing ",
+        "topics": ["risk-and-return", "portfolio", "risk-and-return"],
+        "levels": ["intermediate", "introductory", "introductory"],
+        "kinds": ["lesson", "lesson"],
+        "availabilities": ["planned", "available", "available"]
+      },
+      "expected_applied": {
+        "query": "alpha investing",
+        "topics": ["portfolio", "risk-and-return"],
+        "levels": ["intermediate", "introductory"],
+        "kinds": ["lesson"],
+        "availabilities": ["available", "planned"]
+      },
+      "expected_ids": ["alpha-available", "alpha-planned"]
+    },
+    {
+      "id": "or-within-and-across-filter-dimensions",
+      "overrides": {
+        "topics": ["investing-basics", "portfolio"],
+        "levels": ["introductory", "intermediate"],
+        "kinds": ["lesson"],
+        "availabilities": ["available", "planned"],
+        "minimum_minutes": 15,
+        "maximum_minutes": 30
+      },
+      "expected_ids": ["beta-available", "alpha-available", "alpha-planned"]
+    },
+    {
+      "id": "prerequisite-only-search",
+      "overrides": {"prerequisite_query": "complete basics"},
+      "expected_ids": ["alpha-planned", "zulu-unavailable"]
+    },
+    {
+      "id": "catalog-order",
+      "overrides": {"sort": "catalog"},
+      "expected_ids": ["beta-available", "alpha-available", "alpha-planned", "zulu-unavailable"]
+    },
+    {
+      "id": "title-order-and-identity-tie",
+      "overrides": {"sort": "title"},
+      "expected_ids": ["alpha-available", "alpha-planned", "beta-available", "zulu-unavailable"]
+    },
+    {
+      "id": "duration-ascending-with-title-and-identity-ties",
+      "overrides": {"sort": "duration_ascending"},
+      "expected_ids": ["zulu-unavailable", "alpha-available", "beta-available", "alpha-planned"]
+    },
+    {
+      "id": "duration-descending-with-title-and-identity-ties",
+      "overrides": {"sort": "duration_descending"},
+      "expected_ids": ["alpha-planned", "alpha-available", "beta-available", "zulu-unavailable"]
+    }
+  ],
+  "cursor_cases": [
+    {
+      "id": "multi-page-continuity-and-replay",
+      "overrides": {"sort": "duration_ascending", "page_size": 2},
+      "expected_pages": [
+        ["zulu-unavailable", "alpha-available"],
+        ["beta-available", "alpha-planned"]
+      ]
+    },
+    {"id": "checksum-mismatch", "expected_code": "invalid_query"},
+    {"id": "query-mismatch", "expected_code": "invalid_query"},
+    {"id": "generation-mismatch", "expected_code": "stale_cursor"}
+  ]
+}

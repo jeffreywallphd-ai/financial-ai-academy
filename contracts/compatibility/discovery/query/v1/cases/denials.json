@@ -40,6 +40,38 @@
     "expected_code": "discovery_query.schema_invalid"
   },
   {
+    "id": "whitespace-only-query",
+    "target": "request",
+    "op": "set",
+    "path": ["query"],
+    "value": "   ",
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
+    "id": "raw-query-over-bound",
+    "target": "request",
+    "op": "set",
+    "path": ["query"],
+    "value": "                                                                                                     x",
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
+    "id": "query-term-count-over-bound",
+    "target": "request",
+    "op": "set",
+    "path": ["query"],
+    "value": "one two three four five six seven eight nine ten eleven",
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
+    "id": "raw-filter-count-over-bound",
+    "target": "request",
+    "op": "set",
+    "path": ["topics"],
+    "value": ["risk-and-return", "risk-and-return", "risk-and-return", "risk-and-return", "risk-and-return", "risk-and-return", "risk-and-return", "risk-and-return", "risk-and-return"],
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
     "id": "record-count-over-total",
     "target": "page",
     "op": "set",

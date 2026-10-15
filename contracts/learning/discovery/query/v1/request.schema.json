@@ -25,25 +25,21 @@
     "topics": {
       "type": "array",
       "maxItems": 8,
-      "uniqueItems": true,
       "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,49}$"}
     },
     "levels": {
       "type": "array",
-      "maxItems": 3,
-      "uniqueItems": true,
+      "maxItems": 8,
       "items": {"enum": ["advanced", "intermediate", "introductory"]}
     },
     "kinds": {
       "type": "array",
-      "maxItems": 4,
-      "uniqueItems": true,
+      "maxItems": 8,
       "items": {"enum": ["course", "lab", "lesson", "project"]}
     },
     "availabilities": {
       "type": "array",
-      "maxItems": 3,
-      "uniqueItems": true,
+      "maxItems": 8,
       "items": {"enum": ["available", "planned", "unavailable"]}
     },
     "minimum_minutes": {"$ref": "#/$defs/minutes"},

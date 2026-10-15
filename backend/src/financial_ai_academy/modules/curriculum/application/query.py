@@ -192,8 +192,10 @@ def _applied_query(
 def _normalize_query_text(value: object, reference: str) -> str | None:
     if value is None:
         return None
-    if not isinstance(value, str) or any(
-        character in value for character in ("\x00", "\r", "\n")
+    if (
+        not isinstance(value, str)
+        or not 1 <= len(value) <= _MAX_QUERY_TEXT
+        or any(character in value for character in ("\x00", "\r", "\n"))
     ):
         _invalid_query(
             reference,
@@ -212,20 +214,19 @@ def _normalize_query_text(value: object, reference: str) -> str | None:
 
 
 def _query_topics(value: object) -> tuple[str, ...]:
-    if not isinstance(value, tuple) or any(
-        not isinstance(topic, str) or not _TOPIC.fullmatch(topic)
-        for topic in value
+    if (
+        not isinstance(value, tuple)
+        or len(value) > _MAX_QUERY_FILTERS
+        or any(
+            not isinstance(topic, str) or not _TOPIC.fullmatch(topic)
+            for topic in value
+        )
     ):
         _invalid_query(
             "topics",
             "Learning-opportunity topic filters are invalid.",
         )
     topics = tuple(sorted(set(value)))
-    if len(topics) > _MAX_QUERY_FILTERS:
-        _invalid_query(
-            "topics",
-            "Learning-opportunity topic filters are invalid.",
-        )
     return topics
 
 
@@ -234,19 +235,16 @@ def _query_enums(
     enum_type: type[_QueryEnum],
     reference: str,
 ) -> tuple[_QueryEnum, ...]:
-    if not isinstance(value, tuple) or any(
-        not isinstance(item, enum_type) for item in value
+    if (
+        not isinstance(value, tuple)
+        or len(value) > _MAX_QUERY_FILTERS
+        or any(not isinstance(item, enum_type) for item in value)
     ):
         _invalid_query(
             reference,
             "Learning-opportunity filters are invalid.",
         )
     filters = tuple(sorted(set(value), key=str))
-    if len(filters) > _MAX_QUERY_FILTERS:
-        _invalid_query(
-            reference,
-            "Learning-opportunity filters are invalid.",
-        )
     return filters
 
 

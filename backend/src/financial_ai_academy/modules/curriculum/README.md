@@ -61,12 +61,14 @@ local single-profile deployment.
 ## Discovery query core
 
 Discovery-query v1 leaves the queryless browse contract unchanged. Curriculum
-normalizes bounded text with Unicode NFKC, whitespace collapse, and case-fold
-semantics; applies conjunctive search terms, OR-within/AND-across metadata
-filters, inclusive duration bounds, and closed deterministic sorts; and pages
-only the already validated projection. The default sort preserves projection
-order. Other sorts use normalized title and opportunity identity as stable
-tie-breaks and never produce a relevance score.
+bounds raw text and filter cardinality before it normalizes text with Unicode
+NFKC, whitespace collapse, and case-fold semantics and reduces repeated
+filters to sorted unique applied values. It applies no more than ten terms per
+text field, OR-within/AND-across metadata filters, inclusive duration bounds,
+and closed deterministic sorts, then pages only the already validated
+projection. The default sort preserves projection order. Other sorts use
+normalized title and opportunity identity as stable tie-breaks and never
+produce a relevance score.
 
 An opaque continuation cursor binds the canonical query fingerprint,
 projection generation, and next offset. Malformed, tampered, mismatched, or

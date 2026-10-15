@@ -14,6 +14,7 @@ from .runner import (
     ConformanceFailure,
     DiscoveryQueryContractValidator,
     approved_values,
+    canonicalize_request,
     default_corpus_dir,
     default_schema_dir,
     normalize_query_text,
@@ -22,6 +23,9 @@ from .runner import (
 
 CORPUS = default_corpus_dir()
 REPOSITORY = Path(__file__).resolve().parents[4]
+SCENARIOS = json.loads(
+    (CORPUS / "vectors/scenarios.json").read_text(encoding="utf-8")
+)
 
 
 def _set_at(value: dict[str, Any], path: list[object], replacement: object) -> None:
@@ -49,11 +53,8 @@ def test_approved_query_and_page_validate() -> None:
     validator = DiscoveryQueryContractValidator()
     validator.validate_request(request)
     validator.validate_page(page)
-    assert page["applied_query"] == {
-        key: value
-        for key, value in request.items()
-        if key not in {"schema_version", "cursor"}
-    }
+    assert page["applied_query"] == canonicalize_request(request)
+    assert len(request["topics"]) > len(page["applied_query"]["topics"])
     assert page["records"][0]["opportunity_id"] == (
         "intro-risk-return-primary"
     )
@@ -66,6 +67,58 @@ def test_approved_query_and_page_validate() -> None:
 )
 def test_normalization_vectors_are_stable(vector: dict[str, str]) -> None:
     assert normalize_query_text(vector["input"]) == vector["normalized"]
+
+
+@pytest.mark.parametrize(
+    "case",
+    SCENARIOS["query_cases"],
+    ids=lambda case: case["id"],
+)
+def test_multi_record_query_scenarios_are_stable(
+    case: dict[str, Any],
+) -> None:
+    request = copy.deepcopy(SCENARIOS["request_defaults"])
+    request.update(case["overrides"])
+    validator = DiscoveryQueryContractValidator()
+    validator.validate_request(request)
+    applied = canonicalize_request(request)
+    validator._shape(validator._applied, applied, "applied_query")
+    validator._canonical_text(applied)
+    validator._canonical_filters(applied)
+    validator._duration(applied)
+    for key, expected in case.get("expected_applied", {}).items():
+        assert applied[key] == expected
+    matches = [
+        record
+        for record in SCENARIOS["records"]
+        if validator._matches(record, applied)
+    ]
+    ordered = validator._sorted(matches, applied["sort"])
+    assert [record["opportunity_id"] for record in ordered] == case[
+        "expected_ids"
+    ]
+
+
+def test_cursor_scenario_vectors_cover_required_semantics() -> None:
+    cursor_cases = {case["id"]: case for case in SCENARIOS["cursor_cases"]}
+    assert set(cursor_cases) == {
+        "multi-page-continuity-and-replay",
+        "checksum-mismatch",
+        "query-mismatch",
+        "generation-mismatch",
+    }
+    continuity = cursor_cases["multi-page-continuity-and-replay"]
+    assert continuity["expected_pages"] == [
+        ["zulu-unavailable", "alpha-available"],
+        ["beta-available", "alpha-planned"],
+    ]
+    assert cursor_cases["checksum-mismatch"]["expected_code"] == (
+        "invalid_query"
+    )
+    assert cursor_cases["query-mismatch"]["expected_code"] == "invalid_query"
+    assert cursor_cases["generation-mismatch"]["expected_code"] == (
+        "stale_cursor"
+    )
 
 
 @pytest.mark.parametrize(

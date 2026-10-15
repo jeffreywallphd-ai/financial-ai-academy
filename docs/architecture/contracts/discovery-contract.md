@@ -90,15 +90,19 @@ other kinds and availability states remain explanatory and non-executable.
 ## Deterministic Query Core
 
 Discovery-query v1 is additive and references the unchanged discovery-v1
-record. A canonical request may contain bounded general query text,
+record. A raw request may contain bounded general query text,
 prerequisite-summary-only text, topic/level/kind/availability filters,
 inclusive duration bounds, one closed sort, a page size from 1 through 50, and
-an opaque cursor. Text normalization is Unicode NFKC followed by whitespace
-collapse and Unicode case folding, fixed by compatibility vectors. Every
-general term must occur in at least one allowed record field; every
-prerequisite term must occur in the prerequisite summary. Repeated values
-within one filter dimension use OR and different dimensions use AND. No term,
-filter, or sort means eligibility, recommendation, or prerequisite completion.
+an opaque cursor. Raw text and each raw filter array are bounded before any
+canonicalization. Text normalization is Unicode NFKC followed by whitespace
+collapse and Unicode case folding, with at most ten canonical terms per text
+field. Repeated filters and noncanonical order are accepted within the raw
+bound; the echoed applied query contains sorted unique filters. Every general
+term must occur in at least one allowed record field; every prerequisite term
+must occur in the prerequisite summary. Repeated values within one filter
+dimension use OR and different dimensions use AND. These semantics and bounds
+are fixed by compatibility vectors. No term, filter, or sort means eligibility,
+recommendation, or prerequisite completion.
 
 The shared Curriculum application core queries one already validated projection
 whose maximum is 500 records. Catalog sort retains the authoritative projection

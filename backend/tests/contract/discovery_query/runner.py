@@ -14,6 +14,8 @@ from jsonschema import Draft202012Validator, FormatChecker
 from referencing import Registry, Resource
 
 SUPPORTED_VERSION = "1.0.0"
+MAX_QUERY_TEXT = 100
+MAX_QUERY_TERMS = 10
 
 
 @dataclass(frozen=True, slots=True)
@@ -87,6 +89,30 @@ def canonical_bytes(value: object) -> bytes:
 
 def normalize_query_text(value: str) -> str:
     return " ".join(unicodedata.normalize("NFKC", value).split()).casefold()
+
+
+def canonicalize_request(request: Mapping[str, Any]) -> dict[str, Any]:
+    """Project a validated tolerant request into its canonical applied form."""
+    return {
+        "query": (
+            normalize_query_text(request["query"])
+            if request["query"] is not None
+            else None
+        ),
+        "prerequisite_query": (
+            normalize_query_text(request["prerequisite_query"])
+            if request["prerequisite_query"] is not None
+            else None
+        ),
+        "topics": sorted(set(request["topics"])),
+        "levels": sorted(set(request["levels"])),
+        "kinds": sorted(set(request["kinds"])),
+        "availabilities": sorted(set(request["availabilities"])),
+        "minimum_minutes": request["minimum_minutes"],
+        "maximum_minutes": request["maximum_minutes"],
+        "sort": request["sort"],
+        "page_size": request["page_size"],
+    }
 
 
 class DiscoveryQueryContractValidator:
@@ -173,6 +199,24 @@ class DiscoveryQueryContractValidator:
                 )
 
     @staticmethod
+    def _raw_text(value: Mapping[str, Any]) -> None:
+        for key in ("query", "prerequisite_query"):
+            raw = value[key]
+            if raw is None:
+                continue
+            normalized = normalize_query_text(raw)
+            if (
+                not normalized
+                or len(normalized) > MAX_QUERY_TEXT
+                or len(normalized.split(" ")) > MAX_QUERY_TERMS
+            ):
+                reject(
+                    "discovery_query.schema_invalid",
+                    key,
+                    "Learning-opportunity query is malformed.",
+                )
+
+    @staticmethod
     def _duration(value: Mapping[str, Any]) -> None:
         minimum = value["minimum_minutes"]
         maximum = value["maximum_minutes"]
@@ -186,8 +230,7 @@ class DiscoveryQueryContractValidator:
     def validate_request(self, request: Mapping[str, Any]) -> None:
         self._version(request, "request")
         self._shape(self._request, request, "request")
-        self._canonical_text(request)
-        self._canonical_filters(request)
+        self._raw_text(request)
         self._duration(request)
 
     def validate_page(self, page: Mapping[str, Any]) -> None:
@@ -391,7 +434,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         json.dumps(
             {
                 "valid": True,
-                "query": request["query"],
+                "query": page["applied_query"]["query"],
                 "record_count": len(page["records"]),
                 "total_matches": page["total_matches"],
             },

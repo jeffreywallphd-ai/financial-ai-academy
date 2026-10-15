@@ -19,10 +19,30 @@
   "properties": {
     "query": {"$ref": "request.schema.json#/$defs/query_text"},
     "prerequisite_query": {"$ref": "request.schema.json#/$defs/query_text"},
-    "topics": {"$ref": "request.schema.json#/properties/topics"},
-    "levels": {"$ref": "request.schema.json#/properties/levels"},
-    "kinds": {"$ref": "request.schema.json#/properties/kinds"},
-    "availabilities": {"$ref": "request.schema.json#/properties/availabilities"},
+    "topics": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,49}$"}
+    },
+    "levels": {
+      "type": "array",
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"enum": ["advanced", "intermediate", "introductory"]}
+    },
+    "kinds": {
+      "type": "array",
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {"enum": ["course", "lab", "lesson", "project"]}
+    },
+    "availabilities": {
+      "type": "array",
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"enum": ["available", "planned", "unavailable"]}
+    },
     "minimum_minutes": {"$ref": "request.schema.json#/$defs/minutes"},
     "maximum_minutes": {"$ref": "request.schema.json#/$defs/minutes"},
     "sort": {"$ref": "request.schema.json#/properties/sort"},

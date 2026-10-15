@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import fields, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -17,6 +18,10 @@ from financial_ai_academy.modules.content.public import (
 from financial_ai_academy.modules.curriculum.application.service import (
     CurriculumService,
 )
+from financial_ai_academy.modules.curriculum.application.query import (
+    prepare_learning_opportunity_query,
+    query_learning_opportunity_projection,
+)
 from financial_ai_academy.modules.curriculum.ports.repositories import (
     OpportunityConflict,
     PlacementConflict,
@@ -28,6 +33,8 @@ from financial_ai_academy.modules.curriculum.public import (
     CreateLessonPlacementRequest,
     DiscoveryError,
     DiscoveryErrorCode,
+    DiscoveryProvenance,
+    LearningOpportunityBrowse,
     LearningOpportunityRecord,
     LearningOpportunityQueryPage,
     LessonOpportunityClassification,
@@ -48,6 +55,12 @@ APPROVED = (
     / "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-knowledge-check"
 )
 SCHEMAS = REPOSITORY / "contracts/learning/lesson-package/v1"
+QUERY_SCENARIOS = json.loads(
+    (
+        REPOSITORY
+        / "contracts/compatibility/discovery/query/v1/vectors/scenarios.json"
+    ).read_text(encoding="utf-8")
+)
 NOW = datetime(2026, 10, 15, 17, 0, tzinfo=timezone.utc)
 EXPECTED_SOURCE = "6206218a3a49b2439ec3d46054f2c96f004cc680021b8b25e0f62b1f211894f5"
 EXPECTED_GENERATION = "746b3442477c7e3d70b0886cee11a0e1a439b58b7fcc4b660d790ce3cf92f3d8"
@@ -252,6 +265,74 @@ def add_opportunity(
             prerequisite_summary=prerequisite_summary,
             availability=availability,
         )
+    )
+
+
+def scenario_query_request(
+    overrides: dict[str, object] | None = None,
+    *,
+    cursor: str | None = None,
+) -> QueryLearningOpportunitiesRequest:
+    raw = dict(QUERY_SCENARIOS["request_defaults"])
+    raw.update(overrides or {})
+    if cursor is not None:
+        raw["cursor"] = cursor
+    return QueryLearningOpportunitiesRequest(
+        query=raw["query"],
+        prerequisite_query=raw["prerequisite_query"],
+        topics=tuple(raw["topics"]),
+        levels=tuple(OpportunityLevel(value) for value in raw["levels"]),
+        kinds=tuple(OpportunityKind(value) for value in raw["kinds"]),
+        availabilities=tuple(
+            OpportunityAvailability(value) for value in raw["availabilities"]
+        ),
+        minimum_minutes=raw["minimum_minutes"],
+        maximum_minutes=raw["maximum_minutes"],
+        sort=OpportunityQuerySort(raw["sort"]),
+        page_size=raw["page_size"],
+        cursor=raw["cursor"],
+    )
+
+
+def scenario_browse(
+    generation: str = "a" * 64,
+) -> LearningOpportunityBrowse:
+    provenance = DiscoveryProvenance(
+        published_by="Synthetic compatibility publisher",
+        published_at=datetime(2026, 8, 5, tzinfo=timezone.utc),
+        content_reviewed_on=datetime(2026, 8, 4, tzinfo=timezone.utc).date(),
+        educational_use_notice="Synthetic educational compatibility record.",
+    )
+    records = tuple(
+        LearningOpportunityRecord(
+            schema_version="1.0.0",
+            opportunity_id=record["opportunity_id"],
+            placement_id=record["opportunity_id"],
+            destination=f"/learn/placements/{record['opportunity_id']}",
+            kind=OpportunityKind(record["kind"]),
+            title=record["title"],
+            summary=record["summary"],
+            objectives=tuple(record["objectives"]),
+            topics=tuple(record["topics"]),
+            level=OpportunityLevel(record["level"]),
+            estimated_minutes=record["estimated_minutes"],
+            prerequisite_summary=record["prerequisite_summary"],
+            availability=OpportunityAvailability(record["availability"]),
+            availability_reason="Synthetic compatibility availability.",
+            package_id=f"package-{record['opportunity_id']}",
+            package_version="1.0.0",
+            package_digest="b" * 64,
+            provenance=provenance,
+            source_fingerprint="c" * 64,
+            projected_at=NOW,
+        )
+        for record in QUERY_SCENARIOS["records"]
+    )
+    return LearningOpportunityBrowse(
+        schema_version="1.0.0",
+        projection_generation=generation,
+        projected_at=NOW,
+        records=records,
     )
 
 
@@ -653,7 +734,13 @@ def test_query_rejects_malformed_request_before_projection_read(
     invalid = (
         QueryLearningOpportunitiesRequest(query=" "),
         QueryLearningOpportunitiesRequest(query="word " * 11),
+        QueryLearningOpportunitiesRequest(
+            query="one two three four five six seven eight nine ten eleven"
+        ),
+        QueryLearningOpportunitiesRequest(query="x" * 101),
+        QueryLearningOpportunitiesRequest(query="ﬀ" * 51),
         QueryLearningOpportunitiesRequest(topics=("not valid",)),
+        QueryLearningOpportunitiesRequest(topics=("risk-and-return",) * 9),
         QueryLearningOpportunitiesRequest(levels=("introductory",)),
         QueryLearningOpportunitiesRequest(minimum_minutes=30, maximum_minutes=10),
         QueryLearningOpportunitiesRequest(page_size=0),
@@ -665,6 +752,112 @@ def test_query_rejects_malformed_request_before_projection_read(
             service.query_learning_opportunities(candidate)
         assert captured.value.code is DiscoveryErrorCode.INVALID_QUERY
     assert repository.projection_reads == 0
+
+
+def test_query_raw_bounds_precede_tolerant_canonicalization() -> None:
+    prepared = prepare_learning_opportunity_query(
+        QueryLearningOpportunitiesRequest(
+            query=(" " * 98) + "R",
+            topics=("risk-and-return",) * 8,
+            levels=(OpportunityLevel.INTRODUCTORY,) * 8,
+        )
+    )
+
+    assert prepared.applied.query == "r"
+    assert prepared.applied.topics == ("risk-and-return",)
+    assert prepared.applied.levels == (OpportunityLevel.INTRODUCTORY,)
+
+
+@pytest.mark.parametrize(
+    "case",
+    QUERY_SCENARIOS["query_cases"],
+    ids=lambda case: case["id"],
+)
+def test_query_compatibility_scenarios_cover_filters_and_all_sorts(
+    case: dict[str, object],
+) -> None:
+    prepared = prepare_learning_opportunity_query(
+        scenario_query_request(case["overrides"])
+    )
+    result = query_learning_opportunity_projection(
+        scenario_browse(),
+        prepared,
+    )
+
+    assert [record.opportunity_id for record in result.records] == case[
+        "expected_ids"
+    ]
+    for key, expected in case.get("expected_applied", {}).items():
+        actual = getattr(result.applied_query, key)
+        if isinstance(actual, tuple):
+            actual = [str(value) for value in actual]
+        assert actual == expected
+
+
+def test_query_cursor_vectors_cover_continuity_replay_and_mismatch() -> None:
+    cases = {case["id"]: case for case in QUERY_SCENARIOS["cursor_cases"]}
+    continuity = cases["multi-page-continuity-and-replay"]
+    browse = scenario_browse()
+    first_request = scenario_query_request(continuity["overrides"])
+    first = query_learning_opportunity_projection(
+        browse,
+        prepare_learning_opportunity_query(first_request),
+    )
+    assert [record.opportunity_id for record in first.records] == (
+        continuity["expected_pages"][0]
+    )
+    assert first.next_cursor is not None
+
+    continued_request = scenario_query_request(
+        continuity["overrides"],
+        cursor=first.next_cursor,
+    )
+    second = query_learning_opportunity_projection(
+        browse,
+        prepare_learning_opportunity_query(continued_request),
+    )
+    replay = query_learning_opportunity_projection(
+        browse,
+        prepare_learning_opportunity_query(continued_request),
+    )
+    assert [record.opportunity_id for record in second.records] == (
+        continuity["expected_pages"][1]
+    )
+    assert replay == second
+    assert second.next_cursor is None
+
+    corrupted = first.next_cursor[:-1] + (
+        "0" if first.next_cursor[-1] != "0" else "1"
+    )
+    with pytest.raises(DiscoveryError) as checksum_error:
+        prepare_learning_opportunity_query(
+            scenario_query_request(
+                continuity["overrides"],
+                cursor=corrupted,
+            )
+        )
+    assert str(checksum_error.value.code) == cases["checksum-mismatch"][
+        "expected_code"
+    ]
+
+    mismatched = dict(continuity["overrides"])
+    mismatched["query"] = "alpha"
+    with pytest.raises(DiscoveryError) as query_error:
+        prepare_learning_opportunity_query(
+            scenario_query_request(mismatched, cursor=first.next_cursor)
+        )
+    assert str(query_error.value.code) == cases["query-mismatch"][
+        "expected_code"
+    ]
+
+    with pytest.raises(DiscoveryError) as generation_error:
+        query_learning_opportunity_projection(
+            scenario_browse("d" * 64),
+            prepare_learning_opportunity_query(continued_request),
+        )
+    assert str(generation_error.value.code) == cases[
+        "generation-mismatch"
+    ]["expected_code"]
 
 
 def test_query_rejects_tampered_mismatched_and_stale_cursor(
