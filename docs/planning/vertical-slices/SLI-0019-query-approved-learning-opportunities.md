@@ -163,7 +163,7 @@ behind the same public semantics and compatibility corpus.
 | --- | --- | --- | --- | --- |
 | WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | complete |
 | WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | complete |
-| WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | captured |
+| WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | active |
 | WRK-0051 | Qualify the complete local query path, pagination continuity, stale-cursor denial, security/accessibility, and cleanup | WRK-0050 | none | captured |
 
 ## Verification and Qualification
@@ -237,3 +237,7 @@ unsupported profiles/providers, residual gaps, and CAP-package conformance.
   bounded 400/409/503 failures, unchanged queryless browse, reproducible
   OpenAPI/generated-client outputs, and fresh qualifying verification. WRK-0050
   is dependency-ready.
+- 2026-10-15: Authored WRK-0050 with bounded URL/public-client mapping,
+  fail-closed query-page validation, accessible optional controls, exact count
+  and continuation behavior, and explicit empty/invalid/stale/denied states.
+  Full live topology and browser qualification remain WRK-0051.

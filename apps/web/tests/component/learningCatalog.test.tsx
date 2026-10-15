@@ -5,14 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import { LearningCatalogPage } from "../../src/features/learning-catalog/LearningCatalogPage";
 import { LearningCatalogRouteView } from "../../src/features/learning-catalog/LearningCatalogRoute";
 import {
-  learningCatalogFixture,
+  learningQueryPageFixture,
   plannedOpportunity,
 } from "./learningCatalogFixture";
 
-function renderCatalog(catalog = learningCatalogFixture) {
+function renderCatalog(page = learningQueryPageFixture) {
   return render(
     <MemoryRouter>
-      <LearningCatalogPage catalog={catalog} />
+      <LearningCatalogPage page={page} />
     </MemoryRouter>,
   );
 }
@@ -28,12 +28,12 @@ describe("LearningCatalogPage", () => {
     if (!firstCard || !secondCard) {
       throw new Error("Expected two catalog cards.");
     }
-    expect(within(firstCard).getByRole("heading", { level: 2 })).toHaveTextContent(
-      "Cash Flow Basics",
-    );
-    expect(within(secondCard).getByRole("heading", { level: 2 })).toHaveTextContent(
-      "Portfolio Project",
-    );
+    expect(
+      within(firstCard).getByRole("heading", { level: 2 }),
+    ).toHaveTextContent("Cash Flow Basics");
+    expect(
+      within(secondCard).getByRole("heading", { level: 2 }),
+    ).toHaveTextContent("Portfolio Project");
     expect(screen.getByText("cash-flow-basics@1.2.0")).toBeVisible();
     expect(screen.getAllByText(/Financial AI Academy/)).not.toHaveLength(0);
     expect(
@@ -44,10 +44,9 @@ describe("LearningCatalogPage", () => {
   it("links only an available lesson to its exact destination", () => {
     renderCatalog();
 
-    expect(screen.getByRole("link", { name: "Open exact lesson" })).toHaveAttribute(
-      "href",
-      "/learn/placements/cash-flow-basics-primary",
-    );
+    expect(
+      screen.getByRole("link", { name: "Open exact lesson" }),
+    ).toHaveAttribute("href", "/learn/placements/cash-flow-basics-primary");
     const plannedCard = screen
       .getByRole("heading", { name: plannedOpportunity.title })
       .closest("article");
@@ -61,13 +60,45 @@ describe("LearningCatalogPage", () => {
   });
 
   it("renders an educational empty state without inventing recommendations", () => {
-    renderCatalog({ ...learningCatalogFixture, records: [] });
+    renderCatalog({
+      ...learningQueryPageFixture,
+      records: [],
+      total_matches: 0,
+    });
 
     expect(
-      screen.getByRole("heading", { name: "No approved opportunities yet" }),
+      screen.getByRole("heading", {
+        name: "No opportunities match this query",
+      }),
     ).toBeVisible();
     expect(screen.queryByRole("article")).not.toBeInTheDocument();
     expect(document.body.textContent).not.toMatch(/recommended for you/i);
+  });
+
+  it("exposes optional native query controls and preserves canonical paging state", () => {
+    renderCatalog({
+      ...learningQueryPageFixture,
+      applied_query: {
+        ...learningQueryPageFixture.applied_query,
+        query: "cash flow",
+        levels: ["introductory"],
+        page_size: 10,
+      },
+      next_cursor: `cursor.${"d".repeat(64)}`,
+    });
+
+    expect(
+      screen.getByRole("searchbox", { name: "Search opportunities" }),
+    ).toHaveValue("cash flow");
+    expect(screen.getByRole("button", { name: "Apply query" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Clear filters" })).toHaveAttribute(
+      "href",
+      "/learn",
+    );
+    expect(screen.getByRole("link", { name: "Next page" })).toHaveAttribute(
+      "href",
+      `/learn?query=cash+flow&level=introductory&page_size=10&cursor=cursor.${"d".repeat(64)}`,
+    );
   });
 });
 
@@ -76,17 +107,16 @@ describe("LearningCatalogRouteView", () => {
     ["unauthorized", "Learner session required"],
     ["forbidden", "Catalog access unavailable"],
     ["unavailable", "Catalog temporarily unavailable"],
+    ["invalid-query", "Query could not be applied"],
+    ["stale-cursor", "Catalog results changed"],
     ["invalid-response", "Catalog response unavailable"],
     ["unexpected", "Something went wrong"],
   ] as const)("renders bounded %s state", (status, heading) => {
-    render(
-      <LearningCatalogRouteView
-        onRetry={vi.fn()}
-        state={{ status }}
-      />,
-    );
+    render(<LearningCatalogRouteView onRetry={vi.fn()} state={{ status }} />);
 
-    expect(screen.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 1, name: heading }),
+    ).toBeVisible();
     expect(screen.queryByText("Cash Flow Basics")).not.toBeInTheDocument();
     expect(document.body.textContent).not.toContain("a".repeat(64));
   });

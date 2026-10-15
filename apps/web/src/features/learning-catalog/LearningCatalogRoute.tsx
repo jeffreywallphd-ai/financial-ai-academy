@@ -1,4 +1,9 @@
-import { useLoaderData, useRevalidator } from "react-router";
+import {
+  useLoaderData,
+  useNavigate,
+  useNavigation,
+  useRevalidator,
+} from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
 import { LearningCatalogPage } from "./LearningCatalogPage";
@@ -34,7 +39,7 @@ export function LearningCatalogRouteView({
     case "loading":
       return <LearningCatalogLoadingState />;
     case "ready":
-      return <LearningCatalogPage catalog={state.catalog} />;
+      return <LearningCatalogPage page={state.page} />;
     case "unauthorized":
       return (
         <StatusPanel
@@ -66,6 +71,28 @@ export function LearningCatalogRouteView({
           tone="warning"
         />
       );
+    case "invalid-query":
+      return (
+        <StatusPanel
+          actionLabel="Clear query"
+          description="The catalog query is not valid. Clear it and try bounded optional filters again."
+          icon="error-circle"
+          onAction={onRetry}
+          title="Query could not be applied"
+          tone="warning"
+        />
+      );
+    case "stale-cursor":
+      return (
+        <StatusPanel
+          actionLabel="Start fresh"
+          description="The catalog changed after this page was created. Start a fresh query rather than using stale results."
+          icon="warning-triangle"
+          onAction={onRetry}
+          title="Catalog results changed"
+          tone="warning"
+        />
+      );
     case "invalid-response":
       return (
         <StatusPanel
@@ -91,14 +118,25 @@ export function LearningCatalogRouteView({
 
 export function LearningCatalogRoute() {
   const state = useLoaderData<LearningCatalogRouteState>();
+  const navigate = useNavigate();
+  const navigation = useNavigation();
   const revalidator = useRevalidator();
   const displayedState =
-    revalidator.state === "loading" && state.status !== "ready"
+    navigation.state === "loading" || revalidator.state === "loading"
       ? ({ status: "loading" } as const)
       : state;
   return (
     <LearningCatalogRouteView
-      onRetry={() => revalidator.revalidate()}
+      onRetry={() => {
+        if (
+          state.status === "invalid-query" ||
+          state.status === "stale-cursor"
+        ) {
+          void navigate("/learn");
+        } else {
+          revalidator.revalidate();
+        }
+      }}
       state={displayedState}
     />
   );

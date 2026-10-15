@@ -20,10 +20,13 @@ The web application uses public generated clients. It does not import backend in
 The generated client includes protected `browseLearningOpportunities` for
 queryless `GET /api/v1/curriculum/opportunities` and
 `queryLearningOpportunities` for bounded
-`GET /api/v1/curriculum/opportunities/query`. The `/learn` route still consumes
-the queryless operation after establishing the private single-profile session;
-WRK-0050 owns URL-backed query controls and response validation. Neither client
-operation accepts learner, permission, provider, or storage selectors.
+`GET /api/v1/curriculum/opportunities/query`. The `/learn` route consumes the
+query operation after establishing the private single-profile session. Native
+GET controls keep bounded optional search, filters, sort, page size, and opaque
+continuation in the URL; the route validates each closed page, presents the
+canonical applied query and exact count/order, and fails closed on invalid,
+stale, denied, or unavailable results. Neither client operation accepts
+learner, permission, provider, or storage selectors.
 
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 

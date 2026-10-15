@@ -1,5 +1,6 @@
 import type {
   LearningCatalog,
+  LearningCatalogQueryPage,
   LearningOpportunity,
 } from "../../src/features/learning-catalog/model";
 
@@ -67,3 +68,21 @@ export const learningCatalogFixture = {
   projected_at: "2026-10-15T12:00:00Z",
   records: [availableOpportunity, plannedOpportunity],
 } satisfies LearningCatalog;
+
+export const learningQueryPageFixture: LearningCatalogQueryPage = {
+  ...learningCatalogFixture,
+  applied_query: {
+    query: null,
+    prerequisite_query: null,
+    topics: [],
+    levels: [],
+    kinds: [],
+    availabilities: [],
+    minimum_minutes: null,
+    maximum_minutes: null,
+    sort: "catalog",
+    page_size: 20,
+  },
+  total_matches: 2,
+  next_cursor: null,
+};

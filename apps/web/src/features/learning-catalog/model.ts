@@ -1,16 +1,25 @@
-import type { components } from "../../generated/api-client";
+import type { components, operations } from "../../generated/api-client";
 
 export type LearningCatalog =
   components["schemas"]["LearningOpportunityBrowseResponseModel"];
 export type LearningOpportunity =
   components["schemas"]["LearningOpportunityResponseModel"];
+export type LearningCatalogQueryPage =
+  components["schemas"]["LearningOpportunityQueryPageResponseModel"];
+export type AppliedLearningCatalogQuery =
+  components["schemas"]["AppliedLearningOpportunityQueryResponseModel"];
+export type LearningCatalogQueryParameters = NonNullable<
+  operations["queryLearningOpportunities"]["parameters"]["query"]
+>;
 
 export type LearningCatalogRouteState =
   | { status: "loading" }
-  | { status: "ready"; catalog: LearningCatalog }
+  | { status: "ready"; page: LearningCatalogQueryPage }
   | { status: "unauthorized" }
   | { status: "forbidden" }
   | { status: "unavailable" }
+  | { status: "invalid-query" }
+  | { status: "stale-cursor" }
   | { status: "invalid-response" }
   | { status: "unexpected" };
 
@@ -19,8 +28,7 @@ const TOPIC = /^[a-z0-9][a-z0-9-]{1,49}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const SEMANTIC_VERSION =
   /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
-const DESTINATION =
-  /^\/learn\/placements\/[a-z0-9][a-z0-9._-]{2,63}$/;
+const DESTINATION = /^\/learn\/placements\/[a-z0-9][a-z0-9._-]{2,63}$/;
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_TIME =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(Z|[+-](\d{2}):(\d{2}))$/;
@@ -59,6 +67,28 @@ const PROVENANCE_KEYS = [
   "published_at",
   "published_by",
 ] as const;
+const QUERY_PAGE_KEYS = [
+  "applied_query",
+  "next_cursor",
+  "projected_at",
+  "projection_generation",
+  "records",
+  "schema_version",
+  "total_matches",
+] as const;
+const APPLIED_QUERY_KEYS = [
+  "availabilities",
+  "kinds",
+  "levels",
+  "maximum_minutes",
+  "minimum_minutes",
+  "page_size",
+  "prerequisite_query",
+  "query",
+  "sort",
+  "topics",
+] as const;
+const CURSOR = /^[A-Za-z0-9_-]+\.[a-f0-9]{64}$/;
 
 function record(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -107,10 +137,7 @@ function validDate(value: unknown): value is string {
     return false;
   }
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  return (
-    day <= daysInMonth &&
-    !Number.isNaN(Date.parse(value + "T00:00:00Z"))
-  );
+  return day <= daysInMonth && !Number.isNaN(Date.parse(value + "T00:00:00Z"));
 }
 
 function validDateTime(value: unknown): value is string {
@@ -215,7 +242,11 @@ function stringsAreStrictlySorted(values: readonly string[]): boolean {
   for (let index = 1; index < values.length; index += 1) {
     const previous = values[index - 1];
     const current = values[index];
-    if (previous === undefined || current === undefined || previous >= current) {
+    if (
+      previous === undefined ||
+      current === undefined ||
+      previous >= current
+    ) {
       return false;
     }
   }
@@ -370,9 +401,7 @@ async function integrityIsCoherent(
   return (await sha256(stableRecords)) === generation;
 }
 
-export async function learningCatalogIsSafe(
-  value: unknown,
-): Promise<boolean> {
+export async function learningCatalogIsSafe(value: unknown): Promise<boolean> {
   const candidate = record(value);
   if (
     candidate === null ||
@@ -400,11 +429,157 @@ export async function learningCatalogIsSafe(
   );
 }
 
-export function opportunityCanOpen(
-  opportunity: LearningOpportunity,
-): boolean {
+function optionalBoundedText(value: unknown): boolean {
+  return value === null || boundedText(value, 1, 100);
+}
+
+function enumFiltersAreSafe(
+  value: unknown,
+  allowed: readonly string[],
+): value is string[] {
   return (
-    opportunity.kind === "lesson" &&
-    opportunity.availability === "available"
+    uniqueStrings(
+      value,
+      0,
+      8,
+      (item): item is string =>
+        typeof item === "string" && allowed.includes(item),
+    ) && stringsAreStrictlySorted(value)
+  );
+}
+
+function appliedQueryIsSafe(
+  value: unknown,
+): value is AppliedLearningCatalogQuery {
+  const candidate = record(value);
+  return (
+    candidate !== null &&
+    hasExactKeys(candidate, APPLIED_QUERY_KEYS) &&
+    optionalBoundedText(candidate.query) &&
+    optionalBoundedText(candidate.prerequisite_query) &&
+    uniqueStrings(
+      candidate.topics,
+      0,
+      8,
+      (item): item is string => typeof item === "string" && TOPIC.test(item),
+    ) &&
+    stringsAreStrictlySorted(candidate.topics as string[]) &&
+    enumFiltersAreSafe(candidate.levels, [
+      "introductory",
+      "intermediate",
+      "advanced",
+    ]) &&
+    enumFiltersAreSafe(candidate.kinds, [
+      "course",
+      "lesson",
+      "lab",
+      "project",
+    ]) &&
+    enumFiltersAreSafe(candidate.availabilities, [
+      "available",
+      "planned",
+      "unavailable",
+    ]) &&
+    (candidate.minimum_minutes === null ||
+      (Number.isInteger(candidate.minimum_minutes) &&
+        Number(candidate.minimum_minutes) >= 1 &&
+        Number(candidate.minimum_minutes) <= 1440)) &&
+    (candidate.maximum_minutes === null ||
+      (Number.isInteger(candidate.maximum_minutes) &&
+        Number(candidate.maximum_minutes) >= 1 &&
+        Number(candidate.maximum_minutes) <= 1440)) &&
+    (candidate.minimum_minutes === null ||
+      candidate.maximum_minutes === null ||
+      Number(candidate.minimum_minutes) <= Number(candidate.maximum_minutes)) &&
+    ["catalog", "title", "duration_ascending", "duration_descending"].includes(
+      String(candidate.sort),
+    ) &&
+    Number.isInteger(candidate.page_size) &&
+    Number(candidate.page_size) >= 1 &&
+    Number(candidate.page_size) <= 50
+  );
+}
+
+async function sourceFingerprintsAreCoherent(
+  records: readonly LearningOpportunity[],
+): Promise<boolean> {
+  for (const opportunity of records) {
+    if (
+      (await sha256(sourceMeaning(opportunity))) !==
+      opportunity.source_fingerprint
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function learningCatalogQueryPageIsSafe(
+  value: unknown,
+): Promise<boolean> {
+  const candidate = record(value);
+  if (
+    candidate === null ||
+    !hasExactKeys(candidate, QUERY_PAGE_KEYS) ||
+    candidate.schema_version !== "1.0.0" ||
+    typeof candidate.projection_generation !== "string" ||
+    !DIGEST.test(candidate.projection_generation) ||
+    !validDateTime(candidate.projected_at) ||
+    !appliedQueryIsSafe(candidate.applied_query) ||
+    !Number.isInteger(candidate.total_matches) ||
+    Number(candidate.total_matches) < 0 ||
+    Number(candidate.total_matches) > 500 ||
+    !Array.isArray(candidate.records) ||
+    candidate.records.length >
+      Number((candidate.applied_query as Record<string, unknown>).page_size) ||
+    candidate.records.length > Number(candidate.total_matches) ||
+    (candidate.next_cursor !== null &&
+      (typeof candidate.next_cursor !== "string" ||
+        !CURSOR.test(candidate.next_cursor))) ||
+    !candidate.records.every((item) =>
+      opportunityIsSafe(item, candidate.projected_at as string),
+    )
+  ) {
+    return false;
+  }
+  const records = candidate.records as LearningOpportunity[];
+  return (
+    new Set(records.map((item) => item.opportunity_id)).size ===
+      records.length && (await sourceFingerprintsAreCoherent(records))
+  );
+}
+
+export function queryPageHref(
+  query: AppliedLearningCatalogQuery,
+  cursor?: string,
+): string {
+  const parameters = new URLSearchParams();
+  if (query.query !== null) parameters.set("query", query.query);
+  if (query.prerequisite_query !== null) {
+    parameters.set("prerequisite_query", query.prerequisite_query);
+  }
+  for (const topic of query.topics) parameters.append("topic", topic);
+  for (const level of query.levels) parameters.append("level", level);
+  for (const kind of query.kinds) parameters.append("kind", kind);
+  for (const availability of query.availabilities) {
+    parameters.append("availability", availability);
+  }
+  if (query.minimum_minutes !== null) {
+    parameters.set("minimum_minutes", String(query.minimum_minutes));
+  }
+  if (query.maximum_minutes !== null) {
+    parameters.set("maximum_minutes", String(query.maximum_minutes));
+  }
+  if (query.sort !== "catalog") parameters.set("sort", query.sort);
+  if (query.page_size !== 20)
+    parameters.set("page_size", String(query.page_size));
+  if (cursor) parameters.set("cursor", cursor);
+  const encoded = parameters.toString();
+  return encoded ? `/learn?${encoded}` : "/learn";
+}
+
+export function opportunityCanOpen(opportunity: LearningOpportunity): boolean {
+  return (
+    opportunity.kind === "lesson" && opportunity.availability === "available"
   );
 }

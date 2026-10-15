@@ -151,9 +151,12 @@ atomically rebuilds the projection, and browses from `/learn` into that exact
 lesson through one same-origin Python/static host over PostgreSQL 18.4.
 
 The deterministic shared-core search/filter/sort/pagination semantics,
-compatibility corpus, and protected HTTP/generated-client seam are implemented.
-URL-backed browser controls and complete live qualification remain SLI-0019
-work.
+compatibility corpus, protected HTTP/generated-client seam, and URL-backed
+browser controls are implemented. The browser validates a complete closed page,
+shows the canonical applied query and exact server count/order, treats the
+cursor as opaque, and distinguishes invalid, stale, denied, unavailable, and
+empty results without fallback records or client ranking. Complete live
+PostgreSQL/static-host query qualification remains SLI-0019 work.
 Production/background rebuild scheduling, non-lesson destinations, background
 indexing, external providers, tenancy, and managed-cloud operation remain later
 boundaries.

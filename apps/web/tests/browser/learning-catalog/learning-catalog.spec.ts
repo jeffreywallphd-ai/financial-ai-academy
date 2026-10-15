@@ -2,10 +2,10 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
 
-import { learningCatalogFixture } from "../../component/learningCatalogFixture";
+import { learningQueryPageFixture } from "../../component/learningCatalogFixture";
 
 const SESSION_PATTERN = "**/api/v1/session/single-profile";
-const CATALOG_PATTERN = "**/api/v1/curriculum/opportunities";
+const CATALOG_PATTERN = "**/api/v1/curriculum/opportunities/query*";
 
 function json(route: Route, status: number, body: unknown) {
   return route.fulfill({
@@ -17,7 +17,7 @@ function json(route: Route, status: number, body: unknown) {
 
 async function mockReadyCatalog(
   page: Page,
-  catalog: unknown = learningCatalogFixture,
+  catalog: unknown = learningQueryPageFixture,
 ) {
   await page.route(SESSION_PATTERN, (route) =>
     json(route, 201, {
@@ -42,6 +42,10 @@ test("renders the protected catalog with equivalent themes and no axe violations
   });
   await expect(title).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(2);
+  await expect(
+    page.getByRole("searchbox", { name: "Search opportunities" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Apply query" })).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Open exact lesson" }),
   ).toHaveAttribute("href", "/learn/placements/cash-flow-basics-primary");
@@ -77,7 +81,9 @@ test("supports keyboard focus, narrow reflow, reduced motion, and forced colors"
   ).toBeVisible();
 
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Skip to learning content" })).toBeFocused();
+  await expect(
+    page.getByRole("link", { name: "Skip to learning content" }),
+  ).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("main")).toBeFocused();
 
@@ -127,7 +133,7 @@ test("shows a bounded denied state before requesting catalog records", async ({
 test("rejects an invalid record without rendering a partial catalog", async ({
   page,
 }) => {
-  const invalid = structuredClone(learningCatalogFixture) as unknown as {
+  const invalid = structuredClone(learningQueryPageFixture) as unknown as {
     records: Array<Record<string, unknown>>;
   };
   const firstRecord = invalid.records[0];

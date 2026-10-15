@@ -1,9 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { FinancialAcademyApiClient } from "../../src/generated/api-client";
-import { createLearningCatalogLoader } from "../../src/features/learning-catalog/api";
+import {
+  createLearningCatalogLoader,
+  parseLearningCatalogQuery,
+} from "../../src/features/learning-catalog/api";
 import {
   learningCatalogIsSafe,
+  learningCatalogQueryPageIsSafe,
   opportunityCanOpen,
 } from "../../src/features/learning-catalog/model";
 import type {
@@ -13,6 +17,7 @@ import type {
 import type { SingleProfileSession } from "../../src/platform/auth/singleProfileSession";
 import {
   learningCatalogFixture,
+  learningQueryPageFixture,
   plannedOpportunity,
 } from "../component/learningCatalogFixture";
 
@@ -117,11 +122,36 @@ describe("learningCatalogIsSafe", () => {
   });
 
   it.each([
-    ["unknown envelope field", (catalog: any) => { catalog.private_owner = "hidden"; }],
-    ["unsafe destination", (catalog: any) => { catalog.records[0].destination = "https://example.test/lesson"; }],
-    ["duplicate objective", (catalog: any) => { catalog.records[0].objectives.push(catalog.records[0].objectives[0]); }],
-    ["mixed projection time", (catalog: any) => { catalog.records[0].projected_at = "2026-10-15T12:01:00Z"; }],
-    ["observable order change", (catalog: any) => { catalog.records.reverse(); }],
+    [
+      "unknown envelope field",
+      (catalog: any) => {
+        catalog.private_owner = "hidden";
+      },
+    ],
+    [
+      "unsafe destination",
+      (catalog: any) => {
+        catalog.records[0].destination = "https://example.test/lesson";
+      },
+    ],
+    [
+      "duplicate objective",
+      (catalog: any) => {
+        catalog.records[0].objectives.push(catalog.records[0].objectives[0]);
+      },
+    ],
+    [
+      "mixed projection time",
+      (catalog: any) => {
+        catalog.records[0].projected_at = "2026-10-15T12:01:00Z";
+      },
+    ],
+    [
+      "observable order change",
+      (catalog: any) => {
+        catalog.records.reverse();
+      },
+    ],
   ])("rejects %s without accepting a partial list", async (_label, mutate) => {
     const catalog = copyCatalog();
     mutate(catalog);
@@ -227,8 +257,12 @@ describe("learningCatalogIsSafe", () => {
 });
 
 describe("createLearningCatalogLoader", () => {
-  it("uses the generated queryless operation after session establishment", async () => {
-    const get = vi.fn().mockResolvedValue(response(200, copyCatalog()));
+  it("uses the generated query operation with bounded URL parameters", async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValue(
+        response(200, structuredClone(learningQueryPageFixture)),
+      );
     const client = { GET: get } as unknown as FinancialAcademyApiClient;
     const session = {
       ensure: vi.fn().mockResolvedValue({ status: "ready" }),
@@ -237,14 +271,41 @@ describe("createLearningCatalogLoader", () => {
     const loader = createLearningCatalogLoader(client, session);
 
     const result = await loader({
-      request: new Request("http://localhost/learn"),
+      request: new Request(
+        "http://localhost/learn?query=cash&level=introductory&page_size=10",
+      ),
     } as never);
 
     expect(result.status).toBe("ready");
     expect(get).toHaveBeenCalledWith(
-      "/api/v1/curriculum/opportunities",
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      "/api/v1/curriculum/opportunities/query",
+      expect.objectContaining({
+        params: {
+          query: { query: "cash", level: ["introductory"], page_size: 10 },
+        },
+        signal: expect.any(AbortSignal),
+      }),
     );
+  });
+
+  it("rejects malformed URL state before session or API work", async () => {
+    const get = vi.fn();
+    const session = {
+      ensure: vi.fn(),
+      invalidate: vi.fn(),
+    } as unknown as SingleProfileSession;
+    const loader = createLearningCatalogLoader(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      session,
+    );
+    const result = await loader({
+      request: new Request(
+        "http://localhost/learn?minimum_minutes=40&maximum_minutes=20",
+      ),
+    } as never);
+    expect(result).toEqual({ status: "invalid-query" });
+    expect(session.ensure).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
   });
 
   it("renews once after unauthorized and fails closed on invalid success", async () => {
@@ -267,5 +328,40 @@ describe("createLearningCatalogLoader", () => {
     expect(get).toHaveBeenCalledTimes(2);
     expect(session.invalidate).toHaveBeenCalledOnce();
     expect(session.ensure).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("query page boundaries", () => {
+  it("keeps every query control optional for an unfiltered catalog", () => {
+    expect(parseLearningCatalogQuery("http://localhost/learn")).toEqual({});
+    expect(
+      parseLearningCatalogQuery(
+        "http://localhost/learn?query=&prerequisite_query=&topic=",
+      ),
+    ).toEqual({});
+  });
+
+  it("accepts the closed page and builds repeated URL values", async () => {
+    await expect(
+      learningCatalogQueryPageIsSafe(structuredClone(learningQueryPageFixture)),
+    ).resolves.toBe(true);
+    expect(
+      parseLearningCatalogQuery(
+        "http://localhost/learn?topic=cash-flow&level=introductory&level=advanced",
+      ),
+    ).toEqual({
+      topic: ["cash-flow"],
+      level: ["introductory", "advanced"],
+    });
+    const cursor = `${"a".repeat(160)}.${"d".repeat(64)}`;
+    expect(
+      parseLearningCatalogQuery(`http://localhost/learn?cursor=${cursor}`),
+    ).toEqual({ cursor });
+  });
+
+  it("rejects partial or private query pages", async () => {
+    const page = structuredClone(learningQueryPageFixture) as any;
+    page.private_ranking = 0.9;
+    await expect(learningCatalogQueryPageIsSafe(page)).resolves.toBe(false);
   });
 });
