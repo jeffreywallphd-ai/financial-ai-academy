@@ -207,7 +207,7 @@ without reopening the slice.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0011 | Deliver lifecycle contracts, atomic state, leases, recovery, exact-candidate commands, documentation, and qualification | none | none | ready |
-| WRK-0047 | Correct submit CLI input routing and prove the real command boundary | WRK-0011 | none | verifying |
+| WRK-0047 | Correct submit CLI input routing and prove the real command boundary | WRK-0011 | none | complete |
 
 Later CAP-0002 slices consume the stable outputs of WRK-0011 and remain serial.
 Anti-rigidity evidence is required alongside safety evidence: the common path

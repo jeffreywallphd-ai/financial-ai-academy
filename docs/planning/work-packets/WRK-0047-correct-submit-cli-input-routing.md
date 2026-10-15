@@ -1,7 +1,7 @@
 ---
 id: WRK-0047
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -135,8 +135,14 @@ interrupted CAP-0004 packet can be replayed on the repaired base.
 - Planning integrity passed for 74 artifacts, documentation validation passed
   for 198 Markdown files plus both catalogs, `git diff --check` passed, and the
   aggregate readiness gate passed all 27 checks against the packet base.
-- Exact-candidate affected verification and independent technical review remain
-  required before this packet can close.
+- Exact-candidate affected verification selected four checks—control-plane
+  lifecycle, planning-tool behavior, planning integrity, and documentation
+  integrity—and recorded a qualifying receipt with no errors. All required
+  local completion gates are satisfied; authority and review records remain
+  only in ignored local storage.
+- Residual qualification is limited to explicit zero/multiple optional-input
+  variants and non-Windows execution. The shared `argparse` append/default
+  behavior, engine tests, and existing portability boundary remain unchanged.
 
 ## Planning History
 
@@ -146,3 +152,6 @@ interrupted CAP-0004 packet can be replayed on the repaired base.
 - 2026-10-15: Implementation and pre-submission qualification passed; the
   packet moved to `verifying` for exact-candidate verification and independent
   technical review.
+- 2026-10-15: Exact-candidate affected verification and all required local
+  completion gates passed; WRK-0047 moved to `complete` without reopening
+  WRK-0011 or SLI-0003.
