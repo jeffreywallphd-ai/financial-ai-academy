@@ -1,7 +1,7 @@
 ---
 id: SLI-0022
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-15
@@ -196,6 +196,46 @@ checks, migration and rollback evidence, live browser qualification, design and
 accessibility results, anti-rigidity coverage, assumptions, known gaps, and
 confirmation that eligibility and adaptation remain outside this slice.
 
+SLI-0022 is complete through WRK-0058, WRK-0059, WRK-0060, and WRK-0061.
+Together they deliver the versioned Curriculum-owned graph contract and
+compatibility corpus, deterministic validation and exact-reference admission,
+checksum-locked immutable PostgreSQL persistence, a protected exact-version API
+and generated client, a complete accessible list/map route, and live composed
+qualification. Approved, invalid-identity/reference/topology, unauthorized,
+missing/corrupt-version, optional-shape, layout-independence, and theme/
+viewport scenarios all have direct contract, domain, integration, component,
+mocked-browser, or live-browser evidence.
+
+The current aggregate qualification passed 335 backend tests against isolated
+PostgreSQL 18.4, 114 Vitest tests, 26 mocked Chromium tests, 8 composed
+PostgreSQL/Python/static-host/Chromium tests, and 13 local-composition fitness
+tests. OpenAPI and generated-client currency, TypeScript typecheck, lint,
+production build, Python compilation, planning, documentation, design,
+architecture, diff hygiene, the structural completion gate, and all 27 agent
+readiness checks passed. Failure evidence includes duplicate and dangling
+identities, invalid topology and digest, stale exact references, immutable
+conflicts, unauthorized transport, missing exact versions, malformed browser
+responses, seed failure before readiness, and cleanup after success or failure.
+
+`curriculum_0003_curriculum_graphs` supplies the append-only table, trigger,
+and function with a checksum-locked down migration that removes only those new
+objects after consumers are withdrawn. Existing lesson, assessment, discovery,
+and learner evidence remain untouched. Canonical contract, module, migration,
+host, Curriculum, generated-client, web, and deployment guidance is reconciled;
+no schema or client version was silently substituted.
+
+Anti-rigidity evidence accepts absent or partial presentation hints, varied
+counts and sibling order, Unicode code-point bounds, compatible same-kind
+shared branch membership, unbranched activities, and empty optional
+collections without weakening closed public shapes. The shared core and ports
+remain deployment-neutral, but a managed-cloud adapter, non-Chromium browsers,
+manual screen-reader operation, production publication/recovery, and remote or
+multi-learner profiles were not qualified. Eligibility, completion meaning,
+activity execution, mastery, adaptation, and recommendations remain outside
+this slice. Delivery stayed within the current CAP-0005 package with no
+material outcome, risk, order, ownership, or decision-posture drift; no
+lower-level completion approval exists or was requested.
+
 ## Planning History
 
 - 2026-10-15: Refined just in time as the first eligible CAP-0005 slice.
@@ -224,8 +264,8 @@ confirmation that eligibility and adaptation remain outside this slice.
   implementation gate passed and the control plane issued its durable claim.
 - 2026-10-15: Completed WRK-0060 with an exact generated-client route, closed
   graph validation aligned to canonical Unicode and semantic rules, accessible
-  list/map parity, flexible-shape evidence, aggregate interface checks, and an
-  accepted independent technical review. WRK-0061 is dependency-ready.
+  list/map parity, flexible-shape evidence, aggregate interface checks, and
+  qualifying exact-candidate evidence. WRK-0061 is dependency-ready.
 - 2026-10-15: Refined WRK-0061 just in time around public-operation synthetic
   graph seeding and the existing isolated PostgreSQL/Python/static-host/
   Chromium qualification harness, with direct live anti-rigidity evidence.
@@ -238,3 +278,7 @@ confirmation that eligibility and adaptation remain outside this slice.
 - 2026-10-15: Completed WRK-0061 with qualifying exact-candidate evidence and
   moved SLI-0022 into deterministic slice verification with all four packets
   complete.
+- 2026-10-15: Closed SLI-0022 after all four packets, acceptance scenarios,
+  migration/rollback evidence, failure paths, composed qualification,
+  documentation reconciliation, and aggregate readiness gates passed without
+  material CAP-0005 drift.
