@@ -2,8 +2,15 @@ from __future__ import annotations
 
 import ast
 import json
+import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
+from fastapi import FastAPI
+
+from deployments.local import serve
 
 
 REPOSITORY = Path(__file__).resolve().parents[2]
@@ -13,6 +20,53 @@ WEB_SOURCE = REPOSITORY / "apps" / "web" / "src"
 WEB_PACKAGE = REPOSITORY / "apps" / "web" / "package.json"
 WEB_DIST = REPOSITORY / "apps" / "web" / "dist"
 SETUP_SCRIPT = REPOSITORY / "deployments" / "local" / "setup-dev.mjs"
+
+
+def local_services() -> SimpleNamespace:
+    content = SimpleNamespace(admit_lesson_package=MagicMock())
+    curriculum = SimpleNamespace(
+        create_lesson_placement=MagicMock(),
+        create_assessment_placement=MagicMock(),
+        register_lesson_opportunity=MagicMock(),
+        rebuild_learning_opportunity_projection=MagicMock(),
+    )
+    return SimpleNamespace(
+        assessment=object(),
+        audit=object(),
+        content=content,
+        curriculum=curriculum,
+        identity=object(),
+        learner_model=object(),
+        request_policy=object(),
+    )
+
+
+def build_local_app(
+    services: SimpleNamespace,
+    *,
+    seed_approved_fixture: bool,
+) -> tuple[FastAPI, MagicMock]:
+    app = FastAPI()
+    create_app = MagicMock(return_value=app)
+    with tempfile.TemporaryDirectory() as temporary_directory:
+        with (
+            patch.object(
+                serve,
+                "build_application_services",
+                return_value=services,
+            ),
+            patch.object(serve, "create_app", create_app),
+        ):
+            result = serve.build_local_app(
+                postgres_dsn="postgresql://qualification-only",
+                data_root=Path(temporary_directory) / "data",
+                web_dist=Path(temporary_directory) / "web",
+                host="127.0.0.1",
+                port=8765,
+                seed_approved_fixture=seed_approved_fixture,
+                serve_static=False,
+            )
+    return result, create_app
 
 
 def imports(path: Path) -> set[str]:
@@ -27,6 +81,134 @@ def imports(path: Path) -> set[str]:
 
 
 class ApprovedLessonArchitectureTests(unittest.TestCase):
+    def test_fixture_seed_is_disabled_without_discovery_mutations(self) -> None:
+        services = local_services()
+
+        app, create_app = build_local_app(
+            services,
+            seed_approved_fixture=False,
+        )
+
+        self.assertIsInstance(app, FastAPI)
+        services.content.admit_lesson_package.assert_not_called()
+        services.curriculum.create_lesson_placement.assert_not_called()
+        services.curriculum.create_assessment_placement.assert_not_called()
+        services.curriculum.register_lesson_opportunity.assert_not_called()
+        services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
+        create_app.assert_called_once()
+
+    def test_fixture_seed_uses_exact_public_operation_order(self) -> None:
+        services = local_services()
+        events: list[str] = []
+        accepted = SimpleNamespace(
+            package_id="intro-risk-return",
+            package_version="1.1.0",
+            package_digest="a" * 64,
+        )
+        placement = SimpleNamespace(placement_id=serve.PLACEMENT_ID)
+        services.content.admit_lesson_package.side_effect = (
+            lambda request: events.append("admit") or accepted
+        )
+        services.curriculum.create_lesson_placement.side_effect = (
+            lambda request: events.append("lesson-placement") or placement
+        )
+        services.curriculum.create_assessment_placement.side_effect = (
+            lambda request: events.append("assessment-placement")
+        )
+        services.curriculum.register_lesson_opportunity.side_effect = (
+            lambda request: events.append("register-opportunity")
+        )
+        services.curriculum.rebuild_learning_opportunity_projection.side_effect = (
+            lambda request: events.append("rebuild-projection")
+        )
+        app = FastAPI()
+        create_app = MagicMock(
+            side_effect=lambda api_services: events.append("create-app") or app
+        )
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with (
+                patch.object(
+                    serve,
+                    "build_application_services",
+                    return_value=services,
+                ),
+                patch.object(serve, "create_app", create_app),
+            ):
+                result = serve.build_local_app(
+                    postgres_dsn="postgresql://qualification-only",
+                    data_root=Path(temporary_directory) / "data",
+                    web_dist=Path(temporary_directory) / "web",
+                    host="127.0.0.1",
+                    port=8765,
+                    seed_approved_fixture=True,
+                    serve_static=False,
+                )
+
+        self.assertIs(result, app)
+        self.assertEqual(
+            events,
+            [
+                "admit",
+                "lesson-placement",
+                "assessment-placement",
+                "register-opportunity",
+                "rebuild-projection",
+                "create-app",
+            ],
+        )
+
+    def test_fixture_seed_failure_prevents_application_readiness(self) -> None:
+        for failure in ("register", "rebuild"):
+            with self.subTest(failure=failure):
+                services = local_services()
+                accepted = SimpleNamespace(
+                    package_id="intro-risk-return",
+                    package_version="1.1.0",
+                    package_digest="a" * 64,
+                )
+                placement = SimpleNamespace(placement_id=serve.PLACEMENT_ID)
+                services.content.admit_lesson_package.return_value = accepted
+                services.curriculum.create_lesson_placement.return_value = placement
+                failing_operation = (
+                    services.curriculum.register_lesson_opportunity
+                    if failure == "register"
+                    else services.curriculum.rebuild_learning_opportunity_projection
+                )
+                failing_operation.side_effect = RuntimeError(
+                    "deliberate fixture failure"
+                )
+                create_app = MagicMock(return_value=FastAPI())
+
+                with tempfile.TemporaryDirectory() as temporary_directory:
+                    with (
+                        patch.object(
+                            serve,
+                            "build_application_services",
+                            return_value=services,
+                        ),
+                        patch.object(serve, "create_app", create_app),
+                    ):
+                        with self.assertRaisesRegex(
+                            RuntimeError,
+                            "deliberate fixture failure",
+                        ):
+                            serve.build_local_app(
+                                postgres_dsn="postgresql://qualification-only",
+                                data_root=(
+                                    Path(temporary_directory) / "data"
+                                ),
+                                web_dist=Path(temporary_directory) / "web",
+                                host="127.0.0.1",
+                                port=8765,
+                                seed_approved_fixture=True,
+                                serve_static=False,
+                            )
+
+                create_app.assert_not_called()
+                if failure == "register":
+                    services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
+
     def test_all_implemented_domain_layers_point_inward(self) -> None:
         forbidden = {
             "fastapi",

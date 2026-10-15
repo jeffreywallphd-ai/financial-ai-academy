@@ -51,6 +51,28 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   await expect(
     catalogCard.getByText("intro-risk-return@1.1.0", { exact: true }),
   ).toBeVisible();
+  await expect(catalogCard.getByText("Lesson", { exact: true })).toBeVisible();
+  await expect(
+    catalogCard.getByText("Available", { exact: true }),
+  ).toBeVisible();
+  const topicList = catalogCard.getByRole("list", {
+    name: "Understanding Risk and Return topics",
+  });
+  await expect(
+    topicList.getByText("Investment Basics", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    topicList.getByText("Risk And Return", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    catalogCard.getByText("Introductory", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    catalogCard.getByText("20 minutes", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    catalogCard.getByText("No prior lesson is required.", { exact: true }),
+  ).toBeVisible();
   await expect(
     catalogCard.getByText(/Financial AI Academy fixture publisher/),
   ).toBeVisible();
@@ -64,6 +86,29 @@ test("browses the live catalog and opens the approved exact lesson", async ({
     name: "Open exact lesson",
   });
   await expect(lessonAction).toHaveAttribute("href", LESSON_PATH);
+
+  const catalogResponse = await context.request.get(CATALOG_API);
+  expect(catalogResponse.status()).toBe(200);
+  const catalog = await catalogResponse.json();
+  expect(catalog.records).toHaveLength(1);
+  expect(catalog.records[0]).toMatchObject({
+    opportunity_id: PLACEMENT_ID,
+    placement_id: PLACEMENT_ID,
+    destination: LESSON_PATH,
+    kind: "lesson",
+    topics: ["investment-basics", "risk-and-return"],
+    level: "introductory",
+    estimated_minutes: 20,
+    prerequisite_summary: "No prior lesson is required.",
+    availability: "available",
+    availability_reason:
+      "The exact reviewed lesson is available in this local catalog.",
+    package_id: "intro-risk-return",
+    package_version: "1.1.0",
+    package_digest: DIGEST,
+  });
+  expect(catalog.records[0].source_fingerprint).toMatch(/^[a-f0-9]{64}$/);
+  expect(catalog.records[0].projected_at).toBe(catalog.projected_at);
   await lessonAction.click();
   await expect(page).toHaveURL(new RegExp(`${LESSON_PATH}$`));
 
