@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from financial_ai_academy.modules.content.public import (
     LessonErrorCode,
     LessonReadError,
+    PublishedLesson,
 )
 
 from ..ports.content_gateway import ContentLessonGatewayPort
@@ -40,7 +41,13 @@ from ..public import (
 
 _PLACEMENT_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
 _TOPIC = re.compile(r"^[a-z0-9][a-z0-9-]{1,49}$")
+_SEMVER = re.compile(
+    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)"
+    r"(?:-[0-9A-Za-z.-]+)?$"
+)
+_DIGEST = re.compile(r"^[a-f0-9]{64}$")
 _DISCOVERY_VERSION = "1.0.0"
+_MAX_DISCOVERY_RECORDS = 500
 
 
 class CurriculumService:
@@ -249,8 +256,17 @@ class CurriculumService:
                 "Learning-opportunity sources are unavailable.",
             ) from error
         projected_at = self._now()
+        if (
+            not isinstance(classifications, tuple)
+            or len(classifications) > _MAX_DISCOVERY_RECORDS
+        ):
+            self._invalid(
+                "learning-opportunity",
+                "Learning-opportunity sources are invalid.",
+            )
         records: list[LearningOpportunityRecord] = []
         for classification in classifications:
+            self._validate_stored_classification(classification)
             placement = self._discovery_placement(classification.placement_id)
             lesson = self._discovery_lesson(placement)
             meaning = self._record_meaning(classification, placement, lesson)
@@ -274,6 +290,12 @@ class CurriculumService:
         )
         generation = projection_generation(
             [self._stable_record(record) for record in ordered]
+        )
+        self._validate_projection(
+            generation,
+            projected_at,
+            ordered,
+            code=DiscoveryErrorCode.INVALID_RECORD,
         )
         try:
             self._repository.replace_discovery_projection(
@@ -308,24 +330,15 @@ class CurriculumService:
                 DiscoveryErrorCode.UNAVAILABLE,
                 "Learning-opportunity projection is unavailable.",
             )
+        if not isinstance(projection, tuple) or len(projection) != 3:
+            self._projection_invalid(DiscoveryErrorCode.STALE_SOURCE)
         generation, projected_at, records = projection
-        ordered = tuple(
-            sorted(
-                records,
-                key=lambda record: (
-                    record.title.casefold(),
-                    record.opportunity_id,
-                ),
-            )
+        self._validate_projection(
+            generation,
+            projected_at,
+            records,
+            code=DiscoveryErrorCode.STALE_SOURCE,
         )
-        expected = projection_generation(
-            [self._stable_record(record) for record in ordered]
-        )
-        if records != ordered or generation != expected:
-            raise DiscoveryError(
-                DiscoveryErrorCode.STALE_SOURCE,
-                "Learning-opportunity projection integrity failed.",
-            )
         return LearningOpportunityBrowse(
             schema_version=_DISCOVERY_VERSION,
             projection_generation=generation,
@@ -336,8 +349,11 @@ class CurriculumService:
     def _classification(
         self, request: RegisterLessonOpportunityRequest
     ) -> LessonOpportunityClassification:
-        if not _PLACEMENT_ID.fullmatch(request.opportunity_id) or not (
-            _PLACEMENT_ID.fullmatch(request.placement_id)
+        if (
+            not isinstance(request.opportunity_id, str)
+            or not isinstance(request.placement_id, str)
+            or not _PLACEMENT_ID.fullmatch(request.opportunity_id)
+            or not _PLACEMENT_ID.fullmatch(request.placement_id)
         ):
             self._invalid(request.opportunity_id, "Opportunity identity is invalid.")
         if not isinstance(request.level, OpportunityLevel) or not isinstance(
@@ -357,6 +373,10 @@ class CurriculumService:
                 request.opportunity_id,
                 "Estimated duration is invalid.",
             )
+        if not isinstance(request.topics, tuple) or any(
+            not isinstance(topic, str) for topic in request.topics
+        ):
+            self._invalid(request.opportunity_id, "Opportunity topics are invalid.")
         topics = tuple(sorted(request.topics))
         if (
             not 1 <= len(topics) <= 8
@@ -387,6 +407,45 @@ class CurriculumService:
             created_at=self._now(),
         )
 
+    def _validate_stored_classification(self, value: object) -> None:
+        if not isinstance(value, LessonOpportunityClassification):
+            self._invalid(
+                "learning-opportunity",
+                "Learning-opportunity sources are invalid.",
+            )
+        normalized = self._classification(
+            RegisterLessonOpportunityRequest(
+                opportunity_id=value.opportunity_id,
+                placement_id=value.placement_id,
+                summary=value.summary,
+                topics=value.topics,
+                level=value.level,
+                estimated_minutes=value.estimated_minutes,
+                prerequisite_summary=value.prerequisite_summary,
+                availability=value.availability,
+                availability_reason=value.availability_reason,
+            )
+        )
+        semantic_fields = (
+            "opportunity_id",
+            "placement_id",
+            "summary",
+            "topics",
+            "level",
+            "estimated_minutes",
+            "prerequisite_summary",
+            "availability",
+            "availability_reason",
+        )
+        if any(
+            getattr(value, field) != getattr(normalized, field)
+            for field in semantic_fields
+        ) or not self._aware_datetime(value.created_at):
+            self._invalid(
+                value.opportunity_id,
+                "Learning-opportunity sources are invalid.",
+            )
+
     def _discovery_placement(self, placement_id: str) -> LessonPlacement:
         try:
             placement = self._repository.get(placement_id)
@@ -400,6 +459,22 @@ class CurriculumService:
             raise DiscoveryError(
                 DiscoveryErrorCode.STALE_SOURCE,
                 "The exact learning destination is unavailable.",
+                reference=placement_id,
+            )
+        if (
+            not isinstance(placement, LessonPlacement)
+            or placement.placement_id != placement_id
+            or not self._identifier(placement.placement_id)
+            or not self._identifier(placement.package_id)
+            or not isinstance(placement.package_version, str)
+            or not _SEMVER.fullmatch(placement.package_version)
+            or not isinstance(placement.package_digest, str)
+            or not _DIGEST.fullmatch(placement.package_digest)
+            or not self._aware_datetime(placement.created_at)
+        ):
+            raise DiscoveryError(
+                DiscoveryErrorCode.STALE_SOURCE,
+                "The exact learning destination is invalid.",
                 reference=placement_id,
             )
         return placement
@@ -422,6 +497,18 @@ class CurriculumService:
                 "The exact published opportunity source is unavailable.",
                 reference=placement.placement_id,
             ) from error
+        except Exception as error:
+            raise DiscoveryError(
+                DiscoveryErrorCode.UNAVAILABLE,
+                "The exact published opportunity source is unavailable.",
+                reference=placement.placement_id,
+            ) from error
+        if not isinstance(lesson, PublishedLesson):
+            raise DiscoveryError(
+                DiscoveryErrorCode.STALE_SOURCE,
+                "The published opportunity source is invalid.",
+                reference=placement.placement_id,
+            )
         if (
             lesson.package_id,
             lesson.package_version,
@@ -437,6 +524,179 @@ class CurriculumService:
                 reference=placement.placement_id,
             )
         return lesson
+
+    @classmethod
+    def _validate_projection(
+        cls,
+        generation: object,
+        projected_at: object,
+        records: object,
+        *,
+        code: DiscoveryErrorCode,
+    ) -> None:
+        if (
+            not isinstance(generation, str)
+            or not _DIGEST.fullmatch(generation)
+            or not cls._aware_datetime(projected_at)
+            or not isinstance(records, tuple)
+            or len(records) > _MAX_DISCOVERY_RECORDS
+        ):
+            cls._projection_invalid(code)
+        identities: list[str] = []
+        for record in records:
+            cls._validate_record(record, projected_at, code=code)
+            identities.append(record.opportunity_id)
+        if len(identities) != len(set(identities)):
+            cls._projection_invalid(code)
+        ordered = tuple(
+            sorted(
+                records,
+                key=lambda record: (
+                    record.title.casefold(),
+                    record.opportunity_id,
+                ),
+            )
+        )
+        expected = projection_generation(
+            [cls._stable_record(record) for record in ordered]
+        )
+        if records != ordered or generation != expected:
+            cls._projection_invalid(code)
+
+    @classmethod
+    def _validate_record(
+        cls,
+        record: object,
+        projected_at: datetime,
+        *,
+        code: DiscoveryErrorCode,
+    ) -> None:
+        if not isinstance(record, LearningOpportunityRecord):
+            cls._projection_invalid(code)
+        provenance = record.provenance
+        if (
+            record.schema_version != _DISCOVERY_VERSION
+            or not cls._identifier(record.opportunity_id)
+            or not cls._identifier(record.placement_id)
+            or record.destination
+            != f"/learn/placements/{record.placement_id}"
+            or record.kind is not OpportunityKind.LESSON
+            or not cls._bounded_text(record.title, 1, 240)
+            or not cls._bounded_text(record.summary, 20, 500)
+            or not cls._bounded_text_tuple(record.objectives, 1, 20, 500)
+            or not cls._valid_topics(record.topics)
+            or not isinstance(record.level, OpportunityLevel)
+            or not isinstance(record.estimated_minutes, int)
+            or isinstance(record.estimated_minutes, bool)
+            or not 1 <= record.estimated_minutes <= 1440
+            or not cls._bounded_text(record.prerequisite_summary, 2, 500)
+            or not isinstance(record.availability, OpportunityAvailability)
+            or not cls._bounded_text(record.availability_reason, 10, 500)
+            or not cls._identifier(record.package_id)
+            or not isinstance(record.package_version, str)
+            or not _SEMVER.fullmatch(record.package_version)
+            or not isinstance(record.package_digest, str)
+            or not _DIGEST.fullmatch(record.package_digest)
+            or not isinstance(provenance, DiscoveryProvenance)
+            or not cls._bounded_text(provenance.published_by, 1, 160)
+            or not cls._aware_datetime(provenance.published_at)
+            or type(provenance.content_reviewed_on) is not date
+            or not cls._bounded_text(
+                provenance.educational_use_notice,
+                1,
+                500,
+            )
+            or not isinstance(record.source_fingerprint, str)
+            or not _DIGEST.fullmatch(record.source_fingerprint)
+            or not cls._aware_datetime(record.projected_at)
+            or record.projected_at != projected_at
+        ):
+            cls._projection_invalid(code)
+        expected_source = discovery_digest(
+            cls._json_meaning(
+                {
+                    field: getattr(record, field)
+                    for field in (
+                        "schema_version",
+                        "opportunity_id",
+                        "placement_id",
+                        "destination",
+                        "kind",
+                        "title",
+                        "summary",
+                        "objectives",
+                        "topics",
+                        "level",
+                        "estimated_minutes",
+                        "prerequisite_summary",
+                        "availability",
+                        "availability_reason",
+                        "package_id",
+                        "package_version",
+                        "package_digest",
+                        "provenance",
+                    )
+                }
+            )
+        )
+        if record.source_fingerprint != expected_source:
+            cls._projection_invalid(code)
+
+    @staticmethod
+    def _identifier(value: object) -> bool:
+        return isinstance(value, str) and bool(_PLACEMENT_ID.fullmatch(value))
+
+    @staticmethod
+    def _aware_datetime(value: object) -> bool:
+        return (
+            isinstance(value, datetime)
+            and value.tzinfo is not None
+            and value.utcoffset() is not None
+        )
+
+    @staticmethod
+    def _bounded_text(value: object, minimum: int, maximum: int) -> bool:
+        return (
+            isinstance(value, str)
+            and minimum <= len(value) <= maximum
+            and value == value.strip()
+            and not any(character in value for character in ("\x00", "\r", "\n"))
+        )
+
+    @classmethod
+    def _bounded_text_tuple(
+        cls,
+        value: object,
+        minimum_items: int,
+        maximum_items: int,
+        maximum_length: int,
+    ) -> bool:
+        return (
+            isinstance(value, tuple)
+            and minimum_items <= len(value) <= maximum_items
+            and all(cls._bounded_text(item, 1, maximum_length) for item in value)
+            and len(value) == len(set(value))
+        )
+
+    @staticmethod
+    def _valid_topics(value: object) -> bool:
+        return (
+            isinstance(value, tuple)
+            and 1 <= len(value) <= 8
+            and all(
+                isinstance(topic, str) and bool(_TOPIC.fullmatch(topic))
+                for topic in value
+            )
+            and value == tuple(sorted(value))
+            and len(value) == len(set(value))
+        )
+
+    @staticmethod
+    def _projection_invalid(code: DiscoveryErrorCode):
+        raise DiscoveryError(
+            code,
+            "Learning-opportunity projection integrity failed.",
+        )
 
     @staticmethod
     def _record_meaning(classification, placement, lesson) -> dict[str, object]:
@@ -553,7 +813,7 @@ class CurriculumService:
         return normalized
 
     @staticmethod
-    def _invalid(reference: str, message: str):
+    def _invalid(reference: object, message: str):
         raise DiscoveryError(
             DiscoveryErrorCode.INVALID_RECORD,
             message,

@@ -197,6 +197,15 @@ class DiscoveryContractValidator:
                 "records",
                 "Learning opportunities are not stably ordered.",
             )
+        if any(
+            record["projected_at"] != browse["projected_at"]
+            for record in records
+        ):
+            reject(
+                "discovery.projection_timestamp_mismatch",
+                "records",
+                "Learning-opportunity projection timestamps do not match.",
+            )
         if browse["projection_generation"] != projection_generation(records):
             reject(
                 "discovery.generation_mismatch",

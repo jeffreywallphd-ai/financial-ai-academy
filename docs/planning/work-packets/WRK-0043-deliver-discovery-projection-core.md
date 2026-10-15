@@ -171,11 +171,16 @@ conformance, packet lifecycle result, and whether WRK-0044 is eligible.
   stable title/ID ordering, and bounded fail-closed browse behavior. No
   persistence, HTTP, browser, non-lesson execution, ranking, or personalization
   was introduced.
-- Backend unit, contract, and architecture qualification passed 187 tests.
+- Backend unit, contract, and architecture qualification passed 193 tests.
   Architecture fitness passed eight checks, security passed ten control groups,
   documentation validated 201 Markdown files plus both catalogs, planning
   integrity passed 76 artifacts, and aggregate readiness passed all 27 checks
   against base `419f40c69f56be6b9a5464ef0e86f3383d21e2f0`.
+- Bounded correctness corrections now reject malformed or oversized stored
+  classification sets before replacement, validate every persisted record and
+  one coherent projection timestamp before browse, translate unexpected
+  Content-gateway failures to a redacted unavailable result, and reject
+  malformed registration runtime types without leaking raw exceptions.
 - Exact-candidate affected verification and the required local completion gates
   remain before this packet can close.
 
@@ -187,3 +192,6 @@ conformance, packet lifecycle result, and whether WRK-0044 is eligible.
 - 2026-10-15: Reclaimed on the repaired control-plane base after a bounded
   submit-CLI correction; implementation and pre-submission qualification passed
   and the packet moved to `verifying`.
+- 2026-10-15: Tightened stored-source, projection-coherence, gateway-failure,
+  and runtime-type validation within the approved packet after technical
+  verification identified bounded correctness defects.

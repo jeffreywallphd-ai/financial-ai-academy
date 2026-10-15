@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import fields, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -139,6 +139,7 @@ class FakeContentGateway:
     def __init__(self, lesson: PublishedLesson) -> None:
         self.lesson = lesson
         self.available = True
+        self.fail_unexpected = False
 
     def get_exact(
         self,
@@ -146,6 +147,8 @@ class FakeContentGateway:
         package_version: str,
         package_digest: str,
     ) -> PublishedLesson:
+        if self.fail_unexpected:
+            raise RuntimeError("synthetic provider detail")
         if not self.available or (
             package_id,
             package_version,
@@ -331,6 +334,50 @@ def test_failed_replacement_retains_last_complete_generation(
     ) == expected
 
 
+def test_corrupt_source_and_over_limit_rebuild_retain_last_generation(
+    lesson: PublishedLesson,
+) -> None:
+    service, repository, _gateway = service_for(lesson)
+    stored = service.register_lesson_opportunity(request())
+    expected = service.rebuild_learning_opportunity_projection(
+        RebuildLearningOpportunityProjectionRequest()
+    )
+    repository.classifications[stored.opportunity_id] = replace(
+        stored,
+        summary="x",
+    )
+
+    with pytest.raises(DiscoveryError) as corrupt:
+        service.rebuild_learning_opportunity_projection(
+            RebuildLearningOpportunityProjectionRequest()
+        )
+
+    assert corrupt.value.code is DiscoveryErrorCode.INVALID_RECORD
+    assert repository.projection == (
+        expected.projection_generation,
+        expected.projected_at,
+        expected.records,
+    )
+
+    repository.classifications = {
+        f"opportunity-{index:04d}": replace(
+            stored,
+            opportunity_id=f"opportunity-{index:04d}",
+        )
+        for index in range(501)
+    }
+    with pytest.raises(DiscoveryError) as over_limit:
+        service.rebuild_learning_opportunity_projection(
+            RebuildLearningOpportunityProjectionRequest()
+        )
+    assert over_limit.value.code is DiscoveryErrorCode.INVALID_RECORD
+    assert repository.projection == (
+        expected.projection_generation,
+        expected.projected_at,
+        expected.records,
+    )
+
+
 def test_missing_or_tampered_projection_is_never_returned(
     lesson: PublishedLesson,
 ) -> None:
@@ -356,13 +403,46 @@ def test_missing_or_tampered_projection_is_never_returned(
         )
     assert tampered.value.code is DiscoveryErrorCode.STALE_SOURCE
 
+    repository.projection = (
+        result.projection_generation,
+        result.projected_at,
+        (
+            replace(
+                result.records[0],
+                projected_at=result.projected_at + timedelta(seconds=1),
+            ),
+        ),
+    )
+    with pytest.raises(DiscoveryError) as mixed_timestamp:
+        service.browse_learning_opportunities(
+            BrowseLearningOpportunitiesRequest()
+        )
+    assert mixed_timestamp.value.code is DiscoveryErrorCode.STALE_SOURCE
+
+
+def test_unexpected_content_failure_is_bounded_and_redacted(
+    lesson: PublishedLesson,
+) -> None:
+    service, repository, gateway = service_for(lesson)
+    gateway.fail_unexpected = True
+
+    with pytest.raises(DiscoveryError) as captured:
+        service.register_lesson_opportunity(request())
+
+    assert captured.value.code is DiscoveryErrorCode.UNAVAILABLE
+    assert "provider" not in captured.value.message
+    assert repository.classifications == {}
+
 
 @pytest.mark.parametrize(
     "candidate",
     [
         replace(request(), opportunity_id="BAD"),
+        replace(request(), opportunity_id=None),
         replace(request(), summary="short"),
         replace(request(), topics=("not valid",)),
+        replace(request(), topics=None),
+        replace(request(), topics=("investing-basics", 3)),
         replace(request(), estimated_minutes=0),
         replace(request(), prerequisite_summary="\nnone"),
         replace(request(), availability_reason="brief"),

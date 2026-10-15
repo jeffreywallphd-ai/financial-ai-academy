@@ -45,5 +45,13 @@
     "path": ["projection_generation"],
     "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
     "expected_code": "discovery.generation_mismatch"
+  },
+  {
+    "id": "mixed-projection-timestamps",
+    "target": "browse",
+    "op": "set",
+    "path": ["records", 0, "projected_at"],
+    "value": "2026-10-15T18:00:00Z",
+    "expected_code": "discovery.projection_timestamp_mismatch"
   }
 ]
