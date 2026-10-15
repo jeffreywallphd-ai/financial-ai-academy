@@ -28,6 +28,18 @@ canonical applied query and exact count/order, and fails closed on invalid,
 stale, denied, or unavailable results. Neither client operation accepts
 learner, permission, provider, or storage selectors.
 
+The learning-catalog client also defines the reusable selection seam for
+future detail and comparison routes. One detail ID or two through four distinct
+comparison IDs are accepted as navigation state; the protected queryless
+browse operation is then read and its complete current envelope, record set,
+provenance fingerprints, order, and generation are validated before any ID is
+resolved. A missing ID invalidates the whole selection, so the browser never
+shows a partial comparison or trusts URL- or storage-supplied record facts. An
+optional same-origin `/learn` return reference may retain valid query/filter
+state, but its transient cursor is removed and no saved comparison or cache is
+created. The visible routes and controls that consume this seam are delivered
+separately.
+
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 
 Exact dependency patches and integrity data belong in committed project metadata and lockfiles when approved delivery work introduces them. Do not use floating resolution as the framework baseline.

@@ -1,9 +1,9 @@
 ---
 id: WRK-0053
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0004
 updated: 2026-10-15
 parent: SLI-0020
 capability: CAP-0004
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/learning-catalog/model.ts", "apps/web/src/features/learning-catalog/api.ts", "apps/web/tests/unit/learningCatalogModel.test.ts", "apps/web/README.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0020-inspect-and-compare-learning-opportunities.md", "docs/planning/work-packets/WRK-0053-define-opportunity-selection-model.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: afec55ed125f3a80649d5221394032585ee0bb14
+claim_id: WRK-0053:09f3639c-f38b-4a24-8289-d1e6eecccea4
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T20:44:52Z
 ---
 
 # Agent Work Packet: Define the Opportunity Selection Model

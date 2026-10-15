@@ -6,8 +6,15 @@ import type {
   LearningCatalogQueryPage,
   LearningCatalogQueryParameters,
   LearningCatalogRouteState,
+  LearningOpportunitySelection,
+  LearningOpportunitySelectionRouteState,
 } from "./model";
-import { learningCatalogQueryPageIsSafe } from "./model";
+import {
+  learningCatalogQueryPageIsSafe,
+  opportunityIdentifierIsSafe,
+  queryPageHref,
+  resolveLearningOpportunitySelection,
+} from "./model";
 
 const KNOWN_PARAMETERS = new Set([
   "query",
@@ -166,6 +173,215 @@ export function parseLearningCatalogQuery(
     ...(pageSize === undefined ? {} : { page_size: pageSize }),
     ...(cursor === undefined ? {} : { cursor }),
   };
+}
+
+function strictSingleParameter(
+  parameters: URLSearchParams,
+  name: string,
+  maximum: number,
+): string | undefined | null {
+  const values = parameters.getAll(name);
+  if (values.length === 0) return undefined;
+  const value = values[0];
+  if (
+    values.length !== 1 ||
+    value === undefined ||
+    value.length === 0 ||
+    value.length > maximum ||
+    /[\0\r\n]/.test(value)
+  ) {
+    return null;
+  }
+  return value;
+}
+
+function catalogQueryHref(query: LearningCatalogQueryParameters): string {
+  return queryPageHref({
+    query: query.query ?? null,
+    prerequisite_query: query.prerequisite_query ?? null,
+    topics: query.topic ?? [],
+    levels: query.level ?? [],
+    kinds: query.kind ?? [],
+    availabilities: query.availability ?? [],
+    minimum_minutes: query.minimum_minutes ?? null,
+    maximum_minutes: query.maximum_minutes ?? null,
+    sort: query.sort ?? "catalog",
+    page_size: query.page_size ?? 20,
+  });
+}
+
+function returnPath(
+  parameters: URLSearchParams,
+  requestUrl: URL,
+): string | null {
+  const raw = strictSingleParameter(parameters, "return_to", 2048);
+  if (raw === null) return null;
+  if (raw === undefined) return "/learn";
+  let candidate: URL;
+  try {
+    candidate = new URL(raw, requestUrl.origin);
+  } catch {
+    return null;
+  }
+  if (
+    candidate.origin !== requestUrl.origin ||
+    candidate.pathname !== "/learn" ||
+    candidate.username !== "" ||
+    candidate.password !== "" ||
+    candidate.hash !== ""
+  ) {
+    return null;
+  }
+  candidate.searchParams.delete("cursor");
+  const parsed = parseLearningCatalogQuery(candidate.toString());
+  return parsed === null ? null : catalogQueryHref(parsed);
+}
+
+function requestUrl(value: string): URL | null {
+  try {
+    return new URL(value);
+  } catch {
+    return null;
+  }
+}
+
+export function parseLearningOpportunityDetailSelection(
+  opportunityId: unknown,
+  url: string,
+): LearningOpportunitySelection | null {
+  const request = requestUrl(url);
+  if (
+    request === null ||
+    !opportunityIdentifierIsSafe(opportunityId) ||
+    [...request.searchParams.keys()].some((name) => name !== "return_to")
+  ) {
+    return null;
+  }
+  const returnTo = returnPath(request.searchParams, request);
+  return returnTo === null
+    ? null
+    : { kind: "detail", opportunityIds: [opportunityId], returnTo };
+}
+
+export function parseLearningOpportunityComparisonSelection(
+  url: string,
+): LearningOpportunitySelection | null {
+  const request = requestUrl(url);
+  if (
+    request === null ||
+    [...request.searchParams.keys()].some(
+      (name) => name !== "opportunity" && name !== "return_to",
+    )
+  ) {
+    return null;
+  }
+  const opportunityIds = request.searchParams.getAll("opportunity");
+  const returnTo = returnPath(request.searchParams, request);
+  if (
+    returnTo === null ||
+    opportunityIds.length < 2 ||
+    opportunityIds.length > 4 ||
+    !opportunityIds.every(opportunityIdentifierIsSafe) ||
+    new Set(opportunityIds).size !== opportunityIds.length
+  ) {
+    return null;
+  }
+  return { kind: "comparison", opportunityIds, returnTo };
+}
+
+function selectionSessionFailureState(
+  kind: "forbidden" | "unauthorized" | "unavailable" | "unexpected",
+): LearningOpportunitySelectionRouteState {
+  return { status: kind };
+}
+
+function selectionResponseState(
+  status: number,
+): LearningOpportunitySelectionRouteState {
+  if (status === 401) return { status: "unauthorized" };
+  if (status === 403) return { status: "forbidden" };
+  if (status === 409 || status === 503) return { status: "unavailable" };
+  return { status: "unexpected" };
+}
+
+async function readOpportunitySelection(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  signal: AbortSignal,
+  selection: LearningOpportunitySelection,
+  retryUnauthorized: boolean,
+): Promise<LearningOpportunitySelectionRouteState> {
+  try {
+    const result = await client.GET("/api/v1/curriculum/opportunities", {
+      signal,
+    });
+    if (result.response.status === 200) {
+      return result.data
+        ? resolveLearningOpportunitySelection(result.data, selection)
+        : { status: "invalid-response" };
+    }
+    if (result.response.status === 401 && retryUnauthorized) {
+      session.invalidate();
+      const renewed = await session.ensure(signal);
+      if (renewed.status === "error") {
+        return selectionSessionFailureState(renewed.kind);
+      }
+      return readOpportunitySelection(
+        client,
+        session,
+        signal,
+        selection,
+        false,
+      );
+    }
+    return selectionResponseState(result.response.status);
+  } catch (error) {
+    if (signal.aborted) throw error;
+    return { status: "unavailable" };
+  }
+}
+
+async function loadOpportunitySelection(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  signal: AbortSignal,
+  selection: LearningOpportunitySelection | null,
+): Promise<LearningOpportunitySelectionRouteState> {
+  if (selection === null) return { status: "invalid-selection" };
+  const established = await session.ensure(signal);
+  if (established.status === "error") {
+    return selectionSessionFailureState(established.kind);
+  }
+  return readOpportunitySelection(client, session, signal, selection, true);
+}
+
+export function createLearningOpportunityDetailLoader(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+) {
+  return async ({ request, params }: LoaderFunctionArgs) =>
+    loadOpportunitySelection(
+      client,
+      session,
+      request.signal,
+      parseLearningOpportunityDetailSelection(
+        params.opportunityId,
+        request.url,
+      ),
+    );
+}
+
+export function createLearningOpportunityComparisonLoader(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+) {
+  return async ({ request }: LoaderFunctionArgs) =>
+    loadOpportunitySelection(
+      client,
+      session,
+      request.signal,
+      parseLearningOpportunityComparisonSelection(request.url),
+    );
 }
 
 async function readCatalog(

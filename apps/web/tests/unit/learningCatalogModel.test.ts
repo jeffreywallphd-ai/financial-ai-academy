@@ -2,13 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { FinancialAcademyApiClient } from "../../src/generated/api-client";
 import {
+  createLearningOpportunityComparisonLoader,
+  createLearningOpportunityDetailLoader,
   createLearningCatalogLoader,
   parseLearningCatalogQuery,
+  parseLearningOpportunityComparisonSelection,
+  parseLearningOpportunityDetailSelection,
 } from "../../src/features/learning-catalog/api";
 import {
   learningCatalogIsSafe,
   learningCatalogQueryPageIsSafe,
   opportunityCanOpen,
+  resolveLearningOpportunitySelection,
 } from "../../src/features/learning-catalog/model";
 import type {
   LearningCatalog,
@@ -328,6 +333,232 @@ describe("createLearningCatalogLoader", () => {
     expect(get).toHaveBeenCalledTimes(2);
     expect(session.invalidate).toHaveBeenCalledOnce();
     expect(session.ensure).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("learning opportunity selection model", () => {
+  it("parses one detail and two-to-four comparison IDs without reordering", () => {
+    const cursor = `${"cursor"}.${"d".repeat(64)}`;
+    const returnTo = encodeURIComponent(
+      `/learn?query=cash&level=introductory&cursor=${cursor}`,
+    );
+    expect(
+      parseLearningOpportunityDetailSelection(
+        "cash-flow-basics-primary",
+        `http://localhost/learn/opportunities/cash-flow-basics-primary?return_to=${returnTo}`,
+      ),
+    ).toEqual({
+      kind: "detail",
+      opportunityIds: ["cash-flow-basics-primary"],
+      returnTo: "/learn?query=cash&level=introductory",
+    });
+    expect(
+      parseLearningOpportunityComparisonSelection(
+        `http://localhost/learn/opportunities/compare?opportunity=portfolio-project-planned&opportunity=cash-flow-basics-primary&return_to=${returnTo}`,
+      ),
+    ).toEqual({
+      kind: "comparison",
+      opportunityIds: ["portfolio-project-planned", "cash-flow-basics-primary"],
+      returnTo: "/learn?query=cash&level=introductory",
+    });
+  });
+
+  it.each([
+    [
+      "too few IDs",
+      "http://localhost/learn/opportunities/compare?opportunity=cash-flow-basics-primary",
+    ],
+    [
+      "duplicate IDs",
+      "http://localhost/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=cash-flow-basics-primary",
+    ],
+    [
+      "too many IDs",
+      "http://localhost/learn/opportunities/compare?opportunity=one&opportunity=two&opportunity=three&opportunity=four&opportunity=five",
+    ],
+    [
+      "unknown URL state",
+      "http://localhost/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=portfolio-project-planned&title=Client-owned",
+    ],
+    [
+      "another-origin return",
+      "http://localhost/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=portfolio-project-planned&return_to=https%3A%2F%2Fexample.test%2Flearn",
+    ],
+  ])("rejects comparison selection with %s", (_label, url) => {
+    expect(parseLearningOpportunityComparisonSelection(url)).toBeNull();
+  });
+
+  it("rejects malformed detail state and accepts the ordinary catalog return", () => {
+    expect(
+      parseLearningOpportunityDetailSelection(
+        "Cash Flow",
+        "http://localhost/learn/opportunities/Cash%20Flow",
+      ),
+    ).toBeNull();
+    expect(
+      parseLearningOpportunityDetailSelection(
+        "cash-flow-basics-primary",
+        "http://localhost/learn/opportunities/cash-flow-basics-primary?destination=%2Flearn%2Fprivate",
+      ),
+    ).toBeNull();
+    expect(
+      parseLearningOpportunityDetailSelection(
+        "cash-flow-basics-primary",
+        "http://localhost/learn/opportunities/cash-flow-basics-primary",
+      ),
+    ).toEqual({
+      kind: "detail",
+      opportunityIds: ["cash-flow-basics-primary"],
+      returnTo: "/learn",
+    });
+  });
+
+  it("resolves only complete current snapshots and fails the whole changed selection", async () => {
+    const selection = {
+      kind: "comparison" as const,
+      opportunityIds: ["portfolio-project-planned", "cash-flow-basics-primary"],
+      returnTo: "/learn",
+    };
+    const ready = await resolveLearningOpportunitySelection(
+      structuredClone(learningCatalogFixture),
+      selection,
+    );
+    expect(ready.status).toBe("ready");
+    if (ready.status === "ready") {
+      expect(ready.opportunities.map((item) => item.opportunity_id)).toEqual(
+        selection.opportunityIds,
+      );
+      expect(ready.projection.projection_generation).toBe(
+        learningCatalogFixture.projection_generation,
+      );
+    }
+
+    await expect(
+      resolveLearningOpportunitySelection(learningCatalogFixture, {
+        ...selection,
+        opportunityIds: ["cash-flow-basics-primary", "removed-opportunity"],
+      }),
+    ).resolves.toEqual({ status: "selection-changed" });
+
+    const partial = structuredClone(learningCatalogFixture) as any;
+    partial.records[0].title = "Client-owned title";
+    await expect(
+      resolveLearningOpportunitySelection(partial, selection),
+    ).resolves.toEqual({ status: "invalid-response" });
+  });
+});
+
+describe("learning opportunity selection loaders", () => {
+  it("loads a detail through the generated protected queryless operation", async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValue(
+        response(200, structuredClone(learningCatalogFixture)),
+      );
+    const session = {
+      ensure: vi.fn().mockResolvedValue({ status: "ready" }),
+      invalidate: vi.fn(),
+    } as unknown as SingleProfileSession;
+    const loader = createLearningOpportunityDetailLoader(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      session,
+    );
+
+    const result = await loader({
+      request: new Request(
+        "http://localhost/learn/opportunities/cash-flow-basics-primary",
+      ),
+      params: { opportunityId: "cash-flow-basics-primary" },
+    } as never);
+
+    expect(result.status).toBe("ready");
+    expect(get).toHaveBeenCalledWith("/api/v1/curriculum/opportunities", {
+      signal: expect.any(AbortSignal),
+    });
+  });
+
+  it("rejects malformed comparison state before session or API work", async () => {
+    const get = vi.fn();
+    const session = {
+      ensure: vi.fn(),
+      invalidate: vi.fn(),
+    } as unknown as SingleProfileSession;
+    const loader = createLearningOpportunityComparisonLoader(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      session,
+    );
+
+    const result = await loader({
+      request: new Request(
+        "http://localhost/learn/opportunities/compare?opportunity=only-one",
+      ),
+    } as never);
+
+    expect(result).toEqual({ status: "invalid-selection" });
+    expect(session.ensure).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it("renews once after 401 and fails closed on changed or invalid data", async () => {
+    const changedCatalog = await catalogWithIntegrity([
+      learningCatalogFixture.records[0]!,
+    ]);
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce(response(401, undefined, { code: "unauthorized" }))
+      .mockResolvedValueOnce(response(200, changedCatalog));
+    const session = {
+      ensure: vi.fn().mockResolvedValue({ status: "ready" }),
+      invalidate: vi.fn(),
+    } as unknown as SingleProfileSession;
+    const loader = createLearningOpportunityComparisonLoader(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      session,
+    );
+
+    const result = await loader({
+      request: new Request(
+        "http://localhost/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=portfolio-project-planned",
+      ),
+    } as never);
+
+    expect(result).toEqual({ status: "selection-changed" });
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(session.invalidate).toHaveBeenCalledOnce();
+    expect(session.ensure).toHaveBeenCalledTimes(2);
+
+    get.mockReset();
+    get.mockResolvedValue(response(200, { schema_version: "1.0.0" }));
+    await expect(
+      loader({
+        request: new Request(
+          "http://localhost/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=portfolio-project-planned",
+        ),
+      } as never),
+    ).resolves.toEqual({ status: "invalid-response" });
+  });
+
+  it("maps denied and unavailable sessions without requesting records", async () => {
+    for (const kind of ["forbidden", "unavailable"] as const) {
+      const get = vi.fn();
+      const session = {
+        ensure: vi.fn().mockResolvedValue({ status: "error", kind }),
+        invalidate: vi.fn(),
+      } as unknown as SingleProfileSession;
+      const loader = createLearningOpportunityDetailLoader(
+        { GET: get } as unknown as FinancialAcademyApiClient,
+        session,
+      );
+      await expect(
+        loader({
+          request: new Request(
+            "http://localhost/learn/opportunities/cash-flow-basics-primary",
+          ),
+          params: { opportunityId: "cash-flow-basics-primary" },
+        } as never),
+      ).resolves.toEqual({ status: kind });
+      expect(get).not.toHaveBeenCalled();
+    }
   });
 });
 

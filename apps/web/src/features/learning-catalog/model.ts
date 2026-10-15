@@ -12,6 +12,38 @@ export type LearningCatalogQueryParameters = NonNullable<
   operations["queryLearningOpportunities"]["parameters"]["query"]
 >;
 
+export type LearningOpportunitySelection =
+  | {
+      kind: "detail";
+      opportunityIds: readonly [string];
+      returnTo: string;
+    }
+  | {
+      kind: "comparison";
+      opportunityIds: readonly string[];
+      returnTo: string;
+    };
+
+export type LearningOpportunityProjectionIdentity = Pick<
+  LearningCatalog,
+  "schema_version" | "projection_generation" | "projected_at"
+>;
+
+export type LearningOpportunitySelectionRouteState =
+  | {
+      status: "ready";
+      selection: LearningOpportunitySelection;
+      projection: LearningOpportunityProjectionIdentity;
+      opportunities: readonly LearningOpportunity[];
+    }
+  | { status: "invalid-selection" }
+  | { status: "selection-changed" }
+  | { status: "unauthorized" }
+  | { status: "forbidden" }
+  | { status: "unavailable" }
+  | { status: "invalid-response" }
+  | { status: "unexpected" };
+
 export type LearningCatalogRouteState =
   | { status: "loading" }
   | { status: "ready"; page: LearningCatalogQueryPage }
@@ -32,6 +64,10 @@ const DESTINATION = /^\/learn\/placements\/[a-z0-9][a-z0-9._-]{2,63}$/;
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_TIME =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(Z|[+-](\d{2}):(\d{2}))$/;
+
+export function opportunityIdentifierIsSafe(value: unknown): value is string {
+  return typeof value === "string" && IDENTIFIER.test(value);
+}
 
 const BROWSE_KEYS = [
   "projected_at",
@@ -429,6 +465,54 @@ export async function learningCatalogIsSafe(value: unknown): Promise<boolean> {
   );
 }
 
+function learningOpportunitySelectionIsSafe(
+  selection: LearningOpportunitySelection,
+): boolean {
+  const { opportunityIds } = selection;
+  return (
+    opportunityIds.every(opportunityIdentifierIsSafe) &&
+    new Set(opportunityIds).size === opportunityIds.length &&
+    (selection.kind === "detail"
+      ? opportunityIds.length === 1
+      : opportunityIds.length >= 2 && opportunityIds.length <= 4)
+  );
+}
+
+export async function resolveLearningOpportunitySelection(
+  value: unknown,
+  selection: LearningOpportunitySelection,
+): Promise<LearningOpportunitySelectionRouteState> {
+  if (!learningOpportunitySelectionIsSafe(selection)) {
+    return { status: "invalid-selection" };
+  }
+  if (!(await learningCatalogIsSafe(value))) {
+    return { status: "invalid-response" };
+  }
+  const catalog = value as LearningCatalog;
+  const byId = new Map(
+    catalog.records.map((opportunity) => [
+      opportunity.opportunity_id,
+      opportunity,
+    ]),
+  );
+  const opportunities = selection.opportunityIds.map((opportunityId) =>
+    byId.get(opportunityId),
+  );
+  if (opportunities.some((opportunity) => opportunity === undefined)) {
+    return { status: "selection-changed" };
+  }
+  return {
+    status: "ready",
+    selection,
+    projection: {
+      schema_version: catalog.schema_version,
+      projection_generation: catalog.projection_generation,
+      projected_at: catalog.projected_at,
+    },
+    opportunities: opportunities as LearningOpportunity[],
+  };
+}
+
 function optionalBoundedText(value: unknown): boolean {
   return value === null || boundedText(value, 1, 100);
 }
@@ -554,7 +638,7 @@ export async function learningCatalogQueryPageIsSafe(
   const finalPageSize = totalMatches % pageSize || pageSize;
   const paginationIsCoherent = isFirstPage
     ? records.length === Math.min(totalMatches, pageSize) &&
-      hasNextCursor === (totalMatches > pageSize)
+      hasNextCursor === totalMatches > pageSize
     : totalMatches > pageSize &&
       records.length > 0 &&
       (hasNextCursor
