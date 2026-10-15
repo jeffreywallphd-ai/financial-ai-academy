@@ -31,6 +31,13 @@ Baseline context for every non-trivial task.
 - ADR-0017 uses platform-native revision-bound drafts with exact human review
   and immutable publication; no external learning standard is currently
   admitted, and future adapters must degrade without blocking native authoring
+- ADR-0018 uses exact allowlisted reviewed packaged adapters and PostgreSQL-
+  backed at-least-once jobs with idempotency/reconciliation, leases/fencing,
+  bounded retry, explicit uncertainty, and optional future host/broker seams
+- ADR-0019 allows only registered time-bounded append-only overrides of derived
+  learner projections with immutable base/evidence, two-person activation,
+  learner-visible history, and no grade, credential, permission, or financial
+  mutation; DEC-0016 authorization remains unresolved
 
 ## Workflow
 

@@ -33,8 +33,9 @@ Every installable provider declares:
 
 ## Execution Model
 
-- Vetted first-party adapters may run in process for local and controlled deployments.
-- Untrusted or independently supplied cloud extensions run out of process with restricted credentials, filesystem access, network egress, resource bounds, and explicit capability brokering.
+- Exact allowlisted, reviewed packaged adapters in ADR-0018's initial trusted class may run in process for local and controlled deployments.
+- Runtime download, arbitrary module paths, editable-source discovery, dependency installation, entry-point scanning, and marketplace-style activation are excluded.
+- Untrusted or independently supplied extensions are not admitted by the initial baseline. Any future admission requires a separately accepted out-of-process host with restricted credentials, filesystem access, network egress, resource bounds, and explicit capability brokering.
 - Inspection and admission never execute plugin code.
 
 ## Conformance
@@ -66,3 +67,9 @@ An admitted model or job provider is not thereby an experiment executor.
 only learner-managed execution with validated result import. A future analytics
 sandbox or execution-provider adapter requires separate durable authority and
 qualification even when it implements the provider-neutral run/result seam.
+
+All provider-triggering asynchronous work follows
+[ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+and the [durable job-delivery contract](job-delivery-contract.md). Delivery is
+at least once; handlers require effect-level idempotency or reconciliation, and
+timeouts or cancellation do not imply an external provider stopped.

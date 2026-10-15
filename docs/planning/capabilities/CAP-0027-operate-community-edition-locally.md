@@ -38,8 +38,8 @@ and recovery is qualified within ADR-0008 rather than promised abstractly.
 - Deterministic migrations and upgrades with preflight, backup, rollback
   boundaries, compatibility, and failure diagnostics.
 - ADR-0008 coordinated backup and empty-target restore qualification.
-- Admitted free-data/external model providers under DEC-0011, DEC-0012, and
-  DEC-0017 with explicit unavailable/degraded behavior.
+- Admitted free-data/external model providers under ADR-0013, DEC-0012, and
+  ADR-0018 with explicit unavailable/degraded behavior.
 
 ### Out of Scope
 
@@ -54,14 +54,16 @@ and recovery is qualified within ADR-0008 rather than promised abstractly.
 - [ADR-0008](../../adr/ADR-0008-community-learner-evidence-protection-and-recovery.md)
 - [ADR-0009](../../adr/ADR-0009-initial-application-framework-runtime-baseline.md)
 - [Local and Cloud Capability Parity](../../architecture/deployment/local-cloud-capability-parity.md)
+- [ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [Provider and Durable-Job Operations](../../operations/provider-and-job-operations.md)
 - [CAP-0024](CAP-0024-connect-and-govern-replaceable-providers.md)
 
 ## Decision Gates and Constraints
 
 - ADR-0008 fixes private-host, coordinated user-invoked recovery sets,
   maintenance-mode empty-target restore, credential revocation, and no RPO/RTO.
-- Provider setup is limited to postures accepted by DEC-0011, DEC-0012, and
-  DEC-0017; access does not imply licensed use or safe extension execution.
+- Provider setup is limited to postures accepted by ADR-0013, DEC-0012, and
+  ADR-0018; access does not imply licensed use or safe extension execution.
 - ADR-0009 fixes the Python API and static React client runtime shape; Node is
   build/test tooling and no deployment-specific domain fork is permitted.
 
@@ -106,4 +108,7 @@ and qualification documentation.
 
 - 2026-10-15: Shaped from catalog candidate 24 with manifest SLI-0110 through
   SLI-0113. Provider decisions DEC-0011, DEC-0012, and DEC-0017 block approval.
+- 2026-10-15: DEC-0017 was promoted to ADR-0018. Exact allowlisted packaged
+  adapters and PostgreSQL at-least-once jobs now constrain local planning;
+  DEC-0012 remains unresolved.
 

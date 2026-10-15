@@ -13,6 +13,7 @@
 - Local filesystem through the object-storage port
 - DuckDB and Parquet for analytical work
 - Local or externally configured market-data and model providers
+- ADR-0018 allowlisted packaged adapters and PostgreSQL-backed at-least-once jobs through the Python worker
 
 The initial distribution target is a reproducible container-based installation with a small launcher or CLI. Local data remains under an explicitly documented application data root and is included in backup/export workflows.
 
@@ -25,6 +26,10 @@ Node.js 24 LTS is required to reproduce web generation, builds, and tests but is
 - No model provider is enabled by default. Under ADR-0013, local and external
   model adapters require explicit provider selection and per-data-class
   permission; credentials alone do not authorize invocation or data egress.
+- Provider code is limited to ADR-0018's exact allowlisted packaged adapters;
+  local configuration, a package on disk, or credentials cannot dynamically
+  admit or activate code. Durable background work uses the shared PostgreSQL
+  at-least-once job contract and makes no exactly-once claim.
 - Once identity bindings or learner evidence exist, mode mismatch fails closed and changing modes requires a separately approved migration.
 - No commercial service is required for core learning, assessment, portfolio simulation, or backup/export behavior.
 - External API credentials are user-supplied and stored outside portable configuration.

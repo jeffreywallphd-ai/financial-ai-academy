@@ -32,7 +32,7 @@ and support qualification against accepted objectives.
 
 ### In Scope
 
-- The tenant model from DEC-0016, provider/job posture from DEC-0017, cloud
+- The tenant model from DEC-0016, provider/job posture from ADR-0018, cloud
   platform/encryption/key/backup/availability/recovery posture from DEC-0018,
   and commercial/licensing boundary from DEC-0019.
 - Repeatable environment provisioning, deployment, secret/key handling,
@@ -55,13 +55,15 @@ and support qualification against accepted objectives.
 - [Security Architecture](../../security/README.md)
 - [Operations Documentation](../../operations/README.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
+- [ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [Provider Admission and Job Delivery](../../architecture/deployment/provider-admission-and-job-delivery.md)
 - [CAP-0027](CAP-0027-operate-community-edition-locally.md)
 - [CAP-0029](CAP-0029-administer-platform-health-and-usage.md)
 
 ## Decision Gates and Constraints
 
-- DEC-0016, DEC-0017, DEC-0018, and DEC-0019 must be accepted and promoted
-  before this package can be approved.
+- ADR-0018 supplies the initial provider/job baseline. DEC-0016, DEC-0018, and
+  DEC-0019 must still be accepted and promoted before this package can be approved.
 - Cloud differences are adapters, scale, availability, managed identity,
   entitlements, providers, operations, analytics, and support—not a domain fork.
 - RPO/RTO, availability, encryption, recovery, and compliance statements require
@@ -108,4 +110,6 @@ support, qualification, and limitation documentation.
 
 - 2026-10-15: Shaped from catalog candidate 25 with manifest SLI-0114 through
   SLI-0117. DEC-0016 through the applicable DEC-0019 boundaries block approval.
+- 2026-10-15: DEC-0017 was promoted to ADR-0018; external brokers and provider
+  hosts remain outside the accepted PostgreSQL/allowlisted baseline.
 

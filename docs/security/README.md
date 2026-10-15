@@ -11,6 +11,8 @@
 - [Reusable Project Workspace](../adr/ADR-0012-reusable-project-workspace.md)
 - [Learner-Managed Experiment Execution](../adr/ADR-0016-learner-managed-experiment-execution.md)
 - [Platform-Native Human-Reviewed Content Authoring](../adr/ADR-0017-platform-native-human-reviewed-content-authoring.md)
+- [Allowlisted Adapters with PostgreSQL At-Least-Once Jobs](../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [Append-Only Bounded Learner-Projection Overrides](../adr/ADR-0019-append-only-bounded-projection-overrides.md)
 
 ## Initial Trust Boundaries
 
@@ -56,5 +58,22 @@ human review bound to the exact validated revision may make it eligible for an
 atomic publication operation; any edit invalidates that review authority.
 Future interoperability adapters remain optional and cannot bypass native
 safety, accessibility, ownership, provenance, or package validation.
+
+ADR-0018 admits only exact allowlisted reviewed packaged adapters in the
+initial in-process trust class. Discovery or configuration never authorizes
+unknown code, and secrets are resolved only at a permitted invocation boundary.
+PostgreSQL job metadata excludes secrets and raw sensitive/provider payloads;
+leases and fencing prevent stale workers from publishing authoritative results.
+At-least-once delivery requires idempotency or reconciliation, and neither
+timeout nor cancellation proves an external effect stopped. Untrusted adapter
+hosting, a sandbox, and an external broker remain separate decisions.
+
+ADR-0019 treats instructor access and projection overrides as high-impact,
+privacy-sensitive actions. Source evidence and base projections stay immutable;
+an override is a time-bounded visible overlay requiring separate proposal and
+confirmation by distinct authorized actors, current source/policy checks,
+learner-visible reason/history, expiration/reversal, and audit references.
+DEC-0016 remains required before implementation because it owns tenant,
+membership, role, and exact permission isolation.
 
 Baseline behavior is defined in `docs/standards/security-and-privacy-standards.md`. Missing threat models are recorded as gaps, not treated as evidence of safety.

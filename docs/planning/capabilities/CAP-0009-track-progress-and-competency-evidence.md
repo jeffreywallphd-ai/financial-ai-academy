@@ -55,6 +55,7 @@ score or mutable summary.
 - [Module Map](../../architecture/modules/module-map.md)
 - [Adaptive Pathway Architecture](../../architecture/learning/adaptive-pathway-architecture.md)
 - [ADR-0014: Governed Adaptive-Learning Research Plane](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md)
+- [ADR-0019: Append-Only Bounded Learner-Projection Overrides](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
 - [CAP-0001](CAP-0001-complete-structured-introductory-lesson.md)
 - [CAP-0006](CAP-0006-practice-and-demonstrate-understanding.md)
@@ -70,6 +71,9 @@ score or mutable summary.
   correction behavior.
 - Authorization, evidence inclusion, projection policy, and durable state
   changes are deterministic. AI output cannot create or override evidence.
+- ADR-0019 leaves this CAP's reproducible base projection unchanged. A later
+  CAP-0022 overlay must remain distinguishable and cannot become source evidence
+  or model-training truth.
 
 ## Proposed Vertical Slices
 
@@ -111,4 +115,6 @@ accessibility behavior, architecture verification, and known gaps.
 - 2026-10-15: Shaped from catalog candidate 6 with the complete provisional
   manifest SLI-0038 through SLI-0041. DEC-0009 blocks CAP approval and delivery.
 - 2026-10-15: DEC-0009 was promoted through ADR-0014; the CAP returned to shaping for package revalidation before CAP-level approval.
+- 2026-10-15: ADR-0019 preserved this CAP's base projection as immutable and
+  assigned any effective instructor overlay to later CAP-0022.
 

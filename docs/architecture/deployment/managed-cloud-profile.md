@@ -19,7 +19,11 @@
 - Provider credentials, budgets, and data-use permissions are tenant or platform scoped as explicitly configured.
 - Premium deployment placement must not create a premium domain-code fork.
 
-Provider-specific hosting, identity, queue, and infrastructure choices remain decision-required until accepted by ADR.
+ADR-0018 supplies the initial provider/job baseline: exact allowlisted packaged
+adapters and PostgreSQL-backed at-least-once delivery through the shared Python
+worker. A managed profile may scale that baseline without changing canonical
+job meaning. Provider-specific out-of-process hosting, an external broker, and
+other infrastructure choices remain decision-required until accepted by ADR.
 
 The shared web artifact follows [ADR-0009](../../adr/ADR-0009-initial-application-framework-runtime-baseline.md): a React/TypeScript client built as static assets with no required Node production server. A cloud CDN or static host may serve those bytes, but it cannot introduce a cloud-only Node BFF, framework API, or different client contract.
 

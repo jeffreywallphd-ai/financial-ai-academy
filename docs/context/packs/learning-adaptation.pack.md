@@ -24,6 +24,10 @@ Work affects curriculum, competencies, assessments, learner evidence/state, elig
   facing publication, requires uncertainty and abstention, and phases research
   from rule baseline through offline/shadow qualification before any separately
   reviewed consented experiment.
+- ADR-0019 permits only registered time-bounded learner-visible projection
+  overlays with immutable base/evidence, distinct proposal/confirmation,
+  expiration/reversal, and no grade, credential, permission, or financial effect;
+  implementation remains blocked on DEC-0016 authorization.
 
 ## Canonical Sources
 
@@ -34,6 +38,8 @@ Work affects curriculum, competencies, assessments, learner evidence/state, elig
 - `docs/adr/ADR-0012-reusable-project-workspace.md`
 - `docs/adr/ADR-0017-platform-native-human-reviewed-content-authoring.md`
 - `docs/architecture/contracts/content-authoring-workflow-contract.md`
+- `docs/adr/ADR-0019-append-only-bounded-projection-overrides.md`
+- `docs/architecture/learning/instructor-review-and-projection-override.md`
 - `docs/domain/README.md`
 - `docs/architecture/modules/module-map.md`
 - `docs/architecture/contracts/content-package-contract.md`

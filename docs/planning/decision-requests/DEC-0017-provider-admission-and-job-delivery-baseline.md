@@ -1,14 +1,14 @@
 ---
 id: DEC-0017
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: []
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md
 ---
 
 # Decision Request: Choose the Provider Admission and Job Delivery Baseline
@@ -61,8 +61,11 @@ data, recovery, and cost review.
 
 ## Decision Record and Promotion
 
-Promote the selected baseline to an ADR, provider/job contracts, security and
-deployment architecture, operations, and decision readiness.
+[ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+selects Option A: exact allowlisted packaged adapters and PostgreSQL-backed
+at-least-once jobs. It preserves separately decision-gated out-of-process host
+and external-broker seams without admitting arbitrary extensions or an
+experiment sandbox.
 
 ## Dependent Planning Updates
 
@@ -71,4 +74,6 @@ Reconcile CAP-0024, CAP-0027, CAP-0028, CAP-0029, and any execution-dependent CA
 ## Planning History
 
 - 2026-10-15: Captured as the shared provider execution and job-delivery gate.
+- 2026-10-15: Option A was selected and promoted to ADR-0018 with explicit
+  future provider-host and broker seams.
 

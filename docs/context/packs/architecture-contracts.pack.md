@@ -14,6 +14,9 @@ Work affects repository placement, modules, dependencies, APIs, events, portable
 - ADR-0017 keeps mutable platform-native authoring revisions, exact human review,
   safe preview, and atomic publication separate from immutable packages; future
   interoperability adapters are optional and never become content authority.
+- ADR-0018 admits exact allowlisted reviewed packaged adapters and canonical
+  PostgreSQL-backed at-least-once jobs; application meaning excludes database,
+  broker, provider-job, and secret payloads.
 - ADR-0012 assigns reusable project workspaces, immutable snapshots, and typed learning/domain links to Project while Assessment retains learning submissions; portable project artifacts remain inert untrusted data under ADR-0011.
 - Exact external shapes live in executable schemas.
 - ADR-0009 fixes the initial runtime/framework lines while generated OpenAPI clients remain the browser data authority and Node remains build/test tooling only.
@@ -31,6 +34,7 @@ Work affects repository placement, modules, dependencies, APIs, events, portable
 - `docs/adr/ADR-0011-inert-applied-project-artifacts.md`
 - `docs/adr/ADR-0012-reusable-project-workspace.md`
 - `docs/adr/ADR-0017-platform-native-human-reviewed-content-authoring.md`
+- `docs/adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md`
 - `docs/architecture/modules/module-map.md`
 - `docs/architecture/modules/module-dependency-rules.md`
 - `docs/architecture/contracts/contract-architecture.md`
@@ -38,6 +42,7 @@ Work affects repository placement, modules, dependencies, APIs, events, portable
 - `docs/architecture/contracts/content-package-contract.md`
 - `docs/architecture/contracts/content-authoring-workflow-contract.md`
 - `docs/architecture/contracts/provider-and-plugin-contracts.md`
+- `docs/architecture/contracts/job-delivery-contract.md`
 - `docs/architecture/contracts/compatibility-and-versioning.md`
 
 ## Stop When

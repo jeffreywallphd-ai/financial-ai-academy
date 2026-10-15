@@ -34,7 +34,7 @@ authority or corrupting durable state.
 
 - Versioned provider capability/manifest, configuration reference, health,
   quota, cost, attribution, licensing, data-use, provenance, and disablement.
-- Admission, sandbox/trust, and job-delivery posture selected in DEC-0017;
+- ADR-0018 allowlisted-adapter trust and PostgreSQL at-least-once job posture;
   market and model specifics selected in DEC-0012 and DEC-0011.
 - Secret indirection, startup validation, health-gated use, bounded retries,
   circuit/degraded behavior, audit, and local/cloud capability discovery.
@@ -53,12 +53,17 @@ authority or corrupting durable state.
 - [Data Architecture](../../architecture/data/data-architecture.md)
 - [Security Architecture](../../security/README.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
+- [ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [Provider Admission and Job Delivery](../../architecture/deployment/provider-admission-and-job-delivery.md)
+- [Durable Job Delivery Contract](../../architecture/contracts/job-delivery-contract.md)
 - [CAP-0026](CAP-0026-preserve-provenance-and-accountable-history.md)
 
 ## Decision Gates and Constraints
 
-- DEC-0017 selects provider admission/sandbox and job delivery guarantees.
-  DEC-0011 and DEC-0012 select approved model and market-data use postures.
+- ADR-0018 fixes exact allowlisted reviewed packaged adapters and PostgreSQL-
+  backed at-least-once delivery. Out-of-process hosts, elevated trust classes,
+  external brokers, different guarantees, and sandboxes require another decision.
+  ADR-0013 and DEC-0012 select approved model and market-data use postures.
 - Platform contracts own canonical meaning. Adapters translate provider payloads
   and never supply domain authority or license interpretation.
 - Secrets remain behind platform resolution; provider capability and health are
@@ -70,7 +75,7 @@ authority or corrupting durable state.
 | --- | --- | --- | --- | --- |
 | SLI-0098 | An operator admits a provider against a versioned manifest, trust class, capability contract, configuration schema, and conformance evidence. | First after decisions and CAP-0026. | Arbitrary plugins, provider-owned domain semantics, or embedded secrets changes the CAP package. | captured |
 | SLI-0099 | The operator configures and health-checks an admitted provider through secret indirection with quota, attribution, licensing/data-use, and cost visibility. | After SLI-0098. | Treating configuration as license approval or exposing secrets changes the CAP package. | captured |
-| SLI-0100 | Product operations select, disable, replace, and degrade providers under deterministic capability and failure policy, including accepted job guarantees. | After SLI-0099. | Silent fallback, cross-provider semantic drift, or unaccepted delivery guarantees changes the CAP package. | captured |
+| SLI-0100 | Product operations select, disable, replace, and degrade providers under deterministic capability policy and ADR-0018 at-least-once job semantics, including idempotency/reconciliation, cancellation, retry, and dead-letter handling. | After SLI-0099. | Silent fallback, cross-provider semantic drift, external broker/host, or different delivery guarantees changes the CAP package. | captured |
 | SLI-0101 | Provider governance is qualified for conformance, isolation, secret handling, quota/outage, replacement, audit, local/cloud discovery, accessibility, and anti-rigidity. | Last; depends on SLI-0098 through SLI-0100. | Marketplace, remote code execution, or cloud platform selection changes the CAP package. | captured |
 
 ## Capability Acceptance
@@ -104,4 +109,6 @@ operator UI, operations, and verification documentation.
 
 - 2026-10-15: Shaped from catalog candidate 21 with manifest SLI-0098 through
   SLI-0101. DEC-0011, DEC-0012, and DEC-0017 block CAP approval and delivery.
+- 2026-10-15: DEC-0017 was promoted to ADR-0018, selecting allowlisted packaged
+  adapters and PostgreSQL-backed at-least-once jobs. DEC-0012 remains unresolved.
 

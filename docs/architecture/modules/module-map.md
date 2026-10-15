@@ -2,7 +2,7 @@
 
 - Status: partially accepted
 - Canonical for: accepted first learning-loop ownership and remaining module hypotheses
-- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md)
+- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md), [ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
 - Decision gate: use accepted first-loop boundaries; refine every still-proposed boundary before implementation
 
 | Module | Status | Primary responsibility | Publishes |
@@ -21,6 +21,10 @@
 ## Boundary Notes
 
 - Assessment evidence is an input to the learner model; assessment does not directly decide mastery.
+- Evidence-owning modules retain immutable review inputs and feedback/revision
+  records through their public operations. Under ADR-0019, Learner model owns
+  the append-only projection-override ledger and effective overlay while Audit
+  retains integrity references without becoming projection authority.
 - Curriculum may retain immutable Content and Assessment version identifiers but cannot access those modules' internals or persistence.
 - Learner-model completion and progress are projections that retain source-evidence references and never replace Assessment evidence.
 - Adaptation reads approved learner and curriculum projections; it does not mutate curriculum or assessment history.

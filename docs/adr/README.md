@@ -35,6 +35,8 @@ Create or update an ADR when a change selects or reverses a durable architecture
 - [ADR-0015: Market Data and Portfolio Ownership with a Method Registry](ADR-0015-market-data-portfolio-method-registry.md)
 - [ADR-0016: Learner-Managed Experiment Execution with a Future Sandbox Seam](ADR-0016-learner-managed-experiment-execution.md)
 - [ADR-0017: Platform-Native Human-Reviewed Content Authoring](ADR-0017-platform-native-human-reviewed-content-authoring.md)
+- [ADR-0018: Allowlisted Adapters with PostgreSQL At-Least-Once Jobs](ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [ADR-0019: Append-Only Bounded Learner-Projection Overrides](ADR-0019-append-only-bounded-projection-overrides.md)
 
 ## Superseded Decisions
 

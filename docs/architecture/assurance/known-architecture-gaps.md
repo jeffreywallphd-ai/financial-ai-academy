@@ -7,10 +7,16 @@
 
 - Organization identity/tenancy administration and identity-mode migration
 - Cloud infrastructure provider and deployment tooling
-- Job-queue implementation and delivery guarantees
+- Exact PostgreSQL job schemas, migrations, lease/retry/retention limits,
+  worker tooling, operational qualification, and any future external broker
+- Out-of-process provider-host protocol, elevated adapter trust classes, and
+  isolation/runtime technology beyond ADR-0018's allowlisted in-process class
 - Exact multi-tenant placement and row-policy design
 - Exact content-authoring wire contracts, creator/reviewer role policy, editor
   tooling, and collaboration mechanics within ADR-0017
+- Exact instructor-review and projection-override contracts, policy registry,
+  privacy/fairness/appeal model, notification behavior, and executable evidence;
+  implementation remains blocked on DEC-0016 tenant/authorization semantics
 - Selection of any external learning standard, version, profile, mapping-loss
   policy, compatibility commitment, and conformance corpus
 - Model-provider admission and local-model support matrix

@@ -6,6 +6,10 @@
 ## Accepted Design Boundaries
 
 - [Community Backup and Restore](community-backup-and-restore.md) defines the user-invoked, maintenance-mode backup, empty-target restore, and no-RPO/RTO support-claim boundary. Its tooling and controlled qualification remain gaps.
+- [Provider and Durable-Job Operations](provider-and-job-operations.md) defines
+  the allowlisted-adapter startup, PostgreSQL job handling, maintenance,
+  reconciliation, and incident design boundary. Tooling and production
+  qualification remain gaps.
 
 Operational documents will cover:
 

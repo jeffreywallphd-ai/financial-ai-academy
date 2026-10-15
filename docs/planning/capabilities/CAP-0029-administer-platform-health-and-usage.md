@@ -35,7 +35,7 @@ without raw sensitive payloads or silent automated mutation.
 - Health, dependency, provider, job, storage, model/data usage, quota/limit,
   failure, audit-reference, freshness, and service-status contracts.
 - Tenant/role filtering under DEC-0016 and job/provider semantics under
-  DEC-0017, with local and managed profile capability differences.
+  ADR-0018, with local and managed profile capability differences.
 - Dashboards and APIs for diagnosis, bounded drill-down, correlation, retention,
   export, alert handoff, and explicitly allowlisted safe actions.
 - Accessible operator views and privacy/redaction controls.
@@ -54,11 +54,13 @@ without raw sensitive payloads or silent automated mutation.
 - [CAP-0024](CAP-0024-connect-and-govern-replaceable-providers.md)
 - [CAP-0025](CAP-0025-manage-identities-organizations-roles-entitlements.md)
 - [CAP-0026](CAP-0026-preserve-provenance-and-accountable-history.md)
+- [ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [Durable Job Delivery Contract](../../architecture/contracts/job-delivery-contract.md)
 
 ## Decision Gates and Constraints
 
 - DEC-0016 establishes tenant/role filtering and organization isolation;
-  DEC-0017 establishes provider/job states and delivery meaning.
+  ADR-0018 establishes provider/job states and at-least-once delivery meaning.
 - Observability records operational facts and bounded audit references, not raw
   prompts, learner content, provider secrets, or duplicate business state.
 - Any administrative mutation is explicit, authorized, allowlisted, audited,
@@ -104,3 +106,4 @@ alerts/export, operations, and verification documentation.
 
 - 2026-10-15: Shaped from catalog candidate 26 with manifest SLI-0118 through
   SLI-0121. DEC-0016 and DEC-0017 block CAP approval and delivery.
+- 2026-10-15: DEC-0017 was promoted to ADR-0018; DEC-0016 remains unresolved.

@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Canonical for: contract classes, sources, generation, and ownership
-- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`, `identity-provider-contract.md`, `content-package-contract.md`, `content-authoring-workflow-contract.md`
+- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`, `job-delivery-contract.md`, `identity-provider-contract.md`, `content-package-contract.md`, `content-authoring-workflow-contract.md`
 
 ## Contract Classes
 
@@ -38,6 +38,12 @@ Their meaning stays provider-neutral so learner-managed export/import and a
 future optional execution adapter can share one contract family. These
 contracts do not authorize execution, carry secrets, or expose provider job
 payloads as domain meaning.
+
+Durable asynchronous work additionally follows
+[ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+and the [job-delivery contract](job-delivery-contract.md). Application modules
+depend on versioned job operations and canonical at-least-once state meaning,
+not PostgreSQL rows, future broker receipts, or provider job payloads.
 
 Reusable project records additionally follow
 [ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md). Exact schemas will

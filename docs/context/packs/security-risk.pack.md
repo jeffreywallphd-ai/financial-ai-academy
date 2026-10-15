@@ -23,6 +23,12 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - Financial experiment export/import follows ADR-0016; a provider-neutral future
   execution seam remains optional and does not authorize a sandbox, provider
   job, network, secret, or active preview.
+- ADR-0018 admits only exact allowlisted reviewed packaged adapters. Jobs contain
+  no secrets, enforce current lease/fencing, and assume duplicate delivery and
+  uncertain external outcomes through idempotency or reconciliation.
+- ADR-0019 keeps instructor overrides as visible time-bounded append-only
+  projection overlays with two-person activation; DEC-0016 remains required for
+  tenant, membership, role, and permission isolation.
 - Keep mutable Project workspaces, immutable snapshots, Assessment submissions, and linked domain-resource authorization distinct; a Project link never grants persistence, provider, or privileged-operation access
 
 ## Canonical Sources
@@ -36,6 +42,11 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - `docs/adr/ADR-0012-reusable-project-workspace.md`
 - `docs/adr/ADR-0016-learner-managed-experiment-execution.md`
 - `docs/adr/ADR-0017-platform-native-human-reviewed-content-authoring.md`
+- `docs/adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md`
+- `docs/architecture/deployment/provider-admission-and-job-delivery.md`
+- `docs/architecture/contracts/job-delivery-contract.md`
+- `docs/adr/ADR-0019-append-only-bounded-projection-overrides.md`
+- `docs/architecture/learning/instructor-review-and-projection-override.md`
 - `docs/architecture/contracts/content-authoring-workflow-contract.md`
 - `docs/architecture/contracts/content-package-contract.md`
 - `docs/security/community-learner-evidence-protection.md`

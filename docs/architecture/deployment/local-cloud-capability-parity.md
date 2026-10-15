@@ -15,6 +15,12 @@ Recovery infrastructure and service levels may differ, but every profile preserv
 
 Application hosting infrastructure may differ, but every profile uses the same ADR-0009 client-rendered React/TypeScript artifacts and Python application/API runtime. Node remains build/test tooling only; a cloud-only Node backend-for-frontend, server-rendering boundary, or framework-owned business API is prohibited without a superseding durable decision.
 
+Provider and worker scale may differ, but every profile preserves ADR-0018's
+allowlisted-adapter identity, provider-port meaning, canonical job envelope,
+at-least-once delivery, idempotency/reconciliation, lease/fencing,
+cancellation/timeout uncertainty, retry, dead-letter, and audit semantics. An
+external broker or provider host cannot create cloud-only application meaning.
+
 ## Permissible Differences
 
 - infrastructure adapters,

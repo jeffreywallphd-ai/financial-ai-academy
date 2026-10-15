@@ -1,14 +1,14 @@
 ---
 id: DEC-0020
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: ["DEC-0009", "DEC-0016"]
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0019-append-only-bounded-projection-overrides.md
 ---
 
 # Decision Request: Choose Instructor Review and Override Authority
@@ -59,8 +59,11 @@ privacy/security, education-risk, accessibility, and support review.
 
 ## Decision Record and Promotion
 
-Promote the selected authority to an ADR or review architecture, learner-state
-contracts, authorization policy, audit guidance, and decision readiness.
+[ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
+selects the Option B recommendation: append-only bounded overrides of explicit
+derived projection fields with two-person activation, learner-visible history,
+expiration, and reversal. Source evidence and base projections remain immutable;
+DEC-0016 still controls tenancy, membership, and exact permission mapping.
 
 ## Dependent Planning Updates
 
@@ -69,3 +72,5 @@ Reconcile CAP-0022 and any CAP-0009 projection policy affected by overrides.
 ## Planning History
 
 - 2026-10-15: Captured while shaping CAP-0022.
+- 2026-10-15: The Option B recommendation was promoted to ADR-0019 while the
+  organization/authorization dependency remains deferred to DEC-0016.

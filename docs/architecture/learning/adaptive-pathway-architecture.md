@@ -44,6 +44,13 @@ abstains to evidence-only progress. A model score cannot directly create a
 grade, credential, prerequisite, authorization, professional-competence claim,
 financial-suitability claim, or protected-state change.
 
+Under ADR-0019, an exceptional instructor action may add a time-bounded,
+learner-visible override overlay to an explicitly registered competency
+publication or `review_due` field. The estimate and deterministic base
+publication remain unchanged and replayable. The overlay is never model
+training truth, source evidence, a grade, credential, authorization, or
+financial claim; consumers must distinguish base and effective state.
+
 ## Technique and Qualification Portfolio
 
 - Initial interpretable champions may use time-aware or hierarchical Bayesian

@@ -28,6 +28,10 @@
 - Raw provider data never bypasses normalization into portfolio, learning, or adaptation behavior.
 - Derived datasets identify inputs, transformations, code/version, creation time, and intended use.
 - Database abstraction does not promise portability between behaviorally different databases; PostgreSQL is used in both supported deployment profiles.
+- Under ADR-0018, PostgreSQL owns canonical versioned job, attempt, lease,
+  outcome, and dead-letter metadata for at-least-once delivery. Job records
+  reference bounded owned inputs and contain no secrets or raw provider payload
+  as platform meaning; analytical stores never become a work queue.
 - Under ADR-0015, Market data owns canonical observations and normalization;
   Portfolio owns simulated transactional state and financial simulation results.
   Registered pure methods retain exact versions and inputs but own no store or
