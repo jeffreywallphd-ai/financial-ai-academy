@@ -1,7 +1,7 @@
 ---
 id: WRK-0057
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -162,6 +162,6 @@ unresolved decisions, and CAP-package conformance.
 - 2026-10-15: Claimed for serial cumulative qualification after every delivery
   dependency completed. The exact scope excludes runtime and the approved CAP
   package itself.
-- 2026-10-15: Submitted the planning-only cumulative qualification candidate
+- 2026-10-15: Prepared the planning-only cumulative qualification candidate
   after all capability criteria had direct evidence and focused plus aggregate
   gates passed. Assurance sources required no reconciliation edit.

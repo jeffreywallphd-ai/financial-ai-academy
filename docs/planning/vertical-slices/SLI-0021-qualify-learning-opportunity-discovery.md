@@ -105,7 +105,7 @@ the projection, URL, browser storage, or provider payload as authority.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0057 | Reconcile cumulative CAP acceptance and close learning-opportunity discovery | SLI-0018, SLI-0019, SLI-0020 | none | verifying |
+| WRK-0057 | Reconcile cumulative CAP acceptance and close learning-opportunity discovery | SLI-0018, SLI-0019, SLI-0020 | none | active |
 
 ## Verification and Qualification
 
@@ -175,5 +175,5 @@ assistive technology, and broader identity limits.
   byte-for-byte and claiming the exact evidence-only scope against the current
   branch with no overlap.
 - 2026-10-15: Reconciled all eight capability criteria to direct completed-slice
-  evidence and moved WRK-0057 to verification after focused and aggregate gates
-  passed without runtime or approved-package changes.
+  evidence and prepared the exact qualification candidate after focused and
+  aggregate gates passed without runtime or approved-package changes.
