@@ -136,7 +136,7 @@ investment performance.
 | WRK-0043 | Deliver the discovery record, Curriculum projection core, rebuild policy, and focused conformance tests | none | none | complete |
 | WRK-0044 | Persist the projection and expose the protected browse API plus generated client | WRK-0043 | none | complete |
 | WRK-0045 | Deliver the accessible approved-opportunity catalog route | WRK-0044 | none | complete |
-| WRK-0046 | Qualify projection rebuild and the complete local browse path | WRK-0045 | none | captured |
+| WRK-0046 | Qualify projection rebuild and the complete local browse path | WRK-0045 | none | ready |
 
 ## Verification and Qualification
 
@@ -208,3 +208,6 @@ cleanup, unsupported profiles, residual gaps, and CAP-package conformance.
   all-or-nothing response integrity, exact available-lesson navigation,
   flexible catalog cardinality, and responsive accessibility evidence.
   WRK-0046 is now the dependency-ready completion packet.
+- 2026-10-15: Authored WRK-0046 with explicit public-operation fixture seeding,
+  final static artifacts, isolated PostgreSQL/Python/Chromium qualification,
+  catalog-to-lesson continuation, authorization denial, and cleanup evidence.
