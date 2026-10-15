@@ -1,7 +1,7 @@
 ---
 id: WRK-0045
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/components/Icon.tsx", "apps/web/src/features/learning-catalog/api.ts", "apps/web/src/features/learning-catalog/model.ts", "apps/web/src/features/learning-catalog/LearningCatalogPage.tsx", "apps/web/src/features/learning-catalog/LearningCatalogRoute.tsx", "apps/web/src/styles/learning-catalog.css", "apps/web/tests/unit/learningCatalogModel.test.ts", "apps/web/tests/component/learningCatalogFixture.ts", "apps/web/tests/component/learningCatalog.test.tsx", "apps/web/tests/browser/learning-catalog/learning-catalog.spec.ts", "apps/web/README.md", "docs/architecture/contracts/discovery-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0018-browse-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0045-deliver-accessible-learning-catalog.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b506aef86f425c64d9cb6d379caaee8a11f32fd4
+claim_id: WRK-0045:0d3442d5-30f2-4412-94eb-b963ccb2dfa9
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T18:09:46Z
 ---
 
 # Agent Work Packet: Deliver the Accessible Learning Catalog
@@ -175,3 +175,6 @@ result; and whether WRK-0046 is dependency-eligible.
   within the approved protected catalog outcome, adds no durable decision, and
   reserves live projection composition and full local-path qualification for
   WRK-0046.
+- 2026-10-15: Claimed on base
+  `b506aef86f425c64d9cb6d379caaee8a11f32fd4`; the selected medium-risk route
+  requires affected verification and one independent technical review.
