@@ -181,7 +181,7 @@ async function readCatalog(
       signal,
     });
     if (result.response.status === 200 && result.data) {
-      return (await learningCatalogQueryPageIsSafe(result.data))
+      return (await learningCatalogQueryPageIsSafe(result.data, query))
         ? { status: "ready", page: result.data as LearningCatalogQueryPage }
         : { status: "invalid-response" };
     }

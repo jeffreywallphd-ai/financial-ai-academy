@@ -232,11 +232,13 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
         </label>
         <label>
           Results per page
-          <select defaultValue={String(query.page_size)} name="page_size">
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
-          </select>
+          <input
+            defaultValue={query.page_size}
+            max={50}
+            min={1}
+            name="page_size"
+            type="number"
+          />
         </label>
       </div>
       <p className="catalog-query__help">

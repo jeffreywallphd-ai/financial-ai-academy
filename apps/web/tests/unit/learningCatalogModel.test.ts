@@ -343,7 +343,10 @@ describe("query page boundaries", () => {
 
   it("accepts the closed page and builds repeated URL values", async () => {
     await expect(
-      learningCatalogQueryPageIsSafe(structuredClone(learningQueryPageFixture)),
+      learningCatalogQueryPageIsSafe(
+        structuredClone(learningQueryPageFixture),
+        {},
+      ),
     ).resolves.toBe(true);
     expect(
       parseLearningCatalogQuery(
@@ -362,6 +365,47 @@ describe("query page boundaries", () => {
   it("rejects partial or private query pages", async () => {
     const page = structuredClone(learningQueryPageFixture) as any;
     page.private_ranking = 0.9;
-    await expect(learningCatalogQueryPageIsSafe(page)).resolves.toBe(false);
+    await expect(learningCatalogQueryPageIsSafe(page, {})).resolves.toBe(false);
+  });
+
+  it("rejects contradictory page counts, cursors, and cursor bounds", async () => {
+    const missingRecords = {
+      ...structuredClone(learningQueryPageFixture),
+      records: [],
+    };
+    await expect(
+      learningCatalogQueryPageIsSafe(missingRecords, {}),
+    ).resolves.toBe(false);
+
+    const cursorWithoutMatches = {
+      ...structuredClone(learningQueryPageFixture),
+      records: [],
+      total_matches: 0,
+      next_cursor: `cursor.${"d".repeat(64)}`,
+    };
+    await expect(
+      learningCatalogQueryPageIsSafe(cursorWithoutMatches, {}),
+    ).resolves.toBe(false);
+
+    const validContinuation = {
+      ...structuredClone(learningQueryPageFixture),
+      applied_query: {
+        ...learningQueryPageFixture.applied_query,
+        page_size: 2,
+      },
+      total_matches: 3,
+      next_cursor: `cursor.${"d".repeat(64)}`,
+    };
+    await expect(
+      learningCatalogQueryPageIsSafe(validContinuation, {}),
+    ).resolves.toBe(true);
+
+    const oversizedCursor = {
+      ...validContinuation,
+      next_cursor: `${"a".repeat(960)}.${"d".repeat(64)}`,
+    };
+    await expect(
+      learningCatalogQueryPageIsSafe(oversizedCursor, {}),
+    ).resolves.toBe(false);
   });
 });

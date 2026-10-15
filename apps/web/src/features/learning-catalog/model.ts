@@ -516,6 +516,7 @@ async function sourceFingerprintsAreCoherent(
 
 export async function learningCatalogQueryPageIsSafe(
   value: unknown,
+  request: LearningCatalogQueryParameters,
 ): Promise<boolean> {
   const candidate = record(value);
   if (
@@ -535,6 +536,7 @@ export async function learningCatalogQueryPageIsSafe(
     candidate.records.length > Number(candidate.total_matches) ||
     (candidate.next_cursor !== null &&
       (typeof candidate.next_cursor !== "string" ||
+        candidate.next_cursor.length > 1024 ||
         !CURSOR.test(candidate.next_cursor))) ||
     !candidate.records.every((item) =>
       opportunityIsSafe(item, candidate.projected_at as string),
@@ -543,9 +545,26 @@ export async function learningCatalogQueryPageIsSafe(
     return false;
   }
   const records = candidate.records as LearningOpportunity[];
+  const totalMatches = Number(candidate.total_matches);
+  const pageSize = Number(
+    (candidate.applied_query as Record<string, unknown>).page_size,
+  );
+  const hasNextCursor = candidate.next_cursor !== null;
+  const isFirstPage = request.cursor === undefined;
+  const paginationIsCoherent =
+    (totalMatches === 0
+      ? records.length === 0 && !hasNextCursor
+      : records.length > 0) &&
+    (!hasNextCursor ||
+      (records.length === pageSize && totalMatches > records.length)) &&
+    (!isFirstPage ||
+      (records.length === Math.min(totalMatches, pageSize) &&
+        hasNextCursor === (totalMatches > pageSize)));
   return (
+    paginationIsCoherent &&
     new Set(records.map((item) => item.opportunity_id)).size ===
-      records.length && (await sourceFingerprintsAreCoherent(records))
+      records.length &&
+    (await sourceFingerprintsAreCoherent(records))
   );
 }
 

@@ -82,7 +82,7 @@ describe("LearningCatalogPage", () => {
         ...learningQueryPageFixture.applied_query,
         query: "cash flow",
         levels: ["introductory"],
-        page_size: 10,
+        page_size: 17,
       },
       next_cursor: `cursor.${"d".repeat(64)}`,
     });
@@ -91,13 +91,16 @@ describe("LearningCatalogPage", () => {
       screen.getByRole("searchbox", { name: "Search opportunities" }),
     ).toHaveValue("cash flow");
     expect(screen.getByRole("button", { name: "Apply query" })).toBeVisible();
+    expect(
+      screen.getByRole("spinbutton", { name: "Results per page" }),
+    ).toHaveValue(17);
     expect(screen.getByRole("link", { name: "Clear filters" })).toHaveAttribute(
       "href",
       "/learn",
     );
     expect(screen.getByRole("link", { name: "Next page" })).toHaveAttribute(
       "href",
-      `/learn?query=cash+flow&level=introductory&page_size=10&cursor=cursor.${"d".repeat(64)}`,
+      `/learn?query=cash+flow&level=introductory&page_size=17&cursor=cursor.${"d".repeat(64)}`,
     );
   });
 });

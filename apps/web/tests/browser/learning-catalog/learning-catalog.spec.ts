@@ -104,6 +104,23 @@ test("supports keyboard focus, narrow reflow, reduced motion, and forced colors"
   ).not.toBe("none");
 });
 
+test("preserves every valid page-size value in the query controls", async ({
+  page,
+}) => {
+  await mockReadyCatalog(page, {
+    ...learningQueryPageFixture,
+    applied_query: {
+      ...learningQueryPageFixture.applied_query,
+      page_size: 17,
+    },
+  });
+  await page.goto("/learn?page_size=17");
+
+  await expect(
+    page.getByRole("spinbutton", { name: "Results per page" }),
+  ).toHaveValue("17");
+});
+
 test("shows a bounded denied state before requesting catalog records", async ({
   page,
 }) => {
