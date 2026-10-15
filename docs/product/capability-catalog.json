@@ -41,147 +41,147 @@
       "order": 6,
       "title": "Track progress and competency evidence",
       "description": "Give learners an explainable view of completions, attempts, feedback, evidence history, strengths, review needs, and competency or mastery projections.",
-      "planning_id": null
+      "planning_id": "CAP-0009"
     },
     {
       "key": "follow-an-adaptive-learning-pathway",
       "order": 7,
       "title": "Follow an adaptive learning pathway",
       "description": "Recommend eligible next activities based on evidence, goals, prerequisites, and deterministic policy, while explaining why each recommendation was made and allowing learner choice.",
-      "planning_id": null
+      "planning_id": "CAP-0010"
     },
     {
       "key": "learn-with-grounded-ai-assistance",
       "order": 8,
       "title": "Learn with grounded AI assistance",
       "description": "Offer learner-controlled tutoring and content interaction grounded in approved educational sources, with citations, limitations, safe fallbacks, and clear separation from authoritative grading or financial advice.",
-      "planning_id": null
+      "planning_id": "CAP-0011"
     },
     {
       "key": "explore-canonical-market-data",
       "order": 9,
       "title": "Explore canonical market data",
       "description": "Let learners retrieve, inspect, chart, compare, and export provider-neutral market data while seeing timestamps, coverage, quality indicators, attribution, and provenance.",
-      "planning_id": null
+      "planning_id": "CAP-0012"
     },
     {
       "key": "perform-financial-and-quantitative-analysis",
       "order": 10,
       "title": "Perform financial and quantitative analysis",
       "description": "Provide educational workflows for financial metrics, valuation concepts, comparisons, and reproducible calculations using explicit assumptions and traceable inputs.",
-      "planning_id": null
+      "planning_id": "CAP-0013"
     },
     {
       "key": "build-and-evaluate-simulated-portfolios",
       "order": 11,
       "title": "Build and evaluate simulated portfolios",
       "description": "Let learners create educational portfolios, allocate assets, select benchmarks, rebalance, inspect performance and risk measures, and record decisions without representing custody or live trading.",
-      "planning_id": null
+      "planning_id": "CAP-0014"
     },
     {
       "key": "run-backtests-and-scenario-analyses",
       "order": 12,
       "title": "Run backtests and scenario analyses",
       "description": "Let learners test historical strategies, stress scenarios, and portfolio assumptions with reproducible inputs, transparent limitations, and clear separation between simulation and observed results.",
-      "planning_id": null
+      "planning_id": "CAP-0015"
     },
     {
       "key": "conduct-financial-ai-and-ml-experiments",
       "order": 13,
       "title": "Conduct financial AI and ML experiments",
       "description": "Support dataset selection, feature work, model experiments, evaluation, leakage and overfitting checks, model cards, reproducibility, and comparison of results in a guided learning context.",
-      "planning_id": null
+      "planning_id": "CAP-0016"
     },
     {
       "key": "maintain-a-personal-learning-workspace",
       "order": 14,
       "title": "Maintain a personal learning workspace",
       "description": "Preserve a learner's notes, bookmarks, charts, datasets, simulations, notebooks, projects, and AI conversations so work can be resumed and connected across activities.",
-      "planning_id": null
+      "planning_id": "CAP-0017"
     },
     {
       "key": "set-learning-goals-and-preferences",
       "order": 15,
       "title": "Set learning goals and preferences",
       "description": "Let learners record goals, experience, interests, accessibility needs, theme choices, AI-assistance preferences, notification choices, and appropriate privacy controls.",
-      "planning_id": null
+      "planning_id": "CAP-0018"
     },
     {
       "key": "export-and-retain-portable-learning-records",
       "order": 16,
       "title": "Export and retain portable learning records",
       "description": "Let learners export their evidence, progress, saved work, and supported data in documented portable formats, with local backup and recovery appropriate to the deployment profile.",
-      "planning_id": null
+      "planning_id": "CAP-0019"
     },
     {
       "key": "understand-platform-methods-and-limitations",
       "order": 17,
       "title": "Understand platform methods and limitations",
       "description": "Provide searchable help, financial and AI/ML glossaries, adaptive-learning explanations, methodology, provenance guidance, AI limitations, and education-versus-advice boundaries.",
-      "planning_id": null
+      "planning_id": "CAP-0020"
     },
     {
       "key": "author-and-maintain-learning-experiences",
       "order": 18,
       "title": "Author and maintain learning experiences",
       "description": "Let authorized creators develop, review, version, and publish curricula, lessons, examples, assessments, projects, competency mappings, and supporting sources through an accepted content format.",
-      "planning_id": null
+      "planning_id": "CAP-0021"
     },
     {
       "key": "review-learner-evidence-and-provide-feedback",
       "order": 19,
       "title": "Review learner evidence and provide feedback",
       "description": "Let instructors inspect permitted evidence and project work, provide feedback, request revision, and make approved overrides with authorization and audit evidence.",
-      "planning_id": null
+      "planning_id": "CAP-0022"
     },
     {
       "key": "guide-cohorts-and-learning-organizations",
       "order": 20,
       "title": "Guide cohorts and learning organizations",
       "description": "Give authorized instructors or organization leaders privacy-aware views of cohort participation, progress, review needs, and learning outcomes without replacing individual evidence.",
-      "planning_id": null
+      "planning_id": "CAP-0023"
     },
     {
       "key": "connect-and-govern-replaceable-providers",
       "order": 21,
       "title": "Connect and govern replaceable providers",
       "description": "Let authorized operators configure market-data, model, content, storage, identity, and job providers through platform-owned contracts, with capability, health, quota, attribution, licensing, and failure visibility.",
-      "planning_id": null
+      "planning_id": "CAP-0024"
     },
     {
       "key": "manage-identities-organizations-roles-and-entitlements",
       "order": 22,
       "title": "Manage identities, organizations, roles, and entitlements",
       "description": "Support the appropriate local and cloud identity, membership, authorization, organization, and edition-entitlement experiences after the governing identity and tenancy decisions are accepted.",
-      "planning_id": null
+      "planning_id": "CAP-0025"
     },
     {
       "key": "preserve-provenance-and-accountable-history",
       "order": 23,
       "title": "Preserve provenance and accountable history",
       "description": "Maintain traceable origins, versions, transformations, and relevant audit history for learning evidence, recommendations, content, market data, datasets, model output, simulations, and administrative actions.",
-      "planning_id": null
+      "planning_id": "CAP-0026"
     },
     {
       "key": "operate-the-community-edition-locally",
       "order": 24,
       "title": "Operate the community edition locally",
       "description": "Enable an individual or contributor to install, configure, use, back up, restore, and upgrade the open-source platform locally with supported free-data and externally configured provider connections.",
-      "planning_id": null
+      "planning_id": "CAP-0027"
     },
     {
       "key": "operate-a-managed-cloud-service",
       "order": 25,
       "title": "Operate a managed cloud service",
       "description": "Enable qualified operators to run the shared platform core as a secure, observable, scalable, recoverable, and supportable managed service without creating different domain behavior.",
-      "planning_id": null
+      "planning_id": "CAP-0028"
     },
     {
       "key": "administer-platform-health-and-usage",
       "order": 26,
       "title": "Administer platform health and usage",
       "description": "Provide authorized operational visibility into provider health, jobs, storage, model and data usage, failures, audit events, and edition-appropriate service limits.",
-      "planning_id": null
+      "planning_id": "CAP-0029"
     }
   ]
 }

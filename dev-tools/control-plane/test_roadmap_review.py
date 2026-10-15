@@ -167,7 +167,15 @@ class RoadmapReviewTests(unittest.TestCase):
         self.assertEqual(result["catalog_count"], 26)
         self.assertEqual(len({item["key"] for item in result["candidates"]}), 26)
         mapped = {item["planning_id"] for item in result["candidates"] if item["planning_id"]}
-        self.assertEqual(mapped, {"CAP-0001", "CAP-0004", "CAP-0005", "CAP-0006", "CAP-0007"})
+        expected_mapped = {
+            "CAP-0001",
+            "CAP-0004",
+            "CAP-0005",
+            "CAP-0006",
+            "CAP-0007",
+            *(f"CAP-{number:04d}" for number in range(9, 30)),
+        }
+        self.assertEqual(mapped, expected_mapped)
         internal = {item["id"] for item in result["internal_capabilities"]}
         self.assertTrue({"CAP-0002", "CAP-0003", "CAP-0008"}.issubset(internal))
         for capability in result["internal_capabilities"]:
