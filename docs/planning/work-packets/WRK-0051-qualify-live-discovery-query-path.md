@@ -1,7 +1,7 @@
 ---
 id: WRK-0051
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -173,6 +173,42 @@ sort, pagination, stale-cursor, denial, lesson-continuation, accessibility,
 security-header, static, PostgreSQL, Python, filesystem, Chromium, and cleanup
 results; every check; documentation impact; residual gaps; packet and slice
 lifecycle; and CAP-0004 dependency readiness.
+
+## Completion Evidence
+
+- Delivered the opt-in three-classification query corpus through public
+  Curriculum registration followed by one atomic rebuild. The flag requires
+  the existing approved fixture; ordinary startup remains the one-opportunity
+  path, and registration or rebuild failure still prevents readiness.
+- Live PostgreSQL 18.4/Python/static/pinned-Chromium qualification passed all
+  three scenarios: 10/20/35-minute page-size-one traversal, the exact combined
+  filter, query-mismatched cursor denial as bounded `invalid_query`, no-session
+  confidentiality, exact lesson/completion continuation, security headers,
+  axe accessibility, and exact resource cleanup. The served static index
+  digest was
+  `42c20107743cabdb355f5d4d3b9de0261fc69b4eceefebe51b6a34ce74066747`.
+- The complete backend suite passed 252 tests with 30 environment-marked
+  PostgreSQL tests skipped; the separate live qualification used real
+  PostgreSQL. Architecture passed 13 focused tests, web verification passed 56
+  unit/component and five mocked Chromium tests, and TypeScript typecheck,
+  lint, generated client, OpenAPI snapshot, and production build were current.
+- Security passed 10 control groups; design validation passed 125 tokens and
+  56 icons; documentation validated 243 Markdown files; planning validated 118
+  artifacts; npm reported zero vulnerabilities; uv found all 32 installed
+  Python packages compatible; Git whitespace passed; aggregate readiness
+  passed all 27 checks; and the exact candidate produced a fresh qualifying
+  receipt.
+- The Windows runner now resolves the concrete npm executable before spawning
+  Playwright. Repeated classifications retain headings, lists, content, and
+  actions without redundant nested named landmarks. No public schema,
+  migration, dependency, production seed, provider, queue, or background job
+  changed.
+- Qualification did not cover non-Chromium browsers, real screen-reader use,
+  remote/public binding, managed-cloud composition, external search adapters,
+  production rebuild scheduling, or non-lesson destinations. Those boundaries
+  remain recorded gaps or later CAP work.
+- The delivered scope remains within CAP-0004 and SLI-0019 with no material
+  capability drift or new durable decision.
 
 ## Planning History
 

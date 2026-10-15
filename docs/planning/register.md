@@ -55,7 +55,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0016 | Vertical slice | [Reopen Retained Lesson Completion](vertical-slices/SLI-0016-reopen-retained-lesson-completion.md) | complete | CAP-0001 | SLI-0015 | none | codex-cap-0001 | 2026-10-15 |
 | SLI-0017 | Vertical slice | [Qualify the Complete Introductory Lesson Loop](vertical-slices/SLI-0017-qualify-complete-introductory-lesson-loop.md) | complete | CAP-0001 | SLI-0001, SLI-0015, SLI-0016 | none | codex-cap-0001 | 2026-10-15 |
 | SLI-0018 | Vertical slice | [Browse Approved Learning Opportunities](vertical-slices/SLI-0018-browse-approved-learning-opportunities.md) | complete | CAP-0004 | none | none | codex-cap-0004 | 2026-10-15 |
-| SLI-0019 | Vertical slice | [Query Approved Learning Opportunities](vertical-slices/SLI-0019-query-approved-learning-opportunities.md) | active | CAP-0004 | SLI-0018 | none | codex-cap-0004 | 2026-10-15 |
+| SLI-0019 | Vertical slice | [Query Approved Learning Opportunities](vertical-slices/SLI-0019-query-approved-learning-opportunities.md) | complete | CAP-0004 | SLI-0018 | none | codex-cap-0004 | 2026-10-15 |
 | SLI-0034 | Vertical slice | [Project Dynamic Roadmap Review Data](vertical-slices/SLI-0034-project-dynamic-roadmap-review-data.md) | complete | CAP-0008 | none | none | codex-roadmap-review | 2026-10-15 |
 | SLI-0035 | Vertical slice | [Review Capability Order and Parallelism](vertical-slices/SLI-0035-review-capability-order-and-parallelism.md) | complete | CAP-0008 | SLI-0034 | none | codex-roadmap-review | 2026-10-15 |
 | SLI-0036 | Vertical slice | [Navigate Capability, Slice, and Work Plans](vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md) | complete | CAP-0008 | SLI-0034, SLI-0035 | none | codex-roadmap-review | 2026-10-15 |
@@ -105,7 +105,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0048 | Work packet | [Deliver the Discovery Query Core](work-packets/WRK-0048-deliver-discovery-query-core.md) | complete | SLI-0019 | none | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0049 | Work packet | [Expose the Protected Discovery Query API](work-packets/WRK-0049-expose-protected-discovery-query-api.md) | complete | SLI-0019 | WRK-0048 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0050 | Work packet | [Deliver the URL-Backed Discovery Query Interface](work-packets/WRK-0050-deliver-url-backed-discovery-query-interface.md) | complete | SLI-0019 | WRK-0049 | none | codex-cap-0004 | 2026-10-15 |
-| WRK-0051 | Work packet | [Qualify the Live Discovery Query Path](work-packets/WRK-0051-qualify-live-discovery-query-path.md) | verifying | SLI-0019 | WRK-0050 | none | codex-cap-0004 | 2026-10-15 |
+| WRK-0051 | Work packet | [Qualify the Live Discovery Query Path](work-packets/WRK-0051-qualify-live-discovery-query-path.md) | complete | SLI-0019 | WRK-0050 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0052 | Work packet | [Ignore the Compatibility Branch Sentinel](work-packets/WRK-0052-ignore-compatibility-branch-sentinel.md) | complete | SLI-0013 | WRK-0021 | none | codex-cap-0003-correction | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |

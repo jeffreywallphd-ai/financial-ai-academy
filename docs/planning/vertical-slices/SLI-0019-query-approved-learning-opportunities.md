@@ -1,7 +1,7 @@
 ---
 id: SLI-0019
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -165,7 +165,7 @@ behind the same public semantics and compatibility corpus.
 | WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | complete |
 | WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | complete |
 | WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | complete |
-| WRK-0051 | Qualify the complete local query path, pagination continuity, query-bound cursor denial, security/accessibility, and cleanup | WRK-0050 | none | active |
+| WRK-0051 | Qualify the complete local query path, pagination continuity, query-bound cursor denial, security/accessibility, and cleanup | WRK-0050 | none | complete |
 
 ## Verification and Qualification
 
@@ -212,6 +212,20 @@ normalization/filter/sort/cursor semantics, compatibility preservation, denial
 and failure paths, interface qualification, live topology and fixtures, checks,
 unsupported profiles/providers, residual gaps, and CAP-package conformance.
 
+Completion evidence now covers all four packets. Query-v1 is additive to the
+unchanged discovery-v1 browse record; its compatibility corpus, shared-core
+policy, protected API/generated client, URL-backed interface, and live local
+topology all passed. The isolated live corpus produced three deterministic
+classifications, one atomic projection rebuild, stable 10/20/35-minute
+pagination, an exact combined filter, bounded query-mismatch denial, no-session
+confidentiality, accessible repeated cards, and exact lesson continuation.
+Backend, web, architecture, security, design, documentation, planning,
+dependency, build, diff, exact-candidate, and aggregate readiness evidence is
+current. No migration, public contract break, external search dependency,
+production seed, ranking authority, or material CAP drift was introduced.
+Non-Chromium, managed-cloud, external-provider, production-rebuild, and
+non-lesson-destination qualification remain explicit later boundaries.
+
 ## Planning History
 
 - 2026-10-15: Refined as the dependency-ready second CAP-0004 slice after
@@ -254,3 +268,11 @@ unsupported profiles/providers, residual gaps, and CAP-package conformance.
 - 2026-10-15: Activated WRK-0051 on the current CAP branch after its exact
   composition, live-browser, architecture, generated-artifact,
   documentation, and lifecycle scope was claimed with no overlapping edits.
+- 2026-10-15: Completed WRK-0051 with an opt-in deterministic query corpus,
+  live PostgreSQL/Python/static/Chromium pagination/filter/cursor-denial and
+  confidentiality evidence, accessible repeated cards, portable npm launch,
+  exact cleanup, and fresh repository-wide readiness evidence. SLI-0019 moved
+  to verification with every packet complete.
+- 2026-10-15: Closed SLI-0019 after the four-packet completion structure,
+  denial/failure evidence, canonical documentation, focused suites, live
+  qualification, exact-candidate receipt, and aggregate readiness all passed.
