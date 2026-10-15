@@ -151,7 +151,7 @@ a schema version change.
 | --- | --- | --- | --- | --- |
 | WRK-0058 | Establish versioned curriculum-graph contracts, compatibility corpus, Curriculum domain records, validation policy, and focused anti-rigidity tests | none | none | complete |
 | WRK-0059 | Persist immutable approved graph versions and expose the protected Curriculum read operation through OpenAPI and the generated client | WRK-0058 | none | complete |
-| WRK-0060 | Deliver the accessible responsive curriculum map/list route using the public generated client and shared design system | WRK-0059 | none | verifying |
+| WRK-0060 | Deliver the accessible responsive curriculum map/list route using the public generated client and shared design system | WRK-0059 | none | complete |
 | WRK-0061 | Qualify the live graph path, provenance, authorization, invalid-state behavior, accessibility, theme parity, and documentation | WRK-0060 | none | captured |
 
 ## Verification and Qualification
@@ -222,3 +222,7 @@ confirmation that eligibility and adaptation remain outside this slice.
   accessible list/map views with direct excessive-rigidity checks.
 - 2026-10-15: Activated WRK-0060 under the current CAP package after the
   implementation gate passed and the control plane issued its durable claim.
+- 2026-10-15: Completed WRK-0060 with an exact generated-client route, closed
+  graph validation aligned to canonical Unicode and semantic rules, accessible
+  list/map parity, flexible-shape evidence, aggregate interface checks, and an
+  accepted independent technical review. WRK-0061 is dependency-ready.

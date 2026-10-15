@@ -1,7 +1,7 @@
 ---
 id: WRK-0060
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-15
@@ -176,9 +176,43 @@ theme/accessibility/responsive checks; affected files and boundaries;
 documentation impact; residual browser/manual gaps; packet lifecycle result;
 and whether WRK-0061 is eligible.
 
+## Completion Evidence
+
+- Delivered the protected exact-version route at
+  `/learn/curricula/:curriculumId/versions/:curriculumVersion` through the
+  generated client and the existing opaque single-profile session seam, with
+  one bounded unauthorized renewal and closed denied, missing, unavailable,
+  malformed-selection, invalid-response, and unexpected states.
+- Added whole-response validation for closed keys and bounds, global graph
+  identities, typed activity references, same-kind shared branch membership,
+  mixed-kind ambiguity denial, typed relationship endpoints, assessment-only
+  assessor sources, optional presentation hints, and Unicode code-point text
+  and source-reference limits. The browser does not recompute publication,
+  eligibility, completion, mastery, or graph-digest authority.
+- Delivered a complete semantic list default and fluid CSS/HTML map peer over
+  the same validated graph facts. Both modes expose objectives, competencies,
+  required and optional branches, shared and unbranched activities,
+  relationships, exact version/digest, publication time, and sources without
+  activity launch or learner-state inference.
+- Focused evidence passed with 21 model, loader, and component tests plus four
+  Chromium tests. Final aggregate web evidence passed with 114 Vitest tests and
+  26 Chromium tests. TypeScript typecheck, lint, generated-client check,
+  production build, design-system, architecture, documentation, planning,
+  diff, and all 27 readiness checks passed on the closure candidate.
+- Independent technical review accepted the third exact candidate after
+  corrections aligned global graph semantics and all browser text/provenance
+  limits with the canonical Curriculum contract. Local immutable review and
+  verification records remain under ignored `.local-codex` only.
+- WRK-0061 retains live PostgreSQL/API/static-host/browser qualification and is
+  now dependency-ready. No decision gate, dependency, token, icon, or shared
+  design rule was added.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0059 completion. The packet uses
   the reviewed exact graph client and existing design system to deliver one
   flexible accessible presentation increment without adding domain authority,
   activity execution, a dependency, or a new decision gate.
+- 2026-10-15: Completed after exact-candidate verification and independent
+  review. Review corrections added global identity and relationship meaning
+  checks while removing noncanonical Unicode and whitespace rigidity.
