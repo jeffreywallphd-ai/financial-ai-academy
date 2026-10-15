@@ -199,13 +199,15 @@ scheduler, or deployment layer participates in this slice.
 
 ## Agent Work Packets
 
-The slice is delivered through one bounded packet because the lifecycle kernel,
-persistence, command composition, and qualification share one atomic contract
-and can be accepted or rejected as one observable result.
+The slice was initially delivered through one bounded packet because the
+lifecycle kernel, persistence, command composition, and qualification share one
+atomic contract. Bounded descendant corrections preserve that terminal history
+without reopening the slice.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0011 | Deliver lifecycle contracts, atomic state, leases, recovery, exact-candidate commands, documentation, and qualification | none | none | ready |
+| WRK-0047 | Correct submit CLI input routing and prove the real command boundary | WRK-0011 | none | verifying |
 
 Later CAP-0002 slices consume the stable outputs of WRK-0011 and remain serial.
 Anti-rigidity evidence is required alongside safety evidence: the common path
@@ -296,3 +298,6 @@ semantics and records that qualification gap without weakening Windows evidence.
 - 2026-10-15: Returned to `shaping` under the promoted single-CAP authority
   model. Detailed packet planning remains just in time and approval-free while
   it conforms to CAP-0002.
+- 2026-10-15: Added WRK-0047 through the bounded completed-work correction
+  route after the public `submit` CLI passed its `--input` value under the wrong
+  internal keyword. Completed SLI-0003 and WRK-0011 history remains terminal.

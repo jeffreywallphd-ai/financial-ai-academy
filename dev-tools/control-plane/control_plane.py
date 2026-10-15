@@ -72,7 +72,12 @@ def build_parser() -> argparse.ArgumentParser:
             command.add_argument("--expected-revision", type=int)
         if name == "submit":
             command.add_argument("--candidate", default="HEAD")
-            command.add_argument("--input", action="append", default=[])
+            command.add_argument(
+                "--input",
+                action="append",
+                dest="declared_inputs",
+                default=[],
+            )
 
     recover = commands.add_parser("recover")
     recover.add_argument("work_id")

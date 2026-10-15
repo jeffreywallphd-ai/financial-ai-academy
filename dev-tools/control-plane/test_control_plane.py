@@ -363,6 +363,43 @@ claimed_at: null
             self.assertEqual("submission.recorded", submitted["code"])
             self.assertEqual(self.git(root, "rev-parse", "HEAD"), submitted["data"]["submission"]["candidate"])
 
+    def test_submit_cli_maps_public_input_flag_to_declared_inputs(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="faa-control-plane-cli-") as directory:
+            root, plane = self.fixture(directory)
+            claimed = plane.claim("WRK-0001", owner="agent", lease_minutes=30)
+            claim_id = claimed["data"]["claim"]["claim_id"]
+            self.write(root, "src/value.txt", "candidate")
+            self.git(root, "add", ".")
+            self.git(root, "commit", "-m", "fixture candidate")
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(HERE / "control_plane.py"),
+                    "--root",
+                    str(root),
+                    "--json",
+                    "submit",
+                    "WRK-0001",
+                    "--owner",
+                    "agent",
+                    "--claim-id",
+                    claim_id,
+                    "--input",
+                    "src/value.txt",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+            )
+
+            self.assertEqual(0, completed.returncode, completed.stderr)
+            result = json.loads(completed.stdout)
+            self.assertEqual("submission.recorded", result["code"])
+            declared = result["data"]["submission"]["declared_inputs"]
+            self.assertIn("src/value.txt", [item["path"] for item in declared])
+
     def test_dirty_and_out_of_scope_candidates_are_actionable_denials(self) -> None:
         with tempfile.TemporaryDirectory(prefix="faa-control-plane-denial-") as directory:
             root, plane = self.fixture(directory)
