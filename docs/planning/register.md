@@ -12,7 +12,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | CAP-0001 | Capability | [Complete a Structured Introductory Lesson](capabilities/CAP-0001-complete-structured-introductory-lesson.md) | complete | none | none | resolved by ADR-0005 through ADR-0008 | unassigned | 2026-10-15 |
 | CAP-0002 | Capability | [Operate the AI-Development Control Plane](capabilities/CAP-0002-operate-ai-development-control-plane.md) | complete | none | none | none | codex-control-plane | 2026-10-15 |
 | CAP-0003 | Capability | [Plan and Orchestrate Capability Portfolios](capabilities/CAP-0003-plan-and-orchestrate-capability-portfolios.md) | complete | none | CAP-0002 | none | codex-cap-0003 | 2026-10-15 |
-| CAP-0004 | Capability | [Discover Learning Opportunities](capabilities/CAP-0004-discover-learning-opportunities.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
+| CAP-0004 | Capability | [Discover Learning Opportunities](capabilities/CAP-0004-discover-learning-opportunities.md) | complete | none | CAP-0001 | none | unassigned | 2026-10-15 |
 | CAP-0005 | Capability | [Navigate a Competency-Based Curriculum](capabilities/CAP-0005-navigate-competency-based-curriculum.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
 | CAP-0006 | Capability | [Practice and Demonstrate Understanding](capabilities/CAP-0006-practice-and-demonstrate-understanding.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
 | CAP-0007 | Capability | [Complete Applied Projects](capabilities/CAP-0007-complete-applied-projects.md) | ready | none | CAP-0005, CAP-0006 | resolved by ADR-0011 and ADR-0012 | unassigned | 2026-10-15 |
@@ -57,7 +57,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0018 | Vertical slice | [Browse Approved Learning Opportunities](vertical-slices/SLI-0018-browse-approved-learning-opportunities.md) | complete | CAP-0004 | none | none | codex-cap-0004 | 2026-10-15 |
 | SLI-0019 | Vertical slice | [Query Approved Learning Opportunities](vertical-slices/SLI-0019-query-approved-learning-opportunities.md) | complete | CAP-0004 | SLI-0018 | none | codex-cap-0004 | 2026-10-15 |
 | SLI-0020 | Vertical slice | [Inspect and Compare Learning Opportunities](vertical-slices/SLI-0020-inspect-and-compare-learning-opportunities.md) | complete | CAP-0004 | SLI-0018 | none | codex-cap-0004 | 2026-10-15 |
-| SLI-0021 | Vertical slice | [Qualify Learning Opportunity Discovery](vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md) | active | CAP-0004 | SLI-0019, SLI-0020 | none | codex-cap-0004 | 2026-10-15 |
+| SLI-0021 | Vertical slice | [Qualify Learning Opportunity Discovery](vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md) | complete | CAP-0004 | SLI-0019, SLI-0020 | none | codex-cap-0004 | 2026-10-15 |
 | SLI-0034 | Vertical slice | [Project Dynamic Roadmap Review Data](vertical-slices/SLI-0034-project-dynamic-roadmap-review-data.md) | complete | CAP-0008 | none | none | codex-roadmap-review | 2026-10-15 |
 | SLI-0035 | Vertical slice | [Review Capability Order and Parallelism](vertical-slices/SLI-0035-review-capability-order-and-parallelism.md) | complete | CAP-0008 | SLI-0034 | none | codex-roadmap-review | 2026-10-15 |
 | SLI-0036 | Vertical slice | [Navigate Capability, Slice, and Work Plans](vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md) | complete | CAP-0008 | SLI-0034, SLI-0035 | none | codex-roadmap-review | 2026-10-15 |
@@ -113,7 +113,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0054 | Work packet | [Deliver the Opportunity Detail Route](work-packets/WRK-0054-deliver-opportunity-detail-route.md) | complete | SLI-0020 | WRK-0053 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0055 | Work packet | [Deliver Opportunity Comparison](work-packets/WRK-0055-deliver-opportunity-comparison.md) | complete | SLI-0020 | WRK-0054 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0056 | Work packet | [Qualify Opportunity Inspection](work-packets/WRK-0056-qualify-opportunity-inspection.md) | complete | SLI-0020 | WRK-0055 | none | codex-cap-0004 | 2026-10-15 |
-| WRK-0057 | Work packet | [Qualify Learning Opportunity Discovery](work-packets/WRK-0057-qualify-learning-opportunity-discovery.md) | verifying | SLI-0021 | WRK-0051, WRK-0056 | none | codex-cap-0004 | 2026-10-15 |
+| WRK-0057 | Work packet | [Qualify Learning Opportunity Discovery](work-packets/WRK-0057-qualify-learning-opportunity-discovery.md) | complete | SLI-0021 | WRK-0051, WRK-0056 | none | codex-cap-0004 | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

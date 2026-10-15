@@ -1,7 +1,7 @@
 ---
 id: CAP-0004
 kind: capability
-planning_status: ready
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15

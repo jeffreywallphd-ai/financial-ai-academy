@@ -1,7 +1,7 @@
 ---
 id: WRK-0057
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -10,7 +10,7 @@ capability: CAP-0004
 depends_on: ["WRK-0051", "WRK-0056"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md", "docs/planning/work-packets/WRK-0057-qualify-learning-opportunity-discovery.md"]
+write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0004-discover-learning-opportunities.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md", "docs/planning/work-packets/WRK-0057-qualify-learning-opportunity-discovery.md"]
 generated_artifacts: []
 base_revision: 9ccd2061324ab4eb1133ee17652a943e3626cfc2
 claim_id: WRK-0057:87315af5-5d47-4e89-9db7-8104bc99e4eb
@@ -167,3 +167,6 @@ unresolved decisions, and CAP-package conformance.
   gates passed. Assurance sources required no reconciliation edit.
 - 2026-10-15: Submitted the exact candidate for fresh affected verification
   and independent technical review.
+- 2026-10-15: Completed cumulative qualification after the exact candidate
+  produced a qualifying receipt, independent technical review found no issues,
+  and every CAP-0004 criterion retained direct evidence and explicit limits.

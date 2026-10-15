@@ -1,7 +1,7 @@
 ---
 id: SLI-0021
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -105,7 +105,7 @@ the projection, URL, browser storage, or provider payload as authority.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0057 | Reconcile cumulative CAP acceptance and close learning-opportunity discovery | SLI-0018, SLI-0019, SLI-0020 | none | verifying |
+| WRK-0057 | Reconcile cumulative CAP acceptance and close learning-opportunity discovery | SLI-0018, SLI-0019, SLI-0020 | none | complete |
 
 ## Verification and Qualification
 
@@ -163,6 +163,13 @@ comparison evidence, while known gaps retain external search, managed cloud,
 non-lesson destinations, production rebuild scheduling, non-Chromium/manual
 assistive technology, and broader identity limits.
 
+SLI-0021 is complete. The qualifying receipt and independent review accepted
+the exact candidate with no findings, the approved CAP package remained bound
+to its original four-slice manifest, and no disposable PostgreSQL container or
+temporary live data root remained. The slice and CAP close with product,
+contract, schema, migration, generated-client, static output, dependency, and
+runtime behavior unchanged.
+
 ## Planning History
 
 - 2026-10-15: Refined as the final approved CAP-0004 manifest slice after
@@ -179,3 +186,6 @@ assistive technology, and broader identity limits.
   aggregate gates passed without runtime or approved-package changes.
 - 2026-10-15: Submitted the exact WRK-0057 candidate for fresh affected
   verification and independent technical review.
+- 2026-10-15: Closed WRK-0057 and SLI-0021 after the exact candidate produced a
+  qualifying receipt, independent review found no issues, cleanup remained
+  exact, and the approved CAP package stayed unchanged apart from lifecycle.
