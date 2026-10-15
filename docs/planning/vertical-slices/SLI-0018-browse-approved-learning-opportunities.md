@@ -134,8 +134,8 @@ investment performance.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0043 | Deliver the discovery record, Curriculum projection core, rebuild policy, and focused conformance tests | none | none | complete |
-| WRK-0044 | Persist the projection and expose the protected browse API plus generated client | WRK-0043 | none | active |
-| WRK-0045 | Deliver the accessible approved-opportunity catalog route | WRK-0044 | none | captured |
+| WRK-0044 | Persist the projection and expose the protected browse API plus generated client | WRK-0043 | none | complete |
+| WRK-0045 | Deliver the accessible approved-opportunity catalog route | WRK-0044 | none | ready |
 | WRK-0046 | Qualify projection rebuild and the complete local browse path | WRK-0045 | none | captured |
 
 ## Verification and Qualification
@@ -192,3 +192,6 @@ cleanup, unsupported profiles, residual gaps, and CAP-package conformance.
 - 2026-10-15: WRK-0044 completed the Curriculum-owned PostgreSQL projection,
   server-issued discovery permission, protected queryless API, and reproducible
   OpenAPI/generated-client seam. WRK-0045 is the next dependency-ready packet.
+- 2026-10-15: Authored WRK-0045 with the exact generated-client, fail-closed
+  validation, accessible catalog, exact-link, and browser evidence boundaries;
+  it remains within the approved slice and introduces no durable decision.
