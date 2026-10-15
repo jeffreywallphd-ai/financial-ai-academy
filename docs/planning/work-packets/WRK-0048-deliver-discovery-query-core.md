@@ -1,7 +1,7 @@
 ---
 id: WRK-0048
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["contracts/learning/README.md", "contracts/learning/discovery/query/v1", "contracts/compatibility/README.md", "contracts/compatibility/discovery/query/v1", "backend/src/financial_ai_academy/modules/curriculum/README.md", "backend/src/financial_ai_academy/modules/curriculum/public.py", "backend/src/financial_ai_academy/modules/curriculum/application/service.py", "backend/tests/contract/discovery_query", "backend/tests/unit/curriculum/test_discovery_service.py", "docs/architecture/contracts/discovery-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0019-query-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0048-deliver-discovery-query-core.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 6b9cc0886b6ef7af358f290b8b6446455c29938e
+claim_id: WRK-0048:c99fbd22-94aa-44af-84f1-f12b93c27de1
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T19:01:19Z
 ---
 
 # Agent Work Packet: Deliver the Discovery Query Core
@@ -189,3 +189,6 @@ lifecycle result; and whether WRK-0049 is dependency-ready.
   completion. It preserves the queryless contract, confines deterministic query
   policy to the shared Curriculum core, adds no migration or provider, and
   introduces no durable decision or material CAP drift.
+- 2026-10-15: Claimed on base
+  `6b9cc0886b6ef7af358f290b8b6446455c29938e` after deterministic readiness,
+  CAP authority, dependency, decision, and scope-overlap gates passed.
