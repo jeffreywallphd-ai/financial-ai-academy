@@ -116,6 +116,16 @@ describe("learningCatalogIsSafe", () => {
     first.provenance.published_at = "2026-02-31T12:00:00Z";
 
     await expect(learningCatalogIsSafe(catalog)).resolves.toBe(false);
+
+    const invalidReviewDate = copyCatalog() as {
+      records: Array<{ provenance: { content_reviewed_on: string } }>;
+    };
+    const invalidReviewRecord = invalidReviewDate.records[0];
+    if (!invalidReviewRecord) {
+      throw new Error("Expected a catalog record.");
+    }
+    invalidReviewRecord.provenance.content_reviewed_on = "2026-02-30";
+    await expect(learningCatalogIsSafe(invalidReviewDate)).resolves.toBe(false);
   });
 
   it("accepts a real leap-day timestamp and distinct opportunities sharing a placement", async () => {

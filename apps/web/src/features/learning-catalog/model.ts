@@ -21,7 +21,7 @@ const SEMANTIC_VERSION =
   /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
 const DESTINATION =
   /^\/learn\/placements\/[a-z0-9][a-z0-9._-]{2,63}$/;
-const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_TIME =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-](\d{2}):(\d{2}))$/;
 
@@ -93,13 +93,23 @@ function boundedText(
 }
 
 function validDate(value: unknown): value is string {
-  if (typeof value !== "string" || !DATE.test(value)) {
+  if (typeof value !== "string") {
     return false;
   }
-  const parsed = new Date(value + "T00:00:00Z");
+  const match = DATE.exec(value);
+  if (!match) {
+    return false;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!year || !month || !day || month > 12) {
+    return false;
+  }
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   return (
-    !Number.isNaN(parsed.valueOf()) &&
-    parsed.toISOString().slice(0, 10) === value
+    day <= daysInMonth &&
+    !Number.isNaN(Date.parse(value + "T00:00:00Z"))
   );
 }
 
