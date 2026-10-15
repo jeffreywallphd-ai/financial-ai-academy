@@ -29,6 +29,13 @@ Work creates, reviews, sequences, or executes capabilities, vertical slices, age
   turn maintenance into an arbitrary shell or ordinary implementation step.
 - Treat capability grants, provenance, telemetry, and harness metrics as
   deterministic evidence, not planning/external authority or a new approval.
+- Use hierarchy-specific portfolio readiness, compatibility, and allocation as
+  advisory evidence. Never treat an ancestor and descendant as separate edit
+  owners, and isolate unknown evidence to the affected lane rather than locking
+  the repository.
+- Publish optional edit intent and acquire renewable exact-file leases only for
+  bounded writes under an active packet claim; reads and unrelated files remain
+  concurrent, and a file lease never broadens authority.
 - Execute an approved slice bundle one dependency-ready packet at a time, completing the current packet before claiming its successor unless separately authorized otherwise.
 
 ## Canonical Sources

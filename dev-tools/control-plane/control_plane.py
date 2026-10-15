@@ -17,6 +17,11 @@ from financial_academy_review_ledger import FinancialAcademyReviewLedger
 from financial_academy_policy import service as financial_academy_policy_service
 from financial_academy_status import FinancialAcademyStatusAdapter
 from financial_academy_operations import services as financial_academy_operation_services
+from financial_academy_editing import FinancialAcademyEditingService
+from financial_academy_portfolio import compatibility_result as financial_academy_compatibility_result
+from financial_academy_portfolio import allocation_result as financial_academy_allocation_result
+from financial_academy_portfolio import plan_result as financial_academy_plan_result
+from financial_academy_portfolio import result as financial_academy_portfolio_result
 from git_candidate import GitCandidateAdapter
 from operator_status import OperatorStatusService
 from state import DEFAULT_LEASE_MINUTES
@@ -127,6 +132,40 @@ def build_parser() -> argparse.ArgumentParser:
     telemetry_report.add_argument("--report-path")
     harness_evaluate = commands.add_parser("harness-evaluate")
     harness_evaluate.add_argument("--report-path")
+    commands.add_parser("portfolio-graph")
+    portfolio_plan = commands.add_parser("portfolio-plan")
+    portfolio_plan.add_argument("--level", choices=("capability", "slice", "work"), required=True)
+    portfolio_plan.add_argument("--priority", action="append", default=[])
+    portfolio_compatibility = commands.add_parser("portfolio-compatibility")
+    portfolio_compatibility.add_argument("--level", choices=("capability", "slice", "work"), required=True)
+    portfolio_compatibility.add_argument("--id", action="append", dest="ids")
+    portfolio_allocation = commands.add_parser("portfolio-allocate")
+    portfolio_allocation.add_argument("--level", choices=("capability", "slice", "work"), required=True)
+    portfolio_allocation.add_argument("--priority", action="append", default=[])
+    portfolio_allocation.add_argument("--previous-plan", type=Path)
+    edit_intent = commands.add_parser("edit-intent")
+    edit_acquire = commands.add_parser("edit-acquire")
+    edit_recover = commands.add_parser("edit-recover")
+    for edit_command in (edit_intent, edit_acquire, edit_recover):
+        edit_command.add_argument("--unit-id", required=True)
+        edit_command.add_argument("--work-id", required=True)
+        edit_command.add_argument("--owner", required=True)
+        edit_command.add_argument("--claim-id", required=True)
+        edit_command.add_argument("--path", action="append", dest="paths", required=True)
+        edit_command.add_argument("--expected-revision", type=int)
+    edit_intent.add_argument("--minutes", type=int, default=5)
+    edit_acquire.add_argument("--lease-minutes", type=int, default=15)
+    edit_recover.add_argument("--lease-minutes", type=int, default=15)
+    edit_renew = commands.add_parser("edit-renew")
+    edit_release = commands.add_parser("edit-release")
+    for edit_command in (edit_renew, edit_release):
+        edit_command.add_argument("lease_id")
+        edit_command.add_argument("--owner", required=True)
+        edit_command.add_argument("--claim-id", required=True)
+        edit_command.add_argument("--expected-revision", type=int)
+    edit_renew.add_argument("--lease-minutes", type=int, default=15)
+    edit_status = commands.add_parser("edit-status")
+    edit_status.add_argument("--path")
     return parser
 
 
@@ -175,11 +214,12 @@ def main() -> int:
         policy = financial_academy_policy_service(root, project)
         operator = OperatorStatusService(FinancialAcademyStatusAdapter(root, project))
         starter, corrections, maintenance = financial_academy_operation_services(root, project)
+        editing = FinancialAcademyEditingService(root)
         values = vars(args)
         command = values.pop("command")
         as_json = values.pop("json")
         values.pop("root")
-        if command in {"claim", "renew", "recover", "submit", "release", "verify", "record-review", "resubmit", "packet-start", "correction-route"}:
+        if command in {"claim", "renew", "recover", "submit", "release", "verify", "record-review", "resubmit", "packet-start", "correction-route", "edit-intent", "edit-acquire", "edit-recover", "edit-renew", "edit-release"}:
             maintenance.guard_mutation(command)
         if command == "plan-checks":
             result = verifier.plan(**values)
@@ -233,6 +273,26 @@ def main() -> int:
             if report["status"] != "passed":
                 result["outcome"] = "not-ready"
                 result["remediation"] = ["Correct the named deterministic scenario violation without weakening its safety assertion."]
+        elif command == "portfolio-graph":
+            result = financial_academy_portfolio_result(root)
+        elif command == "portfolio-plan":
+            result = financial_academy_plan_result(root, **values)
+        elif command == "portfolio-compatibility":
+            result = financial_academy_compatibility_result(root, **values)
+        elif command == "portfolio-allocate":
+            result = financial_academy_allocation_result(root, **values)
+        elif command == "edit-intent":
+            result = editing.announce(**values)
+        elif command == "edit-acquire":
+            result = editing.acquire(**values)
+        elif command == "edit-recover":
+            result = editing.recover(**values)
+        elif command == "edit-renew":
+            result = editing.renew(**values)
+        elif command == "edit-release":
+            result = editing.release(**values)
+        elif command == "edit-status":
+            result = editing.status(**values)
         else:
             result = getattr(engine, command)(**values)
         exit_code = 1 if result.get("outcome") == "not-ready" else 0

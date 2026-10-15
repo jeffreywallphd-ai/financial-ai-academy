@@ -13,6 +13,64 @@ Before changing planning or implementation files, prominently read and follow
 every applicable `AGENTS.md`, the repository-root `docs/README.md`, and the
 planning guide. These controls add evidence; they never broaden authority.
 
+Portfolio compatibility is advisory evidence before a claim. A pair is
+`compatible` only when its current refined boundaries are affirmatively
+disjoint, `incompatible` only when a dependency or collision is evidenced, and
+`unknown` when material detail is missing. Unknown is a request to refine the
+narrow named boundary; it is neither permission to run concurrently nor a
+repository-wide lock. WRK pairs additionally require reciprocal
+`parallel_safe_with` declarations before they enter a parallel-safe set.
+
+Compatibility says whether work may be scheduled together; it does not grant a
+file editor. Immediately before changing a file, publish optional intent and
+atomically acquire the exact file set through the controller. Intent is a
+communication hint and never blocks. A live lease is exclusive, renewable, and
+non-preemptable; reads and edits to unrelated files remain concurrent. Do not
+lease directories, repository roots, or speculative future scope.
+
+```text
+python dev-tools/control-plane/control_plane.py edit-intent --unit-id <CAP-or-SLI-or-WRK> --work-id <active-WRK> --owner <owner> --claim-id <claim-id> --path <file>
+python dev-tools/control-plane/control_plane.py edit-acquire --unit-id <CAP-or-SLI-or-WRK> --work-id <active-WRK> --owner <owner> --claim-id <claim-id> --path <file>
+python dev-tools/control-plane/control_plane.py edit-status --path <file>
+python dev-tools/control-plane/control_plane.py edit-renew <lease-id> --owner <owner> --claim-id <claim-id>
+python dev-tools/control-plane/control_plane.py edit-release <lease-id> --owner <owner> --claim-id <claim-id>
+```
+
+Every logical CAP or SLI lane must be backed by one active descendant WRK claim,
+and every requested path must remain within that packet's `write_scope` or
+`generated_artifacts`. Multi-file acquisition is all-or-nothing. After expiry,
+`edit-recover` must name the expired lease's complete path set and records
+recovery lineage; it never displaces a live owner. State is local and ignored
+under `.local-codex/control-plane/`.
+
+## Proposed Allocation and Replanning
+
+After readiness and compatibility checks, request one proposal at the exact
+granularity the agents would work:
+
+```text
+python dev-tools/control-plane/control_plane.py portfolio-allocate --level capability
+python dev-tools/control-plane/control_plane.py portfolio-allocate --level slice --priority <SLI-ID>
+python dev-tools/control-plane/control_plane.py portfolio-allocate --level work --previous-plan .local-codex/control-plane/prior-allocation.json
+```
+
+An allocation combines ready and in-progress work, conflict-free groups,
+active descendants, current checkout branch evidence, and intent/lease status.
+One run never mixes hierarchy levels, so a CAP or SLI remains governance context
+instead of a second writer beside its descendant. Unknown evidence isolates
+only the affected lane and points to the missing refinement; it does not create
+a repository-wide lock. Prior-plan comparison records lane and group changes
+without overwriting the prior rationale.
+
+Allocation is advisory and read-only. It cannot create an agent, claim a packet,
+acquire a file, switch a branch, or grant authority. Follow the normal claim and
+exact-file lease workflow for each chosen lane.
+
+The fixed readiness gate runs graph, order, compatibility, exact-file,
+allocation, cumulative qualification, and real-core portfolio corpus checks.
+These local checks prove repository behavior; they do not claim multi-host lease
+enforcement, hosted agent startup, or remote scheduling.
+
 ## Work Branch and Integration Boundary
 
 Create or switch to a named `codex/*` branch before making tracked planning,

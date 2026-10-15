@@ -60,6 +60,13 @@ def checks(root: Path, profile: str, base_ref: str | None) -> list[Check]:
         Check("control-plane start and maintenance", (python, "dev-tools/control-plane/test_operations.py")),
         Check("control-plane qualification", (python, "dev-tools/control-plane/test_qualification.py")),
         Check("control-plane multi-turn evaluations", (python, "dev-tools/control-plane/evaluate_harness.py")),
+        Check("portfolio graph", (python, "dev-tools/control-plane/test_portfolio.py")),
+        Check("portfolio ordering", (python, "dev-tools/control-plane/test_portfolio_ordering.py")),
+        Check("portfolio compatibility", (python, "dev-tools/control-plane/test_portfolio_conflicts.py")),
+        Check("file-edit coordination", (python, "dev-tools/control-plane/test_file_leases.py")),
+        Check("portfolio allocation", (python, "dev-tools/control-plane/test_portfolio_allocation.py")),
+        Check("portfolio qualification", (python, "dev-tools/control-plane/test_portfolio_qualification.py")),
+        Check("portfolio real-core evaluations", (python, "dev-tools/control-plane/evaluate_portfolio.py")),
         Check("documentation integrity", (python, "dev-tools/documentation/check_docs.py")),
         Check("design-system integrity", (python, "dev-tools/design/check_design_system.py")),
     ]

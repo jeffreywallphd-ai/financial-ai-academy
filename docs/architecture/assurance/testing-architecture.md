@@ -30,4 +30,11 @@
 - Repository automation subprocesses execute only after exact capability
   command/effect/path validation; reports retain digests rather than argv or
   output payloads.
+- Portfolio-harness evaluation runs tracked synthetic projects through the real
+  project-neutral graph/order/conflict/allocation pipeline. Hard dependency,
+  hierarchy, collision, and authority assertions fail independently of
+  parallel-utilization and operator-friction budgets.
+- Repository-local file coordination is qualified with canonical-path,
+  all-or-nothing acquisition, real process-race, expiry/recovery, and
+  anti-rigidity tests. Hosted or multi-host exclusion remains explicit.
 

@@ -24,6 +24,11 @@ Work affects tests, defects, diagnostics, architecture checks, docs checks, cont
 - Test exact command/effect/path capability confinement, payload-free
   provenance, anonymous non-blocking telemetry, and hard safety assertions
   independently from friction budgets in the multi-turn corpus.
+- Run portfolio scenarios through the real generic graph/order/conflict/
+  allocation pipeline. Keep safety assertions independent from useful-
+  parallelism, isolation, unresolved-evidence, contention, and step budgets.
+- Qualify exact-file single-writer behavior with process races and expiry
+  recovery while proving that reads and unrelated files stay concurrent.
 
 ## Canonical Sources
 

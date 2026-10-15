@@ -22,7 +22,9 @@
 - End-to-end evidence that the repository host successfully retains and serves
   the configured privacy-minimized readiness artifact; the workflow contract is
   checked locally, but hosted execution remains external qualification
-- Multi-host or remote control-plane confinement, telemetry transport, and
-  hosted evaluation; current qualification is deliberately repository-local
+- Multi-host or remote control-plane confinement, distributed file leases,
+  telemetry transport, automatic agent startup, and hosted portfolio evaluation;
+  direct graph/order/conflict/allocation/file-race/friction qualification is
+  deliberately repository-local
 
 Close a gap only when executable evidence or an explicitly documented controlled qualification owns the claim.

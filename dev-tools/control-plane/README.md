@@ -25,6 +25,18 @@ core is intentionally reusable across projects:
 - `provenance.py` binds machine results without copying their payloads.
 - `telemetry.py` emits anonymous local events and deterministic friction metrics.
 - `harness.py` evaluates the tracked multi-turn safety/friction corpus.
+- `portfolio.py` defines project-neutral hierarchy and dependency-graph
+  contracts with deterministic validation and diagnostics.
+- `portfolio_ordering.py` derives hierarchy-aware ready sets, blocked reasons,
+  explicit-priority ordering, and visible ties without inventing product value.
+- `portfolio_conflicts.py` classifies dependency and coordination evidence as
+  compatible, incompatible, or unknown and builds pairwise-safe groups.
+- `file_leases.py` provides vocabulary-neutral, exact-file intent and renewable
+  lease contracts with atomic all-or-nothing acquisition and explicit recovery.
+- `portfolio_allocation.py` composes graph, readiness, compatibility, branch,
+  and edit facts into proposal-only lanes with stable replanning evidence.
+- `portfolio_harness.py` executes tracked synthetic scenarios through the real
+  generic pipeline and evaluates hard safety separately from friction budgets.
 
 `financial_academy.py` and `git_candidate.py` are adapters. They map this
 repository's CAP/SLI/WRK package authority, frontmatter projection, scope, and
@@ -32,6 +44,21 @@ Git facts onto the reusable core. Another project can start with the core and
 implement its own adapters without inheriting CAP/SLI/WRK names or approval
 policy. `financial_academy_policy.py` and `financial_academy_status.py` are the
 project-specific fact and status adapters; replace them in another project.
+`financial_academy_portfolio.py` maps this repository's capability catalog and
+CAP/SLI/WRK artifacts into the generic portfolio graph without granting
+authority or inventing dependencies.
+`financial_academy_editing.py` binds generic file coordination to one active
+WRK claim and its declared scope while allowing that work, its parent slice, or
+its parent capability to serve as the logical coordination lane.
+
+For reuse, copy the project-neutral modules and supply project-owned node facts
+to `portfolio.analyze`, current authority/priority to `portfolio_ordering.plan`,
+coordination evidence to `portfolio_conflicts.analyze_compatibility`, and local
+intent/lease records to `portfolio_allocation.allocate`. Implement repository
+authority and filesystem scope checks outside those modules, as this repository
+does in `financial_academy_portfolio.py` and `financial_academy_editing.py`.
+Generic code and the portfolio evaluation corpus use no CAP/SLI/WRK identifier
+assumption; adapters may retain whatever planning vocabulary their project owns.
 
 ## Commands
 
@@ -61,6 +88,16 @@ python dev-tools/control-plane/control_plane.py maintenance-action recover-inter
 python dev-tools/control-plane/control_plane.py maintenance-finish
 python dev-tools/control-plane/control_plane.py telemetry-report --report-path artifacts/control-plane/telemetry.json
 python dev-tools/control-plane/control_plane.py harness-evaluate --report-path artifacts/control-plane/harness-evaluation.json
+python dev-tools/control-plane/control_plane.py portfolio-graph
+python dev-tools/control-plane/control_plane.py portfolio-plan --level capability --priority CAP-0003
+python dev-tools/control-plane/control_plane.py portfolio-compatibility --level capability
+python dev-tools/control-plane/control_plane.py portfolio-allocate --level slice --priority SLI-0013
+python dev-tools/control-plane/control_plane.py edit-intent --unit-id CAP-0003 --work-id WRK-0020 --owner <owner> --claim-id <claim-id> --path dev-tools/control-plane/file_leases.py
+python dev-tools/control-plane/control_plane.py edit-acquire --unit-id SLI-0012 --work-id WRK-0020 --owner <owner> --claim-id <claim-id> --path dev-tools/control-plane/file_leases.py
+python dev-tools/control-plane/control_plane.py edit-status --path dev-tools/control-plane/file_leases.py
+python dev-tools/control-plane/control_plane.py edit-renew <lease-id> --owner <owner> --claim-id <claim-id>
+python dev-tools/control-plane/control_plane.py edit-release <lease-id> --owner <owner> --claim-id <claim-id>
+python dev-tools/control-plane/control_plane.py edit-recover --unit-id WRK-0020 --work-id WRK-0020 --owner <owner> --claim-id <claim-id> --path dev-tools/control-plane/file_leases.py
 ```
 
 Add `--json` before the subcommand for the stable machine result. Mutations
@@ -78,6 +115,13 @@ python dev-tools/control-plane/test_policy.py
 python dev-tools/control-plane/test_operations.py
 python dev-tools/control-plane/test_qualification.py
 python dev-tools/control-plane/evaluate_harness.py
+python dev-tools/control-plane/test_portfolio.py
+python dev-tools/control-plane/test_portfolio_ordering.py
+python dev-tools/control-plane/test_portfolio_conflicts.py
+python dev-tools/control-plane/test_file_leases.py
+python dev-tools/control-plane/test_portfolio_allocation.py
+python dev-tools/control-plane/test_portfolio_qualification.py
+python dev-tools/control-plane/evaluate_portfolio.py
 ```
 
 Tests include a synthetic adapter with no Financial AI Academy vocabulary,
@@ -94,6 +138,26 @@ Policy/status tests cover local/CI rule parity, explicit unavailable evidence,
 report confinement and privacy, stale-local reconciliation, one-command
 read-only status, bounded remediation, and absence of approval or full-suite
 requirements on the ordinary status path.
+Portfolio tests cover deterministic hierarchy projection, missing and
+superseded dependencies, cycles, invalid ancestry, future just-in-time slice
+bindings, authority separation, and read-only CLI behavior.
+Ordering tests cover CAP/SLI/WRK readiness, current parent authority, completed
+dependencies, explicit priority, unresolved ties, precise refusals, and
+read-only behavior.
+Compatibility tests cover dependency paths, normalized scope and generated
+output overlap, contracts, exclusive resources, active branches, reciprocal WRK
+declarations, safe-set closure, and unknown-evidence anti-rigidity.
+File coordination tests cover process races, path aliases, atomic multi-file
+acquisition, non-blocking intent, prompt release, live-owner protection,
+complete-set recovery lineage, active-WRK authorization, and the absence of read
+or directory locks.
+Allocation tests use non-CAP/SLI/WRK identifiers against the generic core and
+cover priority-preserving lanes, dependency blocking, narrow unknown isolation,
+active descendants, `codex/*` branch observations, live edit facts, deterministic
+replanning, explicit non-authority, and read-only repository CLI behavior.
+The real-core portfolio corpus covers active containers, cycles, dependencies,
+slice/work parallelism, exact overlap, and narrow unknown evidence. Its report
+contains only scenario IDs, digests, categorical metrics, and violation codes.
 
 CI deliberately evaluates the same policy inventory while marking ignored
 local authority and lifecycle facts `not-evaluated`. That absence never becomes
@@ -118,12 +182,24 @@ catalog command IDs, matched repository paths, and the `subprocess` effect; argv
 never belongs to a grant. CLI results and new receipts carry
 `control-provenance-v1` digests. Every CLI invocation also attempts one
 `control-event-v1` record containing only categorical result fields, duration,
-and remediation count. Telemetry failure is intentionally non-blocking.
+and remediation count. Aggregates distinguish portfolio attempts/refusals and
+file-edit contention/recovery/release counts without recording work or path
+identifiers. Telemetry failure is intentionally non-blocking.
 
-The tracked `evals/scenarios.json` corpus deterministically checks seven
+The tracked `evals/scenarios.json` corpus deterministically checks thirteen
 multi-turn flows and hard safety assertions. Friction budgets can fail an
 evaluation but cannot offset a safety violation. Neither telemetry nor the
 evaluator grants authority, changes lifecycle state, or sends data remotely.
+The separate `evals/portfolio-scenarios.json` corpus runs seven scenarios through
+the actual project-neutral implementation and enforces useful-concurrency,
+isolation, blockage, and unresolved-evidence budgets after safety assertions.
+
+`portfolio-allocate` always selects exactly one hierarchy level. Ancestors are
+reported as context and active descendants, never as duplicate editing owners.
+The output is a proposal: it cannot create agents, claims, branches, or file
+leases. Pass `--previous-plan .local-codex/...json` to compare with an earlier
+allocation and receive categorical lane/group changes while preserving the
+earlier plan digest. Unknown compatibility isolates only the affected lanes.
 
 Review request files must remain under `.local-codex/`. Reviewer labels,
 dispositions, findings, closures, notes, candidate/evidence bindings, and review

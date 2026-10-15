@@ -74,6 +74,8 @@ class TelemetrySink:
         refused = [item for item in events if item.get("outcome") in {"refused", "not-ready", "not-qualified"}]
         recovery = [item for item in events if item.get("command_id") in {"recover", "maintenance-action"}]
         verification = [item for item in events if item.get("command_id") == "verify"]
+        portfolio = [item for item in events if str(item.get("command_id", "")).startswith("portfolio-")]
+        file_edit = [item for item in events if str(item.get("command_id", "")).startswith("edit-")]
         p95_index = max(0, min(len(durations) - 1, int((len(durations) - 1) * 0.95))) if durations else 0
         return {
             "schema_version": "control-telemetry-report-v1",
@@ -85,6 +87,17 @@ class TelemetrySink:
             "replay_count": sum("replayed" in str(item.get("result_code", "")) for item in events),
             "recovery": {"attempts": len(recovery), "succeeded": sum(item.get("outcome") == "succeeded" for item in recovery)},
             "verification": {"attempts": len(verification), "duration_ms_total": round(sum(float(item.get("duration_ms", 0)) for item in verification), 3)},
+            "portfolio": {
+                "attempts": len(portfolio),
+                "succeeded": sum(item.get("outcome") == "succeeded" for item in portfolio),
+                "refused": sum(item.get("outcome") in {"refused", "not-ready", "not-qualified"} for item in portfolio),
+            },
+            "file_edit": {
+                "attempts": len(file_edit),
+                "contentions": sum(item.get("result_code") == "edit.lease-contended" for item in file_edit),
+                "recoveries": sum(item.get("command_id") == "edit-recover" and item.get("outcome") == "succeeded" for item in file_edit),
+                "releases": sum(item.get("command_id") == "edit-release" and item.get("outcome") == "succeeded" for item in file_edit),
+            },
             "duration_ms": {"total": round(sum(durations), 3), "p95": durations[p95_index] if durations else 0.0},
         }
 

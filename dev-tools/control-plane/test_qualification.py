@@ -83,15 +83,21 @@ class ProvenanceAndTelemetryTests(unittest.TestCase):
             sink = TelemetrySink(root)
             first = sink.emit(command_id="verify", outcome="not-qualified", result_code="verification.failed", duration_ms=12.5, remediation_count=1)
             second = sink.emit(command_id="recover", outcome="succeeded", result_code="lifecycle.recovered", duration_ms=4, remediation_count=0)
+            sink.emit(command_id="portfolio-allocate", outcome="succeeded", result_code="portfolio.allocation-projected", duration_ms=3, remediation_count=0)
+            sink.emit(command_id="edit-acquire", outcome="refused", result_code="edit.lease-contended", duration_ms=2, remediation_count=1)
+            sink.emit(command_id="edit-recover", outcome="succeeded", result_code="edit.lease-recovered", duration_ms=2, remediation_count=0)
             self.assertNotEqual(first, second)
             events, malformed = sink.events()
             self.assertEqual(0, malformed)
-            self.assertEqual(2, len(events))
+            self.assertEqual(5, len(events))
             self.assertFalse(FORBIDDEN_EVENT_FIELDS.intersection(events[0]))
             report = sink.report()
             self.assertEqual(0, report["ambiguous_refusal_count"])
             self.assertEqual({"attempts": 1, "succeeded": 1}, report["recovery"])
             self.assertEqual(1, report["verification"]["attempts"])
+            self.assertEqual({"attempts": 1, "refused": 0, "succeeded": 1}, report["portfolio"])
+            self.assertEqual(1, report["file_edit"]["contentions"])
+            self.assertEqual(1, report["file_edit"]["recoveries"])
 
     def test_malformed_event_is_counted_and_sink_failure_never_blocks_operation(self) -> None:
         with tempfile.TemporaryDirectory(prefix="telemetry-malformed-") as directory:
@@ -115,7 +121,7 @@ class HarnessEvaluationTests(unittest.TestCase):
         corpus = json.loads((HERE / "evals/scenarios.json").read_text(encoding="utf-8"))
         report = evaluate_corpus(corpus)
         self.assertEqual("passed", report["status"])
-        self.assertEqual(7, report["passed_count"])
+        self.assertEqual(13, report["passed_count"])
 
     def test_safety_failure_cannot_be_offset_by_short_turn_count(self) -> None:
         scenario = {

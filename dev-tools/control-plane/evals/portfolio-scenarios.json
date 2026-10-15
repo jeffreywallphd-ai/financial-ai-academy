@@ -1,0 +1,99 @@
+{
+  "schema_version": "portfolio-harness-corpus-v1",
+  "scenarios": [
+    {
+      "id": "active-container-context",
+      "level": "capability",
+      "authority_current": ["PROGRAM-A"],
+      "nodes": [
+        {"id": "PROGRAM-A", "kind": "capability", "status": "active", "manifest": ["INCREMENT-A"], "manifest_declared": true, "dependencies": [], "decision_gates": [], "scope_complete": true},
+        {"id": "INCREMENT-A", "kind": "slice", "status": "active", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": [], "scope_complete": true},
+        {"id": "TASK-A", "kind": "work", "status": "active", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["area/a.txt"], "generated_artifacts": [], "active_claim": true, "scope_complete": true}
+      ],
+      "expected": {"lane_ids": ["PROGRAM-A"], "parallel_groups": [["PROGRAM-A"]], "blocked_ids": []},
+      "budgets": {"max_blocked_count": 0, "max_isolated_lane_count": 1, "min_parallel_lane_count": 0, "max_unresolved_pair_count": 0}
+    },
+    {
+      "id": "cycle-is-refused",
+      "level": "work",
+      "authority_current": ["PROGRAM-A"],
+      "nodes": [
+        {"id": "PROGRAM-A", "kind": "capability", "status": "ready", "manifest": ["INCREMENT-A"], "manifest_declared": true, "dependencies": [], "decision_gates": []},
+        {"id": "INCREMENT-A", "kind": "slice", "status": "active", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": []},
+        {"id": "TASK-A", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [{"target": "TASK-B", "type": "hard"}], "decision_gates": [], "write_scope": ["area/a.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-B"], "scope_complete": true},
+        {"id": "TASK-B", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [{"target": "TASK-A", "type": "hard"}], "decision_gates": [], "write_scope": ["area/b.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-A"], "scope_complete": true}
+      ],
+      "expected": {"error_code": "portfolio.graph-invalid"},
+      "budgets": {"max_blocked_count": 0, "max_isolated_lane_count": 0, "min_parallel_lane_count": 0, "max_unresolved_pair_count": 0}
+    },
+    {
+      "id": "dependency-blocks-successor",
+      "level": "work",
+      "authority_current": ["PROGRAM-A"],
+      "nodes": [
+        {"id": "PROGRAM-A", "kind": "capability", "status": "ready", "manifest": ["INCREMENT-A"], "manifest_declared": true, "dependencies": [], "decision_gates": []},
+        {"id": "INCREMENT-A", "kind": "slice", "status": "active", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": []},
+        {"id": "TASK-A", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["area/a.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-B"], "scope_complete": true},
+        {"id": "TASK-B", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [{"target": "TASK-A", "type": "hard"}], "decision_gates": [], "write_scope": ["area/b.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-A"], "scope_complete": true}
+      ],
+      "expected": {"lane_ids": ["TASK-A"], "parallel_groups": [["TASK-A"]], "blocked_ids": ["TASK-B"]},
+      "budgets": {"max_blocked_count": 1, "max_isolated_lane_count": 1, "min_parallel_lane_count": 0, "max_unresolved_pair_count": 0}
+    },
+    {
+      "id": "disjoint-slices-use-parallelism",
+      "level": "slice",
+      "authority_current": ["PROGRAM-A"],
+      "explicit_priority": ["INCREMENT-B", "INCREMENT-A"],
+      "nodes": [
+        {"id": "PROGRAM-A", "kind": "capability", "status": "ready", "manifest": ["INCREMENT-A", "INCREMENT-B"], "manifest_declared": true, "dependencies": [], "decision_gates": []},
+        {"id": "INCREMENT-A", "kind": "slice", "status": "ready", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": [], "write_scope": ["alpha"], "generated_artifacts": [], "scope_complete": true},
+        {"id": "INCREMENT-B", "kind": "slice", "status": "ready", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": [], "write_scope": ["beta"], "generated_artifacts": [], "scope_complete": true}
+      ],
+      "expected": {"lane_ids": ["INCREMENT-B", "INCREMENT-A"], "parallel_groups": [["INCREMENT-B", "INCREMENT-A"]], "blocked_ids": []},
+      "budgets": {"max_blocked_count": 0, "max_isolated_lane_count": 0, "min_parallel_lane_count": 2, "max_unresolved_pair_count": 0}
+    },
+    {
+      "id": "disjoint-work-uses-parallelism",
+      "level": "work",
+      "authority_current": ["PROGRAM-A"],
+      "explicit_priority": ["TASK-B", "TASK-A", "TASK-C"],
+      "nodes": [
+        {"id": "PROGRAM-A", "kind": "capability", "status": "ready", "manifest": ["INCREMENT-A"], "manifest_declared": true, "dependencies": [], "decision_gates": []},
+        {"id": "INCREMENT-A", "kind": "slice", "status": "active", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": []},
+        {"id": "TASK-A", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["alpha/a.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-B", "TASK-C"], "scope_complete": true},
+        {"id": "TASK-B", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["beta/b.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-A", "TASK-C"], "scope_complete": true},
+        {"id": "TASK-C", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["gamma/c.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-A", "TASK-B"], "scope_complete": true}
+      ],
+      "expected": {"lane_ids": ["TASK-B", "TASK-A", "TASK-C"], "parallel_groups": [["TASK-B", "TASK-A", "TASK-C"]], "blocked_ids": []},
+      "budgets": {"max_blocked_count": 0, "max_isolated_lane_count": 0, "min_parallel_lane_count": 3, "max_unresolved_pair_count": 0}
+    },
+    {
+      "id": "overlap-serializes-only-collision",
+      "level": "work",
+      "authority_current": ["PROGRAM-A"],
+      "nodes": [
+        {"id": "PROGRAM-A", "kind": "capability", "status": "ready", "manifest": ["INCREMENT-A"], "manifest_declared": true, "dependencies": [], "decision_gates": []},
+        {"id": "INCREMENT-A", "kind": "slice", "status": "active", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": []},
+        {"id": "TASK-A", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["shared/a.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-B", "TASK-C"], "scope_complete": true},
+        {"id": "TASK-B", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["shared"], "generated_artifacts": [], "parallel_safe_with": ["TASK-A", "TASK-C"], "scope_complete": true},
+        {"id": "TASK-C", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["independent/c.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-A", "TASK-B"], "scope_complete": true}
+      ],
+      "expected": {"lane_ids": ["TASK-A", "TASK-B", "TASK-C"], "parallel_groups": [["TASK-A", "TASK-C"], ["TASK-B"]], "blocked_ids": []},
+      "budgets": {"max_blocked_count": 0, "max_isolated_lane_count": 1, "min_parallel_lane_count": 2, "max_unresolved_pair_count": 1}
+    },
+    {
+      "id": "unknown-scope-is-narrow",
+      "level": "work",
+      "authority_current": ["PROGRAM-A"],
+      "nodes": [
+        {"id": "PROGRAM-A", "kind": "capability", "status": "ready", "manifest": ["INCREMENT-A"], "manifest_declared": true, "dependencies": [], "decision_gates": []},
+        {"id": "INCREMENT-A", "kind": "slice", "status": "active", "parent": "PROGRAM-A", "dependencies": [], "decision_gates": []},
+        {"id": "TASK-A", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["alpha/a.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-B", "TASK-C"], "scope_complete": true},
+        {"id": "TASK-B", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": ["beta/b.txt"], "generated_artifacts": [], "parallel_safe_with": ["TASK-A", "TASK-C"], "scope_complete": true},
+        {"id": "TASK-C", "kind": "work", "status": "ready", "parent": "INCREMENT-A", "dependencies": [], "decision_gates": [], "write_scope": [], "generated_artifacts": [], "parallel_safe_with": ["TASK-A", "TASK-B"], "scope_complete": false}
+      ],
+      "expected": {"lane_ids": ["TASK-A", "TASK-B", "TASK-C"], "parallel_groups": [["TASK-A", "TASK-B"], ["TASK-C"]], "blocked_ids": []},
+      "budgets": {"max_blocked_count": 0, "max_isolated_lane_count": 1, "min_parallel_lane_count": 2, "max_unresolved_pair_count": 2}
+    }
+  ]
+}

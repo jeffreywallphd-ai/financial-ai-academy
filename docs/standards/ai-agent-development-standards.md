@@ -46,6 +46,12 @@
 - Evaluate multi-turn automation with deterministic safety assertions and
   explicit friction budgets. A shorter route never compensates for a safety
   violation, and a metric never authorizes protected state change.
+- Compute portfolio readiness and parallelism at one explicit hierarchy level,
+  treat ancestors as context rather than duplicate owners, and isolate unknown
+  evidence narrowly instead of defaulting to a repository-wide lock.
+- Acquire renewable exact-file edit leases just before a bounded write and
+  release them promptly. Reads, unrelated files, and advisory planning do not
+  require a lease; a lease never grants scope, approval, or execution authority.
 
 ## Prohibited Shortcuts
 

@@ -71,6 +71,16 @@ tests scan event keys, isolate malformed records, and prove sink failure is
 non-blocking. Multi-turn corpus tests keep hard safety assertions independent of
 turn/full-readiness budgets and fail on ambiguous refusals or sensitive fields.
 
+Portfolio-control qualification must execute tracked synthetic inputs through
+the real project-neutral graph, ordering, compatibility, and allocation code.
+It must prove dependency/collision safety, exclusive exact-file ownership,
+hierarchy isolation, adapter independence, provenance, and privacy. Measure
+useful parallel lanes, isolated lanes, unresolved pairs, contention, recovery,
+and redundant operator steps, but never allow a utilization budget to offset a
+safety failure. Fixed readiness runs every portfolio boundary and evaluator in
+both local and CI profiles; hosted or multi-host behavior remains separate
+external qualification.
+
 On pull requests, CI supplies the base revision so illegal planning lifecycle transitions are rejected. Required-status enforcement remains a repository hosting configuration and must be verified separately from the workflow file.
 
 ## Test Data

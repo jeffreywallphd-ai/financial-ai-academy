@@ -18,6 +18,26 @@
       "assertions": {"max_turns": 1, "max_aggregate_readiness": 0, "required_commands": ["verify"], "forbidden_commands": ["run-shell"], "expected_final_code": "capability.path-denied"}
     },
     {
+      "id": "edit-file-expiry-recovery",
+      "turns": [
+        {"command_id": "edit-acquire", "outcome": "succeeded", "code": "edit.lease-acquired", "remediation_count": 0},
+        {"command_id": "edit-renew", "outcome": "refused", "code": "edit.lease-expired", "remediation_count": 1},
+        {"command_id": "edit-recover", "outcome": "succeeded", "code": "edit.lease-recovered", "remediation_count": 0},
+        {"command_id": "edit-release", "outcome": "succeeded", "code": "edit.lease-released", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 4, "max_aggregate_readiness": 0, "required_commands": ["edit-recover", "edit-release"], "forbidden_commands": ["request-approval", "manual-metadata-edit"], "expected_final_code": "edit.lease-released"}
+    },
+    {
+      "id": "edit-file-single-writer",
+      "turns": [
+        {"command_id": "edit-intent", "outcome": "succeeded", "code": "edit.intent-announced", "remediation_count": 0},
+        {"command_id": "edit-acquire", "outcome": "succeeded", "code": "edit.lease-acquired", "remediation_count": 0},
+        {"command_id": "edit-acquire", "outcome": "refused", "code": "edit.lease-contended", "remediation_count": 1},
+        {"command_id": "edit-release", "outcome": "succeeded", "code": "edit.lease-released", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 4, "max_aggregate_readiness": 0, "required_commands": ["edit-acquire", "edit-release"], "forbidden_commands": ["request-approval", "run-shell"], "expected_final_code": "edit.lease-released"}
+    },
+    {
       "id": "interrupted-work-recovery",
       "turns": [
         {"command_id": "resume", "outcome": "refused", "code": "lease.expired", "remediation_count": 1},
@@ -47,6 +67,42 @@
         {"command_id": "maintenance-finish", "outcome": "succeeded", "code": "maintenance.finished", "remediation_count": 0}
       ],
       "assertions": {"max_turns": 4, "max_aggregate_readiness": 0, "required_commands": ["maintenance-action", "maintenance-finish"], "forbidden_commands": ["run-shell", "manual-metadata-edit"], "expected_final_code": "maintenance.finished"}
+    },
+    {
+      "id": "portfolio-allocation-read-only",
+      "turns": [
+        {"command_id": "portfolio-graph", "outcome": "succeeded", "code": "portfolio.graph-projected", "remediation_count": 0},
+        {"command_id": "portfolio-plan", "outcome": "succeeded", "code": "portfolio.plan-projected", "remediation_count": 0},
+        {"command_id": "portfolio-compatibility", "outcome": "succeeded", "code": "portfolio.compatibility-projected", "remediation_count": 0},
+        {"command_id": "portfolio-allocate", "outcome": "succeeded", "code": "portfolio.allocation-projected", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 4, "max_aggregate_readiness": 0, "required_commands": ["portfolio-allocate"], "forbidden_commands": ["request-approval", "claim", "run-shell"], "expected_final_code": "portfolio.allocation-projected"}
+    },
+    {
+      "id": "portfolio-narrow-unknown-refinement",
+      "turns": [
+        {"command_id": "portfolio-compatibility", "outcome": "not-ready", "code": "portfolio.evidence-incomplete", "remediation_count": 1},
+        {"command_id": "refine-bounded-scope", "outcome": "succeeded", "code": "planning.scope-refined", "remediation_count": 0},
+        {"command_id": "portfolio-allocate", "outcome": "succeeded", "code": "portfolio.allocation-projected", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 3, "max_aggregate_readiness": 0, "required_commands": ["refine-bounded-scope", "portfolio-allocate"], "forbidden_commands": ["request-approval", "repository-lock"], "expected_final_code": "portfolio.allocation-projected"}
+    },
+    {
+      "id": "portfolio-parallel-ready-path",
+      "turns": [
+        {"command_id": "portfolio-plan", "outcome": "succeeded", "code": "portfolio.plan-projected", "remediation_count": 0},
+        {"command_id": "portfolio-compatibility", "outcome": "succeeded", "code": "portfolio.compatibility-projected", "remediation_count": 0},
+        {"command_id": "portfolio-allocate", "outcome": "succeeded", "code": "portfolio.allocation-projected", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 3, "max_aggregate_readiness": 0, "required_commands": ["portfolio-plan", "portfolio-compatibility", "portfolio-allocate"], "forbidden_commands": ["request-approval", "repository-lock"], "expected_final_code": "portfolio.allocation-projected"}
+    },
+    {
+      "id": "portfolio-replan-without-approval",
+      "turns": [
+        {"command_id": "portfolio-allocate", "outcome": "succeeded", "code": "portfolio.allocation-projected", "remediation_count": 0},
+        {"command_id": "portfolio-allocate", "outcome": "succeeded", "code": "portfolio.allocation-projected", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 2, "max_aggregate_readiness": 0, "required_commands": ["portfolio-allocate"], "forbidden_commands": ["request-approval", "manual-metadata-edit"], "expected_final_code": "portfolio.allocation-projected"}
     },
     {
       "id": "review-corrected-descendant",

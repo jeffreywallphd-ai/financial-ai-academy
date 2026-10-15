@@ -34,5 +34,6 @@ Coverage values are `direct`, `representative`, or `gap`. A general passing test
 | Single-profile Identity binding/session metadata runs from its isolated empty migration stream on a real PostgreSQL server, including reapply and downgrade behavior | `backend/tests/integration/api` against PostgreSQL 18.4 | direct |
 | PostgreSQL configuration and deployment remain the transactional target across complete local and managed profiles | Real PostgreSQL 18.4 local qualification plus future managed-cloud deployment checks | representative |
 | Documentation links, context paths, adjacency, and pack budgets remain valid | `python dev-tools/documentation/check_docs.py` | direct |
+| The local automation portfolio preserves hierarchy and authority, deterministic dependency order, evidence-based parallelism, proposal-only allocation, exact-file single-writer safety, adapter independence, privacy-minimized telemetry/provenance, and explicit friction budgets | `dev-tools/control-plane/test_portfolio*.py`, `test_file_leases.py`, `evaluate_portfolio.py`, and the fixed local/CI `dev-tools/agent/check_ready.py` inventory | direct |
 
 Update this map when implementation or verification is introduced. Do not promote coverage without a check that owns the stated invariant.
