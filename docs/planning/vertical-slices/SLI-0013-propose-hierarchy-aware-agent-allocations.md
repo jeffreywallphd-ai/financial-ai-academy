@@ -96,7 +96,7 @@ approval/reviewer records.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0021 | Deliver project-neutral allocation/replanning, the Financial AI Academy adapter/CLI, docs, and focused tests | WRK-0018, WRK-0019, WRK-0020 | none | complete |
-| WRK-0052 | Ignore the compatibility-only branch sentinel while preserving genuine and current-checkout branch facts | WRK-0021 | none | verifying |
+| WRK-0052 | Ignore the compatibility-only branch sentinel while preserving genuine and current-checkout branch facts | WRK-0021 | none | active |
 
 ## Verification and Qualification
 
