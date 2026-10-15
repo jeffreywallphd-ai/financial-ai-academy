@@ -1,7 +1,7 @@
 ---
 id: SLI-0020
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -166,7 +166,7 @@ eligibility result, or suitability inference enters the view.
 | WRK-0053 | Define the bounded detail/comparison URL, record-resolution, validation, and return-path model over the existing generated browse client | SLI-0018, SLI-0019 | none | complete |
 | WRK-0054 | Deliver the accessible current-opportunity detail route with provenance, limitations, and exact available-lesson continuation | WRK-0053 | none | complete |
 | WRK-0055 | Deliver query-coherent two-to-four selection and accessible comparison without ranking, partial fallback, or saved browser authority | WRK-0054 | none | complete |
-| WRK-0056 | Qualify the complete detail/comparison path, denial/failure states, accessibility, exact continuation, portability, and cleanup | WRK-0055 | none | verifying |
+| WRK-0056 | Qualify the complete detail/comparison path, denial/failure states, accessibility, exact continuation, portability, and cleanup | WRK-0055 | none | complete |
 
 ## Verification and Qualification
 
@@ -216,6 +216,22 @@ available/unavailable action policy, query-return behavior, denial/failure
 paths, education boundary, interface qualification, live topology, checks,
 unsupported kinds/profiles/providers, residual gaps, and CAP conformance.
 
+Completion evidence now covers all four packets. Detail accepts one current
+bounded identity, comparison accepts two through four distinct identities in
+learner-selected order, and both reread and validate the complete protected
+projection before rendering exact owner facts. Query-origin navigation remains
+cursor-free and transient selection neither persists nor crosses result pages.
+Only an available lesson exposes its exact reviewed destination; unavailable
+records stay inspectable without fabricated execution. Malformed, changed,
+denied, unavailable, and invalid inputs fail closed without partial records or
+confidential facts. Mocked responsive/theme/accessibility evidence and the live
+PostgreSQL/Python/static/Chromium path passed, including exact lesson
+continuation and resource cleanup. No backend contract, schema, provider,
+durable browser state, ranking, recommendation, eligibility, enrollment,
+progress authority, or material CAP drift was introduced. Non-Chromium,
+manual screen-reader and real browser-zoom evidence, managed-cloud profiles,
+and non-lesson destinations remain explicit later boundaries.
+
 ## Planning History
 
 - 2026-10-15: Refined as the dependency-ready third CAP-0004 slice after
@@ -258,3 +274,7 @@ unsupported kinds/profiles/providers, residual gaps, and CAP conformance.
 - 2026-10-15: Submitted the exact WRK-0056 qualification candidate for fresh
   affected verification and independent technical review after its isolated
   live topology and aggregate readiness gates passed.
+- 2026-10-15: Completed WRK-0056 with authenticated-envelope-bound detail and
+  ordered-comparison evidence, available-only exact continuation,
+  changed/malformed fail-closed behavior, five passing live scenarios, exact
+  cleanup, and fresh repository-wide readiness. SLI-0020 is complete.

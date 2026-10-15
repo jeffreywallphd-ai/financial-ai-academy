@@ -1,7 +1,7 @@
 ---
 id: WRK-0056
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -152,9 +152,40 @@ malformed behavior; accessibility, confidentiality, security headers, static
 digest, PostgreSQL/Python/filesystem/Chromium topology and cleanup; all checks;
 documentation impact; residual gaps; and CAP/SLI conformance.
 
+## Completion Evidence
+
+- Extended the isolated live Chromium path from the authenticated catalog into
+  one exact detail route and an ordered planned-then-available comparison. The
+  assertions bind both views to the protected browse envelope and verify its
+  schema, generation, projection timestamp, complete selected-record
+  classification, educational, package, publication, provenance,
+  availability, and action facts.
+- Verified both comparison detail links and proved that only the available
+  lesson exposes its exact reviewed placement destination. Missing detail,
+  partly changed comparison, and malformed comparison selections fail closed
+  without partial or substituted records.
+- The mandatory disposable PostgreSQL 18.4, same-origin Python/static,
+  isolated-filesystem, and pinned-Chromium qualification passed all five
+  scenarios. It retained no matching container or temporary data root after
+  exact cleanup and produced static-index SHA256
+  `e802f7885cc0394b3c864300ba8a2620921aa26c1b71db3160a0e28334de72ec`.
+- Focused architecture evidence passed all 13 checks. TypeScript typecheck and
+  lint, planning integrity for 123 artifacts, documentation validation for
+  248 Markdown files, Git whitespace checks, and the 27-check aggregate
+  readiness gate passed. The corrected exact candidate produced a fresh,
+  stable, qualifying affected-verification receipt.
+- No contract, schema, runtime dependency, fixture authority, provider,
+  background job, saved state, or generated artifact changed. Residual limits
+  remain pinned Chromium, no manual screen-reader or real browser-zoom
+  qualification, one local profile, and a one-package live corpus.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0055 completion. The packet
   reuses WRK-0051's accepted isolated topology and opt-in corpus to qualify the
   final interface without new runtime, contract, fixture authority, durable
   state, decision, or material CAP drift.
+- 2026-10-15: Completed live detail and ordered-comparison qualification with
+  authenticated-projection binding, exact available-only continuation,
+  changed and malformed fail-closed behavior, full disposable-topology
+  cleanup, fresh exact-candidate evidence, and repository-wide readiness.
