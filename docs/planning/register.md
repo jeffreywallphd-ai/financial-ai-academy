@@ -78,7 +78,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0043 | Work packet | [Deliver the Discovery Projection Core](work-packets/WRK-0043-deliver-discovery-projection-core.md) | complete | SLI-0018 | none | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0044 | Work packet | [Persist and Expose the Protected Discovery Catalog](work-packets/WRK-0044-persist-and-expose-protected-discovery-catalog.md) | complete | SLI-0018 | WRK-0043 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0045 | Work packet | [Deliver the Accessible Learning Catalog](work-packets/WRK-0045-deliver-accessible-learning-catalog.md) | complete | SLI-0018 | WRK-0044 | none | codex-cap-0004 | 2026-10-15 |
-| WRK-0046 | Work packet | [Qualify the Live Learning Catalog](work-packets/WRK-0046-qualify-live-learning-catalog.md) | active | SLI-0018 | WRK-0045 | none | codex-cap-0004 | 2026-10-15 |
+| WRK-0046 | Work packet | [Qualify the Live Learning Catalog](work-packets/WRK-0046-qualify-live-learning-catalog.md) | verifying | SLI-0018 | WRK-0045 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0047 | Work packet | [Correct Submit CLI Input Routing](work-packets/WRK-0047-correct-submit-cli-input-routing.md) | complete | SLI-0003 | WRK-0011 | none | codex-cap-0004 | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |

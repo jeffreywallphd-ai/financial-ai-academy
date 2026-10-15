@@ -1,7 +1,7 @@
 ---
 id: WRK-0046
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -175,3 +175,7 @@ just-in-time refinement.
 - 2026-10-15: Claimed on base
   `df7a241ce79572f52ee93f1643ac58a3fd3d76ed`; the selected medium-risk route
   requires affected verification and one independent technical disposition.
+- 2026-10-15: Submitted exact candidate
+  `2e7997801710db849cb58b58f4a6567421a393f2` after clean Docker/PostgreSQL,
+  Python/static, Chromium, backend/web, architecture, security, documentation,
+  planning, dependency, and aggregate readiness evidence passed.
