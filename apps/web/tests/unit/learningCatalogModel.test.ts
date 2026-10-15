@@ -369,6 +369,7 @@ describe("query page boundaries", () => {
   });
 
   it("rejects contradictory page counts, cursors, and cursor bounds", async () => {
+    const requestCursor = `${"q".repeat(80)}.${"d".repeat(64)}`;
     const missingRecords = {
       ...structuredClone(learningQueryPageFixture),
       records: [],
@@ -387,7 +388,25 @@ describe("query page boundaries", () => {
       learningCatalogQueryPageIsSafe(cursorWithoutMatches, {}),
     ).resolves.toBe(false);
 
-    const validContinuation = {
+    const emptyCursorPage = {
+      ...structuredClone(learningQueryPageFixture),
+      records: [],
+      total_matches: 0,
+    };
+    await expect(
+      learningCatalogQueryPageIsSafe(emptyCursorPage, {
+        cursor: requestCursor,
+      }),
+    ).resolves.toBe(false);
+
+    await expect(
+      learningCatalogQueryPageIsSafe(
+        structuredClone(learningQueryPageFixture),
+        { cursor: requestCursor },
+      ),
+    ).resolves.toBe(false);
+
+    const validFirstPageWithContinuation = {
       ...structuredClone(learningQueryPageFixture),
       applied_query: {
         ...learningQueryPageFixture.applied_query,
@@ -397,11 +416,32 @@ describe("query page boundaries", () => {
       next_cursor: `cursor.${"d".repeat(64)}`,
     };
     await expect(
-      learningCatalogQueryPageIsSafe(validContinuation, {}),
+      learningCatalogQueryPageIsSafe(validFirstPageWithContinuation, {}),
+    ).resolves.toBe(true);
+
+    const validFinalCursorPage = {
+      ...validFirstPageWithContinuation,
+      records: validFirstPageWithContinuation.records.slice(0, 1),
+      next_cursor: null,
+    };
+    await expect(
+      learningCatalogQueryPageIsSafe(validFinalCursorPage, {
+        cursor: requestCursor,
+      }),
+    ).resolves.toBe(true);
+
+    const validIntermediateCursorPage = {
+      ...validFirstPageWithContinuation,
+      total_matches: 5,
+    };
+    await expect(
+      learningCatalogQueryPageIsSafe(validIntermediateCursorPage, {
+        cursor: requestCursor,
+      }),
     ).resolves.toBe(true);
 
     const oversizedCursor = {
-      ...validContinuation,
+      ...validFirstPageWithContinuation,
       next_cursor: `${"a".repeat(960)}.${"d".repeat(64)}`,
     };
     await expect(

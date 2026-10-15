@@ -551,15 +551,15 @@ export async function learningCatalogQueryPageIsSafe(
   );
   const hasNextCursor = candidate.next_cursor !== null;
   const isFirstPage = request.cursor === undefined;
-  const paginationIsCoherent =
-    (totalMatches === 0
-      ? records.length === 0 && !hasNextCursor
-      : records.length > 0) &&
-    (!hasNextCursor ||
-      (records.length === pageSize && totalMatches > records.length)) &&
-    (!isFirstPage ||
-      (records.length === Math.min(totalMatches, pageSize) &&
-        hasNextCursor === (totalMatches > pageSize)));
+  const finalPageSize = totalMatches % pageSize || pageSize;
+  const paginationIsCoherent = isFirstPage
+    ? records.length === Math.min(totalMatches, pageSize) &&
+      hasNextCursor === (totalMatches > pageSize)
+    : totalMatches > pageSize &&
+      records.length > 0 &&
+      (hasNextCursor
+        ? records.length === pageSize && totalMatches > pageSize * 2
+        : records.length === finalPageSize);
   return (
     paginationIsCoherent &&
     new Set(records.map((item) => item.opportunity_id)).size ===
