@@ -165,7 +165,7 @@ eligibility result, or suitability inference enters the view.
 | --- | --- | --- | --- | --- |
 | WRK-0053 | Define the bounded detail/comparison URL, record-resolution, validation, and return-path model over the existing generated browse client | SLI-0018, SLI-0019 | none | complete |
 | WRK-0054 | Deliver the accessible current-opportunity detail route with provenance, limitations, and exact available-lesson continuation | WRK-0053 | none | complete |
-| WRK-0055 | Deliver query-coherent two-to-four selection and accessible comparison without ranking, partial fallback, or saved browser authority | WRK-0054 | none | active |
+| WRK-0055 | Deliver query-coherent two-to-four selection and accessible comparison without ranking, partial fallback, or saved browser authority | WRK-0054 | none | verifying |
 | WRK-0056 | Qualify the complete detail/comparison path, denial/failure states, accessibility, exact continuation, portability, and cleanup | WRK-0055 | none | captured |
 
 ## Verification and Qualification
@@ -243,3 +243,5 @@ unsupported kinds/profiles/providers, residual gaps, and CAP conformance.
   cursor-free return continuity, closed failures, and mocked interface evidence.
 - 2026-10-15: Claimed WRK-0055 for serial delivery after WRK-0054 completion;
   its exact comparison boundary and generated artifacts have no active overlap.
+- 2026-10-15: Submitted the exact WRK-0055 implementation candidate for fresh
+  affected verification and independent technical review.
