@@ -189,3 +189,6 @@ cleanup, unsupported profiles, residual gaps, and CAP-package conformance.
   it remains within the approved slice and adds no durable decision.
 - 2026-10-15: Activated WRK-0044 after its dependency completed and its exact
   write scope, generated artifacts, candidate base, and file lease were bound.
+- 2026-10-15: WRK-0044 completed the Curriculum-owned PostgreSQL projection,
+  server-issued discovery permission, protected queryless API, and reproducible
+  OpenAPI/generated-client seam. WRK-0045 is the next dependency-ready packet.

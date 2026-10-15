@@ -1,7 +1,7 @@
 ---
 id: WRK-0044
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -163,6 +163,23 @@ and aggregate checks, unsupported profiles, and remaining WRK-0045/WRK-0046
 work. Update a derived context pack only if a changed canonical source makes it
 stale.
 
+Completion evidence establishes `curriculum_0002_discovery_projection`,
+idempotent immutable classification, atomic complete-generation replacement,
+the independent discovery permission, the protected queryless browse
+operation, and current OpenAPI/TypeScript output. PostgreSQL 18.4 qualification
+passed 5 focused migration/repository/HTTP scenarios, including interrupted
+replacement rollback and corrupted-row denial. The complete backend suite
+passed 237 tests; focused discovery/API/Identity checks passed; the generated
+client check, TypeScript compilation, lint, 26 web tests, and static build
+passed; architecture, security, documentation, planning, and diff checks
+passed; and the aggregate readiness gate passed all 27 checks. The exact
+submitted candidate also produced a qualifying affected-verification receipt.
+
+No external search, provider, learner identity, ranking, eligibility, or
+Content persistence entered the projection or response. Automatic rebuild
+composition, browser presentation, and complete live catalog qualification
+remain assigned to WRK-0045 and WRK-0046.
+
 ## Stop Conditions
 
 Stop if implementation requires cross-module SQL or foreign keys, makes the
@@ -195,3 +212,7 @@ CAP/SLI conformance; packet lifecycle result; and whether WRK-0045 is eligible.
   the bounded write scope after the complete backend run exposed its exact
   migration-inventory assertion. This is a compatibility update for the new
   Curriculum migration and does not change behavior or CAP scope.
+- 2026-10-15: Completed the persisted protected browse seam with live
+  PostgreSQL rollback/corruption evidence, stable generated contracts, bounded
+  authorization and failure behavior, affected verification, and aggregate
+  readiness. WRK-0045 is now dependency-eligible.
