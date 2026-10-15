@@ -1,7 +1,7 @@
 ---
 id: WRK-0049
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -186,6 +186,37 @@ commands and results, documentation impact, absence of migration/external
 qualification, residual gaps, packet lifecycle result, and whether WRK-0050 is
 dependency-ready.
 
+## Completion Evidence
+
+- Delivered protected `GET /api/v1/curriculum/opportunities/query` with the
+  existing server-resolved `curriculum.discovery.read` permission. It maps
+  bounded text, repeated topic/level/kind/availability filters, inclusive
+  duration bounds, closed sort, page size, and opaque cursor directly to the
+  public Curriculum request. Every topic value carries the discovery-v1 slug
+  pattern in OpenAPI as well as the existing cardinality bound.
+- The closed response preserves the core's canonical applied query, exact total
+  matches, unchanged ordered records, projection generation/time, and nullable
+  next cursor. Invalid shape or semantics returns 400, stale cursor and
+  immutable conflict return 409, and invalid, stale, or unavailable projection
+  state returns 503 without queryless fallback or partial disclosure.
+- The existing queryless browse operation remains parameterless and unchanged.
+  The reviewed OpenAPI snapshot and generated TypeScript client are
+  reproducible and expose the new typed operation without backend, learner,
+  permission, provider, storage, ranking, eligibility, or decoded-cursor fields.
+- Exact candidate `cee5a4c66f527220df732c3e23bf1bc39d6806a1` has a fresh,
+  qualifying affected-check receipt. Focused discovery API evidence passed 9
+  tests; the complete backend suite passed 252 tests with 30 environment-gated
+  skips; the web suite passed 48 tests; web typecheck, lint, generated-client
+  currency, and production build passed; architecture passed 11 fitness tests;
+  security passed 10 control groups; documentation validated 241 Markdown
+  sources; planning validated 116 artifacts; the fixed aggregate readiness gate
+  passed all 27 checks; and diff hygiene passed.
+- No persistence or migration, Docker/runtime service, browser behavior,
+  external provider, queue, network dependency, learner-selected authority,
+  relevance ranking, or personalized recommendation was introduced. URL-backed
+  accessible interface behavior remains WRK-0050, which is dependency-ready;
+  full local topology qualification remains WRK-0051.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0048 completion and the bounded
@@ -193,3 +224,8 @@ dependency-ready.
   generated-client work to the existing protected host/client seams, preserves
   queryless browse, adds no durable decision, and leaves all browser behavior to
   WRK-0050.
+- 2026-10-15: Completed the protected API and generated-client seam after
+  aligning the item-level topic schema with the query core, preserving the
+  queryless contract, and passing focused, aggregate, architecture, security,
+  documentation, planning, and reproducibility checks. No CAP outcome or
+  durable decision changed.
