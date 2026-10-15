@@ -164,7 +164,7 @@ behind the same public semantics and compatibility corpus.
 | WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | complete |
 | WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | complete |
 | WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | complete |
-| WRK-0051 | Qualify the complete local query path, pagination continuity, stale-cursor denial, security/accessibility, and cleanup | WRK-0050 | none | ready |
+| WRK-0051 | Qualify the complete local query path, pagination continuity, stale-cursor denial, security/accessibility, and cleanup | WRK-0050 | none | active |
 
 ## Verification and Qualification
 
@@ -250,3 +250,6 @@ unsupported profiles/providers, residual gaps, and CAP-package conformance.
   through the existing PostgreSQL/Python/static/Chromium topology, including
   combined filters, multi-page continuity, query-bound cursor denial,
   confidentiality, accessibility, cleanup, and ordinary-startup anti-rigidity.
+- 2026-10-15: Activated WRK-0051 on the current CAP branch after its exact
+  composition, live-browser, architecture, generated-artifact,
+  documentation, and lifecycle scope was claimed with no overlapping edits.

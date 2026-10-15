@@ -1,9 +1,9 @@
 ---
 id: WRK-0051
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0004
 updated: 2026-10-15
 parent: SLI-0019
 capability: CAP-0004
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["deployments/local/serve.py", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "tests/architecture/test_approved_lesson_boundaries.py", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/dist", "apps/web/README.md", "backend/README.md", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/modules/curriculum/README.md", "docs/architecture/contracts/discovery-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0019-query-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0051-qualify-live-discovery-query-path.md"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: f5540a5816dec19b4b3cb25229d6931ba658023e
+claim_id: WRK-0051:0b0649c3-1a98-4907-aeec-893e08e5e2c8
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T20:25:04Z
 ---
 
 # Agent Work Packet: Qualify the Live Discovery Query Path
