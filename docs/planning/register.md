@@ -103,7 +103,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0046 | Work packet | [Qualify the Live Learning Catalog](work-packets/WRK-0046-qualify-live-learning-catalog.md) | complete | SLI-0018 | WRK-0045 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0047 | Work packet | [Correct Submit CLI Input Routing](work-packets/WRK-0047-correct-submit-cli-input-routing.md) | complete | SLI-0003 | WRK-0011 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0048 | Work packet | [Deliver the Discovery Query Core](work-packets/WRK-0048-deliver-discovery-query-core.md) | complete | SLI-0019 | none | none | codex-cap-0004 | 2026-10-15 |
-| WRK-0052 | Work packet | [Ignore the Compatibility Branch Sentinel](work-packets/WRK-0052-ignore-compatibility-branch-sentinel.md) | active | SLI-0013 | WRK-0021 | none | codex-cap-0003-correction | 2026-10-15 |
+| WRK-0052 | Work packet | [Ignore the Compatibility Branch Sentinel](work-packets/WRK-0052-ignore-compatibility-branch-sentinel.md) | verifying | SLI-0013 | WRK-0021 | none | codex-cap-0003-correction | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |
