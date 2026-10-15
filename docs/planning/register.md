@@ -76,7 +76,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0041 | Work packet | [Remove the Transient In-Progress Assumption](work-packets/WRK-0041-remove-transient-in-progress-assumption.md) | complete | SLI-0010 | WRK-0018 | none | codex-cap-0001 | 2026-10-15 |
 | WRK-0042 | Work packet | [Reconcile Capability Acceptance](work-packets/WRK-0042-reconcile-capability-acceptance.md) | complete | SLI-0017 | WRK-0005, WRK-0034, WRK-0040 | none | codex-cap-0001 | 2026-10-15 |
 | WRK-0043 | Work packet | [Deliver the Discovery Projection Core](work-packets/WRK-0043-deliver-discovery-projection-core.md) | complete | SLI-0018 | none | none | codex-cap-0004 | 2026-10-15 |
-| WRK-0044 | Work packet | [Persist and Expose the Protected Discovery Catalog](work-packets/WRK-0044-persist-and-expose-protected-discovery-catalog.md) | ready | SLI-0018 | WRK-0043 | none | codex-cap-0004 | 2026-10-15 |
+| WRK-0044 | Work packet | [Persist and Expose the Protected Discovery Catalog](work-packets/WRK-0044-persist-and-expose-protected-discovery-catalog.md) | active | SLI-0018 | WRK-0043 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0047 | Work packet | [Correct Submit CLI Input Routing](work-packets/WRK-0047-correct-submit-cli-input-routing.md) | complete | SLI-0003 | WRK-0011 | none | codex-cap-0004 | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
