@@ -94,7 +94,7 @@ the active CAP-0004 workflow.
 | Scenario | Given | When | Then | Evidence |
 | --- | --- | --- | --- | --- |
 | Compatibility sentinel | A completed work item records `legacy-unrecorded` | Planning nodes are projected | The sentinel is absent from branch facts | focused unit regression |
-| Active container | A sibling/descendant keeps active slice delivery on a `codex/*` checkout | Allocation rolls branch facts to the slice | The in-progress lane reports branch state `codex` | repository CLI regression |
+| Active container | A sibling/descendant keeps active slice delivery on a `codex/*` checkout | Allocation rolls branch facts to the slice | The in-progress lane reports branch state `codex` | fixture-driven adapter/core regression |
 | Genuine branch | A work claim records a real branch | Planning nodes are projected | The recorded branch remains present | focused regression/existing coverage |
 | Read-only behavior | The repository allocation CLI runs | Before and after state is compared | No register, claim, lease, or Git branch is mutated | existing CLI regression |
 | Bounded correction | The candidate diff is inspected | Qualification completes | No path outside routed implementation and planning lineage changed | scope/diff checks |
@@ -135,10 +135,10 @@ false readiness block.
   `legacy-unrecorded` compatibility marker as absent branch evidence. Genuine
   branch values remain unchanged, and active or verifying artifacts without a
   genuine recorded branch continue to use the current checkout.
-- Eight focused allocation tests passed, including a direct sentinel/genuine
-  branch regression and the read-only repository CLI assertion that in-progress
-  lanes report the current Codex branch. Portfolio ordering, compatibility, and
-  graph suites each passed seven tests.
+- Nine focused allocation tests passed, including direct sentinel/genuine
+  branch assertions, fixture-driven `planning_nodes()` integration and
+  container roll-up, and read-only repository CLI behavior. Portfolio ordering,
+  compatibility, and graph suites each passed seven tests.
 - Planning integrity passed for 115 artifacts, documentation validation passed
   for 240 Markdown files plus both catalogs, diff hygiene passed, and the
   aggregate readiness gate passed all 27 checks outside the Windows sandbox
@@ -146,13 +146,11 @@ false readiness block.
 - No lifecycle state, claim, branch, public schema, allocation authority, or
   product behavior changed. Exact-candidate affected verification and
   independent technical review remain before completion.
-- Independent review R01 found that the repository-state CLI assertion could
-  pass vacuously and that the helper-only test did not prove adapter integration
-  or container roll-up. A deterministic temporary repository fixture now drives
-  `planning_nodes()` with completed and active compatibility-projected claims,
-  mocks the current checkout, proves the sentinel is absent, proves fallback at
+- A deterministic temporary repository fixture drives `planning_nodes()` with
+  completed and active compatibility-projected claims, fixes the current
+  checkout observation, proves the sentinel is absent, proves fallback at
   work/slice/capability levels, and proves a genuine recorded branch survives
-  the same path. The repository CLI assertion now covers only its deterministic
+  the same path. The repository CLI assertion covers only its deterministic
   no-mutation responsibility.
 
 ## Planning History
@@ -164,6 +162,3 @@ false readiness block.
 - 2026-10-15: Implemented the bounded adapter repair and regression; focused,
   planning, documentation, diff, and aggregate readiness checks passed, so the
   packet moved to exact-candidate verification.
-- 2026-10-15: Corrected R01-F001 with a fixture-driven adapter and container
-  roll-up regression after independent review identified that the original
-  repository-state loop could make no assertion in a fresh checkout.
