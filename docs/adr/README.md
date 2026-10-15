@@ -30,6 +30,7 @@ Create or update an ADR when a change selects or reverses a durable architecture
 - [ADR-0009: Initial Application Framework and Runtime Baseline](ADR-0009-initial-application-framework-runtime-baseline.md)
 - [ADR-0011: Keep Applied-Project Artifacts Inert](ADR-0011-inert-applied-project-artifacts.md)
 - [ADR-0012: Reusable Project Workspace with Learning and Domain Links](ADR-0012-reusable-project-workspace.md)
+- [ADR-0013: Explicit Model-Provider Opt-In](ADR-0013-explicit-model-provider-opt-in.md)
 
 ## Superseded Decisions
 

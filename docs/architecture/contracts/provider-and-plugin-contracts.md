@@ -44,3 +44,12 @@ Each provider family has reusable conformance tests for successful behavior, mis
 Identity providers additionally follow the [identity provider and learner-context contract](identity-provider-contract.md). Identity mode, subject mapping, session, recovery, and authorization semantics cannot be replaced by a generic provider payload.
 
 Content providers additionally follow the [versioned lesson content-package contract](content-package-contract.md). Provider packages remain untrusted input; provider identity or signatures do not bypass schema, semantic, path, media, integrity, resource-bound, or renderer validation.
+
+Model providers additionally follow
+[ADR-0013](../../adr/ADR-0013-explicit-model-provider-opt-in.md). A manifest must
+declare local or external execution, model capability limits, all received and
+emitted data classes, outbound hosts, retention/training/secondary-use posture,
+redaction, cost/quota signals, and disablement behavior. Admission requires
+current evidence; credentials do not enable an adapter. Invocation requires the
+selected provider instance and every operation data class to be explicitly
+permitted, with a deterministic no-model fallback.

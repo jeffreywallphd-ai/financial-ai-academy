@@ -37,3 +37,11 @@ Record the model-provider identity, model/policy version, prompt/template versio
 
 The same model-provider port supports local and external models. Product behavior reports capability differences honestly rather than presenting an unsupported local capability as equivalent. Deterministic fallback behavior is preferred for essential learning flows.
 
+ADR-0013 requires explicit per-provider opt-in. The community edition enables
+no provider by default, and credentials do not imply enablement. Each operation
+is limited to the data classes permitted for that provider instance. Concrete
+adapters require current terms, privacy, security, capability, cost, evaluation,
+and conformance evidence before admission. Policy change, disablement, missing
+capability, quota, or outage fails to a bounded no-model path rather than silent
+provider substitution or broader data egress.
+

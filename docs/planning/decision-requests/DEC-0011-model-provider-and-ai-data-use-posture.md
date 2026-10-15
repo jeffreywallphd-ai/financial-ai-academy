@@ -1,14 +1,14 @@
 ---
 id: DEC-0011
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: []
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0013-explicit-model-provider-opt-in.md
 ---
 
 # Decision Request: Set the Model-Provider and AI Data-Use Posture
@@ -59,8 +59,11 @@ operations, cost, and education-risk review.
 
 ## Decision Record and Promotion
 
-Promote the accepted posture to an ADR, AI/ML governance, provider contracts,
-security guidance, and decision readiness.
+[ADR-0013](../../adr/ADR-0013-explicit-model-provider-opt-in.md) establishes
+Option A as the accepted posture. AI/ML architecture, provider contracts,
+deployment guidance, and decision readiness carry the current operational
+constraints. A concrete provider still requires current terms, security,
+capability, cost, and conformance evidence before admission.
 
 ## Dependent Planning Updates
 
@@ -69,4 +72,5 @@ Reconcile CAP-0011, CAP-0016, CAP-0024, CAP-0027, and CAP-0029.
 ## Planning History
 
 - 2026-10-15: Captured as a shared gate for model-dependent catalog outcomes.
+- 2026-10-15: ADR-0013 established explicit per-provider opt-in with local and external adapters, no default community provider, per-data-class permission, and deterministic fallback.
 

@@ -22,6 +22,9 @@ Node.js 24 LTS is required to reproduce web generation, builds, and tests but is
 
 - Setup explicitly selects exactly one identity mode. Single-profile mode is loopback-default and supported only for documented private-host use.
 - Built-in and OIDC modes follow the shared [identity-provider and learner-context contract](../contracts/identity-provider-contract.md).
+- No model provider is enabled by default. Under ADR-0013, local and external
+  model adapters require explicit provider selection and per-data-class
+  permission; credentials alone do not authorize invocation or data egress.
 - Once identity bindings or learner evidence exist, mode mismatch fails closed and changing modes requires a separately approved migration.
 - No commercial service is required for core learning, assessment, portfolio simulation, or backup/export behavior.
 - External API credentials are user-supplied and stored outside portable configuration.

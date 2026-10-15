@@ -1,7 +1,7 @@
 ---
 id: CAP-0011
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -53,6 +53,7 @@ and deterministic learning flows remain usable without a model.
 
 - [AI/ML System Boundaries](../../architecture/ai-ml/ai-ml-system-boundaries.md)
 - [AI/ML Governance](../../ai-ml/README.md)
+- [ADR-0013: Explicit Model-Provider Opt-In](../../adr/ADR-0013-explicit-model-provider-opt-in.md)
 - [Product Non-Goals](../../product/non-goals.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
 - [CAP-0018](CAP-0018-set-learning-goals-and-preferences.md)
@@ -63,8 +64,10 @@ and deterministic learning flows remain usable without a model.
 
 - All model access passes through AI orchestration; domain modules import no
   provider SDK, prompt, model name, response, or billing type.
-- DEC-0011 must establish approved provider classes, local-model posture, data
-  use, retention, redaction, cost, capability, safety, and disablement policy.
+- ADR-0013 permits local and external provider classes only through explicit
+  per-provider opt-in and per-data-class permission. No community provider is
+  enabled by default, and each concrete adapter still requires current terms,
+  security, capability, cost, and conformance evidence before admission.
 - Deterministic learning behavior and source access remain authoritative; model
   output is versioned, validated, observable input only.
 
@@ -108,3 +111,4 @@ documentation with exact versioned contracts.
 
 - 2026-10-15: Shaped from catalog candidate 8 with manifest SLI-0046 through
   SLI-0049. DEC-0011 blocks CAP approval and delivery.
+- 2026-10-15: DEC-0011 was promoted through ADR-0013; the CAP returned to shaping for package revalidation before CAP-level approval.
