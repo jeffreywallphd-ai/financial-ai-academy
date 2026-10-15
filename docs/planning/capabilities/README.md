@@ -6,4 +6,4 @@ Name files `CAP-####-short-name.md` and start from [the capability template](../
 
 A capability is not a page inventory, a component list, or a release commitment. Split it when independent outcomes have different users, decisions, or acceptance evidence.
 
-Use `shape-capability` to prepare the artifact. Candidate slice selection requires explicit capability approval in the ignored local ledger; the skill cannot approve its own proposal.
+Use `shape-capability` to prepare the complete package, including the exact `slice_ids` manifest and coarse sequence for every intended slice. One explicit CAP approval is recorded in the ignored local ledger; the skill cannot approve its own proposal. Detailed slice and packet planning occurs just in time without another approval unless it materially changes the CAP package.

@@ -17,6 +17,7 @@
 | Contract and provider architecture | ready | ADR-0002 | Use versioned platform-owned seams |
 | PostgreSQL plus Parquet/DuckDB data split | ready | ADR-0003 | Preserve store responsibilities |
 | Shared local/cloud core | ready | ADR-0004 | Do not create an edition fork |
+| Automated-development planning authority | ready | [Automated Development Planning](../planning/README.md#authority-model) and DEC-0006 | Use one complete CAP planning-package approval, then refine and deliver slices and packets deterministically; renew CAP approval only for material package change |
 | First learning-loop module names and ownership | ready | ADR-0005 and architecture module map | Preserve the accepted Content, Curriculum, Assessment, Learner model, and Audit boundaries |
 | Adaptive-learning authority | constrained | Adaptive architecture | Deterministic policy is fixed; detailed mastery/ranking models need decisions |
 | AI/ML authority | constrained | AI/ML boundaries | Use only bounded, validated capabilities; provider/model details need decisions |

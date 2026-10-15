@@ -1,6 +1,6 @@
 ---
 name: select-vertical-slice
-description: Compare candidate increments and select one small end-to-end vertical slice for an approved capability. Use for vertical selection, slice scoring, SLI-* creation, sequencing the next observable increment, or deciding which capability slice should be planned next; do not use for implementation.
+description: Refine the next enumerated SLI-* increment just before it starts, using deterministic eligibility and scoring within a current approved CAP package. Do not request slice approval or implement code.
 ---
 
 # Select Vertical Slice
@@ -47,28 +47,28 @@ Recommend the highest total. Break ties by fewer dependencies, then lower irreve
 
 ## Workflow
 
-1. Confirm the ignored local ledger contains explicit capability-framing approval for the parent.
-2. Enumerate at least two candidates when materially different increments exist. State when only one viable candidate exists.
+1. Confirm the ignored local ledger contains a current CAP-package approval and the target SLI ID is in its manifest.
+2. Compare refinements or implementation cuts when materially different choices exist. Do not add, remove, or redefine a CAP slice without returning the CAP package to shaping.
 3. Apply the eligibility gate before scoring.
 4. Score eligible candidates and identify dependencies that must precede selection.
 5. Create or revise one `SLI-####-short-name.md` from [the bundled template](assets/vertical-slice-template.md), or the repository-owned template when canonical.
 6. Define the boundary path, affected contracts/data, acceptance scenarios, rollback needs, and proposed work-packet seams.
 7. Run `python scripts/validate_vertical_slice.py <artifact>`.
 8. Update the planning register when required.
-9. Request explicit slice-selection approval. Route the human decision to `approve-planned-work` for local-only storage; do not begin packet authoring or implementation.
+9. When the refined slice conforms to the approved CAP package, move it to `ready` without an approval request. If refinement exposes material CAP drift, return the CAP to shaping and request renewed CAP approval.
 
 ## Compatibility Contract
 
-- Consume an approved `CAP-*` parent and resolved `decision_gates`.
+- Consume a current approved `CAP-*` package, manifest membership, and resolved `decision_gates`.
 - Produce one `SLI-*` artifact with public planning state but no approval metadata or history.
 - Use `decision-blocked` whenever a required DEC item is unresolved.
-- Move to `ready` only after the ignored local ledger records an approved selection decision.
-- Selection approval does not approve work packets or implementation.
+- Move to `ready` after deterministic validation; no selection approval exists.
+- Detailed packet planning happens immediately before packet start and remains inside the CAP and slice contracts.
 
 ## Required Output
 
-Return candidate eligibility, score table, recommended slice, rejected alternatives, dependencies, decision gates, validation result, and the exact selection approval requested.
+Return candidate eligibility, score table, refined slice, rejected alternatives, dependencies, decision gates, validation result, and whether the refinement conforms to the current CAP package.
 
 ## Stop Conditions
 
-Stop when the capability is unapproved, candidates cannot produce independent value, scoring depends on missing evidence, ownership or contracts are ambiguous, a decision gate is unresolved, or the proposed slice is actually a horizontal layer or multi-slice program.
+Stop when the CAP package is unapproved or stale, the target ID is absent from its manifest, candidates cannot produce independent value, scoring depends on missing evidence, ownership or contracts are ambiguous, a decision gate is unresolved, or refinement would materially change the CAP package.

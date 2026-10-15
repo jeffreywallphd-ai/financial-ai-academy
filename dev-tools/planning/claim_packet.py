@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Preview, claim, or release a locally approved agent work packet."""
+"""Preview, claim, or release a CAP-authorized agent work packet."""
 
 from __future__ import annotations
 
@@ -11,7 +11,8 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from approval_store import ApprovalStoreError, load_store, require_decision
+from approval_store import ApprovalStoreError, load_store
+from cap_package import require_current_package
 
 from planning_model import (
     as_list,
@@ -19,7 +20,6 @@ from planning_model import (
     frontmatter_from_path,
     git_revision,
     load_artifacts,
-    normalize_repo_path,
     repository_root,
     scopes_overlap,
     update_frontmatter,
@@ -55,25 +55,8 @@ def packet_lock(root: Path, identifier: str) -> Path:
     return path
 
 
-def normalized_scope(value: object) -> list[str]:
-    if isinstance(value, str):
-        text = value.strip()
-        if text.startswith("["):
-            try:
-                value = json.loads(text)
-            except json.JSONDecodeError as error:
-                raise ValueError("implementation approval scope must be a JSON array") from error
-        else:
-            value = [text]
-    return sorted({
-        normalize_repo_path(item)
-        for item in as_list(value)
-        if normalize_repo_path(item)
-    })
-
-
 def claim_updates(
-    root: Path, path: Path, owner: str, authority: str, base_revision: str
+    root: Path, path: Path, owner: str, base_revision: str
 ) -> dict[str, object]:
     data = frontmatter_from_path(path)
     if data.get("kind") != "work-packet" or not as_text(data.get("id")).startswith("WRK-"):
@@ -82,20 +65,22 @@ def claim_updates(
         raise ValueError("only a ready packet may be claimed")
     store, _store_path = load_store(root, required=True)
     identifier = as_text(data.get("id"))
-    require_decision(store, identifier, "planning")
-    implementation = require_decision(store, identifier, "implementation")
-    if as_text(implementation.get("authority")) != authority:
-        raise ValueError("--authority must exactly match the local implementation authority")
     scopes = as_list(data.get("write_scope"))
     generated = as_list(data.get("generated_artifacts"))
     if not scopes:
         raise ValueError("packet must declare a non-empty write_scope")
-    if normalized_scope(implementation.get("scope")) != normalized_scope(scopes):
-        raise ValueError(
-            "local implementation approval scope must exactly match the packet write_scope"
-        )
     artifacts = load_artifacts(root)
     by_id = {artifact.identifier: artifact for artifact in artifacts}
+    capability_id = as_text(data.get("capability"))
+    capability = by_id.get(capability_id)
+    if capability is None or capability.kind != "capability":
+        raise ValueError(f"capability {capability_id} does not exist")
+    require_current_package(store, capability)
+    slice_id = as_text(data.get("parent"))
+    if slice_id not in as_list(capability.metadata.get("slice_ids")) and as_text(
+        capability.metadata.get("approval_model")
+    ):
+        raise ValueError(f"{slice_id} is not in the approved {capability_id} slice manifest")
     for dependency in as_list(data.get("depends_on")):
         if dependency not in by_id:
             raise ValueError(f"dependency {dependency} does not exist")
@@ -172,12 +157,7 @@ def main() -> int:
     claim_parser = subparsers.add_parser("claim")
     claim_parser.add_argument("packet", type=Path)
     claim_parser.add_argument("--owner", required=True)
-    claim_parser.add_argument("--authority", required=True)
     claim_parser.add_argument("--base-revision")
-    claim_parser.add_argument(
-        "--confirm-current-instruction", action="store_true",
-        help="confirm a current explicit instruction authorizes this named packet",
-    )
     claim_parser.add_argument("--apply", action="store_true")
     release_parser = subparsers.add_parser("release")
     release_parser.add_argument("packet", type=Path)
@@ -198,10 +178,8 @@ def main() -> int:
         else:
             identifier = as_text(data.get("id"))
             if args.command == "claim":
-                if not args.confirm_current_instruction:
-                    raise ValueError("claim requires --confirm-current-instruction")
                 base = git_revision(root, args.base_revision or "HEAD")
-                updates = claim_updates(root, path, args.owner, args.authority, base)
+                updates = claim_updates(root, path, args.owner, base)
             elif args.command == "release":
                 updates = release_updates(path, args.owner, args.to)
             else:

@@ -1,6 +1,6 @@
 ---
 name: verify-and-close-slice
-description: Verify completed WRK-* packets, reconcile documentation and evidence, and prepare an SLI-* vertical slice for explicit completion acceptance. Use when implementation is finished or a slice is verifying, before claiming completion, closing planned work, archiving a roadmap, or handing off delivery.
+description: Verify completed WRK-* packets, reconcile documentation and evidence, and deterministically close an SLI-* within its approved CAP package. No completion approval is requested.
 ---
 
 # Verify and Close Slice
@@ -27,8 +27,8 @@ Never infer completion from code presence, an agent claim, a passing subset, or 
 6. Reconcile canonical documentation, ADR/readiness entries, derived context, planning register, roadmap state, migrations, and operational instructions made stale by the change.
 7. Complete [the evidence checklist](assets/completion-evidence.md) in the slice's Documentation Impact and Completion Evidence section.
 8. Report gaps honestly. Return to implementation, packet shaping, or decision review when evidence is incomplete.
-9. Request explicit completion acceptance. Keep the slice `verifying` until an authorized human decides.
-10. When explicit acceptance is supplied, use `approve-planned-work` to record it only in the ignored local ledger, move the slice to `complete`, update the register without an approval summary, and archive only the roadmap records whose lifecycle permits it.
+9. When every required check and evidence item passes, move the slice to `complete` and update the register. Do not request or record completion approval.
+10. If this is the last CAP slice, verify the cumulative CAP acceptance contract and close the CAP deterministically; otherwise route to just-in-time refinement of the next manifest slice.
 
 ## Evidence Contract
 
@@ -41,14 +41,14 @@ Completion evidence must identify:
 - documentation and migration impact;
 - environment or external qualification not performed;
 - assumptions, residual risk, known gaps, and follow-up work;
-- a reference that local completion acceptance was validated, without copying the actor, date, decision, or authority into tracked evidence.
+- CAP package conformance and any material-drift assessment.
 
 Do not rewrite expected results after observing failures. Do not claim a check passed unless it ran successfully.
 
 ## Required Output
 
-Return a completion-readiness decision of `ready-for-acceptance` or `not-ready`, with evidence, failures, documentation impact, remaining work, and the exact completion approval requested.
+Return a completion decision of `complete` or `not-ready`, with evidence, failures, documentation impact, remaining work, and the next CAP-manifest action.
 
 ## Stop Conditions
 
-Stop closure when any packet is incomplete, required verification failed or did not run, canonical sources conflict, a decision is unresolved, documentation is stale, migration/rollback evidence is absent when relevant, residual risk exceeds accepted scope, or human completion acceptance is missing.
+Stop closure when any packet is incomplete, required verification failed or did not run, canonical sources conflict, a decision is unresolved, documentation is stale, migration/rollback evidence is absent when relevant, residual risk exceeds approved CAP scope, or material CAP drift is detected.

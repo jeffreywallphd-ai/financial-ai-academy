@@ -1,20 +1,20 @@
 # Governed Planning Skill Suite
 
 - Status: accepted
-- Canonical for: planning-skill compatibility, packaging, routing, and approval-stage behavior
+- Canonical for: planning-skill compatibility, packaging, routing, and CAP-package authority behavior
 
 ## Skill Catalog
 
 | Skill | Responsibility | Default file behavior |
 | --- | --- | --- |
 | [`guide-next-planning-action`](guide-next-planning-action/SKILL.md) | Recommend the next governed action and route to another skill | Read-only |
-| [`shape-capability`](shape-capability/SKILL.md) | Shape one bounded capability | Writes only when authorized |
+| [`shape-capability`](shape-capability/SKILL.md) | Shape one complete CAP package and slice manifest | Writes only when authorized |
 | [`review-decision-gates`](review-decision-gates/SKILL.md) | Classify decisions, compare viable options, recommend a path, and route unresolved choices | Writes only when authorized |
-| [`select-vertical-slice`](select-vertical-slice/SKILL.md) | Score candidates and recommend one vertical slice | Writes only when authorized |
-| [`author-agent-work-packet`](author-agent-work-packet/SKILL.md) | Author bounded agent work packets | Writes only when authorized |
-| [`approve-planned-work`](approve-planned-work/SKILL.md) | Record an explicit authorized human decision | Writes only after explicit approval |
-| [`implement-vertical-slice`](implement-vertical-slice/SKILL.md) | Execute approved packets for one slice | Requires a current explicit implementation request |
-| [`verify-and-close-slice`](verify-and-close-slice/SKILL.md) | Verify evidence and request completion acceptance | Writes only when authorized |
+| [`select-vertical-slice`](select-vertical-slice/SKILL.md) | Refine the next manifest slice just in time | Writes only when authorized |
+| [`author-agent-work-packet`](author-agent-work-packet/SKILL.md) | Author bounded packets just in time | Writes only when authorized |
+| [`approve-planned-work`](approve-planned-work/SKILL.md) | Record one CAP package approval or explicit DEC choice | Writes only after explicit human decision |
+| [`implement-vertical-slice`](implement-vertical-slice/SKILL.md) | Execute CAP-authorized packets for one slice | Requires current CAP binding |
+| [`verify-and-close-slice`](verify-and-close-slice/SKILL.md) | Verify evidence and close a slice deterministically | Writes only when authorized |
 
 Use `guide-next-planning-action` for broad prompts such as “what would you suggest we do next?” It recommends one action but never treats advice as implementation authority.
 
@@ -25,13 +25,13 @@ The suite uses:
 - IDs `CAP-*`, `DEC-*`, `SLI-*`, and `WRK-*`;
 - planning states `captured`, `shaping`, `decision-blocked`, `ready`, `active`, `verifying`, `complete`, and `superseded`;
 - an absent record for pending stages and local decisions `approved`, `changes-requested`, and `rejected`;
-- six independent local ledger stages: `capability`, `decision`, `selection`, `planning`, `implementation`, and `completion`;
-- ignored local storage at `.local-codex/approvals/ledger.json`, including scoped implementation authority;
+- two writable local ledger stages: `capability` for the one CAP package approval and `decision` for explicit durable choices; legacy lower-level stages remain readable only as history;
+- ignored local storage at `.local-codex/approvals/ledger.json`, including the CAP package digest and exact slice manifest;
 - repository-relative `write_scope` and `generated_artifacts`, plus durable activation evidence in `base_revision`, `claim_id`, `claimed_by`, and `claimed_at`.
 
-An agent may prepare a review and record an explicit human decision. It may not self-approve. Planning readiness, a roadmap, or an earlier approval never supplies a later approval automatically.
+An agent may prepare a review and record an explicit human decision. It may not self-approve. A roadmap or artifact state is not approval evidence.
 
-One response may cover one closed homogeneous approval bundle: related `DEC-*` requests, one `SLI-*` packet set at planning, or that frozen packet set at implementation. The ledger still contains one record per artifact. Bundle membership and implementation scopes are exact; additions or material revisions require a new response. Approved packet bundles execute serially in dependency order unless separately authorized otherwise.
+One response may cover one closed homogeneous set of related `DEC-*` requests; the ledger still contains one record per decision. CAP delivery has exactly one approval bound to governed CAP content and all `slice_ids`. Detailed SLI/WRK refinement, activation, verification, and closure are deterministic and add no approval requests. Material CAP change requires renewed CAP approval.
 
 Tracked files contain no approval or reviewer records. Skills must never copy ledger decisions, labels, identities, dates, authority references, reviewed scope, or notes into artifacts, histories, summaries, tests, fixtures, or examples.
 
@@ -67,4 +67,4 @@ python docs/planning/skills/evaluate_scenarios.py --responses docs/planning/skil
 python dev-tools/documentation/check_docs.py
 ```
 
-The suite validator checks skill metadata, required resources, UI prompts, Python syntax, repository-entry gates, ownership fields, and cross-skill routing references. The prompt-level evaluation catalog exercises routing, approval separation, advice-only behavior, implementation authority, and completion claims. Its grader accepts the same structured response contract for captured agent runs; the committed reference responses verify the harness deterministically without network or model access. Each skill also includes a task-specific deterministic validator or gate checker.
+The suite validator checks skill metadata, required resources, UI prompts, Python syntax, repository-entry gates, ownership fields, and cross-skill routing references. The prompt-level evaluation catalog exercises routing, single-CAP approval, incremental lower-level planning, material-drift escalation, advice-only behavior, implementation authority, and completion claims. Its grader accepts the same structured response contract for captured agent runs; the committed reference responses verify the harness deterministically without network or model access. Each skill also includes a task-specific deterministic validator or gate checker.

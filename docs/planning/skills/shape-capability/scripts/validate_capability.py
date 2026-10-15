@@ -10,7 +10,7 @@ from pathlib import Path
 
 REQUIRED_KEYS = {
     "id", "kind", "planning_status", "authority", "owner", "updated",
-    "depends_on", "decision_gates",
+    "depends_on", "decision_gates", "approval_model", "slice_ids",
 }
 REQUIRED_HEADINGS = {
     "# Capability:", "## Outcome", "## Users and Value", "## In Scope",
@@ -61,6 +61,10 @@ def main() -> int:
         errors.append("updated must be YYYY-MM-DD")
     if data.get("planning_status") == "decision-blocked" and data.get("decision_gates") == "[]":
         errors.append("decision-blocked requires at least one decision gate")
+    if data.get("approval_model") != "cap-package-v1":
+        errors.append("approval_model must be cap-package-v1")
+    if data.get("planning_status") in {"ready", "active", "verifying", "complete"} and data.get("slice_ids") == "[]":
+        errors.append("delivery-ready CAP package requires a non-empty slice_ids manifest")
     if any(key.endswith(("_approval", "_approved_by", "_approved_at")) for key in data):
         errors.append("approval metadata must remain in the ignored local ledger")
     for heading in REQUIRED_HEADINGS:

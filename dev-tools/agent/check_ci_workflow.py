@@ -21,7 +21,12 @@ REQUIRED = (
     "uses: actions/setup-python@v7",
     'python-version: "3.13"',
     "run: python dev-tools/agent/check_ready.py --profile ci --base-ref",
-    "run: python dev-tools/agent/check_ready.py --profile ci\n",
+    "--report-path artifacts/control-plane/agent-readiness.json",
+    "uses: actions/upload-artifact@v6",
+    "if: always()",
+    "name: agent-readiness-report",
+    "if-no-files-found: error",
+    "retention-days: 14",
 )
 PROHIBITED = (
     "pull_request_target:",

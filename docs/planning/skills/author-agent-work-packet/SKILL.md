@@ -1,6 +1,6 @@
 ---
 name: author-agent-work-packet
-description: Create or revise bounded WRK-* agent work packets for an approved vertical slice. Use when decomposing a selected slice into independently verifiable implementation tasks with exact scope, dependencies, contracts, acceptance scenarios, file impact, checks, documentation updates, parallel-safety rules, and stop conditions; do not execute the work.
+description: Create or revise a bounded WRK-* packet immediately before that work starts, within a refined SLI-* and current approved CAP package. Define exact scope, dependencies, contracts, checks, and stop conditions without requesting packet approval.
 ---
 
 # Author Agent Work Packet
@@ -12,7 +12,7 @@ description: Create or revise bounded WRK-* agent work packets for an approved v
 1. Find and read every applicable `AGENTS.md` through the repository root.
 2. Read the repository-root `docs/README.md` when it exists.
 3. Follow their startup, authority, routing, editing, decision, and verification instructions.
-4. Read the planning guide/register, approved parent slice, canonical sources, contracts, consumers, tests, and nearest README.
+4. Read the planning guide/register, CAP-authorized parent slice, canonical sources, contracts, consumers, tests, and nearest README.
 5. Report completion of the gate. Stop on missing or conflicting authority.
 
 No packet may outsource a product, architecture, risk, or approval decision to its implementing agent.
@@ -31,7 +31,7 @@ Fold scaffolding, documentation, and configuration into the packet whose deliver
 
 ## Workflow
 
-1. Confirm the ignored local ledger records authorized selection approval for the parent `SLI-*` and that no decision gate is unresolved.
+1. Confirm the parent `SLI-*` is in a current approved CAP package, is deterministically ready, and has no unresolved decision gate.
 2. Map the boundary path from domain and contract through application, adapters, hosts/clients, interface, documentation, and verification.
 3. Identify accepted inputs and outputs between packets before declaring parallel work.
 4. Create each `WRK-####-short-name.md` from [the bundled template](assets/work-packet-template.md), or the repository-owned template when canonical.
@@ -39,22 +39,21 @@ Fold scaffolding, documentation, and configuration into the packet whose deliver
 6. Mark packets parallel-safe only when they do not overlap decisions, schemas, migrations, generated artifacts, write scopes, or ownership. Declare reciprocal `parallel_safe_with` references.
 7. Run `python scripts/validate_work_packet.py <artifact>` for every packet.
 8. Update the parent slice and planning register in the same change when required.
-9. Freeze the complete packet set for the slice and request one planning decision covering every enumerated `WRK-*`. Route that response to `approve-planned-work`, which records one local planning entry per packet. Planning approval never authorizes implementation.
+9. Mark a packet `ready` after validation. Author later packets just in time as dependencies become concrete; do not request a planning or implementation approval.
 
-## Approval and State Contract
+## Authority and State Contract
 
 - New packets use `planning_status: shaping`.
-- `ready` requires an approved local planning decision and resolved decision gates.
-- `active` requires a separate approved local implementation decision with scoped authority and a current explicit instruction to implement.
+- `ready` requires deterministic validation, resolved decision gates, and conformance to the current approved CAP package.
+- `active` requires a successful bounded claim against the current CAP package, satisfied dependencies, and no ownership collision.
 - Activation records `base_revision`, `claim_id`, `claimed_by`, and `claimed_at`; authoring leaves those claim fields null.
-- Only `approve-planned-work` should record an authorized human decision, and it must use the ignored local ledger.
-- A slice-wide planning response covers only the listed packet revisions. Adding a packet or materially changing scope invalidates coverage for the affected closed set.
-- Never infer implementation authorization from a roadmap, issue, planning status, prior approval, or a general request for advice.
+- Packet decomposition, exact write scope, and implementation tactics may be refined without approval when they remain within the CAP and slice contracts.
+- Material CAP drift returns the CAP package to shaping. External or destructive actions retain separate action authority.
 
 ## Required Output
 
-Return packet paths, dependency order, parallel-safe groups, contracts between packets, validation results, remaining gates, and the exact planning approval requested.
+Return packet paths, dependency order, parallel-safe groups, contracts between packets, validation results, remaining deterministic gates, and CAP conformance.
 
 ## Stop Conditions
 
-Stop when the slice is unapproved, a packet spans unrelated outcomes, expected interfaces are unknown, checks are not executable, write scopes overlap active work, a durable choice remains unresolved, or the requested plan would authorize external/destructive action implicitly.
+Stop when the CAP package is unapproved or stale, the slice is outside its manifest, a packet spans unrelated outcomes, expected interfaces are unknown, checks are not executable, write scopes overlap active work, a durable choice remains unresolved, material CAP drift appears, or the plan would authorize external/destructive action implicitly.

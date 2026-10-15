@@ -52,3 +52,5 @@ decision_gates: []
 ## Documentation Impact and Completion Evidence
 
 ## Planning History
+
+Record public shaping and delivery state changes plus CAP-conformance assessments. No selection or completion approval exists.

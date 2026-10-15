@@ -24,4 +24,10 @@
 - Adaptive-learning tests cover eligibility and policy separately from ranking quality.
 - Model evaluations do not replace deterministic application tests.
 - Local and cloud qualification run the same shared contract and domain suites.
+- Automation-harness evaluation is a deterministic assurance layer for workflow
+  safety, recovery, refusal quality, confinement, and friction. It does not
+  replace domain, contract, adapter, host, end-to-end, or model evaluation.
+- Repository automation subprocesses execute only after exact capability
+  command/effect/path validation; reports retain digests rather than argv or
+  output payloads.
 

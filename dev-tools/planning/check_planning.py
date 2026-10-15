@@ -5,12 +5,12 @@ from __future__ import annotations
 
 import argparse
 import itertools
-import json
 import re
 import sys
 from pathlib import Path
 
 from approval_store import ApprovalStoreError, load_store, require_decision
+from cap_package import MODEL as CAP_PACKAGE_MODEL, require_current_package
 
 from planning_model import (
     ARTIFACT_LOCATIONS,
@@ -57,14 +57,6 @@ REQUIRED_FIELDS = {
 LOCAL_GATES = {
     "capability": (({"ready", "active", "verifying", "complete"}, "capability"),),
     "decision-request": (({"ready", "verifying", "complete"}, "decision"),),
-    "vertical-slice": (
-        ({"ready", "active", "verifying", "complete"}, "selection"),
-        ({"complete"}, "completion"),
-    ),
-    "work-packet": (
-        ({"ready", "active", "verifying", "complete"}, "planning"),
-        ({"active", "verifying", "complete"}, "implementation"),
-    ),
 }
 ALLOWED_TRANSITIONS = {
     "captured": {"captured", "shaping", "superseded"},
@@ -117,6 +109,16 @@ def validate_identity(artifact: Artifact, errors: list[str]) -> None:
         error(errors, artifact, f"invalid planning_status {artifact.status!r}")
     if not DATE_RE.match(as_text(data.get("updated"))):
         error(errors, artifact, "updated must be YYYY-MM-DD")
+    if artifact.kind == "capability" and as_text(data.get("approval_model")):
+        if as_text(data.get("approval_model")) != CAP_PACKAGE_MODEL:
+            error(errors, artifact, "approval_model is unsupported")
+        slice_ids = as_list(data.get("slice_ids"))
+        if not slice_ids:
+            error(errors, artifact, "CAP package must enumerate slice_ids")
+        elif len(slice_ids) != len(set(slice_ids)) or any(
+            not ID_RE.match(item) or not item.startswith("SLI-") for item in slice_ids
+        ):
+            error(errors, artifact, "slice_ids must contain unique SLI-* identifiers")
 
 
 def validate_lifecycle(artifact: Artifact, errors: list[str]) -> None:
@@ -184,6 +186,9 @@ def validate_references(
         elif artifact.kind == "vertical-slice":
             if parent not in by_id or by_id[parent].kind != "capability":
                 error(errors, artifact, "parent must reference an existing capability")
+            elif as_text(by_id[parent].metadata.get("approval_model")) == CAP_PACKAGE_MODEL:
+                if artifact.identifier not in as_list(by_id[parent].metadata.get("slice_ids")):
+                    error(errors, artifact, f"slice is not in {parent} slice_ids")
         elif artifact.kind == "work-packet":
             if parent not in by_id or by_id[parent].kind != "vertical-slice":
                 error(errors, artifact, "parent must reference an existing vertical slice")
@@ -342,38 +347,33 @@ def validate_local_gates(root: Path, artifacts: list[Artifact], errors: list[str
     except ApprovalStoreError as exception:
         errors.append(str(exception))
         return
+    by_id = {artifact.identifier: artifact for artifact in artifacts}
     for artifact in artifacts:
-        for statuses, stage in LOCAL_GATES.get(artifact.kind, ()):
-            if artifact.status not in statuses:
-                continue
-            try:
-                record = require_decision(store, artifact.identifier, stage)
-                if stage == "implementation":
-                    raw_scope = record.get("scope")
-                    if isinstance(raw_scope, str) and raw_scope.strip().startswith("["):
-                        try:
-                            raw_scope = json.loads(raw_scope)
-                        except json.JSONDecodeError as exception:
-                            raise ApprovalStoreError(
-                                f"invalid implementation scope for {artifact.identifier}"
-                            ) from exception
-                    approved_scope = sorted({
-                        normalize_repo_path(item)
-                        for item in as_list(raw_scope)
-                        if normalize_repo_path(item)
-                    })
-                    packet_scope = sorted({
-                        normalize_repo_path(item)
-                        for item in as_list(artifact.metadata.get("write_scope"))
-                        if normalize_repo_path(item)
-                    })
-                    if approved_scope != packet_scope:
-                        raise ApprovalStoreError(
-                            f"approved implementation scope for {artifact.identifier} "
-                            "does not match write_scope"
-                        )
-            except ApprovalStoreError as exception:
-                error(errors, artifact, str(exception))
+        try:
+            if artifact.kind == "capability" and artifact.status in {
+                "ready", "active", "verifying", "complete"
+            }:
+                require_current_package(store, artifact)
+            elif artifact.kind == "decision-request" and artifact.status in {
+                "ready", "verifying", "complete"
+            }:
+                require_decision(store, artifact.identifier, "decision")
+            elif artifact.kind == "vertical-slice" and artifact.status in {
+                "active", "verifying", "complete"
+            }:
+                capability = by_id.get(as_text(artifact.metadata.get("parent")))
+                if capability is None:
+                    raise ApprovalStoreError("parent capability is unavailable")
+                require_current_package(store, capability)
+            elif artifact.kind == "work-packet" and artifact.status in {
+                "ready", "active", "verifying", "complete"
+            }:
+                capability = by_id.get(as_text(artifact.metadata.get("capability")))
+                if capability is None:
+                    raise ApprovalStoreError("capability is unavailable")
+                require_current_package(store, capability)
+        except (ApprovalStoreError, ValueError) as exception:
+            error(errors, artifact, str(exception))
 
 
 def run(

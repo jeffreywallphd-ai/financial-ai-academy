@@ -79,4 +79,4 @@ Identify sources to update and the evidence that must be recorded before complet
 
 ## Planning History
 
-Record public shaping and delivery state changes. Selection and completion evidence remains only in the ignored local ledger.
+Record public shaping and delivery state changes plus CAP-conformance assessments. No selection or completion approval exists.

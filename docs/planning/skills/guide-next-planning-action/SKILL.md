@@ -24,18 +24,17 @@ Treat general requests for advice, prioritization, status, or "what next" as rea
 
 Use this precedence:
 
-1. `verify-and-close-slice`: a slice is verifying or awaiting completion acceptance.
-2. `implement-vertical-slice`: authorized work is already active and not blocked.
+1. `verify-and-close-slice`: a slice is verifying or all slices are complete and CAP evidence needs reconciliation.
+2. `implement-vertical-slice`: CAP-authorized work is already active and not blocked.
 3. `review-decision-gates`: any artifact is decision-blocked or one or more related unresolved DEC requests block progress; route the related set to one consolidated decision table and response.
 4. `shape-capability`: a capability is captured, shaping, or needs requested changes.
-5. `approve-planned-work`: the next stage is waiting for an explicit human decision; group a closed related `DEC-*` set or one slice's closed `WRK-*` set when eligible.
-6. `select-vertical-slice`: an approved capability needs a slice, or slice selection needs revision.
-7. `author-agent-work-packet`: an approved slice needs packets, or packet planning needs revision.
-8. `approve-planned-work`: the closed slice packet set is plan-approved but still needs one separate slice-wide implementation response.
-9. `implement-vertical-slice`: packets are fully approved and ready; recommend implementation but do not start it without a current explicit instruction.
-10. `shape-capability`: no planned artifacts exist.
+5. `approve-planned-work`: a complete CAP package needs its one approval, or a closed related `DEC-*` set needs explicit choices.
+6. `select-vertical-slice`: refine the next ID in an approved CAP manifest immediately before that slice starts.
+7. `author-agent-work-packet`: refine the next bounded packet immediately before that work starts.
+8. `implement-vertical-slice`: a packet is deterministically ready and the CAP package remains current.
+9. `shape-capability`: no planned artifacts exist.
 
-Within one precedence level, choose the lowest stable artifact ID unless repository priority authority specifies another order. When multiple related decisions share one planning boundary, or multiple packets share one selected slice and approval stage, return the complete deterministic member list rather than one arbitrary member. Never use model preference, novelty, or estimated excitement as a tie-breaker.
+Within one precedence level, follow the approved CAP manifest order, then the lowest stable artifact ID unless repository priority authority specifies another order. When multiple related decisions share one planning boundary, return the complete deterministic decision set. Never use model preference, novelty, or estimated excitement as a tie-breaker.
 
 ## Workflow
 
@@ -54,13 +53,13 @@ This router recognizes:
 - `DEC-*` decision requests;
 - `SLI-*` vertical slices;
 - `WRK-*` work packets;
-- the common public planning states and six local ledger stages used by the companion skills.
+- the common public planning states, the `capability` CAP-package stage, the `decision` stage, and read-only compatibility with historical lower-level ledger records.
 
 The companion skills are soft dependencies: this folder remains valid when zipped alone, but routed execution requires the named skill to be installed.
 
 ## Required Output
 
-Return current state, recommended next action, selected skill, subject artifact, exact bundle members when applicable, reason, prerequisites, approval required, blockers, and what follows. State explicitly whether the response is advice only.
+Return current state, recommended next action, selected skill, subject artifact, exact CAP manifest or DEC bundle members when applicable, reason, prerequisites, approval required, blockers, and what follows. State explicitly whether the response is advice only.
 
 ## Stop Conditions
 

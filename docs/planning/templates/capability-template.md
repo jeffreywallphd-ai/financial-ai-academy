@@ -8,6 +8,8 @@ updated: YYYY-MM-DD
 parent: null
 depends_on: []
 decision_gates: []
+approval_model: cap-package-v1
+slice_ids: []
 ---
 
 # Capability: Short Outcome Name
@@ -37,12 +39,12 @@ Identify who benefits, the problem addressed, and the evidence that would show v
 
 ## Decision Gates and Constraints
 
-List readiness entries, ADRs, provider permissions, risk reviews, or human approvals required before dependent slices can become ready.
+List readiness entries, ADRs, provider permissions, risk reviews, or explicit durable decisions required before the CAP package can be approved.
 
 ## Proposed Vertical Slices
 
-| Slice ID | Observable increment | Dependencies | Planning status |
-| --- | --- | --- | --- |
+| Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
+| --- | --- | --- | --- | --- |
 
 ## Capability Acceptance
 
@@ -58,4 +60,4 @@ List canonical and derived documentation expected to change as slices are delive
 
 ## Planning History
 
-Record material public state changes, canonical promotions, supersession, and links to accepted roadmaps. Never copy approval or reviewer evidence from the ignored local ledger.
+Record material public state changes, canonical promotions, supersession, and links to accepted roadmaps. Never copy approval or reviewer evidence from the ignored local ledger. Governed CAP or manifest changes require renewed CAP approval; conforming slice and packet detail does not.

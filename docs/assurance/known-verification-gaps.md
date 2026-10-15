@@ -19,5 +19,10 @@
 - Model evaluation and promotion harness
 - Source freshness and provider-license review reminders
 - Repository-host branch protection that marks `Agent readiness / Deterministic agent readiness` as a required status check
+- End-to-end evidence that the repository host successfully retains and serves
+  the configured privacy-minimized readiness artifact; the workflow contract is
+  checked locally, but hosted execution remains external qualification
+- Multi-host or remote control-plane confinement, telemetry transport, and
+  hosted evaluation; current qualification is deliberately repository-local
 
 Close a gap only when executable evidence or an explicitly documented controlled qualification owns the claim.

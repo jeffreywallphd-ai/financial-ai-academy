@@ -11,4 +11,4 @@
 - Migration, rollback, backup, or recovery evidence is recorded when applicable.
 - Qualification not performed is explicit.
 - Assumptions, residual risks, gaps, and follow-up work are explicit.
-- Completion acceptance remains pending until an authorized human decides.
+- Current CAP-package conformance is recorded; no lower-level completion approval is required.

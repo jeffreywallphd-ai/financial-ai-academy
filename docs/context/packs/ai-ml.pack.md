@@ -11,6 +11,9 @@ Work affects model providers, prompts, tutoring, retrieval, embeddings, adaptive
 - Executions retain model/policy/template/source/version evidence.
 - Essential workflows have deterministic policy and fallback.
 - Evaluation distinguishes task quality, grounding, safety, learning outcomes, and operational cost.
+- Automation-harness evaluations use deterministic fixtures and privacy-minimized
+  operational metrics; they do not collect prompts/model output or become model
+  promotion authority.
 
 ## Canonical Sources
 

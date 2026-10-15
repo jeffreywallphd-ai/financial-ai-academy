@@ -1,0 +1,71 @@
+{
+  "schema_version": "harness-corpus-v1",
+  "scenarios": [
+    {
+      "id": "completed-correction-short-route",
+      "turns": [
+        {"command_id": "correction-route", "outcome": "succeeded", "code": "correction.route-planned", "remediation_count": 0},
+        {"command_id": "author-bounded-descendant-wrk", "outcome": "succeeded", "code": "planning.packet-ready", "remediation_count": 0},
+        {"command_id": "claim", "outcome": "succeeded", "code": "lifecycle.claimed", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 3, "max_aggregate_readiness": 0, "required_commands": ["correction-route"], "forbidden_commands": ["request-approval", "manual-metadata-edit"], "expected_final_code": "lifecycle.claimed"}
+    },
+    {
+      "id": "confinement-path-denial",
+      "turns": [
+        {"command_id": "verify", "outcome": "refused", "code": "capability.path-denied", "remediation_count": 1}
+      ],
+      "assertions": {"max_turns": 1, "max_aggregate_readiness": 0, "required_commands": ["verify"], "forbidden_commands": ["run-shell"], "expected_final_code": "capability.path-denied"}
+    },
+    {
+      "id": "interrupted-work-recovery",
+      "turns": [
+        {"command_id": "resume", "outcome": "refused", "code": "lease.expired", "remediation_count": 1},
+        {"command_id": "recover", "outcome": "succeeded", "code": "lifecycle.recovered", "remediation_count": 0},
+        {"command_id": "submit", "outcome": "succeeded", "code": "lifecycle.submitted", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 3, "max_aggregate_readiness": 0, "required_commands": ["recover"], "forbidden_commands": ["manual-metadata-edit"], "expected_final_code": "lifecycle.submitted"}
+    },
+    {
+      "id": "low-risk-happy-path",
+      "turns": [
+        {"command_id": "claim", "outcome": "succeeded", "code": "lifecycle.claimed", "remediation_count": 0},
+        {"command_id": "packet-start", "outcome": "succeeded", "code": "start.manifest-recorded", "remediation_count": 0},
+        {"command_id": "submit", "outcome": "succeeded", "code": "lifecycle.submitted", "remediation_count": 0},
+        {"command_id": "verify", "outcome": "succeeded", "code": "verification.receipt-recorded", "remediation_count": 0},
+        {"command_id": "record-review", "outcome": "succeeded", "code": "review.recorded", "remediation_count": 0},
+        {"command_id": "finalize", "outcome": "succeeded", "code": "planning.packet-complete", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 6, "max_aggregate_readiness": 0, "required_commands": ["packet-start", "verify", "record-review"], "forbidden_commands": ["request-approval", "manual-metadata-edit"], "expected_final_code": "planning.packet-complete"}
+    },
+    {
+      "id": "maintenance-bounded-recovery",
+      "turns": [
+        {"command_id": "maintenance-start", "outcome": "succeeded", "code": "maintenance.started", "remediation_count": 0},
+        {"command_id": "submit", "outcome": "refused", "code": "maintenance.blocks-mutation", "remediation_count": 1},
+        {"command_id": "maintenance-action", "outcome": "succeeded", "code": "maintenance.action-succeeded", "remediation_count": 0},
+        {"command_id": "maintenance-finish", "outcome": "succeeded", "code": "maintenance.finished", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 4, "max_aggregate_readiness": 0, "required_commands": ["maintenance-action", "maintenance-finish"], "forbidden_commands": ["run-shell", "manual-metadata-edit"], "expected_final_code": "maintenance.finished"}
+    },
+    {
+      "id": "review-corrected-descendant",
+      "turns": [
+        {"command_id": "record-review", "outcome": "not-ready", "code": "review.changes-requested", "remediation_count": 1},
+        {"command_id": "resubmit", "outcome": "succeeded", "code": "review.corrected-descendant-submitted", "remediation_count": 0},
+        {"command_id": "verify", "outcome": "succeeded", "code": "verification.receipt-recorded", "remediation_count": 0},
+        {"command_id": "record-review", "outcome": "succeeded", "code": "review.recorded", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 4, "max_aggregate_readiness": 0, "required_commands": ["resubmit", "verify"], "forbidden_commands": ["request-approval"], "expected_final_code": "review.recorded"}
+    },
+    {
+      "id": "verification-failure-narrow-retry",
+      "turns": [
+        {"command_id": "verify", "outcome": "not-qualified", "code": "verification.failed", "remediation_count": 1},
+        {"command_id": "submit", "outcome": "succeeded", "code": "lifecycle.submitted", "remediation_count": 0},
+        {"command_id": "verify", "outcome": "succeeded", "code": "verification.receipt-recorded", "remediation_count": 0}
+      ],
+      "assertions": {"max_turns": 3, "max_aggregate_readiness": 0, "required_commands": ["verify"], "forbidden_commands": ["request-approval", "run-shell"], "expected_final_code": "verification.receipt-recorded"}
+    }
+  ]
+}

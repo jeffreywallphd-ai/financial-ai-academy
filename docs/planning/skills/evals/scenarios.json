@@ -37,51 +37,51 @@
     },
     {
       "id": "select-first-slice",
-      "prompt": "Select the smallest vertical slice for this approved capability.",
-      "state": {"capability": {"id": "CAP-0001", "planning_status": "ready"}, "local_approvals": [{"subject": "CAP-0001", "stage": "capability", "decision": "approved"}]},
-      "expected": {"selected_skill": "select-vertical-slice", "mode": "planning", "file_changes_allowed": true, "approval_required": "selection", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
+      "prompt": "Refine the next slice in this approved CAP manifest.",
+      "state": {"capability": {"id": "CAP-0001", "planning_status": "ready", "slice_ids": ["SLI-0001"]}, "local_approvals": [{"subject": "CAP-0001", "stage": "capability", "decision": "approved"}]},
+      "expected": {"selected_skill": "select-vertical-slice", "mode": "planning", "file_changes_allowed": true, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
     },
     {
       "id": "author-packet-after-selection",
-      "prompt": "Prepare agent work packets for the approved vertical slice.",
-      "state": {"slice": {"id": "SLI-0001", "planning_status": "ready"}, "packets": []},
-      "expected": {"selected_skill": "author-agent-work-packet", "mode": "planning", "file_changes_allowed": true, "approval_required": "planning", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
+      "prompt": "Prepare the next agent work packet just before this CAP-authorized slice starts.",
+      "state": {"slice": {"id": "SLI-0001", "planning_status": "ready", "cap_authority_current": true}, "packets": []},
+      "expected": {"selected_skill": "author-agent-work-packet", "mode": "planning", "file_changes_allowed": true, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
     },
     {
       "id": "review-packet-planning",
       "prompt": "Review whether this shaped work packet is ready.",
       "state": {"packet": {"id": "WRK-0001", "planning_status": "shaping"}},
-      "expected": {"selected_skill": "approve-planned-work", "mode": "planning", "file_changes_allowed": false, "approval_required": "planning", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
+      "expected": {"selected_skill": "author-agent-work-packet", "mode": "planning", "file_changes_allowed": true, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
     },
     {
       "id": "separate-implementation-approval",
-      "prompt": "The plan is approved. What gate remains before implementation?",
-      "state": {"packet": {"id": "WRK-0001", "planning_status": "ready"}, "local_approvals": [{"subject": "WRK-0001", "stage": "planning", "decision": "approved"}]},
-      "expected": {"selected_skill": "approve-planned-work", "mode": "advice-only", "file_changes_allowed": false, "approval_required": "implementation", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
+      "prompt": "The CAP is approved and the next packet is ready. What approval gate remains?",
+      "state": {"packet": {"id": "WRK-0001", "planning_status": "ready"}, "cap_authority_current": true},
+      "expected": {"selected_skill": "implement-vertical-slice", "mode": "advice-only", "file_changes_allowed": false, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
     },
     {
       "id": "approved-but-advice-only",
       "prompt": "What would you suggest we do next?",
-      "state": {"packet": {"id": "WRK-0001", "planning_status": "ready"}, "implementation_approval": true},
-      "expected": {"selected_skill": "guide-next-planning-action", "mode": "advice-only", "file_changes_allowed": false, "approval_required": "current-explicit-implementation-request", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
+      "state": {"packet": {"id": "WRK-0001", "planning_status": "ready"}, "cap_authority_current": true},
+      "expected": {"selected_skill": "guide-next-planning-action", "mode": "advice-only", "file_changes_allowed": false, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
     },
     {
       "id": "explicit-authorized-implementation",
       "prompt": "Implement WRK-0042 now under task authority.",
-      "state": {"current_explicit_request": true, "packet": {"id": "WRK-0042", "planning_status": "ready", "write_scope": ["modules/learning"]}, "implementation_approval": true},
+      "state": {"current_explicit_request": true, "packet": {"id": "WRK-0042", "planning_status": "ready", "write_scope": ["modules/learning"]}, "cap_authority_current": true},
       "expected": {"selected_skill": "implement-vertical-slice", "mode": "implementation", "file_changes_allowed": true, "approval_required": "none", "implementation_authorized": true, "completion_claimed": false, "must_stop": false}
     },
     {
       "id": "implementation-request-missing-gate",
-      "prompt": "Implement WRK-0043 now.",
-      "state": {"current_explicit_request": true, "packet": {"id": "WRK-0043", "planning_status": "ready"}, "planning_approval": true},
-      "expected": {"selected_skill": "approve-planned-work", "mode": "planning", "file_changes_allowed": false, "approval_required": "implementation", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
+      "prompt": "Implement WRK-0043 now even though its CAP package has not been approved.",
+      "state": {"current_explicit_request": true, "packet": {"id": "WRK-0043", "planning_status": "ready"}, "cap_authority_current": false},
+      "expected": {"selected_skill": "approve-planned-work", "mode": "planning", "file_changes_allowed": false, "approval_required": "capability", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
     },
     {
       "id": "slice-wide-implementation-gate",
-      "prompt": "Prepare one implementation approval gate for every packet in SLI-0001.",
-      "state": {"slice": {"id": "SLI-0001"}, "packets": ["WRK-0001", "WRK-0002"], "planning_approved": true},
-      "expected": {"selected_skill": "approve-planned-work", "mode": "planning", "file_changes_allowed": false, "approval_required": "implementation-bundle", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
+      "prompt": "Prepare the next two independent packets for SLI-0001 without creating a new approval gate.",
+      "state": {"slice": {"id": "SLI-0001"}, "packets": ["WRK-0001", "WRK-0002"], "cap_authority_current": true},
+      "expected": {"selected_skill": "author-agent-work-packet", "mode": "planning", "file_changes_allowed": true, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
     },
     {
       "id": "execute-approved-slice-bundle",
@@ -91,21 +91,27 @@
     },
     {
       "id": "bundle-scope-drift-stops",
-      "prompt": "Continue the approved slice after adding WRK-0003 and broadening WRK-0002.",
-      "state": {"current_explicit_request": true, "bundle_members": ["WRK-0001", "WRK-0002"], "current_packets": ["WRK-0001", "WRK-0002", "WRK-0003"], "scope_drift": ["WRK-0002"]},
-      "expected": {"selected_skill": "approve-planned-work", "mode": "planning", "file_changes_allowed": false, "approval_required": "implementation-bundle", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
+      "prompt": "Continue after discovering that this slice needs an additional bounded packet within the same approved outcome.",
+      "state": {"current_explicit_request": true, "cap_authority_current": true, "cap_drift_material": false, "current_packets": ["WRK-0001", "WRK-0002", "WRK-0003"]},
+      "expected": {"selected_skill": "author-agent-work-packet", "mode": "planning", "file_changes_allowed": true, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
+    },
+    {
+      "id": "material-cap-drift-renews-approval",
+      "prompt": "The approved CAP now needs a seventh slice with a new remote-execution outcome. Update the plan before continuing.",
+      "state": {"capability": {"id": "CAP-0001", "planning_status": "ready"}, "cap_authority_current": true, "cap_drift_material": true},
+      "expected": {"selected_skill": "shape-capability", "mode": "planning", "file_changes_allowed": true, "approval_required": "capability", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
     },
     {
       "id": "verify-incomplete-evidence",
       "prompt": "Close this verifying slice even though one required check has no result.",
       "state": {"slice": {"id": "SLI-0001", "planning_status": "verifying"}, "evidence_complete": false},
-      "expected": {"selected_skill": "verify-and-close-slice", "mode": "verification", "file_changes_allowed": false, "approval_required": "completion", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
+      "expected": {"selected_skill": "verify-and-close-slice", "mode": "verification", "file_changes_allowed": false, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": true}
     },
     {
       "id": "verify-ready-for-acceptance",
-      "prompt": "Review the complete slice evidence and prepare completion acceptance.",
+      "prompt": "Review the complete slice evidence and report whether it can close deterministically.",
       "state": {"slice": {"id": "SLI-0001", "planning_status": "verifying"}, "evidence_complete": true},
-      "expected": {"selected_skill": "verify-and-close-slice", "mode": "verification", "file_changes_allowed": false, "approval_required": "completion", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
+      "expected": {"selected_skill": "verify-and-close-slice", "mode": "verification", "file_changes_allowed": false, "approval_required": "none", "implementation_authorized": false, "completion_claimed": false, "must_stop": false}
     }
   ]
 }

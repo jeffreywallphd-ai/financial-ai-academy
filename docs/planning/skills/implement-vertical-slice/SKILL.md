@@ -1,6 +1,6 @@
 ---
 name: implement-vertical-slice
-description: Implement or resume one approved SLI-* vertical slice through its authorized WRK-* packets. Use only when slice selection, packet planning, and separate implementation activation approvals are recorded and the user currently asks to implement; applies to repository file changes, tests, contracts, documentation, and verification. Do not trigger from advice-only or "what next" prompts.
+description: Implement or resume one SLI-* vertical slice included in a current approved CAP package through incrementally planned and claimed WRK-* packets. No slice, packet, implementation, or completion approval is required.
 ---
 
 # Implement Vertical Slice
@@ -15,28 +15,26 @@ description: Implement or resume one approved SLI-* vertical slice through its a
 4. Read the approved slice, every in-scope packet, canonical sources, contracts, consumers, implementation, tests, and current repository status.
 5. Report that this gate is complete. If any source is missing, stale, or conflicting, do not edit.
 
-This skill and its plans are subordinate to repository guidance and current user authority.
+This skill and its plans are subordinate to repository guidance, the approved CAP package, and separate authority required for external or destructive actions.
 
 ## Authorization Gate
 
 Require all of the following:
 
-- a current explicit user instruction to implement this named slice or packets;
-- an approved local selection decision for the parent slice;
-- an approved local planning decision for every packet to execute;
-- one separate slice-wide implementation response for the closed packet set, recorded as an approved local implementation decision per packet with actor label, date, authority, and exact reviewed `write_scope`;
+- a current approved CAP package whose slice manifest contains the target slice;
+- a refined slice and next packet that pass deterministic validation;
 - no `decision-blocked` artifact or newly unresolved decision;
 - dependencies satisfied and no uncoordinated overlapping active write scope.
 
-One current instruction naming the slice may authorize all packets in its frozen implementation bundle. It does not authorize new packets or changed scopes. Claim only one packet at a time with `python dev-tools/planning/claim_packet.py claim <packet> --owner <owner> --authority <local-authority-reference> --confirm-current-instruction --apply`. The claim helper verifies exact approved scope and completed dependencies. Update the planning register in the same change and run the repository planning integrity check with local approvals enabled.
+The CAP approval authorizes conforming delivery of every listed slice. Claim only one packet at a time with `python dev-tools/planning/claim_packet.py claim <packet> --owner <owner> --apply`. The helper verifies the current CAP binding, manifest membership, dependencies, and active-scope safety. Update the planning register in the same change and run the repository planning integrity check with local approvals enabled.
 
-A general request for advice, planning, prioritization, review, or "what next" is not implementation authority. Run `python scripts/check_implementation_gate.py <slice> <packet> [<packet> ...]` before editing.
+Run `python scripts/check_implementation_gate.py <slice> <packet> [<packet> ...]` before editing. Advice-only requests still do not authorize repository changes; the CAP approval governs delivery only after the user has asked to execute the capability.
 
 ## Workflow
 
 1. Complete the mandatory repository gate and authorization gate.
 2. Revalidate every packet against current canonical sources and repository state. Return stale packets to `shaping`; never implement through drift.
-3. Confirm exact bundle membership and dependency order. Execute one packet at a time unless a later user instruction explicitly authorizes a reviewed parallel-safe set.
+3. Confirm the current packet and dependency order. Execute one packet at a time unless reciprocal non-overlapping scopes make a set deterministically parallel-safe.
 4. Claim the first packet, move the slice to `active`, and update the planning register in the same change.
 5. Implement narrowly in dependency order:
    1. decision and domain meaning already accepted;
@@ -48,8 +46,8 @@ A general request for advice, planning, prioritization, review, or "what next" i
    7. documentation and derived context;
    8. end-to-end and operational qualification.
 6. For each packet, run the focused verification and applicable repository gates specified in the packet. Verify relevant denial, malformed, timeout, degraded, replay, stale-version, provenance, parity, accessibility, and theme paths.
-7. Record exact evidence and documentation impact. Move the active packet to `verifying`, then finalize it as `complete` only when its required handoff is satisfied. Claim the next preauthorized packet without another approval prompt after revalidating its unchanged scope, dependencies, and bundle membership.
-8. If a check exposes a missing decision or scope expansion, stop, record the blocker, and route to `review-decision-gates` or packet reshaping.
+7. Record exact evidence and documentation impact. Move the active packet to `verifying`, then finalize it as `complete` only when its required handoff is satisfied. Refine and claim the next packet without an approval prompt after revalidating CAP conformance and dependencies.
+8. If a check exposes a missing decision or material CAP change, stop, record the blocker, and route to `review-decision-gates` or CAP reshaping. Bounded packet refinement stays in this workflow.
 9. When all packets are complete, move the slice to `verifying` and invoke `verify-and-close-slice` when available.
 
 ## Change Controls
@@ -62,8 +60,8 @@ A general request for advice, planning, prioritization, review, or "what next" i
 
 ## Required Handoff
 
-Report completed packets, affected boundaries, exact checks and results, documentation impact, assumptions, residual risk, blockers, omitted work, and the completion acceptance still required.
+Report completed packets, affected boundaries, exact checks and results, documentation impact, assumptions, residual risk, blockers, omitted work, and the next deterministic slice action.
 
 ## Stop Conditions
 
-Stop immediately when authorization is incomplete, repository instructions were not read, canonical sources conflict, a decision becomes unresolved, scope or contract meaning drifts, provider/data permission is unclear, active work overlaps, verification fails without a local bounded fix, or external/destructive authority is absent.
+Stop immediately when CAP approval is missing or stale, repository instructions were not read, canonical sources conflict, a decision becomes unresolved, material CAP drift appears, provider/data permission is unclear, active work overlaps, verification fails without a local bounded fix, or external/destructive authority is absent.

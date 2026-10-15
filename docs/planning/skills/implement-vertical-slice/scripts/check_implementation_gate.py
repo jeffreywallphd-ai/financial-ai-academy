@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check public structure and ignored local approvals before implementation."""
+"""Check CAP authority and public structure before implementation."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ import json
 import re
 import sys
 from pathlib import Path
+
+from cap_package import find as find_capability, items as cap_items, metadata as cap_metadata, require_current
 
 
 TIMESTAMP_RE = re.compile(
@@ -118,11 +120,20 @@ def main() -> int:
     if slice_data.get("planning_status") == "decision-blocked":
         errors.append("slice is decision-blocked")
     slice_id = slice_data.get("id")
-    approved(ledger, slice_id or str(slice_path), "selection", errors)
+    capability_id = slice_data.get("parent", "")
+    try:
+        capability_path = find_capability(repository_root(slice_path), capability_id)
+        capability_data = cap_metadata(capability_path)
+        require_current(ledger, capability_path)
+        if capability_data.get("approval_model") and slice_id not in cap_items(
+            capability_data.get("slice_ids")
+        ):
+            errors.append(f"{slice_id}: not present in approved {capability_id} slice manifest")
+    except ValueError as error:
+        errors.append(str(error))
     seen: set[str] = set()
     packet_data = [(path, metadata(path)) for path in packet_paths]
     packet_ids = {data.get("id", "") for _path, data in packet_data}
-    implementation_records: list[dict[str, object]] = []
     for path, data in packet_data:
         label = data.get("id", str(path))
         if data.get("kind") != "work-packet":
@@ -133,17 +144,6 @@ def main() -> int:
             errors.append(f"{label}: status must be ready or active")
         if data.get("planning_status") == "decision-blocked":
             errors.append(f"{label}: packet is decision-blocked")
-        approved(ledger, label, "planning", errors)
-        implementation = approved(ledger, label, "implementation", errors)
-        if implementation:
-            implementation_records.append(implementation)
-            if scope_items(implementation.get("scope")) != scope_items(
-                data.get("write_scope")
-            ):
-                errors.append(
-                    f"{label}: approved implementation scope does not exactly "
-                    "match write_scope"
-                )
         if not scope_items(data.get("write_scope")):
             errors.append(f"{label}: missing write_scope")
         if data.get("planning_status") == "active":
@@ -168,31 +168,6 @@ def main() -> int:
             errors.append(
                 f"{label}: Required Context must name AGENTS.md and docs/README.md"
             )
-    bundle_ids = {
-        str(record.get("bundle_id", "")).strip()
-        for record in implementation_records
-        if str(record.get("bundle_id", "")).strip()
-    }
-    if bundle_ids:
-        if len(bundle_ids) != 1 or any(
-            str(record.get("bundle_id", "")).strip() not in bundle_ids
-            for record in implementation_records
-        ):
-            errors.append("implementation bundle must cover every supplied packet")
-        else:
-            bundle_id = next(iter(bundle_ids))
-            bundled_subjects = {
-                str(record.get("subject", ""))
-                for record in ledger["records"]
-                if isinstance(record, dict)
-                and record.get("bundle_id") == bundle_id
-                and record.get("stage") == "implementation"
-            }
-            if bundled_subjects != packet_ids:
-                errors.append(
-                    "supplied packet set must exactly match the approved "
-                    "implementation bundle"
-                )
     if errors:
         print("Implementation gate failed:")
         for error in errors:
@@ -202,10 +177,7 @@ def main() -> int:
         f"Implementation gate passed: {slice_id} "
         f"with {len(packet_paths)} packet(s)"
     )
-    print(
-        "A current explicit user instruction for this named slice or packet "
-        "bundle is still required; this script cannot verify conversation authority."
-    )
+    print("CAP package authority is current; no lower-level approval is required.")
     return 0
 
 

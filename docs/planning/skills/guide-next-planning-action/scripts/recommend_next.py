@@ -56,6 +56,17 @@ def choose(items: list[dict[str, str]]) -> dict[str, str] | None:
     return sorted(items, key=lambda item: (item.get("id", "ZZZ"), item["path"]))[0] if items else None
 
 
+def list_value(value: str | None) -> list[str]:
+    text = (value or "").strip()
+    if not text or text == "[]":
+        return []
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        return []
+    return [str(item) for item in parsed] if isinstance(parsed, list) else []
+
+
 def result(
     skill: str,
     action: str,
@@ -110,9 +121,9 @@ def main() -> int:
 
     item = choose([a for a in slices if a.get("planning_status") == "verifying"])
     if item:
-        output = result("verify-and-close-slice", "verify evidence and request completion acceptance", item, "A slice is verifying.", "completion")
+        output = result("verify-and-close-slice", "verify evidence and close the slice", item, "A slice is verifying.", "none")
     elif (item := choose([a for a in packets + slices if a.get("planning_status") == "active"])):
-        output = result("implement-vertical-slice", "finish authorized active work", item, "Locally authorized work is active.", "already-required")
+        output = result("implement-vertical-slice", "finish CAP-authorized active work", item, "CAP-authorized work is active.", "none")
     elif (unresolved_decisions := [
         a for a in decisions if a.get("planning_status") != "complete"
     ]):
@@ -145,107 +156,42 @@ def main() -> int:
         a for a in capabilities
         if decision(ledger, a.get("id", ""), "capability") != "approved"
     ])):
-        output = result("approve-planned-work", "review capability framing", item, "A shaped capability lacks a local human decision.", "capability")
+        output = result("approve-planned-work", "review the complete CAP planning package", item, "A shaped CAP package lacks its one local human approval.", "capability")
     else:
         approved_capabilities = [
             a for a in capabilities
             if decision(ledger, a.get("id", ""), "capability") == "approved"
         ]
-        item = choose([
+        capability = choose([
             a for a in approved_capabilities
-            if not any(s.get("parent") == a.get("id") for s in slices)
+            if a.get("planning_status") not in {"complete", "superseded"}
         ])
-        if item:
-            output = result("select-vertical-slice", "select the next vertical slice", item, "A locally approved capability has no slice.", "selection")
-        elif (item := choose([
-            a for a in slices
-            if a.get("planning_status") in {"captured", "shaping"}
-            or decision(ledger, a.get("id", ""), "selection") == "changes-requested"
-        ])):
-            output = result("select-vertical-slice", "finish vertical-slice selection", item, "Slice selection is incomplete.", "selection")
-        elif (item := choose([
-            a for a in slices
-            if decision(ledger, a.get("id", ""), "selection") != "approved"
-        ])):
-            output = result("approve-planned-work", "review vertical-slice selection", item, "A slice lacks local selection approval.", "selection")
-        else:
-            approved_slices = [
-                a for a in slices
-                if decision(ledger, a.get("id", ""), "selection") == "approved"
-                and a.get("planning_status") not in {"complete", "superseded"}
-            ]
-            item = choose([
-                a for a in approved_slices
-                if not any(p.get("parent") == a.get("id") for p in packets)
-            ])
-            if item:
-                output = result("author-agent-work-packet", "author implementation work packets", item, "A locally selected slice has no packets.", "planning")
-            elif (item := choose([
-                a for a in packets
-                if a.get("planning_status") in {"captured", "shaping"}
-                or decision(ledger, a.get("id", ""), "planning") == "changes-requested"
-            ])):
-                output = result("author-agent-work-packet", "finish work-packet planning", item, "A packet is not plan-ready.", "planning")
-            elif (item := choose([
-                a for a in packets
-                if decision(ledger, a.get("id", ""), "planning") != "approved"
-            ])):
-                members = [
-                    a for a in packets
-                    if a.get("parent") == item.get("parent")
-                    and decision(ledger, a.get("id", ""), "planning") != "approved"
-                ]
-                parent = by_id.get(item.get("parent", ""), item)
-                output = result(
-                    "approve-planned-work",
-                    "review the closed slice packet plan",
-                    parent,
-                    "One or more packets in a slice lack local planning approval.",
-                    "planning-bundle" if len(members) > 1 else "planning",
-                    members,
-                )
-            elif (item := choose([
-                a for a in packets
-                if a.get("planning_status") == "ready"
-                and decision(ledger, a.get("id", ""), "implementation") != "approved"
-            ])):
-                members = [
-                    a for a in packets
-                    if a.get("parent") == item.get("parent")
-                    and a.get("planning_status") == "ready"
-                    and decision(ledger, a.get("id", ""), "implementation") != "approved"
-                ]
-                parent = by_id.get(item.get("parent", ""), item)
-                output = result(
-                    "approve-planned-work",
-                    "consider slice-wide implementation activation",
-                    parent,
-                    "A closed slice packet set lacks local implementation approval.",
-                    "implementation-bundle" if len(members) > 1 else "implementation",
-                    members,
-                )
-            elif (item := choose([
-                a for a in packets
-                if a.get("planning_status") == "ready"
-                and decision(ledger, a.get("id", ""), "implementation") == "approved"
-            ])):
-                members = [
-                    a for a in packets
-                    if a.get("parent") == item.get("parent")
-                    and a.get("planning_status") == "ready"
-                    and decision(ledger, a.get("id", ""), "implementation") == "approved"
-                ]
-                parent = by_id.get(item.get("parent", ""), item)
-                output = result(
-                    "implement-vertical-slice",
-                    "request or begin serial slice implementation",
-                    parent,
-                    "A closed slice packet set is locally approved and ready.",
-                    "current-explicit-implementation-request",
-                    members,
-                )
+        manifest = list_value(capability.get("slice_ids")) if capability else []
+        next_slice_id = next(
+            (
+                identifier for identifier in manifest
+                if identifier not in by_id
+                or by_id[identifier].get("planning_status") not in {"complete", "superseded"}
+            ),
+            "",
+        )
+        next_slice = by_id.get(next_slice_id)
+        if capability and next_slice is None:
+            output = result("select-vertical-slice", "refine the next manifest slice", capability, f"{next_slice_id} is next in the approved CAP manifest.", "none")
+        elif next_slice and next_slice.get("planning_status") in {"captured", "shaping", "ready"}:
+            slice_packets = [p for p in packets if p.get("parent") == next_slice_id]
+            shaping_packet = choose([p for p in slice_packets if p.get("planning_status") in {"captured", "shaping"}])
+            ready_packet = choose([p for p in slice_packets if p.get("planning_status") == "ready"])
+            if shaping_packet:
+                output = result("author-agent-work-packet", "finish just-in-time packet planning", shaping_packet, "The next packet needs deterministic refinement.", "none")
+            elif ready_packet:
+                output = result("implement-vertical-slice", "claim and implement the next packet", next_slice, "The next packet is ready under current CAP authority.", "none", [ready_packet])
             else:
-                output = result("shape-capability", "shape the first or next capability", None, "No actionable planning artifact was found.", "capability")
+                output = result("author-agent-work-packet", "author the next work packet just in time", next_slice, "The next manifest slice has no executable packet yet.", "none")
+        elif capability and not next_slice_id:
+            output = result("verify-and-close-slice", "verify cumulative CAP completion", capability, "Every manifest slice is complete.", "none")
+        else:
+            output = result("shape-capability", "shape the first or next capability", None, "No actionable planning artifact was found.", "capability")
     print(json.dumps(output, indent=2, sort_keys=True))
     return 0
 

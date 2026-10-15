@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 from approval_store import ApprovalStoreError, STAGES, load_store, require_decision
+from cap_package import MODEL, find_capability, package_digest, package_snapshot
 
 
 def repository_root(start: Path) -> Path:
@@ -95,16 +96,14 @@ def main() -> int:
             raise ApprovalStoreError("; ".join(errors))
         store, _path = load_store(root, args.store, required=True)
         record = require_decision(store, identifier, args.stage)
-        if args.stage == "implementation":
-            if scope_items(record.get("scope")) != scope_items(data.get("write_scope")):
-                raise ApprovalStoreError(
-                    "approved implementation scope must exactly match artifact write_scope"
-                )
-            bundle_subject = str(record.get("bundle_subject", "")).strip()
-            if bundle_subject and bundle_subject != data.get("parent"):
-                raise ApprovalStoreError(
-                    "implementation bundle subject must match the packet parent"
-                )
+        if args.stage == "capability" and data.get("approval_model") == MODEL:
+            capability = find_capability(root, identifier)
+            if record.get("approval_model") != MODEL:
+                raise ApprovalStoreError("capability approval predates the CAP package model")
+            if record.get("slice_ids") != package_snapshot(capability)["slice_ids"]:
+                raise ApprovalStoreError("approved slice manifest is no longer current")
+            if record.get("package_digest") != package_digest(capability):
+                raise ApprovalStoreError("governed CAP content changed; renew CAP approval")
         if args.stage == "decision" and data.get("planning_status") == "complete":
             if data.get("decision_record") in {"", "null", None}:
                 raise ApprovalStoreError(

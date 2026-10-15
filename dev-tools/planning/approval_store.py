@@ -9,7 +9,9 @@ from pathlib import Path
 
 
 DEFAULT_STORE = Path(".local-codex/approvals/ledger.json")
-STAGES = {"capability", "decision", "selection", "planning", "implementation", "completion"}
+STAGES = {"capability", "decision"}
+LEGACY_STAGES = {"selection", "planning", "implementation", "completion"}
+ALL_STAGES = STAGES | LEGACY_STAGES
 DECISIONS = {"approved", "changes-requested", "rejected"}
 REVIEW_STATES = {"identified", "accepted", "changes-requested", "rejected"}
 ID_RE = re.compile(r"^(CAP|DEC|SLI|WRK)-\d{4,}$")
@@ -67,7 +69,7 @@ def validate_store(data: object) -> list[str]:
             errors.append(f"{label}.subject must be a planning ID")
         elif stage not in STAGES_BY_PREFIX.get(subject.split("-", 1)[0], set()):
             errors.append(f"{label}.stage is invalid for {subject}")
-        if stage not in STAGES:
+        if stage not in ALL_STAGES:
             errors.append(f"{label}.stage is invalid")
         if decision not in DECISIONS:
             errors.append(f"{label}.decision is invalid")
@@ -81,6 +83,20 @@ def validate_store(data: object) -> list[str]:
             errors.append(f"{label}.recorded_at must be an ISO UTC timestamp")
         if stage == "implementation" and not _text(record.get("scope")):
             errors.append(f"{label}.scope is required for implementation approval")
+        if stage == "capability" and record.get("approval_model"):
+            if record.get("approval_model") != "cap-package-v1":
+                errors.append(f"{label}.approval_model is invalid")
+            digest = _text(record.get("package_digest"))
+            if not re.match(r"^sha256:[0-9a-f]{64}$", digest):
+                errors.append(f"{label}.package_digest is invalid")
+            slice_ids = record.get("slice_ids")
+            if not isinstance(slice_ids, list) or not slice_ids:
+                errors.append(f"{label}.slice_ids must be a non-empty array")
+            elif len(slice_ids) != len(set(slice_ids)) or any(
+                not isinstance(item, str) or not item.startswith("SLI-")
+                for item in slice_ids
+            ):
+                errors.append(f"{label}.slice_ids must contain unique SLI-* identifiers")
         bundle_id = _text(record.get("bundle_id"))
         if bundle_id:
             bundles.setdefault(bundle_id, []).append(record)

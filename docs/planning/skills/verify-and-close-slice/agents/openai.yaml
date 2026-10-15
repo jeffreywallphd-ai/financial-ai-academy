@@ -1,4 +1,4 @@
 interface:
   display_name: "Verify and Close Slice"
   short_description: "Verify evidence and close a delivered slice"
-  default_prompt: "Use $verify-and-close-slice to verify delivery evidence and prepare a slice for completion acceptance."
+  default_prompt: "Use $verify-and-close-slice to verify delivery evidence and deterministically close the slice within its approved CAP package."

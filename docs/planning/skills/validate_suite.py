@@ -41,15 +41,15 @@ def main() -> int:
         print(f"ERROR: unable to load manifest: {error}")
         return 2
     names = [entry["name"] for entry in manifest.get("skills", [])]
-    if manifest.get("contractVersion") != 4:
-        errors.append("manifest contractVersion must be 4")
+    if manifest.get("contractVersion") != 5:
+        errors.append("manifest contractVersion must be 5")
     if manifest.get("discoveryTarget") != ".agents/skills":
         errors.append("manifest discoveryTarget must be .agents/skills")
     if manifest.get("approvalStore") != ".local-codex/approvals/ledger.json":
         errors.append("manifest approvalStore must be the ignored local ledger")
     bundles = manifest.get("approvalBundles", {})
-    if set(bundles) != {"decision", "planning", "implementation"}:
-        errors.append("manifest approvalBundles must define decision, planning, and implementation")
+    if set(bundles) != {"decision"}:
+        errors.append("manifest approvalBundles must define decision only")
     if manifest.get("packetExecution") != "serial-dependency-order":
         errors.append("manifest packetExecution must be serial-dependency-order")
     expected_ownership = {
@@ -111,7 +111,7 @@ def main() -> int:
         if name != "guide-next-planning-action" and name not in router:
             errors.append(f"router does not reference {name}")
     implement = (ROOT / "implement-vertical-slice" / "SKILL.md").read_text(encoding="utf-8")
-    for token in ("approved local selection", "approved local planning", "approved local implementation", "current explicit"):
+    for token in ("current approved CAP package", "manifest", "deterministic validation", "claim"):
         if token not in implement:
             errors.append(f"implementation skill missing gate token: {token}")
     approval = (ROOT / "approve-planned-work" / "SKILL.md").read_text(encoding="utf-8")
@@ -121,9 +121,9 @@ def main() -> int:
     for token in (".local-codex/approvals/ledger.json", "never copy"):
         if token not in approval:
             errors.append(f"approval skill missing local-only rule: {token}")
-    for token in ("record-bundle", "homogeneous closed", "one local-ledger entry per artifact"):
+    for token in ("record-bundle", "CAP package", "legacy stages"):
         if token not in approval:
-            errors.append(f"approval skill missing bundle contract: {token}")
+            errors.append(f"approval skill missing authority contract: {token}")
     decision_review = (ROOT / "review-decision-gates" / "SKILL.md").read_text(
         encoding="utf-8"
     )

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check structural readiness for vertical-slice completion acceptance."""
+"""Check structural readiness for deterministic vertical-slice completion."""
 
 from __future__ import annotations
 
@@ -7,6 +7,8 @@ import re
 import json
 import sys
 from pathlib import Path
+
+from cap_package import find as find_capability, items as cap_items, metadata as cap_metadata, require_current
 
 
 TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
@@ -94,11 +96,18 @@ def main() -> int:
     if slice_data.get("kind") != "vertical-slice":
         errors.append("first artifact must be a vertical-slice")
     if slice_data.get("planning_status") != "verifying":
-        errors.append(f"{slice_id}: status must be verifying before acceptance")
-    require_approved(ledger, slice_id, "selection", errors)
-    completion = latest(ledger, slice_id, "completion")
-    if completion and completion.get("decision") == "approved":
-        errors.append(f"{slice_id}: completion is already locally approved; update public state")
+        errors.append(f"{slice_id}: status must be verifying before completion")
+    capability_id = slice_data.get("parent", "")
+    try:
+        capability_path = find_capability(repository_root(slice_path), capability_id)
+        capability_data = cap_metadata(capability_path)
+        require_current(ledger, capability_path)
+        if capability_data.get("approval_model") and slice_id not in cap_items(
+            capability_data.get("slice_ids")
+        ):
+            errors.append(f"{slice_id}: not present in approved {capability_id} slice manifest")
+    except ValueError as error:
+        errors.append(str(error))
     evidence = section_body(slice_text, "## Documentation Impact and Completion Evidence")
     if len(evidence) < 80:
         errors.append(f"{slice_id}: completion evidence section is incomplete")
@@ -111,8 +120,6 @@ def main() -> int:
             errors.append(f"{label}: parent does not match {slice_id}")
         if data.get("planning_status") != "complete":
             errors.append(f"{label}: packet must be complete")
-        require_approved(ledger, label, "planning", errors)
-        require_approved(ledger, label, "implementation", errors)
         for field in ("base_revision", "claim_id", "claimed_by"):
             if data.get(field) in {None, "", "null", "unassigned"}:
                 errors.append(f"{label}: completion requires retained {field}")
@@ -124,7 +131,7 @@ def main() -> int:
             print(f"- {error}")
         return 1
     print(f"Completion structure passed: {slice_id} with {len(packet_paths)} packet(s)")
-    print("Exact test results and explicit human completion acceptance remain required.")
+    print("Exact test results remain required; no lower-level completion approval exists.")
     return 0
 
 

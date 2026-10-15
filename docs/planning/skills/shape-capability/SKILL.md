@@ -1,6 +1,6 @@
 ---
 name: shape-capability
-description: Shape or revise one bounded capability plan from accepted product intent before vertical-slice selection. Use for capability discovery, outcome framing, scope boundaries, capability acceptance, or CAP-* planning artifacts; do not use to select a slice or implement code.
+description: Shape or revise one complete CAP planning package from accepted product intent, including the coarse plan and sequence for every intended slice. Use before the single CAP approval; do not implement code.
 ---
 
 # Shape Capability
@@ -25,22 +25,22 @@ This gate is mandatory. Never treat this skill or a planning artifact as authori
 4. Route unresolved durable choices to `review-decision-gates` when available. Otherwise record each gate explicitly and use `decision-blocked`.
 5. Create or revise one `CAP-####-short-name.md` artifact from [the bundled template](assets/capability-template.md), or the repository template when repository guidance makes it canonical.
 6. Keep the capability outcome-oriented. Do not turn pages, components, modules, or technical layers into capabilities without independent user or operator value.
-7. Add only proposed slices; do not select or approve a slice in this workflow.
+7. Enumerate and reserve every intended `SLI-*` in `slice_ids`. Give each slice a coarse observable outcome, dependency/order constraint, and stop boundary; leave detailed slice and packet planning until that work is about to start.
 8. Run `python scripts/validate_capability.py <artifact>` from this skill folder.
 9. Update the repository planning register in the same change when required.
-10. Present the capability for explicit capability-framing approval. Route an explicit human decision to `approve-planned-work`, which records it only in the ignored local ledger.
+10. Present the complete package for the single CAP planning approval. Route an explicit human decision to `approve-planned-work`, which records it only in the ignored local ledger and binds it to the package digest and slice manifest.
 
 ## State and Approval Contract
 
 - Start new artifacts at `captured` or `shaping`.
 - Use `decision-blocked` when any named gate is unresolved.
 - Keep approval and reviewer evidence out of the tracked artifact.
-- Move to `ready` only when decision gates are resolved and the ignored local ledger contains an approved capability decision.
-- Capability approval does not approve slice selection, work packets, or implementation.
+- Move to `ready` only when decision gates are resolved and the ignored local ledger contains a current approved CAP package.
+- CAP approval authorizes deterministic incremental planning and delivery for every listed slice. It does not authorize material CAP drift or external/destructive action.
 
 ## Required Output
 
-Return the artifact path, outcome, scope boundary, decision gates, validation result, register impact, and exact approval requested. If no file change was authorized, return a proposal without editing.
+Return the artifact path, outcome, scope boundary, complete slice manifest and sequence, decision gates, validation result, register impact, and the one CAP approval requested. If no file change was authorized, return a proposal without editing.
 
 ## Stop Conditions
 

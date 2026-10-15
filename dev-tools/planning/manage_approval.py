@@ -19,18 +19,15 @@ from approval_store import (
     load_store,
     save_store,
 )
-from planning_model import as_list, load_artifacts, repository_root
+from cap_package import approval_fields
+from planning_model import repository_root
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
-BUNDLE_PREFIX_BY_STAGE = {
-    "decision": "DEC",
-    "planning": "WRK",
-    "implementation": "WRK",
-}
+BUNDLE_PREFIX_BY_STAGE = {"decision": "DEC"}
 
 
 def bundle_records(root: Path, args: argparse.Namespace) -> list[dict[str, object]]:
@@ -45,28 +42,6 @@ def bundle_records(root: Path, args: argparse.Namespace) -> list[dict[str, objec
         raise ApprovalStoreError(
             f"{args.stage} bundles require {prefix}-* subjects: " + ", ".join(invalid)
         )
-    if args.scope_from_artifacts != (args.stage == "implementation"):
-        raise ApprovalStoreError(
-            "implementation bundles require --scope-from-artifacts; other bundles must omit it"
-        )
-
-    artifacts = {item.identifier: item for item in load_artifacts(root)}
-    if args.stage in {"planning", "implementation"}:
-        if not args.bundle_subject or not args.bundle_subject.startswith("SLI-"):
-            raise ApprovalStoreError("packet bundles require --bundle-subject SLI-*")
-        missing = [subject for subject in subjects if subject not in artifacts]
-        if missing:
-            raise ApprovalStoreError("work packet artifact not found: " + ", ".join(missing))
-        wrong_parent = [
-            subject for subject in subjects
-            if str(artifacts[subject].metadata.get("parent", "")) != args.bundle_subject
-        ]
-        if wrong_parent:
-            raise ApprovalStoreError(
-                f"packet bundle members must belong to {args.bundle_subject}: "
-                + ", ".join(wrong_parent)
-            )
-
     bundle_id = str(uuid.uuid4())
     recorded_at = utc_now()
     records: list[dict[str, object]] = []
@@ -84,11 +59,6 @@ def bundle_records(root: Path, args: argparse.Namespace) -> list[dict[str, objec
         }
         if args.bundle_subject:
             item["bundle_subject"] = args.bundle_subject
-        if args.scope_from_artifacts:
-            scope = as_list(artifacts[subject].metadata.get("write_scope"))
-            if not scope:
-                raise ApprovalStoreError(f"{subject} must declare a non-empty write_scope")
-            item["scope"] = json.dumps(scope, separators=(",", ":"))
         if args.note:
             item["note"] = args.note.strip()
         records.append(item)
@@ -108,7 +78,6 @@ def main() -> int:
     record.add_argument("--actor-label", required=True)
     record.add_argument("--decided-at", required=True)
     record.add_argument("--authority", required=True)
-    record.add_argument("--scope")
     record.add_argument("--note")
     record.add_argument("--confirm-human-decision", action="store_true")
 
@@ -120,7 +89,6 @@ def main() -> int:
     bundle.add_argument("--decided-at", required=True)
     bundle.add_argument("--authority", required=True)
     bundle.add_argument("--bundle-subject")
-    bundle.add_argument("--scope-from-artifacts", action="store_true")
     bundle.add_argument("--note")
     bundle.add_argument("--confirm-human-decision", action="store_true")
 
@@ -159,8 +127,8 @@ def main() -> int:
                     "authority": args.authority.strip(),
                     "recorded_at": utc_now(),
                 }
-                if args.scope:
-                    item["scope"] = args.scope.strip()
+                if args.stage == "capability":
+                    item.update(approval_fields(root, args.subject))
                 if args.note:
                     item["note"] = args.note.strip()
                 store["records"].append(item)

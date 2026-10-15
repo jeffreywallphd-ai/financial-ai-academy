@@ -14,6 +14,7 @@ sys.path.insert(0, str(HERE))
 from check_planning import run  # noqa: E402
 from claim_packet import claim_updates, finalize_updates, release_updates  # noqa: E402
 from approval_store import empty_store, save_store, store_path  # noqa: E402
+from cap_package import approval_fields  # noqa: E402
 from planning_model import frontmatter_from_path, update_frontmatter  # noqa: E402
 from reserve_id import reserve  # noqa: E402
 
@@ -75,21 +76,82 @@ claimed_at: {claimed_at}
 """
 
 
-def approve_packet(root: Path, identifier: str) -> None:
+def capability_text() -> str:
+    return f"""---
+id: CAP-0001
+kind: capability
+planning_status: ready
+authority: noncanonical
+owner: unassigned
+updated: {TODAY}
+parent: null
+depends_on: []
+decision_gates: []
+approval_model: cap-package-v1
+slice_ids: [\"SLI-0001\"]
+---
+
+# Capability: Test planning control
+
+## Outcome
+
+An agent can claim one bounded packet.
+
+## Decision Gates and Constraints
+
+The work remains repository-local.
+
+## Proposed Vertical Slices
+
+| Slice ID | Observable increment | Dependencies | Material boundary | Status |
+| --- | --- | --- | --- | --- |
+| SLI-0001 | Claim one packet | none | remote execution | ready |
+
+## Capability Acceptance
+
+Claims are exclusive and recoverable.
+
+## Risks and Non-Goals
+
+Do not coordinate remote workers.
+"""
+
+
+def slice_text() -> str:
+    return f"""---
+id: SLI-0001
+kind: vertical-slice
+planning_status: ready
+authority: noncanonical
+owner: unassigned
+updated: {TODAY}
+parent: CAP-0001
+depends_on: []
+decision_gates: []
+---
+
+# Vertical Slice: Claim one packet
+"""
+
+
+def prepare_cap(root: Path) -> None:
+    write(root / "docs/planning/capabilities/CAP-0001-test.md", capability_text())
+    write(root / "docs/planning/vertical-slices/SLI-0001-test.md", slice_text())
+
+
+def approve_cap(root: Path) -> None:
     store = empty_store()
-    for stage in ("planning", "implementation"):
-        record = {
-            "subject": identifier,
-            "stage": stage,
-            "decision": "approved",
-            "actor_label": "test authority",
-            "decided_at": TODAY,
-            "authority": "task-42",
-            "recorded_at": "2026-08-04T12:00:00Z",
-        }
-        if stage == "implementation":
-            record["scope"] = '["modules/learning"]'
-        store["records"].append(record)
+    record = {
+        "subject": "CAP-0001",
+        "stage": "capability",
+        "decision": "approved",
+        "actor_label": "test authority",
+        "decided_at": TODAY,
+        "authority": "task-42",
+        "recorded_at": "2026-08-04T12:00:00Z",
+        **approval_fields(root, "CAP-0001"),
+    }
+    store["records"].append(record)
     save_store(store_path(root), store)
 
 
@@ -100,9 +162,25 @@ def main() -> int:
         first = reserve(root, "CAP", "agent-a")
         second = reserve(root, "CAP", "agent-b")
         assert first["id"] == "CAP-0001" and second["id"] == "CAP-0002"
-        approve_packet(root, "WRK-0001")
+        prepare_cap(root)
+        approve_cap(root)
         packet = write(root / "docs/planning/work-packets/WRK-0001-test.md", packet_text())
-        updates = claim_updates(root, packet, "agent-a", "task-42", "base123")
+        capability_path = root / "docs/planning/capabilities/CAP-0001-test.md"
+        write(
+            capability_path,
+            capability_text().replace(
+                "An agent can claim one bounded packet.",
+                "An agent can claim and remotely dispatch one bounded packet.",
+            ),
+        )
+        try:
+            claim_updates(root, packet, "agent-a", "base123")
+        except ValueError as exception:
+            assert "renew CAP approval" in str(exception)
+        else:
+            raise AssertionError("material CAP drift must invalidate packet claims")
+        write(capability_path, capability_text())
+        updates = claim_updates(root, packet, "agent-a", "base123")
         assert updates["planning_status"] == "active"
         update_frontmatter(packet, updates)
         claimed = frontmatter_from_path(packet)
@@ -112,9 +190,9 @@ def main() -> int:
             packet_text("WRK-0002"),
         )
         store_path(root).unlink()
-        approve_packet(root, "WRK-0002")
+        approve_cap(root)
         try:
-            claim_updates(root, competing, "agent-b", "task-42", "base456")
+            claim_updates(root, competing, "agent-b", "base456")
         except ValueError as exception:
             assert "overlaps active packet WRK-0001" in str(exception)
         else:
@@ -125,6 +203,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="planning-dependencies-") as directory:
         root = fixture_root(Path(directory))
+        prepare_cap(root)
         dependency = write(
             root / "docs/planning/work-packets/WRK-0001-dependency.md",
             packet_text("WRK-0001"),
@@ -135,9 +214,9 @@ def main() -> int:
                 "depends_on: []", 'depends_on: ["WRK-0001"]'
             ),
         )
-        approve_packet(root, "WRK-0002")
+        approve_cap(root)
         try:
-            claim_updates(root, dependent, "agent-b", "task-42", "base456")
+            claim_updates(root, dependent, "agent-b", "base456")
         except ValueError as exception:
             assert "dependency WRK-0001 must be complete" in str(exception)
         else:

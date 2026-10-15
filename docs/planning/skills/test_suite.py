@@ -221,5 +221,59 @@ def main() -> int:
     return 0
 
 
+def cap_package_main() -> int:
+    """Exercise the active CAP-package contract; legacy cases above remain readable fixtures."""
+
+    with tempfile.TemporaryDirectory(prefix="planning-cap-package-") as directory:
+        temp = Path(directory)
+        (temp / ".git").mkdir()
+        (temp / "docs/planning").mkdir(parents=True)
+
+        capability = asset("shape-capability", "capability-template.md")
+        capability = capability.replace("CAP-0000", "CAP-0001").replace("YYYY-MM-DD", TODAY).replace("Short Outcome Name", "Learn Safely").replace("slice_ids: []", 'slice_ids: ["SLI-0001"]').replace("## Outcome\n\n", "## Outcome\n\nA learner completes one lesson safely.\n\n").replace("## Decision Gates and Constraints\n\n", "## Decision Gates and Constraints\n\nNo unresolved decision applies.\n\n").replace("## Capability Acceptance\n\n", "## Capability Acceptance\n\nThe lesson completion is observable and verified.\n\n").replace("## Risks and Non-Goals\n\n", "## Risks and Non-Goals\n\nDo not add unrelated learning outcomes.\n\n").replace("| --- | --- | --- | --- | --- |", "| --- | --- | --- | --- | --- |\n| SLI-0001 | Complete one lesson | First | New product outcome | captured |")
+        capability_path = write(temp / "docs/planning/capabilities/CAP-0001-learn-safely.md", capability)
+        run(ROOT / "shape-capability/scripts/validate_capability.py", capability_path)
+
+        decision_text = asset("review-decision-gates", "decision-request-template.md").replace("DEC-0000", "DEC-0001").replace("YYYY-MM-DD", TODAY).replace("Short Question", "Choose Identity Boundary")
+        decision_path = write(temp / "docs/planning/decision-requests/DEC-0001-identity.md", decision_text)
+        run(ROOT / "review-decision-gates/scripts/validate_decision_request.py", decision_path)
+
+        slice_text = asset("select-vertical-slice", "vertical-slice-template.md").replace("SLI-0000", "SLI-0001").replace("CAP-0000", "CAP-0001").replace("YYYY-MM-DD", TODAY).replace("Short Observable Increment", "Complete One Lesson")
+        slice_path = write(temp / "docs/planning/vertical-slices/SLI-0001-lesson.md", slice_text)
+        run(ROOT / "select-vertical-slice/scripts/validate_vertical_slice.py", slice_path)
+
+        packet = asset("author-agent-work-packet", "work-packet-template.md").replace("WRK-0000", "WRK-0001").replace("SLI-0000", "SLI-0001").replace("CAP-0000", "CAP-0001").replace("YYYY-MM-DD", TODAY).replace("Short Objective", "Deliver Lesson Contract").replace("write_scope: []", 'write_scope: ["modules/learning"]')
+        packet_path = write(temp / "docs/planning/work-packets/WRK-0001-contract.md", packet)
+        run(ROOT / "author-agent-work-packet/scripts/validate_work_packet.py", packet_path)
+
+        record(temp, "CAP-0001", "capability")
+        run(ROOT / "approve-planned-work/scripts/validate_approval.py", capability_path, "--stage", "capability", "--root", temp)
+
+        ready_slice_path = write(slice_path, slice_text.replace("planning_status: shaping", "planning_status: ready"))
+        ready_packet_text = packet.replace("planning_status: shaping", "planning_status: ready")
+        ready_packet_path = write(packet_path, ready_packet_text)
+        run(ROOT / "implement-vertical-slice/scripts/check_implementation_gate.py", ready_slice_path, ready_packet_path)
+
+        evidence = "Delivered behavior, exact verification commands and results, documentation impact, assumptions, residual risks, and qualification gaps were recorded for deterministic completion."
+        verifying_slice = ready_slice_path.read_text(encoding="utf-8").replace("planning_status: ready", "planning_status: verifying").replace("## Documentation Impact and Completion Evidence\n", "## Documentation Impact and Completion Evidence\n\n" + evidence + "\n")
+        verifying_slice_path = write(slice_path, verifying_slice)
+        complete_packet = ready_packet_text.replace("planning_status: ready", "planning_status: complete").replace("base_revision: null", "base_revision: abc123").replace("claim_id: null", "claim_id: WRK-0001:test").replace("claimed_by: null", "claimed_by: test-agent").replace("claimed_at: null", "claimed_at: 2026-08-04T12:00:00Z")
+        complete_packet_path = write(packet_path, complete_packet)
+        run(ROOT / "verify-and-close-slice/scripts/check_completion_gate.py", verifying_slice_path, complete_packet_path)
+
+        record_bundle(temp, ["DEC-0101", "DEC-0102"], "decision")
+        ledger = json.loads((temp / ".local-codex/approvals/ledger.json").read_text(encoding="utf-8"))
+        assert {item["stage"] for item in ledger["records"]} == {"capability", "decision"}
+
+        routing = temp / "routing"
+        routing.mkdir()
+        output = run(ROOT / "guide-next-planning-action/scripts/recommend_next.py", routing)
+        if json.loads(output)["skill"] != "shape-capability":
+            raise AssertionError("empty planning root must route to shape-capability")
+
+    print("Planning skill behavior tests passed: CAP authority, incremental gates, and routing verified.")
+    return 0
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(cap_package_main())

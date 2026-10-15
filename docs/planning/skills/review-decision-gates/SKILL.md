@@ -1,6 +1,6 @@
 ---
 name: review-decision-gates
-description: Review planned work for unresolved durable decisions, classify readiness, compare viable options in a deterministic table, recommend a path, and create or revise DEC-* decision requests. Use before capability approval, vertical-slice selection, work-packet approval, or implementation when architecture, identity, tenancy, licensing, AI authority, provider, security, recovery, commercial, or external-action choices may be unresolved.
+description: Review planned work for unresolved durable decisions, classify readiness, compare viable options in a deterministic table, recommend a path, and create or revise DEC-* decision requests. Use before CAP package approval or during incremental delivery when architecture, identity, tenancy, licensing, AI authority, provider, security, recovery, commercial, or external-action choices may be unresolved.
 ---
 
 # Review Decision Gates
@@ -59,7 +59,7 @@ Use [the bundled classification table](assets/decision-classification-table.md) 
 - Other planning skills consume `decision_gates` as a list of DEC IDs or canonical readiness identifiers.
 - Unresolved DEC items require dependent artifacts to use `planning_status: decision-blocked`.
 - A decision is resolved only when the ignored local ledger contains an approved decision and `decision_record` points to canonical authority. Tracked files never contain approval or reviewer evidence.
-- Approval of a decision does not approve capability framing, slice selection, work packets, or implementation.
+- A durable decision does not approve a CAP package or external action. Once promoted, it may unblock the CAP package or a conforming refinement.
 - A consolidated response covers only the exact `DEC-*` IDs and option mappings presented. Later or materially revised decisions require a new response.
 
 ## Required Output

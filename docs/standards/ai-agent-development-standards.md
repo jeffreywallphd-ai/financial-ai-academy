@@ -30,11 +30,21 @@
 - Resolve decision requests before dependent work becomes `ready`; record accepted durable decisions in their canonical location rather than in a plan.
 - Treat planning state as coordination metadata. It never overrides current canonical sources, repository authority, or explicit user authorization.
 - Use the governed planning skills for repeatable workflows and `guide-next-planning-action` for broad next-step requests. Advice-only prompts do not authorize file changes.
-- Keep capability framing, durable decision, slice selection, plan readiness, implementation activation, and completion acceptance as separate human stages. One response may cover an explicitly enumerated homogeneous set of related decisions or one slice's packet set at one stage; agents record one local decision per artifact and may never originate approval.
+- Use one human delivery approval for a complete CAP planning package containing every intended slice. Agents may record but never originate that approval. Durable decisions remain separately explicit and are not delivery-stage approvals.
 - Store approval and reviewer records only in the ignored local approval ledger. Tracked artifacts and registers contain public state and canonical links, never approval identity, decision, date, authority, scope, history, or summary.
-- Require approved selection, approved packet planning, separate implementation approval exactly bound to each packet `write_scope`, and a current explicit implementation request before moving work to `active`. New or materially revised bundle members require renewed approval.
+- Refine SLI and WRK plans immediately before they start without approval when they conform to the approved CAP package. Require current CAP binding, manifest membership, deterministic readiness, exact bounded `write_scope`, satisfied dependencies, and a collision-free claim before moving work to `active`. Material CAP drift requires renewed CAP approval.
 - Claim each approved packet against a base revision before implementation. Execute a slice bundle one dependency-ready packet at a time unless separately authorized for reviewed parallel work. Keep one owner and durable claim evidence from activation through handoff; concurrent active packets require reciprocal parallel-safety declarations and disjoint scopes.
 - Update planning lifecycle and completion evidence as part of the same change that advances the work.
+- Confine repository automation effects through stable command/action IDs,
+  normalized path scopes, and explicit effect classes. Do not place raw argv in
+  a capability grant or treat the grant as planning/external authority.
+- Keep harness telemetry local, append-only, anonymous, and advisory. Do not
+  collect prompts, source payloads, command output, work/people identifiers,
+  approval/reviewer data, or credentials. Telemetry failure must not invalidate
+  an otherwise governed operation.
+- Evaluate multi-turn automation with deterministic safety assertions and
+  explicit friction budgets. A shorter route never compensates for a safety
+  violation, and a metric never authorizes protected state change.
 
 ## Prohibited Shortcuts
 

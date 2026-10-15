@@ -33,8 +33,17 @@ jobs:
 
       - name: Check pull-request readiness and lifecycle transitions
         if: github.event_name == 'pull_request'
-        run: python dev-tools/agent/check_ready.py --profile ci --base-ref "${{ github.event.pull_request.base.sha }}"
+        run: python dev-tools/agent/check_ready.py --profile ci --base-ref "${{ github.event.pull_request.base.sha }}" --report-path artifacts/control-plane/agent-readiness.json
 
       - name: Check main-branch readiness
         if: github.event_name == 'push'
-        run: python dev-tools/agent/check_ready.py --profile ci
+        run: python dev-tools/agent/check_ready.py --profile ci --report-path artifacts/control-plane/agent-readiness.json
+
+      - name: Retain privacy-minimized readiness report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: agent-readiness-report
+          path: artifacts/control-plane/agent-readiness.json
+          if-no-files-found: error
+          retention-days: 14
