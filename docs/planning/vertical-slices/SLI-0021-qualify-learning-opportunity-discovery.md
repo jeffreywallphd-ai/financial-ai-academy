@@ -1,7 +1,7 @@
 ---
 id: SLI-0021
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -105,7 +105,7 @@ the projection, URL, browser storage, or provider payload as authority.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0057 | Reconcile cumulative CAP acceptance and close learning-opportunity discovery | SLI-0018, SLI-0019, SLI-0020 | none | ready |
+| WRK-0057 | Reconcile cumulative CAP acceptance and close learning-opportunity discovery | SLI-0018, SLI-0019, SLI-0020 | none | verifying |
 
 ## Verification and Qualification
 
@@ -136,6 +136,33 @@ or operational sources made stale by reconciliation. Completion must identify
 exact checks, environments, cleanup, unchanged contracts and migrations,
 unsupported profiles, residual risks, and conformance to the approved package.
 
+## Acceptance Trace
+
+| CAP-0004 criterion | Direct current evidence |
+| --- | --- |
+| Approved and authorized exact versions with owning provenance | SLI-0018 discovery-v1 contract, deterministic Curriculum projection, protected browse API, generated client, browser cards, and live baseline |
+| Deterministic replay/rebuild and safe stale or withdrawn behavior | SLI-0018 atomic rebuild, replay/stale/conflict tests, PostgreSQL integration, and bounded API/browser states |
+| Deterministic topic, level, duration, prerequisite, kind, availability, ordering, tie, and pagination semantics | SLI-0019 query-v1 compatibility corpus, shared-core policy, protected query operation, URL-backed interface, and live multi-page/filter/cursor evidence |
+| Bounded malformed, invalid-cursor, unsupported, stale, missing-destination, and unavailable responses | SLI-0018 through SLI-0020 contract, application, API, component, Chromium, and live denial/failure scenarios |
+| Honest lesson, lab, project, and course inspection without fabricated execution | SLI-0020 closed-kind detail/comparison model and exact available-lesson-only action evidence |
+| Exact approved destination without version substitution | SLI-0018 catalog and SLI-0020 detail/comparison continuation into the reviewed placement and retained lesson path |
+| Local operation without external search and reusable provider-neutral boundary | PostgreSQL 18.4, shared Python core, local filesystem, same-origin static client, architecture checks, and explicit future-adapter gap |
+| Keyboard, focus, labels, filter state, counts, failures, reflow/text scale, themes, forced colors, and assistive evidence | Component tests, focused mocked/live Chromium with axe, design-system validation, and retained manual/non-Chromium limits |
+
+All eight criteria have direct evidence. The final qualification candidate
+changes planning evidence only; runtime files are identical to the corrected
+WRK-0056 live candidate. That ancestor passed five isolated live scenarios and
+exact resource cleanup with static-index SHA256
+`e802f7885cc0394b3c864300ba8a2620921aa26c1b71db3160a0e28334de72ec`.
+The current candidate passed 13 architecture tests, 93 web tests, generated
+client currency, TypeScript typecheck and lint, ten security control groups,
+125-token/56-icon design validation, planning and documentation integrity, Git
+whitespace checks, and all 27 aggregate readiness checks. No assurance source
+was stale: the verification map already records direct discovery detail and
+comparison evidence, while known gaps retain external search, managed cloud,
+non-lesson destinations, production rebuild scheduling, non-Chromium/manual
+assistive technology, and broader identity limits.
+
 ## Planning History
 
 - 2026-10-15: Refined as the final approved CAP-0004 manifest slice after
@@ -144,3 +171,9 @@ unsupported profiles, residual risks, and conformance to the approved package.
   capability change.
 - 2026-10-15: Authored WRK-0057 as one bounded cumulative acceptance packet;
   no new product boundary or decision gate was introduced.
+- 2026-10-15: Activated WRK-0057 after restoring the approved CAP artifact
+  byte-for-byte and claiming the exact evidence-only scope against the current
+  branch with no overlap.
+- 2026-10-15: Reconciled all eight capability criteria to direct completed-slice
+  evidence and moved WRK-0057 to verification after focused and aggregate gates
+  passed without runtime or approved-package changes.

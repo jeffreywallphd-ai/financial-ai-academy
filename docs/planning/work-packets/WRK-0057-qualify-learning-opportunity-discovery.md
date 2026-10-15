@@ -1,7 +1,7 @@
 ---
 id: WRK-0057
 kind: work-packet
-planning_status: ready
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md", "docs/planning/work-packets/WRK-0057-qualify-learning-opportunity-discovery.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 9ccd2061324ab4eb1133ee17652a943e3626cfc2
+claim_id: WRK-0057:87315af5-5d47-4e89-9db7-8104bc99e4eb
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T21:25:24Z
 ---
 
 # Agent Work Packet: Qualify Learning Opportunity Discovery
@@ -128,9 +128,40 @@ Report the acceptance trace, exact checks and results, environments and cleanup,
 affected boundaries, documentation impact, assumptions, residual limits,
 unresolved decisions, and CAP-package conformance.
 
+## Qualification Evidence
+
+- All eight CAP-0004 criteria map directly to completed SLI-0018, SLI-0019,
+  and SLI-0020 contract, deterministic-policy, PostgreSQL, protected API,
+  generated-client, component, Chromium, live-topology, architecture,
+  security, design, and documentation evidence. The complete trace is recorded
+  in SLI-0021 without modifying the approved CAP artifact.
+- Runtime files are unchanged from corrected WRK-0056 candidate
+  `7f8c7f0decb8cfb20eca9126244045abd438fe60`. Its five-scenario disposable
+  PostgreSQL 18.4/Python/static/filesystem/Chromium run and exact cleanup remain
+  current by ancestry; only planning evidence changed afterward.
+- Fresh cumulative checks passed 13 architecture tests, 93 web tests and the
+  generated-client check, TypeScript typecheck and lint, ten security control
+  groups, design validation for 125 tokens and 56 icons, planning integrity for
+  125 artifacts, documentation validation for 250 Markdown files, Git
+  whitespace checks, and all 27 fixed aggregate readiness checks.
+- Ordinary approved-fixture startup remains independent of the optional richer
+  query corpus, and inspection/comparison adds no saved state or service. This
+  retains the anti-rigidity guarantee proved by the architecture and live
+  evidence.
+- Architecture verification and known gaps were already exact, so neither
+  needed a content edit. External search, managed cloud, broader identity,
+  non-lesson execution, production rebuild scheduling, non-Chromium browsers,
+  manual screen readers, and actual browser zoom remain unsupported.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after SLI-0020 completion as one
   evidence-only cumulative qualification packet. The packet adds no runtime,
   contract, provider, or durable decision and stays within the approved
   CAP-0004 package.
+- 2026-10-15: Claimed for serial cumulative qualification after every delivery
+  dependency completed. The exact scope excludes runtime and the approved CAP
+  package itself.
+- 2026-10-15: Submitted the planning-only cumulative qualification candidate
+  after all capability criteria had direct evidence and focused plus aggregate
+  gates passed. Assurance sources required no reconciliation edit.
