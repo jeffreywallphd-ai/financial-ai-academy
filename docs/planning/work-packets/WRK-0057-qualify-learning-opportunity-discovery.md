@@ -10,7 +10,7 @@ capability: CAP-0004
 depends_on: ["WRK-0051", "WRK-0056"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0004-discover-learning-opportunities.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md", "docs/planning/work-packets/WRK-0057-qualify-learning-opportunity-discovery.md"]
+write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md", "docs/planning/work-packets/WRK-0057-qualify-learning-opportunity-discovery.md"]
 generated_artifacts: []
 base_revision: null
 claim_id: null
@@ -55,8 +55,8 @@ repository-level closure checks must still run against the final candidate.
 - Run focused cumulative checks where evidence freshness is required,
   affected verification, independent technical review, and the fixed aggregate
   readiness gate.
-- Complete WRK-0057, SLI-0021, and CAP-0004 lifecycle records only after every
-  acceptance criterion is directly supported.
+- Complete WRK-0057 and SLI-0021, and reconcile CAP-0004 lifecycle state in the
+  register only after every acceptance criterion is directly supported.
 
 ## Out of Scope
 
@@ -69,7 +69,7 @@ execution, production deployment, or recovery behavior change.
 
 | Area | Inspect | Allowed to change | Reason |
 | --- | --- | --- | --- |
-| Capability evidence | CAP-0004 and completed slices/packets | CAP-0004, SLI-0021, WRK-0057, register | Trace criteria and close lifecycle |
+| Capability evidence | CAP-0004 and completed slices/packets | SLI-0021, WRK-0057, register | Trace criteria and close lifecycle without mutating the approved package |
 | Assurance | architecture verification and known gaps | listed assurance files only if reconciliation requires it | Keep qualified and unsupported claims exact |
 | Runtime/contracts/UI | all affected implementation, schemas, tests, generated outputs | none | Evidence-only closure must not alter product behavior |
 
@@ -110,8 +110,9 @@ control-plane verification; independent technical review; and
 
 Record a concise criterion-to-evidence trace, exact environment/check results,
 cleanup, unchanged contract/runtime boundaries, and residual unsupported
-profiles in CAP-0004, SLI-0021, WRK-0057, register, and only the assurance
-sources that are actually stale. Keep all approval/reviewer records local.
+profiles in SLI-0021, WRK-0057, the register, and only the assurance sources
+that are actually stale. Preserve the approved CAP artifact byte-for-byte and
+keep all approval/reviewer records local.
 
 ## Stop Conditions
 
