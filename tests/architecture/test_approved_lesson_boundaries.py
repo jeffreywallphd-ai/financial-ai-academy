@@ -189,6 +189,12 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn('LOOPBACK_HOSTS = frozenset({"127.0.0.1"', server)
         self.assertIn("import uvicorn", server)
+        self.assertIn("services.curriculum.register_lesson_opportunity", server)
+        self.assertIn(
+            "services.curriculum.rebuild_learning_opportunity_projection",
+            server,
+        )
+        self.assertNotIn("PostgresCurriculumRepository", server)
         self.assertNotIn("node", server.casefold())
         self.assertIn("postgres:18.4", compose)
         self.assertIn("127.0.0.1:", compose)

@@ -146,8 +146,10 @@ The cross-system runner requires the static build, starts an isolated
 PostgreSQL 18.4 container when no explicitly acknowledged external test
 database is supplied, starts `deployments/local/serve.py` as the only
 application process, seeds the approved fixture through public Content and
-Curriculum operations, and runs the live Chromium checks against that
-same-origin Python host. See [the local deployment guide](../../deployments/local/README.md)
+Curriculum operations, rebuilds its discovery projection, and runs the live
+Chromium checks from the protected `/learn` catalog through the exact lesson,
+assessment, and retained completion against that same-origin Python host. See
+[the local deployment guide](../../deployments/local/README.md)
 for clean-start and teardown commands.
 
 ## Verification Boundaries
@@ -159,9 +161,10 @@ automated accessibility scans, keyboard focus, responsive reflow, reduced
 motion, forced colors, denial, and unknown-content/record paths. Lesson visual
 baselines are platform-specific. The live cross-system suite additionally owns the real
 PostgreSQL/filesystem, single-profile session, generated-client,
-static-serving, submission, repeated retained-completion reopen,
-missing-context, stale-placement, security-header, education-boundary, and axe
-path. Real screen-reader operation, actual browser
+static-serving, approved catalog projection and exact navigation, submission,
+repeated retained-completion reopen, missing-context, stale-placement,
+security-header, education-boundary, and catalog/completion axe paths. Real
+screen-reader operation, actual browser
 200-percent zoom controls, and browsers beyond the pinned Chromium runtime
 require controlled manual or later multi-browser qualification.
 

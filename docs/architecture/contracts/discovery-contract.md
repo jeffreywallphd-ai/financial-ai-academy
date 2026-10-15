@@ -99,9 +99,11 @@ Real PostgreSQL evidence covers replay, immutable conflict, empty generations,
 transaction interruption, stored corruption, and the protected HTTP read of
 the exact persisted generation. Focused API evidence covers denial before
 disclosure, insufficient or client-selected permission, bounded failure, and
-stable OpenAPI/client generation.
+stable OpenAPI/client generation. The isolated local qualification additionally
+admits one exact package and placement, registers its catalog classification,
+atomically rebuilds the projection, and browses from `/learn` into that exact
+lesson through one same-origin Python/static host over PostgreSQL 18.4.
 
-Automatic/local rebuild composition, complete live qualification,
-search/filter/pagination semantics, non-lesson destinations, background
-indexing, external providers, tenancy, and managed-cloud operation remain later
-boundaries.
+Production/background rebuild scheduling, search/filter/pagination semantics,
+non-lesson destinations, background indexing, external providers, tenancy, and
+managed-cloud operation remain later boundaries.

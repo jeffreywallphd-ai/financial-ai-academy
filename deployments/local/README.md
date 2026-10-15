@@ -16,7 +16,7 @@ Browser / pinned Chromium
 Python 3.14 + FastAPI/Uvicorn
   |-- reviewed static Vite artifacts
   |-- single-profile session/API
-  |-- Content/Curriculum application operations
+  |-- Content/Curriculum application and discovery operations
   |-- restrictive filesystem object root
   `-- PostgreSQL 18.4
 ```
@@ -26,7 +26,10 @@ application process in the qualification topology. The Python host rejects
 non-loopback configuration, serves `/assets` and SPA fallback on the API
 origin, emits a restrictive Content Security Policy, applies empty-database
 migrations, and admits the synthetic approved fixture only when the explicit
-seed flag is present.
+seed flag is present. That flag also registers one exact Curriculum-owned
+catalog classification and atomically rebuilds the derived discovery projection
+through public application operations; normal startup does not seed or rebuild
+data.
 
 ## One-Command Development
 
@@ -54,10 +57,9 @@ locked Python and web dependencies, installs pinned Chromium, starts an
 isolated PostgreSQL 18.4 composition, and runs all required project checks. It
 then recreates a clean disposable database and starts the Python API on
 `http://127.0.0.1:8000` plus the Vite hot-reload application on
-`http://127.0.0.1:5173`. Open
-`http://127.0.0.1:5173/learn/placements/intro-risk-return-primary`. The seeded
-successor package includes the exact Assessment-owned single-choice knowledge
-check and deterministic feedback path.
+`http://127.0.0.1:5173`. Open `http://127.0.0.1:5173/learn`, then follow the
+exact approved lesson action. The seeded successor package includes the exact
+Assessment-owned single-choice knowledge check and deterministic feedback path.
 
 Press Ctrl+C once to stop both development processes and tear down only the
 runner's uniquely named Compose project and ignored synthetic data root. Node
@@ -88,8 +90,9 @@ backend/.venv/Scripts/python.exe tests/e2e/approved-lesson/run.py
 The runner chooses unused loopback ports, creates a uniquely named
 `postgres:18.4` container with an ephemeral data mount, creates an isolated
 filesystem root below ignored `artifacts/tmp/`, waits for readiness, starts the
-Python host, runs the live browser checks, and removes only those exact
-resources in `finally` cleanup. An external database is accepted only when
+Python host, runs the live browser checks from `/learn` through the exact lesson
+and retained completion, and removes only those exact resources in `finally`
+cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.
 
@@ -102,9 +105,9 @@ docker compose -f deployments/local/compose.qualify.yml up -d --wait
 uv run --project backend python deployments/local/serve.py --postgres-dsn "postgresql://financial_ai_academy:qualification-only@127.0.0.1:55432/financial_ai_academy" --data-root ".test-data/approved-lesson" --host 127.0.0.1 --port 8000 --seed-approved-fixture
 ```
 
-Open
-`http://127.0.0.1:8000/learn/placements/intro-risk-return-primary`. Stop the
-Python process, then tear down only this qualification composition:
+Open `http://127.0.0.1:8000/learn`, then follow the exact approved lesson action
+to `/learn/placements/intro-risk-return-primary`. Stop the Python process, then
+tear down only this qualification composition:
 
 ```powershell
 docker compose -f deployments/local/compose.qualify.yml down --volumes
@@ -119,9 +122,10 @@ database for retained learner data.
 
 Direct evidence covers one approved fixture, real PostgreSQL migrations and
 repositories, restrictive local filesystem storage, loopback request policy,
-opaque HttpOnly session cookie, reviewed OpenAPI/generated client, static
-same-origin Python serving, Chromium success and denial paths, architecture
-and security scans, and safe teardown.
+opaque HttpOnly session cookie, public-operation discovery registration and
+atomic projection rebuild, reviewed OpenAPI/generated client, static
+same-origin Python serving, catalog-to-exact-lesson Chromium success and denial
+paths, architecture and security scans, and safe teardown.
 
 The following remain unqualified: built-in credentials, OIDC, multiple
 learners, remote/public binding, worker and analytics composition, passive

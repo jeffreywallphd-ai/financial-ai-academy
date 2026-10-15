@@ -32,6 +32,10 @@ from financial_ai_academy.modules.content.public import (  # noqa: E402
 from financial_ai_academy.modules.curriculum.public import (  # noqa: E402
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
+    OpportunityAvailability,
+    OpportunityLevel,
+    RebuildLearningOpportunityProjectionRequest,
+    RegisterLessonOpportunityRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (  # noqa: E402
     SingleProfileSecuritySettings,
@@ -131,6 +135,28 @@ def build_local_app(
                 scoring_policy_id="single-select-exact-match",
                 scoring_policy_version="1.0.0",
             )
+        )
+        services.curriculum.register_lesson_opportunity(
+            RegisterLessonOpportunityRequest(
+                opportunity_id=PLACEMENT_ID,
+                placement_id=PLACEMENT_ID,
+                summary=(
+                    "Build a foundational understanding of how potential "
+                    "return and risk relate before comparing investments."
+                ),
+                topics=("investment-basics", "risk-and-return"),
+                level=OpportunityLevel.INTRODUCTORY,
+                estimated_minutes=20,
+                prerequisite_summary="No prior lesson is required.",
+                availability=OpportunityAvailability.AVAILABLE,
+                availability_reason=(
+                    "The exact reviewed lesson is available in this local "
+                    "catalog."
+                ),
+            )
+        )
+        services.curriculum.rebuild_learning_opportunity_projection(
+            RebuildLearningOpportunityProjectionRequest()
         )
 
     app = create_app(

@@ -263,6 +263,10 @@ def main() -> int:
 
         report = {
             "browser": "Playwright pinned Chromium",
+            "catalog": (
+                "one approved lesson registered and projected through public "
+                "Curriculum operations"
+            ),
             "database": postgres_topology,
             "filesystem": "isolated temporary data root",
             "fixture": "intro-risk-return@1.1.0 with risk-return-check-1@1.0.0",
