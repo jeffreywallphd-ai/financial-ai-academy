@@ -1,7 +1,7 @@
 ---
 id: SLI-0018
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -169,12 +169,68 @@ ordering, risk, or decision posture.
 
 ## Documentation Impact and Completion Evidence
 
-Update the discovery contract catalog, Curriculum/API/web READMEs, module and
-dependency maps, security/assurance evidence, local composition and migration
-instructions, this slice and its packets, and the planning register. Completion
-must record exact schemas/migrations, supported record kinds, rebuild and
-failure evidence, generated artifacts, interface qualification, live runtime,
-cleanup, unsupported profiles, residual gaps, and CAP-package conformance.
+SLI-0018 is complete through WRK-0043, WRK-0044, WRK-0045, and WRK-0046. The
+delivered boundary is one Curriculum-owned, deterministic and rebuildable
+discovery projection over exact public Content facts; a protected queryless API
+and generated client; an all-or-nothing accessible `/learn` catalog; and an
+explicit local fixture composition that qualifies the catalog-to-lesson path.
+No new module, provider authority, ranking, personalization, enrollment, or
+unsupported activity execution entered the slice.
+
+Acceptance evidence covers every slice scenario:
+
+- Contract and application vectors prove exact approved browse, stable source
+  fingerprints/generation, deterministic ordering, replay, withdrawal,
+  malformed input, oversized input, unavailable Content, and atomic failure.
+- `curriculum_0002_discovery_projection` adds independently reversible
+  Curriculum-owned classification and projection tables. PostgreSQL 18.4
+  integration evidence proves checksum-locked up/down migration, idempotent
+  registration, complete-generation replacement, interrupted rollback,
+  corruption denial, empty projection, and preservation of the last complete
+  generation.
+- Identity/API evidence proves server-issued catalog permission, missing,
+  malformed, expired, revoked, insufficient, and client-selected authority
+  denial before records are disclosed, plus bounded unavailable responses.
+- Web evidence proves whole-response schema and digest validation, exact lesson
+  destinations, honest availability reasons, empty/denied/unavailable/invalid
+  states, light/dark/system equivalence, keyboard/focus, narrow and
+  200-percent-equivalent reflow, reduced motion, forced colors, and axe.
+- The final empty-database live path passed 2 PostgreSQL/Python/Chromium
+  scenarios for exact classification and provenance, catalog-to-lesson
+  continuation, assessment/completion reopening, missing-session denial,
+  security headers, opaque cookies, accessibility, and isolated cleanup.
+  Composition tests separately prove flag-off isolation, exact seed/rebuild
+  order, and no application readiness after registration or rebuild failure.
+
+Focused and repository-level evidence includes 193 backend tests for the core
+packet, 237 backend tests for the persistence/API packet, 48 current web
+unit/component tests, 12 affected catalog/lesson Chromium tests, 11 current
+architecture tests with 2 failure subtests, OpenAPI and generated-client
+currency, TypeScript, lint, the 103-module static build, security, design,
+documentation, planning, dependency and diff checks, and the 27-check aggregate
+readiness gate. Every exact-candidate affected verification receipt qualified;
+required independent dispositions closed their findings. The deterministic
+completion structure gate passed for this slice and all four packets.
+
+Canonical discovery, identity, module, migration, API, deployment, bootstrap,
+web, architecture-assurance, known-gap, packet, slice, and register documents
+are synchronized. No product contract or derived context pack became stale.
+The migration pair supplies rollback for derived projection state; source
+Content, placements, assessment evidence, completion history, and audit records
+remain outside that rollback and are preserved.
+
+Qualification is limited to exact approved lessons in the local
+`single_profile` profile and Chromium. Search/filter/sort/pagination and stale
+query states remain SLI-0019; detail/comparison and non-lesson limitation views
+remain SLI-0020; cumulative multi-slice/provider-neutral qualification remains
+SLI-0021. External search, managed-cloud tenancy, additional browsers,
+production scheduling, and unsupported activity execution were not qualified.
+These are accepted CAP boundaries rather than hidden completion claims.
+
+The result conforms to the approved CAP-0004 package without material drift or
+an unresolved decision. SLI-0019 is dependency-ready for just-in-time
+refinement; SLI-0020 may also proceed from the stable SLI-0018 record in
+parallel when separately claimed without overlapping files.
 
 ## Planning History
 
@@ -222,3 +278,8 @@ cleanup, unsupported profiles, residual gaps, and CAP-package conformance.
   and accepted independent R02 disposition closed the composition and exact
   live-classification evidence findings. All four slice packets are complete,
   so SLI-0018 entered deterministic closure verification.
+- 2026-10-15: Closed SLI-0018 after the four-packet completion gate, focused
+  failure and denial review, live Docker qualification, current web/browser and
+  architecture regressions, and 27-check aggregate readiness all passed. The
+  slice remains within the approved CAP package and makes SLI-0019 and SLI-0020
+  eligible for just-in-time refinement.
