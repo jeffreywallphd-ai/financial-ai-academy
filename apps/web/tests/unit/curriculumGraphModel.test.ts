@@ -141,6 +141,54 @@ describe("curriculum graph route model", () => {
     };
     expect(curriculumGraphIsSafe(invalidHint, expected)).toBe(false);
   });
+
+  it("enforces global identities, unambiguous branch kinds, and assessment relationships", () => {
+    const crossTypeCollision = structuredClone(
+      curriculumGraphFixture,
+    ) as unknown as {
+      objectives: Array<Record<string, unknown>>;
+      competencies: Array<Record<string, unknown>>;
+    };
+    const objective = crossTypeCollision.objectives[0];
+    const competency = crossTypeCollision.competencies[0];
+    if (!objective || !competency) throw new Error("Expected graph nodes.");
+    competency.competency_id = objective.objective_id;
+    expect(curriculumGraphIsSafe(crossTypeCollision, expected)).toBe(false);
+
+    const mixedBranchKinds = structuredClone(
+      curriculumGraphFixture,
+    ) as unknown as { branches: Array<Record<string, unknown>> };
+    const practiceBranch = mixedBranchKinds.branches[2];
+    if (!practiceBranch) throw new Error("Expected shared branch fixture.");
+    practiceBranch.kind = "required";
+    expect(curriculumGraphIsSafe(mixedBranchKinds, expected)).toBe(false);
+
+    const lessonAssesses = structuredClone(curriculumGraphFixture) as unknown as {
+      relationships: Array<Record<string, unknown>>;
+    };
+    const lessonRelationship = lessonAssesses.relationships[2];
+    if (!lessonRelationship) throw new Error("Expected lesson relationship.");
+    lessonRelationship.kind = "activity_assesses_competency";
+    expect(curriculumGraphIsSafe(lessonAssesses, expected)).toBe(false);
+  });
+
+  it("matches canonical Unicode code-point and multiline text bounds", () => {
+    const flexibleText = structuredClone(curriculumGraphFixture) as unknown as {
+      title: string;
+      summary: string;
+      objectives: Array<Record<string, unknown>>;
+    };
+    flexibleText.title = "😀".repeat(240);
+    flexibleText.summary =
+      "  A reviewed summary may preserve leading space,\nline breaks, and trailing space.  ";
+    const objective = flexibleText.objectives[0];
+    if (!objective) throw new Error("Expected objective fixture.");
+    objective.description = "First reviewed line.\nSecond reviewed line.";
+    expect(curriculumGraphIsSafe(flexibleText, expected)).toBe(true);
+
+    flexibleText.title += "😀";
+    expect(curriculumGraphIsSafe(flexibleText, expected)).toBe(false);
+  });
 });
 
 describe("curriculum graph loader", () => {

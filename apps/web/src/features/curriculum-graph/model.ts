@@ -109,10 +109,8 @@ function boundedText(
 ): value is string {
   return (
     typeof value === "string" &&
-    value === value.trim() &&
-    value.length >= minimum &&
-    value.length <= maximum &&
-    !/[\0\r\n]/.test(value)
+    [...value].length >= minimum &&
+    [...value].length <= maximum
   );
 }
 
@@ -257,14 +255,6 @@ function relationshipIsSafe(value: unknown): boolean {
   );
 }
 
-function idsAreUnique(
-  values: readonly Record<string, unknown>[],
-  key: string,
-): boolean {
-  const ids = values.map((value) => value[key]);
-  return new Set(ids).size === ids.length;
-}
-
 function presentationOrderIsSafe(
   value: unknown,
   allowed: Readonly<Record<keyof PresentationIds, ReadonlySet<string>>>,
@@ -363,13 +353,14 @@ export function curriculumGraphIsSafe(
   const activities = candidate.activities as Record<string, unknown>[];
   const branches = candidate.branches as Record<string, unknown>[];
   const relationships = candidate.relationships as Record<string, unknown>[];
-  if (
-    !idsAreUnique(objectives, "objective_id") ||
-    !idsAreUnique(competencies, "competency_id") ||
-    !idsAreUnique(activities, "activity_id") ||
-    !idsAreUnique(branches, "branch_id") ||
-    !idsAreUnique(relationships, "relationship_id")
-  ) {
+  const identityValues = [
+    ...objectives.map((item) => item.objective_id),
+    ...competencies.map((item) => item.competency_id),
+    ...activities.map((item) => item.activity_id),
+    ...branches.map((item) => item.branch_id),
+    ...relationships.map((item) => item.relationship_id),
+  ];
+  if (new Set(identityValues).size !== identityValues.length) {
     return false;
   }
 
@@ -390,6 +381,19 @@ export function curriculumGraphIsSafe(
     return false;
   }
 
+  const membershipKinds = new Map<string, string>();
+  for (const branch of branches) {
+    for (const activityId of branch.activity_ids as string[]) {
+      const priorKind = membershipKinds.get(activityId);
+      if (priorKind !== undefined && priorKind !== branch.kind) return false;
+      membershipKinds.set(activityId, String(branch.kind));
+    }
+  }
+
+  const activityKinds = new Map(
+    activities.map((activity) => [String(activity.activity_id), activity.kind]),
+  );
+
   return relationships.every((relationship) => {
     const source = String(relationship.source_id);
     const target = String(relationship.target_id);
@@ -397,8 +401,13 @@ export function curriculumGraphIsSafe(
       case "objective_competency":
         return ids.objective_ids.has(source) && ids.competency_ids.has(target);
       case "activity_develops_competency":
-      case "activity_assesses_competency":
         return ids.activity_ids.has(source) && ids.competency_ids.has(target);
+      case "activity_assesses_competency":
+        return (
+          ids.activity_ids.has(source) &&
+          activityKinds.get(source) === "assessment" &&
+          ids.competency_ids.has(target)
+        );
       case "competency_prerequisite":
         return ids.competency_ids.has(source) && ids.competency_ids.has(target);
       case "activity_prerequisite":
