@@ -83,6 +83,27 @@ def approved_graph() -> CurriculumGraph:
     )
 
 
+def shared_optional_activity_graph() -> CurriculumGraph:
+    graph = approved_graph()
+    shared_activity_id = "activity-diversification-reading"
+    branches = tuple(
+        replace(
+            branch,
+            activity_ids=branch.activity_ids + (shared_activity_id,),
+        )
+        if branch.branch_id == "branch-practice"
+        else branch
+        for branch in graph.branches
+    )
+    flexible = replace(
+        graph,
+        branches=branches,
+        presentation_order=None,
+        graph_digest="0" * 64,
+    )
+    return replace(flexible, graph_digest=curriculum_graph_digest(flexible))
+
+
 def add_exact_placements(
     repository: MemoryGraphRepository,
     graph: CurriculumGraph,
@@ -189,20 +210,21 @@ def test_open_rejects_corrupt_stored_object_boundedly() -> None:
     assert captured.value.code is CurriculumGraphErrorCode.UNAVAILABLE
 
 
-def test_storage_seam_accepts_graph_without_presentation_order() -> None:
+def test_storage_seam_accepts_shared_optional_activity_without_layout() -> None:
     service, repository = service_with_placements()
-    graph = approved_graph()
-    flexible = replace(graph, presentation_order=None, graph_digest="0" * 64)
-    flexible = replace(
-        flexible,
-        graph_digest=curriculum_graph_digest(flexible),
-    )
+    flexible = shared_optional_activity_graph()
 
     stored = service.publish_curriculum_graph(
         PublishCurriculumGraphRequest(flexible)
     )
 
     assert stored.presentation_order is None
-    assert repository.graphs[(graph.curriculum_id, graph.curriculum_version)] == (
-        flexible
-    )
+    shared_memberships = [
+        branch.branch_id
+        for branch in stored.branches
+        if "activity-diversification-reading" in branch.activity_ids
+    ]
+    assert shared_memberships == ["branch-explore", "branch-practice"]
+    assert repository.graphs[
+        (flexible.curriculum_id, flexible.curriculum_version)
+    ] == flexible

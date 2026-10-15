@@ -1,4 +1,7 @@
-import { createFinancialAcademyApiClient } from "../../src/generated/api-client";
+import {
+  createFinancialAcademyApiClient,
+  type components,
+} from "../../src/generated/api-client";
 
 
 const client = createFinancialAcademyApiClient(
@@ -6,6 +9,24 @@ const client = createFinancialAcademyApiClient(
 );
 
 void client.GET("/api/v1/curriculum/opportunities");
+
+type CurriculumGraphResponse =
+  components["schemas"]["CurriculumGraphResponseModel"];
+
+function exerciseFlexibleCurriculumGraphResponse(
+  graph: CurriculumGraphResponse,
+): void {
+  const sharedOptionalBranches = graph.branches.filter(
+    (branch) =>
+      branch.kind === "optional" &&
+      branch.activity_ids.includes("activity-diversification-reading"),
+  );
+  const layoutMayBeAbsent = graph.presentation_order;
+  void sharedOptionalBranches;
+  void layoutMayBeAbsent;
+}
+
+void exerciseFlexibleCurriculumGraphResponse;
 
 void client.GET(
   "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",

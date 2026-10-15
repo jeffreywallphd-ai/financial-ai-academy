@@ -46,6 +46,27 @@ def approved_graph() -> CurriculumGraph:
     )
 
 
+def shared_optional_activity_graph() -> CurriculumGraph:
+    graph = approved_graph()
+    shared_activity_id = "activity-diversification-reading"
+    branches = tuple(
+        replace(
+            branch,
+            activity_ids=branch.activity_ids + (shared_activity_id,),
+        )
+        if branch.branch_id == "branch-practice"
+        else branch
+        for branch in graph.branches
+    )
+    flexible = replace(
+        graph,
+        branches=branches,
+        presentation_order=None,
+        graph_digest="0" * 64,
+    )
+    return replace(flexible, graph_digest=curriculum_graph_digest(flexible))
+
+
 class Identity:
     def __init__(self, permissions: tuple[str, ...]) -> None:
         self.permissions = permissions
@@ -214,13 +235,8 @@ def test_unknown_and_corrupt_graphs_map_to_bounded_errors() -> None:
     assert "sql" not in json.dumps(unavailable_response.json()).lower()
 
 
-def test_flexible_graph_without_presentation_order_uses_same_route() -> None:
-    graph = approved_graph()
-    flexible = replace(graph, presentation_order=None, graph_digest="0" * 64)
-    flexible = replace(
-        flexible,
-        graph_digest=curriculum_graph_digest(flexible),
-    )
+def test_shared_optional_activity_without_layout_uses_same_route() -> None:
+    flexible = shared_optional_activity_graph()
 
     response = client(
         Identity(("curriculum.graph.read",)),
@@ -229,7 +245,12 @@ def test_flexible_graph_without_presentation_order_uses_same_route() -> None:
 
     assert response.status_code == 200
     assert response.json()["presentation_order"] is None
-    assert len(response.json()["branches"]) == len(graph.branches)
+    shared_memberships = [
+        branch["branch_id"]
+        for branch in response.json()["branches"]
+        if "activity-diversification-reading" in branch["activity_ids"]
+    ]
+    assert shared_memberships == ["branch-explore", "branch-practice"]
 
 
 def test_openapi_snapshot_contains_stable_exact_graph_operation() -> None:

@@ -62,6 +62,27 @@ def approved_graph() -> CurriculumGraph:
     )
 
 
+def shared_optional_activity_graph() -> CurriculumGraph:
+    graph = approved_graph()
+    shared_activity_id = "activity-diversification-reading"
+    branches = tuple(
+        replace(
+            branch,
+            activity_ids=branch.activity_ids + (shared_activity_id,),
+        )
+        if branch.branch_id == "branch-practice"
+        else branch
+        for branch in graph.branches
+    )
+    flexible = replace(
+        graph,
+        branches=branches,
+        presentation_order=None,
+        graph_digest="0" * 64,
+    )
+    return replace(flexible, graph_digest=curriculum_graph_digest(flexible))
+
+
 @pytest.fixture(scope="module", autouse=True)
 def migrated_database() -> object:
     assert POSTGRES_DSN is not None
@@ -174,12 +195,7 @@ def seed_exact_placements(graph: CurriculumGraph) -> None:
 
 
 def test_publish_replay_and_flexible_round_trip_are_stable() -> None:
-    graph = approved_graph()
-    flexible = replace(graph, presentation_order=None, graph_digest="0" * 64)
-    flexible = replace(
-        flexible,
-        graph_digest=curriculum_graph_digest(flexible),
-    )
+    flexible = shared_optional_activity_graph()
     seed_exact_placements(flexible)
     first_service = service()
 
@@ -198,6 +214,11 @@ def test_publish_replay_and_flexible_round_trip_are_stable() -> None:
 
     assert first == replay == reopened == flexible
     assert reopened.presentation_order is None
+    assert [
+        branch.branch_id
+        for branch in reopened.branches
+        if "activity-diversification-reading" in branch.activity_ids
+    ] == ["branch-explore", "branch-practice"]
 
 
 def test_conflict_and_exact_version_read_never_replace_or_fall_forward() -> None:

@@ -208,10 +208,12 @@ CAP/SLI conformance; packet lifecycle result; and whether WRK-0060 is eligible.
   generated TypeScript client are current and expose
   `getCurriculumGraphVersion` without a learner, permission, provider,
   storage, or fallback-version selector.
-- Anti-rigidity coverage round-trips a graph without presentation order and
-  retains the complete flexible graph aggregate behind one JSONB port/adapter
-  boundary. Optional/shared/unbranched graph structures remain governed by
-  the WRK-0058 contract rather than by storage columns or route variants.
+- Anti-rigidity coverage round-trips a graph without presentation order while
+  one activity is shared by two optional branches. Application, PostgreSQL,
+  API serialization, and generated TypeScript response checks preserve that
+  meaning behind one JSONB port/adapter boundary. Optional/shared/unbranched
+  graph structures remain governed by the WRK-0058 contract rather than by
+  storage columns or route variants.
 - A real PostgreSQL 18.4 qualification container passed migration, replay,
   conflict, exact-read, corruption, and append-only checks. The complete
   backend suite passed all 335 tests against that database. The web suite
@@ -241,3 +243,6 @@ CAP/SLI conformance; packet lifecycle result; and whether WRK-0060 is eligible.
   exact-reference admission, protected exact-version transport, generated
   client output, and cross-layer anti-rigidity behavior without changing the
   approved slice outcome or decision posture.
+- 2026-10-15: Strengthened cross-layer anti-rigidity evidence with the same
+  activity shared by two optional branches through service, PostgreSQL, API,
+  and generated TypeScript response use.
