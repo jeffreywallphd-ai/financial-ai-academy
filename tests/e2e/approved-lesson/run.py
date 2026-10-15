@@ -280,6 +280,11 @@ def main() -> int:
             "database": postgres_topology,
             "filesystem": "isolated temporary data root",
             "fixture": "intro-risk-return@1.1.0 with risk-return-check-1@1.0.0",
+            "curriculum_graph": (
+                "investing-foundations@1.0.0 published through public "
+                "Curriculum operations and qualified through exact API, "
+                "list, map, provenance, denial, and missing-version paths"
+            ),
             "http_origin": origin,
             "production_application_process": Path(sys.executable).name,
             "query_corpus": (

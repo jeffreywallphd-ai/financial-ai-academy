@@ -32,11 +32,20 @@ class Record:
         self.__dict__.update(kwargs)
 
 
+class LessonReference(Record):
+    pass
+
+
+class AssessmentReference(Record):
+    pass
+
+
 def local_services() -> SimpleNamespace:
     content = SimpleNamespace(admit_lesson_package=MagicMock())
     curriculum = SimpleNamespace(
         create_lesson_placement=MagicMock(),
         create_assessment_placement=MagicMock(),
+        publish_curriculum_graph=MagicMock(),
         register_lesson_opportunity=MagicMock(),
         rebuild_learning_opportunity_projection=MagicMock(),
     )
@@ -84,16 +93,17 @@ def exercise_local_composition(
     namespace = {
         "APPROVED_FIXTURE": REPOSITORY / "contracts",
         "ASSESSMENT_ID": "risk-return-check-1",
-        "ASSESSMENT_VERSION": "1.0.0",
         "AdmitLessonPackageRequest": Record,
         "ApiServices": Record,
+        "AssessmentActivityReference": AssessmentReference,
         "CreateAssessmentPlacementRequest": Record,
         "CreateLessonPlacementRequest": Record,
-        "DEFINITION_DIGEST": "b" * 64,
         "LOOPBACK_HOSTS": frozenset({"127.0.0.1", "::1", "localhost"}),
+        "LessonActivityReference": LessonReference,
         "OpportunityAvailability": SimpleNamespace(AVAILABLE="available"),
         "OpportunityLevel": SimpleNamespace(INTRODUCTORY="introductory"),
         "PLACEMENT_ID": PLACEMENT_ID,
+        "PublishCurriculumGraphRequest": Record,
         "QUERY_OPPORTUNITY_FIXTURES": (
             {
                 "opportunity_id": "intro-risk-return-quick-review",
@@ -123,6 +133,48 @@ def exercise_local_composition(
         "SingleProfileSecuritySettings": Record,
         "build_application_services": MagicMock(return_value=services),
         "create_app": application_factory,
+        "qualification_graph": MagicMock(
+            return_value=SimpleNamespace(
+                activities=(
+                    Record(
+                        activity_id="activity-risk-return-lesson",
+                        reference=LessonReference(
+                            placement_id=PLACEMENT_ID,
+                        ),
+                    ),
+                    Record(
+                        activity_id="activity-risk-return-check",
+                        reference=AssessmentReference(
+                            placement_id=PLACEMENT_ID,
+                            assessment_id="risk-return-check-1",
+                            assessment_version="1.0.0",
+                            definition_digest="b" * 64,
+                        ),
+                    ),
+                    Record(
+                        activity_id="activity-diversification-reading",
+                        reference=LessonReference(
+                            placement_id="diversification-reading",
+                        ),
+                    ),
+                    Record(
+                        activity_id="activity-diversification-check",
+                        reference=AssessmentReference(
+                            placement_id="diversification-check",
+                            assessment_id="diversification-check",
+                            assessment_version="1.0.0",
+                            definition_digest="c" * 64,
+                        ),
+                    ),
+                    Record(
+                        activity_id="activity-terms-glossary",
+                        reference=LessonReference(
+                            placement_id="investing-terms-glossary",
+                        ),
+                    ),
+                )
+            )
+        ),
     }
     exec(compile(isolated_module, LOCAL_SERVER, "exec"), namespace)
     with tempfile.TemporaryDirectory() as temporary_directory:
@@ -165,6 +217,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         services.content.admit_lesson_package.assert_not_called()
         services.curriculum.create_lesson_placement.assert_not_called()
         services.curriculum.create_assessment_placement.assert_not_called()
+        services.curriculum.publish_curriculum_graph.assert_not_called()
         services.curriculum.register_lesson_opportunity.assert_not_called()
         services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
         create_app.assert_called_once()
@@ -235,15 +288,21 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             package_version="1.1.0",
             package_digest="a" * 64,
         )
-        placement = SimpleNamespace(placement_id=PLACEMENT_ID)
         services.content.admit_lesson_package.side_effect = (
             lambda request: events.append("admit") or accepted
         )
         services.curriculum.create_lesson_placement.side_effect = (
-            lambda request: events.append("lesson-placement") or placement
+            lambda request: events.append(
+                f"lesson-placement:{request.placement_id}"
+            )
         )
         services.curriculum.create_assessment_placement.side_effect = (
-            lambda request: events.append("assessment-placement")
+            lambda request: events.append(
+                f"assessment-placement:{request.assessment_id}"
+            )
+        )
+        services.curriculum.publish_curriculum_graph.side_effect = (
+            lambda request: events.append("publish-graph")
         )
         services.curriculum.register_lesson_opportunity.side_effect = (
             lambda request: events.append("register-opportunity")
@@ -267,8 +326,13 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             events,
             [
                 "admit",
-                "lesson-placement",
-                "assessment-placement",
+                f"lesson-placement:{PLACEMENT_ID}",
+                "lesson-placement:diversification-reading",
+                "lesson-placement:diversification-check",
+                "lesson-placement:investing-terms-glossary",
+                "assessment-placement:risk-return-check-1",
+                "assessment-placement:diversification-check",
+                "publish-graph",
                 "register-opportunity",
                 "rebuild-projection",
                 "create-app",
@@ -276,7 +340,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         )
 
     def test_fixture_seed_failure_prevents_application_readiness(self) -> None:
-        for failure in ("register", "rebuild"):
+        for failure in ("graph", "register", "rebuild"):
             with self.subTest(failure=failure):
                 services = local_services()
                 accepted = SimpleNamespace(
@@ -287,11 +351,11 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
                 placement = SimpleNamespace(placement_id=PLACEMENT_ID)
                 services.content.admit_lesson_package.return_value = accepted
                 services.curriculum.create_lesson_placement.return_value = placement
-                failing_operation = (
-                    services.curriculum.register_lesson_opportunity
-                    if failure == "register"
-                    else services.curriculum.rebuild_learning_opportunity_projection
-                )
+                failing_operation = {
+                    "graph": services.curriculum.publish_curriculum_graph,
+                    "register": services.curriculum.register_lesson_opportunity,
+                    "rebuild": services.curriculum.rebuild_learning_opportunity_projection,
+                }[failure]
                 failing_operation.side_effect = RuntimeError(
                     "deliberate fixture failure"
                 )
@@ -307,7 +371,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
                     )
 
                 create_app.assert_not_called()
-                if failure == "register":
+                if failure in {"graph", "register"}:
                     services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
 
     def test_all_implemented_domain_layers_point_inward(self) -> None:
@@ -473,6 +537,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         self.assertIn('LOOPBACK_HOSTS = frozenset({"127.0.0.1"', server)
         self.assertIn("import uvicorn", server)
         self.assertIn("services.curriculum.register_lesson_opportunity", server)
+        self.assertIn("services.curriculum.publish_curriculum_graph", server)
         self.assertIn(
             "services.curriculum.rebuild_learning_opportunity_projection",
             server,

@@ -1,7 +1,7 @@
 ---
 id: WRK-0061
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-15
@@ -45,20 +45,21 @@ route and validator, deployment guide, and nearest READMEs.
 The existing local qualification topology remains the reusable seam: one
 loopback Python process serves both API and reviewed static assets against one
 disposable PostgreSQL database and filesystem root. The synthetic graph is
-derived from the reviewed compatibility fixture, adjusted only to the exact
-seeded lesson package reference, and published through Curriculum's public
-operation after every exact placement dependency exists. Normal startup stays
-seed-free. Live checks supplement rather than replace contract, integration,
-component, or mocked browser checks.
+derived from the reviewed compatibility fixture, adjusted only to bind its
+synthetic lesson placements to the admitted exact package and retain one
+compatible shared optional membership, then published through Curriculum's
+public operation after every exact placement dependency exists. Normal startup
+stays seed-free. Live checks supplement rather than replace contract,
+integration, component, or mocked browser checks.
 
 ## In Scope
 
 - Extend the explicit `--seed-approved-fixture` path to create every exact
-  lesson/assessment placement required by the reviewed graph, adapt the primary
-  lesson reference to the admitted package, retain same-kind optional sharing
-  and an unbranched activity, recompute the graph digest through Curriculum's
-  public helper, and publish exactly one approved graph through the public
-  service before application readiness.
+  lesson/assessment placement required by the reviewed graph, bind its lesson
+  references to the admitted package, retain same-kind optional sharing and an
+  unbranched activity, recompute the graph digest through Curriculum's public
+  helper, and publish exactly one approved graph through the public service
+  before application readiness.
 - Extend architecture tests to prove normal startup performs no graph mutation,
   seeding uses public operations in deterministic dependency order, a graph
   seed failure prevents readiness, and no repository adapter is bypassed.
@@ -157,9 +158,45 @@ and anti-rigidity results; affected boundaries; documentation impact; cleanup;
 residual limitations; packet and slice lifecycle outcomes; and whether the
 next CAP-0005 slice is eligible.
 
+## Verification Evidence
+
+- The explicit qualification seed now admits the reviewed lesson, derives the
+  reviewed graph through Curriculum's portable parser and digest helper,
+  creates four exact lesson placements and two assessment placements, publishes
+  the graph, registers discovery records, rebuilds the projection, and only
+  then creates the application. Normal startup performs none of those seeded
+  mutations, and publication, registration, or rebuild failure prevents
+  readiness. No repository adapter or database-specific seed seam is used.
+- The disposable composed runner passed all eight live Chromium scenarios
+  against PostgreSQL 18.4, the Python API/static host, and the generated client.
+  Direct evidence covers exact API/UI identity and provenance, list/map fact
+  parity, three themes, axe, keyboard focus, narrow and 200-percent text
+  reflow, reduced motion, forced colors, unauthorized denial, and missing exact
+  version behavior.
+- Live anti-rigidity evidence retains partial presentation hints, five
+  activities, three branches, a lesson shared by two compatible optional
+  branches, and an unbranched lesson. The test accepts equivalent zero-duration
+  CSS serialization instead of requiring one browser spelling. No launch,
+  eligibility, completion, mastery, adaptation, or recommendation authority
+  was introduced.
+- Complete verification passed with 335 backend tests, 114 Vitest tests, 26
+  mocked-browser Chromium tests, 8 composed Chromium tests, and 13 local
+  composition architecture tests. Generated-client currency, TypeScript
+  typecheck, lint, production build, Python compilation, diff hygiene, and all
+  27 aggregate readiness checks passed.
+- The qualification runner removed its exact process, disposable container,
+  and ignored data root after each run. The separately managed disposable
+  development PostgreSQL composition remains outside runner ownership.
+  Production publication, remote binding, multi-learner identity, additional
+  browsers, recovery guarantees, activity execution, and adaptive learner
+  meaning remain unqualified and outside this slice.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0060 completion. The packet
   reuses the established loopback qualification harness and reviewed graph
   fixture, adds no public contract or decision gate, and keeps live evidence
   broad without turning synthetic seed behavior into production authority.
+- 2026-10-15: Entered verification after the exact public-operation seed,
+  PostgreSQL/API/static-host/Chromium path, flexible grouping cases, bounded
+  denials, documentation, full suites, and aggregate readiness checks passed.

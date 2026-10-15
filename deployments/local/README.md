@@ -2,8 +2,9 @@
 
 The intended complete local profile includes the static web application,
 Python API and worker, PostgreSQL, filesystem object storage, and DuckDB/Parquet
-analytics. Only the bounded approved-lesson, discovery-query, deterministic
-assessment, and retained-completion `single_profile` path is qualified today.
+analytics. Only the bounded approved-lesson, curriculum-graph, discovery-query,
+deterministic assessment, and retained-completion `single_profile` path is
+qualified today.
 This is a development/CI qualification topology, not a production
 publication, backup, restore, availability, or remote-hosting claim.
 
@@ -17,7 +18,7 @@ Browser / pinned Chromium
 Python 3.14 + FastAPI/Uvicorn
   |-- reviewed static Vite artifacts
   |-- single-profile session/API
-  |-- Content/Curriculum application and discovery operations
+  |-- Content/Curriculum graph and discovery operations
   |-- restrictive filesystem object root
   `-- PostgreSQL 18.4
 ```
@@ -27,7 +28,10 @@ application process in the qualification topology. The Python host rejects
 non-loopback configuration, serves `/assets` and SPA fallback on the API
 origin, emits a restrictive Content Security Policy, applies empty-database
 migrations, and admits the synthetic approved fixture only when the explicit
-seed flag is present. That flag also registers one exact Curriculum-owned
+seed flag is present. Through public Curriculum operations, that flag binds the
+reviewed graph shape to the admitted exact package, creates every referenced
+lesson and assessment placement, and publishes
+`investing-foundations@1.0.0`. It also registers one exact Curriculum-owned
 catalog classification and atomically rebuilds the derived discovery projection
 through public application operations. The additional
 `--seed-discovery-query-fixtures` flag requires that approved fixture and adds
@@ -95,10 +99,13 @@ The runner chooses unused loopback ports, creates a uniquely named
 `postgres:18.4` container with an ephemeral data mount, creates an isolated
 filesystem root below ignored `artifacts/tmp/`, waits for readiness, starts the
 Python host, opts into three deterministic discovery classifications, and runs
-the live browser checks for combined filters, three-page ordering, cursor-query
-mismatch denial, exact current-opportunity detail, ordered two-record
-comparison, changed and malformed selection, exact lesson continuation,
-retained completion, context denial, security headers, and axe accessibility.
+the live browser checks for the exact curriculum graph API, list/map fact
+parity, provenance, flexible shared and unbranched activity grouping, missing
+version denial, responsive and adaptive display behavior, combined filters,
+three-page ordering, cursor-query mismatch denial, exact current-opportunity
+detail, ordered two-record comparison, changed and malformed selection, exact
+lesson continuation, retained completion, context denial, security headers,
+and axe accessibility.
 It removes only those exact resources in `finally` cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.
@@ -113,8 +120,10 @@ uv run --project backend python deployments/local/serve.py --postgres-dsn "postg
 ```
 
 Open `http://127.0.0.1:8000/learn`, then follow the exact approved lesson action
-to `/learn/placements/intro-risk-return-primary`. Stop the Python process, then
-tear down only this qualification composition:
+to `/learn/placements/intro-risk-return-primary`. The independently addressable
+graph is available at
+`/learn/curricula/investing-foundations/versions/1.0.0`. Stop the Python
+process, then tear down only this qualification composition:
 
 ```powershell
 docker compose -f deployments/local/compose.qualify.yml down --volumes
@@ -127,14 +136,16 @@ database for retained learner data.
 
 ## Qualified and Unqualified Claims
 
-Direct evidence covers one approved fixture plus its opt-in three-classification
-query corpus, real PostgreSQL migrations and repositories, restrictive local
-filesystem storage, loopback request policy, opaque HttpOnly session cookie,
-public-operation discovery registration and one atomic projection rebuild,
-reviewed OpenAPI/generated client, static same-origin Python serving,
-filter/pagination/cursor-denial, exact detail, ordered comparison,
-changed/malformed selection, and catalog-to-exact-lesson Chromium paths,
-architecture and security scans, axe accessibility, and safe teardown.
+Direct evidence covers one approved fixture plus its exact immutable curriculum
+graph and opt-in three-classification query corpus, real PostgreSQL migrations
+and repositories, restrictive local filesystem storage, loopback request
+policy, opaque HttpOnly session cookie, public-operation graph publication,
+discovery registration and one atomic projection rebuild, reviewed
+OpenAPI/generated client, static same-origin Python serving, exact graph
+API/list/map/provenance/denial paths, filter/pagination/cursor-denial, exact
+detail, ordered comparison, changed/malformed selection, and
+catalog-to-exact-lesson Chromium paths, architecture and security scans, axe
+accessibility, and safe teardown.
 
 The following remain unqualified: built-in credentials, OIDC, multiple
 learners, remote/public binding, worker and analytics composition, passive

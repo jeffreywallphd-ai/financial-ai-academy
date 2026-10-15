@@ -204,9 +204,14 @@ The cross-system runner requires the static build, starts an isolated
 PostgreSQL 18.4 container when no explicitly acknowledged external test
 database is supplied, starts `deployments/local/serve.py` as the only
 application process, seeds the approved fixture through public Content and
-Curriculum operations, rebuilds its discovery projection, and runs the live
-Chromium checks from the protected `/learn` catalog through the exact lesson,
-assessment, and retained completion against that same-origin Python host. See
+Curriculum operations, publishes the exact immutable curriculum graph, rebuilds
+its discovery projection, and runs the live Chromium checks from the protected
+graph and `/learn` catalog through the exact lesson, assessment, and retained
+completion against that same-origin Python host. The graph checks cover direct
+API/UI fact parity, list/map parity, source and digest provenance, same-kind
+shared branch membership, an unbranched activity, missing-version and
+unauthorized denial, themes, adaptive display conditions, and accessibility.
+See
 [the local deployment guide](../../deployments/local/README.md)
 for clean-start and teardown commands.
 
@@ -223,9 +228,11 @@ PostgreSQL/filesystem, single-profile session, generated-client,
 static-serving, three-classification query corpus, combined filters,
 multi-page duration order, cursor-query mismatch denial, exact current detail,
 ordered comparison, changed/malformed selection, approved catalog projection
-and exact navigation, submission, repeated retained-completion reopen,
-missing-context, stale-placement, security-header, education-boundary, and
-catalog/detail/comparison/completion axe paths. Repeated cards preserve heading/list
+and exact navigation, exact curriculum graph API/list/map/provenance,
+shared/unbranched grouping, missing-version denial, submission, repeated
+retained-completion reopen, missing-context, stale-placement, security-header,
+education-boundary, and catalog/detail/comparison/graph/completion axe paths.
+Repeated cards preserve heading/list
 semantics without creating redundant nested named landmarks. Real
 screen-reader operation, actual browser
 200-percent zoom controls, and browsers beyond the pinned Chromium runtime

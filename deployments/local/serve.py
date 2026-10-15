@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from collections.abc import Awaitable, Callable
+from dataclasses import replace
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -30,12 +32,18 @@ from financial_ai_academy.modules.content.public import (  # noqa: E402
     AdmitLessonPackageRequest,
 )
 from financial_ai_academy.modules.curriculum.public import (  # noqa: E402
+    AssessmentActivityReference,
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
+    CurriculumGraph,
+    LessonActivityReference,
     OpportunityAvailability,
     OpportunityLevel,
+    PublishCurriculumGraphRequest,
     RebuildLearningOpportunityProjectionRequest,
     RegisterLessonOpportunityRequest,
+    curriculum_graph_digest,
+    curriculum_graph_from_mapping,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (  # noqa: E402
     SingleProfileSecuritySettings,
@@ -53,12 +61,17 @@ APPROVED_FIXTURE = (
     / "approved"
     / "intro-risk-return-knowledge-check"
 )
+CURRICULUM_GRAPH_FIXTURE = (
+    REPOSITORY
+    / "contracts"
+    / "compatibility"
+    / "curriculum-graph"
+    / "v1"
+    / "approved"
+    / "graph.json"
+)
 
 ASSESSMENT_ID = "risk-return-check-1"
-ASSESSMENT_VERSION = "1.0.0"
-DEFINITION_DIGEST = (
-    "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b"
-)
 QUERY_OPPORTUNITY_FIXTURES = (
     {
         "opportunity_id": "intro-risk-return-quick-review",
@@ -93,6 +106,57 @@ QUERY_OPPORTUNITY_FIXTURES = (
         ),
     },
 )
+
+
+def qualification_graph(
+    *,
+    package_id: str,
+    package_version: str,
+    package_digest: str,
+) -> CurriculumGraph:
+    """Bind the reviewed graph shape to the admitted qualification package."""
+    source = json.loads(CURRICULUM_GRAPH_FIXTURE.read_text(encoding="utf-8"))
+    graph = curriculum_graph_from_mapping(source)
+    activities = tuple(
+        replace(
+            activity,
+            reference=replace(
+                activity.reference,
+                package_id=package_id,
+                package_version=package_version,
+                package_digest=package_digest,
+            ),
+        )
+        if isinstance(activity.reference, LessonActivityReference)
+        else activity
+        for activity in graph.activities
+    )
+    branches = tuple(
+        replace(
+            branch,
+            activity_ids=(
+                *branch.activity_ids,
+                "activity-diversification-reading",
+            ),
+        )
+        if branch.branch_id == "branch-practice"
+        else branch
+        for branch in graph.branches
+    )
+    candidate = replace(
+        graph,
+        source_references=(
+            f"content:{package_id}@{package_version}",
+            f"curriculum:{graph.curriculum_id}@{graph.curriculum_version}",
+        ),
+        activities=activities,
+        branches=branches,
+        graph_digest="0" * 64,
+    )
+    return replace(
+        candidate,
+        graph_digest=curriculum_graph_digest(candidate),
+    )
 
 
 def build_local_app(
@@ -152,28 +216,51 @@ def build_local_app(
         accepted = services.content.admit_lesson_package(
             AdmitLessonPackageRequest(APPROVED_FIXTURE)
         )
-        placement = services.curriculum.create_lesson_placement(
-            CreateLessonPlacementRequest(
-                placement_id=PLACEMENT_ID,
-                package_id=accepted.package_id,
-                package_version=accepted.package_version,
-                package_digest=accepted.package_digest,
-            )
+        graph = qualification_graph(
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
         )
-        services.curriculum.create_assessment_placement(
-            CreateAssessmentPlacementRequest(
-                placement_id=placement.placement_id,
-                package_id=accepted.package_id,
-                package_version=accepted.package_version,
-                package_digest=accepted.package_digest,
-                assessment_id=ASSESSMENT_ID,
-                assessment_version=ASSESSMENT_VERSION,
-                definition_digest=DEFINITION_DIGEST,
-                item_id="risk-return-tradeoff",
-                item_version="1.0.0",
-                scoring_policy_id="single-select-exact-match",
-                scoring_policy_version="1.0.0",
+        placement_ids: set[str] = set()
+        for activity in graph.activities:
+            reference = activity.reference
+            if reference.placement_id in placement_ids:
+                continue
+            services.curriculum.create_lesson_placement(
+                CreateLessonPlacementRequest(
+                    placement_id=reference.placement_id,
+                    package_id=accepted.package_id,
+                    package_version=accepted.package_version,
+                    package_digest=accepted.package_digest,
+                )
             )
+            placement_ids.add(reference.placement_id)
+        for activity in graph.activities:
+            reference = activity.reference
+            if not isinstance(reference, AssessmentActivityReference):
+                continue
+            primary = reference.assessment_id == ASSESSMENT_ID
+            services.curriculum.create_assessment_placement(
+                CreateAssessmentPlacementRequest(
+                    placement_id=reference.placement_id,
+                    package_id=accepted.package_id,
+                    package_version=accepted.package_version,
+                    package_digest=accepted.package_digest,
+                    assessment_id=reference.assessment_id,
+                    assessment_version=reference.assessment_version,
+                    definition_digest=reference.definition_digest,
+                    item_id=(
+                        "risk-return-tradeoff"
+                        if primary
+                        else f"{reference.assessment_id}-item"
+                    ),
+                    item_version="1.0.0",
+                    scoring_policy_id="single-select-exact-match",
+                    scoring_policy_version="1.0.0",
+                )
+            )
+        services.curriculum.publish_curriculum_graph(
+            PublishCurriculumGraphRequest(graph=graph)
         )
         services.curriculum.register_lesson_opportunity(
             RegisterLessonOpportunityRequest(
