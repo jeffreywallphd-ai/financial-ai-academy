@@ -3,6 +3,7 @@ import iconSpriteUrl from "../design-system/icons/faa-icons.svg?url";
 
 export type IconName =
   | "citation"
+  | "clock"
   | "error-circle"
   | "external-link"
   | "info-circle"

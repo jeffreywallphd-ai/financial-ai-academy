@@ -5,6 +5,11 @@ import {
 
 import { createFinancialAcademyApiClient } from "../generated/api-client";
 import { StatusPanel } from "../components/StatusPanel";
+import { createLearningCatalogLoader } from "../features/learning-catalog/api";
+import {
+  LearningCatalogLoadingState,
+  LearningCatalogRoute,
+} from "../features/learning-catalog/LearningCatalogRoute";
 import { createLessonLoader } from "../features/lesson-reading/api";
 import {
   LessonLoadingState,
@@ -16,6 +21,7 @@ import { AppShell } from "./AppShell";
 
 const client = createFinancialAcademyApiClient(window.location.origin);
 const session = new SingleProfileSession(client);
+const learningCatalogLoader = createLearningCatalogLoader(client, session);
 const lessonLoader = createLessonLoader(client, session);
 
 function UnexpectedRouteError() {
@@ -47,19 +53,24 @@ export const router = createBrowserRouter([
     path: "/",
     Component: AppShell,
     ErrorBoundary: UnexpectedRouteError,
-    HydrateFallback: LessonLoadingState,
     children: [
       {
         index: true,
-        loader: () =>
-          redirect(
-            "/learn/placements/intro-risk-return-primary",
-          ),
+        loader: () => redirect("/learn"),
+        Component: LearningCatalogLoadingState,
+        HydrateFallback: LearningCatalogLoadingState,
+      },
+      {
+        path: "learn",
+        loader: learningCatalogLoader,
+        Component: LearningCatalogRoute,
+        HydrateFallback: LearningCatalogLoadingState,
       },
       {
         path: "learn/placements/:placementId",
         loader: lessonLoader,
         Component: LessonRoute,
+        HydrateFallback: LessonLoadingState,
       },
       {
         path: "*",

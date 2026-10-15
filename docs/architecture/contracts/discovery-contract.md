@@ -70,6 +70,15 @@ single-profile context, and the host checks it independently before invoking
 Curriculum. The client cannot select a learner, permission, projection, sort,
 or filter.
 
+The static web application consumes that generated operation at `/learn` and
+validates the entire closed envelope before presenting any records. It retains
+the projection order without local ranking, accepts an empty or variable valid
+catalog, and fails the whole response closed on unknown fields, malformed
+identity/destination/digest/date values, duplicate identities, incoherent
+projection timestamps, or observable ordering corruption. Only a contract-valid
+available lesson links to its exact placement destination; other kinds and
+availability states remain explanatory and non-executable.
+
 ## Compatibility and Remaining Work
 
 The compatibility corpus fixes one synthetic exact approved lesson and bounded
@@ -84,7 +93,7 @@ the exact persisted generation. Focused API evidence covers denial before
 disclosure, insufficient or client-selected permission, bounded failure, and
 stable OpenAPI/client generation.
 
-The accessible browser catalog, automatic/local rebuild composition, complete
-live qualification, search/filter/pagination semantics, non-lesson
-destinations, background indexing, external providers, tenancy, and
-managed-cloud operation remain later boundaries.
+Automatic/local rebuild composition, complete live qualification,
+search/filter/pagination semantics, non-lesson destinations, background
+indexing, external providers, tenancy, and managed-cloud operation remain later
+boundaries.

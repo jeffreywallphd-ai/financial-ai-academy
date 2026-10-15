@@ -19,16 +19,26 @@ The web application uses public generated clients. It does not import backend in
 
 The generated client now includes the protected, queryless
 `browseLearningOpportunities` operation for
-`GET /api/v1/curriculum/opportunities`. No feature UI consumes it yet;
-WRK-0045 owns the accessible `/learn` catalog and its bounded response states.
-The browser must not add learner, permission, ranking, or provider parameters
-around this operation.
+`GET /api/v1/curriculum/opportunities`. The `/learn` route consumes that
+operation after establishing the existing private single-profile session. The
+browser adds no learner, permission, ranking, filter, or provider parameters.
 
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 
 Exact dependency patches and integrity data belong in committed project metadata and lockfiles when approved delivery work introduces them. Do not use floating resolution as the framework baseline.
 
 ## Delivered Route
+
+`/learn` is the application entry route and brand destination. It validates the
+complete closed discovery response before presenting any record, preserves the
+server-provided deterministic order, and accepts valid empty or variable-length
+record sets without a hard-coded opportunity. Cards show exact classification,
+objectives, duration, prerequisite summary, package version/digest, publication
+context, and availability meaning. Only an `available` `lesson` exposes its
+exact same-origin placement link; planned, unavailable, and non-lesson kinds
+remain non-navigable. Missing authority, unavailable projection, network
+failure, or malformed success responses produce bounded states without stale
+or partial records.
 
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated
@@ -81,7 +91,7 @@ Chromium; starts disposable PostgreSQL; runs the complete backend, contract,
 client, web, browser, end-to-end, architecture, security, design,
 documentation, planning, advisory, and readiness checks; then starts the
 Python API and Vite hot-reload server. Open
-`http://127.0.0.1:5173/learn/placements/intro-risk-return-primary`. Press
+`http://127.0.0.1:5173/learn`. Press
 Ctrl+C to stop both servers and remove the exact disposable database and data
 root created by the runner.
 
@@ -112,7 +122,7 @@ npm --prefix apps/web run generate:api -- --check
 npm --prefix apps/web run typecheck
 npm --prefix apps/web run lint
 npm --prefix apps/web test -- --run apps/web/tests/unit apps/web/tests/component
-npm --prefix apps/web run test:browser -- apps/web/tests/browser/lesson-reading
+npm --prefix apps/web run test:browser -- tests/browser/learning-catalog tests/browser/lesson-reading
 npm --prefix apps/web run build
 python tests/e2e/approved-lesson/run.py
 ```
@@ -138,12 +148,12 @@ for clean-start and teardown commands.
 
 ## Verification Boundaries
 
-Vitest owns fail-closed content validation, session, theme, component,
-generated-client, and static-browser-boundary checks. Playwright Chromium owns
-the delivered route's light/dark/system visual baselines, automated
-accessibility scan, keyboard focus, responsive reflow, reduced motion, forced
-colors, denial, and unknown-content paths. Visual baselines are
-platform-specific. The live cross-system suite additionally owns the real
+Vitest owns fail-closed content and discovery-response validation, session,
+theme, component, generated-client, and static-browser-boundary checks.
+Playwright Chromium owns both delivered routes' light/dark/system equivalence,
+automated accessibility scans, keyboard focus, responsive reflow, reduced
+motion, forced colors, denial, and unknown-content/record paths. Lesson visual
+baselines are platform-specific. The live cross-system suite additionally owns the real
 PostgreSQL/filesystem, single-profile session, generated-client,
 static-serving, submission, repeated retained-completion reopen,
 missing-context, stale-placement, security-header, education-boundary, and axe

@@ -1,21 +1,25 @@
-import { Link, Outlet, useNavigation } from "react-router";
+import { Link, Outlet, useLocation, useNavigation } from "react-router";
 
 import { Icon } from "../components/Icon";
 import { ThemeControl } from "../platform/theme/theme";
 
 
 export function AppShell() {
+  const location = useLocation();
   const navigation = useNavigation();
+  const skipLabel = location.pathname.startsWith("/learn/placements/")
+    ? "Skip to lesson"
+    : "Skip to learning content";
   return (
     <>
       <a className="skip-link" href="#main-content">
-        Skip to lesson
+        {skipLabel}
       </a>
       <header className="app-topbar">
         <Link
-          aria-label="Financial AI Academy lesson"
+          aria-label="Financial AI Academy learning catalog"
           className="brand-link"
-          to="/learn/placements/intro-risk-return-primary"
+          to="/learn"
         >
           <span aria-hidden="true" className="brand-mark">
             <Icon className="faa-icon--lg" name="learn" />
