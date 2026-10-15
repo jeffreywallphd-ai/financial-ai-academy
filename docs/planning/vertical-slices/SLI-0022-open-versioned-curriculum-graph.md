@@ -1,7 +1,7 @@
 ---
 id: SLI-0022
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-15
@@ -152,7 +152,7 @@ a schema version change.
 | WRK-0058 | Establish versioned curriculum-graph contracts, compatibility corpus, Curriculum domain records, validation policy, and focused anti-rigidity tests | none | none | complete |
 | WRK-0059 | Persist immutable approved graph versions and expose the protected Curriculum read operation through OpenAPI and the generated client | WRK-0058 | none | complete |
 | WRK-0060 | Deliver the accessible responsive curriculum map/list route using the public generated client and shared design system | WRK-0059 | none | complete |
-| WRK-0061 | Qualify the live graph path, provenance, authorization, invalid-state behavior, accessibility, theme parity, and documentation | WRK-0060 | none | verifying |
+| WRK-0061 | Qualify the live graph path, provenance, authorization, invalid-state behavior, accessibility, theme parity, and documentation | WRK-0060 | none | complete |
 
 ## Verification and Qualification
 
@@ -235,3 +235,6 @@ confirmation that eligibility and adaptation remain outside this slice.
 - 2026-10-15: WRK-0061 entered verification with the public-operation graph
   seed, live PostgreSQL/API/static-host/Chromium qualification, flexible shared
   and unbranched activity evidence, complete suites, and readiness gates green.
+- 2026-10-15: Completed WRK-0061 with qualifying exact-candidate evidence and
+  moved SLI-0022 into deterministic slice verification with all four packets
+  complete.
