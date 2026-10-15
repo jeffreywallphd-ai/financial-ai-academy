@@ -33,7 +33,7 @@ const IDENTIFIER = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 const SEMANTIC_VERSION =
   /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
 const DIGEST = /^[a-f0-9]{64}$/;
-const SOURCE_REFERENCE = /^[a-z][a-z0-9+.-]{1,31}:\S{1,255}$/;
+const SOURCE_REFERENCE = /^[a-z][a-z0-9+.-]{1,31}:\S{1,255}$/u;
 const DATE_TIME =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(Z|[+-](\d{2}):(\d{2}))$/;
 

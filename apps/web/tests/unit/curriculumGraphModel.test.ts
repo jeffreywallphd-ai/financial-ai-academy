@@ -189,6 +189,17 @@ describe("curriculum graph route model", () => {
     flexibleText.title += "😀";
     expect(curriculumGraphIsSafe(flexibleText, expected)).toBe(false);
   });
+
+  it("counts source-reference locator bounds in Unicode code points", () => {
+    const flexibleSource = structuredClone(curriculumGraphFixture) as unknown as {
+      source_references: string[];
+    };
+    flexibleSource.source_references[0] = `zz:${"😀".repeat(255)}`;
+    expect(curriculumGraphIsSafe(flexibleSource, expected)).toBe(true);
+
+    flexibleSource.source_references[0] = `zz:${"😀".repeat(256)}`;
+    expect(curriculumGraphIsSafe(flexibleSource, expected)).toBe(false);
+  });
 });
 
 describe("curriculum graph loader", () => {
