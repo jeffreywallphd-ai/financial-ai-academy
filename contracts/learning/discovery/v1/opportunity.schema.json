@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/discovery/v1/opportunity.schema.json",
+  "title": "Financial AI Academy learning opportunity",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "opportunity_id",
+    "placement_id",
+    "destination",
+    "kind",
+    "title",
+    "summary",
+    "objectives",
+    "topics",
+    "level",
+    "estimated_minutes",
+    "prerequisite_summary",
+    "availability",
+    "availability_reason",
+    "package_id",
+    "package_version",
+    "package_digest",
+    "provenance",
+    "source_fingerprint",
+    "projected_at"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "opportunity_id": {"$ref": "#/$defs/identifier"},
+    "placement_id": {"$ref": "#/$defs/identifier"},
+    "destination": {
+      "type": "string",
+      "pattern": "^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$"
+    },
+    "kind": {"enum": ["course", "lesson", "lab", "project"]},
+    "title": {"$ref": "#/$defs/title"},
+    "summary": {"type": "string", "minLength": 20, "maxLength": 500},
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 500}
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,49}$"}
+    },
+    "level": {"enum": ["introductory", "intermediate", "advanced"]},
+    "estimated_minutes": {"type": "integer", "minimum": 1, "maximum": 1440},
+    "prerequisite_summary": {"type": "string", "minLength": 2, "maxLength": 500},
+    "availability": {"enum": ["available", "unavailable", "planned"]},
+    "availability_reason": {"type": "string", "minLength": 10, "maxLength": 500},
+    "package_id": {"$ref": "#/$defs/identifier"},
+    "package_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+    },
+    "package_digest": {"$ref": "#/$defs/digest"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "published_by",
+        "published_at",
+        "content_reviewed_on",
+        "educational_use_notice"
+      ],
+      "properties": {
+        "published_by": {"type": "string", "minLength": 1, "maxLength": 160},
+        "published_at": {"type": "string", "format": "date-time"},
+        "content_reviewed_on": {"type": "string", "format": "date"},
+        "educational_use_notice": {"type": "string", "minLength": 1, "maxLength": 500}
+      }
+    },
+    "source_fingerprint": {"$ref": "#/$defs/digest"},
+    "projected_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+    },
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 240}
+  }
+}

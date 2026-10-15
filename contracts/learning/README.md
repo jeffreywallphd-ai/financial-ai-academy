@@ -36,3 +36,19 @@ uv run --project backend pytest backend/tests/contract/assessment
 
 This is direct contract evidence only; application scoring and persistence are
 introduced separately.
+
+## Learning Discovery v1
+
+[`discovery/v1/`](discovery/v1/README.md) defines the portable approved
+learning-opportunity record and stable browse projection. The compatibility
+corpus in [`../compatibility/discovery/v1/`](../compatibility/discovery/v1/README.md)
+fixes exact lesson provenance, canonical source/generation digests, stable
+ordering, and bounded denial behavior.
+
+```powershell
+uv run --project backend pytest backend/tests/contract/discovery
+```
+
+The current profile qualifies exact approved lesson records only. Persistence,
+API authorization, generated clients, browser behavior, search/filter queries,
+and non-lesson destinations require their owning implementation evidence.

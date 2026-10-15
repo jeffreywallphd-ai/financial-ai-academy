@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/discovery/v1/browse.schema.json",
+  "title": "Financial AI Academy learning opportunity browse result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "projection_generation", "projected_at", "records"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "projection_generation": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "projected_at": {"type": "string", "format": "date-time"},
+    "records": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "$ref": "https://financial-ai-academy.org/contracts/learning/discovery/v1/opportunity.schema.json"
+      }
+    }
+  }
+}

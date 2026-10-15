@@ -1,0 +1,68 @@
+# Learning Discovery Contract
+
+- Status: implemented for the initial approved-lesson application core
+- Canonical for: discovery v1 record, owner-fact provenance, projection rebuild, and fixed browse meaning
+- Parent capability: [CAP-0004](../../planning/capabilities/CAP-0004-discover-learning-opportunities.md)
+- Executable schemas: [Learning Discovery v1](../../../contracts/learning/discovery/v1/README.md)
+- Compatibility evidence: [Discovery v1 corpus](../../../contracts/compatibility/discovery/v1/README.md)
+
+## Ownership and Authority
+
+Learning discovery is a Curriculum-owned read projection, not a new semantic
+module. Content remains authoritative for exact package identity, immutable
+version/digest, title, objectives, publication state, and provenance.
+Curriculum remains authoritative for exact placement/destination, catalog
+summary and classification, prerequisite summary, availability, and rebuild
+policy. The projection may copy those public facts for query use but cannot
+publish content, authorize access, grant eligibility or enrollment, or promise
+that an activity can execute.
+
+The current profile accepts only `lesson` records backed by an exact existing
+Curriculum placement and a successful exact Content public read. The closed
+`course`, `lab`, and `project` vocabulary supports later portable records but
+does not authorize fabricated destinations or undelivered execution.
+
+## Record and Projection Identity
+
+Discovery v1 records carry stable opportunity and placement IDs, an exact
+same-origin lesson destination, kind, title, catalog summary, objectives,
+sorted topic slugs, level, estimated minutes, prerequisite summary,
+availability and reason, exact package version/digest, publication provenance,
+a source fingerprint, and projection time. They contain no learner or provider
+identity, package body, answer, object key, database row, ranking score,
+eligibility result, recommendation, or financial-performance meaning.
+
+The source fingerprint is SHA-256 over compact sorted-key UTF-8 JSON for every
+visible owner fact except `source_fingerprint` and `projected_at`. A projection
+generation is SHA-256 over the stably ordered records after projection time is
+removed and each source fingerprint is retained. Records order by normalized
+title and then opportunity ID; this is deterministic presentation order, not
+relevance or personalized ranking.
+
+## Registration, Rebuild, and Failure
+
+Registration validates bounded identifiers/text, closed enums, sorted unique
+topics, duration, exact placement, and exact Content version. Repeating
+identical facts is idempotent; reusing an opportunity ID with different facts
+is an immutable conflict.
+
+Rebuild collects and validates every record before requesting one atomic
+projection replacement. Missing placements, missing or mismatched exact
+Content, unsupported records, and source corruption publish no partial
+generation. Adapter failure retains the last complete generation. Browse
+rejects an absent, unsorted, or digest-mismatched projection rather than
+returning stale or partial data.
+
+## Compatibility and Remaining Work
+
+The compatibility corpus fixes one synthetic exact approved lesson and bounded
+codes for unsupported versions/kinds, unsafe destinations, malformed records,
+source tamper, and generation tamper. Focused unit evidence covers replay,
+conflict, exact-source denial, all-or-nothing replacement, stable ordering, and
+output confidentiality.
+
+The PostgreSQL adapter/migration, protected API and Identity permission,
+OpenAPI/generated client, accessible browser catalog, live local composition,
+search/filter/pagination semantics, non-lesson destinations, background
+indexing, external providers, tenancy, and managed-cloud operation remain
+outside this core contract evidence.

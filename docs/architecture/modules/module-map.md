@@ -9,7 +9,7 @@
 | --- | --- | --- | --- |
 | Identity | accepted for first learner context | Provider-neutral actors and learners, provider bindings, authentication context, sessions, and application permission inputs | Identity, binding, and session changes |
 | Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
-| Curriculum | accepted; lesson and initial Assessment placement/read core implemented | Competencies, prerequisites, pathways, course structure, and exact versioned activity placement | Curriculum-version events remain future work |
+| Curriculum | accepted; lesson, initial Assessment placement/read, and discovery projection core implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and rebuildable discovery views | Curriculum-version events remain future work |
 | Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
 | Learner model | accepted; bounded completion projection implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | proposed | Eligibility, ranking, deterministic policy, recommendations | Recommendation decisions and outcomes |
@@ -59,6 +59,27 @@ operations remain subject to later approved delivery planning.
 The deterministic Assessment seam is described separately below. Audit
 consumption, background event delivery, managed-cloud adapters, and broader
 completion-history API behavior remain outside the lesson-read seam.
+
+## Implemented Discovery Projection Core
+
+- Curriculum owns the discovery record classification, exact destination,
+  availability, deterministic fixed browse order, and projection rebuild; it
+  remains a read model over owning facts rather than a new business module.
+- Content title, objectives, immutable package identity/version/digest, and
+  publication provenance enter only through Content's exact public operation.
+  Discovery code imports no Content internals and reads no Content persistence.
+- Discovery v1 fixes closed provider-neutral record and browse shapes plus
+  SHA-256 source/generation fingerprints. The initial profile admits only exact
+  approved lessons; other kind values do not imply delivered execution.
+- The application builds and validates a complete generation before requesting
+  one atomic Curriculum repository replacement. Missing, stale, conflicting,
+  unavailable, unsorted, or digest-mismatched state fails closed without
+  replacing the last valid generation.
+- Contract and unit tests cover schema/semantic denials, immutable source
+  registration, repeat rebuild, stable ordering, exact-source failure,
+  replacement interruption, projection tamper, and absence of private/ranking
+  fields. PostgreSQL, API/client, browser, and live composition are later
+  SLI-0018 packet boundaries.
 
 ## Implemented Deterministic Assessment Seams
 

@@ -1,0 +1,49 @@
+[
+  {
+    "id": "unsupported-record-version",
+    "target": "opportunity",
+    "op": "set",
+    "path": ["schema_version"],
+    "value": "2.0.0",
+    "expected_code": "discovery.unsupported_version"
+  },
+  {
+    "id": "unknown-kind",
+    "target": "opportunity",
+    "op": "set",
+    "path": ["kind"],
+    "value": "seminar",
+    "expected_code": "discovery.schema_invalid"
+  },
+  {
+    "id": "unsafe-destination",
+    "target": "opportunity",
+    "op": "set",
+    "path": ["destination"],
+    "value": "https://provider.example/lesson",
+    "expected_code": "discovery.schema_invalid"
+  },
+  {
+    "id": "missing-title",
+    "target": "opportunity",
+    "op": "remove",
+    "path": ["title"],
+    "expected_code": "discovery.schema_invalid"
+  },
+  {
+    "id": "tampered-source-fingerprint",
+    "target": "opportunity",
+    "op": "set",
+    "path": ["source_fingerprint"],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "expected_code": "discovery.source_fingerprint_mismatch"
+  },
+  {
+    "id": "tampered-generation",
+    "target": "browse",
+    "op": "set",
+    "path": ["projection_generation"],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "expected_code": "discovery.generation_mismatch"
+  }
+]

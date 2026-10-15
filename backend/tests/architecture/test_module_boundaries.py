@@ -237,3 +237,27 @@ def test_audit_consumes_only_the_assessment_public_surface() -> None:
     assert {
         item for item in imported if item.startswith(prefix)
     } == {f"{prefix}.public"}
+
+
+def test_discovery_projection_remains_curriculum_owned_and_rebuildable() -> None:
+    curriculum_public = (
+        MODULES / "curriculum/public.py"
+    ).read_text(encoding="utf-8")
+    curriculum_service = (
+        MODULES / "curriculum/application/service.py"
+    ).read_text(encoding="utf-8")
+    repository_port = (
+        MODULES / "curriculum/ports/repositories.py"
+    ).read_text(encoding="utf-8")
+
+    assert "LearningOpportunityRecord" in curriculum_public
+    assert "register_lesson_opportunity" in curriculum_service
+    assert "replace_discovery_projection" in repository_port
+    assert "projection_generation" in curriculum_service
+    for prohibited in (
+        "personalized_rank",
+        "recommendation_score",
+        "provider_payload",
+        "object_key",
+    ):
+        assert prohibited not in curriculum_public
