@@ -16,6 +16,8 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - Safe diagnostics and explicit data/model egress
 - Direct `single_profile` lesson evidence stays inside its loopback/private-host boundary and must not be generalized to built-in, OIDC, remote, or managed-cloud identity.
 - Qualified review for legal, regulatory, tax, licensing, and investment-advice conclusions
+- Treat applied-project datasets, notebooks, code, environments, and results as inert untrusted artifacts; the platform provides no kernel, subprocess, network, secret, or provider execution boundary
+- Keep mutable Project workspaces, immutable snapshots, Assessment submissions, and linked domain-resource authorization distinct; a Project link never grants persistence, provider, or privileged-operation access
 
 ## Canonical Sources
 
@@ -24,6 +26,8 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - `docs/adr/ADR-0006-setup-selectable-learner-identity.md`
 - `docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md`
 - `docs/adr/ADR-0008-community-learner-evidence-protection-and-recovery.md`
+- `docs/adr/ADR-0011-inert-applied-project-artifacts.md`
+- `docs/adr/ADR-0012-reusable-project-workspace.md`
 - `docs/architecture/contracts/content-package-contract.md`
 - `docs/security/community-learner-evidence-protection.md`
 - `docs/risk-compliance/README.md`

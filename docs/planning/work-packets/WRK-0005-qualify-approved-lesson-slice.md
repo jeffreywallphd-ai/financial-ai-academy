@@ -4,7 +4,7 @@ kind: work-packet
 planning_status: complete
 authority: noncanonical
 owner: codex-agent
-updated: 2026-08-05
+updated: 2026-10-15
 parent: SLI-0001
 capability: CAP-0001
 depends_on: ["WRK-0004"]
@@ -117,7 +117,7 @@ The handoff must identify container, browser-engine, operating-system, manual as
 
 Update the architecture verification map and known gaps at invariant granularity: direct only for checks that own the claim, representative when evidence is partial, and gap otherwise. Update local deployment, identity security, content-package, backend/web/deployment READMEs, and derived context only when executable behavior makes them stale. Do not claim cloud parity beyond provider-neutral contract semantics or claim backup/recovery support.
 
-SLI-0001 moves to `verifying` only after all implementation packets have completed their authorized work and the required evidence is being gathered. Completion still requires the separate verification workflow and explicit completion acceptance.
+SLI-0001 moves to `verifying` only after all implementation packets have completed their authorized work and the required evidence is being gathered. Completion uses the deterministic verification-and-close workflow under the current CAP package and requires no lower-level approval.
 
 ## Stop Conditions
 
@@ -279,3 +279,4 @@ Report the exact local topology, clean-start and teardown commands, contract/app
 - 2026-08-05: Added and directly qualified the cross-shell npm runner, API-only loopback development composition, exact process/database/data cleanup, and Windows Node/npm subprocess handoff.
 - 2026-08-05: Reopened within the existing scope to add an fnm-managed Node/npm bootstrap in front of the cross-shell development runner.
 - 2026-08-05: Added and directly qualified the idempotent fnm/Node/project-local npm bootstrap, bounded Windows Docker port retry, complete check handoff, development smoke start, and exact cleanup.
+- 2026-10-15: Reconciled the packet's handoff language with the CAP-package workflow; deterministic slice closure no longer requests a lower-level completion approval.

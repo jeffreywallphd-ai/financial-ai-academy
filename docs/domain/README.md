@@ -40,3 +40,31 @@ public operations create and open exact placements. Missing or stale references
 do not resolve a newer version. Knowledge-check meaning, attempts, scoring,
 completion evidence, and mastery remain Assessment/Learner-model work and are
 not implied by the packaged assessment file.
+
+## Accepted Applied-Project Semantics
+
+[ADR-0012](../adr/ADR-0012-reusable-project-workspace.md) accepts Project as the
+owner of learning-initiated and independent project identity, learner-authored
+charter, lifecycle, bounded mutable workspace, versioned artifact manifests,
+immutable snapshots, and typed links to learning and domain resources. A
+learning-initiated project retains exact Content and Curriculum provenance but
+may continue outside the lesson that created it.
+
+Content owns published learning-project briefs and supplied resources;
+Curriculum owns placement, prerequisites, and milestone requirements;
+Assessment owns immutable submissions and source completion evidence by exact
+Project snapshot reference; Learner model owns rebuildable learning projections;
+and Audit owns trace and integrity references. Independent project activity has
+no learning-progress meaning until an authorized Assessment submission creates
+evidence.
+
+A Project can reference zero or more Portfolio-owned resources, but Portfolio
+continues to own positions, transactions, valuation, rebalancing, performance,
+risk calculations, and market-data provenance. The same reference-only rule
+applies to other domain aggregates. Removing a live link cannot rewrite an
+immutable Project snapshot or Assessment submission.
+
+Under [ADR-0011](../adr/ADR-0011-inert-applied-project-artifacts.md), notebooks,
+code, datasets, environments, and results remain untrusted inert evidence.
+Artifact validation does not mean code safety, result correctness, independent
+reproduction, mastery, certification, or investment performance.

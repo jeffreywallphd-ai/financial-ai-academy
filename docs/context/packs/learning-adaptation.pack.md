@@ -11,6 +11,9 @@ Work affects curriculum, competencies, assessments, learner evidence/state, elig
 - Published lessons preserve ADR-0007 package identity, version, digest, provenance, and safe-rendering semantics.
 - Curriculum owns prerequisites; assessment owns attempts/evidence.
 - Learner model owns derived completion/progress; Audit retains trace references without duplicating business truth.
+- Project owns learning-initiated and independent project workspaces, inert-artifact manifests, and immutable snapshots under ADR-0012; Content/Curriculum retain learning definitions and requirements, while Assessment retains immutable submissions and source completion evidence by snapshot reference.
+- Independent Project activity has no completion or mastery meaning until an authorized Assessment submission creates learning evidence.
+- Applied-project artifacts remain inert untrusted evidence under ADR-0011; deterministic validation cannot claim code safety, result truth, mastery, certification, or investment performance.
 - Adaptation applies deterministic eligibility and policy around ranking.
 - Recommendations retain strategy, input-version, reason, and outcome evidence.
 - Rule-based fallback remains available for essential flows.
@@ -19,6 +22,8 @@ Work affects curriculum, competencies, assessments, learner evidence/state, elig
 
 - `docs/architecture/learning/adaptive-pathway-architecture.md`
 - `docs/adr/ADR-0005-first-learning-loop-module-ownership.md`
+- `docs/adr/ADR-0011-inert-applied-project-artifacts.md`
+- `docs/adr/ADR-0012-reusable-project-workspace.md`
 - `docs/domain/README.md`
 - `docs/architecture/modules/module-map.md`
 - `docs/architecture/contracts/content-package-contract.md`

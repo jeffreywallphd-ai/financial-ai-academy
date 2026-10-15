@@ -67,6 +67,8 @@ def checks(root: Path, profile: str, base_ref: str | None) -> list[Check]:
         Check("portfolio allocation", (python, "dev-tools/control-plane/test_portfolio_allocation.py")),
         Check("portfolio qualification", (python, "dev-tools/control-plane/test_portfolio_qualification.py")),
         Check("portfolio real-core evaluations", (python, "dev-tools/control-plane/evaluate_portfolio.py")),
+        Check("roadmap review projection", (python, "dev-tools/control-plane/test_roadmap_review.py")),
+        Check("roadmap review site contract", (python, "dev-tools/roadmap-review-site/test_qualification.py")),
         Check("documentation integrity", (python, "dev-tools/documentation/check_docs.py")),
         Check("design-system integrity", (python, "dev-tools/design/check_design_system.py")),
     ]

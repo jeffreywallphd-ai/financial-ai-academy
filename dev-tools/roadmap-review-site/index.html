@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Capability delivery roadmap</title>
+    <link rel="stylesheet" href="/assets/tokens.css" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#roadmap">Skip to roadmap</a>
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">Financial AI Academy</p>
+        <p class="site-title">Capability delivery roadmap</p>
+      </div>
+      <label class="theme-control">
+        <span>Theme</span>
+        <select id="theme-select" aria-label="Theme">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+    </header>
+    <main id="roadmap" tabindex="-1" aria-busy="true">
+      <p class="loading" role="status">Loading the current roadmap…</p>
+    </main>
+    <footer>
+      <p>Read-only local review. Planning sources remain authoritative.</p>
+    </footer>
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

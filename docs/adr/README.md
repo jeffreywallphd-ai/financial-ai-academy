@@ -28,5 +28,11 @@ Create or update an ADR when a change selects or reverses a durable architecture
 - [ADR-0007: Platform-Owned Versioned Lesson Package](ADR-0007-platform-owned-versioned-lesson-package.md)
 - [ADR-0008: Community Learner-Evidence Protection and Recovery](ADR-0008-community-learner-evidence-protection-and-recovery.md)
 - [ADR-0009: Initial Application Framework and Runtime Baseline](ADR-0009-initial-application-framework-runtime-baseline.md)
+- [ADR-0011: Keep Applied-Project Artifacts Inert](ADR-0011-inert-applied-project-artifacts.md)
+- [ADR-0012: Reusable Project Workspace with Learning and Domain Links](ADR-0012-reusable-project-workspace.md)
+
+## Superseded Decisions
+
+- [ADR-0010: Extend Learning-Loop Ownership to Applied Projects](ADR-0010-applied-project-lifecycle-ownership.md), superseded by ADR-0012
 
 Use [Decision Readiness](decision-readiness.md) before architecture-sensitive implementation.

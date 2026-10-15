@@ -17,6 +17,19 @@
 
 Portable versioned lesson packages additionally follow the [content-package contract](content-package-contract.md). Its logical package, immutability, integrity, ownership, and safe-rendering rules are canonical; exact field shapes belong in later executable JSON Schemas.
 
+Portable applied-project artifacts additionally follow
+[ADR-0011](../../adr/ADR-0011-inert-applied-project-artifacts.md). Project
+manifests, environment declarations, datasets, notebooks, code, and results are
+untrusted inert data; exact field shapes, limits, and media profiles belong in
+later executable schemas and conformance tests.
+
+Reusable project records additionally follow
+[ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md). Exact schemas will
+separate the mutable Project workspace, immutable digest-bound snapshots,
+Assessment submissions by snapshot reference, and typed references to
+independently owned learning and domain resources. A project-domain link never
+transfers the referenced aggregate's authority to Project.
+
 ## Ownership
 
 - The platform owns canonical terminology and schemas.

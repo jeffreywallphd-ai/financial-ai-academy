@@ -19,6 +19,9 @@
 | Shared local/cloud core | ready | ADR-0004 | Do not create an edition fork |
 | Automated-development planning authority | ready | [Automated Development Planning](../planning/README.md#authority-model) and DEC-0006 | Use one complete CAP planning-package approval, then refine and deliver slices and packets deterministically; renew CAP approval only for material package change |
 | First learning-loop module names and ownership | ready | ADR-0005 and architecture module map | Preserve the accepted Content, Curriculum, Assessment, Learner model, and Audit boundaries |
+| Applied-project lifecycle ownership | ready | ADR-0012 and architecture module map | Use Project for learning-initiated and independent workspaces and immutable snapshots; keep Assessment submissions and domain-owned resources separate |
+| Project links to portfolios and other domain resources | constrained | ADR-0012 | Permit typed many-valued references without copying domain state; do not implement a live Portfolio link until Portfolio public contracts and semantics are accepted |
+| Applied-project artifact handling and execution | constrained | ADR-0011 and security architecture | Treat project artifacts as untrusted inert data with learner-managed external execution; require a new decision for any platform or provider execution |
 | Adaptive-learning authority | constrained | Adaptive architecture | Deterministic policy is fixed; detailed mastery/ranking models need decisions |
 | AI/ML authority | constrained | AI/ML boundaries | Use only bounded, validated capabilities; provider/model details need decisions |
 | Learner identity and local authentication | ready | ADR-0006, identity-provider contract, and local identity security architecture | Preserve setup-selected single-profile, built-in, or OIDC adapters behind one learner-context contract |

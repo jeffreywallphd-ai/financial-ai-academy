@@ -37,6 +37,9 @@ core is intentionally reusable across projects:
   and edit facts into proposal-only lanes with stable replanning evidence.
 - `portfolio_harness.py` executes tracked synthetic scenarios through the real
   generic pipeline and evaluates hard safety separately from friction budgets.
+- `roadmap_review.py` validates machine-readable candidate catalogs and composes
+  inert plan documents, hierarchy, order, compatibility, diagnostics, and source
+  fingerprints into a project-neutral read-only review contract.
 
 `financial_academy.py` and `git_candidate.py` are adapters. They map this
 repository's CAP/SLI/WRK package authority, frontmatter projection, scope, and
@@ -50,6 +53,10 @@ authority or inventing dependencies.
 `financial_academy_editing.py` binds generic file coordination to one active
 WRK claim and its declared scope while allowing that work, its parent slice, or
 its parent capability to serve as the logical coordination lane.
+`financial_academy_roadmap_review.py` maps the versioned product capability
+catalog and planning artifacts onto the generic review contract. The Markdown
+planning register remains a synchronized human index and is not the runtime
+database.
 
 For reuse, copy the project-neutral modules and supply project-owned node facts
 to `portfolio.analyze`, current authority/priority to `portfolio_ordering.plan`,
@@ -89,6 +96,7 @@ python dev-tools/control-plane/control_plane.py maintenance-finish
 python dev-tools/control-plane/control_plane.py telemetry-report --report-path artifacts/control-plane/telemetry.json
 python dev-tools/control-plane/control_plane.py harness-evaluate --report-path artifacts/control-plane/harness-evaluation.json
 python dev-tools/control-plane/control_plane.py portfolio-graph
+python dev-tools/control-plane/control_plane.py roadmap-review
 python dev-tools/control-plane/control_plane.py portfolio-plan --level capability --priority CAP-0003
 python dev-tools/control-plane/control_plane.py portfolio-compatibility --level capability
 python dev-tools/control-plane/control_plane.py portfolio-allocate --level slice --priority SLI-0013
@@ -99,6 +107,19 @@ python dev-tools/control-plane/control_plane.py edit-renew <lease-id> --owner <o
 python dev-tools/control-plane/control_plane.py edit-release <lease-id> --owner <owner> --claim-id <claim-id>
 python dev-tools/control-plane/control_plane.py edit-recover --unit-id WRK-0020 --work-id WRK-0020 --owner <owner> --claim-id <claim-id> --path dev-tools/control-plane/file_leases.py
 ```
+
+For the dynamic browser review of all product capability candidates, run:
+
+```text
+python dev-tools/roadmap-review-site/server.py
+```
+
+Open `http://127.0.0.1:8765`. The one command compiles its TypeScript client to
+ignored local output and serves a loopback-only, GET/HEAD-only view over the
+current `roadmap-review-v1` projection. See
+`dev-tools/roadmap-review-site/README.md` for the dynamic candidate/CAP/slice/
+work routes, missing-refinement behavior, inert plan rendering, safeguards,
+focused checks, and the reuse seam.
 
 Add `--json` before the subcommand for the stable machine result. Mutations
 automatically finish an interrupted journal before proceeding. Submission
@@ -122,6 +143,7 @@ python dev-tools/control-plane/test_file_leases.py
 python dev-tools/control-plane/test_portfolio_allocation.py
 python dev-tools/control-plane/test_portfolio_qualification.py
 python dev-tools/control-plane/evaluate_portfolio.py
+python dev-tools/control-plane/test_roadmap_review.py
 ```
 
 Tests include a synthetic adapter with no Financial AI Academy vocabulary,
@@ -158,6 +180,10 @@ replanning, explicit non-authority, and read-only repository CLI behavior.
 The real-core portfolio corpus covers active containers, cycles, dependencies,
 slice/work parallelism, exact overlap, and narrow unknown evidence. Its report
 contains only scenario IDs, digests, categorical metrics, and violation codes.
+Roadmap-review tests cover exact machine-catalog accounting, explicit formal
+mapping, unplanned candidates, internal capabilities, refined and missing
+children, dynamic source fingerprints, inert Markdown, path confinement,
+privacy, generic vocabulary, and one-command read-only behavior.
 
 CI deliberately evaluates the same policy inventory while marking ignored
 local authority and lifecycle facts `not-evaluated`. That absence never becomes

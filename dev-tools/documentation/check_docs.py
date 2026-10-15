@@ -13,6 +13,8 @@ from urllib.parse import unquote
 REPO = Path(__file__).resolve().parents[2]
 DOCS = REPO / "docs"
 CATALOG_PATH = DOCS / "context" / "pack-catalog.json"
+PRODUCT_CAPABILITY_CATALOG = DOCS / "product" / "capability-catalog.md"
+PRODUCT_CAPABILITY_MANIFEST = DOCS / "product" / "capability-catalog.json"
 LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
 IGNORED_SCHEMES = ("http://", "https://", "mailto:")
 MAX_PACK_LINES = 200
@@ -145,10 +147,80 @@ def validate_catalog(errors: list[str]) -> None:
         errors.append(f"{relative(CATALOG_PATH)}: catalog path is not a pack {missing}")
 
 
+def validate_product_capability_catalog(errors: list[str]) -> None:
+    try:
+        manifest = json.loads(PRODUCT_CAPABILITY_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: unable to load: {error}")
+        return
+    if not isinstance(manifest, dict) or manifest.get("schema_version") != "capability-catalog-v1":
+        errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: incompatible schema_version")
+        return
+    items = manifest.get("capabilities")
+    if not isinstance(items, list) or len(items) != 26:
+        errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: capabilities must contain exactly 26 entries")
+        return
+
+    keys: list[str] = []
+    orders: list[int] = []
+    planning_ids: list[str] = []
+    manifest_rows: list[tuple[str, str]] = []
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: entry {index} must be an object")
+            continue
+        key = item.get("key")
+        order = item.get("order")
+        title = item.get("title")
+        description = item.get("description")
+        planning_id = item.get("planning_id")
+        if not isinstance(key, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", key):
+            errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: entry {index} has invalid key")
+        else:
+            keys.append(key)
+        if not isinstance(order, int):
+            errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: entry {index} has invalid order")
+        else:
+            orders.append(order)
+        if not isinstance(title, str) or not title or not isinstance(description, str) or not description:
+            errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: entry {index} needs title and description")
+        else:
+            manifest_rows.append((title, description))
+        if planning_id is not None:
+            if not isinstance(planning_id, str) or not re.fullmatch(r"CAP-\d{4,}", planning_id):
+                errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: entry {index} has invalid planning_id")
+            else:
+                planning_ids.append(planning_id)
+                if not list((DOCS / "planning" / "capabilities").glob(f"{planning_id}-*.md")):
+                    errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: missing mapped artifact {planning_id}")
+
+    if len(keys) != len(set(keys)):
+        errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: candidate keys must be unique")
+    if sorted(orders) != list(range(1, 27)):
+        errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: order must be contiguous from 1 through 26")
+    if len(planning_ids) != len(set(planning_ids)):
+        errors.append(f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: planning_id mappings must be unique")
+
+    markdown_rows: list[tuple[str, str]] = []
+    for line in PRODUCT_CAPABILITY_CATALOG.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 2 or cells[0] == "Capability" or set(cells[0]) <= {"-", ":"}:
+            continue
+        markdown_rows.append((cells[0], cells[1]))
+    if markdown_rows != manifest_rows:
+        errors.append(
+            f"{relative(PRODUCT_CAPABILITY_MANIFEST)}: title/description rows do not match "
+            f"{relative(PRODUCT_CAPABILITY_CATALOG)} in order"
+        )
+
+
 def main() -> int:
     errors: list[str] = []
     validate_links(errors)
     validate_catalog(errors)
+    validate_product_capability_catalog(errors)
     if errors:
         print("Documentation validation failed:")
         for error in errors:
@@ -156,7 +228,7 @@ def main() -> int:
         return 1
     print(
         f"Documentation validation passed: {len(markdown_sources())} Markdown "
-        f"files and context catalog verified."
+        f"files plus context and product capability catalogs verified."
     )
     return 0
 

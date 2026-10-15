@@ -4,115 +4,201 @@ kind: capability
 planning_status: ready
 authority: noncanonical
 owner: unassigned
-updated: 2026-08-04
+updated: 2026-10-15
 parent: null
 depends_on: []
 decision_gates: []
+approval_model: cap-package-v1
+slice_ids: ["SLI-0001", "SLI-0015", "SLI-0016", "SLI-0017"]
 ---
 
 # Capability: Complete a Structured Introductory Lesson
 
 ## Outcome
 
-An individual learner can complete one versioned introductory financial-learning lesson, receive deterministic feedback on an embedded knowledge check, resume the activity, and review retained evidence of the attempt and completion.
+An individual learner can complete one approved, versioned introductory
+financial-learning lesson, receive deterministic feedback on its bounded
+knowledge check, return after interruption, and review retained attempt and
+completion evidence tied to the exact lesson and assessment versions.
 
 ## Users and Value
 
-The primary user is an individual learner beginning a structured financial-learning pathway. The capability provides the first complete learning loop: engage with approved educational material, demonstrate understanding, and return later without losing the evidence of work already completed.
+The primary user is an individual learner beginning a structured financial
+learning pathway. The capability establishes the first complete learning loop:
+read source-backed educational material, demonstrate bounded understanding,
+and return later without losing the evidence needed to explain the resulting
+completion state.
 
-Value is observable when a learner can reopen the same lesson and see an accurate, explainable completion state derived from append-oriented evidence tied to the exact lesson and assessment versions.
+Value is observable when the same authorized learner can reopen the exact
+lesson and see a reproducible completion view derived from append-oriented
+evidence rather than a mutable flag or model inference.
 
 ## Scope
 
 ### In Scope
 
-- Access one approved, versioned introductory lesson in a defined curriculum context.
-- Present structured educational content, source attribution, examples, and one bounded knowledge check.
-- Score the knowledge check through deterministic assessment rules and provide understandable feedback.
-- Record append-oriented attempt, response, score, and completion evidence with timestamps and content-version provenance.
-- Derive and display a minimal completion state without making a mastery prediction.
-- Resume or reopen the lesson and review the retained attempt and completion evidence.
-- Preserve shared domain and contract semantics for community and managed-cloud profiles.
-- Provide equivalent accessible behavior in light, dark, and system themes when a learner interface is delivered.
+- Open one approved lesson placement bound to an immutable package ID, semantic
+  version, digest, assessment definition, and publication provenance.
+- Present the lesson's objectives, constrained educational content, sources,
+  examples, declared passive assets, and one bounded deterministic knowledge
+  check through platform-owned public contracts.
+- Accept one authorized learner response, validate it against the exact
+  assessment version, score it deterministically, and return understandable
+  feedback without AI or manual grading authority.
+- Record append-oriented attempt, response, score, and bounded completion
+  evidence with learner context, timestamps, idempotency, and content and
+  assessment provenance.
+- Derive a minimal completion projection from retained evidence without making
+  a mastery, competency, certification, or investment-performance claim.
+- Resume or reopen the lesson and review the retained attempt and completion
+  history without silently substituting a newer content or assessment version.
+- Preserve shared domain, application, contract, and evidence semantics across
+  community and managed-cloud profiles while qualifying only deployment
+  adapters that have accepted authority and an available environment.
+- Provide equivalent accessible learner behavior in light, dark, and system
+  themes, including denial, stale-version, duplicate, and unavailable states.
 
 ### Out of Scope
 
-- Curriculum search, enrollment, broad prerequisite navigation, or individualized pathway recommendations.
-- Content authoring, review, publication workflows, package import/export tooling, or external learning-standard interoperability.
-- Complex assessments, instructor review, manual grading, overrides, credentials, or certification.
-- Mastery estimation, competency projection, adaptive ranking, experiments, or engagement optimization.
-- AI tutoring, generated lesson content, model-provider selection, or AI-authored grading.
-- Market data, valuation, portfolio simulation, backtesting, financial AI/ML labs, or investment recommendations.
-- Organization tenancy, cohort management, enterprise identity, billing, or managed-cloud operations.
-- Comprehensive learner-record export, backup products, or recovery guarantees.
-- Brokerage, trade execution, custody, suitability decisions, or personalized financial advice.
+- Catalog search, enrollment, broad prerequisite navigation, or individualized
+  next-activity recommendations.
+- Content authoring, mutable drafts, publication workflow, package import/export
+  UI, localization, or external learning-standard interoperability.
+- Multi-item examinations, open-ended exercises, instructor review, manual
+  grading, overrides, credentials, or certification.
+- Mastery estimation, competency projection, adaptive ranking, experiments, or
+  engagement optimization.
+- AI tutoring, generated lesson content, model-provider selection, or AI-authored
+  grading or feedback.
+- Market data, valuation, portfolio simulation, backtesting, financial AI/ML
+  labs, or investment recommendations.
+- Organization tenancy, cohort administration, enterprise identity, billing,
+  managed-cloud operations, or managed-cloud recovery objectives.
+- Built-in-credential and OIDC delivery beyond the accepted provider-neutral
+  identity contract; the currently implemented path remains `single_profile`.
+- A comprehensive learner-record export product, automated backup service, or
+  recovery guarantee beyond ADR-0008's community boundary.
 
 ## Canonical Context
 
 - [Product Vision and Scope](../../product/product-vision-and-scope.md)
 - [Product Capability Catalog](../../product/capability-catalog.md)
-- [Community and Commercial Editions](../../product/community-and-commercial-editions.md)
 - [Initial Glossary](../../domain/glossary.md)
-- [Initial Module Map](../../architecture/modules/module-map.md)
-- [Adaptive Pathway Architecture](../../architecture/learning/adaptive-pathway-architecture.md)
-- [Contract Architecture](../../architecture/contracts/contract-architecture.md)
-- [Local and Cloud Capability Parity](../../architecture/deployment/local-cloud-capability-parity.md)
-- [Education Versus Financial Advice](../../risk-compliance/education-versus-financial-advice.md)
+- [First Learning Loop Ownership](../../adr/ADR-0005-first-learning-loop-module-ownership.md)
+- [Setup-Selectable Learner Identity](../../adr/ADR-0006-setup-selectable-learner-identity.md)
+- [Versioned Lesson Package](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md)
+- [Community Evidence Protection and Recovery](../../adr/ADR-0008-community-learner-evidence-protection-and-recovery.md)
+- [Initial Runtime Baseline](../../adr/ADR-0009-initial-application-framework-runtime-baseline.md)
+- [Module Map](../../architecture/modules/module-map.md)
+- [Content-Package Contract](../../architecture/contracts/content-package-contract.md)
+- [Identity Provider Contract](../../architecture/contracts/identity-provider-contract.md)
 - [Interface Design System](../../design/README.md)
-- [Interface Design Standards](../../standards/interface-design-standards.md)
+- [Education Versus Financial Advice](../../risk-compliance/education-versus-financial-advice.md)
+- [Backend Modules](../../../backend/src/financial_ai_academy/modules/README.md)
+- [Web Application](../../../apps/web/README.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
 
 ## Decision Gates and Constraints
 
-- **Resolved by [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md) — learning module ownership:** preserve distinct Content, Curriculum, Assessment, Learner model, and Audit ownership for the first loop.
-- **Resolved by [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md) — learner identity:** use one setup-selected identity adapter behind the accepted provider-neutral learner-context contract.
-- **Resolved by [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md) — versioned lesson package:** preserve the platform-owned directory package, immutable semantic versions and digest, constrained CommonMark, declared assets, and Assessment ownership.
-- **Resolved by [ADR-0008](../../adr/ADR-0008-community-learner-evidence-protection-and-recovery.md) — community evidence protection and recovery:** preserve the private-host boundary, coordinated user-invoked recovery set, empty-target restore, restored-session/recovery revocation, and no community RPO/RTO claim.
-- Assessment scoring, completion eligibility, authorization, and durable state changes remain deterministic. AI output cannot supply or override them.
-- Learning evidence remains append-oriented; displayed completion is a projection and must not replace or silently rewrite its source evidence.
-- Completing the lesson must not be described as mastery, certification, investment competence, or evidence of expected investment performance.
+- ADR-0005 fixes Content, Curriculum, Assessment, Learner model, and Audit as
+  distinct owners for this loop. Modules communicate through public application
+  operations or registered versioned events and never another module's internals
+  or persistence.
+- ADR-0006 fixes provider-neutral learner context and exactly one setup-selected
+  identity mode. The existing executable seam qualifies only the private-host
+  `single_profile` adapter and must not imply built-in, OIDC, remote, or managed
+  identity qualification.
+- ADR-0007 fixes immutable lesson-package identity, safe rendering, declared
+  assets, source provenance, and Assessment ownership of runtime scoring.
+- ADR-0008 fixes append-oriented evidence protection and the community
+  private-host recovery boundary. Delivery may not claim an RPO, RTO, automatic
+  backup, populated-target restore, or managed-cloud recovery posture.
+- ADR-0009 fixes the Python/FastAPI/Pydantic backend and static
+  TypeScript/React/React Router/Vite client boundary with generated public API
+  clients and no Node production server.
+- Eligibility, authorization, scoring, idempotency, completion derivation, and
+  durable state changes remain deterministic. AI output cannot supply or
+  override them.
+- Learning evidence is append-oriented. Learner-model completion is a
+  rebuildable projection that retains source-evidence references and never
+  replaces Assessment evidence.
+- No unresolved durable decision is required for this bounded CAP package.
+  Crossing any out-of-scope identity, tenancy, recovery, AI, external-execution,
+  or commercial boundary requires a separate decision before CAP reshaping.
 
 ## Proposed Vertical Slices
 
-| Slice ID | Observable increment | Dependencies | Planning status |
-| --- | --- | --- | --- |
-| Candidate A | A learner opens one approved, versioned introductory lesson and can identify its objectives, sources, and version. | Accepted ADR-0007 content-package contract | proposed |
-| Candidate B | A learner submits one deterministic knowledge check and receives feedback while append-oriented attempt and score evidence is retained. | Candidate A | proposed |
-| Candidate C | A learner closes and reopens the lesson and sees an accurate completion state and evidence history derived from the retained evidence. | Candidate B; ADR-0008 boundary and later executable recovery qualification where recovery claims are delivered | proposed |
-
-These are candidates only. No slice is selected or approved by this capability artifact.
+| Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
+| --- | --- | --- | --- | --- |
+| SLI-0001 | A learner opens one approved, versioned lesson placement and can identify its objectives, sources, exact package version and digest, and publication provenance through the protected generated-client route. | First foundation; its existing completed packets establish Content, Curriculum, Identity, API, generated-client, renderer, and local qualification seams. | Broadening the package trust profile, identity modes, storage authority, or browser rendering contract changes the CAP package. | verifying |
+| SLI-0015 | The authorized learner submits the lesson's bounded knowledge check and receives deterministic, reproducible feedback while one idempotent attempt and score evidence chain is retained against the exact assessment and lesson versions. | After SLI-0001; introduces Assessment public operations, evidence contracts, persistence, API/client behavior, and focused denial paths without reopening the lesson-read contract. | Adding model or manual grading, open-ended/executable responses, unrelated assessment families, or mutable score history changes the CAP package. | captured |
+| SLI-0016 | The learner closes and reopens the lesson and sees the correct completion state and evidence history rebuilt from retained Assessment evidence, including safe duplicate, stale-version, missing-context, and replay handling. | After SLI-0015; introduces the Learner-model projection and Audit references after the evidence source is stable. | Inferring mastery, replacing source evidence, adding adaptive recommendations, or expanding recovery and retention claims changes the CAP package. | captured |
+| SLI-0017 | The complete lesson loop is qualified across domain, event, persistence, API, generated-client, accessible browser, security, provenance, interruption, and community protection boundaries, with unsupported deployment profiles reported rather than fabricated as passing. | Last; depends on SLI-0001, SLI-0015, and SLI-0016 and closes only after their exact contracts and evidence are current. | Qualifying built-in/OIDC identity, managed-cloud operations or recovery, unrelated curricula, or a broader browser/content profile changes the CAP package. | captured |
 
 ## Capability Acceptance
 
-The capability is acceptable when evidence demonstrates that:
+The capability is complete only when evidence demonstrates that:
 
-- an authorized individual learner can open the intended lesson and see its objectives, educational sources, and version;
-- the learner can submit the bounded knowledge check and receive deterministic, reproducible scoring and feedback;
-- attempt, response, score, and completion evidence records the learner context, activity and assessment versions, time, and provenance required by accepted contracts;
-- closing and reopening the experience reproduces the correct completion view from retained evidence without claiming mastery;
-- malformed responses, missing learner context, unauthorized access, duplicate submissions, and stale content versions fail safely without creating false completion evidence;
-- local and managed-cloud profiles can use the same domain rules, application behavior, contract versions, and evidence meaning;
-- delivered interfaces preserve equivalent content and actions in light and dark modes and meet applicable keyboard, focus, contrast, zoom, responsive, and assistive-technology expectations; and
-- no part of the experience presents educational completion or feedback as personalized financial advice, certification, or an investment-performance claim.
+- an authorized learner opens the intended immutable lesson placement and sees
+  its objectives, approved educational sources, version, digest, and provenance;
+- the exact assessment definition is resolved without a silent `latest`
+  substitution and malformed or unsupported definitions fail before an attempt
+  or completion record is created;
+- one valid response produces deterministic scoring and bounded feedback while
+  retry and idempotency behavior prevents duplicate business evidence;
+- attempt, response, score, and completion evidence retain learner context,
+  content and assessment versions, event identity, time, and provenance without
+  exposing identity-provider or storage internals;
+- a learner-model projection can be rebuilt from evidence and reopening the
+  lesson reproduces the correct history and completion state without claiming
+  mastery;
+- missing, expired, revoked, tampered, or client-selected learner context;
+  unauthorized or cross-learner access; stale versions; replay; partial storage
+  failure; and projection interruption fail safely and leave no false completion;
+- Content, Curriculum, Assessment, Learner model, Identity, and Audit ownership
+  and dependency direction are enforced by focused architecture checks;
+- the same domain and contract semantics are reusable by local and cloud
+  adapters, while qualification reports unavailable profiles explicitly;
+- delivered interfaces preserve content and actions in light and dark modes and
+  meet applicable keyboard, focus, contrast, zoom/reflow, reduced-motion,
+  forced-color, and assistive-technology expectations; and
+- educational completion and feedback are never presented as mastery,
+  certification, personalized financial advice, suitability, or expected
+  investment performance.
 
 ## Risks and Non-Goals
 
-- Implementation could broaden ADR-0007's package, markup, media, or assessment profile without the required compatibility and security review.
-- Persisting evidence outside ADR-0008's accepted protection boundary or presenting unqualified backup/restore behavior as supported could create false privacy, deletion, or recovery expectations.
-- Combining content, assessment evidence, and completion projection in one implementation boundary would violate ADR-0005.
-- Treating completion as mastery would collapse evidence and learner-state semantics and overstate what one knowledge check establishes.
-- Expanding the first capability into adaptive recommendations, AI tutoring, broad curriculum management, or financial tools would obscure the bounded learning outcome.
-- Example financial material must remain educational and sourceable; it must not include personalized buy, sell, hold, or suitability recommendations.
+- Assessment implementation may accidentally treat package transport as grading
+  authority or collapse attempts, score evidence, and completion projection into
+  one mutable record.
+- Event delivery and projection replay can create duplicate or out-of-order
+  evidence unless event identity, idempotency, and rebuild rules are explicit.
+- Extending the delivered `single_profile` path to remote or multi-user use would
+  exceed its accepted private-host security boundary.
+- Recovery language can overstate ADR-0008 unless backup freshness, host
+  protection, empty-target restore, and no-RPO/RTO limitations remain explicit.
+- Example financial material must remain sourceable education and cannot contain
+  personalized buy, sell, hold, allocation, or suitability recommendations.
+- CAP-0001 is not a general assessment engine, curriculum browser, adaptive
+  pathway, instructor workflow, or credentialing product.
 
 ## Documentation Impact
 
-Delivery slices are expected to refine the applicable domain rules for learning activities and evidence; accepted module ownership; learning and assessment contracts; content versioning; identity and security decisions; interface behavior; verification maps; and local/cloud qualification guidance. Derived context packs must be updated only after their canonical sources change.
+Delivery is expected to refine Assessment and Learner-model domain rules, public
+operations, evidence/event contracts, persistence ownership, API and generated
+client contracts, security and recovery evidence, interface behavior, module
+README files, architecture verification, and known verification gaps. Derived
+context packs change only after their canonical sources change.
 
 ## Planning History
 
-- 2026-08-04: Capability shaped from the proposed product capability catalog.
-- 2026-08-04: Decision-gate review classified four readiness areas and created DEC-0001 through DEC-0004.
-- 2026-08-04: ADR-0005 established the first-loop module ownership boundary.
-- 2026-08-04: ADR-0006 established the setup-selectable learner-identity boundary.
-- 2026-08-04: ADR-0007 and the content-package contract established the versioned lesson-package boundary. CAP-0001 remains decision-blocked only by DEC-0004.
-- 2026-08-04: ADR-0008 established the community learner-evidence protection and recovery boundary. All named capability decision gates are resolved, and CAP-0001 moved to `ready` for vertical-slice selection.
+- 2026-08-04: The initial capability was shaped and its four durable decisions
+  were promoted through ADR-0005 through ADR-0008.
+- 2026-08-05: SLI-0001 delivered the approved lesson-read seam and entered
+  verification under the earlier planning topology.
+- 2026-10-15: The capability returned to `shaping` for the `cap-package-v1`
+  workflow. The complete manifest now retains SLI-0001 and reserves SLI-0015
+  through SLI-0017 for deterministic knowledge-check evidence, resumable
+  completion projection, and whole-capability qualification. This material
+  package revision requires one current CAP-level approval before delivery
+  resumes; no slice- or packet-level approval is introduced.

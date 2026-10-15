@@ -19,6 +19,9 @@ Baseline context for every non-trivial task.
 - Approval and reviewer records remain only in the ignored local ledger, never tracked artifacts or summaries
 - Community retained evidence follows ADR-0008's private-host, coordinated-recovery-set, empty-target restore, and no-RPO/RTO boundary; managed-cloud recovery remains unresolved
 - Initial application artifacts follow ADR-0009: Python 3.14/FastAPI 0.141/Pydantic 2.13 and a Node 24/TypeScript 7/React 19/React Router 8 Data Mode/Vite 8 static client with no Node production server
+- ADR-0012 assigns learning-initiated and independent project workspaces and immutable snapshots to Project while Content/Curriculum retain learning authority and Assessment retains submissions and completion evidence
+- Projects may link to multiple Portfolio-owned or other domain-owned resources without copying their state; live Portfolio behavior remains gated on accepted Portfolio contracts
+- Project datasets, notebooks, code, environments, and results remain inert untrusted evidence under ADR-0011; learner-managed execution does not authorize a platform or provider runtime
 - Planning advice, readiness, and roadmaps never replace CAP authority; packets execute in dependency order, conforming detail may evolve, and material CAP drift requires renewed CAP approval
 
 ## Workflow

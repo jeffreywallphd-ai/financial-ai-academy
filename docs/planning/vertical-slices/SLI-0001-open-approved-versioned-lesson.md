@@ -4,7 +4,7 @@ kind: vertical-slice
 planning_status: verifying
 authority: noncanonical
 owner: codex-agent
-updated: 2026-08-05
+updated: 2026-10-15
 parent: CAP-0001
 depends_on: []
 decision_gates: []
@@ -45,7 +45,7 @@ The learner receives useful educational content through the first complete read 
 
 ## Canonical Context and Decisions
 
-- [CAP-0001](../capabilities/CAP-0001-complete-structured-introductory-lesson.md) defines the parent outcome and Candidate A.
+- [CAP-0001](../capabilities/CAP-0001-complete-structured-introductory-lesson.md) defines the parent outcome and includes SLI-0001 as the delivered lesson-read foundation in its complete slice manifest.
 - [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md) assigns package and publication ownership to Content and placement ownership to Curriculum.
 - [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), the [identity-provider contract](../../architecture/contracts/identity-provider-contract.md), and the [local identity security architecture](../../security/local-identity-architecture.md) govern the bounded local learner context.
 - [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md) and the [content-package contract](../../architecture/contracts/content-package-contract.md) govern package identity, immutability, validation, provenance, rendering, and Assessment ownership.
@@ -261,9 +261,14 @@ evidence, and lack of managed-cloud/deployment/recovery qualification. Later
 CAP-0001 slices must separately introduce Assessment evidence and retained
 learner completion; this slice does not complete the whole capability.
 
-The slice is ready for an explicit completion-acceptance decision but remains
-`verifying` until that separate human decision is supplied and recorded only
-in the ignored local ledger.
+The 2026-10-15 deterministic closure audit passed the structural completion
+gate for all five packets. The planning, documentation, design, security,
+control-plane, and other aggregate checks ran successfully, but the required
+one-command live PostgreSQL/browser requalification could not start because the
+local Docker Desktop engine was unavailable. The slice therefore remains
+`verifying`; under the current CAP-package workflow it will close
+deterministically after the required environment-backed check passes and does
+not require a slice-level or completion approval.
 
 ## Planning History
 
@@ -274,3 +279,4 @@ in the ignored local ledger.
 - 2026-08-05: WRK-0005 was reopened and requalified within its existing scope to add the one-command Git Bash/PowerShell development runner; slice completion acceptance remains separate.
 - 2026-08-05: WRK-0005 was reopened within its existing scope for an fnm-managed runtime bootstrap; slice completion acceptance remains separate.
 - 2026-08-05: WRK-0005 completed after the fnm-managed bootstrap, complete check handoff, and development smoke start passed; the slice returned to verifying for separate completion acceptance.
+- 2026-10-15: Reconciled the slice with the CAP-package approval topology. The structural completion gate passed, but current live requalification was unavailable because Docker Desktop was not running; the slice remains `verifying` without a lower-level approval requirement.

@@ -30,7 +30,7 @@
       "path": "docs/context/packs/architecture-contracts.pack.md",
       "keywords": ["architecture", "module", "API", "event", "contract", "provider", "plugin"],
       "pathGlobs": ["backend/**", "contracts/**", "extensions/**", "sdk/**", "docs/architecture/**", "docs/contracts/**"],
-      "canonicalSources": ["docs/architecture/README.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0006-setup-selectable-learner-identity.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0009-initial-application-framework-runtime-baseline.md", "docs/architecture/modules/module-map.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/architecture/contracts/content-package-contract.md"],
+      "canonicalSources": ["docs/architecture/README.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0006-setup-selectable-learner-identity.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0009-initial-application-framework-runtime-baseline.md", "docs/adr/ADR-0011-inert-applied-project-artifacts.md", "docs/adr/ADR-0012-reusable-project-workspace.md", "docs/architecture/modules/module-map.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/architecture/contracts/content-package-contract.md"],
       "adjacentPacks": ["testing-quality", "security-risk"],
       "stopConditions": ["Dependency reversal or breaking contract without accepted decision"]
     },
@@ -39,7 +39,7 @@
       "path": "docs/context/packs/learning-adaptation.pack.md",
       "keywords": ["curriculum", "assessment", "mastery", "learner state", "adaptive", "recommendation"],
       "pathGlobs": ["backend/**/curriculum/**", "backend/**/assessment/**", "backend/**/learner_model/**", "backend/**/adaptation/**", "docs/architecture/learning/**"],
-      "canonicalSources": ["docs/architecture/learning/adaptive-pathway-architecture.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/architecture/contracts/content-package-contract.md", "docs/architecture/modules/module-map.md", "docs/domain/README.md"],
+      "canonicalSources": ["docs/architecture/learning/adaptive-pathway-architecture.md", "docs/adr/ADR-0005-first-learning-loop-module-ownership.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0011-inert-applied-project-artifacts.md", "docs/adr/ADR-0012-reusable-project-workspace.md", "docs/architecture/contracts/content-package-contract.md", "docs/architecture/modules/module-map.md", "docs/domain/README.md"],
       "adjacentPacks": ["ai-ml", "testing-quality"],
       "stopConditions": ["Model output bypasses deterministic eligibility or policy"]
     },
@@ -48,7 +48,7 @@
       "path": "docs/context/packs/financial-data.pack.md",
       "keywords": ["market data", "instrument", "portfolio", "backtest", "price", "feature", "provenance"],
       "pathGlobs": ["backend/**/market_data/**", "backend/**/portfolio/**", "data/**", "docs/risk-compliance/market-data-*", "docs/architecture/data/**"],
-      "canonicalSources": ["docs/architecture/data/data-architecture.md", "docs/risk-compliance/market-data-licensing-and-attribution.md"],
+      "canonicalSources": ["docs/architecture/data/data-architecture.md", "docs/risk-compliance/market-data-licensing-and-attribution.md", "docs/adr/ADR-0012-reusable-project-workspace.md"],
       "adjacentPacks": ["security-risk", "testing-quality"],
       "stopConditions": ["Provider terms or financial calculation semantics are unresolved"]
     },
@@ -66,7 +66,7 @@
       "path": "docs/context/packs/security-risk.pack.md",
       "keywords": ["security", "privacy", "license", "advice", "claim", "identity", "tenant", "plugin", "external"],
       "pathGlobs": ["docs/security/**", "docs/risk-compliance/**", "docs/external-sources/**"],
-      "canonicalSources": ["docs/security/README.md", "docs/security/local-identity-architecture.md", "docs/security/community-learner-evidence-protection.md", "docs/adr/ADR-0006-setup-selectable-learner-identity.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0008-community-learner-evidence-protection-and-recovery.md", "docs/architecture/contracts/content-package-contract.md", "docs/risk-compliance/README.md"],
+      "canonicalSources": ["docs/security/README.md", "docs/security/local-identity-architecture.md", "docs/security/community-learner-evidence-protection.md", "docs/adr/ADR-0006-setup-selectable-learner-identity.md", "docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md", "docs/adr/ADR-0008-community-learner-evidence-protection-and-recovery.md", "docs/adr/ADR-0011-inert-applied-project-artifacts.md", "docs/adr/ADR-0012-reusable-project-workspace.md", "docs/architecture/contracts/content-package-contract.md", "docs/risk-compliance/README.md"],
       "adjacentPacks": ["architecture-contracts", "deployment-operations"],
       "stopConditions": ["Unresolved trust, legal, license, privacy, or financial-claims decision"]
     },

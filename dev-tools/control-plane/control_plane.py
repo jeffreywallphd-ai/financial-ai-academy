@@ -22,6 +22,7 @@ from financial_academy_portfolio import compatibility_result as financial_academ
 from financial_academy_portfolio import allocation_result as financial_academy_allocation_result
 from financial_academy_portfolio import plan_result as financial_academy_plan_result
 from financial_academy_portfolio import result as financial_academy_portfolio_result
+from financial_academy_roadmap_review import result as financial_academy_roadmap_review_result
 from git_candidate import GitCandidateAdapter
 from operator_status import OperatorStatusService
 from state import DEFAULT_LEASE_MINUTES
@@ -133,6 +134,7 @@ def build_parser() -> argparse.ArgumentParser:
     harness_evaluate = commands.add_parser("harness-evaluate")
     harness_evaluate.add_argument("--report-path")
     commands.add_parser("portfolio-graph")
+    commands.add_parser("roadmap-review")
     portfolio_plan = commands.add_parser("portfolio-plan")
     portfolio_plan.add_argument("--level", choices=("capability", "slice", "work"), required=True)
     portfolio_plan.add_argument("--priority", action="append", default=[])
@@ -275,6 +277,8 @@ def main() -> int:
                 result["remediation"] = ["Correct the named deterministic scenario violation without weakening its safety assertion."]
         elif command == "portfolio-graph":
             result = financial_academy_portfolio_result(root)
+        elif command == "roadmap-review":
+            result = financial_academy_roadmap_review_result(root)
         elif command == "portfolio-plan":
             result = financial_academy_plan_result(root, **values)
         elif command == "portfolio-compatibility":

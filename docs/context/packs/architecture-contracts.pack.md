@@ -11,6 +11,7 @@ Work affects repository placement, modules, dependencies, APIs, events, portable
 - The first learning loop keeps Content, Curriculum, Assessment, Learner model, and Audit as distinct semantic owners.
 - Identity providers resolve to one platform-owned learner-context contract; provider payloads stay private to Identity adapters.
 - Versioned lessons use the platform-owned ADR-0007 content-package contract; package and provider inputs remain untrusted.
+- ADR-0012 assigns reusable project workspaces, immutable snapshots, and typed learning/domain links to Project while Assessment retains learning submissions; portable project artifacts remain inert untrusted data under ADR-0011.
 - Exact external shapes live in executable schemas.
 - ADR-0009 fixes the initial runtime/framework lines while generated OpenAPI clients remain the browser data authority and Node remains build/test tooling only.
 - The qualified approved-lesson seam keeps Content, Curriculum, and Identity behind public operations from PostgreSQL/filesystem through the generated client to the closed browser renderer.
@@ -24,6 +25,8 @@ Work affects repository placement, modules, dependencies, APIs, events, portable
 - `docs/adr/ADR-0006-setup-selectable-learner-identity.md`
 - `docs/adr/ADR-0007-platform-owned-versioned-lesson-package.md`
 - `docs/adr/ADR-0009-initial-application-framework-runtime-baseline.md`
+- `docs/adr/ADR-0011-inert-applied-project-artifacts.md`
+- `docs/adr/ADR-0012-reusable-project-workspace.md`
 - `docs/architecture/modules/module-map.md`
 - `docs/architecture/modules/module-dependency-rules.md`
 - `docs/architecture/contracts/contract-architecture.md`

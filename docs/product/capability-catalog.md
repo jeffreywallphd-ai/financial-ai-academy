@@ -1,5 +1,12 @@
 # Product Capability Catalog
 
+- Machine-readable companion: [`capability-catalog.json`](capability-catalog.json)
+
+The JSON companion owns stable candidate keys, catalog order, and explicit
+optional planning mappings for automation. This page remains the human-readable
+product-intent source. Documentation validation rejects drift between the 26
+candidate rows and their machine-readable title and description values.
+
 - Status: proposed
 - Canonical for: candidate product capability inventory and capability boundaries
 
