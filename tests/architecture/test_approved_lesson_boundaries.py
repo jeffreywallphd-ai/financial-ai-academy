@@ -55,6 +55,7 @@ def exercise_local_composition(
     services: SimpleNamespace,
     *,
     seed_approved_fixture: bool,
+    seed_discovery_query_fixtures: bool = False,
     create_app: MagicMock | None = None,
 ) -> tuple[StubApplication, MagicMock]:
     tree = ast.parse(
@@ -93,6 +94,28 @@ def exercise_local_composition(
         "OpportunityAvailability": SimpleNamespace(AVAILABLE="available"),
         "OpportunityLevel": SimpleNamespace(INTRODUCTORY="introductory"),
         "PLACEMENT_ID": PLACEMENT_ID,
+        "QUERY_OPPORTUNITY_FIXTURES": (
+            {
+                "opportunity_id": "intro-risk-return-quick-review",
+                "summary": "A bounded synthetic quick review summary.",
+                "topics": ("quick-review", "risk-and-return"),
+                "level": "introductory",
+                "estimated_minutes": 10,
+                "prerequisite_summary": "No prior lesson is required.",
+                "availability": "unavailable",
+                "availability_reason": "Unavailable in qualification.",
+            },
+            {
+                "opportunity_id": "intro-risk-return-guided-practice",
+                "summary": "A bounded synthetic guided practice summary.",
+                "topics": ("guided-practice", "risk-and-return"),
+                "level": "intermediate",
+                "estimated_minutes": 35,
+                "prerequisite_summary": "Complete the lesson first.",
+                "availability": "planned",
+                "availability_reason": "Planned in qualification.",
+            },
+        ),
         "REPOSITORY": REPOSITORY,
         "RebuildLearningOpportunityProjectionRequest": Record,
         "RegisterLessonOpportunityRequest": Record,
@@ -110,6 +133,9 @@ def exercise_local_composition(
             host="127.0.0.1",
             port=8765,
             seed_approved_fixture=seed_approved_fixture,
+            seed_discovery_query_fixtures=(
+                seed_discovery_query_fixtures
+            ),
             serve_static=False,
         )
     return result, application_factory
@@ -142,6 +168,64 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         services.curriculum.register_lesson_opportunity.assert_not_called()
         services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
         create_app.assert_called_once()
+
+    def test_query_fixture_corpus_is_optional_and_requires_approved_seed(
+        self,
+    ) -> None:
+        services = local_services()
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "require the explicit approved fixture",
+        ):
+            exercise_local_composition(
+                services,
+                seed_approved_fixture=False,
+                seed_discovery_query_fixtures=True,
+            )
+
+        services.content.admit_lesson_package.assert_not_called()
+        services.curriculum.register_lesson_opportunity.assert_not_called()
+        services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
+
+    def test_query_fixture_corpus_registers_before_one_atomic_rebuild(
+        self,
+    ) -> None:
+        services = local_services()
+        events: list[str] = []
+        accepted = SimpleNamespace(
+            package_id="intro-risk-return",
+            package_version="1.1.0",
+            package_digest="a" * 64,
+        )
+        placement = SimpleNamespace(placement_id=PLACEMENT_ID)
+        services.content.admit_lesson_package.return_value = accepted
+        services.curriculum.create_lesson_placement.return_value = placement
+        services.curriculum.register_lesson_opportunity.side_effect = (
+            lambda request: events.append(
+                f"register:{request.opportunity_id}"
+            )
+        )
+        services.curriculum.rebuild_learning_opportunity_projection.side_effect = (
+            lambda request: events.append("rebuild")
+        )
+
+        exercise_local_composition(
+            services,
+            seed_approved_fixture=True,
+            seed_discovery_query_fixtures=True,
+        )
+
+        self.assertEqual(
+            events,
+            [
+                f"register:{PLACEMENT_ID}",
+                "register:intro-risk-return-quick-review",
+                "register:intro-risk-return-guided-practice",
+                "rebuild",
+            ],
+        )
+        services.curriculum.rebuild_learning_opportunity_projection.assert_called_once()
 
     def test_fixture_seed_uses_exact_public_operation_order(self) -> None:
         services = local_services()

@@ -130,7 +130,8 @@ Default catalog order remains the authoritative SLI-0018 order. Alternative
 sorts are deterministic metadata ordering with opportunity ID as the final
 tie-break. The cursor is opaque to clients, versioned and bounded, and binds the
 canonical query fingerprint, sort position, and projection generation. A
-changed generation or mismatched query fails as a stale or malformed cursor;
+changed generation fails as a stale cursor, while a mismatched query fails as
+an invalid query;
 it never resumes against different records. Because cursors grant no authority
 and contain only already-public ordering facts, they require validation and
 integrity checks but no new credential or durable secret.
@@ -151,7 +152,7 @@ behind the same public semantics and compatibility corpus.
 | Bounded pagination | More matches exist than the page size | Result count is stable, next cursor continues without duplicate/omitted records, and refresh preserves URL state | contract/application/API/browser/live |
 | Empty result | A valid query matches nothing | A bounded educational empty state shows the applied filters and clear action without invented recommendations | API/component/browser |
 | Malformed query | Text, enum, range, cardinality, size, or cursor shape is invalid | Request is rejected before query execution with bounded error fields and no records | contract/API/security/browser |
-| Stale or mismatched cursor | Projection generation changes or cursor query differs | Continuation is rejected; UI explains results changed and offers a fresh first page without silently serving another generation | application/API/browser/live |
+| Stale or mismatched cursor | Projection generation changes or cursor query differs | Continuation is rejected without records; generation drift offers a fresh start, while query mismatch offers clear-query recovery | application/API/browser/live |
 | Projection unavailable or corrupt | The current complete projection cannot be read or validated | Query returns bounded unavailable output and UI retains controls without stale or partial records | application/API/browser |
 | Visibility denial | Session is absent, expired, revoked, insufficient, or client-selected | Request is denied before query records or counts are disclosed | identity/API/security/live |
 | Interface equivalence | Query controls are used across themes, keyboard, focus, reflow, reduced motion, forced colors, and axe | Equivalent labels, active state, count, ordering, paging, errors, and clear actions remain perceivable and operable | component/Chromium |
@@ -164,7 +165,7 @@ behind the same public semantics and compatibility corpus.
 | WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | complete |
 | WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | complete |
 | WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | complete |
-| WRK-0051 | Qualify the complete local query path, pagination continuity, stale-cursor denial, security/accessibility, and cleanup | WRK-0050 | none | active |
+| WRK-0051 | Qualify the complete local query path, pagination continuity, query-bound cursor denial, security/accessibility, and cleanup | WRK-0050 | none | active |
 
 ## Verification and Qualification
 

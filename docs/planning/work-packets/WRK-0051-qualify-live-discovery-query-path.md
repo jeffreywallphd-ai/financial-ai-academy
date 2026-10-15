@@ -10,12 +10,12 @@ capability: CAP-0004
 depends_on: ["WRK-0050"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["deployments/local/serve.py", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "tests/architecture/test_approved_lesson_boundaries.py", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/dist", "apps/web/README.md", "backend/README.md", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/modules/curriculum/README.md", "docs/architecture/contracts/discovery-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0019-query-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0051-qualify-live-discovery-query-path.md"]
+write_scope: ["deployments/local/serve.py", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "tests/architecture/test_approved_lesson_boundaries.py", "apps/web/src/features/learning-catalog/LearningCatalogPage.tsx", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/dist", "apps/web/README.md", "backend/README.md", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/modules/curriculum/README.md", "docs/architecture/contracts/discovery-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0019-query-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0051-qualify-live-discovery-query-path.md"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: f5540a5816dec19b4b3cb25229d6931ba658023e
-claim_id: WRK-0051:0b0649c3-1a98-4907-aeec-893e08e5e2c8
+base_revision: e23ae3daf036c53472ef8998b3ecfe25bb651c91
+claim_id: WRK-0051:5e3c3f29-d39c-4526-b187-f7304a226e2b
 claimed_by: codex-cap-0004
-claimed_at: 2026-10-15T20:25:04Z
+claimed_at: 2026-10-15T20:35:57Z
 ---
 
 # Agent Work Packet: Qualify the Live Discovery Query Path
@@ -26,7 +26,7 @@ Qualify the completed discovery query slice through a clean isolated
 PostgreSQL 18.4 database, the same-origin Python/static application, restrictive
 filesystem storage, and pinned Chromium. Deliver deterministic live evidence
 for combined filters, stable ordering, multi-page continuation, query-bound
-stale-cursor denial, authorization confidentiality, accessibility, portable
+cursor-mismatch denial, authorization confidentiality, accessibility, portable
 topology, and exact-resource cleanup without introducing a search provider,
 background job, production seed, or new public contract.
 
@@ -67,8 +67,11 @@ or required workflow for ordinary local startup.
 - Exercise the live `/learn` controls and protected query API for a combined
   filter, deterministic duration order, page size one across multiple pages,
   no duplicate or omitted opportunity identities, exact total/applied state,
-  and a query-mismatched cursor that produces the bounded stale state without
+  and a query-mismatched cursor that produces the bounded invalid-query state without
   fallback records.
+- Remove redundant nested region labels so repeated classifications of one
+  exact lesson retain heading/list semantics without creating duplicate named
+  landmarks.
 - Prove no-session query denial, no record/count/cursor disclosure, existing
   cookie/security headers, exact lesson continuation, axe coverage, and
   deterministic teardown of only the unique container and temporary data root.
@@ -82,7 +85,8 @@ or required workflow for ordinary local startup.
 ## Out of Scope
 
 Changing query-v1 or discovery-v1 semantics; API/OpenAPI/generated-client or
-browser-source changes; production fixture or automatic rebuild behavior;
+browser-source changes beyond the narrow accessibility correction above;
+production fixture or automatic rebuild behavior;
 background/periodic jobs; external or embedded search; new provider, queue,
 cache, crawler, migration, dependency, or public mutation; personalized
 ranking, recommendation, eligibility, enrollment, detail/comparison; remote
@@ -95,6 +99,7 @@ recovery claims.
 | --- | --- | --- |
 | Local qualification composition | `deployments/local/serve.py` | Explicit synthetic flag and public Curriculum operations only |
 | Live evidence | shared runner and approved-lesson Playwright scenario | PostgreSQL/Python/static/Chromium query behavior and cleanup |
+| Browser accessibility | learning-catalog page only | Remove redundant nested landmark names; preserve content, headings, lists, and actions |
 | Architecture evidence | listed architecture test | Optionality, public seams, fail-closed ordering, no extra runtime |
 | Generated static artifact | `apps/web/dist` only | Rebuild the already reviewed WRK-0050 interface without source drift |
 | Documentation/lifecycle | listed README, contract, assurance, SLI, packet, register files | Record direct coverage and residual limits only |
@@ -123,7 +128,7 @@ parallel-safe with another packet touching those seams.
 | Optional corpus | Approved-fixture startup without the query flag retains one opportunity; the query flag adds only the fixed bounded corpus and one final rebuild |
 | Combined query | Live controls/API echo canonical filters and return the exact matching classification without recommendations or learner signals |
 | Multi-page order | Page size one traverses every result once in deterministic duration order with a stable total and opaque continuation links |
-| Stale/mismatched cursor | Reusing a server cursor with changed query facts returns bounded `stale_cursor`; the UI offers a fresh start and renders no fallback records |
+| Mismatched cursor | Reusing a server cursor with changed query facts returns contract-defined bounded `invalid_query`; the UI offers a clear-query recovery and renders no fallback records |
 | Context denial | No-session query requests disclose no records, count, cursor, learner, session, provider, or storage detail |
 | Exact continuation | The available exact lesson action still opens the reviewed placement and retained learning path |
 | Accessibility/security | Live query controls, results, failures, cookie posture, security headers, and axe checks remain equivalent and operable |
@@ -175,3 +180,8 @@ lifecycle; and CAP-0004 dependency readiness.
   reuses the accepted local qualification topology, adds only an explicit
   bounded synthetic query corpus, preserves ordinary one-fixture startup, and
   introduces no durable decision or material CAP drift.
+- 2026-10-15: Live qualification exposed redundant repeated-card landmark
+  names and confirmed query-v1's durable distinction between query mismatch
+  (`invalid_query`) and projection-generation drift (`stale_cursor`). Scope was
+  incrementally refined for the narrow accessibility correction and
+  contract-aligned live evidence without changing the slice outcome.

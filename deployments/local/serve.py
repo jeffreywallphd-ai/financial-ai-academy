@@ -59,6 +59,40 @@ ASSESSMENT_VERSION = "1.0.0"
 DEFINITION_DIGEST = (
     "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b"
 )
+QUERY_OPPORTUNITY_FIXTURES = (
+    {
+        "opportunity_id": "intro-risk-return-quick-review",
+        "summary": (
+            "Review the central risk and return relationship in a short "
+            "educational refresher."
+        ),
+        "topics": ("quick-review", "risk-and-return"),
+        "level": OpportunityLevel.INTRODUCTORY,
+        "estimated_minutes": 10,
+        "prerequisite_summary": "No prior lesson is required.",
+        "availability": OpportunityAvailability.UNAVAILABLE,
+        "availability_reason": (
+            "This synthetic quick review is unavailable in qualification."
+        ),
+    },
+    {
+        "opportunity_id": "intro-risk-return-guided-practice",
+        "summary": (
+            "Practice comparing risk and return with a guided educational "
+            "scenario."
+        ),
+        "topics": ("guided-practice", "risk-and-return"),
+        "level": OpportunityLevel.INTERMEDIATE,
+        "estimated_minutes": 35,
+        "prerequisite_summary": (
+            "Complete the introductory risk and return lesson first."
+        ),
+        "availability": OpportunityAvailability.PLANNED,
+        "availability_reason": (
+            "This synthetic guided practice remains planned in qualification."
+        ),
+    },
+)
 
 
 def build_local_app(
@@ -69,6 +103,7 @@ def build_local_app(
     host: str,
     port: int,
     seed_approved_fixture: bool,
+    seed_discovery_query_fixtures: bool = False,
     serve_static: bool = True,
     public_origin: str | None = None,
     allowed_hosts: tuple[str, ...] | None = None,
@@ -78,6 +113,10 @@ def build_local_app(
         raise ValueError("The community single-profile host must be loopback.")
     if not 1 <= port <= 65_535:
         raise ValueError("The application port is outside the valid range.")
+    if seed_discovery_query_fixtures and not seed_approved_fixture:
+        raise ValueError(
+            "Discovery query fixtures require the explicit approved fixture."
+        )
     index_file = web_dist / "index.html"
     asset_directory = web_dist / "assets"
     if serve_static and (
@@ -155,6 +194,14 @@ def build_local_app(
                 ),
             )
         )
+        if seed_discovery_query_fixtures:
+            for fixture in QUERY_OPPORTUNITY_FIXTURES:
+                services.curriculum.register_lesson_opportunity(
+                    RegisterLessonOpportunityRequest(
+                        placement_id=PLACEMENT_ID,
+                        **fixture,
+                    )
+                )
         services.curriculum.rebuild_learning_opportunity_projection(
             RebuildLearningOpportunityProjectionRequest()
         )
@@ -220,6 +267,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--seed-approved-fixture", action="store_true")
     parser.add_argument(
+        "--seed-discovery-query-fixtures",
+        action="store_true",
+        help=(
+            "Add the bounded synthetic multi-page query corpus; requires "
+            "--seed-approved-fixture."
+        ),
+    )
+    parser.add_argument(
         "--api-only",
         action="store_true",
         help="Serve only the API so a loopback Vite development proxy can serve the SPA.",
@@ -246,6 +301,9 @@ def main() -> int:
         host=args.host,
         port=args.port,
         seed_approved_fixture=args.seed_approved_fixture,
+        seed_discovery_query_fixtures=(
+            args.seed_discovery_query_fixtures
+        ),
         serve_static=not args.api_only,
         public_origin=args.public_origin,
         allowed_hosts=(

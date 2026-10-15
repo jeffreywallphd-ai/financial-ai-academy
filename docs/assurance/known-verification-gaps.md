@@ -17,9 +17,9 @@
 - PostgreSQL integration and migration checks beyond the directly covered Content, Curriculum, single-profile Identity, Assessment, Learner-model, and Audit streams with PostgreSQL 18.4 empty-database apply/reapply/teardown and focused rollback paths
 - Managed-cloud deployment composition and direct local/cloud artifact-parity comparison beyond the qualified local approved-lesson topology
 - Discovery rebuild scheduling, concurrent production rebuild operation,
-  search/filter/pagination, non-lesson destinations, external search adapters,
-  and managed-cloud discovery beyond the directly covered deterministic
-  contract, PostgreSQL projection, protected API, accessible browser catalog,
+  non-lesson destinations, external search adapters, and managed-cloud
+  discovery beyond the directly covered deterministic contract, PostgreSQL
+  projection, protected API, accessible search/filter/pagination browser path,
   and isolated local catalog-to-exact-lesson path
 - Adaptive policy and fallback verification
 - Model evaluation and promotion harness

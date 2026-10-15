@@ -146,17 +146,20 @@ transaction interruption, stored corruption, and the protected HTTP read of
 the exact persisted generation. Focused API evidence covers denial before
 disclosure, insufficient or client-selected permission, bounded failure, and
 stable OpenAPI/client generation. The isolated local qualification additionally
-admits one exact package and placement, registers its catalog classification,
-atomically rebuilds the projection, and browses from `/learn` into that exact
-lesson through one same-origin Python/static host over PostgreSQL 18.4.
+admits one exact package and placement, opts into three deterministic
+classifications, atomically rebuilds the projection once, and exercises
+combined filters, duration ordering across three one-record pages,
+query-mismatched cursor denial, authorization confidentiality, axe
+accessibility, and exact lesson continuation through one same-origin
+Python/static host over PostgreSQL 18.4. The ordinary approved fixture remains
+a one-opportunity path.
 
 The deterministic shared-core search/filter/sort/pagination semantics,
 compatibility corpus, protected HTTP/generated-client seam, and URL-backed
 browser controls are implemented. The browser validates a complete closed page,
 shows the canonical applied query and exact server count/order, treats the
 cursor as opaque, and distinguishes invalid, stale, denied, unavailable, and
-empty results without fallback records or client ranking. Complete live
-PostgreSQL/static-host query qualification remains SLI-0019 work.
+empty results without fallback records or client ranking.
 Production/background rebuild scheduling, non-lesson destinations, background
 indexing, external providers, tenancy, and managed-cloud operation remain later
 boundaries.

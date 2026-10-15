@@ -5,6 +5,7 @@ import { expect, test } from "@playwright/test";
 const PLACEMENT_ID = "intro-risk-return-primary";
 const CATALOG_PATH = "/learn";
 const CATALOG_API = "/api/v1/curriculum/opportunities";
+const QUERY_API = "/api/v1/curriculum/opportunities/query";
 const LESSON_PATH = `/learn/placements/${PLACEMENT_ID}`;
 const LESSON_API =
   `/api/v1/curriculum/placements/${PLACEMENT_ID}/lesson`;
@@ -35,9 +36,10 @@ test("browses the live catalog and opens the approved exact lesson", async ({
       level: 2,
       name: "Understanding Risk and Return",
     }),
+    hasText: "The exact reviewed lesson is available in this local catalog.",
   });
   await expect(catalogCard).toBeVisible();
-  await expect(page.getByRole("article")).toHaveCount(1);
+  await expect(page.getByRole("article")).toHaveCount(3);
   await expect(
     catalogCard.getByText(
       "Build a foundational understanding of how potential return and risk relate before comparing investments.",
@@ -90,8 +92,12 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   const catalogResponse = await context.request.get(CATALOG_API);
   expect(catalogResponse.status()).toBe(200);
   const catalog = await catalogResponse.json();
-  expect(catalog.records).toHaveLength(1);
-  expect(catalog.records[0]).toMatchObject({
+  expect(catalog.records).toHaveLength(3);
+  const approvedOpportunity = catalog.records.find(
+    (record: { opportunity_id: string }) =>
+      record.opportunity_id === PLACEMENT_ID,
+  );
+  expect(approvedOpportunity).toMatchObject({
     opportunity_id: PLACEMENT_ID,
     placement_id: PLACEMENT_ID,
     destination: LESSON_PATH,
@@ -107,8 +113,8 @@ test("browses the live catalog and opens the approved exact lesson", async ({
     package_version: "1.1.0",
     package_digest: DIGEST,
   });
-  expect(catalog.records[0].source_fingerprint).toMatch(/^[a-f0-9]{64}$/);
-  expect(catalog.records[0].projected_at).toBe(catalog.projected_at);
+  expect(approvedOpportunity.source_fingerprint).toMatch(/^[a-f0-9]{64}$/);
+  expect(approvedOpportunity.projected_at).toBe(catalog.projected_at);
   await lessonAction.click();
   await expect(page).toHaveURL(new RegExp(`${LESSON_PATH}$`));
 
@@ -220,6 +226,88 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   expect(accessibility.violations).toEqual([]);
 });
 
+test("filters, pages, and rejects a mismatched live query cursor", async ({
+  context,
+  page,
+}) => {
+  await page.goto(`${CATALOG_PATH}?sort=duration_ascending&page_size=1`);
+  await expect(page.getByRole("article")).toHaveCount(1);
+  await expect(page.getByRole("article").getByText("10 minutes")).toBeVisible();
+  await expect(page.getByText(/3 matches.*Showing 1 on this page/)).toBeVisible();
+
+  const firstNext = page.getByRole("link", { name: "Next page" });
+  await expect(firstNext).toBeVisible();
+  await firstNext.click();
+  await expect(page.getByRole("article").getByText("20 minutes")).toBeVisible();
+
+  const secondNext = page.getByRole("link", { name: "Next page" });
+  await expect(secondNext).toBeVisible();
+  await secondNext.click();
+  await expect(page.getByRole("article").getByText("35 minutes")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Next page" })).toHaveCount(0);
+
+  await page.goto(
+    `${CATALOG_PATH}?topic=guided-practice&level=intermediate` +
+      "&availability=planned&minimum_minutes=30&maximum_minutes=40" +
+      "&sort=duration_descending&page_size=17",
+  );
+  const filteredCard = page.getByRole("article");
+  await expect(filteredCard).toHaveCount(1);
+  await expect(filteredCard.getByText("35 minutes")).toBeVisible();
+  await expect(filteredCard.getByText("Planned", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("spinbutton", { name: "Results per page" }),
+  ).toHaveValue("17");
+
+  const observedIds: string[] = [];
+  let cursor: string | null = null;
+  let firstCursor = "";
+  do {
+    const parameters = new URLSearchParams({
+      sort: "duration_ascending",
+      page_size: "1",
+    });
+    if (cursor) parameters.set("cursor", cursor);
+    const response = await context.request.get(`${QUERY_API}?${parameters}`);
+    expect(response.status()).toBe(200);
+    const result = await response.json();
+    expect(result.total_matches).toBe(3);
+    expect(result.applied_query).toMatchObject({
+      sort: "duration_ascending",
+      page_size: 1,
+    });
+    expect(result.records).toHaveLength(1);
+    observedIds.push(result.records[0].opportunity_id);
+    cursor = result.next_cursor;
+    if (!firstCursor && cursor) firstCursor = cursor;
+  } while (cursor);
+  expect(observedIds).toEqual([
+    "intro-risk-return-quick-review",
+    PLACEMENT_ID,
+    "intro-risk-return-guided-practice",
+  ]);
+  expect(firstCursor).not.toBe("");
+
+  const mismatched = new URLSearchParams({
+    sort: "title",
+    page_size: "1",
+    cursor: firstCursor,
+  });
+  const mismatchResponse = await context.request.get(
+    `${QUERY_API}?${mismatched}`,
+  );
+  expect(mismatchResponse.status()).toBe(400);
+  await expect(mismatchResponse.json()).resolves.toMatchObject({
+    code: "invalid_query",
+  });
+
+  await page.goto(`${CATALOG_PATH}?${mismatched}`);
+  await expect(
+    page.getByRole("heading", { name: "Query could not be applied" }),
+  ).toBeVisible();
+  await expect(page.getByRole("article")).toHaveCount(0);
+});
+
 test("fails closed without context and never substitutes a missing version", async ({
   page,
   request,
@@ -230,6 +318,14 @@ test("fails closed without context and never substitutes a missing version", asy
   expect(catalogDenial).not.toContain("Understanding Risk and Return");
   expect(catalogDenial).not.toContain(DIGEST);
   expect(catalogDenial).not.toMatch(/actor_id|learner_id|session_id/i);
+
+  const unauthorizedQuery = await request.get(`${QUERY_API}?page_size=1`);
+  expect(unauthorizedQuery.status()).toBe(401);
+  const queryDenial = await unauthorizedQuery.text();
+  expect(queryDenial).not.toContain("Understanding Risk and Return");
+  expect(queryDenial).not.toMatch(
+    /total_matches|next_cursor|actor_id|learner_id|session_id|provider/i,
+  );
 
   const unauthorized = await request.get(LESSON_API);
   expect(unauthorized.status()).toBe(401);

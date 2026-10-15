@@ -10,4 +10,8 @@ registers one discovery classification and rebuilds the derived catalog through
 the public Curriculum application surface. Any admission, registration, or
 rebuild failure stops startup. This option is deterministic development/test
 seeding, not a production bootstrap, background scheduler, or public mutation.
+An additional explicit query-qualification option requires that fixture, adds
+two fixed classifications through the same public Curriculum facade, and still
+performs only one final atomic rebuild. Ordinary fixture startup remains the
+one-opportunity path.
 

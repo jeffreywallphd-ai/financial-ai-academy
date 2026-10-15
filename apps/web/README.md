@@ -166,9 +166,12 @@ automated accessibility scans, keyboard focus, responsive reflow, reduced
 motion, forced colors, denial, and unknown-content/record paths. Lesson visual
 baselines are platform-specific. The live cross-system suite additionally owns the real
 PostgreSQL/filesystem, single-profile session, generated-client,
-static-serving, approved catalog projection and exact navigation, submission,
-repeated retained-completion reopen, missing-context, stale-placement,
-security-header, education-boundary, and catalog/completion axe paths. Real
+static-serving, three-classification query corpus, combined filters,
+multi-page duration order, cursor-query mismatch denial, approved catalog
+projection and exact navigation, submission, repeated retained-completion
+reopen, missing-context, stale-placement, security-header, education-boundary,
+and catalog/completion axe paths. Repeated cards preserve heading/list
+semantics without creating redundant nested named landmarks. Real
 screen-reader operation, actual browser
 200-percent zoom controls, and browsers beyond the pinned Chromium runtime
 require controlled manual or later multi-browser qualification.

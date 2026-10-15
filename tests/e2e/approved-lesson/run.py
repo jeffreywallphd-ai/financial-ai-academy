@@ -145,7 +145,14 @@ def npm_e2e_command() -> list[str]:
             "Set both FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE and "
             "FINANCIAL_AI_ACADEMY_NPM_CLI, or neither."
         )
-    prefix = ["npm"] if not node else [node, npm_cli]
+    npm_executable = shutil.which("npm")
+    if not node and npm_executable is None:
+        raise RuntimeError(
+            "npm is not available on PATH; alternatively set both "
+            "FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE and "
+            "FINANCIAL_AI_ACADEMY_NPM_CLI."
+        )
+    prefix = [npm_executable] if not node else [node, npm_cli]
     return [
         *prefix,
         "--prefix",
@@ -246,6 +253,7 @@ def main() -> int:
             "--port",
             str(port),
             "--seed-approved-fixture",
+            "--seed-discovery-query-fixtures",
         ]
         with application_log.open("w", encoding="utf-8") as output:
             application = subprocess.Popen(
@@ -264,14 +272,18 @@ def main() -> int:
         report = {
             "browser": "Playwright pinned Chromium",
             "catalog": (
-                "one approved lesson registered and projected through public "
-                "Curriculum operations"
+                "three deterministic lesson opportunities registered and "
+                "projected through public Curriculum operations"
             ),
             "database": postgres_topology,
             "filesystem": "isolated temporary data root",
             "fixture": "intro-risk-return@1.1.0 with risk-return-check-1@1.0.0",
             "http_origin": origin,
             "production_application_process": Path(sys.executable).name,
+            "query_corpus": (
+                "one available exact lesson plus planned and unavailable "
+                "synthetic classifications"
+            ),
             "static_index_sha256": hashlib.sha256(
                 web_index.read_bytes()
             ).hexdigest(),

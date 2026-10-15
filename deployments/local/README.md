@@ -2,8 +2,9 @@
 
 The intended complete local profile includes the static web application,
 Python API and worker, PostgreSQL, filesystem object storage, and DuckDB/Parquet
-analytics. Only the read-only approved-lesson `single_profile` path is qualified
-today. This is a development/CI qualification topology, not a production
+analytics. Only the bounded approved-lesson, discovery-query, deterministic
+assessment, and retained-completion `single_profile` path is qualified today.
+This is a development/CI qualification topology, not a production
 publication, backup, restore, availability, or remote-hosting claim.
 
 ## Qualified Topology
@@ -28,8 +29,11 @@ origin, emits a restrictive Content Security Policy, applies empty-database
 migrations, and admits the synthetic approved fixture only when the explicit
 seed flag is present. That flag also registers one exact Curriculum-owned
 catalog classification and atomically rebuilds the derived discovery projection
-through public application operations; normal startup does not seed or rebuild
-data.
+through public application operations. The additional
+`--seed-discovery-query-fixtures` flag requires that approved fixture and adds
+two fixed classifications before the same single atomic rebuild. Normal
+startup does not seed or rebuild data, and ordinary approved-fixture startup
+does not require the larger query corpus.
 
 ## One-Command Development
 
@@ -90,9 +94,11 @@ backend/.venv/Scripts/python.exe tests/e2e/approved-lesson/run.py
 The runner chooses unused loopback ports, creates a uniquely named
 `postgres:18.4` container with an ephemeral data mount, creates an isolated
 filesystem root below ignored `artifacts/tmp/`, waits for readiness, starts the
-Python host, runs the live browser checks from `/learn` through the exact lesson
-and retained completion, and removes only those exact resources in `finally`
-cleanup. An external database is accepted only when
+Python host, opts into three deterministic discovery classifications, and runs
+the live browser checks for combined filters, three-page ordering, cursor-query
+mismatch denial, exact lesson continuation, retained completion, context
+denial, security headers, and axe accessibility. It removes only those exact
+resources in `finally` cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.
 
@@ -102,7 +108,7 @@ The committed compose file starts only the disposable database:
 
 ```powershell
 docker compose -f deployments/local/compose.qualify.yml up -d --wait
-uv run --project backend python deployments/local/serve.py --postgres-dsn "postgresql://financial_ai_academy:qualification-only@127.0.0.1:55432/financial_ai_academy" --data-root ".test-data/approved-lesson" --host 127.0.0.1 --port 8000 --seed-approved-fixture
+uv run --project backend python deployments/local/serve.py --postgres-dsn "postgresql://financial_ai_academy:qualification-only@127.0.0.1:55432/financial_ai_academy" --data-root ".test-data/approved-lesson" --host 127.0.0.1 --port 8000 --seed-approved-fixture --seed-discovery-query-fixtures
 ```
 
 Open `http://127.0.0.1:8000/learn`, then follow the exact approved lesson action
@@ -120,12 +126,13 @@ database for retained learner data.
 
 ## Qualified and Unqualified Claims
 
-Direct evidence covers one approved fixture, real PostgreSQL migrations and
-repositories, restrictive local filesystem storage, loopback request policy,
-opaque HttpOnly session cookie, public-operation discovery registration and
-atomic projection rebuild, reviewed OpenAPI/generated client, static
-same-origin Python serving, catalog-to-exact-lesson Chromium success and denial
-paths, architecture and security scans, and safe teardown.
+Direct evidence covers one approved fixture plus its opt-in three-classification
+query corpus, real PostgreSQL migrations and repositories, restrictive local
+filesystem storage, loopback request policy, opaque HttpOnly session cookie,
+public-operation discovery registration and one atomic projection rebuild,
+reviewed OpenAPI/generated client, static same-origin Python serving,
+filter/pagination/cursor-denial and catalog-to-exact-lesson Chromium paths,
+architecture and security scans, axe accessibility, and safe teardown.
 
 The following remain unqualified: built-in credentials, OIDC, multiple
 learners, remote/public binding, worker and analytics composition, passive

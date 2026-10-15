@@ -68,10 +68,7 @@ function OpportunityCard({
           </dd>
         </div>
       </dl>
-      <section
-        aria-label={opportunity.title + " learning objectives"}
-        className="catalog-card__objectives"
-      >
+      <section className="catalog-card__objectives">
         <h3>Learning objectives</h3>
         <ul>
           {opportunity.objectives.map((objective) => (
@@ -79,10 +76,7 @@ function OpportunityCard({
           ))}
         </ul>
       </section>
-      <section
-        aria-label={opportunity.title + " publication context"}
-        className="catalog-card__publication"
-      >
+      <section className="catalog-card__publication">
         <h3>Publication context</h3>
         <p>
           Published by {opportunity.provenance.published_by} on{" "}

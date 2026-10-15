@@ -62,8 +62,11 @@ backend/.venv/Scripts/python.exe -m pytest backend/tests/integration/assessment
 ```
 
 The runner requires the reviewed static web build and pinned Playwright
-Chromium. It starts only the Python application process; Node remains build and
-test tooling.
+Chromium. It starts only the Python application process, opts into a bounded
+three-classification discovery-query corpus, and directly qualifies combined
+filters, stable multi-page ordering, cursor-query mismatch denial, context
+confidentiality, accessibility, and the exact lesson/completion path. Node
+remains build and test tooling.
 
 Exact dependency patches and integrity data are committed in `pyproject.toml`
 and `uv.lock`. Changing the accepted Python, FastAPI, Pydantic, or production
