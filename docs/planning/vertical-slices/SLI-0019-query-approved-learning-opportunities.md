@@ -161,7 +161,7 @@ behind the same public semantics and compatibility corpus.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | captured |
+| WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | ready |
 | WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | captured |
 | WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | captured |
 | WRK-0051 | Qualify the complete local query path, pagination continuity, stale-cursor denial, security/accessibility, and cleanup | WRK-0050 | none | captured |
@@ -217,3 +217,7 @@ unsupported profiles/providers, residual gaps, and CAP-package conformance.
   SLI-0018 completion. Candidate A scored 14/14 by adding a separate
   deterministic query operation over the accepted projection, preserving the
   queryless contract and introducing no durable decision or material CAP drift.
+- 2026-10-15: Authored WRK-0048 with the executable query-v1 contract,
+  shared-core deterministic policy, compatibility corpus, bounded denial, and
+  focused verification seams. HTTP, generated-client, interface, and live
+  qualification remain assigned to WRK-0049 through WRK-0051.
