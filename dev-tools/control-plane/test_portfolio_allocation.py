@@ -6,8 +6,11 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -15,7 +18,7 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from contracts import ControlError  # noqa: E402
-from financial_academy_portfolio import projected_claim_branch  # noqa: E402
+from financial_academy_portfolio import planning_nodes, projected_claim_branch  # noqa: E402
 from portfolio import analyze  # noqa: E402
 from portfolio_allocation import allocate  # noqa: E402
 
@@ -40,6 +43,73 @@ class PortfolioAllocationTests(unittest.TestCase):
             "codex/cap-0004",
             projected_claim_branch({"branch": "codex/cap-0004"}),
         )
+
+    def test_planning_nodes_fall_back_from_compatibility_marker_and_roll_up_branches(self) -> None:
+        def artifact(identifier: str, kind: str, status: str, metadata: dict) -> SimpleNamespace:
+            return SimpleNamespace(
+                identifier=identifier,
+                kind=kind,
+                status=status,
+                metadata=metadata,
+                path=Path(f"{identifier}.md"),
+                relative_path=f"docs/planning/{identifier}.md",
+            )
+
+        artifacts = [
+            artifact("PROGRAM-X", "capability", "active", {"slice_ids": ["INCREMENT-X"]}),
+            artifact("INCREMENT-X", "vertical-slice", "active", {"parent": "PROGRAM-X"}),
+            artifact(
+                "TASK-HISTORICAL",
+                "work-packet",
+                "complete",
+                {"parent": "INCREMENT-X", "write_scope": ["history.txt"], "generated_artifacts": []},
+            ),
+            artifact(
+                "TASK-ACTIVE",
+                "work-packet",
+                "active",
+                {"parent": "INCREMENT-X", "write_scope": ["active.txt"], "generated_artifacts": []},
+            ),
+        ]
+        with tempfile.TemporaryDirectory(prefix="portfolio-branch-projection-") as directory:
+            root = Path(directory)
+            state_path = root / ".local-codex/control-plane/state.json"
+            state_path.parent.mkdir(parents=True)
+
+            def project(active_branch: str) -> dict[str, dict]:
+                state_path.write_text(
+                    json.dumps(
+                        {
+                            "work_items": {
+                                "TASK-HISTORICAL": {
+                                    "state": "submitted",
+                                    "claim": {"branch": "legacy-unrecorded"},
+                                },
+                                "TASK-ACTIVE": {
+                                    "state": "active",
+                                    "claim": {"branch": active_branch},
+                                },
+                            }
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+                with (
+                    patch("financial_academy_portfolio.load_artifacts", return_value=artifacts),
+                    patch("financial_academy_portfolio.current_branch", return_value="codex/current"),
+                ):
+                    return {node["id"]: node for node in planning_nodes(root)}
+
+            compatibility = project("legacy-unrecorded")
+            self.assertEqual([], compatibility["TASK-HISTORICAL"]["branches"])
+            self.assertEqual(["codex/current"], compatibility["TASK-ACTIVE"]["branches"])
+            self.assertEqual(["codex/current"], compatibility["INCREMENT-X"]["branches"])
+            self.assertEqual(["codex/current"], compatibility["PROGRAM-X"]["branches"])
+
+            genuine = project("codex/recorded")
+            self.assertEqual(["codex/recorded"], genuine["TASK-ACTIVE"]["branches"])
+            self.assertEqual(["codex/current", "codex/recorded"], genuine["INCREMENT-X"]["branches"])
+            self.assertEqual(["codex/current", "codex/recorded"], genuine["PROGRAM-X"]["branches"])
 
     def test_generic_vocabulary_honors_priority_and_groups_compatible_work(self) -> None:
         result = allocate(work_graph(), level="work", authority_current=["PROGRAM-X"], explicit_priority=["TASK-B", "TASK-A", "TASK-C"])
@@ -98,7 +168,7 @@ class PortfolioAllocationTests(unittest.TestCase):
             allocate(work_graph(), level="work", authority_current=["PROGRAM-X"], previous={"schema_version": "old"})
         self.assertEqual("allocation.previous-incompatible", previous.exception.code)
 
-    def test_repository_cli_is_read_only_and_reports_current_codex_branch(self) -> None:
+    def test_repository_cli_is_read_only(self) -> None:
         before_register = (ROOT / "docs/planning/register.md").read_bytes()
         before_lease_state = (ROOT / ".local-codex/control-plane/file-leases.json").read_bytes() if (ROOT / ".local-codex/control-plane/file-leases.json").is_file() else None
         completed = subprocess.run(
@@ -113,9 +183,6 @@ class PortfolioAllocationTests(unittest.TestCase):
         self.assertEqual(0, completed.returncode, completed.stderr)
         result = json.loads(completed.stdout)["data"]["allocation"]
         self.assertEqual("portfolio-allocation-v1", result["schema_version"])
-        for lane in result["lanes"]:
-            if lane["allocation_state"] == "in-progress":
-                self.assertEqual("codex", lane["branch_state"])
         self.assertFalse(result["constraints"]["grants_authority"])
         self.assertEqual(before_register, (ROOT / "docs/planning/register.md").read_bytes())
         after_lease_state = (ROOT / ".local-codex/control-plane/file-leases.json").read_bytes() if (ROOT / ".local-codex/control-plane/file-leases.json").is_file() else None

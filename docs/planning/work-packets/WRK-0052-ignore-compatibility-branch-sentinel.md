@@ -146,6 +146,14 @@ false readiness block.
 - No lifecycle state, claim, branch, public schema, allocation authority, or
   product behavior changed. Exact-candidate affected verification and
   independent technical review remain before completion.
+- Independent review R01 found that the repository-state CLI assertion could
+  pass vacuously and that the helper-only test did not prove adapter integration
+  or container roll-up. A deterministic temporary repository fixture now drives
+  `planning_nodes()` with completed and active compatibility-projected claims,
+  mocks the current checkout, proves the sentinel is absent, proves fallback at
+  work/slice/capability levels, and proves a genuine recorded branch survives
+  the same path. The repository CLI assertion now covers only its deterministic
+  no-mutation responsibility.
 
 ## Planning History
 
@@ -156,3 +164,6 @@ false readiness block.
 - 2026-10-15: Implemented the bounded adapter repair and regression; focused,
   planning, documentation, diff, and aggregate readiness checks passed, so the
   packet moved to exact-candidate verification.
+- 2026-10-15: Corrected R01-F001 with a fixture-driven adapter and container
+  roll-up regression after independent review identified that the original
+  repository-state loop could make no assertion in a fresh checkout.
