@@ -1,7 +1,7 @@
 ---
 id: CAP-0021
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -52,6 +52,8 @@ to rewrite evidence tied to prior versions.
 
 - [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md)
 - [Content-Package Contract](../../architecture/contracts/content-package-contract.md)
+- [Platform-Native Human-Reviewed Content Authoring](../../adr/ADR-0017-platform-native-human-reviewed-content-authoring.md)
+- [Content Authoring Workflow Contract](../../architecture/contracts/content-authoring-workflow-contract.md)
 - [Contract Architecture](../../architecture/contracts/contract-architecture.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
 - [CAP-0005](CAP-0005-navigate-competency-based-curriculum.md)
@@ -60,8 +62,9 @@ to rewrite evidence tied to prior versions.
 
 ## Decision Gates and Constraints
 
-- DEC-0015 selects draft ownership, review/publish lifecycle, collaboration
-  boundary, package transport, and any external learning-standard support.
+- ADR-0017 selects platform-native revision-bound drafts, human review,
+  deterministic immutable publication, and an optional future interoperability
+  seam. No external learning standard is currently admitted or claimed.
 - Published versions remain immutable, digest-bound, safely renderable, and
   separated from Assessment runtime scoring.
 - Authorization, validation, review completion, and publication are
@@ -71,10 +74,10 @@ to rewrite evidence tied to prior versions.
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
-| SLI-0086 | An authorized creator drafts and validates versioned lesson/curriculum source with safe preview, citations, assets, and exact publication target. | First after dependencies and DEC-0015; establishes draft/review ownership. | Arbitrary active content, AI publication, or direct learner visibility changes the CAP package. | captured |
+| SLI-0086 | An authorized creator drafts and validates versioned lesson/curriculum source with safe preview, citations, assets, and exact publication target. | First after dependencies and ADR-0017; establishes revision-bound draft/review ownership. | Arbitrary active content, AI publication, or direct learner visibility changes the CAP package. | captured |
 | SLI-0087 | The creator authors structured assessments, projects, competencies, and mappings through owning-module contracts with cross-reference validation. | After SLI-0086. | Authoring runtime scores, executing project artifacts, or cross-module persistence changes the CAP package. | captured |
 | SLI-0088 | Authorized reviewers compare versions, request changes, and publish or retire an immutable release with source/license and audit provenance. | After SLI-0087. | Mutable published versions, unreviewed release, or accreditation claims changes the CAP package. | captured |
-| SLI-0089 | Authoring is qualified for validation, review separation, compatibility, rollback, import/export, safe preview, authorization, accessibility, and prior-evidence preservation. | Last; depends on SLI-0086 through SLI-0088. | Marketplace, real-time collaboration, or unsupported interoperability changes the CAP package. | captured |
+| SLI-0089 | Native authoring is qualified for validation, review separation, compatibility, rollback, native import/export, safe preview, authorization, accessibility, prior-evidence preservation, and narrow optional-adapter degradation. | Last; depends on SLI-0086 through SLI-0088. | Marketplace, real-time collaboration, or claiming an external standard without a new durable decision changes the CAP package. | captured |
 
 ## Capability Acceptance
 
@@ -107,4 +110,7 @@ operations, accessibility, and verification documentation.
 
 - 2026-10-15: Shaped from catalog candidate 18 with manifest SLI-0086 through
   SLI-0089. DEC-0015 blocks CAP approval and delivery.
+- 2026-10-15: DEC-0015 was promoted to ADR-0017, selecting platform-native
+  human-reviewed authoring with optional future interoperability seams; the CAP
+  returned to shaping for package refinement.
 

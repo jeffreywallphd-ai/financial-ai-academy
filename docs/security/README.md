@@ -9,6 +9,8 @@
 - [Community Learner-Evidence Protection](community-learner-evidence-protection.md)
 - [Inert Applied-Project Artifacts](../adr/ADR-0011-inert-applied-project-artifacts.md)
 - [Reusable Project Workspace](../adr/ADR-0012-reusable-project-workspace.md)
+- [Learner-Managed Experiment Execution](../adr/ADR-0016-learner-managed-experiment-execution.md)
+- [Platform-Native Human-Reviewed Content Authoring](../adr/ADR-0017-platform-native-human-reviewed-content-authoring.md)
 
 ## Initial Trust Boundaries
 
@@ -31,11 +33,28 @@ grant network or secret access, or send them to an execution provider. Learners
 run tools in environments they control. Platform-managed or provider-managed
 execution remains a separate decision-required trust boundary.
 
+ADR-0016 applies that inert boundary to financial AI/ML experiments. The
+platform may export integrity-bound run bundles and validate imported result
+bundles from learner-controlled environments. Provider-neutral run/result
+contracts preserve a future optional analytics execution-port seam, but the
+current product exposes no execute operation. A sandbox adapter still requires
+a new decision and complete isolation, image/package, identity/tenancy, egress,
+secret, job, quota, cost, cleanup, monitoring, incident, and provider
+qualification.
+
 ADR-0012 places learning-initiated and independent mutable work in a bounded
 Project workspace. Immutable Project snapshots and Assessment submissions retain
 their own authorization and retention boundaries. Project links to portfolios
 or other domain resources carry stable references and provenance only; they do
 not grant Project access to another module's persistence, provider credentials,
 or privileged operations.
+
+ADR-0017 keeps mutable authoring revisions separate from immutable published
+packages. Preview, imports, provider content, AI proposals, and future external-
+standard mappings remain untrusted, non-published inputs. Only an authorized
+human review bound to the exact validated revision may make it eligible for an
+atomic publication operation; any edit invalidates that review authority.
+Future interoperability adapters remain optional and cannot bypass native
+safety, accessibility, ownership, provenance, or package validation.
 
 Baseline behavior is defined in `docs/standards/security-and-privacy-standards.md`. Missing threat models are recorded as gaps, not treated as evidence of safety.

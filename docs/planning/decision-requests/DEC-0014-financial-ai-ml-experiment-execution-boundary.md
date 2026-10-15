@@ -1,14 +1,14 @@
 ---
 id: DEC-0014
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: []
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0016-learner-managed-experiment-execution.md
 ---
 
 # Decision Request: Choose the Financial AI/ML Experiment Execution Boundary
@@ -60,8 +60,11 @@ cost, and education-risk review.
 
 ## Decision Record and Promotion
 
-Promote the selected boundary to an ADR, security architecture, project and AI/ML
-contracts, operations, and decision readiness.
+[ADR-0016](../../adr/ADR-0016-learner-managed-experiment-execution.md)
+establishes Option A while preserving provider-neutral run/result contracts and
+an optional future analytics execution-port seam. The seam grants no current
+sandbox, platform/provider execution, network, secret, job, or callback
+authority.
 
 ## Dependent Planning Updates
 
@@ -71,4 +74,5 @@ Reconcile CAP-0016 and any provider/job planning that assumes execution.
 
 - 2026-10-15: Captured while shaping CAP-0016; ADR-0011 remains authoritative
   until a superseding decision is promoted.
+- 2026-10-15: ADR-0016 established learner-managed execution with validated import and a provider-neutral future analytics/sandbox seam that does not grant execution authority.
 

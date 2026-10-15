@@ -25,6 +25,12 @@ Baseline context for every non-trivial task.
 - Planning advice, readiness, and roadmaps never replace CAP authority; packets execute in dependency order, conforming detail may evolve, and material CAP drift requires renewed CAP approval
 - ADR-0014 governs adaptive competency estimation and guidance through independently versioned estimate/publication policies, deterministic eligibility and fallbacks, calibrated abstention, phased champion-challenger qualification, and separate consented experiment review
 - ADR-0015 assigns canonical financial data to Market data, simulated portfolios/backtests to Portfolio, and reusable deterministic calculations to an owner-declared versioned pure method registry without an Analysis module
+- ADR-0016 uses learner-managed financial experiment execution with validated
+  import and preserves only an optional provider-neutral future analytics or
+  sandbox seam; no platform or provider runtime is currently authorized
+- ADR-0017 uses platform-native revision-bound drafts with exact human review
+  and immutable publication; no external learning standard is currently
+  admitted, and future adapters must degrade without blocking native authoring
 
 ## Workflow
 

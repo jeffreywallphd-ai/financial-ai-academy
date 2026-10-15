@@ -33,6 +33,8 @@ Create or update an ADR when a change selects or reverses a durable architecture
 - [ADR-0013: Explicit Model-Provider Opt-In](ADR-0013-explicit-model-provider-opt-in.md)
 - [ADR-0014: Governed Adaptive-Learning Research Plane](ADR-0014-governed-adaptive-learning-research-plane.md)
 - [ADR-0015: Market Data and Portfolio Ownership with a Method Registry](ADR-0015-market-data-portfolio-method-registry.md)
+- [ADR-0016: Learner-Managed Experiment Execution with a Future Sandbox Seam](ADR-0016-learner-managed-experiment-execution.md)
+- [ADR-0017: Platform-Native Human-Reviewed Content Authoring](ADR-0017-platform-native-human-reviewed-content-authoring.md)
 
 ## Superseded Decisions
 

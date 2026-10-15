@@ -14,6 +14,9 @@ Work affects model providers, prompts, tutoring, retrieval, embeddings, adaptive
 - Adaptive-learning models follow ADR-0014's champion-challenger, calibration,
   abstention, leakage-control, shadow, deterministic-fallback, and separately
   reviewed online-experiment envelope.
+- Financial AI/ML experiments follow ADR-0016's learner-managed execution and
+  validated-import boundary. Provider-neutral run/result semantics may preserve
+  a future optional sandbox seam but grant no current execution authority.
 - Automation-harness evaluations use deterministic fixtures and privacy-minimized
   operational metrics; they do not collect prompts/model output or become model
   promotion authority.
@@ -24,6 +27,8 @@ Work affects model providers, prompts, tutoring, retrieval, embeddings, adaptive
 - `docs/architecture/ai-ml/ai-ml-system-boundaries.md`
 - `docs/architecture/learning/adaptive-pathway-architecture.md`
 - `docs/adr/ADR-0014-governed-adaptive-learning-research-plane.md`
+- `docs/adr/ADR-0016-learner-managed-experiment-execution.md`
+- `docs/architecture/ai-ml/experiment-execution-boundary.md`
 
 ## Stop When
 

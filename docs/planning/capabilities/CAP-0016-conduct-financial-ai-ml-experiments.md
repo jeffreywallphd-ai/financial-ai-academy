@@ -1,7 +1,7 @@
 ---
 id: CAP-0016
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -55,27 +55,29 @@ environment, parameters, evaluation, and declared execution provenance.
 - [AI/ML System Boundaries](../../architecture/ai-ml/ai-ml-system-boundaries.md)
 - [Inert Applied-Project Artifacts](../../adr/ADR-0011-inert-applied-project-artifacts.md)
 - [Reusable Project Workspace](../../adr/ADR-0012-reusable-project-workspace.md)
+- [Learner-Managed Experiment Execution](../../adr/ADR-0016-learner-managed-experiment-execution.md)
+- [Experiment Execution Boundary](../../architecture/ai-ml/experiment-execution-boundary.md)
 - [CAP-0007](CAP-0007-complete-applied-projects.md)
 - [CAP-0012](CAP-0012-explore-canonical-market-data.md)
 
 ## Decision Gates and Constraints
 
-- DEC-0014 determines whether the initial product validates learner-managed
-  external runs only or introduces a bounded platform/provider runtime with a
-  separately accepted trust boundary.
-- DEC-0011 determines provider capability, data use, cost, retention, safety,
-  and local-model support for any admitted model service.
-- Project artifacts remain inert unless DEC-0014 explicitly supersedes that
-  boundary; deterministic evaluation and provenance remain authoritative.
+- ADR-0016 fixes learner-managed external execution with validated import and
+  provider-neutral run/result semantics. Its future analytics execution seam is
+  optional and grants no current sandbox or provider runtime authority.
+- ADR-0013 governs provider capability, data use, cost, retention, safety, and
+  local-model support for any admitted model service.
+- Project and experiment artifacts remain inert; deterministic validation,
+  evaluation, provenance, and claims policy remain authoritative.
 
 ## Proposed Vertical Slices
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
 | SLI-0066 | A learner creates a versioned experiment plan with dataset, target, split, feature, baseline, metric, leakage, environment, and limitation declarations. | First after dependencies and decisions; establishes experiment and snapshot contracts. | Unbounded execution, advice objectives, or missing data permission changes the CAP package. | captured |
-| SLI-0067 | The learner records or invokes an allowed run under DEC-0014 and receives validated, provenance-bound artifacts without model authority over protected state. | After SLI-0066. | Secret/network expansion, autonomous action, or unverifiable results changes the CAP package. | captured |
+| SLI-0067 | The learner exports an integrity-bound run bundle, executes it in an environment they control, and imports validated, provenance-bound results without model authority over protected state. | After SLI-0066. | Platform/provider execution, secret/network expansion, autonomous action, or unverifiable results changes the CAP package. | captured |
 | SLI-0068 | The learner compares baselines and models, inspects leakage/overfitting and uncertainty, and publishes a bounded model card and project snapshot. | After SLI-0067. | Production promotion, suitability claims, or result cherry-picking without retained evidence changes the CAP package. | captured |
-| SLI-0069 | The experiment flow is qualified for dataset permission, reproducibility, leakage, isolation, failure, cost, provenance, export, accessibility, and local/cloud honesty. | Last; depends on SLI-0066 through SLI-0068. | Production serving or a broader execution sandbox changes the CAP package. | captured |
+| SLI-0069 | The learner-managed experiment flow is qualified for dataset permission, reproducibility declarations, leakage, non-execution, failure, provenance, export/import, accessibility, and local/cloud honesty. | Last; depends on SLI-0066 through SLI-0068. | Production serving or any platform/provider execution runtime without a new durable decision changes the CAP package. | captured |
 
 ## Capability Acceptance
 
@@ -107,4 +109,7 @@ execution, security, cost, export, UI, and verification documentation.
 
 - 2026-10-15: Shaped from catalog candidate 13 with manifest SLI-0066 through
   SLI-0069. DEC-0011 and DEC-0014 block CAP approval and delivery.
+- 2026-10-15: DEC-0014 was promoted to ADR-0016, selecting learner-managed
+  execution with validated import and a non-authorizing future sandbox seam;
+  the CAP returned to shaping for package refinement.
 

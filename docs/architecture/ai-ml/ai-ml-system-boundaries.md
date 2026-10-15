@@ -54,3 +54,14 @@ and conformance evidence before admission. Policy change, disablement, missing
 capability, quota, or outage fails to a bounded no-model path rather than silent
 provider substitution or broader data egress.
 
+## Financial Experiment Execution
+
+Financial AI/ML project artifacts remain inert under ADR-0011 and ADR-0016.
+The platform may define plans, export integrity-bound run bundles, and validate
+imported learner-supplied result bundles, but it provides no kernel, process,
+package installation, runtime image, network, secret, job, callback, or sandbox.
+The provider-neutral plan/run/result seam may support a future optional
+execution adapter only after a new durable decision and complete trust,
+operations, provider, cost, and qualification evidence. Its absence never
+blocks learner-managed export, import, review, or comparison.
+

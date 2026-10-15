@@ -29,3 +29,13 @@ shadow qualification, deterministic eligibility and publication, and permanent
 evidence-only and rule fallbacks. A concrete dataset, provider, model promotion,
 or online experiment still requires its applicable evidence and review.
 
+## Accepted Financial Experiment Execution Profile
+
+[ADR-0016](../adr/ADR-0016-learner-managed-experiment-execution.md)
+keeps financial AI/ML code and runs learner-managed. The platform defines
+versioned plans, exports integrity-bound run bundles, validates normalized
+imported result bundles, and labels them learner-supplied rather than
+independently reproduced. Provider-neutral run/result semantics preserve a
+future optional analytics interface or sandbox adapter, but no executable
+adapter is currently authorized.
+

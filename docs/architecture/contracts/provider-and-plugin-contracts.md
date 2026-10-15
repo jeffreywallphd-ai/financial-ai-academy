@@ -45,6 +45,13 @@ Identity providers additionally follow the [identity provider and learner-contex
 
 Content providers additionally follow the [versioned lesson content-package contract](content-package-contract.md). Provider packages remain untrusted input; provider identity or signatures do not bypass schema, semantic, path, media, integrity, resource-bound, or renderer validation.
 
+Content authoring and future interoperability providers additionally follow
+[ADR-0017](../../adr/ADR-0017-platform-native-human-reviewed-content-authoring.md)
+and the [content-authoring workflow contract](content-authoring-workflow-contract.md).
+No external learning-standard profile is currently admitted. Any future adapter
+keeps standard payloads private, emits a deterministic mapping report, and
+cannot supply human review or bypass native validation and publication policy.
+
 Model providers additionally follow
 [ADR-0013](../../adr/ADR-0013-explicit-model-provider-opt-in.md). A manifest must
 declare local or external execution, model capability limits, all received and
@@ -53,3 +60,9 @@ redaction, cost/quota signals, and disablement behavior. Admission requires
 current evidence; credentials do not enable an adapter. Invocation requires the
 selected provider instance and every operation data class to be explicitly
 permitted, with a deterministic no-model fallback.
+
+An admitted model or job provider is not thereby an experiment executor.
+[ADR-0016](../../adr/ADR-0016-learner-managed-experiment-execution.md) admits
+only learner-managed execution with validated result import. A future analytics
+sandbox or execution-provider adapter requires separate durable authority and
+qualification even when it implements the provider-neutral run/result seam.

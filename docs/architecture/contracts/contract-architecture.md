@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Canonical for: contract classes, sources, generation, and ownership
-- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`, `identity-provider-contract.md`, `content-package-contract.md`
+- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`, `identity-provider-contract.md`, `content-package-contract.md`, `content-authoring-workflow-contract.md`
 
 ## Contract Classes
 
@@ -17,11 +17,27 @@
 
 Portable versioned lesson packages additionally follow the [content-package contract](content-package-contract.md). Its logical package, immutability, integrity, ownership, and safe-rendering rules are canonical; exact field shapes belong in later executable JSON Schemas.
 
+Mutable platform-native authoring additionally follows
+[ADR-0017](../../adr/ADR-0017-platform-native-human-reviewed-content-authoring.md)
+and the [content-authoring workflow contract](content-authoring-workflow-contract.md).
+Draft revisions, review outcomes, preview, and future mapping reports remain
+separate from immutable published packages. External-standard payloads stay in
+optional adapters and cannot become platform content authority.
+
 Portable applied-project artifacts additionally follow
 [ADR-0011](../../adr/ADR-0011-inert-applied-project-artifacts.md). Project
 manifests, environment declarations, datasets, notebooks, code, and results are
 untrusted inert data; exact field shapes, limits, and media profiles belong in
 later executable schemas and conformance tests.
+
+Financial AI/ML experiment plans, run bundles, execution-provenance records,
+and result bundles additionally follow
+[ADR-0016](../../adr/ADR-0016-learner-managed-experiment-execution.md) and the
+[experiment execution boundary](../ai-ml/experiment-execution-boundary.md).
+Their meaning stays provider-neutral so learner-managed export/import and a
+future optional execution adapter can share one contract family. These
+contracts do not authorize execution, carry secrets, or expose provider job
+payloads as domain meaning.
 
 Reusable project records additionally follow
 [ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md). Exact schemas will

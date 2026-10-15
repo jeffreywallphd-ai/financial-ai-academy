@@ -3,12 +3,19 @@
 - Status: accepted
 - Canonical for: semantic package boundary, ownership, versioning, integrity, and safe rendering
 - Decision: [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md)
+- Authoring input: [Platform-Native Content Authoring Workflow Contract](content-authoring-workflow-contract.md)
 - Exact shapes: [lesson-package v1 JSON Schemas](../../../contracts/learning/lesson-package/v1/README.md)
 - Executable evidence: [lesson-package v1 compatibility corpus](../../../contracts/compatibility/lesson-package/v1/README.md)
 
 ## Purpose
 
 The content package is the portable published representation of one approved lesson and its bounded assessment references. It is independent of provider payloads, storage keys, database layouts, archive metadata, and mutable authoring state.
+
+ADR-0017 and the authoring workflow contract govern how a mutable exact draft
+revision becomes eligible for deterministic package build and atomic
+publication. The package remains the learner-visible authority; draft,
+preview, review, and interoperability-adapter state never changes package
+identity or immutability semantics.
 
 ## Logical Package
 
@@ -140,4 +147,8 @@ work.
 
 ## Explicit Non-Scope
 
-Mutable authoring projects, authoring UI, publication workflow, localization workflow, content signing, remote embeds, rich simulations, additional assessment types, external learning standards, and archive selection are not accepted by this contract.
+Authoring UI/editor technology, exact draft and review wire shapes, localization
+workflow, content signing, remote embeds, rich simulations, additional
+assessment types, external learning-standard selection, and archive selection
+are not accepted by this contract. Mutable authoring and publication semantics
+are governed separately by ADR-0017 and the authoring workflow contract.

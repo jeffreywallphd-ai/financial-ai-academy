@@ -9,11 +9,17 @@
 - Cloud infrastructure provider and deployment tooling
 - Job-queue implementation and delivery guarantees
 - Exact multi-tenant placement and row-policy design
-- Content authoring workflow and tooling
-- External learning interoperability scope
+- Exact content-authoring wire contracts, creator/reviewer role policy, editor
+  tooling, and collaboration mechanics within ADR-0017
+- Selection of any external learning standard, version, profile, mapping-loss
+  policy, compatibility commitment, and conformance corpus
 - Model-provider admission and local-model support matrix
 - Market-data licensing policy by provider and edition
 - Experiment governance and consent details
+- Any managed analytics sandbox or execution-provider design, including its
+  technology, trust model, images, packages, tenancy, egress, secrets, jobs,
+  quotas, cost, cleanup, monitoring, incident response, and local/cloud posture;
+  ADR-0016 preserves only an optional provider-neutral seam
 - Managed-cloud encryption, key custody, backup automation, retention, availability, RPO, and RTO
 
 ## Evidence Gaps

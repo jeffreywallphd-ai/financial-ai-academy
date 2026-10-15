@@ -12,11 +12,17 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - Source-backed provider permissions and claims
 - Inspection without execution for untrusted plugins
 - Schema, semantic, path, media, integrity, resource-bound, and renderer validation for untrusted lesson packages
+- Revision-bound human review and atomic publication for platform-native
+  authoring; preview, AI proposals, provider/import content, and future mappings
+  remain untrusted and cannot become publication authority.
 - Private-host community learner-evidence protection, confidential recovery sets, untrusted restore validation, external-secret exclusion, and restored-session/recovery revocation
 - Safe diagnostics and explicit data/model egress
 - Direct `single_profile` lesson evidence stays inside its loopback/private-host boundary and must not be generalized to built-in, OIDC, remote, or managed-cloud identity.
 - Qualified review for legal, regulatory, tax, licensing, and investment-advice conclusions
 - Treat applied-project datasets, notebooks, code, environments, and results as inert untrusted artifacts; the platform provides no kernel, subprocess, network, secret, or provider execution boundary
+- Financial experiment export/import follows ADR-0016; a provider-neutral future
+  execution seam remains optional and does not authorize a sandbox, provider
+  job, network, secret, or active preview.
 - Keep mutable Project workspaces, immutable snapshots, Assessment submissions, and linked domain-resource authorization distinct; a Project link never grants persistence, provider, or privileged-operation access
 
 ## Canonical Sources
@@ -28,6 +34,9 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - `docs/adr/ADR-0008-community-learner-evidence-protection-and-recovery.md`
 - `docs/adr/ADR-0011-inert-applied-project-artifacts.md`
 - `docs/adr/ADR-0012-reusable-project-workspace.md`
+- `docs/adr/ADR-0016-learner-managed-experiment-execution.md`
+- `docs/adr/ADR-0017-platform-native-human-reviewed-content-authoring.md`
+- `docs/architecture/contracts/content-authoring-workflow-contract.md`
 - `docs/architecture/contracts/content-package-contract.md`
 - `docs/security/community-learner-evidence-protection.md`
 - `docs/risk-compliance/README.md`

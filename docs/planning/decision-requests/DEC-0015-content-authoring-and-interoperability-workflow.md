@@ -1,14 +1,14 @@
 ---
 id: DEC-0015
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: []
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0017-platform-native-human-reviewed-content-authoring.md
 ---
 
 # Decision Request: Choose the Content Authoring and Interoperability Workflow
@@ -59,8 +59,10 @@ architecture, security, accessibility, and external-standard review.
 
 ## Decision Record and Promotion
 
-Promote the selected workflow to an ADR, content architecture, package/authoring
-contracts, security guidance, and decision readiness.
+[ADR-0017](../../adr/ADR-0017-platform-native-human-reviewed-content-authoring.md)
+selects Option A: platform-native drafts with human review and publication. It
+preserves an optional future interoperability-adapter and mapping-diagnostic
+seam but accepts no external learning standard or current support claim.
 
 ## Dependent Planning Updates
 
@@ -69,4 +71,6 @@ Reconcile CAP-0021 and any external-standard claims in export or provider plans.
 ## Planning History
 
 - 2026-10-15: Captured while shaping CAP-0021.
+- 2026-10-15: Option A was selected and promoted to ADR-0017 with a
+  non-authorizing future interoperability seam.
 
