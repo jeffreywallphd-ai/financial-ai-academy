@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "placement_id": "intro-risk-return",
+  "package_id": "intro-risk-return",
+  "package_version": "1.1.0",
+  "package_digest": "7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc",
+  "assessment_id": "risk-return-check-1",
+  "assessment_version": "1.0.0",
+  "definition_digest": "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b",
+  "item_type": "single_select",
+  "item_id": "risk-return-tradeoff",
+  "item_version": "1.0.0",
+  "scoring_policy_id": "single-select-exact-match",
+  "scoring_policy_version": "1.0.0",
+  "prompt": "Which statement best describes the general relationship between investment risk and potential return?",
+  "options": [
+    {
+      "option_id": "higher-risk-guarantees-return",
+      "label": "Taking more risk guarantees a higher return."
+    },
+    {
+      "option_id": "higher-potential-higher-uncertainty",
+      "label": "Higher potential returns generally come with greater uncertainty and risk of loss."
+    },
+    {
+      "option_id": "risk-return-unrelated",
+      "label": "Risk and potential return are unrelated."
+    }
+  ]
+}

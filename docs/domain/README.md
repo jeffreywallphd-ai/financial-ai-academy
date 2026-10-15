@@ -40,3 +40,37 @@ public operations create and open exact placements. Missing or stale references
 do not resolve a newer version. Knowledge-check meaning, attempts, scoring,
 completion evidence, and mastery remain Assessment/Learner-model work and are
 not implied by the packaged assessment file.
+
+## Deterministic Knowledge-Check Contract Terms
+
+The first executable Assessment contract establishes these terms without yet
+claiming application behavior:
+
+- **Private definition:** immutable Assessment-owned item, ordered options,
+  correct option, exact-match policy, and reviewed feedback identified by an
+  assessment/item/policy version chain and definition digest.
+- **Learner presentation:** the public prompt and options plus exact version
+  tokens, with correct-answer and feedback internals excluded.
+- **Submission:** one opaque submission identity and one selected option tied
+  to the exact placement, package, assessment, item, and policy versions.
+- **Assessment evidence:** the append-oriented semantic record of learner,
+  attempt, response, deterministic score, feedback, provenance, and server
+  time. It is not a mastery or lesson-completion projection.
+- **Knowledge-check completion event:** a bounded Assessment-owned reference
+  to durable evidence for later idempotent consumers. Event delivery and
+  projection behavior remain unimplemented.
+
+## Implemented Deterministic Assessment Core
+
+The private-host core implements the first contract terms through two public
+Assessment operations: open one placed knowledge check and submit one exact
+response. Curriculum resolves the exact placement reference; Content returns
+the exact validated private definition bytes; Assessment alone produces the
+safe presentation and score.
+
+One learner may complete the exact placed assessment once. Repeating the same
+submission identity and payload returns the original evidence. Reusing that
+identity for different input is a conflict. A different submission after
+accepted completion is `already_completed`; none of these paths creates a
+retake. Evidence and its completion event append atomically. This behavior
+still makes no lesson-completion or mastery projection.

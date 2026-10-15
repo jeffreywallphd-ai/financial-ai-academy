@@ -1,0 +1,8 @@
+{
+  "algorithm": "sha256",
+  "canonicalization": "utf8-json-sorted-keys-compact-separators",
+  "assessment_id": "risk-return-check-1",
+  "assessment_version": "1.0.0",
+  "definition_digest": "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b"
+}
+

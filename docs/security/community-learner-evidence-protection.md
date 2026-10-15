@@ -46,6 +46,15 @@ This boundary does not protect data from a compromised host, malware running wit
 
 ## Status of Evidence
 
+The initial Assessment core directly retains attempts, selected responses,
+scores, reviewed feedback, completion evidence, and a bounded completion event
+in module-owned PostgreSQL tables. Inserts are one transaction, accepted rows
+reject ordinary update/delete, public application errors are bounded, and the
+event excludes the selected response, private answer, and feedback. This
+evidence is limited to an isolated private-host PostgreSQL 18.4 test boundary;
+least-privileged deployment roles and supported-platform data-root
+permissions remain unqualified.
+
 The threat boundary is accepted. No backup or restore tool, permission profile, manifest schema, compatibility matrix, controlled restore drill, or recovery guarantee is qualified merely by this document. Delivery must satisfy the [community backup and restore qualification](../operations/community-backup-and-restore.md) before claiming operational support.
 
 Managed-cloud encryption, key custody, backup automation, availability, retention, RPO, and RTO remain outside this boundary and require separate decisions.

@@ -32,6 +32,16 @@ test("opens the approved exact lesson through the live same-origin path", async 
       "Explain why potential return and risk must be considered together.",
     ),
   ).toBeVisible();
+  const primaryNavigation = page.getByRole("navigation", {
+    name: "Primary navigation",
+  });
+  await expect(primaryNavigation).toBeVisible();
+  await expect(
+    primaryNavigation.getByRole("link", { name: "Learn" }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    primaryNavigation.getByText("Dashboard").locator(".."),
+  ).toHaveAttribute("aria-disabled", "true");
   await expect(
     page
       .getByRole("region", { name: "Educational sources" })

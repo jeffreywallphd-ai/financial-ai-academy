@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/assessment/v1/presentation.schema.json",
+  "title": "Answer-safe single-select learner presentation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "placement_id", "package_id", "package_version", "package_digest", "assessment_id", "assessment_version", "definition_digest", "item_type", "item_id", "item_version", "scoring_policy_id", "scoring_policy_version", "prompt", "options"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "placement_id": {"$ref": "#/$defs/id"},
+    "package_id": {"$ref": "#/$defs/id"},
+    "package_version": {"const": "1.1.0"},
+    "package_digest": {"$ref": "#/$defs/digest"},
+    "assessment_id": {"$ref": "#/$defs/id"},
+    "assessment_version": {"const": "1.0.0"},
+    "definition_digest": {"$ref": "#/$defs/digest"},
+    "item_type": {"const": "single_select"},
+    "item_id": {"$ref": "#/$defs/id"},
+    "item_version": {"const": "1.0.0"},
+    "scoring_policy_id": {"const": "single-select-exact-match"},
+    "scoring_policy_version": {"const": "1.0.0"},
+    "prompt": {"$ref": "#/$defs/prompt"},
+    "options": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["option_id", "label"],
+        "properties": {
+          "option_id": {"$ref": "#/$defs/id"},
+          "label": {"$ref": "#/$defs/label"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "plainText": {"type": "string", "minLength": 1, "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$"},
+    "prompt": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 400}]},
+    "label": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 160}]}
+  }
+}
+

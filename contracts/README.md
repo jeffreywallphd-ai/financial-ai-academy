@@ -14,3 +14,7 @@ compatibility/   fixtures and approved compatibility decisions
 
 No placeholder schema should be added before its semantic owner and compatibility policy are accepted. Contract architecture is documented in `docs/architecture/contracts/`.
 
+Implemented contract families include the versioned lesson package and the
+initial deterministic Assessment v1 learning/evidence records plus its
+Assessment-owned completion event. See `learning/README.md`,
+`events/README.md`, and `compatibility/README.md` for executable evidence.

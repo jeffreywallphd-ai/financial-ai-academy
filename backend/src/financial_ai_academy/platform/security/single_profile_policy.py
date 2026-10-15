@@ -26,11 +26,18 @@ class SingleProfileSecuritySettings:
 
 
 class SingleProfileRequestPolicy:
-    _CLIENT_IDENTITY_HEADERS = {
+    _CLIENT_AUTHORITY_HEADERS = {
         "x-actor-id",
         "x-learner-id",
         "x-session-id",
         "x-identity-provider",
+        "x-permission",
+        "x-score",
+        "x-correct",
+        "x-feedback-id",
+        "x-attempt-id",
+        "x-evidence-id",
+        "x-submitted-at",
     }
 
     def __init__(self, settings: SingleProfileSecuritySettings) -> None:
@@ -90,9 +97,9 @@ class SingleProfileRequestPolicy:
         normalized = {
             str(key).casefold(): str(value) for key, value in headers.items()
         }
-        if self._CLIENT_IDENTITY_HEADERS.intersection(normalized):
+        if self._CLIENT_AUTHORITY_HEADERS.intersection(normalized):
             raise RequestPolicyViolation(
-                "Client-selected identity context is prohibited."
+                "Client-selected authority context is prohibited."
             )
         host = self._normalize_host(normalized.get("host", ""))
         if host not in self._allowed_hosts:

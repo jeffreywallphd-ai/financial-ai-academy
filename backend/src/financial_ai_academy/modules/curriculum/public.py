@@ -37,6 +37,42 @@ class OpenPlacedLessonRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class AssessmentPlacement:
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    assessment_id: str
+    assessment_version: str
+    definition_digest: str
+    item_id: str
+    item_version: str
+    scoring_policy_id: str
+    scoring_policy_version: str
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class CreateAssessmentPlacementRequest:
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    assessment_id: str
+    assessment_version: str
+    definition_digest: str
+    item_id: str
+    item_version: str
+    scoring_policy_id: str
+    scoring_policy_version: str
+
+
+@dataclass(frozen=True, slots=True)
+class ResolvePlacedAssessmentRequest:
+    placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
 class LessonReadingResult:
     placement_id: str
     package_id: str
@@ -58,3 +94,11 @@ class CurriculumOperations(Protocol):
     def open_placed_lesson(
         self, request: OpenPlacedLessonRequest
     ) -> LessonReadingResult: ...
+
+    def create_assessment_placement(
+        self, request: CreateAssessmentPlacementRequest
+    ) -> AssessmentPlacement: ...
+
+    def resolve_placed_assessment(
+        self, request: ResolvePlacedAssessmentRequest
+    ) -> AssessmentPlacement: ...

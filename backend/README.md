@@ -26,6 +26,13 @@ Curriculum owns exact placement and lesson-open behavior. Identity supplies the
 single-profile learner context. PostgreSQL repositories and the restrictive
 filesystem object adapter remain private to their owning composition.
 
+Assessment now owns exact private-definition parsing, safe knowledge-check
+presentation, deterministic single-select scoring, reviewed feedback, and an
+atomic PostgreSQL attempt/response/score/completion-evidence/outbox boundary.
+Curriculum owns the exact placed-Assessment reference; Content exposes exact
+validated private bytes only through its internal public module facade.
+FastAPI composition and browser access to these operations are later work.
+
 ## Commands
 
 Use the committed Python 3.14 lock:
@@ -42,6 +49,13 @@ supplied:
 
 ```powershell
 backend/.venv/Scripts/python.exe tests/e2e/approved-lesson/run.py
+```
+
+The focused Assessment database suite applies the root, Curriculum-reference,
+and Assessment streams to an isolated database:
+
+```powershell
+backend/.venv/Scripts/python.exe -m pytest backend/tests/integration/assessment
 ```
 
 The runner requires the reviewed static web build and pinned Playwright

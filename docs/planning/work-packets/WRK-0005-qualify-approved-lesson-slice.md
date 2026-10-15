@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/pyproject.toml", "backend/uv.lock", "backend/tests/architecture", "apps/web/package.json", "apps/web/package-lock.json", "apps/web/tests/browser", "tests/e2e/approved-lesson", "tests/architecture", "deployments/local", ".github/workflows/approved-lesson-slice.yml", "dev-tools/architecture", "dev-tools/security", "backend/README.md", "apps/web/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/assurance/known-architecture-gaps.md", "docs/assurance/known-verification-gaps.md", "docs/architecture/deployment/local-open-source-profile.md", "docs/security/local-identity-architecture.md", "docs/architecture/contracts/content-package-contract.md", "docs/context/packs/architecture-contracts.pack.md", "docs/context/packs/security-risk.pack.md", "docs/context/packs/deployment-operations.pack.md", "docs/context/packs/interface-design.pack.md", "docs/context/packs/testing-quality.pack.md", "docs/context/pack-catalog.json"]
 generated_artifacts: ["backend/uv.lock", "apps/web/package-lock.json"]
-base_revision: a9503220007fedb9b67113a1b3f1e6e498fc6205
-claim_id: WRK-0005:9b09f77b-6c55-4914-ac9b-d6563f377aea
+base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
+claim_id: WRK-0005:83d99b3c-7a37-412b-9c1b-150945bffe8d
 claimed_by: codex-agent
-claimed_at: 2026-08-05T02:58:15Z
+claimed_at: 2026-08-05T12:23:18Z
 ---
 
 # Agent Work Packet: Qualify the Approved-Lesson Vertical Slice
@@ -169,7 +169,7 @@ Report the exact local topology, clean-start and teardown commands, contract/app
   path, and validates exact-name/path bounds before cleanup. Its final run
   reported Python as the application process, same-origin static serving, the
   `intro-risk-return@1.0.0` fixture, and static `index.html` SHA-256
-  `BA7020C5E4953C33A5ABDD513FC2424969EA0E23506EA02F5C34D2FE37B89896`.
+  `BD5F7028379FEFE3C3D4F12BCE100A420164DE5B835A7D4EF0AB2434B36F198A`.
 - The live Chromium suite passed 2 scenarios: complete package admission,
   placement, session bootstrap, reviewed API/generated client, title,
   objectives, constrained body, HTTPS sources, exact version/digest,
@@ -183,25 +183,26 @@ Report the exact local topology, clean-start and teardown commands, contract/app
   malicious packages, immutable conflicts, corrupt objects, database failure,
   stale versions, session denial/expiry/revocation, boundary enforcement,
   OpenAPI stability, and sentinel redaction.
-- A clean Node 24.14/npm 10.8.2 install passed generated-client drift,
-  TypeScript, oxlint, 18 Vitest unit/component/contract tests, the 6-scenario
-  focused Playwright Chromium matrix, and the static Vite build. The focused
+- The unchanged exact Node 24.14/npm 10.8.2 dependency graph passed
+  generated-client drift, TypeScript, oxlint, 20 Vitest
+  unit/component/contract tests, the 7-scenario focused Playwright Chromium
+  matrix, and the static Vite build. The focused
   matrix explicitly scans light, dark, and system modes with axe and covers
   keyboard/focus, source-link safety, responsive and 200-percent-equivalent
   reflow, reduced motion, forced colors, loading/denial, and unknown-node
   failure. Revised visual-baseline SHA-256 values are
-  `24BECD386E9599065201E008A81F8796F45DA5480D68966B99517114F24272BC`
+  `51C1A1F865554D7E5C3D9A517CE180F071DC19FF1479C3F23E57DD44AAF44A05`
   (light) and
-  `F4D23288110B3B943471AE74B9665C6A1AAEC86BC5F78DA5DF678A877BC0C4A2`
+  `34E37BF75D006B551D3152C72C6FE2120637A139A8FEE85A2A95C7F95E094074`
   (dark).
 - The clean static build transformed 97 modules into `index.html`, one reviewed
   SVG sprite, CSS, JavaScript, and a source map only. The corresponding hashes
   are `E957891B4C9E02B50D575553C8CBAAFEBFABBDCB4160236469E9EBF7D03FAF40`
-  (SVG), `8587F070A02294E23CC4A4D68A6BC379EB64568D1A1032AA1F134F59CCBD584C`
-  (CSS), `048D2059E8D21659AD9AA9DD7B5AF8F42C28CE94AB2A4E79B93555E12153979F`
+  (SVG), `D167E6F39656DBFD0E225458FD0E08E6A0359A482A81BDB5A8809D203605A455`
+  (CSS), `48FE0DDD2102FBC5457E0E436C5DEFAB2124B1C82C7B45AF882D23DA152190FB`
   (JavaScript), and
-  `1BA6FF55142EE5408A76794D54220041FB2CCFF71FC886355890CB9F614DE146`
-  (source map). Architecture fitness functions passed 7 cross-boundary rules;
+  `C4D24454345394F88BD60D6CFF72BA0CB88426636D540ED18BCCAA1C18C60423`
+  (source map). Architecture fitness functions passed 8 cross-boundary rules;
   security checks passed 10 control groups.
 - The Python lock SHA-256 is
   `30E37AD78559A2134946E2EC85982BCB2657770B25FCD127EDAC8D8AFED8A179`;
@@ -256,6 +257,21 @@ Report the exact local topology, clean-start and teardown commands, contract/app
   A separate `--skip-checks --smoke-start` run reached both loopback servers
   and removed its uniquely named PostgreSQL composition and synthetic data
   root.
+- Sidebar requalification passed 20 Vitest tests in 6 files, all 7 focused
+  Chromium scenarios, and both live Chromium scenarios. The browser evidence
+  covers the expanded navigation, compact navigation, narrow drawer,
+  menu/close focus transfer, Escape restoration, forced colors, reflow, and
+  zero axe violations. Only Learn is an active destination; future product
+  areas remain visibly planned, semantically disabled non-links. The live
+  same-origin path also verifies the current-page and disabled-navigation
+  semantics against real PostgreSQL and the Python static host.
+- The sidebar delta did not change JavaScript dependencies or the committed npm
+  lock. A clean `npm ci` re-run could not replace Rolldown's native binary while
+  an existing project Vite process held it open on Windows. No user process was
+  stopped. An exact in-place install restored the unchanged lock graph, after
+  which type, lint, unit/component, build, focused browser, live browser,
+  architecture, security, design, documentation, planning, readiness,
+  advisory, and whitespace checks all passed.
 - The bootstrap qualification retained its raw failures. Windows fnm could not
   launch the extensionless npm shim, and a user-level npm global prefix
   redirected a global pin outside the selected runtime. The final bootstrap
@@ -279,3 +295,5 @@ Report the exact local topology, clean-start and teardown commands, contract/app
 - 2026-08-05: Added and directly qualified the cross-shell npm runner, API-only loopback development composition, exact process/database/data cleanup, and Windows Node/npm subprocess handoff.
 - 2026-08-05: Reopened within the existing scope to add an fnm-managed Node/npm bootstrap in front of the cross-shell development runner.
 - 2026-08-05: Added and directly qualified the idempotent fnm/Node/project-local npm bootstrap, bounded Windows Docker port retry, complete check handoff, development smoke start, and exact cleanup.
+- 2026-08-05: Reopened for aggregate browser, architecture, and local-runtime requalification after the application shell gained its responsive primary sidebar.
+- 2026-08-05: Requalified the responsive sidebar across component, focused browser, and live same-origin paths; regenerated the light/dark baselines and retained the active-dev-process clean-install caveat without stopping user-owned work.

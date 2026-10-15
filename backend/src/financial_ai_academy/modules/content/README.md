@@ -7,11 +7,19 @@ provenance, safe typed lesson bodies, and private object-storage references.
 
 - `ContentService.admit_lesson_package(AdmitLessonPackageRequest) -> AcceptedPackageVersion`
 - `ContentService.get_published_lesson_version(GetPublishedLessonVersionRequest) -> PublishedLesson`
+- `ContentService.get_published_assessment_definition(GetPublishedAssessmentDefinitionRequest) -> PublishedAssessmentDefinition`
 
 The read operation resolves one exact package ID, semantic version, and optional
 digest. It never substitutes `latest`. Public results contain closed body-node
 types and application-controlled asset identifiers; they contain no CommonMark,
 HTML, host path, object key, database row, or driver value.
+
+The private Assessment-definition query is an internal public module seam, not
+a learner API. It returns exact validated bytes plus package/assessment and
+file-digest identity without a logical path or object key. Admission validates
+the complete Assessment v1 definition contract while leaving item meaning and
+runtime scoring to Assessment. The accepted 1.0.0 `referenced-only` fixture
+remains compatible.
 
 ## Persistence and storage
 

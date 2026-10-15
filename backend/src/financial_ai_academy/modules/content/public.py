@@ -207,6 +207,25 @@ class GetPublishedLessonVersionRequest:
     package_digest: str | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class GetPublishedAssessmentDefinitionRequest:
+    package_id: str
+    package_version: str
+    package_digest: str
+    assessment_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class PublishedAssessmentDefinition:
+    package_id: str
+    package_version: str
+    package_digest: str
+    assessment_id: str
+    schema_version: str
+    file_digest: str
+    value: bytes
+
+
 @runtime_checkable
 class ContentOperations(Protocol):
     def admit_lesson_package(
@@ -216,3 +235,7 @@ class ContentOperations(Protocol):
     def get_published_lesson_version(
         self, request: GetPublishedLessonVersionRequest
     ) -> PublishedLesson: ...
+
+    def get_published_assessment_definition(
+        self, request: GetPublishedAssessmentDefinitionRequest
+    ) -> PublishedAssessmentDefinition: ...

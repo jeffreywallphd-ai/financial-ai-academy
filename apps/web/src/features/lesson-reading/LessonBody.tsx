@@ -131,7 +131,7 @@ function renderBodyNode(
       );
     case "code_block":
       return (
-        <pre>
+        <pre aria-label="Code example" tabIndex={0}>
           <code data-language={node.language ?? undefined}>
             {node.code}
           </code>

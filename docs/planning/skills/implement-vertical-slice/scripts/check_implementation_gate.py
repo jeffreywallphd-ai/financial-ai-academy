@@ -77,7 +77,15 @@ def scope_items(value: object) -> list[str]:
             try:
                 parsed = json.loads(text)
             except json.JSONDecodeError:
-                return []
+                inner = text[1:-1].strip() if text.endswith("]") else ""
+                parsed = (
+                    [
+                        item.strip().strip(chr(34)).strip(chr(39))
+                        for item in inner.split(",")
+                    ]
+                    if inner
+                    else []
+                )
             items = parsed if isinstance(parsed, list) else []
         else:
             items = [text]

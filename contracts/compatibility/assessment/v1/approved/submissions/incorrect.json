@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "submission_id": "33333333-3333-4333-8333-333333333333",
+  "placement_id": "intro-risk-return",
+  "package_id": "intro-risk-return",
+  "package_version": "1.1.0",
+  "package_digest": "7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc",
+  "assessment_id": "risk-return-check-1",
+  "assessment_version": "1.0.0",
+  "definition_digest": "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b",
+  "item_id": "risk-return-tradeoff",
+  "item_version": "1.0.0",
+  "scoring_policy_id": "single-select-exact-match",
+  "scoring_policy_version": "1.0.0",
+  "selected_option_id": "higher-risk-guarantees-return"
+}

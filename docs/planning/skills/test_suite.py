@@ -126,7 +126,7 @@ def main() -> int:
 
         active_slice = slice_text.replace("planning_status: shaping", "planning_status: ready")
         active_slice_path = write(temp / "vertical-slices" / "SLI-0002-ready.md", active_slice.replace("SLI-0001", "SLI-0002"))
-        active_packet = packet.replace("WRK-0001", "WRK-0003").replace("SLI-0001", "SLI-0002").replace("planning_status: shaping", "planning_status: ready").replace("write_scope: []", 'write_scope: ["modules/learning"]')
+        active_packet = packet.replace("WRK-0001", "WRK-0003").replace("SLI-0001", "SLI-0002").replace("planning_status: shaping", "planning_status: ready").replace("write_scope: []", "write_scope: [modules/learning]")
         active_packet_path = write(temp / "work-packets" / "WRK-0003-ready.md", active_packet)
         record(temp, "SLI-0002", "selection")
         record(temp, "WRK-0003", "planning")
@@ -145,8 +145,8 @@ def main() -> int:
         bundled_packet_b = bundled_packet_a.replace("WRK-0101", "WRK-0102").replace(
             "depends_on: []", 'depends_on: ["WRK-0101"]'
         ).replace(
-            'write_scope: ["modules/learning"]',
-            'write_scope: ["modules/assessment"]',
+            "write_scope: [modules/learning]",
+            "write_scope: [modules/assessment]",
         )
         bundled_packet_a_path = write(
             temp / "docs/planning/work-packets/WRK-0101-first.md",

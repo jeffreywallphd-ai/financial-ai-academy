@@ -118,6 +118,26 @@ rendering for the approved no-asset fixture. Managed object storage, real
 passive-asset delivery, archive transport, authoring, and complete local/cloud
 adapter parity remain future evidence and must not be inferred.
 
+### Assessment-bearing Successor Fixture
+
+The synthetic `intro-risk-return@1.1.0` compatibility fixture is the first
+immutable package carrying a complete Assessment v1 definition. Its package
+digest is
+`7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc`.
+It preserves the accepted 1.0.0 lesson-body bytes while replacing the earlier
+`referenced-only` Assessment placeholder with a private definition whose
+meaning digest is
+`98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b`.
+
+Content treats that JSON file as declared, integrity-protected package bytes
+and validates its closed Assessment v1 shape, definition digest, and option
+membership at admission. The [Assessment contract](assessment-contract.md)
+owns its item, correct-answer, feedback, scoring, response, evidence, and
+completion-event semantics. Direct tests now cover Content admission/private
+retrieval and Assessment application/PostgreSQL scoring/persistence. API, UI,
+recovery, and cloud support for the successor remain separate qualification
+work.
+
 ## Explicit Non-Scope
 
 Mutable authoring projects, authoring UI, publication workflow, localization workflow, content signing, remote embeds, rich simulations, additional assessment types, external learning standards, and archive selection are not accepted by this contract.

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from ..domain.models import StoredLessonPackage, ValidatedLessonPackage
 from ..ports.object_storage import ObjectStoragePort, StagedObject
 from ..ports.package_validator import (
@@ -13,9 +15,11 @@ from ..public import (
     AcceptedPackageVersion,
     AdmitLessonPackageRequest,
     GetPublishedLessonVersionRequest,
+    GetPublishedAssessmentDefinitionRequest,
     LessonErrorCode,
     LessonReadError,
     PublishedLesson,
+    PublishedAssessmentDefinition,
 )
 
 
@@ -104,6 +108,41 @@ class ContentService:
             )
         return self._verify_stored(stored)
 
+    def get_published_assessment_definition(
+        self, request: GetPublishedAssessmentDefinitionRequest
+    ) -> PublishedAssessmentDefinition:
+        stored = self._get_existing(request.package_id, request.package_version)
+        if stored is None or stored.lesson.package_digest != request.package_digest:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "The exact published assessment definition was not found.",
+                reference=f"{request.package_id}@{request.package_version}",
+            )
+        validated = self._validate_stored(stored)
+        try:
+            manifest = json.loads(validated.files["manifest.json"].decode("utf-8"))
+            declaration = next(
+                item
+                for item in manifest["assessments"]
+                if item["assessment_id"] == request.assessment_id
+            )
+            value = validated.files[declaration["path"]]
+        except (KeyError, StopIteration, TypeError, UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "The exact published assessment definition was not found.",
+                reference=request.assessment_id,
+            ) from error
+        return PublishedAssessmentDefinition(
+            package_id=stored.lesson.package_id,
+            package_version=stored.lesson.package_version,
+            package_digest=stored.lesson.package_digest,
+            assessment_id=str(declaration["assessment_id"]),
+            schema_version=str(declaration["schema_version"]),
+            file_digest=str(declaration["sha256"]),
+            value=value,
+        )
+
     def _validate_for_admission(
         self, request: AdmitLessonPackageRequest
     ) -> ValidatedLessonPackage:
@@ -142,6 +181,11 @@ class ContentService:
             ) from error
 
     def _verify_stored(self, stored: StoredLessonPackage) -> PublishedLesson:
+        return self._validate_stored(stored).lesson
+
+    def _validate_stored(
+        self, stored: StoredLessonPackage
+    ) -> ValidatedLessonPackage:
         try:
             files = self._object_storage.read(stored.object_key)
             measured = self._validator.validate_files(files)
@@ -174,7 +218,7 @@ class ContentService:
                 "Stored lesson metadata and bytes do not match.",
                 reference=f"{expected.package_id}@{expected.package_version}",
             )
-        return actual
+        return measured
 
     @staticmethod
     def _assert_same_immutable_version(

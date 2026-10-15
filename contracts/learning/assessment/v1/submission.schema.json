@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/assessment/v1/submission.schema.json",
+  "title": "Exact-version single-select submission command",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "submission_id", "placement_id", "package_id", "package_version", "package_digest", "assessment_id", "assessment_version", "definition_digest", "item_id", "item_version", "scoring_policy_id", "scoring_policy_version", "selected_option_id"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "submission_id": {"$ref": "#/$defs/opaqueId"},
+    "placement_id": {"$ref": "#/$defs/id"},
+    "package_id": {"$ref": "#/$defs/id"},
+    "package_version": {"const": "1.1.0"},
+    "package_digest": {"$ref": "#/$defs/digest"},
+    "assessment_id": {"$ref": "#/$defs/id"},
+    "assessment_version": {"const": "1.0.0"},
+    "definition_digest": {"$ref": "#/$defs/digest"},
+    "item_id": {"$ref": "#/$defs/id"},
+    "item_version": {"const": "1.0.0"},
+    "scoring_policy_id": {"const": "single-select-exact-match"},
+    "scoring_policy_version": {"const": "1.0.0"},
+    "selected_option_id": {"$ref": "#/$defs/id"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "opaqueId": {"type": "string", "format": "uuid"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}
+

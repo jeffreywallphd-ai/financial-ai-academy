@@ -1,7 +1,7 @@
 ---
 id: SLI-0001
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-agent
 updated: 2026-08-05
@@ -186,7 +186,7 @@ build, hash, failure, and residual-risk details.
 | Slice scenario | Owning evidence | Result |
 | --- | --- | --- |
 | Open approved exact version | Real PostgreSQL/filesystem backend integration plus live Chromium `approved-lesson.e2e.ts` | Direct pass |
-| Theme and responsive parity | Six focused Playwright scenarios, explicit light/dark/system axe scans, reviewed Windows baselines, narrow and 200-percent-equivalent reflow | Direct automated pass; actual zoom control and other platforms remain gaps |
+| Theme and responsive parity | Seven focused Playwright scenarios, explicit light/dark/system axe scans, reviewed Windows baselines, responsive sidebar drawer, narrow and 200-percent-equivalent reflow | Direct automated pass; actual zoom control and other platforms remain gaps |
 | Keyboard and assistive access | Component semantics, keyboard/skip/focus browser path, axe in all themes and live fixture | Direct automated pass; manual screen-reader use remains a gap |
 | Missing or invalid learner context | Identity/API missing, tampered, expired, revoked, client-selected, Host, and Origin denial plus live no-cookie request | Direct pass with bounded responses and no lesson internals |
 | Missing or stale exact version | Curriculum/application tests and live missing-placement browser path | Direct pass; no `latest` substitution |
@@ -203,10 +203,10 @@ build, hash, failure, and residual-risk details.
   18.4 server: architecture, package contract, API/Identity, filesystem/
   PostgreSQL integration, and focused module suites.
 - The OpenAPI and generated-client `--check` commands passed byte-stably.
-- A clean `npm --prefix apps/web ci` under Node 24.14/npm 10.8.2 passed
-  TypeScript, oxlint, 18 Vitest tests, 6 focused Playwright Chromium tests, the
+- The unchanged exact Node 24.14/npm 10.8.2 dependency graph passed
+  TypeScript, oxlint, 20 Vitest tests, 7 focused Playwright Chromium tests, the
   2-scenario live Playwright path, and the 97-module static Vite build.
-- `python dev-tools/architecture/check_architecture.py` passed 7 fitness
+- `python dev-tools/architecture/check_architecture.py` passed 8 fitness
   functions; `python dev-tools/security/check_slice_security.py` passed 10
   control groups.
 - npm audit and pip-audit over the exact runtime export found zero known
@@ -221,6 +221,13 @@ build, hash, failure, and residual-risk details.
   Compose project and ignored synthetic data root. The verification host's
   default shell Node 20.20.1 was correctly rejected; the passing run used
   Node 24.14.0 and npm 10.8.2 as required by ADR-0009.
+- The sidebar-inclusive requalification passed the responsive drawer,
+  keyboard/focus restoration, reflow, forced-color, axe, current-navigation,
+  planned-navigation, and live same-origin assertions. The active development
+  server retained a Windows lock on Rolldown's native binary, so the clean
+  reinstall substep was not repeated for this UI-only delta; the unchanged
+  lock graph was restored in place and every executable gate above passed
+  without stopping the user-owned process.
 
 ### Contracts, Data, Migration, and Rollback
 
@@ -274,3 +281,5 @@ in the ignored local ledger.
 - 2026-08-05: WRK-0005 was reopened and requalified within its existing scope to add the one-command Git Bash/PowerShell development runner; slice completion acceptance remains separate.
 - 2026-08-05: WRK-0005 was reopened within its existing scope for an fnm-managed runtime bootstrap; slice completion acceptance remains separate.
 - 2026-08-05: WRK-0005 completed after the fnm-managed bootstrap, complete check handoff, and development smoke start passed; the slice returned to verifying for separate completion acceptance.
+- 2026-08-05: WRK-0004 and WRK-0005 were reopened for the canonical responsive sidebar and its aggregate requalification; slice completion acceptance remains separate.
+- 2026-08-05: WRK-0004 completed and WRK-0005 requalified the sidebar-inclusive application shell; the slice returned to verification for separate completion acceptance.

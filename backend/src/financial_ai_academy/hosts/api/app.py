@@ -20,6 +20,13 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie
 
+from financial_ai_academy.modules.assessment.public import (
+    AssessmentError,
+    AssessmentErrorCode,
+    AssessmentOperations,
+    OpenPlacedKnowledgeCheckRequest,
+    SubmitPlacedKnowledgeCheckRequest,
+)
 from financial_ai_academy.modules.content.public import (
     LessonErrorCode,
     LessonReadError,
@@ -43,9 +50,14 @@ from financial_ai_academy.platform.security.single_profile_policy import (
 from .models import (
     ApiErrorEnvelope,
     HealthResponseModel,
+    KnowledgeCheckPresentationResponseModel,
+    KnowledgeCheckResultResponseModel,
+    KnowledgeCheckSubmissionRequestModel,
     LessonReadingResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
+    knowledge_check_presentation_response,
+    knowledge_check_result_response,
     lesson_response,
 )
 
@@ -55,6 +67,7 @@ class ApiServices:
     identity: IdentityOperations
     curriculum: CurriculumOperations
     request_policy: SingleProfileRequestPolicy
+    assessment: AssessmentOperations | None = None
 
 
 _ERROR_RESPONSES = {
@@ -163,6 +176,41 @@ def create_app(services: ApiServices) -> FastAPI:
             request.state.correlation_id,
         )
 
+    @app.exception_handler(AssessmentError)
+    async def assessment_error_handler(
+        request: Request, error: AssessmentError
+    ) -> JSONResponse:
+        http_status = {
+            AssessmentErrorCode.INVALID_DEFINITION: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            AssessmentErrorCode.INVALID_SUBMISSION: (
+                status.HTTP_400_BAD_REQUEST
+            ),
+            AssessmentErrorCode.UNSUPPORTED_VERSION: (
+                status.HTTP_409_CONFLICT
+            ),
+            AssessmentErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
+            AssessmentErrorCode.STALE_REFERENCE: status.HTTP_409_CONFLICT,
+            AssessmentErrorCode.UNKNOWN_OPTION: status.HTTP_400_BAD_REQUEST,
+            AssessmentErrorCode.CONFLICT: status.HTTP_409_CONFLICT,
+            AssessmentErrorCode.ALREADY_COMPLETED: (
+                status.HTTP_409_CONFLICT
+            ),
+            AssessmentErrorCode.UNAUTHORIZED_CONTEXT: (
+                status.HTTP_401_UNAUTHORIZED
+            ),
+            AssessmentErrorCode.UNAVAILABLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.safe_message,
+            request.state.correlation_id,
+        )
+
     @app.exception_handler(RequestValidationError)
     async def request_validation_handler(
         request: Request, _error: RequestValidationError
@@ -264,6 +312,72 @@ def create_app(services: ApiServices) -> FastAPI:
         )
         return lesson_response(reading)
 
+    @app.get(
+        "/api/v1/curriculum/placements/{placement_id}/knowledge-check",
+        response_model=KnowledgeCheckPresentationResponseModel,
+        operation_id="getPlacedKnowledgeCheck",
+        responses=_ERROR_RESPONSES,
+        tags=["assessment"],
+    )
+    def get_placed_knowledge_check(
+        placement_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        _context: LearnerContext = Depends(learner_context),
+    ) -> KnowledgeCheckPresentationResponseModel:
+        assessment = _assessment_service(services.assessment)
+        presentation = assessment.open_placed_knowledge_check(
+            OpenPlacedKnowledgeCheckRequest(placement_id)
+        )
+        return knowledge_check_presentation_response(presentation)
+
+    @app.post(
+        "/api/v1/curriculum/placements/{placement_id}/knowledge-check/submissions",
+        response_model=KnowledgeCheckResultResponseModel,
+        operation_id="submitPlacedKnowledgeCheck",
+        responses=_ERROR_RESPONSES,
+        tags=["assessment"],
+    )
+    def submit_placed_knowledge_check(
+        request_model: KnowledgeCheckSubmissionRequestModel,
+        placement_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        context: LearnerContext = Depends(learner_context),
+    ) -> KnowledgeCheckResultResponseModel:
+        if request_model.placement_id != placement_id:
+            raise AssessmentError(
+                AssessmentErrorCode.STALE_REFERENCE,
+                "Knowledge-check version references do not match.",
+                reference="placement_id",
+            )
+        assessment = _assessment_service(services.assessment)
+        result = assessment.submit_placed_knowledge_check(
+            SubmitPlacedKnowledgeCheckRequest(
+                learner_id=context.learner_id,
+                submission_id=str(request_model.submission_id),
+                placement_id=placement_id,
+                package_id=request_model.package_id,
+                package_version=request_model.package_version,
+                package_digest=request_model.package_digest,
+                assessment_id=request_model.assessment_id,
+                assessment_version=request_model.assessment_version,
+                definition_digest=request_model.definition_digest,
+                item_id=request_model.item_id,
+                item_version=request_model.item_version,
+                scoring_policy_id=request_model.scoring_policy_id,
+                scoring_policy_version=(
+                    request_model.scoring_policy_version
+                ),
+                selected_option_id=request_model.selected_option_id,
+            )
+        )
+        return knowledge_check_result_response(result)
+
     def reviewed_openapi() -> dict[str, object]:
         if app.openapi_schema is None:
             schema = get_openapi(
@@ -298,3 +412,14 @@ def _error_response(
         status_code=http_status,
         content=envelope.model_dump(mode="json"),
     )
+
+
+def _assessment_service(
+    assessment: AssessmentOperations | None,
+) -> AssessmentOperations:
+    if assessment is None:
+        raise AssessmentError(
+            AssessmentErrorCode.UNAVAILABLE,
+            "The knowledge-check service is unavailable.",
+        )
+    return assessment

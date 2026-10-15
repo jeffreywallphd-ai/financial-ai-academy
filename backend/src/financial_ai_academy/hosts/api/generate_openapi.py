@@ -7,6 +7,12 @@ import json
 from pathlib import Path
 from typing import Sequence
 
+from financial_ai_academy.modules.assessment.public import (
+    KnowledgeCheckPresentation,
+    KnowledgeCheckResult,
+    OpenPlacedKnowledgeCheckRequest,
+    SubmitPlacedKnowledgeCheckRequest,
+)
 from financial_ai_academy.modules.identity.public import (
     IdentityError,
     IdentityErrorCode,
@@ -45,6 +51,18 @@ class _SchemaCurriculum:
         raise NotImplementedError
 
 
+class _SchemaAssessment:
+    def open_placed_knowledge_check(
+        self, request: OpenPlacedKnowledgeCheckRequest
+    ) -> KnowledgeCheckPresentation:
+        raise NotImplementedError
+
+    def submit_placed_knowledge_check(
+        self, request: SubmitPlacedKnowledgeCheckRequest
+    ) -> KnowledgeCheckResult:
+        raise NotImplementedError
+
+
 def repository_root() -> Path:
     return Path(__file__).resolve().parents[5]
 
@@ -68,6 +86,7 @@ def generate_bytes() -> bytes:
             identity=_SchemaIdentity(),  # type: ignore[arg-type]
             curriculum=_SchemaCurriculum(),  # type: ignore[arg-type]
             request_policy=policy,
+            assessment=_SchemaAssessment(),
         )
     )
     return (

@@ -6,6 +6,7 @@
 - Canonical-document metadata/status checks outside the governed planning artifacts
 - Agent routing scenarios outside the governed planning-skill approval and authority paths
 - Python module dependency and public-surface checks beyond the directly covered Content/Curriculum seam
+- Assessment HTTP authorization/composition, OpenAPI/generated client, UI, live same-origin runtime, outbox delivery/consumption, learner projection/history, recovery, and managed-cloud behavior beyond the directly covered v1 contracts, application scoring, Content/Curriculum public seams, and PostgreSQL evidence/outbox transaction
 - OpenAPI compatibility and version-change policy checks beyond the directly covered deterministic snapshot and generated-client drift evidence
 - ADR-0009 multi-platform clean-install/build qualification, non-Chromium browser compatibility, and managed-cloud deployment-manifest parity beyond the directly covered Windows/CI-targeted Node 24 static build, no-Node-server source/artifact checks, exact lockfiles, generated client, dependency/license/vulnerability inspection, and loopback Python same-origin runtime
 - Provider conformance suites

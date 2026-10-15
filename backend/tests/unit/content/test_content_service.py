@@ -18,6 +18,7 @@ from financial_ai_academy.modules.content.ports.repositories import (
 )
 from financial_ai_academy.modules.content.public import (
     AdmitLessonPackageRequest,
+    GetPublishedAssessmentDefinitionRequest,
     GetPublishedLessonVersionRequest,
     LessonErrorCode,
     LessonReadError,
@@ -34,6 +35,10 @@ APPROVED = (
     / "contracts/compatibility/lesson-package/v1/approved/intro-risk-return"
 )
 SCHEMAS = REPOSITORY / "contracts/learning/lesson-package/v1"
+SUCCESSOR = (
+    REPOSITORY
+    / "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-knowledge-check"
+)
 
 
 class MemoryContentRepository:
@@ -121,6 +126,26 @@ def unsafe_package(tmp_path: Path) -> Path:
     value = lesson_path.read_bytes()
     manifest["lesson"]["size_bytes"] = len(value)
     manifest["lesson"]["sha256"] = hashlib.sha256(value).hexdigest()
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2) + chr(10), encoding="utf-8"
+    )
+    return target
+
+
+def invalid_assessment_package(tmp_path: Path) -> Path:
+    target = tmp_path / "invalid-assessment"
+    shutil.copytree(SUCCESSOR, target)
+    definition_path = target / "assessments/check-1.json"
+    definition = json.loads(definition_path.read_text(encoding="utf-8"))
+    del definition["assessment"]["item"]["correct_option_id"]
+    definition_path.write_text(
+        json.dumps(definition, indent=2) + chr(10), encoding="utf-8"
+    )
+    manifest_path = target / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    value = definition_path.read_bytes()
+    manifest["assessments"][0]["size_bytes"] = len(value)
+    manifest["assessments"][0]["sha256"] = hashlib.sha256(value).hexdigest()
     manifest_path.write_text(
         json.dumps(manifest, indent=2) + chr(10), encoding="utf-8"
     )
@@ -280,3 +305,58 @@ def test_public_result_has_no_storage_or_database_field() -> None:
     prohibited = {"path", "object_key", "storage_key", "row", "driver"}
     public_fields = {field.name for field in fields(PublishedLesson)}
     assert public_fields.isdisjoint(prohibited)
+
+
+def test_successor_admission_exposes_exact_private_definition_only_internally(
+    tmp_path: Path,
+) -> None:
+    service, _repository, _storage = build_service(tmp_path)
+    accepted = service.admit_lesson_package(
+        AdmitLessonPackageRequest(SUCCESSOR)
+    )
+    definition = service.get_published_assessment_definition(
+        GetPublishedAssessmentDefinitionRequest(
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+            assessment_id="risk-return-check-1",
+        )
+    )
+    expected = (SUCCESSOR / "assessments/check-1.json").read_bytes()
+    assert definition.value == expected
+    assert definition.file_digest == hashlib.sha256(expected).hexdigest()
+    assert definition.package_digest == accepted.package_digest
+    assert not hasattr(definition, "path")
+    assert not hasattr(definition, "object_key")
+
+
+def test_private_definition_query_fails_closed_for_stale_digest(
+    tmp_path: Path,
+) -> None:
+    service, _repository, _storage = build_service(tmp_path)
+    accepted = service.admit_lesson_package(
+        AdmitLessonPackageRequest(SUCCESSOR)
+    )
+    with pytest.raises(LessonReadError) as captured:
+        service.get_published_assessment_definition(
+            GetPublishedAssessmentDefinitionRequest(
+                package_id=accepted.package_id,
+                package_version=accepted.package_version,
+                package_digest="a" * 64,
+                assessment_id="risk-return-check-1",
+            )
+        )
+    assert captured.value.code is LessonErrorCode.NOT_FOUND
+
+
+def test_invalid_private_definition_fails_before_publication(
+    tmp_path: Path,
+) -> None:
+    service, repository, _storage = build_service(tmp_path)
+    with pytest.raises(LessonReadError) as captured:
+        service.admit_lesson_package(
+            AdmitLessonPackageRequest(invalid_assessment_package(tmp_path))
+        )
+    assert captured.value.code is LessonErrorCode.INVALID_PACKAGE
+    assert captured.value.diagnostic_code == "assessment.schema_invalid"
+    assert repository.records == {}

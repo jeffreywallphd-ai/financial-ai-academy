@@ -35,6 +35,10 @@ describe("LessonReadingPage", () => {
       "src",
       "/api/v1/content/assets/risk-spectrum",
     );
+    expect(screen.getByLabelText("Code example")).toHaveAttribute(
+      "tabindex",
+      "0",
+    );
   });
 
   it("marks external reviewed sources and prevents opener access", () => {

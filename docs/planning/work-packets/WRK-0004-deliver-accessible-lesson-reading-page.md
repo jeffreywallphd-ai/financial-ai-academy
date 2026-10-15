@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/package.json", "apps/web/package-lock.json", "apps/web/index.html", "apps/web/tsconfig.json", "apps/web/vite.config.ts", "apps/web/src/app", "apps/web/src/components", "apps/web/src/features/lesson-reading", "apps/web/src/platform/auth", "apps/web/src/platform/theme", "apps/web/src/styles", "apps/web/tests/unit", "apps/web/tests/component", "apps/web/tests/browser", "apps/web/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md"]
 generated_artifacts: ["apps/web/package-lock.json"]
-base_revision: a9503220007fedb9b67113a1b3f1e6e498fc6205
-claim_id: WRK-0004:26d7eed0-4ef4-4b8c-824c-227fef6373ff
+base_revision: 204c9f14a18bcfd6d48d41bdb5dfe43be32c4b8a
+claim_id: WRK-0004:d13c9f90-3c81-4af7-a9a9-ce93df95bc47
 claimed_by: codex-agent
-claimed_at: 2026-08-05T01:19:22Z
+claimed_at: 2026-08-05T12:08:45Z
 ---
 
 # Agent Work Packet: Deliver the Accessible Lesson-Reading Page
@@ -140,8 +140,16 @@ Report routes and state model, generated-client operations consumed, renderer no
 - The generated OpenAPI types remain the only public lesson model. Runtime validation closes unsafe or missing discriminators, unapproved schemes/source IDs, undeclared assets, non-application asset locators, excessive nesting/node counts, malformed digests, and invalid content before presentation.
 - The ordinary React renderer exhaustively handles heading, paragraph, code block, thematic break, bullet/ordered list, text, inline code, soft/hard break, emphasis, strong, reviewed HTTPS source link, and declared passive image nodes. It uses no `dangerouslySetInnerHTML`, runtime HTML sanitizer, remote embed, backend import, database/provider access, or hand-maintained API field model.
 - The page visibly presents title, objectives, reviewed source title/publisher/review date, package ID/version/digest, publisher/publication/review provenance, and the educational-use/advice boundary. Its reading column and context rail preserve reading order when stacked.
-- Light, dark, and system preferences use only existing `--faa-*` tokens and reviewed sprite icons. The non-sensitive theme preference is the only browser-local value persisted; content and actions are identical across themes. Baseline SHA-256 values are `24BECD386E9599065201E008A81F8796F45DA5480D68966B99517114F24272BC` (light) and `F4D23288110B3B943471AE74B9665C6A1AAEC86BC5F78DA5DF678A877BC0C4A2` (dark).
-- A clean npm install reproduced under Node 24.14/npm 10.8.2. TypeScript 7 and oxlint pass; five Vitest files provide 18 passing unit/component/static-boundary tests, and six Playwright Chromium tests pass with zero axe violations. Browser evidence covers theme visuals, keyboard/skip-link/focus, safe external links, narrow and 200-percent-equivalent reflow, reduced motion, forced colors, loading/denial, redaction, and unknown-node failure.
+- The application shell now implements the canonical primary navigation as a
+  240 px expanded sidebar, 72 px compact sidebar with visible hover/focus
+  labels, and narrow-screen drawer. `Learn` is the sole active route; future
+  product areas are labeled `Planned` and remain noninteractive. The drawer
+  uses the existing menu/close icons, removes closed navigation from keyboard
+  and accessibility traversal, focuses its close control when opened, closes
+  with Escape or the overlay, restores menu-button focus, prevents background
+  scrolling, and honors reduced motion and forced colors.
+- Light, dark, and system preferences use only existing `--faa-*` tokens and reviewed sprite icons. The non-sensitive theme preference is the only browser-local value persisted; content and actions are identical across themes. Revised sidebar-inclusive baseline SHA-256 values are `51C1A1F865554D7E5C3D9A517CE180F071DC19FF1479C3F23E57DD44AAF44A05` (light) and `34E37BF75D006B551D3152C72C6FE2120637A139A8FEE85A2A95C7F95E094074` (dark).
+- A clean npm install reproduced under Node 24.14/npm 10.8.2. TypeScript 7 and oxlint pass; six Vitest files provide 20 passing unit/component/static-boundary tests, and seven Playwright Chromium tests pass with zero axe violations. Browser evidence covers theme visuals, expanded/compact/drawer navigation, drawer focus and Escape behavior, keyboard/skip-link/focus, safe external links, narrow and 200-percent-equivalent reflow, reduced motion, forced colors, loading/denial, redaction, and unknown-node failure.
 - Vite 8 transformed 97 modules into static-only `index.html`, CSS, JavaScript, source map, and the reviewed SVG sprite. The inspected build contained no server entry, backend/database dependency, `react-router-dom` compatibility package, or Framework Mode package. The package-lock SHA-256 is `FBC50B9DA87CA62BE69E092284C26E04A8BDDA59A75A99A8AF6B1EEFDB138374`.
 - npm audit reported zero known vulnerabilities. All 190 resolved package relationships declared licenses; the inventory contains MIT, MIT-0, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, BlueOak-1.0.0, CC0-1.0, and MPL-2.0. MPL-2.0 packages are development tooling/transitives and no modified third-party source is distributed by this work.
 - `apps/web/README.md` now documents the delivered route, static/runtime boundary, exact commands, coherent loopback proxy configuration, and verification ownership. WRK-0005 receives the exact route, generated operations, visual baselines, focused tests, build command, and static artifact expectations for aggregate qualification.
@@ -153,3 +161,5 @@ Report routes and state model, generated-client operations consumed, renderer no
 - 2026-08-05: Implemented and verified the accessible generated-client lesson route, closed renderer, three-mode theme behavior, focused browser evidence, and static Vite artifact; WRK-0004 completed and handed off to WRK-0005.
 - 2026-08-05: Reopened after live approved-fixture qualification exposed insufficient light-theme contrast for muted text on the subtle surface.
 - 2026-08-05: Reused the accepted secondary-text token for the two affected surfaces, added explicit light/dark axe assertions, regenerated both visual baselines, and reran the focused WRK-0004 suite successfully.
+- 2026-08-05: Reopened within the existing application-shell scope to add the responsive primary sidebar already established by the canonical layout system.
+- 2026-08-05: Added and directly verified the expanded, compact, and drawer sidebar states with one active Learn route, explicit planned destinations, stable light/dark baselines, keyboard focus management, narrow axe coverage, and scrollable-code keyboard access.

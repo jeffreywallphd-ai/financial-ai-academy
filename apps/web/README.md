@@ -35,6 +35,12 @@ backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference
 persisted by this slice.
 
+The application shell uses the canonical primary sidebar: expanded at wide
+desktop widths, compact with labeled hover/focus disclosures at intermediate
+desktop widths, and an accessible menu drawer on narrow viewports. `Learn` is
+the only active destination in this slice. Future product areas are visibly
+marked as planned and are not exposed as dead links or fictional routes.
+
 ## Commands
 
 From the repository root, use the same bootstrap command in Git Bash or

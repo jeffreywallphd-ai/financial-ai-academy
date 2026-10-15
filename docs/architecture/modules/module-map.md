@@ -9,8 +9,8 @@
 | --- | --- | --- | --- |
 | Identity | accepted for first learner context | Provider-neutral actors and learners, provider bindings, authentication context, sessions, and application permission inputs | Identity, binding, and session changes |
 | Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
-| Curriculum | accepted; lesson placement/read core implemented | Competencies, prerequisites, pathways, course structure, and exact versioned activity placement | Curriculum-version events remain future work |
-| Assessment | accepted for first learning loop | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment evidence |
+| Curriculum | accepted; lesson and initial Assessment placement/read core implemented | Competencies, prerequisites, pathways, course structure, and exact versioned activity placement | Curriculum-version events remain future work |
+| Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
 | Learner model | accepted for first learning loop | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes |
 | Adaptation | proposed | Eligibility, ranking, deterministic policy, recommendations | Recommendation decisions and outcomes |
 | Market data | proposed | Instruments, observations, calendars, corporate actions, provider provenance | Canonical market-data events |
@@ -56,6 +56,33 @@ operations remain subject to later approved delivery planning.
   browser layers must consume that union and cannot request raw CommonMark or
   an HTML fragment.
 
-Assessment execution, learner evidence, projections, Audit delivery, module
-events, API hosts, and managed-cloud adapters remain outside this implemented
-seam.
+The deterministic Assessment seam is described separately below. Learner-model
+projections, Audit consumption, event delivery, managed-cloud adapters, and
+broader API-host behavior remain outside the lesson-read seam.
+
+## Implemented Deterministic Assessment Seams
+
+- Curriculum separately owns `curriculum.assessment_placements`, retaining the
+  exact package, definition, item, and scoring-policy identities/versions for
+  an existing lesson placement. It does not interpret Assessment meaning.
+- Content validates complete Assessment v1 bytes at package admission and
+  exposes an exact private-definition query through its public module facade.
+  It does not expose paths/object keys or become a scorer.
+- Assessment calls only the Curriculum and Content public facades through
+  owned gateways. Architecture tests reject imports of their internals and
+  cross-schema persistence access.
+- Assessment owns answer-safe presentation, option validation, exact-match
+  scoring, reviewed feedback selection, and the public application operations
+  for opening/submitting one placed knowledge check.
+- Assessment owns `assessment.attempts`, `responses`, `scores`,
+  `completion_evidence`, and `outbox`. One PostgreSQL transaction appends one
+  evidence/event set; unique constraints distinguish exact replay, conflicting
+  submission reuse, and already-completed submissions. Accepted rows reject
+  ordinary update/delete.
+- `assessment.knowledge-check.completed@1.0.0` refers to its durable evidence
+  and excludes private answers, selected responses, and feedback. Delivery,
+  Learner-model/Audit consumption, and projections remain unimplemented.
+
+FastAPI composition, generated-client/browser behavior, event delivery,
+history/projection, recovery, managed-cloud adapters, and additional item or
+scoring types remain outside this implemented core.

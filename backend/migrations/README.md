@@ -12,3 +12,9 @@ read.
 Module-specific migration streams live in named subdirectories. The Identity
 stream is applied after the root Content and Curriculum stream so later slices
 do not invalidate the earlier stream's deterministic migration inventory.
+
+The Curriculum Assessment-reference stream under `curriculum/` is applied
+after the root stream. The Assessment evidence/outbox stream under
+`assessment/` is applied after Curriculum. Migration IDs are globally unique
+in `platform.schema_migrations`; controlled teardown removes module streams in
+reverse dependency order before rolling back the root stream.

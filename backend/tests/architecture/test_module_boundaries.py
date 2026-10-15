@@ -34,7 +34,7 @@ def test_curriculum_imports_only_the_content_public_surface() -> None:
 
 def test_cross_module_imports_use_only_public_surfaces() -> None:
     violations: list[str] = []
-    module_names = {"content", "curriculum", "identity"}
+    module_names = {"assessment", "content", "curriculum", "identity"}
     prefix = "financial_ai_academy.modules."
     for owner in module_names:
         for path in (MODULES / owner).rglob("*.py"):
@@ -64,7 +64,7 @@ def test_domain_layers_are_framework_and_adapter_free() -> None:
         "pydantic",
     }
     violations: list[str] = []
-    for module_name in ("content", "curriculum", "identity"):
+    for module_name in ("assessment", "content", "curriculum", "identity"):
         for path in (MODULES / module_name / "domain").rglob("*.py"):
             for imported in imported_modules(path):
                 if any(
@@ -92,6 +92,12 @@ def test_repositories_query_only_their_own_module_schema() -> None:
     ).read_text(encoding="utf-8")
     assert "content." not in identity_repository
     assert "curriculum." not in identity_repository
+    assessment_repository = (
+        MODULES / "assessment/adapters/postgres_repository.py"
+    ).read_text(encoding="utf-8")
+    assert "content." not in assessment_repository
+    assert "curriculum." not in assessment_repository
+    assert "identity." not in assessment_repository
 
 
 def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
@@ -103,12 +109,58 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
 
     assert "references content." not in normalized
 
+    assessment_reference = (
+        REPOSITORY
+        / "backend/migrations/curriculum/curriculum_0001_assessment_placements.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    assert "references content." not in assessment_reference
+    assert "references assessment." not in assessment_reference
+
+    assessment_evidence = (
+        REPOSITORY
+        / "backend/migrations/assessment/assessment_0001_knowledge_check_evidence.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    assert "references content." not in assessment_evidence
+    assert "references curriculum." not in assessment_evidence
+    assert "references identity." not in assessment_evidence
+
 
 def test_modules_have_public_application_and_port_seams() -> None:
-    for module_name in ("content", "curriculum", "identity"):
+    for module_name in ("assessment", "content", "curriculum", "identity"):
         root = MODULES / module_name
         assert (root / "public.py").is_file()
         assert (root / "application").is_dir()
         assert (root / "domain").is_dir()
         assert (root / "ports").is_dir()
         assert (root / "adapters").is_dir()
+
+
+def test_assessment_gateways_import_only_public_module_surfaces() -> None:
+    for name, target in (
+        ("content_gateway.py", "content"),
+        ("curriculum_gateway.py", "curriculum"),
+    ):
+        path = MODULES / "assessment/adapters" / name
+        imported = imported_modules(path)
+        prefix = f"financial_ai_academy.modules.{target}"
+        assert {
+            item for item in imported if item.startswith(prefix)
+        } == {f"{prefix}.public"}
+
+
+def test_assessment_owns_completion_event_and_outbox_meaning() -> None:
+    source = (
+        MODULES / "assessment/application/service.py"
+    ).read_text(encoding="utf-8")
+    migration = (
+        REPOSITORY
+        / "backend/migrations/assessment/assessment_0001_knowledge_check_evidence.up.sql"
+    ).read_text(encoding="utf-8")
+    assert "assessment.knowledge-check.completed" in source
+    assert "assessment.knowledge-check.completed" in migration
+    for module_name in ("content", "curriculum", "identity"):
+        module_source = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in (MODULES / module_name).rglob("*.py")
+        )
+        assert "assessment.knowledge-check.completed" not in module_source

@@ -76,11 +76,13 @@ Value is observable when a learner can reopen the same lesson and see an accurat
 
 | Slice ID | Observable increment | Dependencies | Planning status |
 | --- | --- | --- | --- |
-| Candidate A | A learner opens one approved, versioned introductory lesson and can identify its objectives, sources, and version. | Accepted ADR-0007 content-package contract | proposed |
-| Candidate B | A learner submits one deterministic knowledge check and receives feedback while append-oriented attempt and score evidence is retained. | Candidate A | proposed |
+| [Candidate A](../vertical-slices/SLI-0001-open-approved-versioned-lesson.md) | A learner opens one approved, versioned introductory lesson and can identify its objectives, sources, and version. | Accepted ADR-0007 content-package contract | complete |
+| [Candidate B](../vertical-slices/SLI-0002-submit-deterministic-knowledge-check.md) | A learner submits one deterministic knowledge check and receives feedback while append-oriented attempt and score evidence is retained. | Candidate A | ready |
 | Candidate C | A learner closes and reopens the lesson and sees an accurate completion state and evidence history derived from the retained evidence. | Candidate B; ADR-0008 boundary and later executable recovery qualification where recovery claims are delivered | proposed |
 
-These are candidates only. No slice is selected or approved by this capability artifact.
+Candidate A is delivered. Candidates B and C remain planning increments until
+their individual selection lifecycles complete; links and public status never
+substitute for local selection, packet-planning, or implementation authority.
 
 ## Capability Acceptance
 

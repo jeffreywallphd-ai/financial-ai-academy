@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/assessment/v1/definition.schema.json",
+  "title": "Private deterministic single-select assessment definition",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "definition_digest", "assessment"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "definition_digest": {"$ref": "#/$defs/digest"},
+    "assessment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessment_id", "assessment_version", "item_type", "scoring_policy", "item"],
+      "properties": {
+        "assessment_id": {"$ref": "#/$defs/id"},
+        "assessment_version": {"const": "1.0.0"},
+        "item_type": {"const": "single_select"},
+        "scoring_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["policy_id", "policy_version"],
+          "properties": {
+            "policy_id": {"const": "single-select-exact-match"},
+            "policy_version": {"const": "1.0.0"}
+          }
+        },
+        "item": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["item_id", "item_version", "prompt", "options", "correct_option_id", "feedback"],
+          "properties": {
+            "item_id": {"$ref": "#/$defs/id"},
+            "item_version": {"const": "1.0.0"},
+            "prompt": {"$ref": "#/$defs/prompt"},
+            "options": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["option_id", "label"],
+                "properties": {
+                  "option_id": {"$ref": "#/$defs/id"},
+                  "label": {"$ref": "#/$defs/label"}
+                }
+              }
+            },
+            "correct_option_id": {"$ref": "#/$defs/id"},
+            "feedback": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["correct", "incorrect"],
+              "properties": {
+                "correct": {"$ref": "#/$defs/feedback"},
+                "incorrect": {"$ref": "#/$defs/feedback"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "plainText": {"type": "string", "minLength": 1, "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$"},
+    "prompt": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 400}]},
+    "label": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 160}]},
+    "feedback": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["feedback_id", "text"],
+      "properties": {
+        "feedback_id": {"$ref": "#/$defs/id"},
+        "text": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 400}]}
+      }
+    }
+  }
+}
+

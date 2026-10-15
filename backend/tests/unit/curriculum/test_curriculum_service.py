@@ -20,10 +20,13 @@ from financial_ai_academy.modules.curriculum.ports.repositories import (
     PlacementConflict,
 )
 from financial_ai_academy.modules.curriculum.public import (
+    AssessmentPlacement,
+    CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
     LessonPlacement,
     LessonReadingResult,
     OpenPlacedLessonRequest,
+    ResolvePlacedAssessmentRequest,
 )
 
 
@@ -38,6 +41,7 @@ SCHEMAS = REPOSITORY / "contracts/learning/lesson-package/v1"
 class MemoryCurriculumRepository:
     def __init__(self) -> None:
         self.records: dict[str, LessonPlacement] = {}
+        self.assessments: dict[str, AssessmentPlacement] = {}
 
     def get(self, placement_id: str) -> LessonPlacement | None:
         return self.records.get(placement_id)
@@ -57,6 +61,37 @@ class MemoryCurriculumRepository:
             placement.package_id,
             placement.package_version,
             placement.package_digest,
+        ):
+            raise PlacementConflict
+        return existing, False
+
+    def get_assessment(
+        self, placement_id: str
+    ) -> AssessmentPlacement | None:
+        return self.assessments.get(placement_id)
+
+    def save_assessment_if_absent(
+        self, placement: AssessmentPlacement
+    ) -> tuple[AssessmentPlacement, bool]:
+        existing = self.assessments.get(placement.placement_id)
+        if existing is None:
+            self.assessments[placement.placement_id] = placement
+            return placement, True
+        comparable = (
+            "package_id",
+            "package_version",
+            "package_digest",
+            "assessment_id",
+            "assessment_version",
+            "definition_digest",
+            "item_id",
+            "item_version",
+            "scoring_policy_id",
+            "scoring_policy_version",
+        )
+        if any(
+            getattr(existing, field) != getattr(placement, field)
+            for field in comparable
         ):
             raise PlacementConflict
         return existing, False
@@ -198,3 +233,56 @@ def test_reading_result_has_no_content_storage_or_driver_field() -> None:
     prohibited = {"path", "object_key", "storage_key", "row", "driver"}
     result_fields = {field.name for field in fields(LessonReadingResult)}
     assert result_fields.isdisjoint(prohibited)
+
+
+def test_create_and_resolve_exact_assessment_reference(
+    lesson: PublishedLesson,
+) -> None:
+    repository = MemoryCurriculumRepository()
+    service = CurriculumService(repository, FakeContentGateway(lesson))
+    lesson_placement = service.create_lesson_placement(request_for(lesson))
+    request = CreateAssessmentPlacementRequest(
+        placement_id=lesson_placement.placement_id,
+        package_id=lesson.package_id,
+        package_version=lesson.package_version,
+        package_digest=lesson.package_digest,
+        assessment_id="risk-return-check-1",
+        assessment_version="1.0.0",
+        definition_digest="a" * 64,
+        item_id="risk-return-tradeoff",
+        item_version="1.0.0",
+        scoring_policy_id="single-select-exact-match",
+        scoring_policy_version="1.0.0",
+    )
+    created = service.create_assessment_placement(request)
+    repeated = service.create_assessment_placement(request)
+    resolved = service.resolve_placed_assessment(
+        ResolvePlacedAssessmentRequest(lesson_placement.placement_id)
+    )
+    assert created == repeated == resolved
+    assert resolved.definition_digest == "a" * 64
+
+
+def test_assessment_reference_must_match_exact_lesson(
+    lesson: PublishedLesson,
+) -> None:
+    repository = MemoryCurriculumRepository()
+    service = CurriculumService(repository, FakeContentGateway(lesson))
+    lesson_placement = service.create_lesson_placement(request_for(lesson))
+    request = CreateAssessmentPlacementRequest(
+        placement_id=lesson_placement.placement_id,
+        package_id=lesson.package_id,
+        package_version=lesson.package_version,
+        package_digest="b" * 64,
+        assessment_id="risk-return-check-1",
+        assessment_version="1.0.0",
+        definition_digest="a" * 64,
+        item_id="risk-return-tradeoff",
+        item_version="1.0.0",
+        scoring_policy_id="single-select-exact-match",
+        scoring_policy_version="1.0.0",
+    )
+    with pytest.raises(LessonReadError) as captured:
+        service.create_assessment_placement(request)
+    assert captured.value.code is LessonErrorCode.INVALID_PACKAGE
+    assert repository.assessments == {}

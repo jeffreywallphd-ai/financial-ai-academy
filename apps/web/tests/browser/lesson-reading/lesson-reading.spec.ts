@@ -62,6 +62,16 @@ test("renders equivalent light, dark, and system content accessibly", async ({
   await expect(
     page.getByRole("heading", { name: "Educational sources" }),
   ).toBeVisible();
+  const primaryNavigation = page.getByRole("navigation", {
+    name: "Primary navigation",
+  });
+  await expect(primaryNavigation).toBeVisible();
+  await expect(
+    primaryNavigation.getByRole("link", { name: "Learn" }),
+  ).toHaveAttribute("aria-current", "page");
+  await expect(
+    primaryNavigation.getByText("Dashboard").locator(".."),
+  ).toHaveAttribute("aria-disabled", "true");
 
   const baselineText = await page.locator("main").innerText();
   await page.getByLabel("Theme").selectOption("light");
@@ -141,7 +151,9 @@ test("reflows at narrow and 200-percent-equivalent widths", async ({
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
   const readingBox = await page.locator("article").boundingBox();
-  const contextBox = await page.locator("aside").boundingBox();
+  const contextBox = await page
+    .getByRole("complementary", { name: "Publication context" })
+    .boundingBox();
   expect(readingBox).not.toBeNull();
   expect(contextBox).not.toBeNull();
   expect(contextBox?.y).toBeGreaterThan(readingBox?.y ?? 0);
@@ -154,6 +166,42 @@ test("reflows at narrow and 200-percent-equivalent widths", async ({
   expect(zoomEquivalent.content).toBeLessThanOrEqual(
     zoomEquivalent.viewport,
   );
+});
+
+test("opens the narrow sidebar, closes with Escape, and restores focus", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 720 });
+  await mockReadyLesson(page);
+  await page.goto(LESSON_PATH);
+  await expect(
+    page.getByRole("heading", { name: lessonFixture.title }),
+  ).toBeVisible();
+
+  const menu = page.getByRole("button", {
+    name: "Open navigation menu",
+  });
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  await menu.click();
+  await expect(menu).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    page.getByRole("navigation", { name: "Primary navigation" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Close navigation menu" }),
+  ).toBeFocused();
+
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(accessibility.violations).toEqual([]);
+
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeFocused();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 });
 
 test("honors reduced motion and forced colors with visible focus", async ({
