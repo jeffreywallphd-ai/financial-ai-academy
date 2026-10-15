@@ -29,6 +29,8 @@ from financial_ai_academy.modules.learner_model.public import (
 from financial_ai_academy.modules.curriculum.public import (
     BrowseLearningOpportunitiesRequest,
     LearningOpportunityBrowse,
+    LearningOpportunityQueryPage,
+    QueryLearningOpportunitiesRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
@@ -65,6 +67,11 @@ class _SchemaCurriculum:
     def browse_learning_opportunities(
         self, request: BrowseLearningOpportunitiesRequest
     ) -> LearningOpportunityBrowse:
+        raise NotImplementedError
+
+    def query_learning_opportunities(
+        self, request: QueryLearningOpportunitiesRequest
+    ) -> LearningOpportunityQueryPage:
         raise NotImplementedError
 
 

@@ -10,6 +10,7 @@ from fastapi import (
     Depends,
     FastAPI,
     Path,
+    Query,
     Request,
     Response,
     Security,
@@ -43,6 +44,11 @@ from financial_ai_academy.modules.curriculum.public import (
     DiscoveryError,
     DiscoveryErrorCode,
     OpenPlacedLessonRequest,
+    OpportunityAvailability,
+    OpportunityKind,
+    OpportunityLevel,
+    OpportunityQuerySort,
+    QueryLearningOpportunitiesRequest,
 )
 from financial_ai_academy.modules.identity.public import (
     IdentityError,
@@ -69,6 +75,7 @@ from .models import (
     KnowledgeCheckResultResponseModel,
     KnowledgeCheckSubmissionRequestModel,
     LearningOpportunityBrowseResponseModel,
+    LearningOpportunityQueryPageResponseModel,
     LessonCompletionResponseModel,
     LessonReadingResponseModel,
     SessionBootstrapRequestModel,
@@ -76,6 +83,7 @@ from .models import (
     knowledge_check_presentation_response,
     knowledge_check_result_response,
     learning_opportunity_browse_response,
+    learning_opportunity_query_page_response,
     lesson_completion_response,
     lesson_response,
 )
@@ -205,7 +213,9 @@ def create_app(services: ApiServices) -> FastAPI:
             DiscoveryErrorCode.INVALID_RECORD: (
                 status.HTTP_503_SERVICE_UNAVAILABLE
             ),
+            DiscoveryErrorCode.INVALID_QUERY: status.HTTP_400_BAD_REQUEST,
             DiscoveryErrorCode.IMMUTABLE_CONFLICT: status.HTTP_409_CONFLICT,
+            DiscoveryErrorCode.STALE_CURSOR: status.HTTP_409_CONFLICT,
             DiscoveryErrorCode.STALE_SOURCE: (
                 status.HTTP_503_SERVICE_UNAVAILABLE
             ),
@@ -407,6 +417,68 @@ def create_app(services: ApiServices) -> FastAPI:
         return learning_opportunity_browse_response(browse)
 
     @app.get(
+        "/api/v1/curriculum/opportunities/query",
+        response_model=LearningOpportunityQueryPageResponseModel,
+        operation_id="queryLearningOpportunities",
+        responses=_ERROR_RESPONSES,
+        tags=["curriculum"],
+    )
+    def query_learning_opportunities(
+        query: str | None = Query(
+            default=None,
+            min_length=1,
+            max_length=100,
+        ),
+        prerequisite_query: str | None = Query(
+            default=None,
+            min_length=1,
+            max_length=100,
+        ),
+        topic: tuple[str, ...] = Query(default=(), max_length=8),
+        level: tuple[OpportunityLevel, ...] = Query(
+            default=(),
+            max_length=8,
+        ),
+        kind: tuple[OpportunityKind, ...] = Query(
+            default=(),
+            max_length=8,
+        ),
+        availability: tuple[OpportunityAvailability, ...] = Query(
+            default=(),
+            max_length=8,
+        ),
+        minimum_minutes: int | None = Query(default=None, ge=1, le=1440),
+        maximum_minutes: int | None = Query(default=None, ge=1, le=1440),
+        sort: OpportunityQuerySort = Query(
+            default=OpportunityQuerySort.CATALOG
+        ),
+        page_size: int = Query(default=20, ge=1, le=50),
+        cursor: str | None = Query(
+            default=None,
+            min_length=1,
+            max_length=1024,
+            pattern=r"^[A-Za-z0-9_-]+\.[a-f0-9]{64}$",
+        ),
+        _context: LearnerContext = Depends(discovery_context),
+    ) -> LearningOpportunityQueryPageResponseModel:
+        page = services.curriculum.query_learning_opportunities(
+            QueryLearningOpportunitiesRequest(
+                query=query,
+                prerequisite_query=prerequisite_query,
+                topics=topic,
+                levels=level,
+                kinds=kind,
+                availabilities=availability,
+                minimum_minutes=minimum_minutes,
+                maximum_minutes=maximum_minutes,
+                sort=sort,
+                page_size=page_size,
+                cursor=cursor,
+            )
+        )
+        return learning_opportunity_query_page_response(page)
+
+    @app.get(
         "/api/v1/curriculum/placements/{placement_id}/lesson",
         response_model=LessonReadingResponseModel,
         operation_id="getPlacedLesson",
@@ -535,6 +607,10 @@ def create_app(services: ApiServices) -> FastAPI:
             schema["x-generated-by"] = (
                 "python -m financial_ai_academy.hosts.api.generate_openapi"
             )
+            query_operation = schema["paths"][
+                "/api/v1/curriculum/opportunities/query"
+            ]["get"]
+            query_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 

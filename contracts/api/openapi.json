@@ -37,6 +37,146 @@
         "title": "ApiErrorEnvelope",
         "type": "object"
       },
+      "AppliedLearningOpportunityQueryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "availabilities": {
+            "items": {
+              "enum": [
+                "available",
+                "unavailable",
+                "planned"
+              ],
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Availabilities",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "kinds": {
+            "items": {
+              "enum": [
+                "course",
+                "lesson",
+                "lab",
+                "project"
+              ],
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Kinds",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "levels": {
+            "items": {
+              "enum": [
+                "introductory",
+                "intermediate",
+                "advanced"
+              ],
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Levels",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "maximum_minutes": {
+            "anyOf": [
+              {
+                "maximum": 1440.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum Minutes"
+          },
+          "minimum_minutes": {
+            "anyOf": [
+              {
+                "maximum": 1440.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum Minutes"
+          },
+          "page_size": {
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "prerequisite_query": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prerequisite Query"
+          },
+          "query": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Query"
+          },
+          "sort": {
+            "enum": [
+              "catalog",
+              "title",
+              "duration_ascending",
+              "duration_descending"
+            ],
+            "title": "Sort",
+            "type": "string"
+          },
+          "topics": {
+            "items": {
+              "pattern": "^[a-z0-9][a-z0-9-]{1,49}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Topics",
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "query",
+          "prerequisite_query",
+          "topics",
+          "levels",
+          "kinds",
+          "availabilities",
+          "minimum_minutes",
+          "maximum_minutes",
+          "sort",
+          "page_size"
+        ],
+        "title": "AppliedLearningOpportunityQueryResponseModel",
+        "type": "object"
+      },
       "AssetImageModel": {
         "additionalProperties": false,
         "properties": {
@@ -820,6 +960,68 @@
         "title": "LearningOpportunityBrowseResponseModel",
         "type": "object"
       },
+      "LearningOpportunityQueryPageResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "applied_query": {
+            "$ref": "#/components/schemas/AppliedLearningOpportunityQueryResponseModel"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+\\.[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "projected_at": {
+            "format": "date-time",
+            "title": "Projected At",
+            "type": "string"
+          },
+          "projection_generation": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Projection Generation",
+            "type": "string"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/LearningOpportunityResponseModel"
+            },
+            "maxItems": 50,
+            "title": "Records",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "total_matches": {
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Total Matches",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "projection_generation",
+          "projected_at",
+          "applied_query",
+          "total_matches",
+          "records",
+          "next_cursor"
+        ],
+        "title": "LearningOpportunityQueryPageResponseModel",
+        "type": "object"
+      },
       "LearningOpportunityResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -1288,6 +1490,44 @@
         ],
         "title": "ListItemModel",
         "type": "object"
+      },
+      "OpportunityAvailability": {
+        "enum": [
+          "available",
+          "unavailable",
+          "planned"
+        ],
+        "title": "OpportunityAvailability",
+        "type": "string"
+      },
+      "OpportunityKind": {
+        "enum": [
+          "course",
+          "lesson",
+          "lab",
+          "project"
+        ],
+        "title": "OpportunityKind",
+        "type": "string"
+      },
+      "OpportunityLevel": {
+        "enum": [
+          "introductory",
+          "intermediate",
+          "advanced"
+        ],
+        "title": "OpportunityLevel",
+        "type": "string"
+      },
+      "OpportunityQuerySort": {
+        "enum": [
+          "catalog",
+          "title",
+          "duration_ascending",
+          "duration_descending"
+        ],
+        "title": "OpportunityQuerySort",
+        "type": "string"
       },
       "OrderedListModel": {
         "additionalProperties": false,
@@ -1787,6 +2027,262 @@
           }
         ],
         "summary": "Browse Learning Opportunities",
+        "tags": [
+          "curriculum"
+        ]
+      }
+    },
+    "/api/v1/curriculum/opportunities/query": {
+      "get": {
+        "operationId": "queryLearningOpportunities",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Query"
+            }
+          },
+          {
+            "in": "query",
+            "name": "prerequisite_query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Prerequisite Query"
+            }
+          },
+          {
+            "in": "query",
+            "name": "topic",
+            "required": false,
+            "schema": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 8,
+              "title": "Topic",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "default": [],
+              "items": {
+                "$ref": "#/components/schemas/OpportunityLevel"
+              },
+              "maxItems": 8,
+              "title": "Level",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "default": [],
+              "items": {
+                "$ref": "#/components/schemas/OpportunityKind"
+              },
+              "maxItems": 8,
+              "title": "Kind",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "availability",
+            "required": false,
+            "schema": {
+              "default": [],
+              "items": {
+                "$ref": "#/components/schemas/OpportunityAvailability"
+              },
+              "maxItems": 8,
+              "title": "Availability",
+              "type": "array"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minimum_minutes",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 1440,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Minimum Minutes"
+            }
+          },
+          {
+            "in": "query",
+            "name": "maximum_minutes",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 1440,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Maximum Minutes"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OpportunityQuerySort",
+              "default": "catalog"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 1024,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9_-]+\\.[a-f0-9]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningOpportunityQueryPageResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Query Learning Opportunities",
         "tags": [
           "curriculum"
         ]

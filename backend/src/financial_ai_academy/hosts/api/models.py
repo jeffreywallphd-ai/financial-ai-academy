@@ -14,7 +14,10 @@ from financial_ai_academy.modules.assessment.public import (
 )
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import (
+    AppliedLearningOpportunityQuery,
     LearningOpportunityBrowse,
+    LearningOpportunityQueryPage,
+    LearningOpportunityRecord,
     LessonReadingResult,
 )
 from financial_ai_academy.modules.learner_model.public import (
@@ -263,6 +266,58 @@ class LearningOpportunityBrowseResponseModel(ApiModel):
     records: list[LearningOpportunityResponseModel] = Field(max_length=500)
 
 
+class AppliedLearningOpportunityQueryResponseModel(ApiModel):
+    query: str | None = Field(min_length=1, max_length=100)
+    prerequisite_query: str | None = Field(
+        min_length=1,
+        max_length=100,
+    )
+    topics: list[DiscoveryTopic] = Field(
+        max_length=8,
+        json_schema_extra={"uniqueItems": True},
+    )
+    levels: list[
+        Literal["introductory", "intermediate", "advanced"]
+    ] = Field(max_length=8, json_schema_extra={"uniqueItems": True})
+    kinds: list[Literal["course", "lesson", "lab", "project"]] = Field(
+        max_length=8,
+        json_schema_extra={"uniqueItems": True},
+    )
+    availabilities: list[
+        Literal["available", "unavailable", "planned"]
+    ] = Field(max_length=8, json_schema_extra={"uniqueItems": True})
+    minimum_minutes: int | None = Field(ge=1, le=1440)
+    maximum_minutes: int | None = Field(ge=1, le=1440)
+    sort: Literal[
+        "catalog",
+        "title",
+        "duration_ascending",
+        "duration_descending",
+    ]
+    page_size: int = Field(ge=1, le=50)
+
+    @field_validator("topics", "levels", "kinds", "availabilities")
+    @classmethod
+    def require_unique_filters(cls, values: list[str]) -> list[str]:
+        if len(values) != len(set(values)):
+            raise ValueError("Discovery query filters must be unique.")
+        return values
+
+
+class LearningOpportunityQueryPageResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    projection_generation: str = Field(pattern=r"^[a-f0-9]{64}$")
+    projected_at: datetime
+    applied_query: AppliedLearningOpportunityQueryResponseModel
+    total_matches: int = Field(ge=0, le=500)
+    records: list[LearningOpportunityResponseModel] = Field(max_length=50)
+    next_cursor: str | None = Field(
+        min_length=1,
+        max_length=1024,
+        pattern=r"^[A-Za-z0-9_-]+\.[a-f0-9]{64}$",
+    )
+
+
 class KnowledgeCheckOptionModel(ApiModel):
     option_id: str = Field(
         min_length=3,
@@ -459,39 +514,81 @@ def learning_opportunity_browse_response(
         projection_generation=browse.projection_generation,
         projected_at=browse.projected_at,
         records=[
-            LearningOpportunityResponseModel(
-                schema_version=record.schema_version,  # type: ignore[arg-type]
-                opportunity_id=record.opportunity_id,
-                placement_id=record.placement_id,
-                destination=record.destination,
-                kind=record.kind.value,  # type: ignore[arg-type]
-                title=record.title,
-                summary=record.summary,
-                objectives=list(record.objectives),
-                topics=list(record.topics),
-                level=record.level.value,  # type: ignore[arg-type]
-                estimated_minutes=record.estimated_minutes,
-                prerequisite_summary=record.prerequisite_summary,
-                availability=record.availability.value,  # type: ignore[arg-type]
-                availability_reason=record.availability_reason,
-                package_id=record.package_id,
-                package_version=record.package_version,
-                package_digest=record.package_digest,
-                provenance=DiscoveryProvenanceResponseModel(
-                    published_by=record.provenance.published_by,
-                    published_at=record.provenance.published_at,
-                    content_reviewed_on=(
-                        record.provenance.content_reviewed_on
-                    ),
-                    educational_use_notice=(
-                        record.provenance.educational_use_notice
-                    ),
-                ),
-                source_fingerprint=record.source_fingerprint,
-                projected_at=record.projected_at,
-            )
+            learning_opportunity_response(record)
             for record in browse.records
         ],
+    )
+
+
+def learning_opportunity_query_page_response(
+    page: LearningOpportunityQueryPage,
+) -> LearningOpportunityQueryPageResponseModel:
+    return LearningOpportunityQueryPageResponseModel(
+        schema_version=page.schema_version,  # type: ignore[arg-type]
+        projection_generation=page.projection_generation,
+        projected_at=page.projected_at,
+        applied_query=applied_learning_opportunity_query_response(
+            page.applied_query
+        ),
+        total_matches=page.total_matches,
+        records=[
+            learning_opportunity_response(record)
+            for record in page.records
+        ],
+        next_cursor=page.next_cursor,
+    )
+
+
+def applied_learning_opportunity_query_response(
+    query: AppliedLearningOpportunityQuery,
+) -> AppliedLearningOpportunityQueryResponseModel:
+    return AppliedLearningOpportunityQueryResponseModel(
+        query=query.query,
+        prerequisite_query=query.prerequisite_query,
+        topics=list(query.topics),
+        levels=[level.value for level in query.levels],  # type: ignore[list-item]
+        kinds=[kind.value for kind in query.kinds],  # type: ignore[list-item]
+        availabilities=[
+            availability.value for availability in query.availabilities
+        ],  # type: ignore[list-item]
+        minimum_minutes=query.minimum_minutes,
+        maximum_minutes=query.maximum_minutes,
+        sort=query.sort.value,  # type: ignore[arg-type]
+        page_size=query.page_size,
+    )
+
+
+def learning_opportunity_response(
+    record: LearningOpportunityRecord,
+) -> LearningOpportunityResponseModel:
+    return LearningOpportunityResponseModel(
+        schema_version=record.schema_version,  # type: ignore[arg-type]
+        opportunity_id=record.opportunity_id,
+        placement_id=record.placement_id,
+        destination=record.destination,
+        kind=record.kind.value,  # type: ignore[arg-type]
+        title=record.title,
+        summary=record.summary,
+        objectives=list(record.objectives),
+        topics=list(record.topics),
+        level=record.level.value,  # type: ignore[arg-type]
+        estimated_minutes=record.estimated_minutes,
+        prerequisite_summary=record.prerequisite_summary,
+        availability=record.availability.value,  # type: ignore[arg-type]
+        availability_reason=record.availability_reason,
+        package_id=record.package_id,
+        package_version=record.package_version,
+        package_digest=record.package_digest,
+        provenance=DiscoveryProvenanceResponseModel(
+            published_by=record.provenance.published_by,
+            published_at=record.provenance.published_at,
+            content_reviewed_on=record.provenance.content_reviewed_on,
+            educational_use_notice=(
+                record.provenance.educational_use_notice
+            ),
+        ),
+        source_fingerprint=record.source_fingerprint,
+        projected_at=record.projected_at,
     )
 
 

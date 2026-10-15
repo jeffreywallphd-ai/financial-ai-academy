@@ -23,6 +23,8 @@ assert.match(
 );
 assert.match(schema, /\/api\/v1\/curriculum\/opportunities/);
 assert.match(schema, /operations\["browseLearningOpportunities"\]/);
+assert.match(schema, /operations\["queryLearningOpportunities"\]/);
+assert.match(schema, /LearningOpportunityQueryPageResponseModel/);
 assert.match(client, /createClient<paths>/);
 assert.match(client, /credentials: "same-origin"/);
 assert.doesNotMatch(combined, /financial_ai_academy/);

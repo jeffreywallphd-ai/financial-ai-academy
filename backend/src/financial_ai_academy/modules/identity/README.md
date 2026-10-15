@@ -12,8 +12,10 @@ token digest, provider subject, or client-selected identity headers.
 
 The current single-profile context issues separate
 `curriculum.discovery.read` and `curriculum.lesson.read` permissions. Hosts
-enforce the permission for each protected operation; neither permission nor
-any actor or learner selector is accepted from the client.
+enforce the permission for each protected operation. Both queryless discovery
+browse and bounded discovery query use `curriculum.discovery.read`; neither
+permission nor any actor or learner selector is accepted from the client, and
+an opaque query cursor grants no authority.
 
 Built-in credentials, OIDC, multiple learners, identity-mode migration, and
 remote single-profile exposure are not implemented by this module.

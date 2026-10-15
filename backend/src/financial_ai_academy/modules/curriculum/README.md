@@ -77,6 +77,10 @@ unkeyed checksum detects accidental corruption; it does not claim adversarial
 integrity. Cursors grant no authority and are not durable learner evidence. The
 current 500-record
 projection bound lets the shared application core enforce identical local and
-future cloud semantics without a second index. The protected HTTP operation,
-generated client, browser controls, and live qualification remain WRK-0049
-through WRK-0051 work.
+future cloud semantics without a second index. The protected
+`GET /api/v1/curriculum/opportunities/query` operation maps bounded repeated
+URL parameters directly into the public query request and returns the core's
+canonical page through the reviewed OpenAPI snapshot and generated TypeScript
+client. It shares the server-issued `curriculum.discovery.read` permission with
+queryless browse. Browser controls and live qualification remain WRK-0050 and
+WRK-0051 work.

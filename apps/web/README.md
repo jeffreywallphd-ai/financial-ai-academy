@@ -17,11 +17,13 @@ tests/
 
 The web application uses public generated clients. It does not import backend internals, own authoritative domain policy, or access databases/providers directly.
 
-The generated client now includes the protected, queryless
-`browseLearningOpportunities` operation for
-`GET /api/v1/curriculum/opportunities`. The `/learn` route consumes that
-operation after establishing the existing private single-profile session. The
-browser adds no learner, permission, ranking, filter, or provider parameters.
+The generated client includes protected `browseLearningOpportunities` for
+queryless `GET /api/v1/curriculum/opportunities` and
+`queryLearningOpportunities` for bounded
+`GET /api/v1/curriculum/opportunities/query`. The `/learn` route still consumes
+the queryless operation after establishing the private single-profile session;
+WRK-0050 owns URL-backed query controls and response validation. Neither client
+operation accepts learner, permission, provider, or storage selectors.
 
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 

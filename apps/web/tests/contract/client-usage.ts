@@ -7,6 +7,23 @@ const client = createFinancialAcademyApiClient(
 
 void client.GET("/api/v1/curriculum/opportunities");
 
+void client.GET("/api/v1/curriculum/opportunities/query", {
+  params: {
+    query: {
+      query: "risk return",
+      prerequisite_query: "basics",
+      topic: ["risk-return", "investing-basics"],
+      level: ["introductory"],
+      kind: ["lesson"],
+      availability: ["available"],
+      minimum_minutes: 10,
+      maximum_minutes: 30,
+      sort: "title",
+      page_size: 10,
+    },
+  },
+});
+
 void client.GET(
   "/api/v1/curriculum/placements/{placement_id}/lesson",
   {

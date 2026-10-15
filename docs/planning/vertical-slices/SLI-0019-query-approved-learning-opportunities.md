@@ -162,7 +162,7 @@ behind the same public semantics and compatibility corpus.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0048 | Deliver the discovery-query contract, canonical normalization/cursor rules, deterministic shared-core query policy, and compatibility vectors | SLI-0018 | none | complete |
-| WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | captured |
+| WRK-0049 | Expose the protected query API and reproducible OpenAPI/generated-client seam with bounded error mapping | WRK-0048 | none | active |
 | WRK-0050 | Deliver URL-backed accessible search, filter, sort, count, paging, empty, denial, stale, unavailable, and invalid states on `/learn` | WRK-0049 | none | captured |
 | WRK-0051 | Qualify the complete local query path, pagination continuity, stale-cursor denial, security/accessibility, and cleanup | WRK-0050 | none | captured |
 
@@ -228,3 +228,7 @@ unsupported profiles/providers, residual gaps, and CAP-package conformance.
   tolerant raw-input and canonical applied-query rules, deterministic shared
   core, multi-record filter/sort/page/cursor vectors, unchanged queryless
   browse, and fresh qualifying verification. WRK-0049 is dependency-ready.
+- 2026-10-15: Authored WRK-0049 with the protected GET query operation,
+  bounded transport/error mapping, deterministic OpenAPI/generated-client seam,
+  queryless compatibility, and focused authorization/confidentiality evidence.
+  Browser behavior remains assigned to WRK-0050.

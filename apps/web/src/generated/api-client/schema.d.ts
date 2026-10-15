@@ -12,6 +12,15 @@ export interface paths {
       };
       readonly get: operations["browseLearningOpportunities"];
     };
+  readonly "/api/v1/curriculum/opportunities/query": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["queryLearningOpportunities"];
+    };
   readonly "/api/v1/curriculum/placements/{placement_id}/completion": {
       readonly parameters: {
         readonly query?: never;
@@ -86,6 +95,18 @@ export interface components {
       readonly "correlation_id": string;
       readonly "error_version"?: "1.0";
       readonly "message": string;
+    };
+    readonly "AppliedLearningOpportunityQueryResponseModel": {
+      readonly "availabilities": ReadonlyArray<"available" | "unavailable" | "planned">;
+      readonly "kinds": ReadonlyArray<"course" | "lesson" | "lab" | "project">;
+      readonly "levels": ReadonlyArray<"introductory" | "intermediate" | "advanced">;
+      readonly "maximum_minutes": number | null;
+      readonly "minimum_minutes": number | null;
+      readonly "page_size": number;
+      readonly "prerequisite_query": string | null;
+      readonly "query": string | null;
+      readonly "sort": "catalog" | "title" | "duration_ascending" | "duration_descending";
+      readonly "topics": ReadonlyArray<string>;
     };
     readonly "AssetImageModel": {
       readonly "alt_text": string;
@@ -210,6 +231,15 @@ export interface components {
       readonly "records": ReadonlyArray<components["schemas"]["LearningOpportunityResponseModel"]>;
       readonly "schema_version": "1.0.0";
     };
+    readonly "LearningOpportunityQueryPageResponseModel": {
+      readonly "applied_query": components["schemas"]["AppliedLearningOpportunityQueryResponseModel"];
+      readonly "next_cursor": string | null;
+      readonly "projected_at": string;
+      readonly "projection_generation": string;
+      readonly "records": ReadonlyArray<components["schemas"]["LearningOpportunityResponseModel"]>;
+      readonly "schema_version": "1.0.0";
+      readonly "total_matches": number;
+    };
     readonly "LearningOpportunityResponseModel": {
       readonly "availability": "available" | "unavailable" | "planned";
       readonly "availability_reason": string;
@@ -274,6 +304,10 @@ export interface components {
     readonly "ListItemModel": {
       readonly "blocks": ReadonlyArray<components["schemas"]["HeadingModel"] | components["schemas"]["ParagraphModel"] | components["schemas"]["CodeBlockModel"] | components["schemas"]["ThematicBreakModel"] | components["schemas"]["BulletListModel"] | components["schemas"]["OrderedListModel"]>;
     };
+    readonly "OpportunityAvailability": "available" | "unavailable" | "planned";
+    readonly "OpportunityKind": "course" | "lesson" | "lab" | "project";
+    readonly "OpportunityLevel": "introductory" | "intermediate" | "advanced";
+    readonly "OpportunityQuerySort": "catalog" | "title" | "duration_ascending" | "duration_descending";
     readonly "OrderedListModel": {
       readonly "items": ReadonlyArray<components["schemas"]["ListItemModel"]>;
       readonly "kind"?: "ordered_list";
@@ -349,6 +383,71 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["LearningOpportunityBrowseResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly queryLearningOpportunities: {
+    readonly parameters: {
+      readonly query?: {
+          readonly "availability"?: ReadonlyArray<components["schemas"]["OpportunityAvailability"]>;
+          readonly "cursor"?: string | null;
+          readonly "kind"?: ReadonlyArray<components["schemas"]["OpportunityKind"]>;
+          readonly "level"?: ReadonlyArray<components["schemas"]["OpportunityLevel"]>;
+          readonly "maximum_minutes"?: number | null;
+          readonly "minimum_minutes"?: number | null;
+          readonly "page_size"?: number;
+          readonly "prerequisite_query"?: string | null;
+          readonly "query"?: string | null;
+          readonly "sort"?: components["schemas"]["OpportunityQuerySort"];
+          readonly "topic"?: ReadonlyArray<string>;
+        };
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["LearningOpportunityQueryPageResponseModel"];
           };
         };
         readonly 400: {

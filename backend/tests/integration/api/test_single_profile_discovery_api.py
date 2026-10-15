@@ -9,15 +9,19 @@ from fastapi.testclient import TestClient
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
 from financial_ai_academy.modules.curriculum.public import (
+    AppliedLearningOpportunityQuery,
     BrowseLearningOpportunitiesRequest,
     DiscoveryError,
     DiscoveryErrorCode,
     DiscoveryProvenance,
     LearningOpportunityBrowse,
+    LearningOpportunityQueryPage,
     LearningOpportunityRecord,
     OpportunityAvailability,
     OpportunityKind,
     OpportunityLevel,
+    OpportunityQuerySort,
+    QueryLearningOpportunitiesRequest,
 )
 from financial_ai_academy.modules.identity.public import (
     IdentityError,
@@ -39,6 +43,7 @@ NOW = datetime(2026, 10, 15, 17, 0, tzinfo=timezone.utc)
 DIGEST = "a" * 64
 SOURCE = "b" * 64
 GENERATION = "c" * 64
+CURSOR = "eyJvZmZzZXQiOjF9." + "d" * 64
 
 
 def browse_result() -> LearningOpportunityBrowse:
@@ -84,6 +89,32 @@ def browse_result() -> LearningOpportunityBrowse:
     )
 
 
+def query_result(
+    applied_query: AppliedLearningOpportunityQuery | None = None,
+) -> LearningOpportunityQueryPage:
+    return LearningOpportunityQueryPage(
+        schema_version="1.0.0",
+        projection_generation=GENERATION,
+        projected_at=NOW,
+        applied_query=applied_query
+        or AppliedLearningOpportunityQuery(
+            query=None,
+            prerequisite_query=None,
+            topics=(),
+            levels=(),
+            kinds=(),
+            availabilities=(),
+            minimum_minutes=None,
+            maximum_minutes=None,
+            sort=OpportunityQuerySort.CATALOG,
+            page_size=20,
+        ),
+        total_matches=1,
+        records=browse_result().records,
+        next_cursor=None,
+    )
+
+
 class Identity:
     def __init__(self, permissions: tuple[str, ...]) -> None:
         self.permissions = permissions
@@ -115,9 +146,16 @@ class Identity:
 
 
 class Curriculum:
-    def __init__(self, result: LearningOpportunityBrowse | Exception) -> None:
+    def __init__(
+        self,
+        result: LearningOpportunityBrowse | Exception,
+        query: LearningOpportunityQueryPage | Exception | None = None,
+    ) -> None:
         self.result = result
+        self.query_result = query or query_result()
         self.calls = 0
+        self.query_calls = 0
+        self.last_query: QueryLearningOpportunitiesRequest | None = None
 
     def browse_learning_opportunities(
         self,
@@ -127,6 +165,16 @@ class Curriculum:
         if isinstance(self.result, Exception):
             raise self.result
         return self.result
+
+    def query_learning_opportunities(
+        self,
+        request: QueryLearningOpportunitiesRequest,
+    ) -> LearningOpportunityQueryPage:
+        self.query_calls += 1
+        self.last_query = request
+        if isinstance(self.query_result, Exception):
+            raise self.query_result
+        return self.query_result
 
 
 def client(
@@ -238,6 +286,148 @@ def test_projection_failure_is_bounded_and_redacted() -> None:
     assert "postgres" not in response.text.casefold()
 
 
+def test_authorized_query_maps_repeated_filters_and_returns_closed_page() -> None:
+    applied = AppliedLearningOpportunityQuery(
+        query="risk return",
+        prerequisite_query="basics",
+        topics=("investing-basics", "risk-return"),
+        levels=(OpportunityLevel.INTRODUCTORY,),
+        kinds=(OpportunityKind.LESSON,),
+        availabilities=(OpportunityAvailability.AVAILABLE,),
+        minimum_minutes=10,
+        maximum_minutes=30,
+        sort=OpportunityQuerySort.TITLE,
+        page_size=10,
+    )
+    curriculum = Curriculum(browse_result(), query_result(applied))
+    response = client(
+        Identity(("curriculum.discovery.read",)),
+        curriculum,
+    ).get(
+        "/api/v1/curriculum/opportunities/query",
+        params=[
+            ("query", "risk return"),
+            ("prerequisite_query", "basics"),
+            ("topic", "risk-return"),
+            ("topic", "investing-basics"),
+            ("level", "introductory"),
+            ("kind", "lesson"),
+            ("availability", "available"),
+            ("minimum_minutes", "10"),
+            ("maximum_minutes", "30"),
+            ("sort", "title"),
+            ("page_size", "10"),
+            ("cursor", CURSOR),
+        ],
+    )
+
+    assert response.status_code == 200
+    assert response.json()["projection_generation"] == GENERATION
+    assert response.json()["total_matches"] == 1
+    assert response.json()["applied_query"] == {
+        "query": "risk return",
+        "prerequisite_query": "basics",
+        "topics": ["investing-basics", "risk-return"],
+        "levels": ["introductory"],
+        "kinds": ["lesson"],
+        "availabilities": ["available"],
+        "minimum_minutes": 10,
+        "maximum_minutes": 30,
+        "sort": "title",
+        "page_size": 10,
+    }
+    assert curriculum.query_calls == 1
+    assert curriculum.calls == 0
+    assert curriculum.last_query == QueryLearningOpportunitiesRequest(
+        query="risk return",
+        prerequisite_query="basics",
+        topics=("risk-return", "investing-basics"),
+        levels=(OpportunityLevel.INTRODUCTORY,),
+        kinds=(OpportunityKind.LESSON,),
+        availabilities=(OpportunityAvailability.AVAILABLE,),
+        minimum_minutes=10,
+        maximum_minutes=30,
+        sort=OpportunityQuerySort.TITLE,
+        page_size=10,
+        cursor=CURSOR,
+    )
+
+
+def test_authorized_query_uses_core_defaults_once() -> None:
+    curriculum = Curriculum(browse_result())
+    response = client(
+        Identity(("curriculum.discovery.read",)),
+        curriculum,
+    ).get("/api/v1/curriculum/opportunities/query")
+
+    assert response.status_code == 200
+    assert curriculum.query_calls == 1
+    assert curriculum.calls == 0
+    assert curriculum.last_query == QueryLearningOpportunitiesRequest()
+
+
+def test_query_denies_before_curriculum_disclosure() -> None:
+    missing_curriculum = Curriculum(browse_result())
+    missing = client(
+        Identity(("curriculum.discovery.read",)),
+        missing_curriculum,
+        authenticated=False,
+    ).get("/api/v1/curriculum/opportunities/query")
+    denied_curriculum = Curriculum(browse_result())
+    denied = client(
+        Identity(("curriculum.lesson.read",)),
+        denied_curriculum,
+    ).get("/api/v1/curriculum/opportunities/query")
+    selected_curriculum = Curriculum(browse_result())
+    selected = client(
+        Identity(("curriculum.discovery.read",)),
+        selected_curriculum,
+    ).get(
+        "/api/v1/curriculum/opportunities/query",
+        headers={"X-Permission": "curriculum.discovery.read"},
+    )
+
+    assert (missing.status_code, denied.status_code, selected.status_code) == (
+        401,
+        403,
+        403,
+    )
+    assert missing_curriculum.query_calls == 0
+    assert denied_curriculum.query_calls == 0
+    assert selected_curriculum.query_calls == 0
+    assert GENERATION not in missing.text + denied.text + selected.text
+
+
+def test_query_failures_are_bounded_without_queryless_fallback() -> None:
+    cases = (
+        (DiscoveryErrorCode.INVALID_QUERY, 400),
+        (DiscoveryErrorCode.STALE_CURSOR, 409),
+        (DiscoveryErrorCode.IMMUTABLE_CONFLICT, 409),
+        (DiscoveryErrorCode.UNAVAILABLE, 503),
+    )
+    for code, expected_status in cases:
+        curriculum = Curriculum(
+            browse_result(),
+            DiscoveryError(
+                code,
+                "Learning-opportunity query could not be completed.",
+            ),
+        )
+        response = client(
+            Identity(("curriculum.discovery.read",)),
+            curriculum,
+        ).get("/api/v1/curriculum/opportunities/query")
+
+        assert response.status_code == expected_status
+        assert response.json()["code"] == code.value
+        assert response.json()["message"] == (
+            "Learning-opportunity query could not be completed."
+        )
+        assert curriculum.query_calls == 1
+        assert curriculum.calls == 0
+        assert "postgres" not in response.text.casefold()
+
+
 def test_openapi_catalog_contract_is_stable_queryless_and_cookie_secured() -> None:
     first = generate_bytes()
     second = generate_bytes()
@@ -249,6 +439,27 @@ def test_openapi_catalog_contract_is_stable_queryless_and_cookie_secured() -> No
     assert operation["operationId"] == "browseLearningOpportunities"
     assert operation["security"] == [{"OpaqueSessionCookie": []}]
     assert operation.get("parameters", []) == []
+    query_operation = schema["paths"][
+        "/api/v1/curriculum/opportunities/query"
+    ]["get"]
+    assert query_operation["operationId"] == "queryLearningOpportunities"
+    assert query_operation["security"] == [{"OpaqueSessionCookie": []}]
+    assert "422" not in query_operation["responses"]
+    assert [
+        parameter["name"] for parameter in query_operation["parameters"]
+    ] == [
+        "query",
+        "prerequisite_query",
+        "topic",
+        "level",
+        "kind",
+        "availability",
+        "minimum_minutes",
+        "maximum_minutes",
+        "sort",
+        "page_size",
+        "cursor",
+    ]
     model = schema["components"]["schemas"][
         "LearningOpportunityBrowseResponseModel"
     ]
@@ -263,4 +474,30 @@ def test_openapi_catalog_contract_is_stable_queryless_and_cookie_secured() -> No
     assert record["properties"]["destination"]["pattern"] == (
         r"^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$"
     )
+    query_page = schema["components"]["schemas"][
+        "LearningOpportunityQueryPageResponseModel"
+    ]
+    applied_query = schema["components"]["schemas"][
+        "AppliedLearningOpportunityQueryResponseModel"
+    ]
+    assert query_page["additionalProperties"] is False
+    assert applied_query["additionalProperties"] is False
+    assert query_page["properties"]["records"]["maxItems"] == 50
+    assert query_page["properties"]["next_cursor"]["anyOf"][0][
+        "pattern"
+    ] == r"^[A-Za-z0-9_-]+\.[a-f0-9]{64}$"
+    assert applied_query["properties"]["topics"]["uniqueItems"] is True
+    assert set(applied_query["required"]) == {
+        "query",
+        "prerequisite_query",
+        "topics",
+        "levels",
+        "kinds",
+        "availabilities",
+        "minimum_minutes",
+        "maximum_minutes",
+        "sort",
+        "page_size",
+    }
+    assert "next_cursor" in query_page["required"]
     assert "learner_id" not in first.decode("utf-8")

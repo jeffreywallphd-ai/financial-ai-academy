@@ -123,6 +123,16 @@ Query cursors are transport
 state rather than durable evidence and may be invalidated explicitly by rebuild
 or rollback.
 
+The protected `GET /api/v1/curriculum/opportunities/query` operation exposes
+these semantics through repeated URL filters and the reviewed generated
+client. The host requires the same server-issued
+`curriculum.discovery.read` permission as queryless browse, passes bounded
+values to Curriculum without reimplementing query policy, and returns only the
+core's canonical page. Invalid query and transport shape produce bounded 400
+responses; stale cursors and immutable conflicts produce bounded 409
+responses; invalid, stale, or unavailable projection state produces bounded
+503 responses. No failure falls back to an unfiltered catalog.
+
 ## Compatibility and Remaining Work
 
 The compatibility corpus fixes one synthetic exact approved lesson and bounded
@@ -140,9 +150,10 @@ admits one exact package and placement, registers its catalog classification,
 atomically rebuilds the projection, and browses from `/learn` into that exact
 lesson through one same-origin Python/static host over PostgreSQL 18.4.
 
-The deterministic shared-core search/filter/sort/pagination semantics and
-compatibility corpus are implemented. Their protected HTTP/generated-client
-seam, browser controls, and complete live qualification remain SLI-0019 work.
+The deterministic shared-core search/filter/sort/pagination semantics,
+compatibility corpus, and protected HTTP/generated-client seam are implemented.
+URL-backed browser controls and complete live qualification remain SLI-0019
+work.
 Production/background rebuild scheduling, non-lesson destinations, background
 indexing, external providers, tenancy, and managed-cloud operation remain later
 boundaries.
