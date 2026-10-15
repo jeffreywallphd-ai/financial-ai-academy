@@ -1,7 +1,7 @@
 ---
 id: SLI-0018
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -136,7 +136,7 @@ investment performance.
 | WRK-0043 | Deliver the discovery record, Curriculum projection core, rebuild policy, and focused conformance tests | none | none | complete |
 | WRK-0044 | Persist the projection and expose the protected browse API plus generated client | WRK-0043 | none | complete |
 | WRK-0045 | Deliver the accessible approved-opportunity catalog route | WRK-0044 | none | complete |
-| WRK-0046 | Qualify projection rebuild and the complete local browse path | WRK-0045 | none | verifying |
+| WRK-0046 | Qualify projection rebuild and the complete local browse path | WRK-0045 | none | complete |
 
 ## Verification and Qualification
 
@@ -217,3 +217,8 @@ cleanup, unsupported profiles, residual gaps, and CAP-package conformance.
 - 2026-10-15: Submitted WRK-0046 candidate
   `2e7997801710db849cb58b58f4a6567421a393f2` after the isolated live
   catalog-to-lesson path and focused/aggregate checks passed.
+- 2026-10-15: WRK-0046 completed on corrected candidate
+  `7598516b885f43eca3a6d2ff32b7fada213e55eb` after its fresh qualifying receipt
+  and accepted independent R02 disposition closed the composition and exact
+  live-classification evidence findings. All four slice packets are complete,
+  so SLI-0018 entered deterministic closure verification.

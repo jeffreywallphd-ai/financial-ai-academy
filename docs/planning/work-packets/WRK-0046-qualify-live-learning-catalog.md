@@ -1,7 +1,7 @@
 ---
 id: WRK-0046
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -166,6 +166,35 @@ all checks and results; documentation impact; unsupported profiles and residual
 gaps; packet and slice lifecycle results; and whether SLI-0019 is ready for
 just-in-time refinement.
 
+## Completion Evidence
+
+- Delivered the explicit local-fixture sequence through public operations:
+  exact Content admission, Curriculum lesson and assessment placement,
+  opportunity registration, atomic projection rebuild, and only then API
+  application creation. Executable composition evidence proves flag-off
+  isolation and prevents readiness after registration or rebuild failure.
+- Retained the final Vite static bundle and qualified `/learn` through an empty
+  PostgreSQL 18.4 container, the loopback Python/static host, isolated
+  filesystem storage, and pinned Chromium. The two live scenarios passed,
+  including exact classification/provenance, catalog-to-lesson continuation,
+  assessment and retained completion, authorization denial, security headers,
+  accessibility, and exact-resource cleanup.
+- Verified 48 web unit/component tests, 12 affected browser tests, 11
+  architecture tests with 2 failure subtests, TypeScript, lint, the generated
+  client, the production build, and the 27-check aggregate readiness gate. The
+  affected control-plane verification receipt for corrected candidate
+  `7598516b885f43eca3a6d2ff32b7fada213e55eb` is fresh and qualifying; its
+  independent R02 disposition accepted both prior finding closures with no new
+  findings.
+- Discovery v1, OpenAPI, and generated-client shapes remain compatible; no new
+  migration or rollback behavior was introduced. Documentation now identifies
+  the public-operation seed path, same-origin runtime, directly qualified
+  catalog boundary, and remaining unsupported profiles.
+- Qualification remains intentionally limited to one approved lesson in the
+  local single-profile deployment and Chromium. External search, scheduled
+  rebuilds, other activity kinds, cloud/tenant profiles, and additional
+  browsers remain outside this packet and the accepted slice boundary.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0045 completion. The packet uses
@@ -179,3 +208,12 @@ just-in-time refinement.
   `2e7997801710db849cb58b58f4a6567421a393f2` after clean Docker/PostgreSQL,
   Python/static, Chromium, backend/web, architecture, security, documentation,
   planning, dependency, and aggregate readiness evidence passed.
+- 2026-10-15: Independent R01 review requested stronger executable evidence
+  for opt-in/fail-closed fixture composition and the complete live catalog
+  classification. The bounded correction added those assertions without
+  changing production behavior, architecture, contracts, or decision posture.
+- 2026-10-15: Completed corrected candidate
+  `7598516b885f43eca3a6d2ff32b7fada213e55eb` after fresh affected verification,
+  isolated Docker/PostgreSQL/Python/Chromium qualification, broader web and
+  browser regressions, aggregate readiness, and accepted independent R02
+  disposition closed both findings.
