@@ -1,7 +1,7 @@
 ---
 id: WRK-0050
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -151,9 +151,44 @@ Report the URL and client mapping, validated response/state behavior,
 accessibility and anti-rigidity evidence, affected interface/docs, all checks,
 residual WRK-0051 qualification, lifecycle result, and dependency readiness.
 
+## Completion Evidence
+
+- `/learn` now maps bounded optional URL parameters through the generated
+  `queryLearningOpportunities` client, retains one unauthorized-session retry,
+  and presents the server's canonical applied query, exact total, ordered
+  records, projection time, and opaque continuation cursor without client-side
+  matching, ranking, or cursor decoding.
+- The interface supplies native labeled GET controls for text, prerequisite
+  text, repeated topics, metadata filters, inclusive duration, all page sizes
+  from 1 through 50, and closed sort values. It preserves exact lesson actions,
+  supports clear and continuation links, and distinguishes empty, invalid,
+  stale, denied, unavailable, loading, and invalid-response states without
+  stale or partial fallback.
+- Closed response validation now covers exact keys, schema and digest shapes,
+  record/source-fingerprint safety, sorted unique canonical filters,
+  projection time, cursor length/shape, unique records, and request-aware
+  first/intermediate/final page cardinality. Impossible zero-result,
+  first-page replay, truncated, or cursor-bearing pages fail closed.
+- Exact candidate `0418c4064805739408fa7e26d442b80aa4f61f66` has a fresh
+  qualifying affected-check receipt. The web suite passed 56 tests; focused
+  Chromium passed 5 scenarios including axe, themes, keyboard/focus, narrow
+  reflow, reduced motion, forced colors, denial, invalid response, and a
+  nonpreset valid page size; typecheck, lint, generated-client currency, and
+  production build passed; design validation passed 125 tokens and 56 icons;
+  the fixed aggregate readiness gate passed all 27 checks; and diff hygiene
+  passed.
+- No backend, public schema, persistence, migration, external service,
+  provider, learner-selected authority, recommendation, or personalized
+  ranking changed. Complete PostgreSQL/Python/static-host/Chromium query-path
+  qualification and cleanup remain bounded to WRK-0051.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0049 completion. The packet keeps
   the server authoritative for canonical query, count, order, and cursor;
   confines the browser to bounded URL mapping and fail-closed presentation;
   reuses existing tokens/icons; and introduces no durable decision or CAP drift.
+- 2026-10-15: Completed the URL-backed query interface after hardening
+  request-aware page/count coherence, preserving every valid page-size value,
+  and replacing the only feature-local layout value with a shared semantic
+  token. Full live topology qualification remains assigned to WRK-0051.
