@@ -17,6 +17,8 @@ optional meaning through different branches.
 most six fractional digits. Calendar-invalid values and leap seconds are
 rejected. This profile matches the precision retained by the public Python
 type and prevents distinct accepted timestamps from collapsing to one digest.
+An otherwise well-formed timestamp whose offset would cross the supported UTC
+calendar boundary is rejected with the same bounded validation error.
 
 `graph_digest` is SHA-256 over UTF-8 JSON with sorted object keys, compact
 separators, and `graph_digest` removed. Before serialization, `published_at` is

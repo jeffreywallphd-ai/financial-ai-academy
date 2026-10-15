@@ -82,17 +82,23 @@ def load_json(path: Path) -> dict[str, Any]:
 def canonical_published_at(value: object) -> str:
     if not isinstance(value, str) or TIMESTAMP_PROFILE.fullmatch(value) is None:
         raise ValueError("published_at is outside the supported timestamp profile")
-    parsed = datetime.fromisoformat(
-        value.removesuffix("Z") + ("+00:00" if value.endswith("Z") else "")
-    )
-    if parsed.tzinfo is None or parsed.utcoffset() is None:
-        raise ValueError("published_at must contain a numeric UTC offset")
-    return (
-        parsed.astimezone(timezone.utc)
-        .isoformat()
-        .removesuffix("+00:00")
-        + "Z"
-    )
+    try:
+        parsed = datetime.fromisoformat(
+            value.removesuffix("Z")
+            + ("+00:00" if value.endswith("Z") else "")
+        )
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            raise ValueError("published_at must contain a numeric UTC offset")
+        return (
+            parsed.astimezone(timezone.utc)
+            .isoformat()
+            .removesuffix("+00:00")
+            + "Z"
+        )
+    except (OverflowError, ValueError) as error:
+        raise ValueError(
+            "published_at cannot be represented canonically"
+        ) from error
 
 
 def canonical_graph_bytes(graph: Mapping[str, Any]) -> bytes:
@@ -168,7 +174,7 @@ class CurriculumGraphContractValidator:
     def _timestamp(graph: Mapping[str, Any]) -> None:
         try:
             canonical_published_at(graph["published_at"])
-        except (KeyError, TypeError, ValueError):
+        except (KeyError, OverflowError, TypeError, ValueError):
             reject(
                 "curriculum_graph.schema_invalid",
                 "published_at",

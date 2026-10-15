@@ -229,7 +229,14 @@ def _validate_text(
 
 
 def _datetime_text(value: datetime) -> str:
-    normalized = value.astimezone(timezone.utc).isoformat()
+    try:
+        normalized = value.astimezone(timezone.utc).isoformat()
+    except (OverflowError, ValueError):
+        _invalid(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "published_at",
+            "Curriculum graph publication timestamp is invalid.",
+        )
     return normalized.removesuffix("+00:00") + "Z"
 
 
@@ -245,13 +252,10 @@ def _published_at_from_text(value: str) -> datetime:
             value.removesuffix("Z")
             + ("+00:00" if value.endswith("Z") else "")
         )
-    except ValueError:
-        _invalid(
-            CurriculumGraphErrorCode.INVALID_RECORD,
-            "published_at",
-            "Curriculum graph publication timestamp is invalid.",
-        )
-    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            raise ValueError("published_at must contain a numeric UTC offset")
+        parsed.astimezone(timezone.utc)
+    except (OverflowError, ValueError):
         _invalid(
             CurriculumGraphErrorCode.INVALID_RECORD,
             "published_at",
@@ -785,7 +789,14 @@ def validate_curriculum_graph(graph: CurriculumGraph) -> CurriculumGraph:
         return _validate_curriculum_graph(graph)
     except CurriculumGraphError:
         raise
-    except (AttributeError, IndexError, KeyError, TypeError, ValueError) as error:
+    except (
+        AttributeError,
+        IndexError,
+        KeyError,
+        OverflowError,
+        TypeError,
+        ValueError,
+    ) as error:
         raise CurriculumGraphError(
             CurriculumGraphErrorCode.INVALID_RECORD,
             "Curriculum graph record is invalid.",
@@ -1082,7 +1093,7 @@ def curriculum_graph_from_mapping(value: Mapping[str, object]) -> CurriculumGrap
         )
     except CurriculumGraphError:
         raise
-    except (KeyError, TypeError, ValueError) as error:
+    except (KeyError, OverflowError, TypeError, ValueError) as error:
         raise CurriculumGraphError(
             CurriculumGraphErrorCode.INVALID_RECORD,
             "Curriculum graph record is invalid.",

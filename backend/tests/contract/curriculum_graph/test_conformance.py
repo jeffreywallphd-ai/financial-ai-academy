@@ -105,6 +105,8 @@ def test_contract_and_domain_share_one_canonical_representation(
         "2026-12-31T23:59:60Z",
         "2026-10-15T00:00:00.1234567Z",
         "2026-02-30T00:00:00Z",
+        "0001-01-01T00:00:00+23:59",
+        "9999-12-31T23:59:59-23:59",
     ],
 )
 def test_timestamp_profile_fails_closed_without_lossy_canonicalization(

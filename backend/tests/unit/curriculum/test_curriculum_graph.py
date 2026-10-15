@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import fields, replace
+from datetime import datetime
 import json
 from pathlib import Path
 
@@ -111,6 +112,23 @@ def test_direct_public_graph_rejects_unknown_relationship_kind_boundedly() -> No
         graph,
         relationships=(malformed, *graph.relationships[1:]),
     )
+    with pytest.raises(CurriculumGraphError) as captured:
+        validate_curriculum_graph(changed)
+    assert captured.value.code is CurriculumGraphErrorCode.INVALID_RECORD
+
+
+@pytest.mark.parametrize(
+    "published_at",
+    [
+        "0001-01-01T00:00:00+23:59",
+        "9999-12-31T23:59:59-23:59",
+    ],
+)
+def test_direct_public_graph_rejects_utc_boundary_overflow_boundedly(
+    published_at: str,
+) -> None:
+    graph = approved_graph()
+    changed = replace(graph, published_at=datetime.fromisoformat(published_at))
     with pytest.raises(CurriculumGraphError) as captured:
         validate_curriculum_graph(changed)
     assert captured.value.code is CurriculumGraphErrorCode.INVALID_RECORD
