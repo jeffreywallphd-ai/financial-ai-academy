@@ -70,6 +70,7 @@ from financial_ai_academy.platform.security.single_profile_policy import (
 
 from .models import (
     ApiErrorEnvelope,
+    DiscoveryTopic,
     HealthResponseModel,
     KnowledgeCheckPresentationResponseModel,
     KnowledgeCheckResultResponseModel,
@@ -434,7 +435,10 @@ def create_app(services: ApiServices) -> FastAPI:
             min_length=1,
             max_length=100,
         ),
-        topic: tuple[str, ...] = Query(default=(), max_length=8),
+        topic: tuple[DiscoveryTopic, ...] = Query(
+            default=(),
+            max_length=8,
+        ),
         level: tuple[OpportunityLevel, ...] = Query(
             default=(),
             max_length=8,

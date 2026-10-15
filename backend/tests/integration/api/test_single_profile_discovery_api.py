@@ -460,6 +460,14 @@ def test_openapi_catalog_contract_is_stable_queryless_and_cookie_secured() -> No
         "page_size",
         "cursor",
     ]
+    topic_parameter = next(
+        parameter
+        for parameter in query_operation["parameters"]
+        if parameter["name"] == "topic"
+    )
+    assert topic_parameter["schema"]["items"]["pattern"] == (
+        r"^[a-z0-9][a-z0-9-]{1,49}$"
+    )
     model = schema["components"]["schemas"][
         "LearningOpportunityBrowseResponseModel"
     ]

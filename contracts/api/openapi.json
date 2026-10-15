@@ -2079,6 +2079,7 @@
             "schema": {
               "default": [],
               "items": {
+                "pattern": "^[a-z0-9][a-z0-9-]{1,49}$",
                 "type": "string"
               },
               "maxItems": 8,
