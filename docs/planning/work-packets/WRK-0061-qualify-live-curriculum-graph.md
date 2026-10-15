@@ -1,9 +1,9 @@
 ---
 id: WRK-0061
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0005
 updated: 2026-10-15
 parent: SLI-0022
 capability: CAP-0005
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["deployments/local/serve.py", "deployments/local/README.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "apps/web/README.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0022-open-versioned-curriculum-graph.md", "docs/planning/work-packets/WRK-0061-qualify-live-curriculum-graph.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 7cc6fef845c4f5f4e7df720feb35ca61a4e6320a
+claim_id: WRK-0061:38a95821-910e-464c-91b1-21089aeb7f80
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-15T23:48:55Z
 ---
 
 # Agent Work Packet: Qualify the Live Curriculum Graph

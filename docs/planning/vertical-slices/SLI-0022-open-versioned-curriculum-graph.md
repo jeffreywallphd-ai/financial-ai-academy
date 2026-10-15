@@ -152,7 +152,7 @@ a schema version change.
 | WRK-0058 | Establish versioned curriculum-graph contracts, compatibility corpus, Curriculum domain records, validation policy, and focused anti-rigidity tests | none | none | complete |
 | WRK-0059 | Persist immutable approved graph versions and expose the protected Curriculum read operation through OpenAPI and the generated client | WRK-0058 | none | complete |
 | WRK-0060 | Deliver the accessible responsive curriculum map/list route using the public generated client and shared design system | WRK-0059 | none | complete |
-| WRK-0061 | Qualify the live graph path, provenance, authorization, invalid-state behavior, accessibility, theme parity, and documentation | WRK-0060 | none | ready |
+| WRK-0061 | Qualify the live graph path, provenance, authorization, invalid-state behavior, accessibility, theme parity, and documentation | WRK-0060 | none | active |
 
 ## Verification and Qualification
 
@@ -229,3 +229,6 @@ confirmation that eligibility and adaptation remain outside this slice.
 - 2026-10-15: Refined WRK-0061 just in time around public-operation synthetic
   graph seeding and the existing isolated PostgreSQL/Python/static-host/
   Chromium qualification harness, with direct live anti-rigidity evidence.
+- 2026-10-15: Activated WRK-0061 after the current CAP package, completed
+  dependencies, decision posture, exact live scope, and implementation gate
+  were revalidated and the control plane issued its durable claim.
