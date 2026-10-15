@@ -30,9 +30,11 @@ learner, permission, provider, or storage selectors.
 
 The same generated client now includes `getCurriculumGraphVersion` for the
 protected exact-version graph GET. Its path requires both curriculum identity
-and semantic version and has no current/latest alias. WRK-0060 will consume this
-typed seam for the learner map/list; this packet adds no browser route or
-client-side graph authority.
+and semantic version and has no current/latest alias. The protected curriculum
+graph route consumes this typed seam and validates the complete closed graph
+before it presents any structure. The browser preserves server-owned facts and
+uses optional presentation hints only for display order; it does not become a
+source of graph, eligibility, completion, or mastery authority.
 
 The learning-catalog client also defines the reusable selection seam for
 detail and comparison routes. One detail ID or two through four distinct
@@ -87,6 +89,18 @@ comparison. A missing current identity fails the whole view rather than showing
 partial records. Every record keeps its detail link; only a validated available
 lesson exposes its exact placement destination. The return reference preserves
 canonical `/learn` query state without a transient cursor.
+
+`/learn/curricula/:curriculumId/versions/:curriculumVersion` opens one exact
+approved curriculum graph. Its accessible list view is the default; a peer map
+view presents the same objectives, competencies, branches, activities, and
+relationships with a responsive grouping layout rather than fixed canvas
+coordinates. Optional or absent presentation hints, variable record counts,
+same-kind shared branch memberships, activities outside branches, and empty
+branch or relationship sets remain valid. The route shows exact source
+references, publication facts, schema version, and digest, but exposes no
+activity-launch action and makes no learner-state inference. Malformed links,
+denial, missing exact versions, unavailable service, or an invalid success
+response fail closed without substituting a latest version or partial graph.
 
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated
@@ -170,7 +184,7 @@ npm --prefix apps/web run generate:api -- --check
 npm --prefix apps/web run typecheck
 npm --prefix apps/web run lint
 npm --prefix apps/web test -- --run apps/web/tests/unit apps/web/tests/component
-npm --prefix apps/web run test:browser -- tests/browser/learning-catalog tests/browser/lesson-reading
+npm --prefix apps/web run test:browser -- tests/browser/learning-catalog tests/browser/lesson-reading tests/browser/curriculum-graph
 npm --prefix apps/web run build
 python tests/e2e/approved-lesson/run.py
 ```
@@ -200,8 +214,8 @@ for clean-start and teardown commands.
 
 Vitest owns fail-closed content and discovery-response validation, session,
 theme, component, generated-client, and static-browser-boundary checks.
-Playwright Chromium owns the delivered catalog, detail, comparison, and lesson
-routes' light/dark/system equivalence,
+Playwright Chromium owns the delivered catalog, detail, comparison, curriculum
+graph, and lesson routes' light/dark/system equivalence,
 automated accessibility scans, keyboard focus, responsive reflow, reduced
 motion, forced colors, denial, and unknown-content/record paths. Lesson visual
 baselines are platform-specific. The live cross-system suite additionally owns the real

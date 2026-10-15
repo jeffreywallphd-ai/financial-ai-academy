@@ -1,0 +1,325 @@
+.curriculum-graph {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-8);
+}
+
+.curriculum-graph__header {
+  display: grid;
+  max-width: var(--faa-layout-reading-max);
+  gap: var(--faa-space-4);
+}
+
+.curriculum-graph__header h1,
+.curriculum-graph__header p,
+.curriculum-graph__section-heading h2,
+.curriculum-graph__section-heading p,
+.curriculum-graph__section h3,
+.curriculum-graph__section h4,
+.curriculum-graph__activity p,
+.curriculum-graph__unbranched > p,
+.curriculum-graph__relationships li p,
+.curriculum-graph__provenance p {
+  margin: var(--faa-space-0);
+}
+
+.curriculum-graph__header h1 {
+  overflow-wrap: anywhere;
+  font-family: var(--faa-font-display);
+  font-size: var(--faa-font-size-page);
+  line-height: var(--faa-line-height-page);
+}
+
+.curriculum-graph__header > p:not(.eyebrow, .curriculum-graph__notice) {
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-body-lg);
+  line-height: var(--faa-line-height-body-lg);
+}
+
+.curriculum-graph__identity,
+.curriculum-graph__activity dl,
+.curriculum-graph__provenance dl {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-3);
+  margin: var(--faa-space-0);
+}
+
+.curriculum-graph__identity {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--faa-layout-rail)), 1fr)
+  );
+}
+
+.curriculum-graph__identity > div,
+.curriculum-graph__activity dl > div,
+.curriculum-graph__provenance dl > div {
+  min-width: 0;
+  padding-bottom: var(--faa-space-3);
+  border-bottom: var(--faa-border-width) solid var(--faa-color-border);
+}
+
+.curriculum-graph__identity dt,
+.curriculum-graph__activity dt,
+.curriculum-graph__provenance dt {
+  color: var(--faa-color-text-muted);
+  font-size: var(--faa-font-size-caption);
+  font-weight: var(--faa-font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.curriculum-graph__identity dd,
+.curriculum-graph__activity dd,
+.curriculum-graph__provenance dd {
+  min-width: 0;
+  margin: var(--faa-space-1) var(--faa-space-0) var(--faa-space-0);
+  overflow-wrap: anywhere;
+}
+
+.curriculum-graph__notice {
+  padding: var(--faa-space-4);
+  color: var(--faa-color-text-secondary);
+  background: var(--faa-color-info-surface);
+  border: var(--faa-border-width) solid var(--faa-color-info);
+  border-radius: var(--faa-radius-card);
+}
+
+.curriculum-graph__view-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--faa-space-3);
+}
+
+.curriculum-graph__view-control .button[aria-pressed="true"] {
+  color: var(--faa-color-on-action-primary);
+  background: var(--faa-color-action-primary);
+  border-color: var(--faa-color-action-primary);
+}
+
+.curriculum-graph__facts {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-layout-grid-gap);
+}
+
+.curriculum-graph__section,
+.curriculum-graph__provenance {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-5);
+  padding: var(--faa-space-6);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-card);
+  box-shadow: var(--faa-shadow-sm);
+}
+
+.curriculum-graph__section-heading {
+  display: grid;
+  gap: var(--faa-space-2);
+}
+
+.curriculum-graph__section-heading h2 {
+  overflow-wrap: anywhere;
+  font-family: var(--faa-font-display);
+  font-size: var(--faa-font-size-section);
+  line-height: var(--faa-line-height-section);
+}
+
+.curriculum-graph__section > ol,
+.curriculum-graph__branch-list,
+.curriculum-graph__provenance ul {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-4);
+  margin: var(--faa-space-0);
+  padding: var(--faa-space-0);
+  list-style: none;
+}
+
+.curriculum-graph__objectives li,
+.curriculum-graph__competencies li,
+.curriculum-graph__relationships li,
+.curriculum-graph__branch-list > li,
+.curriculum-graph__unbranched {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-3);
+  padding: var(--faa-space-4);
+  background: var(--faa-color-surface-subtle);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-card);
+}
+
+.curriculum-graph__section li > p,
+.curriculum-graph__unbranched > p,
+.curriculum-graph__provenance > p,
+.curriculum-graph__empty {
+  color: var(--faa-color-text-secondary);
+}
+
+.curriculum-graph__section code,
+.curriculum-graph__provenance code {
+  overflow-wrap: anywhere;
+  font-size: var(--faa-font-size-caption);
+  white-space: normal;
+}
+
+.curriculum-graph__section h3,
+.curriculum-graph__section h4,
+.curriculum-graph__section p,
+.curriculum-graph__section dt,
+.curriculum-graph__section dd,
+.curriculum-graph__section code,
+.curriculum-graph__section span,
+.curriculum-graph__provenance li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.curriculum-graph__branch-list > li > header {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--faa-space-3);
+}
+
+.curriculum-graph__branch-list > li > header > div,
+.curriculum-graph__unbranched {
+  gap: var(--faa-space-2);
+}
+
+.curriculum-graph__badge,
+.curriculum-graph__relationships li span {
+  justify-self: start;
+  padding: var(--faa-space-1) var(--faa-space-3);
+  color: var(--faa-color-text-secondary);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-pill);
+  font-size: var(--faa-font-size-caption);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.curriculum-graph__activity-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--faa-layout-rail)), 1fr)
+  );
+  gap: var(--faa-space-4);
+}
+
+.curriculum-graph__activity {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-3);
+  padding: var(--faa-space-4);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border-strong);
+  border-radius: var(--faa-radius-card);
+}
+
+.curriculum-graph__relationships li {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.curriculum-graph__relationships li code {
+  grid-column: 1 / -1;
+}
+
+.curriculum-graph__provenance > p {
+  display: flex;
+  align-items: start;
+  gap: var(--faa-space-2);
+}
+
+.curriculum-graph__provenance details summary {
+  min-height: var(--faa-target-min);
+  color: var(--faa-color-link);
+  cursor: pointer;
+}
+
+.curriculum-graph__back {
+  justify-self: start;
+  text-decoration: none;
+}
+
+.curriculum-graph-loading {
+  display: block;
+  max-width: var(--faa-layout-reading-max);
+  min-height: var(--faa-layout-rail);
+  margin: var(--faa-space-12) auto;
+  padding: var(--faa-space-6);
+  background: var(--faa-color-info-surface);
+  border: var(--faa-border-width) solid var(--faa-color-info);
+  border-radius: var(--faa-radius-card);
+}
+
+.curriculum-graph-loading h1 {
+  margin: var(--faa-space-2) var(--faa-space-0) var(--faa-space-4);
+  font-family: var(--faa-font-display);
+}
+
+.curriculum-graph-loading p {
+  color: var(--faa-color-text-secondary);
+}
+
+@media (min-width: 64rem) {
+  .curriculum-graph__facts--map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .curriculum-graph__facts--map .curriculum-graph__branches,
+  .curriculum-graph__facts--map .curriculum-graph__relationships {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 39.99rem) {
+  .curriculum-graph__header h1 {
+    font-size: var(--faa-font-size-section);
+    line-height: var(--faa-line-height-section);
+  }
+
+  .curriculum-graph__section,
+  .curriculum-graph__provenance {
+    padding: var(--faa-space-4);
+  }
+
+  .curriculum-graph__relationships li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .curriculum-graph__section,
+  .curriculum-graph__provenance,
+  .curriculum-graph__objectives li,
+  .curriculum-graph__competencies li,
+  .curriculum-graph__relationships li,
+  .curriculum-graph__branch-list > li,
+  .curriculum-graph__unbranched,
+  .curriculum-graph__activity,
+  .curriculum-graph__badge,
+  .curriculum-graph__relationships li span,
+  .curriculum-graph-loading,
+  .curriculum-graph__notice {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .curriculum-graph__view-control .button[aria-pressed="true"] {
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+  }
+}
