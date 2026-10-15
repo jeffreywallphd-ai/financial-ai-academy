@@ -166,7 +166,7 @@ eligibility result, or suitability inference enters the view.
 | WRK-0053 | Define the bounded detail/comparison URL, record-resolution, validation, and return-path model over the existing generated browse client | SLI-0018, SLI-0019 | none | complete |
 | WRK-0054 | Deliver the accessible current-opportunity detail route with provenance, limitations, and exact available-lesson continuation | WRK-0053 | none | complete |
 | WRK-0055 | Deliver query-coherent two-to-four selection and accessible comparison without ranking, partial fallback, or saved browser authority | WRK-0054 | none | complete |
-| WRK-0056 | Qualify the complete detail/comparison path, denial/failure states, accessibility, exact continuation, portability, and cleanup | WRK-0055 | none | ready |
+| WRK-0056 | Qualify the complete detail/comparison path, denial/failure states, accessibility, exact continuation, portability, and cleanup | WRK-0055 | none | active |
 
 ## Verification and Qualification
 
@@ -253,3 +253,5 @@ unsupported kinds/profiles/providers, residual gaps, and CAP conformance.
 - 2026-10-15: Refined WRK-0056 just in time as live PostgreSQL/Python/static
   qualification of exact detail, ordered comparison, changed/malformed states,
   available-only continuation, accessibility, portability, and exact cleanup.
+- 2026-10-15: Claimed WRK-0056 for serial delivery after WRK-0055 completion;
+  its live-evidence and assurance scope has no active overlap.

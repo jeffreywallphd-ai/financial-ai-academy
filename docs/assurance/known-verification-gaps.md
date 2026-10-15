@@ -20,7 +20,8 @@
   non-lesson destinations, external search adapters, and managed-cloud
   discovery beyond the directly covered deterministic contract, PostgreSQL
   projection, protected API, accessible search/filter/pagination browser path,
-  and isolated local catalog-to-exact-lesson path
+  isolated local exact-detail and ordered-comparison paths, and
+  catalog-to-exact-lesson continuation
 - Adaptive policy and fallback verification
 - Model evaluation and promotion harness
 - Source freshness and provider-license review reminders

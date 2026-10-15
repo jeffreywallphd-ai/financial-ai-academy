@@ -273,7 +273,9 @@ def main() -> int:
             "browser": "Playwright pinned Chromium",
             "catalog": (
                 "three deterministic lesson opportunities registered and "
-                "projected through public Curriculum operations"
+                "projected through public Curriculum operations, then "
+                "qualified through catalog, detail, ordered comparison, "
+                "and exact lesson routes"
             ),
             "database": postgres_topology,
             "filesystem": "isolated temporary data root",

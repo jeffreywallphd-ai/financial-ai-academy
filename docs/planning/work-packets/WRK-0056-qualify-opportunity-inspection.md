@@ -1,9 +1,9 @@
 ---
 id: WRK-0056
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0004
 updated: 2026-10-15
 parent: SLI-0020
 capability: CAP-0004
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "tests/e2e/approved-lesson/run.py", "deployments/local/README.md", "apps/web/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0020-inspect-and-compare-learning-opportunities.md", "docs/planning/work-packets/WRK-0056-qualify-opportunity-inspection.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 8c7b168b886e94f40bd9d79b37ddb88f854755aa
+claim_id: WRK-0056:3a48660e-dd4f-4ffc-9299-d786c26d5dff
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T21:12:04Z
 ---
 
 # Agent Work Packet: Qualify Opportunity Inspection

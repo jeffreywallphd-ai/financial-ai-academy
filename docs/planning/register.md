@@ -111,7 +111,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0053 | Work packet | [Define the Opportunity Selection Model](work-packets/WRK-0053-define-opportunity-selection-model.md) | complete | SLI-0020 | WRK-0051 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0054 | Work packet | [Deliver the Opportunity Detail Route](work-packets/WRK-0054-deliver-opportunity-detail-route.md) | complete | SLI-0020 | WRK-0053 | none | codex-cap-0004 | 2026-10-15 |
 | WRK-0055 | Work packet | [Deliver Opportunity Comparison](work-packets/WRK-0055-deliver-opportunity-comparison.md) | complete | SLI-0020 | WRK-0054 | none | codex-cap-0004 | 2026-10-15 |
-| WRK-0056 | Work packet | [Qualify Opportunity Inspection](work-packets/WRK-0056-qualify-opportunity-inspection.md) | ready | SLI-0020 | WRK-0055 | none | unassigned | 2026-10-15 |
+| WRK-0056 | Work packet | [Qualify Opportunity Inspection](work-packets/WRK-0056-qualify-opportunity-inspection.md) | active | SLI-0020 | WRK-0055 | none | codex-cap-0004 | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

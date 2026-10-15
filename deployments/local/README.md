@@ -96,9 +96,10 @@ The runner chooses unused loopback ports, creates a uniquely named
 filesystem root below ignored `artifacts/tmp/`, waits for readiness, starts the
 Python host, opts into three deterministic discovery classifications, and runs
 the live browser checks for combined filters, three-page ordering, cursor-query
-mismatch denial, exact lesson continuation, retained completion, context
-denial, security headers, and axe accessibility. It removes only those exact
-resources in `finally` cleanup. An external database is accepted only when
+mismatch denial, exact current-opportunity detail, ordered two-record
+comparison, changed and malformed selection, exact lesson continuation,
+retained completion, context denial, security headers, and axe accessibility.
+It removes only those exact resources in `finally` cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.
 
@@ -131,7 +132,8 @@ query corpus, real PostgreSQL migrations and repositories, restrictive local
 filesystem storage, loopback request policy, opaque HttpOnly session cookie,
 public-operation discovery registration and one atomic projection rebuild,
 reviewed OpenAPI/generated client, static same-origin Python serving,
-filter/pagination/cursor-denial and catalog-to-exact-lesson Chromium paths,
+filter/pagination/cursor-denial, exact detail, ordered comparison,
+changed/malformed selection, and catalog-to-exact-lesson Chromium paths,
 architecture and security scans, axe accessibility, and safe teardown.
 
 The following remain unqualified: built-in credentials, OIDC, multiple

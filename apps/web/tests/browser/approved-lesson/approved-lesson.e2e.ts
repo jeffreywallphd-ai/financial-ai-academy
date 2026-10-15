@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 
 
 const PLACEMENT_ID = "intro-risk-return-primary";
+const GUIDED_PRACTICE_ID = "intro-risk-return-guided-practice";
 const CATALOG_PATH = "/learn";
 const CATALOG_API = "/api/v1/curriculum/opportunities";
 const QUERY_API = "/api/v1/curriculum/opportunities/query";
@@ -224,6 +225,158 @@ test("browses the live catalog and opens the approved exact lesson", async ({
 
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
+});
+
+test("inspects and compares live current opportunities before exact continuation", async ({
+  page,
+}) => {
+  await page.goto(CATALOG_PATH);
+  const availableCard = page.getByRole("article").filter({
+    hasText: "The exact reviewed lesson is available in this local catalog.",
+  });
+  await availableCard.getByRole("link", { name: "View details" }).click();
+
+  await expect(page).toHaveURL(
+    new RegExp(
+      `/learn/opportunities/${PLACEMENT_ID}\\?return_to=%2Flearn$`,
+    ),
+  );
+  await expect(
+    page.getByRole("heading", {
+      exact: true,
+      level: 1,
+      name: "Understanding Risk and Return",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText(PLACEMENT_ID, { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("intro-risk-return@1.1.0", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(DIGEST, { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(
+      "The exact reviewed lesson is available in this local catalog.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByText("Projection generation", { exact: true })
+      .locator("..")
+      .locator("code"),
+  ).toHaveText(/^[a-f0-9]{64}$/);
+  await expect(
+    page.getByRole("link", { name: "Open exact lesson" }),
+  ).toHaveAttribute("href", LESSON_PATH);
+  await expect(
+    page.getByRole("link", { name: "Return to catalog" }),
+  ).toHaveAttribute("href", CATALOG_PATH);
+  const detailAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(detailAccessibility.violations).toEqual([]);
+
+  await page.getByRole("link", { name: "Return to catalog" }).click();
+  const plannedCard = page.getByRole("article").filter({
+    hasText: "This synthetic guided practice remains planned in qualification.",
+  });
+  await plannedCard
+    .getByRole("checkbox", { name: "Compare Understanding Risk and Return" })
+    .check();
+  await page
+    .getByRole("article")
+    .filter({
+      hasText: "The exact reviewed lesson is available in this local catalog.",
+    })
+    .getByRole("checkbox", { name: "Compare Understanding Risk and Return" })
+    .check();
+  await page.getByRole("button", { name: "Compare selected" }).click();
+
+  const comparisonUrl = new URL(page.url());
+  expect(comparisonUrl.pathname).toBe("/learn/opportunities/compare");
+  expect(comparisonUrl.searchParams.get("return_to")).toBe(CATALOG_PATH);
+  expect(comparisonUrl.searchParams.getAll("opportunity")).toEqual([
+    GUIDED_PRACTICE_ID,
+    PLACEMENT_ID,
+  ]);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Compare educational facts" }),
+  ).toBeVisible();
+  const comparisonCards = page.getByRole("article");
+  await expect(comparisonCards).toHaveCount(2);
+  await expect(
+    comparisonCards.nth(0).getByText(GUIDED_PRACTICE_ID, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    comparisonCards.nth(1).getByText(PLACEMENT_ID, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    comparisonCards.nth(0).getByText("Selected 1", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    comparisonCards.nth(1).getByText("Selected 2", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    comparisonCards.nth(0).getByText("35 minutes", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    comparisonCards.nth(1).getByText("20 minutes", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    comparisonCards.nth(0).getByRole("link", { name: "Open exact lesson" }),
+  ).toHaveCount(0);
+  await expect(
+    comparisonCards.nth(1).getByRole("link", { name: "Open exact lesson" }),
+  ).toHaveAttribute("href", LESSON_PATH);
+  await expect(
+    comparisonCards.nth(0).getByRole("link", { name: "View details" }),
+  ).toHaveAttribute(
+    "href",
+    `/learn/opportunities/${GUIDED_PRACTICE_ID}?return_to=%2Flearn`,
+  );
+  await expect(page.getByText(/does not rank opportunities/i)).toBeVisible();
+  await expect(page.getByText(/recommended for you|comparison score/i)).toHaveCount(
+    0,
+  );
+  const comparisonAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(comparisonAccessibility.violations).toEqual([]);
+
+  await comparisonCards
+    .nth(1)
+    .getByRole("link", { name: "Open exact lesson" })
+    .click();
+  await expect(page).toHaveURL(new RegExp(`${LESSON_PATH}$`));
+  await expect(
+    page.getByRole("heading", {
+      exact: true,
+      level: 1,
+      name: "Understanding Risk and Return",
+    }),
+  ).toBeVisible();
+});
+
+test("fails closed for changed and malformed live opportunity selections", async ({
+  page,
+}) => {
+  await page.goto("/learn/opportunities/not-a-current-opportunity");
+  await expect(
+    page.getByRole("heading", { name: "Opportunity changed" }),
+  ).toBeVisible();
+  await expect(page.getByText("Understanding Risk and Return")).toHaveCount(0);
+
+  await page.goto(
+    `/learn/opportunities/compare?opportunity=${PLACEMENT_ID}` +
+      "&opportunity=not-a-current-opportunity",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Comparison changed" }),
+  ).toBeVisible();
+  await expect(page.getByText("Understanding Risk and Return")).toHaveCount(0);
+
+  await page.goto(
+    `/learn/opportunities/compare?opportunity=${PLACEMENT_ID}`,
+  );
+  await expect(
+    page.getByRole("heading", { name: "Comparison link unavailable" }),
+  ).toBeVisible();
+  await expect(page.getByText("Understanding Risk and Return")).toHaveCount(0);
 });
 
 test("filters, pages, and rejects a mismatched live query cursor", async ({
