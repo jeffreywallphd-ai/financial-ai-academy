@@ -1,7 +1,7 @@
 ---
 id: WRK-0048
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -183,6 +183,35 @@ unavailable, and confidentiality evidence; checks/results; documentation
 impact; absence of migration/external qualification; residual gaps; packet
 lifecycle result; and whether WRK-0049 is dependency-ready.
 
+## Completion Evidence
+
+- Delivered discovery-query v1 as a separate additive contract over unchanged
+  discovery-v1 records and queryless browse. The shared Curriculum core owns
+  tolerant bounded raw input, canonical applied queries, AND-term matching,
+  OR-within/AND-across filters, closed stable sorts, exact counts, bounded
+  pages, and generation/query-bound continuation cursors.
+- Raw text and each filter array are bounded before normalization or
+  deduplication. Unicode NFKC, collapsed whitespace, case folding, a ten-term
+  limit, sorted unique applied filters, and repeated-filter tolerance are fixed
+  by executable request/page schemas, denial cases, and multi-record vectors.
+- Multi-record compatibility and application tests cover every closed sort and
+  identity tie, combined filters, prerequisite-only search, two-page
+  continuity and replay, checksum corruption, query mismatch, changed
+  generation, malformed input before projection reads, and public-type
+  confidentiality. Queryless discovery contracts remain compatible.
+- Exact candidate `92c46e16488aa450f75032aae14eb5bc0df5fa43` has a fresh,
+  qualifying affected-check receipt. Focused query evidence passed 60 tests;
+  backend unit, contract, and architecture evidence passed 234 tests;
+  architecture passed 11 fitness tests; security passed 10 control groups;
+  documentation validated 206 Markdown sources; planning validated 81
+  artifacts; and diff hygiene passed.
+- No persistence migration, HTTP route, generated client, interface, external
+  provider, network dependency, learner authority, relevance ranking, or
+  personalized recommendation was introduced. HTTP/client delivery remains
+  WRK-0049, and the checksum intentionally detects accidental corruption rather
+  than providing adversarial integrity.
+- WRK-0049 is dependency-ready within the approved SLI-0019 packet sequence.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time as the first SLI-0019 packet after SLI-0018
@@ -196,3 +225,8 @@ lifecycle result; and whether WRK-0049 is dependency-ready.
   write scope before submission so deterministic query/cursor policy remains a
   reusable pure application component instead of enlarging the composition
   service. The outcome, contracts, risk, and packet dependencies are unchanged.
+- 2026-10-15: Completed the exact deterministic query-core candidate after
+  aligning tolerant raw requests and canonical applied pages, expanding the
+  vector-driven filter/sort/cursor evidence, and passing the packet's affected
+  and broader verification boundaries. No CAP outcome or durable decision
+  changed.
