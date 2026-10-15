@@ -1,7 +1,7 @@
 ---
 id: WRK-0053
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -156,9 +156,40 @@ and resolution behavior, denial/failure states, 401 renewal limit, tests and
 other checks, documentation impact, residual UI/live work, and CAP/SLI
 conformance.
 
+## Completion Evidence
+
+- Delivered a strict one-ID detail selection and ordered two-to-four distinct-ID
+  comparison selection. Unknown URL state, invalid identifiers, duplicate or
+  excessive comparison IDs, unrelated return paths, credentials, fragments,
+  and another origin fail before session or API work.
+- The optional return reference is bounded to 2,048 characters and normalized
+  to the same-origin `/learn` query contract. Valid filter/sort/page-size state
+  remains usable, while every continuation cursor is removed; ordinary
+  unfiltered `/learn` remains the default without saved state or extra services.
+- The protected generated queryless operation validates the complete current
+  discovery envelope, all records and fingerprints, order, and generation
+  before resolving IDs. Selected records retain user order; one missing ID
+  fails the whole selection as changed, and invalid success data provides no
+  partial or cached fallback.
+- Session establishment and one bounded 401 renewal are retained. Unauthorized,
+  forbidden, unavailable, malformed, changed, and unexpected outcomes expose
+  only closed route states, not catalog records or private implementation facts.
+- Eight web unit/component files passed all 68 tests. TypeScript typecheck,
+  lint, generated-client currency, packet validation, planning integrity for
+  120 artifacts, documentation validation for 245 Markdown files, and Git
+  whitespace checks passed. The exact candidate also produced a fresh,
+  qualifying, stable affected-verification receipt.
+- No backend contract, schema, generated client, dependency, route, visible UI,
+  durable browser state, cache, provider, or background work changed. WRK-0054
+  and WRK-0055 retain the visible detail/comparison work; WRK-0056 retains live
+  and accessibility qualification.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after SLI-0020 selection. The packet reuses
   the protected complete browse projection, introduces no backend contract or
   durable state, and provides the bounded client seam needed by the two UI
   packets without material CAP drift.
+- 2026-10-15: Completed the bounded selection and protected-loader seam with
+  focused web, planning, documentation, and affected-verification evidence.
+  The result remains within the approved CAP package and SLI-0020 boundaries.
