@@ -1,9 +1,9 @@
 ---
 id: WRK-0055
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0004
 updated: 2026-10-15
 parent: SLI-0020
 capability: CAP-0004
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/features/learning-catalog/LearningCatalogPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityComparisonPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityComparisonRoute.tsx", "apps/web/src/styles/learning-catalog.css", "apps/web/tests/component/learningCatalog.test.tsx", "apps/web/tests/component/learningOpportunityComparison.test.tsx", "apps/web/tests/browser/learning-catalog/learning-catalog.spec.ts", "apps/web/dist", "apps/web/README.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0020-inspect-and-compare-learning-opportunities.md", "docs/planning/work-packets/WRK-0055-deliver-opportunity-comparison.md"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: e5c7e0773f20f432d24a3a35b1a94846d0bb32a5
+claim_id: WRK-0055:356963a5-06e4-4372-b56b-abab7a5a91e2
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T21:03:44Z
 ---
 
 # Agent Work Packet: Deliver Opportunity Comparison

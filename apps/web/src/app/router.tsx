@@ -4,6 +4,7 @@ import { createFinancialAcademyApiClient } from "../generated/api-client";
 import { StatusPanel } from "../components/StatusPanel";
 import {
   createLearningCatalogLoader,
+  createLearningOpportunityComparisonLoader,
   createLearningOpportunityDetailLoader,
 } from "../features/learning-catalog/api";
 import {
@@ -14,6 +15,10 @@ import {
   LearningOpportunityDetailLoadingState,
   LearningOpportunityDetailRoute,
 } from "../features/learning-catalog/LearningOpportunityDetailRoute";
+import {
+  LearningOpportunityComparisonLoadingState,
+  LearningOpportunityComparisonRoute,
+} from "../features/learning-catalog/LearningOpportunityComparisonRoute";
 import { createLessonLoader } from "../features/lesson-reading/api";
 import {
   LessonLoadingState,
@@ -29,6 +34,8 @@ const learningOpportunityDetailLoader = createLearningOpportunityDetailLoader(
   client,
   session,
 );
+const learningOpportunityComparisonLoader =
+  createLearningOpportunityComparisonLoader(client, session);
 const lessonLoader = createLessonLoader(client, session);
 
 function UnexpectedRouteError() {
@@ -72,6 +79,12 @@ export const router = createBrowserRouter([
         loader: learningCatalogLoader,
         Component: LearningCatalogRoute,
         HydrateFallback: LearningCatalogLoadingState,
+      },
+      {
+        path: "learn/opportunities/compare",
+        loader: learningOpportunityComparisonLoader,
+        Component: LearningOpportunityComparisonRoute,
+        HydrateFallback: LearningOpportunityComparisonLoadingState,
       },
       {
         path: "learn/opportunities/:opportunityId",

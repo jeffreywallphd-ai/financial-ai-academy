@@ -88,7 +88,8 @@
 }
 
 .catalog-query__actions,
-.catalog-pagination {
+.catalog-pagination,
+.catalog-comparison__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--faa-space-3);
@@ -108,6 +109,62 @@
   border: var(--faa-border-width) solid var(--faa-color-border);
   border-radius: var(--faa-radius-card);
   box-shadow: var(--faa-shadow-sm);
+}
+
+.catalog-comparison,
+.catalog-comparison fieldset {
+  min-width: 0;
+  margin: var(--faa-space-0);
+  padding: var(--faa-space-0);
+  border: 0;
+}
+
+.catalog-comparison fieldset {
+  display: grid;
+  gap: var(--faa-space-4);
+}
+
+.catalog-comparison legend {
+  margin-bottom: var(--faa-space-2);
+  font-family: var(--faa-font-display);
+  font-size: var(--faa-font-size-section);
+  font-weight: var(--faa-font-weight-semibold);
+  line-height: var(--faa-line-height-section);
+}
+
+.catalog-comparison__help,
+.catalog-comparison__status {
+  margin: var(--faa-space-0);
+  color: var(--faa-color-text-secondary);
+}
+
+.catalog-comparison__status {
+  font-size: var(--faa-font-size-ui);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.catalog-card__compare {
+  display: flex;
+  min-height: var(--faa-target-min);
+  align-items: center;
+  gap: var(--faa-space-3);
+  color: var(--faa-color-text-primary);
+  font-size: var(--faa-font-size-ui);
+  font-weight: var(--faa-font-weight-semibold);
+  cursor: pointer;
+}
+
+.catalog-card__compare input {
+  width: var(--faa-space-5);
+  height: var(--faa-space-5);
+  flex: 0 0 auto;
+  margin: var(--faa-space-0);
+  accent-color: var(--faa-color-action-primary);
+}
+
+.catalog-card__compare:has(input:disabled) {
+  color: var(--faa-color-text-muted);
+  cursor: not-allowed;
 }
 
 .catalog-card__heading,
@@ -440,6 +497,177 @@
   text-decoration: none;
 }
 
+.opportunity-comparison {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-8);
+}
+
+.opportunity-comparison__header {
+  display: grid;
+  max-width: var(--faa-layout-reading-max);
+  min-width: 0;
+  justify-items: start;
+  gap: var(--faa-space-4);
+}
+
+.opportunity-comparison__header h1,
+.opportunity-comparison__header p {
+  margin: var(--faa-space-0);
+}
+
+.opportunity-comparison__header h1 {
+  overflow-wrap: anywhere;
+  font-family: var(--faa-font-display);
+  font-size: var(--faa-font-size-page);
+  line-height: var(--faa-line-height-page);
+}
+
+.opportunity-comparison__header > p:not(.eyebrow) {
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-body-lg);
+  line-height: var(--faa-line-height-body-lg);
+}
+
+.opportunity-comparison__header .opportunity-comparison__context {
+  color: var(--faa-color-text-muted);
+  font-size: var(--faa-font-size-ui);
+  line-height: var(--faa-line-height-ui);
+}
+
+.opportunity-comparison__context code {
+  overflow-wrap: anywhere;
+  font-size: var(--faa-font-size-caption);
+}
+
+.opportunity-comparison > ol {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--faa-layout-rail)), 1fr)
+  );
+  gap: var(--faa-layout-grid-gap);
+  margin: var(--faa-space-0);
+  padding: var(--faa-space-0);
+  list-style: none;
+}
+
+.opportunity-comparison > ol > li {
+  min-width: 0;
+}
+
+.opportunity-comparison__card {
+  display: grid;
+  min-width: 0;
+  height: 100%;
+  gap: var(--faa-space-5);
+  padding: var(--faa-space-6);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-card);
+  box-shadow: var(--faa-shadow-sm);
+}
+
+.opportunity-comparison__card > p,
+.opportunity-comparison__card section > p,
+.opportunity-comparison__card h2,
+.opportunity-comparison__card h3 {
+  margin: var(--faa-space-0);
+}
+
+.opportunity-comparison__card h2,
+.opportunity-comparison__card h3 {
+  overflow-wrap: anywhere;
+  font-family: var(--faa-font-display);
+}
+
+.opportunity-comparison__card h2 {
+  font-size: var(--faa-font-size-card-title);
+  line-height: var(--faa-line-height-card-title);
+}
+
+.opportunity-comparison__card h3 {
+  font-size: var(--faa-font-size-body);
+  line-height: var(--faa-line-height-body);
+}
+
+.opportunity-comparison__card > p:not(.eyebrow),
+.opportunity-comparison__card section > p,
+.opportunity-comparison__objectives {
+  color: var(--faa-color-text-secondary);
+}
+
+.opportunity-comparison__card section,
+.opportunity-comparison__facts,
+.opportunity-comparison__technical,
+.opportunity-comparison__availability {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-3);
+}
+
+.opportunity-comparison__facts,
+.opportunity-comparison__technical {
+  margin: var(--faa-space-0);
+}
+
+.opportunity-comparison__facts > div,
+.opportunity-comparison__technical > div {
+  min-width: 0;
+  padding-bottom: var(--faa-space-3);
+  border-bottom: var(--faa-border-width) solid var(--faa-color-border);
+}
+
+.opportunity-comparison__facts dt,
+.opportunity-comparison__technical dt {
+  color: var(--faa-color-text-muted);
+  font-size: var(--faa-font-size-caption);
+  font-weight: var(--faa-font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.opportunity-comparison__facts dd,
+.opportunity-comparison__technical dd {
+  min-width: 0;
+  margin: var(--faa-space-1) var(--faa-space-0) var(--faa-space-0);
+}
+
+.opportunity-comparison__facts dd {
+  display: flex;
+  align-items: center;
+  gap: var(--faa-space-2);
+}
+
+.opportunity-comparison__facts code,
+.opportunity-comparison__technical code {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: var(--faa-font-size-caption);
+  white-space: normal;
+}
+
+.opportunity-comparison__objectives {
+  display: grid;
+  gap: var(--faa-space-2);
+  margin: var(--faa-space-0);
+  padding-left: var(--faa-space-6);
+}
+
+.opportunity-comparison__availability {
+  align-self: end;
+  padding-top: var(--faa-space-4);
+  border-top: var(--faa-border-width) solid var(--faa-color-border);
+}
+
+.opportunity-comparison__availability > p:first-of-type,
+.opportunity-comparison__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--faa-space-2);
+}
+
 @media (max-width: 63.99rem) {
   .opportunity-detail__layout {
     grid-template-columns: minmax(0, 1fr);
@@ -477,6 +705,15 @@
   .opportunity-detail__panel {
     padding: var(--faa-space-4);
   }
+
+  .opportunity-comparison__header h1 {
+    font-size: var(--faa-font-size-section);
+    line-height: var(--faa-line-height-section);
+  }
+
+  .opportunity-comparison__card {
+    padding: var(--faa-space-4);
+  }
 }
 
 @media (forced-colors: active) {
@@ -503,6 +740,13 @@
     color: CanvasText;
     background: Canvas;
     border-color: CanvasText;
+  }
+
+  .opportunity-comparison__card {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
   }
 
   .catalog-open-link {

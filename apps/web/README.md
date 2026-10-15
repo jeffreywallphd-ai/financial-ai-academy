@@ -29,7 +29,7 @@ stale, denied, or unavailable results. Neither client operation accepts
 learner, permission, provider, or storage selectors.
 
 The learning-catalog client also defines the reusable selection seam for
-future detail and comparison routes. One detail ID or two through four distinct
+detail and comparison routes. One detail ID or two through four distinct
 comparison IDs are accepted as navigation state; the protected queryless
 browse operation is then read and its complete current envelope, record set,
 provenance fingerprints, order, and generation are validated before any ID is
@@ -37,8 +37,9 @@ resolved. A missing ID invalidates the whole selection, so the browser never
 shows a partial comparison or trusts URL- or storage-supplied record facts. An
 optional same-origin `/learn` return reference may retain valid query/filter
 state, but its transient cursor is removed and no saved comparison or cache is
-created. The visible routes and controls that consume this seam are delivered
-separately.
+created. The catalog exposes transient current-page comparison controls; it
+serializes checked identities in learner selection order and never persists
+the selection.
 
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 
@@ -70,6 +71,16 @@ and projection context. A cursor-free, same-origin `/learn` return reference
 may preserve canonical query state. Only a validated available lesson exposes
 its exact placement destination; malformed, changed, denied, unavailable, or
 invalid responses show bounded states without partial or substituted facts.
+
+`/learn/opportunities/compare` accepts two through four repeated, distinct
+opportunity identities, resolves them only after the complete current queryless
+snapshot passes validation, and presents exact educational, availability,
+package, publication, and provenance facts in learner selection order. It does
+not score, rank, recommend a winner, infer eligibility, or retain a saved
+comparison. A missing current identity fails the whole view rather than showing
+partial records. Every record keeps its detail link; only a validated available
+lesson exposes its exact placement destination. The return reference preserves
+canonical `/learn` query state without a transient cursor.
 
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated
@@ -183,7 +194,8 @@ for clean-start and teardown commands.
 
 Vitest owns fail-closed content and discovery-response validation, session,
 theme, component, generated-client, and static-browser-boundary checks.
-Playwright Chromium owns both delivered routes' light/dark/system equivalence,
+Playwright Chromium owns the delivered catalog, detail, comparison, and lesson
+routes' light/dark/system equivalence,
 automated accessibility scans, keyboard focus, responsive reflow, reduced
 motion, forced colors, denial, and unknown-content/record paths. Lesson visual
 baselines are platform-specific. The live cross-system suite additionally owns the real

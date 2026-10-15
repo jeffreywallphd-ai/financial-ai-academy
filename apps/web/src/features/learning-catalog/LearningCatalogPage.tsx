@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
@@ -21,9 +22,15 @@ function readableDate(value: string): string {
 }
 
 function OpportunityCard({
+  comparisonDisabled,
+  comparisonSelected,
+  onComparisonChange,
   opportunity,
   returnTo,
 }: {
+  comparisonDisabled: boolean;
+  comparisonSelected: boolean;
+  onComparisonChange: (opportunityId: string, selected: boolean) => void;
   opportunity: LearningOpportunity;
   returnTo: string;
 }) {
@@ -31,6 +38,20 @@ function OpportunityCard({
   const detailParameters = new URLSearchParams({ return_to: returnTo });
   return (
     <article className="catalog-card">
+      <label className="catalog-card__compare">
+        <input
+          checked={comparisonSelected}
+          disabled={comparisonDisabled}
+          onChange={(event) =>
+            onComparisonChange(
+              opportunity.opportunity_id,
+              event.currentTarget.checked,
+            )
+          }
+          type="checkbox"
+        />
+        Compare {opportunity.title}
+      </label>
       <div className="catalog-card__heading">
         <span className="catalog-badge">{label(opportunity.kind)}</span>
         <span
@@ -267,6 +288,29 @@ export function LearningCatalogPage({
   page: LearningCatalogQueryPage;
 }) {
   const returnTo = queryPageHref(page.applied_query);
+  const comparisonPageKey = `${page.projection_generation}:${returnTo}:${page.records
+    .map((opportunity) => opportunity.opportunity_id)
+    .join(",")}`;
+  const [comparisonState, setComparisonState] = useState<{
+    pageKey: string;
+    opportunityIds: readonly string[];
+  }>({ pageKey: comparisonPageKey, opportunityIds: [] });
+  const comparisonIds =
+    comparisonState.pageKey === comparisonPageKey
+      ? comparisonState.opportunityIds
+      : [];
+  const updateComparison = (opportunityId: string, selected: boolean) => {
+    setComparisonState((current) => {
+      const currentIds =
+        current.pageKey === comparisonPageKey ? current.opportunityIds : [];
+      const opportunityIds = selected
+        ? currentIds.includes(opportunityId) || currentIds.length >= 4
+          ? currentIds
+          : [...currentIds, opportunityId]
+        : currentIds.filter((candidate) => candidate !== opportunityId);
+      return { pageKey: comparisonPageKey, opportunityIds };
+    });
+  };
   return (
     <section className="learning-catalog">
       <header className="catalog-header">
@@ -298,16 +342,81 @@ export function LearningCatalogPage({
           </div>
         </section>
       ) : (
-        <ul
-          aria-label="Approved learning opportunities"
-          className="catalog-grid"
+        <form
+          action="/learn/opportunities/compare"
+          className="catalog-comparison"
+          method="get"
         >
-          {page.records.map((opportunity) => (
-            <li key={opportunity.opportunity_id}>
-              <OpportunityCard opportunity={opportunity} returnTo={returnTo} />
-            </li>
-          ))}
-        </ul>
+          <fieldset>
+            <legend>Compare learning opportunities</legend>
+            <p className="catalog-comparison__help">
+              Select two through four opportunities from this page. Selection
+              order is preserved and does not rank or recommend a winner.
+            </p>
+            <p aria-live="polite" className="catalog-comparison__status">
+              {comparisonIds.length} of 4 selected
+              {comparisonIds.length < 2
+                ? ". Select at least 2 opportunities to compare."
+                : ". Ready to compare."}
+            </p>
+            <input name="return_to" type="hidden" value={returnTo} />
+            {comparisonIds.map((opportunityId) => (
+              <input
+                key={opportunityId}
+                name="opportunity"
+                type="hidden"
+                value={opportunityId}
+              />
+            ))}
+            <ul
+              aria-label="Approved learning opportunities"
+              className="catalog-grid"
+            >
+              {page.records.map((opportunity) => {
+                const comparisonSelected = comparisonIds.includes(
+                  opportunity.opportunity_id,
+                );
+                return (
+                  <li key={opportunity.opportunity_id}>
+                    <OpportunityCard
+                      comparisonDisabled={
+                        comparisonIds.length >= 4 && !comparisonSelected
+                      }
+                      comparisonSelected={comparisonSelected}
+                      onComparisonChange={updateComparison}
+                      opportunity={opportunity}
+                      returnTo={returnTo}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="catalog-comparison__actions">
+              <button
+                className="button"
+                disabled={comparisonIds.length < 2}
+                type="submit"
+              >
+                <Icon name="learn" />
+                Compare selected
+              </button>
+              {comparisonIds.length > 0 ? (
+                <button
+                  className="button button--secondary"
+                  onClick={() =>
+                    setComparisonState({
+                      pageKey: comparisonPageKey,
+                      opportunityIds: [],
+                    })
+                  }
+                  type="button"
+                >
+                  Clear comparison
+                </button>
+              ) : null}
+            </div>
+          </fieldset>
+        </form>
       )}
       {page.next_cursor ? (
         <nav aria-label="Catalog pages" className="catalog-pagination">

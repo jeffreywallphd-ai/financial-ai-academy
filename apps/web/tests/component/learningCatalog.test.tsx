@@ -1,10 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { LearningCatalogPage } from "../../src/features/learning-catalog/LearningCatalogPage";
 import { LearningCatalogRouteView } from "../../src/features/learning-catalog/LearningCatalogRoute";
 import {
+  availableOpportunity,
   learningQueryPageFixture,
   plannedOpportunity,
 } from "./learningCatalogFixture";
@@ -120,6 +122,113 @@ describe("LearningCatalogPage", () => {
       "href",
       "/learn/opportunities/cash-flow-basics-primary?return_to=%2Flearn%3Fquery%3Dcash%2Bflow%26level%3Dintroductory%26page_size%3D17",
     );
+  });
+
+  it("builds a bounded transient comparison in learner selection order", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+
+    const compare = screen.getByRole("button", { name: "Compare selected" });
+    expect(compare).toBeDisabled();
+
+    await user.click(
+      screen.getByRole("checkbox", { name: "Compare Portfolio Project" }),
+    );
+    expect(compare).toBeDisabled();
+    await user.click(
+      screen.getByRole("checkbox", { name: "Compare Cash Flow Basics" }),
+    );
+
+    expect(compare).toBeEnabled();
+    expect(screen.getByText("2 of 4 selected. Ready to compare.")).toBeVisible();
+    const form = compare.closest("form");
+    expect(form).not.toBeNull();
+    expect(form).toHaveAttribute("action", "/learn/opportunities/compare");
+    expect(form).toHaveAttribute("method", "get");
+    expect(
+      Array.from(
+        (form as HTMLFormElement).querySelectorAll<HTMLInputElement>(
+          'input[name="opportunity"]',
+        ),
+        (input) => input.value,
+      ),
+    ).toEqual(["portfolio-project-planned", "cash-flow-basics-primary"]);
+    expect(
+      (form as HTMLFormElement).querySelector<HTMLInputElement>(
+        'input[name="return_to"]',
+      ),
+    ).toHaveValue("/learn");
+
+    await user.click(screen.getByRole("button", { name: "Clear comparison" }));
+    expect(compare).toBeDisabled();
+    expect(
+      (form as HTMLFormElement).querySelectorAll('input[name="opportunity"]'),
+    ).toHaveLength(0);
+  });
+
+  it("prevents a fifth comparison selection without requiring saved state", async () => {
+    const user = userEvent.setup();
+    const records = Array.from({ length: 5 }, (_, index) => ({
+      ...availableOpportunity,
+      opportunity_id: `comparison-option-${index + 1}`,
+      placement_id: `comparison-option-${index + 1}`,
+      destination: `/learn/placements/comparison-option-${index + 1}`,
+      title: `Comparison Option ${index + 1}`,
+    }));
+    renderCatalog({
+      ...learningQueryPageFixture,
+      records,
+      total_matches: records.length,
+    });
+
+    for (let index = 1; index <= 4; index += 1) {
+      await user.click(
+        screen.getByRole("checkbox", {
+          name: `Compare Comparison Option ${index}`,
+        }),
+      );
+    }
+
+    expect(
+      screen.getByRole("checkbox", { name: "Compare Comparison Option 5" }),
+    ).toBeDisabled();
+    expect(screen.getByText("4 of 4 selected. Ready to compare.")).toBeVisible();
+  });
+
+  it("does not carry transient selections onto a different result page", async () => {
+    const user = userEvent.setup();
+    const rendered = renderCatalog();
+    await user.click(
+      screen.getByRole("checkbox", { name: "Compare Cash Flow Basics" }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", { name: "Compare Portfolio Project" }),
+    );
+    expect(screen.getByText("2 of 4 selected. Ready to compare.")).toBeVisible();
+
+    rendered.rerender(
+      <MemoryRouter>
+        <LearningCatalogPage
+          page={{
+            ...learningQueryPageFixture,
+            records: [plannedOpportunity],
+            total_matches: 1,
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByText(
+        "0 of 4 selected. Select at least 2 opportunities to compare.",
+      ),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("checkbox", { name: "Compare Portfolio Project" }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Compare selected" }),
+    ).toBeDisabled();
   });
 });
 
