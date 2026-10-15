@@ -1,7 +1,7 @@
 ---
 id: WRK-0057
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -165,3 +165,5 @@ unresolved decisions, and CAP-package conformance.
 - 2026-10-15: Prepared the planning-only cumulative qualification candidate
   after all capability criteria had direct evidence and focused plus aggregate
   gates passed. Assurance sources required no reconciliation edit.
+- 2026-10-15: Submitted the exact candidate for fresh affected verification
+  and independent technical review.
