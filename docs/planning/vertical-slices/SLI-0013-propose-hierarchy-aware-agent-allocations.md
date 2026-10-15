@@ -96,6 +96,7 @@ approval/reviewer records.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0021 | Deliver project-neutral allocation/replanning, the Financial AI Academy adapter/CLI, docs, and focused tests | WRK-0018, WRK-0019, WRK-0020 | none | complete |
+| WRK-0052 | Ignore the compatibility-only branch sentinel while preserving genuine and current-checkout branch facts | WRK-0021 | none | verifying |
 
 ## Verification and Qualification
 
@@ -136,3 +137,7 @@ scheduling remain intentionally out of scope. The slice conforms to CAP-0003.
   and conforms to the approved CAP-0003 allocation join point.
 - 2026-10-15: Delivered and verified generic allocation/replanning, repository
   live-fact projection, CLI/docs, reuse proof, and anti-rigidity coverage.
+- 2026-10-15: Added WRK-0052 through the bounded completed-work correction
+  route after a historical `legacy-unrecorded` compatibility marker was
+  projected as a real branch and falsely blocked current Codex-branch readiness.
+  Completed SLI-0013 and WRK-0021 history remains terminal.

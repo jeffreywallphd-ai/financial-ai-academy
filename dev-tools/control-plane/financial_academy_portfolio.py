@@ -29,12 +29,22 @@ from store import confined_path
 
 CATALOG_PATH = "docs/product/capability-catalog.md"
 KIND_MAP = {"capability": "capability", "vertical-slice": "slice", "work-packet": "work"}
+COMPATIBILITY_BRANCH_SENTINELS = frozenset({"legacy-unrecorded"})
 
 
 def current_branch(root: Path) -> str | None:
     completed = subprocess.run(["git", "branch", "--show-current"], cwd=root, check=False, capture_output=True, text=True, encoding="utf-8", errors="replace")
     branch = completed.stdout.strip() if completed.returncode == 0 else ""
     return branch or None
+
+
+def projected_claim_branch(claim: dict[str, Any]) -> str | None:
+    """Return genuine branch evidence, excluding lifecycle compatibility markers."""
+
+    branch = str(claim.get("branch", "")).strip()
+    if not branch or branch in COMPATIBILITY_BRANCH_SENTINELS:
+        return None
+    return branch
 
 
 def _slug(value: str) -> str:
@@ -73,7 +83,7 @@ def planning_nodes(root: Path) -> list[dict[str, Any]]:
             if not isinstance(value, dict):
                 continue
             claim = value.get("claim") if isinstance(value.get("claim"), dict) else {}
-            branch = str(claim.get("branch", "")).strip()
+            branch = projected_claim_branch(claim)
             work_facts[str(work_id)] = {"active_claim": value.get("state") == "active", "branches": [branch] if branch else []}
     nodes: list[dict[str, Any]] = []
     for artifact in load_artifacts(root):

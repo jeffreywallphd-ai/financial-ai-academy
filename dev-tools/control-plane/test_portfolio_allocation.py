@@ -15,6 +15,7 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from contracts import ControlError  # noqa: E402
+from financial_academy_portfolio import projected_claim_branch  # noqa: E402
 from portfolio import analyze  # noqa: E402
 from portfolio_allocation import allocate  # noqa: E402
 
@@ -32,6 +33,14 @@ def work_graph(*, third_incomplete: bool = False, dependency: bool = False) -> d
 
 
 class PortfolioAllocationTests(unittest.TestCase):
+    def test_compatibility_branch_marker_is_not_projected_as_git_evidence(self) -> None:
+        self.assertIsNone(projected_claim_branch({"branch": "legacy-unrecorded"}))
+        self.assertIsNone(projected_claim_branch({"branch": ""}))
+        self.assertEqual(
+            "codex/cap-0004",
+            projected_claim_branch({"branch": "codex/cap-0004"}),
+        )
+
     def test_generic_vocabulary_honors_priority_and_groups_compatible_work(self) -> None:
         result = allocate(work_graph(), level="work", authority_current=["PROGRAM-X"], explicit_priority=["TASK-B", "TASK-A", "TASK-C"])
         self.assertEqual(["TASK-B", "TASK-A", "TASK-C"], [item["unit_id"] for item in result["lanes"]])
