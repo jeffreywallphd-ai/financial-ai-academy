@@ -63,6 +63,8 @@ Use one human planning approval stage: approval of the complete CAP planning pac
 
 Reserve planning IDs with `dev-tools/planning/reserve_id.py`. Before implementation, declare bounded `write_scope` and `generated_artifacts`, follow `docs/planning/concurrent-work.md`, and claim a packet whose parent slice is included in the current approved CAP package with `dev-tools/planning/claim_packet.py`. Execute packets one at a time in dependency order unless their scopes are explicitly parallel-safe; complete the current packet before claiming its dependent successor. An active packet must have one owner, a base revision, durable claim evidence, and no uncoordinated scope overlap. Update its artifact and `docs/planning/register.md` together.
 
+Perform tracked implementation and documentation work on a named `codex/*` branch, never directly on `main`. Treat `main` as an integration branch: after the work is CAP-authorized, complete, verified, and approved for integration, merge or fast-forward the finished `codex/*` branch into local `main`. Push `main` to a remote only with explicit authority for that external action. If in-progress work is discovered on `main`, preserve it and move it to an appropriate `codex/*` branch before continuing; never discard or silently overwrite it.
+
 ## Completion Evidence
 
 Report the outcome, affected boundaries, checks run and their results, documentation impact, assumptions, known gaps, and any decision still requiring approval.

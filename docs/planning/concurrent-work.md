@@ -13,6 +13,21 @@ Before changing planning or implementation files, prominently read and follow
 every applicable `AGENTS.md`, the repository-root `docs/README.md`, and the
 planning guide. These controls add evidence; they never broaden authority.
 
+## Work Branch and Integration Boundary
+
+Create or switch to a named `codex/*` branch before making tracked planning,
+implementation, test, or documentation changes. Do not claim or implement a
+work packet directly on `main`; `main` is the integration branch, not an active
+work surface. A branch name does not replace packet ownership, scope, or
+authority controls.
+
+After the governed work is CAP-authorized, complete, and verified, and the
+integration action is approved, merge or fast-forward the finished `codex/*`
+branch into local `main`. Pushing `main` to a remote remains a separate external
+action and requires explicit authority. If uncommitted work is found on `main`,
+preserve it with a recoverable Git operation and relocate it to an appropriate
+`codex/*` branch before continuing; do not overwrite or discard it.
+
 ## Reserve Artifact IDs
 
 Reserve an ID before creating a planning artifact:

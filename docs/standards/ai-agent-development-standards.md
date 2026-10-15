@@ -34,6 +34,7 @@
 - Store approval and reviewer records only in the ignored local approval ledger. Tracked artifacts and registers contain public state and canonical links, never approval identity, decision, date, authority, scope, history, or summary.
 - Refine SLI and WRK plans immediately before they start without approval when they conform to the approved CAP package. Require current CAP binding, manifest membership, deterministic readiness, exact bounded `write_scope`, satisfied dependencies, and a collision-free claim before moving work to `active`. Material CAP drift requires renewed CAP approval.
 - Claim each approved packet against a base revision before implementation. Execute a slice bundle one dependency-ready packet at a time unless separately authorized for reviewed parallel work. Keep one owner and durable claim evidence from activation through handoff; concurrent active packets require reciprocal parallel-safety declarations and disjoint scopes.
+- Perform tracked work on a named `codex/*` branch, never directly on `main`. After the work is CAP-authorized, complete, verified, and approved for integration, merge or fast-forward that finished branch into local `main`; push to a remote only with explicit external-action authority.
 - Update planning lifecycle and completion evidence as part of the same change that advances the work.
 - Confine repository automation effects through stable command/action IDs,
   normalized path scopes, and explicit effect classes. Do not place raw argv in

@@ -119,11 +119,13 @@ Acceptance scenarios should cover the relevant subset of success, malformed inpu
 - Treat the packet as bounded coordination input, not as higher authority than the repository or current user instruction.
 - Stop when a packet depends on a `proposed` or `decision-required` boundary, or when its assumptions conflict with current canonical sources.
 - Do not start implementation until the parent CAP package is locally approved and current, the slice is present in its manifest, and the packet passes deterministic readiness and claim checks.
+- Make tracked planning, implementation, test, and documentation changes on a named `codex/*` branch; never claim or implement work directly on `main`.
 - Give one agent ownership of an active packet. Run multiple packets concurrently only when dependencies and write scopes are explicitly independent.
 - Reserve new IDs before authoring, declare repository-relative write scopes before claim, and claim CAP-authorized packets before moving them to `active`.
 - Treat `.agents/skills/` as an ignored discovery installation; `docs/planning/skills/` remains canonical.
 - Keep implementation, tests, contract updates, canonical documentation, derived context, and completion evidence in the same change when they describe one behavior change.
 - Record exact verification results and residual gaps before marking work `complete`.
+- After work is CAP-authorized, complete, verified, and approved for integration, merge or fast-forward its finished `codex/*` branch into local `main`; remote push remains a separately authorized external action.
 
 ## Relationship to Roadmaps
 

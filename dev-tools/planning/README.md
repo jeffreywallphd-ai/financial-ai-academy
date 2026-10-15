@@ -35,8 +35,12 @@ reviewable source of planning state but are deliberately not approval evidence.
 Legacy lower-level approval records remain readable, but new records can only
 use the `capability` and `decision` stages.
 
-The ordinary path deliberately remains short: claim, implement, commit through
-separately authorized Git practice, and submit. Renewal is optional, recovery
+The ordinary path deliberately remains short: create or reuse a named
+`codex/*` branch, claim, implement, commit through separately authorized Git
+practice, and submit. Work is never claimed or implemented directly on `main`.
+After CAP-authorized work is complete, verified, and approved for integration,
+merge or fast-forward the finished branch into local `main`; remote push
+remains a separately authorized external action. Renewal is optional, recovery
 is used only after expiry, and submission does not impose a repository-wide
 test suite or another planning approval.
 
