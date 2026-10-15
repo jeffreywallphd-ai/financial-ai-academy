@@ -1,7 +1,7 @@
 ---
 id: WRK-0054
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -167,9 +167,46 @@ behavior, bounded failure/confidentiality results, theme/accessibility checks,
 all other verification, documentation impact, residual comparison/live work,
 and CAP/SLI conformance.
 
+## Completion Evidence
+
+- Registered `/learn/opportunities/:opportunityId` over WRK-0053's protected
+  current-snapshot loader and added a visible catalog detail action whose
+  return reference preserves the canonical applied `/learn` query without a
+  transient cursor.
+- The ready route presents exact identity, kind, topics, objectives, level,
+  duration, prerequisites, availability reason, package version and digest,
+  publication review facts, source fingerprint, projection generation/time,
+  and schema context. Only an available lesson exposes its already validated
+  exact placement destination; planned, unavailable, and non-lesson records
+  remain visible but non-executable.
+- Malformed, changed, unauthorized, forbidden, unavailable, invalid-response,
+  and unexpected outcomes remain bounded and disclose no record, count,
+  provenance, provider, storage, or technical implementation detail.
+- The interface passed theme parity, keyboard/focus, reduced-motion,
+  forced-color, axe, narrow-reflow, and explicit 200-percent text-scale checks.
+  That text-scale check exposed an existing rem-based root viewport floor and
+  non-wrapping top bar; the shared baseline now bounds the floor to the
+  viewport and permits wrapping, without adding feature-local design values.
+- Nine web unit/component files passed all 79 tests and the focused Chromium
+  suite passed all 10 scenarios. TypeScript typecheck, lint, generated-client
+  currency, production build, design-system validation (125 tokens and 56
+  icons), planning integrity for 121 artifacts, documentation validation for
+  246 Markdown files, and Git whitespace checks passed. The exact candidate
+  produced a fresh qualifying affected-verification receipt.
+- The tracked production client was regenerated from the verified source and
+  its JavaScript, CSS, and source-map references were reconciled. No backend
+  contract, schema, generated client, dependency, provider, durable browser
+  state, or background work changed. WRK-0055 retains comparison selection and
+  presentation; WRK-0056 retains live topology and cumulative qualification.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0053 completion. The packet
   consumes the verified protected selection seam and existing design system to
   deliver detail inspection without new public contract, durable state, shared
   visual decision, or material CAP drift.
+- 2026-10-15: Completed the accessible exact-record detail route, cursor-free
+  return continuity, bounded confidentiality states, generated static client,
+  and interface qualification. The anti-rigidity text-scale scenario corrected
+  a shared responsive baseline while remaining within the approved CAP package
+  and SLI-0020 boundaries.
