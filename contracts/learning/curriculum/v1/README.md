@@ -8,9 +8,16 @@ placement references; the graph does not embed Content or Assessment payloads.
 `presentation_order` is an optional partial hint. It cannot define
 prerequisites, eligibility, completion, or advancement, and consumers must
 remain correct when it is absent. Multiple entry activities, multiple optional
-branches, activities shared across optional branches, and unbranched activities
-are valid. An activity cannot simultaneously acquire required and optional
-meaning through different branches.
+branches, activities shared across branches of the same kind, and unbranched
+activities are valid. An activity cannot simultaneously acquire required and
+optional meaning through different branches.
+
+`graph_digest` is SHA-256 over UTF-8 JSON with sorted object keys, compact
+separators, and `graph_digest` removed. Before serialization, `published_at` is
+normalized to UTC with a trailing `Z`, and empty arrays inside an explicitly
+present `presentation_order` object are omitted. The object itself remains
+present even when every hint is empty. No other collection is reordered or
+removed.
 
 The compatibility corpus in
 [`../../../compatibility/curriculum-graph/v1/`](../../../compatibility/curriculum-graph/v1/README.md)

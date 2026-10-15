@@ -1,4 +1,4 @@
 {
-  "algorithm": "sha256(canonical_graph_meaning_utf8)",
+  "algorithm": "sha256(canonical_curriculum_graph_v1_utf8)",
   "graph_digest": "9b044b324c9d4dcd95a394d55d595fe3d7c7c4ba0a3cb32b961480eead8b2f57"
 }

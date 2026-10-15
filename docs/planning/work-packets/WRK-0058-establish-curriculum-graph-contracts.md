@@ -71,7 +71,7 @@ branch vocabularies closed and versionable.
   reject digest mismatch, duplicate identities, dangling references, invalid
   relationship endpoints, invalid/empty branch membership, ambiguous
   required/optional membership, prerequisite self-loops, and prerequisite
-  cycles. Activities shared by multiple optional branches remain valid.
+  cycles. Activities shared by branches of the same kind remain valid.
 - Add a compatibility corpus with one valid multi-objective graph containing a
   required branch and more than one optional branch, stable digest vector, and
   table-driven bounded denials.
@@ -109,8 +109,14 @@ The JSON root is `curriculum-graph-v1` and carries `schema_version`,
 `presentation_order`, `objectives`, `competencies`, `activities`, `branches`,
 `relationships`, and `graph_digest`. Records have globally unique IDs within
 the graph. Relationships have unique IDs, a closed kind, and typed source and
-target IDs. Branches name a closed kind and one or more distinct activity IDs;
-an activity may be unbranched but may not belong to multiple branches in v1.
+target IDs. Branches name a closed kind and one or more distinct activity IDs.
+An activity may be unbranched or shared by branches of the same kind; only
+conflicting required-versus-optional meaning is rejected.
+
+Canonical graph bytes omit `graph_digest`, normalize `published_at` to UTC with
+a trailing `Z`, omit empty arrays within an explicitly present
+`presentation_order` object, retain that object even when empty, preserve every
+other array order and value, then encode sorted-key compact JSON as UTF-8.
 
 The packet produces immutable public tuples/dataclasses for the same meaning,
 `CurriculumGraphError` with bounded error codes/references, and a pure
@@ -133,7 +139,7 @@ domain, contract, or planning files.
 | --- | --- | --- | --- | --- |
 | Approved graph | A valid graph with exact lesson and assessment resources, one required branch, and multiple optional branches | Both validators run | The same immutable graph meaning and independently computed digest are accepted | contract/unit |
 | Duplicate or dangling identity | Any node, relationship, branch, or referenced endpoint is duplicated or missing | Validation runs | Publication readiness fails with a stable bounded code and no payload echo | contract/unit |
-| Flexible branch reuse | An activity is shared by multiple optional branches | Validation runs | The graph remains valid without duplicating the activity; required-versus-optional ambiguity still fails closed | contract/unit anti-rigidity |
+| Flexible branch reuse | An activity is shared by multiple branches of the same kind | Validation runs | The graph remains valid without duplicating the activity; required-versus-optional ambiguity still fails closed | contract/unit anti-rigidity |
 | Wrong endpoint type | A typed relationship connects valid IDs of incompatible node kinds | Validation runs | The relationship fails closed rather than being treated as a generic edge | contract/unit |
 | Invalid prerequisite topology | A competency or activity prerequisite is a self-loop or cycle | Validation runs | The graph fails with the relevant bounded topology code | contract/unit |
 | Exact-resource mismatch | Activity kind and exact placement/resource fields disagree or a version/digest is malformed | Validation runs | The graph is rejected before any persistence or consumer access | schema/unit |
@@ -197,14 +203,16 @@ residual risks, and the concrete inputs handed to WRK-0059.
   state.
 - Added immutable Curriculum graph records plus a strict mapping converter,
   canonical serializer/digest, typed-edge enforcement, branch policy, cycle
-  detection, and bounded public errors. Unknown client-owned fields and stale
-  digests fail closed.
+  detection, and bounded public errors. Equivalent RFC 3339 offsets and empty
+  presentation hints share one canonical representation; unknown client-owned
+  fields, malformed public values, and stale digests fail closed.
 - Anti-rigidity coverage accepts missing/partial presentation hints, sibling
   reordering, multiple entry activities, unbranched activities, new optional
-  branches, and reuse of one activity across optional branches. An activity
+  branches, and reuse of one activity across branches of the same kind. An activity
   cannot silently acquire conflicting required and optional meaning.
-- The focused graph suite passed all 22 tests. The complete backend unit and
-  contract suite passed all 245 tests; Python 3.14 compilation passed; all 13
+- The focused graph suite passed all 26 tests, including a bounded sanitized
+  CLI denial. The complete backend unit and contract suite passed all 249
+  tests; Python 3.14 compilation passed; all 13
   architecture checks passed; work-packet, planning, documentation, and diff
   checks passed; and aggregate readiness passed all 27 checks. The architecture
   check used its established unsandboxed route after the Windows sandbox denied
@@ -223,3 +231,6 @@ residual risks, and the concrete inputs handed to WRK-0059.
 - 2026-10-15: Implemented and qualified the versioned graph contract and pure
   Curriculum validation core with explicit flexible-shape evidence and no
   material CAP or slice drift.
+- 2026-10-15: Unified contract/domain canonicalization, bounded direct public
+  validation failures, allowed same-kind branch reuse, and directly qualified
+  the sanitized CLI denial path.

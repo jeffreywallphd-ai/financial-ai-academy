@@ -102,8 +102,8 @@ relationship endpoints, ambiguous required/optional branch membership,
 prerequisite cycles,
 activity/reference mismatches, unsupported versions, and stale graph digests.
 Partial presentation order is only a hint: multiple entry activities, optional
-branches, shared optional activities, sibling reordering, and unbranched
-activities remain valid. The
+branches, same-kind shared activities, sibling reordering, and unbranched
+activities remain valid. Required-versus-optional reuse fails as ambiguous. The
 current boundary is contract and in-memory validation only; graph persistence,
 publication/read operations, API authorization, and learner UI arrive in later
 SLI-0022 packets.

@@ -358,9 +358,156 @@ def _has_cycle(nodes: set[str], edges: Sequence[tuple[str, str]]) -> bool:
     return visited != len(nodes)
 
 
-def validate_curriculum_graph(graph: CurriculumGraph) -> CurriculumGraph:
+def _validate_curriculum_graph(graph: CurriculumGraph) -> CurriculumGraph:
     """Validate immutable graph meaning without persistence or UI coupling."""
 
+    if not isinstance(graph, CurriculumGraph):
+        _invalid(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "curriculum-graph",
+            "Curriculum graph record is invalid.",
+        )
+    scalar_text = (
+        graph.schema_version,
+        graph.curriculum_id,
+        graph.curriculum_version,
+        graph.title,
+        graph.summary,
+        graph.publication_state,
+        graph.graph_digest,
+    )
+    if any(not isinstance(value, str) for value in scalar_text) or not isinstance(
+        graph.published_at, datetime
+    ):
+        _invalid(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "curriculum-graph",
+            "Curriculum graph scalar fields are invalid.",
+        )
+    if (
+        not isinstance(graph.source_references, tuple)
+        or any(not isinstance(value, str) for value in graph.source_references)
+        or not isinstance(graph.objectives, tuple)
+        or any(not isinstance(value, CurriculumObjective) for value in graph.objectives)
+        or not isinstance(graph.competencies, tuple)
+        or any(
+            not isinstance(value, CurriculumCompetency)
+            for value in graph.competencies
+        )
+        or not isinstance(graph.activities, tuple)
+        or any(not isinstance(value, CurriculumActivity) for value in graph.activities)
+        or not isinstance(graph.branches, tuple)
+        or any(not isinstance(value, CurriculumBranch) for value in graph.branches)
+        or not isinstance(graph.relationships, tuple)
+        or any(
+            not isinstance(value, CurriculumRelationship)
+            for value in graph.relationships
+        )
+        or (
+            graph.presentation_order is not None
+            and not isinstance(
+                graph.presentation_order, CurriculumPresentationOrder
+            )
+        )
+    ):
+        _invalid(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "curriculum-graph",
+            "Curriculum graph collection fields are invalid.",
+        )
+    for item in (*graph.objectives, *graph.competencies):
+        identity = (
+            item.objective_id
+            if isinstance(item, CurriculumObjective)
+            else item.competency_id
+        )
+        if any(
+            not isinstance(value, str)
+            for value in (identity, item.title, item.description)
+        ):
+            _invalid(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                "curriculum-graph",
+                "Curriculum graph node fields are invalid.",
+            )
+    for activity in graph.activities:
+        if (
+            not isinstance(activity.activity_id, str)
+            or not isinstance(activity.title, str)
+            or not isinstance(activity.kind, CurriculumActivityKind)
+            or not isinstance(
+                activity.reference,
+                (LessonActivityReference, AssessmentActivityReference),
+            )
+        ):
+            _invalid(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                "activities",
+                "Curriculum activity fields are invalid.",
+            )
+        reference_values = (
+            (
+                activity.reference.placement_id,
+                activity.reference.package_id,
+                activity.reference.package_version,
+                activity.reference.package_digest,
+            )
+            if isinstance(activity.reference, LessonActivityReference)
+            else (
+                activity.reference.placement_id,
+                activity.reference.assessment_id,
+                activity.reference.assessment_version,
+                activity.reference.definition_digest,
+            )
+        )
+        if any(not isinstance(value, str) for value in reference_values):
+            _invalid(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                activity.activity_id,
+                "Curriculum activity reference fields are invalid.",
+            )
+    for branch in graph.branches:
+        if (
+            not isinstance(branch.branch_id, str)
+            or not isinstance(branch.title, str)
+            or not isinstance(branch.kind, CurriculumBranchKind)
+            or not isinstance(branch.activity_ids, tuple)
+            or any(not isinstance(value, str) for value in branch.activity_ids)
+        ):
+            _invalid(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                "branches",
+                "Curriculum branch fields are invalid.",
+            )
+    for relationship in graph.relationships:
+        if (
+            not isinstance(relationship.relationship_id, str)
+            or not isinstance(relationship.kind, CurriculumRelationshipKind)
+            or not isinstance(relationship.source_id, str)
+            or not isinstance(relationship.target_id, str)
+        ):
+            _invalid(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                "relationships",
+                "Curriculum relationship fields are invalid.",
+            )
+    if graph.presentation_order is not None:
+        orders = (
+            graph.presentation_order.objective_ids,
+            graph.presentation_order.competency_ids,
+            graph.presentation_order.activity_ids,
+            graph.presentation_order.branch_ids,
+        )
+        if any(
+            not isinstance(order, tuple)
+            or any(not isinstance(value, str) for value in order)
+            for order in orders
+        ):
+            _invalid(
+                CurriculumGraphErrorCode.INVALID_RECORD,
+                "presentation_order",
+                "Curriculum presentation fields are invalid.",
+            )
     if graph.schema_version != "1.0.0":
         _invalid(
             CurriculumGraphErrorCode.UNSUPPORTED_VERSION,
@@ -479,10 +626,7 @@ def validate_curriculum_graph(graph: CurriculumGraph) -> CurriculumGraph:
                     "Curriculum branch references an unknown activity.",
                 )
             prior_kinds = membership_kinds.setdefault(activity_id, set())
-            if prior_kinds and (
-                branch.kind is CurriculumBranchKind.REQUIRED
-                or CurriculumBranchKind.REQUIRED in prior_kinds
-            ):
+            if prior_kinds and any(kind is not branch.kind for kind in prior_kinds):
                 _invalid(
                     CurriculumGraphErrorCode.AMBIGUOUS_BRANCH_MEMBERSHIP,
                     activity_id,
@@ -600,6 +744,20 @@ def validate_curriculum_graph(graph: CurriculumGraph) -> CurriculumGraph:
             "Curriculum graph digest does not match.",
         )
     return graph
+
+
+def validate_curriculum_graph(graph: CurriculumGraph) -> CurriculumGraph:
+    """Fail closed with a bounded error for every malformed public graph."""
+
+    try:
+        return _validate_curriculum_graph(graph)
+    except CurriculumGraphError:
+        raise
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError) as error:
+        raise CurriculumGraphError(
+            CurriculumGraphErrorCode.INVALID_RECORD,
+            "Curriculum graph record is invalid.",
+        ) from error
 
 
 def _record(value: object, reference: str) -> Mapping[str, object]:

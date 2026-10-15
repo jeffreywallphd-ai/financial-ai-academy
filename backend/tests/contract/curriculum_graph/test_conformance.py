@@ -74,6 +74,27 @@ def test_digest_vector_is_stable_and_independently_computed() -> None:
 
 
 @pytest.mark.parametrize(
+    "published_at,empty_order_key",
+    [
+        ("2026-10-14T20:00:00-04:00", None),
+        ("2026-10-15T00:00:00+00:00", "competency_ids"),
+    ],
+)
+def test_contract_and_domain_share_one_canonical_representation(
+    published_at: str,
+    empty_order_key: str | None,
+) -> None:
+    graph = copy.deepcopy(approved_graph())
+    graph["published_at"] = published_at
+    if empty_order_key is not None:
+        graph["presentation_order"][empty_order_key] = []
+    _refresh_digest(graph)
+    CurriculumGraphContractValidator().validate_graph(graph)
+    public_graph = curriculum_graph_from_mapping(graph)
+    assert curriculum_graph_digest(public_graph) == graph["graph_digest"]
+
+
+@pytest.mark.parametrize(
     "case",
     json.loads((CORPUS / "cases/denials.json").read_text(encoding="utf-8")),
     ids=lambda case: case["id"],
@@ -117,6 +138,14 @@ def test_optional_presentation_and_valid_graph_shape_remain_flexible() -> None:
             "activity_ids": ["activity-terms-glossary"],
         }
     )
+    graph["branches"].append(
+        {
+            "branch_id": "branch-core-alternate",
+            "title": "Alternate required context",
+            "kind": "required",
+            "activity_ids": ["activity-risk-return-lesson"],
+        }
+    )
     _refresh_digest(graph)
     CurriculumGraphContractValidator().validate_graph(graph)
     curriculum_graph_from_mapping(graph)
@@ -158,4 +187,44 @@ def test_cli_emits_bounded_json_without_source_payload_or_stack_trace() -> None:
     combined = completed.stdout + completed.stderr
     assert "without personalized financial advice" not in combined
     assert str(REPOSITORY) not in combined
+    assert "Traceback" not in combined
+
+
+def test_cli_denial_is_bounded_and_sanitized(tmp_path: Path) -> None:
+    corpus = tmp_path / "invalid-corpus"
+    approved = corpus / "approved"
+    approved.mkdir(parents=True)
+    graph = approved_graph()
+    graph["schema_version"] = "2.0.0"
+    (approved / "graph.json").write_text(
+        json.dumps(graph),
+        encoding="utf-8",
+    )
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "tests.contract.curriculum_graph.runner",
+            "--corpus",
+            str(corpus),
+        ],
+        cwd=REPOSITORY / "backend",
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert completed.returncode == 1
+    output = json.loads(completed.stdout)
+    assert output == {
+        "diagnostic": {
+            "code": "curriculum_graph.unsupported_version",
+            "message": "Curriculum graph version is unsupported.",
+            "reference": "schema_version",
+        },
+        "valid": False,
+    }
+    combined = completed.stdout + completed.stderr
+    assert "2.0.0" not in combined
+    assert str(corpus) not in combined
     assert "Traceback" not in combined

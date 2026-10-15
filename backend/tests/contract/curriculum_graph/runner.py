@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
+from datetime import datetime, timezone
 import hashlib
 import json
 from dataclasses import dataclass
@@ -72,7 +74,25 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def canonical_graph_bytes(graph: Mapping[str, Any]) -> bytes:
-    meaning = {key: value for key, value in graph.items() if key != "graph_digest"}
+    meaning = deepcopy(
+        {key: value for key, value in graph.items() if key != "graph_digest"}
+    )
+    published_at = str(meaning["published_at"])
+    parsed = datetime.fromisoformat(
+        published_at.removesuffix("Z")
+        + ("+00:00" if published_at.endswith("Z") else "")
+    )
+    meaning["published_at"] = (
+        parsed.astimezone(timezone.utc)
+        .isoformat()
+        .removesuffix("+00:00")
+        + "Z"
+    )
+    presentation = meaning.get("presentation_order")
+    if isinstance(presentation, dict):
+        meaning["presentation_order"] = {
+            key: value for key, value in presentation.items() if value
+        }
     return json.dumps(
         meaning,
         sort_keys=True,
@@ -176,8 +196,8 @@ class CurriculumGraphContractValidator:
                         "Curriculum branch references an unknown activity.",
                     )
                 prior_kinds = membership_kinds.setdefault(activity_id, set())
-                if prior_kinds and (
-                    branch["kind"] == "required" or "required" in prior_kinds
+                if prior_kinds and any(
+                    kind != branch["kind"] for kind in prior_kinds
                 ):
                     reject(
                         "curriculum_graph.ambiguous_branch_membership",

@@ -104,6 +104,18 @@ def test_mapping_converter_rejects_unknown_client_owned_fields() -> None:
     assert captured.value.code is CurriculumGraphErrorCode.INVALID_RECORD
 
 
+def test_direct_public_graph_rejects_unknown_relationship_kind_boundedly() -> None:
+    graph = approved_graph()
+    malformed = replace(graph.relationships[0], kind="unknown")
+    changed = replace(
+        graph,
+        relationships=(malformed, *graph.relationships[1:]),
+    )
+    with pytest.raises(CurriculumGraphError) as captured:
+        validate_curriculum_graph(changed)
+    assert captured.value.code is CurriculumGraphErrorCode.INVALID_RECORD
+
+
 def test_valid_optional_branch_and_partial_order_do_not_force_linear_path() -> None:
     graph = approved_graph()
     flexible = with_current_digest(
@@ -124,6 +136,12 @@ def test_valid_optional_branch_and_partial_order_do_not_force_linear_path() -> N
                     title="Alternate reference path",
                     kind=CurriculumBranchKind.OPTIONAL,
                     activity_ids=("activity-terms-glossary",),
+                ),
+                CurriculumBranch(
+                    branch_id="branch-core-alternate",
+                    title="Alternate required context",
+                    kind=CurriculumBranchKind.REQUIRED,
+                    activity_ids=("activity-risk-return-lesson",),
                 ),
             ),
             presentation_order=None,

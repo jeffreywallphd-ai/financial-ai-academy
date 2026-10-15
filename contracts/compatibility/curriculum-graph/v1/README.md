@@ -5,8 +5,10 @@ This corpus fixes one synthetic approved curriculum graph, canonical
 lesson and assessment references, and bounded denial behavior. The fixture
 deliberately contains multiple entry activities, one required branch, multiple
 optional branches, a partial presentation hint, and one unbranched activity.
-Additional conformance coverage shares that activity between optional branches
-so the contract does not imply a single linear pathway or visual layout.
+Additional conformance coverage shares activities between branches of the same
+kind, normalizes equivalent RFC 3339 offsets, and removes empty presentation
+hints before hashing so the contract does not imply a single linear pathway,
+visual layout, or representation-dependent digest.
 
 The corpus contains no learner evidence, eligibility result, mastery estimate,
 recommendation score, provider payload, tenancy fact, or approval record.
