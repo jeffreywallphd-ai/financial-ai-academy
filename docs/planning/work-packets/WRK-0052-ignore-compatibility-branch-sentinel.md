@@ -1,7 +1,7 @@
 ---
 id: WRK-0052
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0003-correction
 updated: 2026-10-15
@@ -144,14 +144,17 @@ false readiness block.
   aggregate readiness gate passed all 27 checks outside the Windows sandbox
   required by its temporary Git/filesystem fixtures.
 - No lifecycle state, claim, branch, public schema, allocation authority, or
-  product behavior changed. Exact-candidate affected verification and
-  independent technical review remain before completion.
+  product behavior changed.
 - A deterministic temporary repository fixture drives `planning_nodes()` with
   completed and active compatibility-projected claims, fixes the current
   checkout observation, proves the sentinel is absent, proves fallback at
   work/slice/capability levels, and proves a genuine recorded branch survives
   the same path. The repository CLI assertion covers only its deterministic
   no-mutation responsibility.
+- Exact candidate `720abbd8004c43647fdc65447abe302bba69d305` has a fresh,
+  qualifying affected-check receipt. All required focused, planning,
+  documentation, diff, and aggregate readiness gates are satisfied with no
+  remaining packet-level remediation.
 
 ## Planning History
 
@@ -162,3 +165,6 @@ false readiness block.
 - 2026-10-15: Implemented the bounded adapter repair and regression; focused,
   planning, documentation, diff, and aggregate readiness checks passed, so the
   packet moved to exact-candidate verification.
+- 2026-10-15: Completed the bounded compatibility-projection repair after fresh
+  exact-candidate qualification and deterministic fixture coverage. CAP-0004
+  delivery can proceed without the false branch-readiness block.
