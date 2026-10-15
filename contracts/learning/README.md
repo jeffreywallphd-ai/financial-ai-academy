@@ -65,3 +65,19 @@ API authorization, generated clients, browser query behavior, and non-lesson
 destinations require their owning implementation evidence. Discovery-query v1
 has direct contract and shared-core policy evidence but does not itself qualify
 an HTTP or interface consumer.
+
+## Curriculum Graph v1
+
+[`curriculum/v1/`](curriculum/v1/README.md) defines one immutable approved
+Curriculum-owned graph with objectives, competencies, exact lesson and
+assessment activities, required and optional branches, typed relationships,
+partial presentation hints, source references, and a canonical digest. Its
+compatibility corpus lives in
+[`../compatibility/curriculum-graph/v1/`](../compatibility/curriculum-graph/v1/README.md).
+
+```powershell
+uv run --project backend pytest backend/tests/contract/curriculum_graph
+```
+
+The graph contract does not establish learner eligibility, completion,
+recommendation, persistence, API authorization, or browser behavior.

@@ -1,0 +1,174 @@
+{
+  "schema_version": "1.0.0",
+  "curriculum_id": "investing-foundations",
+  "curriculum_version": "1.0.0",
+  "title": "Investing Foundations",
+  "summary": "A bounded educational curriculum for understanding risk, return, and diversification without personalized financial advice.",
+  "publication_state": "approved",
+  "published_at": "2026-10-15T00:00:00Z",
+  "source_references": [
+    "content:intro-risk-return@1.0.0",
+    "curriculum:investing-foundations@1.0.0"
+  ],
+  "presentation_order": {
+    "objective_ids": ["objective-risk-return", "objective-diversification"],
+    "activity_ids": ["activity-risk-return-lesson", "activity-risk-return-check"]
+  },
+  "objectives": [
+    {
+      "objective_id": "objective-risk-return",
+      "title": "Relate risk and potential return",
+      "description": "Explain why potential return and risk must be considered together."
+    },
+    {
+      "objective_id": "objective-diversification",
+      "title": "Describe diversification",
+      "description": "Describe how diversification changes concentration without guaranteeing outcomes."
+    }
+  ],
+  "competencies": [
+    {
+      "competency_id": "competency-risk-return",
+      "title": "Risk and return reasoning",
+      "description": "Reason about uncertainty, loss, and potential return without treating return as guaranteed."
+    },
+    {
+      "competency_id": "competency-diversification",
+      "title": "Diversification reasoning",
+      "description": "Recognize concentration and describe diversification as a risk-management concept."
+    }
+  ],
+  "activities": [
+    {
+      "activity_id": "activity-risk-return-lesson",
+      "title": "Read about risk and return",
+      "kind": "lesson",
+      "reference": {
+        "reference_kind": "lesson_placement",
+        "placement_id": "intro-risk-return-primary",
+        "package_id": "intro-risk-return",
+        "package_version": "1.0.0",
+        "package_digest": "576d543b404a7f70f2e5bebee55c32a3f945d8e8da73654c43ef92e656aee008"
+      }
+    },
+    {
+      "activity_id": "activity-risk-return-check",
+      "title": "Check risk and return understanding",
+      "kind": "assessment",
+      "reference": {
+        "reference_kind": "assessment_placement",
+        "placement_id": "intro-risk-return-primary",
+        "assessment_id": "risk-return-check-1",
+        "assessment_version": "1.0.0",
+        "definition_digest": "98e941f9b53ef429cb6d359246ddb9812e354db2a9381a2ee180ed5758343d2b"
+      }
+    },
+    {
+      "activity_id": "activity-diversification-reading",
+      "title": "Explore diversification",
+      "kind": "lesson",
+      "reference": {
+        "reference_kind": "lesson_placement",
+        "placement_id": "diversification-reading",
+        "package_id": "diversification-reading",
+        "package_version": "1.0.0",
+        "package_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "activity_id": "activity-diversification-check",
+      "title": "Practice diversification reasoning",
+      "kind": "assessment",
+      "reference": {
+        "reference_kind": "assessment_placement",
+        "placement_id": "diversification-check",
+        "assessment_id": "diversification-check",
+        "assessment_version": "1.0.0",
+        "definition_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    },
+    {
+      "activity_id": "activity-terms-glossary",
+      "title": "Review investing terms",
+      "kind": "lesson",
+      "reference": {
+        "reference_kind": "lesson_placement",
+        "placement_id": "investing-terms-glossary",
+        "package_id": "investing-terms-glossary",
+        "package_version": "1.0.0",
+        "package_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      }
+    }
+  ],
+  "branches": [
+    {
+      "branch_id": "branch-core",
+      "title": "Core learning",
+      "kind": "required",
+      "activity_ids": ["activity-risk-return-lesson", "activity-risk-return-check"]
+    },
+    {
+      "branch_id": "branch-explore",
+      "title": "Explore diversification",
+      "kind": "optional",
+      "activity_ids": ["activity-diversification-reading"]
+    },
+    {
+      "branch_id": "branch-practice",
+      "title": "Practice diversification",
+      "kind": "optional",
+      "activity_ids": ["activity-diversification-check"]
+    }
+  ],
+  "relationships": [
+    {
+      "relationship_id": "relationship-objective-risk",
+      "kind": "objective_competency",
+      "source_id": "objective-risk-return",
+      "target_id": "competency-risk-return"
+    },
+    {
+      "relationship_id": "relationship-objective-diversification",
+      "kind": "objective_competency",
+      "source_id": "objective-diversification",
+      "target_id": "competency-diversification"
+    },
+    {
+      "relationship_id": "relationship-lesson-develops-risk",
+      "kind": "activity_develops_competency",
+      "source_id": "activity-risk-return-lesson",
+      "target_id": "competency-risk-return"
+    },
+    {
+      "relationship_id": "relationship-check-assesses-risk",
+      "kind": "activity_assesses_competency",
+      "source_id": "activity-risk-return-check",
+      "target_id": "competency-risk-return"
+    },
+    {
+      "relationship_id": "relationship-risk-before-diversification",
+      "kind": "competency_prerequisite",
+      "source_id": "competency-risk-return",
+      "target_id": "competency-diversification"
+    },
+    {
+      "relationship_id": "relationship-lesson-before-check",
+      "kind": "activity_prerequisite",
+      "source_id": "activity-risk-return-lesson",
+      "target_id": "activity-risk-return-check"
+    },
+    {
+      "relationship_id": "relationship-reading-develops-diversification",
+      "kind": "activity_develops_competency",
+      "source_id": "activity-diversification-reading",
+      "target_id": "competency-diversification"
+    },
+    {
+      "relationship_id": "relationship-practice-assesses-diversification",
+      "kind": "activity_assesses_competency",
+      "source_id": "activity-diversification-check",
+      "target_id": "competency-diversification"
+    }
+  ],
+  "graph_digest": "9b044b324c9d4dcd95a394d55d595fe3d7c7c4ba0a3cb32b961480eead8b2f57"
+}

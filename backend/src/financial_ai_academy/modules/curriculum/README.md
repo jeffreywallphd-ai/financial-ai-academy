@@ -88,3 +88,22 @@ queryless browse. The URL-backed browser controls and isolated
 PostgreSQL/Python/static/Chromium query path are directly qualified, including
 combined filters, duration ordering across three one-record pages, opaque
 cursor-query mismatch denial, context confidentiality, and axe accessibility.
+
+## Curriculum graph validation
+
+The public Curriculum surface exposes immutable `curriculum-graph-v1` records
+and a pure validator/converter. Curriculum owns objective, competency,
+activity, branch, and relationship meaning. Lesson and assessment activities
+retain exact public placement and version/digest references without importing
+Content or Assessment internals.
+
+Validation rejects duplicate and dangling identities, incompatible typed
+relationship endpoints, ambiguous required/optional branch membership,
+prerequisite cycles,
+activity/reference mismatches, unsupported versions, and stale graph digests.
+Partial presentation order is only a hint: multiple entry activities, optional
+branches, shared optional activities, sibling reordering, and unbranched
+activities remain valid. The
+current boundary is contract and in-memory validation only; graph persistence,
+publication/read operations, API authorization, and learner UI arrive in later
+SLI-0022 packets.

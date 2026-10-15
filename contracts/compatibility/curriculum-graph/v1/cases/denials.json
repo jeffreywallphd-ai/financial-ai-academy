@@ -1,0 +1,77 @@
+[
+  {
+    "id": "unsupported-version",
+    "op": "set",
+    "path": ["schema_version"],
+    "value": "2.0.0",
+    "expected_code": "curriculum_graph.unsupported_version"
+  },
+  {
+    "id": "duplicate-node-identity",
+    "op": "set",
+    "path": ["competencies", 0, "competency_id"],
+    "value": "objective-risk-return",
+    "expected_code": "curriculum_graph.duplicate_identity"
+  },
+  {
+    "id": "dangling-relationship",
+    "op": "set",
+    "path": ["relationships", 0, "target_id"],
+    "value": "competency-missing",
+    "expected_code": "curriculum_graph.dangling_reference"
+  },
+  {
+    "id": "wrong-endpoint-type",
+    "op": "set",
+    "path": ["relationships", 0, "target_id"],
+    "value": "activity-risk-return-lesson",
+    "expected_code": "curriculum_graph.invalid_relationship"
+  },
+  {
+    "id": "ambiguous-branch-membership",
+    "op": "set",
+    "path": ["branches", 1, "activity_ids", 0],
+    "value": "activity-risk-return-lesson",
+    "expected_code": "curriculum_graph.ambiguous_branch_membership"
+  },
+  {
+    "id": "dangling-branch-activity",
+    "op": "set",
+    "path": ["branches", 1, "activity_ids", 0],
+    "value": "activity-missing",
+    "expected_code": "curriculum_graph.dangling_reference"
+  },
+  {
+    "id": "activity-prerequisite-self-loop",
+    "op": "set",
+    "path": ["relationships", 5, "target_id"],
+    "value": "activity-risk-return-lesson",
+    "expected_code": "curriculum_graph.prerequisite_cycle"
+  },
+  {
+    "id": "competency-prerequisite-cycle",
+    "op": "append",
+    "path": ["relationships"],
+    "value": {
+      "relationship_id": "relationship-diversification-before-risk",
+      "kind": "competency_prerequisite",
+      "source_id": "competency-diversification",
+      "target_id": "competency-risk-return"
+    },
+    "expected_code": "curriculum_graph.prerequisite_cycle"
+  },
+  {
+    "id": "activity-reference-kind-mismatch",
+    "op": "set",
+    "path": ["activities", 0, "kind"],
+    "value": "assessment",
+    "expected_code": "curriculum_graph.reference_kind_mismatch"
+  },
+  {
+    "id": "graph-digest-mismatch",
+    "op": "set",
+    "path": ["summary"],
+    "value": "A changed educational curriculum summary that leaves its recorded digest stale.",
+    "expected_code": "curriculum_graph.graph_digest_mismatch"
+  }
+]

@@ -13,6 +13,28 @@ from financial_ai_academy.modules.content.public import (
     PassiveAsset,
     PublicationProvenance,
 )
+from financial_ai_academy.modules.curriculum.domain.models import (
+    AssessmentActivityReference,
+    CurriculumActivity,
+    CurriculumActivityKind,
+    CurriculumActivityReference,
+    CurriculumBranch,
+    CurriculumBranchKind,
+    CurriculumCompetency,
+    CurriculumGraph,
+    CurriculumGraphError,
+    CurriculumGraphErrorCode,
+    CurriculumObjective,
+    CurriculumPresentationOrder,
+    CurriculumRelationship,
+    CurriculumRelationshipKind,
+    LessonActivityReference,
+    canonical_curriculum_graph_bytes,
+    curriculum_graph_digest,
+    curriculum_graph_from_mapping,
+    curriculum_graph_payload,
+    validate_curriculum_graph,
+)
 
 
 @dataclass(frozen=True, slots=True)

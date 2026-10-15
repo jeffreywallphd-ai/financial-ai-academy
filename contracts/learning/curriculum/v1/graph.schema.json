@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/curriculum/v1/graph.schema.json",
+  "title": "Financial AI Academy approved curriculum graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "curriculum_id",
+    "curriculum_version",
+    "title",
+    "summary",
+    "publication_state",
+    "published_at",
+    "source_references",
+    "objectives",
+    "competencies",
+    "activities",
+    "branches",
+    "relationships",
+    "graph_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "curriculum_id": {"$ref": "#/$defs/identifier"},
+    "curriculum_version": {"$ref": "#/$defs/version"},
+    "title": {"$ref": "#/$defs/title"},
+    "summary": {"type": "string", "minLength": 20, "maxLength": 500},
+    "publication_state": {"const": "approved"},
+    "published_at": {"type": "string", "format": "date-time"},
+    "source_references": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9+.-]{1,31}:[^\\s]{1,255}$"}
+    },
+    "presentation_order": {"$ref": "#/$defs/presentationOrder"},
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/objective"}
+    },
+    "competencies": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": {"$ref": "#/$defs/competency"}
+    },
+    "activities": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {"$ref": "#/$defs/activity"}
+    },
+    "branches": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/branch"}
+    },
+    "relationships": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {"$ref": "#/$defs/relationship"}
+    },
+    "graph_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+    },
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 240},
+    "description": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "identifierOrder": {
+      "type": "array",
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/identifier"}
+    },
+    "presentationOrder": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "objective_ids": {"$ref": "#/$defs/identifierOrder"},
+        "competency_ids": {"$ref": "#/$defs/identifierOrder"},
+        "activity_ids": {"$ref": "#/$defs/identifierOrder"},
+        "branch_ids": {"$ref": "#/$defs/identifierOrder"}
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["objective_id", "title", "description"],
+      "properties": {
+        "objective_id": {"$ref": "#/$defs/identifier"},
+        "title": {"$ref": "#/$defs/title"},
+        "description": {"$ref": "#/$defs/description"}
+      }
+    },
+    "competency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["competency_id", "title", "description"],
+      "properties": {
+        "competency_id": {"$ref": "#/$defs/identifier"},
+        "title": {"$ref": "#/$defs/title"},
+        "description": {"$ref": "#/$defs/description"}
+      }
+    },
+    "lessonReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_kind",
+        "placement_id",
+        "package_id",
+        "package_version",
+        "package_digest"
+      ],
+      "properties": {
+        "reference_kind": {"const": "lesson_placement"},
+        "placement_id": {"$ref": "#/$defs/identifier"},
+        "package_id": {"$ref": "#/$defs/identifier"},
+        "package_version": {"$ref": "#/$defs/version"},
+        "package_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "assessmentReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reference_kind",
+        "placement_id",
+        "assessment_id",
+        "assessment_version",
+        "definition_digest"
+      ],
+      "properties": {
+        "reference_kind": {"const": "assessment_placement"},
+        "placement_id": {"$ref": "#/$defs/identifier"},
+        "assessment_id": {"$ref": "#/$defs/identifier"},
+        "assessment_version": {"$ref": "#/$defs/version"},
+        "definition_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activity_id", "title", "kind", "reference"],
+      "properties": {
+        "activity_id": {"$ref": "#/$defs/identifier"},
+        "title": {"$ref": "#/$defs/title"},
+        "kind": {"enum": ["lesson", "assessment"]},
+        "reference": {
+          "oneOf": [
+            {"$ref": "#/$defs/lessonReference"},
+            {"$ref": "#/$defs/assessmentReference"}
+          ]
+        }
+      }
+    },
+    "branch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["branch_id", "title", "kind", "activity_ids"],
+      "properties": {
+        "branch_id": {"$ref": "#/$defs/identifier"},
+        "title": {"$ref": "#/$defs/title"},
+        "kind": {"enum": ["required", "optional"]},
+        "activity_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/identifier"}
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationship_id", "kind", "source_id", "target_id"],
+      "properties": {
+        "relationship_id": {"$ref": "#/$defs/identifier"},
+        "kind": {
+          "enum": [
+            "objective_competency",
+            "activity_develops_competency",
+            "activity_assesses_competency",
+            "competency_prerequisite",
+            "activity_prerequisite"
+          ]
+        },
+        "source_id": {"$ref": "#/$defs/identifier"},
+        "target_id": {"$ref": "#/$defs/identifier"}
+      }
+    }
+  }
+}
