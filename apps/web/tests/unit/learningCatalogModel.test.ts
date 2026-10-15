@@ -54,23 +54,46 @@ async function digest(value: unknown): Promise<string> {
     .join("");
 }
 
+function canonicalPublishedAtForDigest(value: string): string {
+  const fraction = /\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1];
+  const canonicalFraction = fraction ? `.${fraction.padEnd(6, "0")}` : "";
+  return `${new Date(value).toISOString().slice(0, 19)}${canonicalFraction}Z`;
+}
+
 async function catalogWithIntegrity(
   records: readonly LearningOpportunity[],
   projectedAt = learningCatalogFixture.projected_at,
 ): Promise<LearningCatalog> {
   const coherentRecords: LearningOpportunity[] = [];
   for (const opportunity of records) {
-    const { projected_at: _projectedAt, source_fingerprint: _source, ...meaning } =
-      opportunity;
+    const {
+      projected_at: _projectedAt,
+      source_fingerprint: _source,
+      provenance,
+      ...meaning
+    } = opportunity;
+    const canonicalMeaning = {
+      ...meaning,
+      provenance: {
+        ...provenance,
+        published_at: canonicalPublishedAtForDigest(provenance.published_at),
+      },
+    };
     coherentRecords.push({
       ...opportunity,
       projected_at: projectedAt,
-      source_fingerprint: await digest(meaning),
+      source_fingerprint: await digest(canonicalMeaning),
     });
   }
   const stableRecords = coherentRecords.map((opportunity) => {
-    const { projected_at: _projectedAt, ...stable } = opportunity;
-    return stable;
+    const { projected_at: _projectedAt, provenance, ...stable } = opportunity;
+    return {
+      ...stable,
+      provenance: {
+        ...provenance,
+        published_at: canonicalPublishedAtForDigest(provenance.published_at),
+      },
+    };
   });
   return {
     schema_version: "1.0.0",
@@ -156,6 +179,26 @@ describe("learningCatalogIsSafe", () => {
       catalog.records[1]?.placement_id,
     );
   });
+
+  it.each([
+    ["whole seconds", "2026-10-15T08:00:00-04:00"],
+    ["fractional seconds", "2026-10-15T08:00:00.1234-04:00"],
+  ])(
+    "accepts a source fingerprint normalized from %s with an offset",
+    async (_label, publishedAt) => {
+      const opportunity = structuredClone(learningCatalogFixture.records[0]);
+      if (!opportunity) {
+        throw new Error("Expected a catalog record.");
+      }
+      opportunity.provenance = {
+        ...opportunity.provenance,
+        published_at: publishedAt,
+      };
+      const catalog = await catalogWithIntegrity([opportunity]);
+
+      await expect(learningCatalogIsSafe(catalog)).resolves.toBe(true);
+    },
+  );
 
   it("rejects changed owner facts and record order when integrity values are stale", async () => {
     const changedTitle = copyCatalog() as {

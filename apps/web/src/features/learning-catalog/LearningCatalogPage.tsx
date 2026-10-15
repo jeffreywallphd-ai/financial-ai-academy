@@ -122,7 +122,7 @@ function OpportunityCard({
           </dl>
         </details>
       </section>
-      <p className="catalog-card__availability" role="status">
+      <p className="catalog-card__availability">
         <Icon name={canOpen ? "shield-check" : "lock"} />
         {opportunity.availability_reason}
       </p>

@@ -32,10 +32,13 @@ Exact dependency patches and integrity data belong in committed project metadata
 `/learn` is the application entry route and brand destination. It validates the
 complete closed discovery response before presenting any record, preserves the
 server-provided deterministic order, and accepts valid empty or variable-length
-record sets and shared placements without a hard-coded opportunity. It
-recomputes each owner-fact fingerprint and the ordered generation digest before
-rendering. Cards show exact classification, objectives, duration, prerequisite
-summary, package version/digest, publication context, and availability reason.
+record sets and shared placements without a hard-coded opportunity. Curriculum
+owns and validates Unicode `casefold()` ordering; the browser deliberately does
+not duplicate that Python-specific policy. It instead preserves the response
+order and recomputes each UTC-normalized owner-fact fingerprint plus the ordered
+generation digest before rendering. Cards show exact classification,
+objectives, duration, prerequisite summary, package version/digest, publication
+context, and availability reason.
 Only an `available` `lesson` exposes its exact same-origin placement link;
 planned, unavailable, and non-lesson kinds remain non-navigable. Missing
 authority, unavailable projection, network failure, or malformed success

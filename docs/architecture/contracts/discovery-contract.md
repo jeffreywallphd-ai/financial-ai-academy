@@ -37,7 +37,11 @@ visible owner fact except `source_fingerprint` and `projected_at`. A projection
 generation is SHA-256 over the stably ordered records after projection time is
 removed and each source fingerprint is retained. Records order by normalized
 title and then opportunity ID; this is deterministic presentation order, not
-relevance or personalized ranking.
+relevance or personalized ranking. Curriculum owns that ordering rule and
+validates it before publication, including Unicode `casefold()` behavior. A
+consumer must preserve the published order and may validate the ordered
+generation digest, but should not recreate a language-specific normalization
+algorithm that could disagree with the authoritative projection.
 
 ## Registration, Rebuild, and Failure
 
@@ -72,14 +76,16 @@ or filter.
 
 The static web application consumes that generated operation at `/learn` and
 validates the entire closed envelope before presenting any records. It retains
-the projection order without local ranking, accepts an empty or variable valid
-catalog including distinct opportunities that share one placement, recomputes
-every owner-fact source fingerprint, and recomputes the ordered generation
-digest. It fails the whole response closed on unknown fields, malformed
-identity/destination/digest/calendar values, duplicate opportunity identities,
-incoherent projection timestamps, or integrity mismatch. Only a contract-valid
-available lesson links to its exact placement destination; other kinds and
-availability states remain explanatory and non-executable.
+the server-validated projection order without locally reimplementing
+Curriculum's Unicode ordering policy or adding ranking. It accepts an empty or
+variable valid catalog including distinct opportunities that share one
+placement, recomputes every owner-fact source fingerprint after applying the
+contract's UTC publication-time normalization, and recomputes the ordered
+generation digest. It fails the whole response closed on unknown fields,
+malformed identity/destination/digest/calendar values, duplicate opportunity
+identities, incoherent projection timestamps, or integrity mismatch. Only a
+contract-valid available lesson links to its exact placement destination;
+other kinds and availability states remain explanatory and non-executable.
 
 ## Compatibility and Remaining Work
 

@@ -23,7 +23,7 @@ const DESTINATION =
   /^\/learn\/placements\/[a-z0-9][a-z0-9._-]{2,63}$/;
 const DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_TIME =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-](\d{2}):(\d{2}))$/;
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(Z|[+-](\d{2}):(\d{2}))$/;
 
 const BROWSE_KEYS = [
   "projected_at",
@@ -128,8 +128,8 @@ function validDateTime(value: unknown): value is string {
     match[4],
     match[5],
     match[6],
-    match[8] ?? "00",
     match[9] ?? "00",
+    match[10] ?? "00",
   ].map(Number);
   if (
     !year ||
@@ -154,6 +154,46 @@ function validDateTime(value: unknown): value is string {
     offsetMinute <= 59 &&
     !Number.isNaN(Date.parse(value))
   );
+}
+
+function canonicalPublishedAt(value: string): string {
+  const match = DATE_TIME.exec(value);
+  if (!match) {
+    return value;
+  }
+  const [
+    ,
+    yearText,
+    monthText,
+    dayText,
+    hourText,
+    minuteText,
+    secondText,
+    fractionText = "",
+    zoneText,
+    offsetHourText = "00",
+    offsetMinuteText = "00",
+  ] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const hour = Number(hourText);
+  const minute = Number(minuteText);
+  const second = Number(secondText);
+  const offsetDirection = zoneText?.startsWith("-") ? -1 : 1;
+  const offsetMinutes =
+    zoneText === "Z"
+      ? 0
+      : offsetDirection *
+        (Number(offsetHourText) * 60 + Number(offsetMinuteText));
+  const local = new Date(0);
+  local.setUTCFullYear(year, month - 1, day);
+  local.setUTCHours(hour, minute, second, 0);
+  const utc = new Date(local.valueOf() - offsetMinutes * 60_000);
+  const fractionalMicroseconds = fractionText.padEnd(6, "0");
+  const fraction =
+    Number(fractionalMicroseconds) === 0 ? "" : "." + fractionalMicroseconds;
+  return utc.toISOString().slice(0, 19) + fraction + "Z";
 }
 
 function uniqueStrings(
@@ -304,7 +344,10 @@ function sourceMeaning(opportunity: LearningOpportunity) {
     package_id: opportunity.package_id,
     package_version: opportunity.package_version,
     package_digest: opportunity.package_digest,
-    provenance: opportunity.provenance,
+    provenance: {
+      ...opportunity.provenance,
+      published_at: canonicalPublishedAt(opportunity.provenance.published_at),
+    },
   };
 }
 
