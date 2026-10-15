@@ -1,0 +1,1 @@
+"""Discovery-query contract tests."""

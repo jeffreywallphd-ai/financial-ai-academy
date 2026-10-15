@@ -12,6 +12,7 @@ package ID, semantic version, and digest.
 - `CurriculumService.register_lesson_opportunity(RegisterLessonOpportunityRequest) -> LessonOpportunityClassification`
 - `CurriculumService.rebuild_learning_opportunity_projection(RebuildLearningOpportunityProjectionRequest) -> LearningOpportunityBrowse`
 - `CurriculumService.browse_learning_opportunities(BrowseLearningOpportunitiesRequest) -> LearningOpportunityBrowse`
+- `CurriculumService.query_learning_opportunities(QueryLearningOpportunitiesRequest) -> LearningOpportunityQueryPage`
 
 The Content gateway imports only `financial_ai_academy.modules.content.public`.
 Curriculum does not import Content internals, query Content tables, use object
@@ -53,5 +54,25 @@ therefore see the prior or next complete generation, never a mixed one.
 The protected queryless `GET /api/v1/curriculum/opportunities` operation
 requires the server-issued `curriculum.discovery.read` permission and returns
 the same closed v1 browse shape through the reviewed OpenAPI snapshot and
-generated TypeScript client. Automatic rebuild orchestration, browser catalog
-presentation, and live-path qualification remain later SLI-0018 packets.
+generated TypeScript client. Explicit local-fixture rebuild orchestration and
+the same-origin browser catalog-to-lesson path are directly qualified for the
+local single-profile deployment.
+
+## Discovery query core
+
+Discovery-query v1 leaves the queryless browse contract unchanged. Curriculum
+normalizes bounded text with Unicode NFKC, whitespace collapse, and case-fold
+semantics; applies conjunctive search terms, OR-within/AND-across metadata
+filters, inclusive duration bounds, and closed deterministic sorts; and pages
+only the already validated projection. The default sort preserves projection
+order. Other sorts use normalized title and opportunity identity as stable
+tie-breaks and never produce a relevance score.
+
+An opaque continuation cursor binds the canonical query fingerprint,
+projection generation, and next offset. Malformed, tampered, mismatched, or
+generation-stale cursors fail closed without records. Cursors grant no
+authority and are not durable learner evidence. The current 500-record
+projection bound lets the shared application core enforce identical local and
+future cloud semantics without a second index. The protected HTTP operation,
+generated client, browser controls, and live qualification remain WRK-0049
+through WRK-0051 work.

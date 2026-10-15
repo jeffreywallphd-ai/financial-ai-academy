@@ -87,6 +87,37 @@ identities, incoherent projection timestamps, or integrity mismatch. Only a
 contract-valid available lesson links to its exact placement destination;
 other kinds and availability states remain explanatory and non-executable.
 
+## Deterministic Query Core
+
+Discovery-query v1 is additive and references the unchanged discovery-v1
+record. A canonical request may contain bounded general query text,
+prerequisite-summary-only text, topic/level/kind/availability filters,
+inclusive duration bounds, one closed sort, a page size from 1 through 50, and
+an opaque cursor. Text normalization is Unicode NFKC followed by whitespace
+collapse and Unicode case folding, fixed by compatibility vectors. Every
+general term must occur in at least one allowed record field; every
+prerequisite term must occur in the prerequisite summary. Repeated values
+within one filter dimension use OR and different dimensions use AND. No term,
+filter, or sort means eligibility, recommendation, or prerequisite completion.
+
+The shared Curriculum application core queries one already validated projection
+whose maximum is 500 records. Catalog sort retains the authoritative projection
+order. Title, duration-ascending, and duration-descending sorts use normalized
+metadata with opportunity identity as the final stable tie-break. No relevance
+score, learner signal, provider payload, or browser-owned reordering enters the
+result.
+
+Each page echoes canonical applied-query facts, the exact projection generation
+and time, total matches, no more than 50 unchanged records, and an optional
+opaque next cursor. The cursor checksum detects accidental corruption and binds
+the canonical query fingerprint, generation, and next offset. Because it grants
+no authority and exposes only public ordering state, it does not require a
+credential or durable secret. Invalid shape/tamper/query mismatch is an invalid
+query; a different projection generation is a stale cursor. Both fail without
+records, as does an absent or corrupt projection. Query cursors are transport
+state rather than durable evidence and may be invalidated explicitly by rebuild
+or rollback.
+
 ## Compatibility and Remaining Work
 
 The compatibility corpus fixes one synthetic exact approved lesson and bounded
@@ -104,6 +135,9 @@ admits one exact package and placement, registers its catalog classification,
 atomically rebuilds the projection, and browses from `/learn` into that exact
 lesson through one same-origin Python/static host over PostgreSQL 18.4.
 
-Production/background rebuild scheduling, search/filter/pagination semantics,
-non-lesson destinations, background indexing, external providers, tenancy, and
-managed-cloud operation remain later boundaries.
+The deterministic shared-core search/filter/sort/pagination semantics and
+compatibility corpus are implemented. Their protected HTTP/generated-client
+seam, browser controls, and complete live qualification remain SLI-0019 work.
+Production/background rebuild scheduling, non-lesson destinations, background
+indexing, external providers, tenancy, and managed-cloud operation remain later
+boundaries.

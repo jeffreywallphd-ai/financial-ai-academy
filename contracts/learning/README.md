@@ -49,6 +49,19 @@ ordering, and bounded denial behavior.
 uv run --project backend pytest backend/tests/contract/discovery
 ```
 
+## Learning Discovery Query v1
+
+[`discovery/query/v1/`](discovery/query/v1/README.md) defines deterministic
+search, metadata filters, closed sorts, bounded pages, and generation-bound
+cursors over unchanged discovery-v1 records. Its corpus lives in
+[`../compatibility/discovery/query/v1/`](../compatibility/discovery/query/v1/README.md).
+
+```powershell
+uv run --project backend pytest backend/tests/contract/discovery_query
+```
+
 The current profile qualifies exact approved lesson records only. Persistence,
-API authorization, generated clients, browser behavior, search/filter queries,
-and non-lesson destinations require their owning implementation evidence.
+API authorization, generated clients, browser query behavior, and non-lesson
+destinations require their owning implementation evidence. Discovery-query v1
+has direct contract and shared-core policy evidence but does not itself qualify
+an HTTP or interface consumer.

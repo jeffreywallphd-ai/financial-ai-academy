@@ -1,0 +1,66 @@
+[
+  {
+    "id": "unknown-field",
+    "target": "request",
+    "op": "set",
+    "path": ["rank"],
+    "value": 1,
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
+    "id": "unsupported-version",
+    "target": "request",
+    "op": "set",
+    "path": ["schema_version"],
+    "value": "2.0.0",
+    "expected_code": "discovery_query.unsupported_version"
+  },
+  {
+    "id": "page-size-over-bound",
+    "target": "request",
+    "op": "set",
+    "path": ["page_size"],
+    "value": 51,
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
+    "id": "inverted-duration",
+    "target": "request",
+    "op": "set",
+    "path": ["minimum_minutes"],
+    "value": 30,
+    "expected_code": "discovery_query.invalid_duration"
+  },
+  {
+    "id": "empty-query",
+    "target": "request",
+    "op": "set",
+    "path": ["query"],
+    "value": "",
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
+    "id": "record-count-over-total",
+    "target": "page",
+    "op": "set",
+    "path": ["total_matches"],
+    "value": 0,
+    "expected_code": "discovery_query.count_mismatch"
+  },
+  {
+    "id": "record-does-not-match-query",
+    "target": "page",
+    "op": "set",
+    "path": ["applied_query", "query"],
+    "value": "unmatched",
+    "expected_code": "discovery_query.record_mismatch"
+  },
+  {
+    "id": "page-timestamp-mismatch",
+    "target": "page",
+    "op": "set",
+    "path": ["records", 0, "projected_at"],
+    "value": "2026-10-15T17:00:01Z",
+    "expected_code": "discovery_query.projection_mismatch"
+  }
+]

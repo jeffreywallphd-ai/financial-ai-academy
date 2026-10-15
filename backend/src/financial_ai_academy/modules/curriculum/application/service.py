@@ -25,6 +25,7 @@ from ..public import (
     DiscoveryErrorCode,
     DiscoveryProvenance,
     LearningOpportunityBrowse,
+    LearningOpportunityQueryPage,
     LearningOpportunityRecord,
     LessonOpportunityClassification,
     LessonPlacement,
@@ -33,9 +34,14 @@ from ..public import (
     OpportunityAvailability,
     OpportunityKind,
     OpportunityLevel,
+    QueryLearningOpportunitiesRequest,
     RebuildLearningOpportunityProjectionRequest,
     RegisterLessonOpportunityRequest,
     ResolvePlacedAssessmentRequest,
+)
+from .query import (
+    prepare_learning_opportunity_query,
+    query_learning_opportunity_projection,
 )
 
 
@@ -345,6 +351,15 @@ class CurriculumService:
             projected_at=projected_at,
             records=records,
         )
+
+    def query_learning_opportunities(
+        self, request: QueryLearningOpportunitiesRequest
+    ) -> LearningOpportunityQueryPage:
+        prepared = prepare_learning_opportunity_query(request)
+        browse = self.browse_learning_opportunities(
+            BrowseLearningOpportunitiesRequest()
+        )
+        return query_learning_opportunity_projection(browse, prepared)
 
     def _classification(
         self, request: RegisterLessonOpportunityRequest

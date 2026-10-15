@@ -11,3 +11,5 @@ explicitly approved breaking-change records live here.
 - [`discovery/v1/`](discovery/v1/README.md) fixes the approved lesson
   opportunity, owner-fact fingerprint, browse generation, stable ordering, and
   bounded contract denials without implying ranking or non-lesson execution.
+- [`discovery/query/v1/`](discovery/query/v1/README.md) fixes deterministic
+  query normalization, filters, paging, and bounded denials over discovery v1.

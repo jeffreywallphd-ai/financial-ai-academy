@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/discovery/query/v1/page.schema.json",
+  "title": "Financial AI Academy learning opportunity query page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "projection_generation",
+    "projected_at",
+    "applied_query",
+    "total_matches",
+    "records",
+    "next_cursor"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "projection_generation": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "projected_at": {"type": "string", "format": "date-time"},
+    "applied_query": {
+      "$ref": "https://financial-ai-academy.org/contracts/learning/discovery/query/v1/applied-query.schema.json"
+    },
+    "total_matches": {"type": "integer", "minimum": 0, "maximum": 500},
+    "records": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "https://financial-ai-academy.org/contracts/learning/discovery/v1/opportunity.schema.json"
+      }
+    },
+    "next_cursor": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[A-Za-z0-9_-]+\\.[a-f0-9]{64}$"
+    }
+  }
+}

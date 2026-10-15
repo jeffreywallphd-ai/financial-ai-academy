@@ -1,0 +1,17 @@
+[
+  {
+    "id": "unicode-composition-and-case",
+    "input": "  CAFÉ   RISK ",
+    "normalized": "café risk"
+  },
+  {
+    "id": "compatibility-width",
+    "input": "ＲＥＴＵＲＮ　Basics",
+    "normalized": "return basics"
+  },
+  {
+    "id": "unicode-case-fold",
+    "input": "STRASSE Straße",
+    "normalized": "strasse strasse"
+  }
+]

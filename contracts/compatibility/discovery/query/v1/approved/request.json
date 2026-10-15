@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "query": "risk return",
+  "prerequisite_query": "no prior",
+  "topics": ["investing-basics", "risk-and-return"],
+  "levels": ["introductory"],
+  "kinds": ["lesson"],
+  "availabilities": ["available"],
+  "minimum_minutes": 10,
+  "maximum_minutes": 20,
+  "sort": "catalog",
+  "page_size": 20,
+  "cursor": null
+}

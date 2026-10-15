@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/discovery/query/v1/applied-query.schema.json",
+  "title": "Financial AI Academy applied learning opportunity query",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "query",
+    "prerequisite_query",
+    "topics",
+    "levels",
+    "kinds",
+    "availabilities",
+    "minimum_minutes",
+    "maximum_minutes",
+    "sort",
+    "page_size"
+  ],
+  "properties": {
+    "query": {"$ref": "request.schema.json#/$defs/query_text"},
+    "prerequisite_query": {"$ref": "request.schema.json#/$defs/query_text"},
+    "topics": {"$ref": "request.schema.json#/properties/topics"},
+    "levels": {"$ref": "request.schema.json#/properties/levels"},
+    "kinds": {"$ref": "request.schema.json#/properties/kinds"},
+    "availabilities": {"$ref": "request.schema.json#/properties/availabilities"},
+    "minimum_minutes": {"$ref": "request.schema.json#/$defs/minutes"},
+    "maximum_minutes": {"$ref": "request.schema.json#/$defs/minutes"},
+    "sort": {"$ref": "request.schema.json#/properties/sort"},
+    "page_size": {"$ref": "request.schema.json#/properties/page_size"}
+  }
+}

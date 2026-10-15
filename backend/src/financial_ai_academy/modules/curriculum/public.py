@@ -94,7 +94,9 @@ class OpportunityAvailability(StrEnum):
 
 class DiscoveryErrorCode(StrEnum):
     INVALID_RECORD = "invalid_record"
+    INVALID_QUERY = "invalid_query"
     IMMUTABLE_CONFLICT = "immutable_conflict"
+    STALE_CURSOR = "stale_cursor"
     STALE_SOURCE = "stale_source"
     UNAVAILABLE = "unavailable"
 
@@ -164,6 +166,42 @@ class BrowseLearningOpportunitiesRequest:
     pass
 
 
+class OpportunityQuerySort(StrEnum):
+    CATALOG = "catalog"
+    TITLE = "title"
+    DURATION_ASCENDING = "duration_ascending"
+    DURATION_DESCENDING = "duration_descending"
+
+
+@dataclass(frozen=True, slots=True)
+class QueryLearningOpportunitiesRequest:
+    query: str | None = None
+    prerequisite_query: str | None = None
+    topics: tuple[str, ...] = ()
+    levels: tuple[OpportunityLevel, ...] = ()
+    kinds: tuple[OpportunityKind, ...] = ()
+    availabilities: tuple[OpportunityAvailability, ...] = ()
+    minimum_minutes: int | None = None
+    maximum_minutes: int | None = None
+    sort: OpportunityQuerySort = OpportunityQuerySort.CATALOG
+    page_size: int = 20
+    cursor: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class AppliedLearningOpportunityQuery:
+    query: str | None
+    prerequisite_query: str | None
+    topics: tuple[str, ...]
+    levels: tuple[OpportunityLevel, ...]
+    kinds: tuple[OpportunityKind, ...]
+    availabilities: tuple[OpportunityAvailability, ...]
+    minimum_minutes: int | None
+    maximum_minutes: int | None
+    sort: OpportunityQuerySort
+    page_size: int
+
+
 @dataclass(frozen=True, slots=True)
 class DiscoveryProvenance:
     published_by: str
@@ -202,6 +240,17 @@ class LearningOpportunityBrowse:
     projection_generation: str
     projected_at: datetime
     records: tuple[LearningOpportunityRecord, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class LearningOpportunityQueryPage:
+    schema_version: str
+    projection_generation: str
+    projected_at: datetime
+    applied_query: AppliedLearningOpportunityQuery
+    total_matches: int
+    records: tuple[LearningOpportunityRecord, ...]
+    next_cursor: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -246,3 +295,7 @@ class CurriculumOperations(Protocol):
     def browse_learning_opportunities(
         self, request: BrowseLearningOpportunitiesRequest
     ) -> LearningOpportunityBrowse: ...
+
+    def query_learning_opportunities(
+        self, request: QueryLearningOpportunitiesRequest
+    ) -> LearningOpportunityQueryPage: ...

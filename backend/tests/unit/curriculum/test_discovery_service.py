@@ -23,15 +23,20 @@ from financial_ai_academy.modules.curriculum.ports.repositories import (
 )
 from financial_ai_academy.modules.curriculum.public import (
     AssessmentPlacement,
+    AppliedLearningOpportunityQuery,
     BrowseLearningOpportunitiesRequest,
     CreateLessonPlacementRequest,
     DiscoveryError,
     DiscoveryErrorCode,
     LearningOpportunityRecord,
+    LearningOpportunityQueryPage,
     LessonOpportunityClassification,
     LessonPlacement,
     OpportunityAvailability,
+    OpportunityKind,
     OpportunityLevel,
+    OpportunityQuerySort,
+    QueryLearningOpportunitiesRequest,
     RebuildLearningOpportunityProjectionRequest,
     RegisterLessonOpportunityRequest,
 )
@@ -58,6 +63,7 @@ class MemoryDiscoveryRepository:
             tuple[LearningOpportunityRecord, ...],
         ] | None = None
         self.fail_replace = False
+        self.projection_reads = 0
 
     def get(self, placement_id: str) -> LessonPlacement | None:
         return self.placements.get(placement_id)
@@ -132,6 +138,7 @@ class MemoryDiscoveryRepository:
         datetime,
         tuple[LearningOpportunityRecord, ...],
     ] | None:
+        self.projection_reads += 1
         return self.projection
 
 
@@ -195,20 +202,56 @@ def request(
     *,
     opportunity_id: str = "intro-risk-return-primary",
     placement_id: str = "intro-risk-return-primary",
+    summary: str = (
+        "Learn why potential return and investment risk must be considered "
+        "together."
+    ),
+    topics: tuple[str, ...] = ("risk-and-return", "investing-basics"),
+    level: OpportunityLevel = OpportunityLevel.INTRODUCTORY,
+    estimated_minutes: int = 15,
+    prerequisite_summary: str = "No prior lesson is required.",
+    availability: OpportunityAvailability = OpportunityAvailability.AVAILABLE,
 ) -> RegisterLessonOpportunityRequest:
     return RegisterLessonOpportunityRequest(
         opportunity_id=opportunity_id,
         placement_id=placement_id,
-        summary=(
-            "Learn why potential return and investment risk must be considered "
-            "together."
-        ),
-        topics=("risk-and-return", "investing-basics"),
-        level=OpportunityLevel.INTRODUCTORY,
-        estimated_minutes=15,
-        prerequisite_summary="No prior lesson is required.",
-        availability=OpportunityAvailability.AVAILABLE,
+        summary=summary,
+        topics=topics,
+        level=level,
+        estimated_minutes=estimated_minutes,
+        prerequisite_summary=prerequisite_summary,
+        availability=availability,
         availability_reason="Available in this local learning catalog.",
+    )
+
+
+def add_opportunity(
+    service: CurriculumService,
+    repository: MemoryDiscoveryRepository,
+    *,
+    opportunity_id: str,
+    summary: str,
+    topics: tuple[str, ...],
+    estimated_minutes: int,
+    prerequisite_summary: str,
+    level: OpportunityLevel = OpportunityLevel.INTRODUCTORY,
+    availability: OpportunityAvailability = OpportunityAvailability.AVAILABLE,
+) -> None:
+    repository.placements[opportunity_id] = replace(
+        repository.placements["intro-risk-return-primary"],
+        placement_id=opportunity_id,
+    )
+    service.register_lesson_opportunity(
+        request(
+            opportunity_id=opportunity_id,
+            placement_id=opportunity_id,
+            summary=summary,
+            topics=topics,
+            level=level,
+            estimated_minutes=estimated_minutes,
+            prerequisite_summary=prerequisite_summary,
+            availability=availability,
+        )
     )
 
 
@@ -224,6 +267,9 @@ def test_register_rebuild_and_browse_exact_approved_lesson(
     browsed = service.browse_learning_opportunities(
         BrowseLearningOpportunitiesRequest()
     )
+    queried = service.query_learning_opportunities(
+        QueryLearningOpportunitiesRequest(page_size=50)
+    )
 
     assert first == repeated
     assert first.topics == ("investing-basics", "risk-and-return")
@@ -234,6 +280,10 @@ def test_register_rebuild_and_browse_exact_approved_lesson(
     assert rebuilt.records[0].destination == (
         "/learn/placements/intro-risk-return-primary"
     )
+    assert queried.records == browsed.records
+    assert queried.total_matches == 1
+    assert queried.next_cursor is None
+    assert queried.applied_query.sort is OpportunityQuerySort.CATALOG
     assert repository.projection is not None
 
 
@@ -471,4 +521,233 @@ def test_discovery_records_exclude_storage_identity_and_ranking_fields() -> None
         "recommended",
     }
     names = {field.name for field in fields(LearningOpportunityRecord)}
+    assert names.isdisjoint(prohibited)
+
+
+def test_query_normalizes_text_and_combines_filters(
+    lesson: PublishedLesson,
+) -> None:
+    service, repository, _gateway = service_for(lesson)
+    service.register_lesson_opportunity(
+        request(summary="Café basics connect investment return and risk.")
+    )
+    add_opportunity(
+        service,
+        repository,
+        opportunity_id="risk-return-intermediate",
+        summary="Intermediate portfolio risk comparison practice.",
+        topics=("portfolio", "risk-and-return"),
+        level=OpportunityLevel.INTERMEDIATE,
+        estimated_minutes=30,
+        prerequisite_summary="Understanding Risk and Return is required.",
+    )
+    service.rebuild_learning_opportunity_projection(
+        RebuildLearningOpportunityProjectionRequest()
+    )
+
+    result = service.query_learning_opportunities(
+        QueryLearningOpportunitiesRequest(
+            query="  CAFE\u0301   RISK ",
+            prerequisite_query="  NO   PRIOR ",
+            topics=("risk-and-return", "investing-basics", "risk-and-return"),
+            levels=(OpportunityLevel.INTERMEDIATE, OpportunityLevel.INTRODUCTORY),
+            kinds=(OpportunityKind.LESSON,),
+            availabilities=(OpportunityAvailability.AVAILABLE,),
+            minimum_minutes=10,
+            maximum_minutes=20,
+            page_size=5,
+        )
+    )
+
+    assert result.applied_query.query == "café risk"
+    assert result.applied_query.prerequisite_query == "no prior"
+    assert result.applied_query.topics == (
+        "investing-basics",
+        "risk-and-return",
+    )
+    assert result.applied_query.levels == (
+        OpportunityLevel.INTERMEDIATE,
+        OpportunityLevel.INTRODUCTORY,
+    )
+    assert result.total_matches == 1
+    assert result.records[0].opportunity_id == "intro-risk-return-primary"
+
+
+def test_query_sorts_and_pages_without_duplicates(
+    lesson: PublishedLesson,
+) -> None:
+    service, repository, _gateway = service_for(lesson)
+    service.register_lesson_opportunity(request(estimated_minutes=20))
+    add_opportunity(
+        service,
+        repository,
+        opportunity_id="risk-return-alpha",
+        summary="Alpha lesson summary for deterministic ordering.",
+        topics=("investing-basics",),
+        estimated_minutes=10,
+        prerequisite_summary="No prior lesson is required.",
+    )
+    add_opportunity(
+        service,
+        repository,
+        opportunity_id="risk-return-zulu",
+        summary="Zulu lesson summary for deterministic ordering.",
+        topics=("risk-and-return",),
+        estimated_minutes=20,
+        prerequisite_summary="No prior lesson is required.",
+    )
+    service.rebuild_learning_opportunity_projection(
+        RebuildLearningOpportunityProjectionRequest()
+    )
+
+    first = service.query_learning_opportunities(
+        QueryLearningOpportunitiesRequest(
+            sort=OpportunityQuerySort.DURATION_ASCENDING,
+            page_size=2,
+        )
+    )
+    assert first.total_matches == 3
+    assert [record.opportunity_id for record in first.records] == [
+        "risk-return-alpha",
+        "intro-risk-return-primary",
+    ]
+    assert first.next_cursor is not None
+
+    second = service.query_learning_opportunities(
+        QueryLearningOpportunitiesRequest(
+            sort=OpportunityQuerySort.DURATION_ASCENDING,
+            page_size=2,
+            cursor=first.next_cursor,
+        )
+    )
+    assert [record.opportunity_id for record in second.records] == [
+        "risk-return-zulu"
+    ]
+    assert second.next_cursor is None
+    replay = service.query_learning_opportunities(
+        QueryLearningOpportunitiesRequest(
+            sort=OpportunityQuerySort.DURATION_ASCENDING,
+            page_size=2,
+            cursor=first.next_cursor,
+        )
+    )
+    assert replay == second
+
+    longest = service.query_learning_opportunities(
+        QueryLearningOpportunitiesRequest(
+            sort=OpportunityQuerySort.DURATION_DESCENDING,
+            page_size=3,
+        )
+    )
+    assert [record.opportunity_id for record in longest.records] == [
+        "intro-risk-return-primary",
+        "risk-return-zulu",
+        "risk-return-alpha",
+    ]
+
+
+def test_query_rejects_malformed_request_before_projection_read(
+    lesson: PublishedLesson,
+) -> None:
+    service, repository, _gateway = service_for(lesson)
+    invalid = (
+        QueryLearningOpportunitiesRequest(query=" "),
+        QueryLearningOpportunitiesRequest(query="word " * 11),
+        QueryLearningOpportunitiesRequest(topics=("not valid",)),
+        QueryLearningOpportunitiesRequest(levels=("introductory",)),
+        QueryLearningOpportunitiesRequest(minimum_minutes=30, maximum_minutes=10),
+        QueryLearningOpportunitiesRequest(page_size=0),
+        QueryLearningOpportunitiesRequest(cursor="not-a-cursor"),
+    )
+
+    for candidate in invalid:
+        with pytest.raises(DiscoveryError) as captured:
+            service.query_learning_opportunities(candidate)
+        assert captured.value.code is DiscoveryErrorCode.INVALID_QUERY
+    assert repository.projection_reads == 0
+
+
+def test_query_rejects_tampered_mismatched_and_stale_cursor(
+    lesson: PublishedLesson,
+) -> None:
+    service, repository, _gateway = service_for(lesson)
+    service.register_lesson_opportunity(request())
+    add_opportunity(
+        service,
+        repository,
+        opportunity_id="risk-return-secondary",
+        summary="Secondary lesson summary for cursor evidence.",
+        topics=("risk-and-return",),
+        estimated_minutes=25,
+        prerequisite_summary="No prior lesson is required.",
+    )
+    service.rebuild_learning_opportunity_projection(
+        RebuildLearningOpportunityProjectionRequest()
+    )
+    first = service.query_learning_opportunities(
+        QueryLearningOpportunitiesRequest(page_size=1)
+    )
+    assert first.next_cursor is not None
+
+    tampered = first.next_cursor[:-1] + (
+        "0" if first.next_cursor[-1] != "0" else "1"
+    )
+    with pytest.raises(DiscoveryError) as tamper_error:
+        service.query_learning_opportunities(
+            QueryLearningOpportunitiesRequest(page_size=1, cursor=tampered)
+        )
+    assert tamper_error.value.code is DiscoveryErrorCode.INVALID_QUERY
+
+    with pytest.raises(DiscoveryError) as mismatch:
+        service.query_learning_opportunities(
+            QueryLearningOpportunitiesRequest(
+                query="risk",
+                page_size=1,
+                cursor=first.next_cursor,
+            )
+        )
+    assert mismatch.value.code is DiscoveryErrorCode.INVALID_QUERY
+
+    add_opportunity(
+        service,
+        repository,
+        opportunity_id="risk-return-third",
+        summary="Third lesson summary for stale cursor evidence.",
+        topics=("risk-and-return",),
+        estimated_minutes=35,
+        prerequisite_summary="No prior lesson is required.",
+    )
+    service.rebuild_learning_opportunity_projection(
+        RebuildLearningOpportunityProjectionRequest()
+    )
+    with pytest.raises(DiscoveryError) as stale:
+        service.query_learning_opportunities(
+            QueryLearningOpportunitiesRequest(
+                page_size=1,
+                cursor=first.next_cursor,
+            )
+        )
+    assert stale.value.code is DiscoveryErrorCode.STALE_CURSOR
+
+
+def test_query_public_types_exclude_authority_and_ranking_fields() -> None:
+    prohibited = {
+        "learner_id",
+        "provider_id",
+        "storage_key",
+        "rank",
+        "score",
+        "eligible",
+        "recommended",
+        "secret",
+    }
+    names = {
+        field.name
+        for public_type in (
+            QueryLearningOpportunitiesRequest,
+            AppliedLearningOpportunityQuery,
+            LearningOpportunityQueryPage,
+        )
+        for field in fields(public_type)
+    }
     assert names.isdisjoint(prohibited)

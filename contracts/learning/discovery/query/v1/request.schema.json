@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/discovery/query/v1/request.schema.json",
+  "title": "Financial AI Academy learning opportunity query request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "query",
+    "prerequisite_query",
+    "topics",
+    "levels",
+    "kinds",
+    "availabilities",
+    "minimum_minutes",
+    "maximum_minutes",
+    "sort",
+    "page_size",
+    "cursor"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "query": {"$ref": "#/$defs/query_text"},
+    "prerequisite_query": {"$ref": "#/$defs/query_text"},
+    "topics": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,49}$"}
+    },
+    "levels": {
+      "type": "array",
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"enum": ["advanced", "intermediate", "introductory"]}
+    },
+    "kinds": {
+      "type": "array",
+      "maxItems": 4,
+      "uniqueItems": true,
+      "items": {"enum": ["course", "lab", "lesson", "project"]}
+    },
+    "availabilities": {
+      "type": "array",
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"enum": ["available", "planned", "unavailable"]}
+    },
+    "minimum_minutes": {"$ref": "#/$defs/minutes"},
+    "maximum_minutes": {"$ref": "#/$defs/minutes"},
+    "sort": {
+      "enum": ["catalog", "title", "duration_ascending", "duration_descending"]
+    },
+    "page_size": {"type": "integer", "minimum": 1, "maximum": 50},
+    "cursor": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[A-Za-z0-9_-]+\\.[a-f0-9]{64}$"
+    }
+  },
+  "$defs": {
+    "query_text": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[^\\u0000\\r\\n]+$"
+    },
+    "minutes": {
+      "type": ["integer", "null"],
+      "minimum": 1,
+      "maximum": 1440
+    }
+  }
+}

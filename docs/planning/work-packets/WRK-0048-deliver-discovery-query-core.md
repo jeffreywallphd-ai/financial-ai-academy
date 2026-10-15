@@ -10,7 +10,7 @@ capability: CAP-0004
 depends_on: []
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["contracts/learning/README.md", "contracts/learning/discovery/query/v1", "contracts/compatibility/README.md", "contracts/compatibility/discovery/query/v1", "backend/src/financial_ai_academy/modules/curriculum/README.md", "backend/src/financial_ai_academy/modules/curriculum/public.py", "backend/src/financial_ai_academy/modules/curriculum/application/service.py", "backend/tests/contract/discovery_query", "backend/tests/unit/curriculum/test_discovery_service.py", "docs/architecture/contracts/discovery-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0019-query-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0048-deliver-discovery-query-core.md"]
+write_scope: ["contracts/learning/README.md", "contracts/learning/discovery/query/v1", "contracts/compatibility/README.md", "contracts/compatibility/discovery/query/v1", "backend/src/financial_ai_academy/modules/curriculum/README.md", "backend/src/financial_ai_academy/modules/curriculum/public.py", "backend/src/financial_ai_academy/modules/curriculum/application/query.py", "backend/src/financial_ai_academy/modules/curriculum/application/service.py", "backend/tests/contract/discovery_query", "backend/tests/unit/curriculum/test_discovery_service.py", "docs/architecture/contracts/discovery-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0019-query-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0048-deliver-discovery-query-core.md"]
 generated_artifacts: []
 base_revision: 6b9cc0886b6ef7af358f290b8b6446455c29938e
 claim_id: WRK-0048:c99fbd22-94aa-44af-84f1-f12b93c27de1
@@ -98,7 +98,7 @@ canonical query fingerprint, projection generation, and continuation position.
 | --- | --- | --- | --- |
 | Executable contracts | Discovery v1 schemas/corpus and contract architecture | Listed query schema/corpus directories and contract catalog READMEs | Fix portable request/result, normalization, cursor, and denial meaning without changing browse v1 |
 | Curriculum public seam | Existing discovery public types and operations | `public.py` | Expose closed query inputs/outputs with no provider or learner authority |
-| Application policy | Projection validation, browse behavior, hashing/canonicalization helpers | `application/service.py` | Own deterministic matching, filters, sort, count, and continuation in the shared core |
+| Application policy | Projection validation, browse behavior, hashing/canonicalization helpers | `application/query.py` and the thin `application/service.py` composition | Own deterministic matching, filters, sort, count, and continuation in a focused shared-core policy |
 | Focused verification | Existing discovery contract and service tests | Listed query contract directory and discovery service test | Prove conformance, bounds, replay, stale/tampered denial, order, and confidentiality |
 | Canonical documentation | Curriculum and discovery contracts | Listed READMEs and discovery contract | Record exact semantics and remaining HTTP/UI/live work |
 | Lifecycle | Parent slice, packet, register | Listed planning files | Keep status, dependency, evidence, and next packet synchronized |
@@ -192,3 +192,7 @@ lifecycle result; and whether WRK-0049 is dependency-ready.
 - 2026-10-15: Claimed on base
   `6b9cc0886b6ef7af358f290b8b6446455c29938e` after deterministic readiness,
   CAP authority, dependency, decision, and scope-overlap gates passed.
+- 2026-10-15: Added the focused `application/query.py` path to the bounded
+  write scope before submission so deterministic query/cursor policy remains a
+  reusable pure application component instead of enlarging the composition
+  service. The outcome, contracts, risk, and packet dependencies are unchanged.

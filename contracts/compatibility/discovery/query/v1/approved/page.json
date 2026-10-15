@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0.0",
+  "projection_generation": "746b3442477c7e3d70b0886cee11a0e1a439b58b7fcc4b660d790ce3cf92f3d8",
+  "projected_at": "2026-10-15T17:00:00Z",
+  "applied_query": {
+    "query": "risk return",
+    "prerequisite_query": "no prior",
+    "topics": ["investing-basics", "risk-and-return"],
+    "levels": ["introductory"],
+    "kinds": ["lesson"],
+    "availabilities": ["available"],
+    "minimum_minutes": 10,
+    "maximum_minutes": 20,
+    "sort": "catalog",
+    "page_size": 20
+  },
+  "total_matches": 1,
+  "records": [
+    {
+      "schema_version": "1.0.0",
+      "opportunity_id": "intro-risk-return-primary",
+      "placement_id": "intro-risk-return-primary",
+      "destination": "/learn/placements/intro-risk-return-primary",
+      "kind": "lesson",
+      "title": "Understanding Risk and Return",
+      "summary": "Learn why potential return and investment risk must be considered together.",
+      "objectives": [
+        "Explain why potential return and risk must be considered together.",
+        "Identify review questions that support an educational comparison of investment choices."
+      ],
+      "topics": ["investing-basics", "risk-and-return"],
+      "level": "introductory",
+      "estimated_minutes": 15,
+      "prerequisite_summary": "No prior lesson is required.",
+      "availability": "available",
+      "availability_reason": "Available in this local learning catalog.",
+      "package_id": "intro-risk-return",
+      "package_version": "1.1.0",
+      "package_digest": "7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc",
+      "provenance": {
+        "published_by": "Financial AI Academy fixture publisher",
+        "published_at": "2026-08-05T00:00:00Z",
+        "content_reviewed_on": "2026-08-04",
+        "educational_use_notice": "Educational material only; this package does not provide personalized financial advice or predict investment performance."
+      },
+      "source_fingerprint": "6206218a3a49b2439ec3d46054f2c96f004cc680021b8b25e0f62b1f211894f5",
+      "projected_at": "2026-10-15T17:00:00Z"
+    }
+  ],
+  "next_cursor": null
+}
