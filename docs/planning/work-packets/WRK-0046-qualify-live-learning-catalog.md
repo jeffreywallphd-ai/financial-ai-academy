@@ -1,7 +1,7 @@
 ---
 id: WRK-0046
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["deployments/local/serve.py", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "tests/architecture/test_approved_lesson_boundaries.py", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/dist", "apps/web/README.md", "backend/src/financial_ai_academy/bootstrap/README.md", "docs/architecture/contracts/discovery-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0018-browse-approved-learning-opportunities.md", "docs/planning/work-packets/WRK-0046-qualify-live-learning-catalog.md"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: df7a241ce79572f52ee93f1643ac58a3fd3d76ed
+claim_id: WRK-0046:58e6b8c0-6a70-40ff-aef6-6b9c8a1581c9
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T18:39:32Z
 ---
 
 # Agent Work Packet: Qualify the Live Learning Catalog
@@ -172,3 +172,6 @@ just-in-time refinement.
   existing public discovery operations and the accepted local qualification
   topology, adds no durable decision, and remains within the approved
   SLI-0018 outcome.
+- 2026-10-15: Claimed on base
+  `df7a241ce79572f52ee93f1643ac58a3fd3d76ed`; the selected medium-risk route
+  requires affected verification and one independent technical disposition.
