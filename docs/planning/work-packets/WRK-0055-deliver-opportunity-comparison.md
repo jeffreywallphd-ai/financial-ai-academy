@@ -1,7 +1,7 @@
 ---
 id: WRK-0055
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -153,9 +153,48 @@ return-path behavior, bounded failure/confidentiality results, theme and
 accessibility checks, all verification, documentation impact, residual live
 work, and CAP/SLI conformance.
 
+## Completion Evidence
+
+- Added transient current-page checkboxes that retain learner selection order,
+  require two through four identities, disable a fifth unchecked record, clear
+  explicitly, and automatically present an empty selection on a different
+  result page. No browser storage, saved comparison, or extra service exists.
+- Registered `/learn/opportunities/compare` before the parameterized detail
+  route and composed it with WRK-0053's protected complete-snapshot loader.
+  Ready rendering independently checks comparison kind, two-to-four bounds,
+  record count, and exact identity order before displaying any record.
+- The ordered comparison presents identity, classification, topics,
+  objectives, level, duration, prerequisites, availability reason, package
+  version/digest, publication review facts, source fingerprint, and projection
+  generation/time/schema. Every record retains a detail action; only an
+  available lesson exposes its exact validated placement destination.
+- Changed or malformed selection, denial, unavailability, invalid response,
+  unexpected failure, and invalid ready shapes remain bounded and expose no
+  partial record, selected ID, count, provenance, provider, storage, or
+  technical implementation detail.
+- Ten web unit/component files passed all 93 tests; focused comparison/catalog
+  components passed 25 tests and the focused Chromium suite passed all 14
+  scenarios. TypeScript typecheck, lint, generated-client currency, production
+  build, design-system validation (125 tokens and 56 icons), planning integrity
+  for 122 artifacts, documentation validation for 247 Markdown files, and Git
+  whitespace checks passed. Chromium evidence includes light/dark/system and
+  axe parity, keyboard focus, 375-pixel reflow with 200-percent text, reduced
+  motion, forced colors, exact order/actions, complete failure, and denial.
+- The tracked static client was regenerated and an independent alternate build
+  matched the tracked HTML, JavaScript, CSS, and source-map content. The exact
+  candidate produced a fresh qualifying affected-verification receipt.
+- No backend contract, schema, generated client, dependency, provider, durable
+  browser state, ranking, eligibility, recommendation, or background work
+  changed. WRK-0056 retains live PostgreSQL/Python/static qualification and
+  cumulative cleanup for SLI-0020.
+
 ## Planning History
 
 - 2026-10-15: Authored just in time after WRK-0054 completion. The packet
   consumes the verified comparison-selection seam and existing design system,
   adds no backend contract or durable state, and retains comparison as bounded
   current-generation educational inspection within the approved CAP package.
+- 2026-10-15: Completed the bounded ordered comparison, exact fact/action
+  presentation, cursor-free return, transient page-local selection, closed
+  confidentiality states, generated static client, and interface evidence.
+  The result remains within the approved CAP package and SLI-0020 boundaries.
