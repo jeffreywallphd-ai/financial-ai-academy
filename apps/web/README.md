@@ -32,13 +32,14 @@ Exact dependency patches and integrity data belong in committed project metadata
 `/learn` is the application entry route and brand destination. It validates the
 complete closed discovery response before presenting any record, preserves the
 server-provided deterministic order, and accepts valid empty or variable-length
-record sets without a hard-coded opportunity. Cards show exact classification,
-objectives, duration, prerequisite summary, package version/digest, publication
-context, and availability meaning. Only an `available` `lesson` exposes its
-exact same-origin placement link; planned, unavailable, and non-lesson kinds
-remain non-navigable. Missing authority, unavailable projection, network
-failure, or malformed success responses produce bounded states without stale
-or partial records.
+record sets and shared placements without a hard-coded opportunity. It
+recomputes each owner-fact fingerprint and the ordered generation digest before
+rendering. Cards show exact classification, objectives, duration, prerequisite
+summary, package version/digest, publication context, and availability reason.
+Only an `available` `lesson` exposes its exact same-origin placement link;
+planned, unavailable, and non-lesson kinds remain non-navigable. Missing
+authority, unavailable projection, network failure, or malformed success
+responses produce bounded states without stale or partial records.
 
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated

@@ -32,7 +32,8 @@ export const availableOpportunity = {
     educational_use_notice:
       "General educational content; not personalized financial advice.",
   },
-  source_fingerprint: "b".repeat(64),
+  source_fingerprint:
+    "25d9d3d9faaad288a7519f79851e06f6eadb83ef9303af251421963eed70005e",
   projected_at: "2026-10-15T12:00:00Z",
 } satisfies LearningOpportunity;
 
@@ -55,12 +56,14 @@ export const plannedOpportunity = {
   package_id: "portfolio-project",
   package_version: "0.1.0-preview.1",
   package_digest: "c".repeat(64),
-  source_fingerprint: "d".repeat(64),
+  source_fingerprint:
+    "e76837c2db1da9550954c86e1222cc23c253b556ef1bc77f338aa40c9e611342",
 } satisfies LearningOpportunity;
 
 export const learningCatalogFixture = {
   schema_version: "1.0.0",
-  projection_generation: "e".repeat(64),
+  projection_generation:
+    "deaaed6da7190fd5ef49a614cb26de64c529538c9edb3069b56b1183bca887c8",
   projected_at: "2026-10-15T12:00:00Z",
   records: [availableOpportunity, plannedOpportunity],
 } satisfies LearningCatalog;

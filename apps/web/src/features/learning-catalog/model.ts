@@ -23,8 +23,7 @@ const DESTINATION =
   /^\/learn\/placements\/[a-z0-9][a-z0-9._-]{2,63}$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_TIME =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
-const ASCII = /^[\x20-\x7e]+$/;
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d{1,6})?(Z|[+-](\d{2}):(\d{2}))$/;
 
 const BROWSE_KEYS = [
   "projected_at",
@@ -105,9 +104,44 @@ function validDate(value: unknown): value is string {
 }
 
 function validDateTime(value: unknown): value is string {
+  if (typeof value !== "string") {
+    return false;
+  }
+  const match = DATE_TIME.exec(value);
+  if (!match) {
+    return false;
+  }
+  const [year, month, day, hour, minute, second, offsetHour, offsetMinute] = [
+    match[1],
+    match[2],
+    match[3],
+    match[4],
+    match[5],
+    match[6],
+    match[8] ?? "00",
+    match[9] ?? "00",
+  ].map(Number);
+  if (
+    !year ||
+    !month ||
+    !day ||
+    hour === undefined ||
+    minute === undefined ||
+    second === undefined ||
+    offsetHour === undefined ||
+    offsetMinute === undefined
+  ) {
+    return false;
+  }
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   return (
-    typeof value === "string" &&
-    DATE_TIME.test(value) &&
+    month <= 12 &&
+    day <= daysInMonth &&
+    hour <= 23 &&
+    minute <= 59 &&
+    second <= 59 &&
+    offsetHour <= 23 &&
+    offsetMinute <= 59 &&
     !Number.isNaN(Date.parse(value))
   );
 }
@@ -208,38 +242,84 @@ function opportunityIsSafe(
   );
 }
 
-function recordsRespectObservableOrder(
-  records: readonly LearningOpportunity[],
-): boolean {
-  for (let index = 1; index < records.length; index += 1) {
-    const previous = records[index - 1];
-    const current = records[index];
-    if (!previous || !current) {
-      return false;
+function canonicalJson(value: unknown): string {
+  function canonical(valueAtKey: unknown): unknown {
+    if (Array.isArray(valueAtKey)) {
+      return valueAtKey.map(canonical);
     }
-    if (ASCII.test(previous.title) && ASCII.test(current.title)) {
-      const previousTitle = previous.title.toLowerCase();
-      const currentTitle = current.title.toLowerCase();
-      if (
-        previousTitle > currentTitle ||
-        (previousTitle === currentTitle &&
-          previous.opportunity_id > current.opportunity_id)
-      ) {
-        return false;
-      }
-    } else if (
-      previous.title === current.title &&
-      previous.opportunity_id > current.opportunity_id
+    const objectValue = record(valueAtKey);
+    if (objectValue) {
+      return Object.fromEntries(
+        Object.keys(objectValue)
+          .sort()
+          .map((key) => [key, canonical(objectValue[key])]),
+      );
+    }
+    return valueAtKey;
+  }
+  return JSON.stringify(canonical(value));
+}
+
+async function sha256(value: unknown): Promise<string | null> {
+  if (!globalThis.crypto?.subtle) {
+    return null;
+  }
+  const bytes = new TextEncoder().encode(canonicalJson(value));
+  try {
+    const result = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+    return [...new Uint8Array(result)]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  } catch {
+    return null;
+  }
+}
+
+function sourceMeaning(opportunity: LearningOpportunity) {
+  return {
+    schema_version: opportunity.schema_version,
+    opportunity_id: opportunity.opportunity_id,
+    placement_id: opportunity.placement_id,
+    destination: opportunity.destination,
+    kind: opportunity.kind,
+    title: opportunity.title,
+    summary: opportunity.summary,
+    objectives: opportunity.objectives,
+    topics: opportunity.topics,
+    level: opportunity.level,
+    estimated_minutes: opportunity.estimated_minutes,
+    prerequisite_summary: opportunity.prerequisite_summary,
+    availability: opportunity.availability,
+    availability_reason: opportunity.availability_reason,
+    package_id: opportunity.package_id,
+    package_version: opportunity.package_version,
+    package_digest: opportunity.package_digest,
+    provenance: opportunity.provenance,
+  };
+}
+
+async function integrityIsCoherent(
+  records: readonly LearningOpportunity[],
+  generation: string,
+): Promise<boolean> {
+  for (const opportunity of records) {
+    if (
+      (await sha256(sourceMeaning(opportunity))) !==
+      opportunity.source_fingerprint
     ) {
       return false;
     }
   }
-  return true;
+  const stableRecords = records.map((opportunity) => ({
+    ...sourceMeaning(opportunity),
+    source_fingerprint: opportunity.source_fingerprint,
+  }));
+  return (await sha256(stableRecords)) === generation;
 }
 
-export function learningCatalogIsSafe(
+export async function learningCatalogIsSafe(
   value: unknown,
-): value is LearningCatalog {
+): Promise<boolean> {
   const candidate = record(value);
   if (
     candidate === null ||
@@ -258,11 +338,12 @@ export function learningCatalogIsSafe(
   }
   const records = candidate.records as LearningOpportunity[];
   const opportunityIds = records.map((item) => item.opportunity_id);
-  const placementIds = records.map((item) => item.placement_id);
   return (
     new Set(opportunityIds).size === opportunityIds.length &&
-    new Set(placementIds).size === placementIds.length &&
-    recordsRespectObservableOrder(records)
+    (await integrityIsCoherent(
+      records,
+      candidate.projection_generation as string,
+    ))
   );
 }
 

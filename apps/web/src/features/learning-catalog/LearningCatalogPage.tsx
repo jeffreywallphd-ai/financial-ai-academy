@@ -122,6 +122,10 @@ function OpportunityCard({
           </dl>
         </details>
       </section>
+      <p className="catalog-card__availability" role="status">
+        <Icon name={canOpen ? "shield-check" : "lock"} />
+        {opportunity.availability_reason}
+      </p>
       <div className="catalog-card__action">
         {canOpen ? (
           <Link
@@ -131,12 +135,7 @@ function OpportunityCard({
             <Icon name="learn" />
             Open exact lesson
           </Link>
-        ) : (
-          <p role="status">
-            <Icon name="lock" />
-            {opportunity.availability_reason}
-          </p>
-        )}
+        ) : null}
       </div>
     </article>
   );

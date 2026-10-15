@@ -36,6 +36,9 @@ describe("LearningCatalogPage", () => {
     );
     expect(screen.getByText("cash-flow-basics@1.2.0")).toBeVisible();
     expect(screen.getAllByText(/Financial AI Academy/)).not.toHaveLength(0);
+    expect(
+      screen.getByText("The exact reviewed lesson is available."),
+    ).toBeVisible();
   });
 
   it("links only an available lesson to its exact destination", () => {

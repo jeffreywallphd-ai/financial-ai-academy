@@ -2,7 +2,10 @@ import type { LoaderFunctionArgs } from "react-router";
 
 import type { FinancialAcademyApiClient } from "../../generated/api-client";
 import type { SingleProfileSession } from "../../platform/auth/singleProfileSession";
-import type { LearningCatalogRouteState } from "./model";
+import type {
+  LearningCatalog,
+  LearningCatalogRouteState,
+} from "./model";
 import { learningCatalogIsSafe } from "./model";
 
 function sessionFailureState(
@@ -39,9 +42,13 @@ async function readCatalog(
       { signal },
     );
     if (result.response.status === 200 && result.data) {
-      return learningCatalogIsSafe(result.data)
-        ? { status: "ready", catalog: result.data }
-        : { status: "invalid-response" };
+      if (await learningCatalogIsSafe(result.data)) {
+        return {
+          status: "ready",
+          catalog: result.data as LearningCatalog,
+        };
+      }
+      return { status: "invalid-response" };
     }
     if (result.response.status === 401 && retryUnauthorized) {
       session.invalidate();

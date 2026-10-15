@@ -182,3 +182,8 @@ result; and whether WRK-0046 is dependency-eligible.
   `a01c057d9060186c0481ac7ee578324c3ba3e745` after focused web, browser,
   architecture, security, design, documentation, planning, and aggregate
   readiness checks passed.
+- 2026-10-15: Independent review identified four bounded defects: an extra
+  placement-uniqueness rule, syntax-only integrity checks, calendar-normalized
+  invalid timestamps, and a hidden availability reason for actionable lessons.
+  Corrections remove the added rigidity, recompute source/generation digests,
+  validate calendar components, and show every availability reason.

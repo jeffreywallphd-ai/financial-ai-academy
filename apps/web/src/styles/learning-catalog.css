@@ -52,7 +52,7 @@
 }
 
 .catalog-card__heading,
-.catalog-card__action p,
+.catalog-card__availability,
 .catalog-facts dd {
   display: flex;
   align-items: center;
@@ -108,7 +108,7 @@
 
 .catalog-card__summary,
 .catalog-card__publication p,
-.catalog-card__action p {
+.catalog-card__availability {
   margin: var(--faa-space-0);
   color: var(--faa-color-text-secondary);
 }
@@ -181,8 +181,11 @@
 }
 
 .catalog-card__action {
-  margin-top: auto;
   padding-top: var(--faa-space-2);
+}
+
+.catalog-card__availability {
+  margin-top: auto;
 }
 
 .catalog-open-link {

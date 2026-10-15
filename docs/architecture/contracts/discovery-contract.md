@@ -73,9 +73,11 @@ or filter.
 The static web application consumes that generated operation at `/learn` and
 validates the entire closed envelope before presenting any records. It retains
 the projection order without local ranking, accepts an empty or variable valid
-catalog, and fails the whole response closed on unknown fields, malformed
-identity/destination/digest/date values, duplicate identities, incoherent
-projection timestamps, or observable ordering corruption. Only a contract-valid
+catalog including distinct opportunities that share one placement, recomputes
+every owner-fact source fingerprint, and recomputes the ordered generation
+digest. It fails the whole response closed on unknown fields, malformed
+identity/destination/digest/calendar values, duplicate opportunity identities,
+incoherent projection timestamps, or integrity mismatch. Only a contract-valid
 available lesson links to its exact placement destination; other kinds and
 availability states remain explanatory and non-executable.
 

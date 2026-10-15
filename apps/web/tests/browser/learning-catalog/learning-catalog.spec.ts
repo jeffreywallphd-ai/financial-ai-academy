@@ -46,6 +46,9 @@ test("renders the protected catalog with equivalent themes and no axe violations
     page.getByRole("link", { name: "Open exact lesson" }),
   ).toHaveAttribute("href", "/learn/placements/cash-flow-basics-primary");
   await expect(
+    page.getByText("The exact reviewed lesson is available."),
+  ).toBeVisible();
+  await expect(
     page.getByRole("heading", { name: "Portfolio Project" }),
   ).toBeVisible();
 
@@ -54,10 +57,9 @@ test("renders the protected catalog with equivalent themes and no axe violations
     await page.getByLabel("Theme").selectOption(theme);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     expect(await page.locator("main").innerText()).toBe(baselineText);
+    const accessibility = await new AxeBuilder({ page }).analyze();
+    expect(accessibility.violations).toEqual([]);
   }
-
-  const accessibility = await new AxeBuilder({ page }).analyze();
-  expect(accessibility.violations).toEqual([]);
 });
 
 test("supports keyboard focus, narrow reflow, reduced motion, and forced colors", async ({

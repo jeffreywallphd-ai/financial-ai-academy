@@ -27,7 +27,7 @@ const lessonLoader = createLessonLoader(client, session);
 function UnexpectedRouteError() {
   return (
     <StatusPanel
-      actionLabel="Reload lesson"
+      actionLabel="Reload page"
       description="The page could not be completed safely. No private or technical details were displayed."
       icon="error-circle"
       onAction={() => window.location.reload()}
