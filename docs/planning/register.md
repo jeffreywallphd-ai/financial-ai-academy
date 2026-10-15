@@ -9,7 +9,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 
 | ID | Kind | Title | Planning status | Parent | Dependencies | Decision gates | Owner | Updated |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CAP-0001 | Capability | [Complete a Structured Introductory Lesson](capabilities/CAP-0001-complete-structured-introductory-lesson.md) | active | none | none | resolved by ADR-0005 through ADR-0008 | unassigned | 2026-10-15 |
+| CAP-0001 | Capability | [Complete a Structured Introductory Lesson](capabilities/CAP-0001-complete-structured-introductory-lesson.md) | verifying | none | none | resolved by ADR-0005 through ADR-0008 | unassigned | 2026-10-15 |
 | CAP-0002 | Capability | [Operate the AI-Development Control Plane](capabilities/CAP-0002-operate-ai-development-control-plane.md) | complete | none | none | none | codex-control-plane | 2026-10-15 |
 | CAP-0003 | Capability | [Plan and Orchestrate Capability Portfolios](capabilities/CAP-0003-plan-and-orchestrate-capability-portfolios.md) | complete | none | CAP-0002 | none | codex-cap-0003 | 2026-10-15 |
 | CAP-0004 | Capability | [Discover Learning Opportunities](capabilities/CAP-0004-discover-learning-opportunities.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
