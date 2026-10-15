@@ -135,7 +135,7 @@ investment performance.
 | --- | --- | --- | --- | --- |
 | WRK-0043 | Deliver the discovery record, Curriculum projection core, rebuild policy, and focused conformance tests | none | none | complete |
 | WRK-0044 | Persist the projection and expose the protected browse API plus generated client | WRK-0043 | none | complete |
-| WRK-0045 | Deliver the accessible approved-opportunity catalog route | WRK-0044 | none | active |
+| WRK-0045 | Deliver the accessible approved-opportunity catalog route | WRK-0044 | none | verifying |
 | WRK-0046 | Qualify projection rebuild and the complete local browse path | WRK-0045 | none | captured |
 
 ## Verification and Qualification
@@ -197,3 +197,6 @@ cleanup, unsupported profiles, residual gaps, and CAP-package conformance.
   it remains within the approved slice and introduces no durable decision.
 - 2026-10-15: Activated WRK-0045 on its reserved generated-client and browser
   boundary after its dependency completed and its exact file set was leased.
+- 2026-10-15: Submitted WRK-0045 candidate
+  `a01c057d9060186c0481ac7ee578324c3ba3e745` for affected verification and
+  independent technical review after focused and aggregate checks passed.

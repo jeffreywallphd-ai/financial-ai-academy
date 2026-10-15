@@ -1,7 +1,7 @@
 ---
 id: WRK-0045
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0004
 updated: 2026-10-15
@@ -178,3 +178,7 @@ result; and whether WRK-0046 is dependency-eligible.
 - 2026-10-15: Claimed on base
   `b506aef86f425c64d9cb6d379caaee8a11f32fd4`; the selected medium-risk route
   requires affected verification and one independent technical review.
+- 2026-10-15: Submitted exact candidate
+  `a01c057d9060186c0481ac7ee578324c3ba3e745` after focused web, browser,
+  architecture, security, design, documentation, planning, and aggregate
+  readiness checks passed.
