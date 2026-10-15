@@ -1,7 +1,7 @@
 ---
 id: CAP-0001
 kind: capability
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
