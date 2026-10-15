@@ -12,6 +12,10 @@ Work affects instruments, market observations, provider ingestion, portfolios, v
 - Provider accessibility does not imply redistribution, commercial, caching, or training permission.
 - PostgreSQL and analytical-storage responsibilities remain separate.
 - Project may link to zero or more Portfolio-owned resources under ADR-0012, but it never owns or recalculates positions, transactions, valuation, performance, risk, or market-data provenance.
+- ADR-0015 assigns canonical observations and normalization to Market data,
+  simulated accounting/valuation/backtests to Portfolio, and reusable pure
+  calculations to an owner-declared versioned platform method registry; it adds
+  no Analysis module.
 
 ## Canonical Sources
 
@@ -19,6 +23,8 @@ Work affects instruments, market observations, provider ingestion, portfolios, v
 - `docs/risk-compliance/market-data-licensing-and-attribution.md`
 - `docs/standards/change-impact-matrix.md`
 - `docs/adr/ADR-0012-reusable-project-workspace.md`
+- `docs/adr/ADR-0015-market-data-portfolio-method-registry.md`
+- `docs/architecture/finance/financial-method-and-simulation-architecture.md`
 
 ## Stop When
 

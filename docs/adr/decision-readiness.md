@@ -30,6 +30,7 @@
 | Job queue and delivery guarantees | decision-required | Known architecture gaps | Do not select a queue or semantics silently |
 | Provider admission and sandbox technology | decision-required | Provider architecture | Preserve trust boundary; select technology through ADR |
 | Market-data providers and licensed uses | decision-required | Risk/source governance | Refresh terms and approve each provider/use |
+| Financial analysis, simulated portfolio, and backtest semantics | constrained | ADR-0015 and financial method/simulation architecture | Use Market data and Portfolio ownership plus versioned pure registered methods; exact method/accounting versions need reviewed contracts and fixtures, and live execution/advice remains excluded |
 | Model providers and local-model support | constrained | ADR-0013 and AI/ML governance | Local and external adapters require explicit per-provider opt-in, per-data-class permission, current admission evidence, and deterministic fallback; no provider is enabled by default in community |
 | External learning standards | decision-required | Known architecture gaps | Decide required interoperability scope before claiming support |
 | Versioned lesson package format | ready | ADR-0007 and versioned lesson content-package contract | Preserve the platform-owned directory model, immutable versions/digests, constrained CommonMark, declared assets, and Assessment ownership |

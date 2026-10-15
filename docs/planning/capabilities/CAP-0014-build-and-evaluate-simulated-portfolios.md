@@ -1,7 +1,7 @@
 ---
 id: CAP-0014
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -54,6 +54,8 @@ policies with clear simulation labels and limitations.
 
 - [Module Map](../../architecture/modules/module-map.md)
 - [Data Architecture](../../architecture/data/data-architecture.md)
+- [ADR-0015: Market Data and Portfolio Ownership with a Method Registry](../../adr/ADR-0015-market-data-portfolio-method-registry.md)
+- [Financial Method and Simulation Architecture](../../architecture/finance/financial-method-and-simulation-architecture.md)
 - [Reusable Project Workspace](../../adr/ADR-0012-reusable-project-workspace.md)
 - [Product Non-Goals](../../product/non-goals.md)
 - [CAP-0012](CAP-0012-explore-canonical-market-data.md)
@@ -61,8 +63,9 @@ policies with clear simulation labels and limitations.
 
 ## Decision Gates and Constraints
 
-- DEC-0013 establishes Portfolio ownership and deterministic transaction,
-  valuation, benchmark, performance, and risk semantics.
+- ADR-0015 establishes Portfolio ownership and deterministic transaction,
+  valuation, benchmark, performance, and risk semantics plus the reusable
+  owner-declared method-registry seam.
 - Portfolio consumes canonical market data and platform-owned calculation
   methods; it never reads raw provider payloads or delegates accounting to AI.
 - Project links retain stable references and provenance only; Portfolio remains
@@ -107,4 +110,5 @@ security, UI, export, operations, and verification documentation.
 
 - 2026-10-15: Shaped from catalog candidate 11 with manifest SLI-0058 through
   SLI-0061. DEC-0013 blocks CAP approval and delivery.
+- 2026-10-15: DEC-0013 was promoted through ADR-0015; the CAP returned to shaping for package revalidation before CAP-level approval.
 

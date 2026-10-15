@@ -51,6 +51,8 @@ never leak into downstream domain behavior.
 ## Canonical Context
 
 - [Data Architecture](../../architecture/data/data-architecture.md)
+- [ADR-0015: Market Data and Portfolio Ownership with a Method Registry](../../adr/ADR-0015-market-data-portfolio-method-registry.md)
+- [Financial Method and Simulation Architecture](../../architecture/finance/financial-method-and-simulation-architecture.md)
 - [Market-Data Licensing and Attribution](../../risk-compliance/market-data-licensing-and-attribution.md)
 - [Module Map](../../architecture/modules/module-map.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
@@ -61,7 +63,7 @@ never leak into downstream domain behavior.
 
 - DEC-0012 selects only reviewed provider/use combinations; technical access is
   never treated as license authority.
-- DEC-0013 establishes Market data ownership, canonical instrument and
+- ADR-0015 establishes Market data ownership, canonical instrument and
   observation meaning, calendars, adjustments, and consumer contracts.
 - Raw provider data enters no learning, analysis, portfolio, or adaptation path
   before validation and provider-neutral normalization.
@@ -105,4 +107,5 @@ operations, accessibility, and verification documentation.
 
 - 2026-10-15: Shaped from catalog candidate 9 with manifest SLI-0050 through
   SLI-0053. DEC-0012 and DEC-0013 block CAP approval and delivery.
+- 2026-10-15: DEC-0013 was promoted through ADR-0015; DEC-0012 remains an unresolved provider and licensed-use gate, so this CAP remains decision-blocked.
 

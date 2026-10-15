@@ -32,6 +32,7 @@ Architecture documents describe the current intended design. Accepted ADRs recor
 | `learning/` | Learning, assessment, learner-state, and adaptive-pathway components |
 | `ai-ml/` | AI/ML boundaries, model gateways, evaluation, and runtime responsibilities |
 | `data/` | Transactional, analytical, object, lineage, retention, and migration concerns |
+| `finance/` | Financial method ownership, deterministic calculations, portfolios, and simulation boundaries |
 | `deployment/` | Local open-source and managed-cloud profiles |
 | `assurance/` | Testing, fitness functions, qualification, and known architecture gaps |
 

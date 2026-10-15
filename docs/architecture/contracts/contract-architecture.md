@@ -30,6 +30,15 @@ Assessment submissions by snapshot reference, and typed references to
 independently owned learning and domain resources. A project-domain link never
 transfers the referenced aggregate's authority to Project.
 
+Portable financial methods, portfolio records, and simulation results
+additionally follow
+[ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the
+[financial method and simulation architecture](../finance/financial-method-and-simulation-architecture.md).
+Every registered method has one semantic owner, stable ID/version, explicit
+units/time/adjustment/missing/precision semantics, limitations, provenance, and
+golden fixtures. Portable records distinguish observed, assumed, calculated,
+and simulated values and cannot expose provider payloads as platform meaning.
+
 ## Ownership
 
 - The platform owns canonical terminology and schemas.

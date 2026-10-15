@@ -2,7 +2,7 @@
 
 - Status: partially accepted
 - Canonical for: accepted first learning-loop ownership and remaining module hypotheses
-- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md)
+- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md)
 - Decision gate: use accepted first-loop boundaries; refine every still-proposed boundary before implementation
 
 | Module | Status | Primary responsibility | Publishes |
@@ -13,8 +13,8 @@
 | Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
 | Learner model | accepted; bounded completion projection implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | proposed | Eligibility, ranking, deterministic policy, recommendations | Recommendation decisions and outcomes |
-| Market data | proposed | Instruments, observations, calendars, corporate actions, provider provenance | Canonical market-data events |
-| Portfolio | proposed | Simulated accounts, positions, transactions, valuation, backtests | Portfolio and simulation results |
+| Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
+| Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; Assessment completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -26,10 +26,17 @@
 - Adaptation reads approved learner and curriculum projections; it does not mutate curriculum or assessment history.
 - AI orchestration supplies bounded capabilities. It does not own learning, grading, market, or portfolio rules.
 - Market data normalizes provider observations. Portfolio behavior consumes canonical market data, never raw provider responses.
+- ADR-0015 adds no Analysis module. Reusable pure calculations are registered by
+  stable ID/version with one semantic owner and no persistence, provider,
+  network, clock, random, AI, host, or adapter dependency. Owning modules retain
+  workflow, authorization, persistence, and result meaning.
 - Audit captures references and integrity evidence from owning modules without becoming a second business database.
 - Content owns ADR-0007 package identity, publication, lesson body, educational-source provenance, and storage references. Assessment owns the meaning and runtime use of packaged assessment definitions.
 
-ADR-0005 accepts the Content, Curriculum, Assessment, Learner model, and Audit boundaries only for the first learning loop. Other rows remain hypotheses until their own discovery and decisions establish implementation authority.
+ADR-0005 accepts the Content, Curriculum, Assessment, Learner model, and Audit
+boundaries only for the first learning loop. Rows still marked `proposed`
+remain hypotheses until their own discovery and decisions establish
+implementation authority; later ADRs may accept additional bounded ownership.
 
 ADR-0006 additionally accepts Identity ownership for the first learner context. Organization membership, tenancy, enterprise administration, and other Identity responsibilities remain proposed.
 
@@ -38,6 +45,11 @@ Executable version 1 schemas, admission validation, PostgreSQL Content metadata,
 and local filesystem objects now exist for the approved lesson-read seam.
 Archive transport, managed object storage, removal policy, and broader content
 operations remain subject to later approved delivery planning.
+
+ADR-0015 accepts Market data and Portfolio ownership for the initial financial
+analysis and simulation lane plus the platform method-registry seam. Exact
+methods, schemas, accounting policies, and provider admissions remain bounded
+CAP and contract work.
 
 ## Implemented Lesson-Read Seams
 

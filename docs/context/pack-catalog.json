@@ -48,7 +48,7 @@
       "path": "docs/context/packs/financial-data.pack.md",
       "keywords": ["market data", "instrument", "portfolio", "backtest", "price", "feature", "provenance"],
       "pathGlobs": ["backend/**/market_data/**", "backend/**/portfolio/**", "data/**", "docs/risk-compliance/market-data-*", "docs/architecture/data/**"],
-      "canonicalSources": ["docs/architecture/data/data-architecture.md", "docs/risk-compliance/market-data-licensing-and-attribution.md", "docs/adr/ADR-0012-reusable-project-workspace.md"],
+      "canonicalSources": ["docs/architecture/data/data-architecture.md", "docs/architecture/finance/financial-method-and-simulation-architecture.md", "docs/risk-compliance/market-data-licensing-and-attribution.md", "docs/adr/ADR-0012-reusable-project-workspace.md", "docs/adr/ADR-0015-market-data-portfolio-method-registry.md"],
       "adjacentPacks": ["security-risk", "testing-quality"],
       "stopConditions": ["Provider terms or financial calculation semantics are unresolved"]
     },

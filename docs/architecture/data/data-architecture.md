@@ -28,4 +28,9 @@
 - Raw provider data never bypasses normalization into portfolio, learning, or adaptation behavior.
 - Derived datasets identify inputs, transformations, code/version, creation time, and intended use.
 - Database abstraction does not promise portability between behaviorally different databases; PostgreSQL is used in both supported deployment profiles.
+- Under ADR-0015, Market data owns canonical observations and normalization;
+  Portfolio owns simulated transactional state and financial simulation results.
+  Registered pure methods retain exact versions and inputs but own no store or
+  workflow. PostgreSQL, Parquet, and DuckDB placement never transfers semantic
+  ownership between those boundaries.
 

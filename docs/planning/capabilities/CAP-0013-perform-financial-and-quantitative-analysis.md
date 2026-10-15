@@ -1,7 +1,7 @@
 ---
 id: CAP-0013
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
@@ -52,14 +52,17 @@ observed data remains distinguishable from calculation and interpretation.
 
 - [Product Capability Catalog](../../product/capability-catalog.md)
 - [Data Architecture](../../architecture/data/data-architecture.md)
+- [ADR-0015: Market Data and Portfolio Ownership with a Method Registry](../../adr/ADR-0015-market-data-portfolio-method-registry.md)
+- [Financial Method and Simulation Architecture](../../architecture/finance/financial-method-and-simulation-architecture.md)
 - [Education Versus Financial Advice](../../risk-compliance/education-versus-financial-advice.md)
 - [AI/ML System Boundaries](../../architecture/ai-ml/ai-ml-system-boundaries.md)
 - [CAP-0012](CAP-0012-explore-canonical-market-data.md)
 
 ## Decision Gates and Constraints
 
-- DEC-0013 fixes ownership and the initial method, units, timing, adjustment,
-  precision, reproducibility, and compatibility posture.
+- ADR-0015 fixes ownership and the initial method-registry, units, timing,
+  adjustment, precision, reproducibility, and compatibility posture without an
+  Analysis module.
 - Financial calculations are deterministic platform policy. AI may explain a
   recorded result but cannot supply authoritative numeric output.
 - Every result identifies observed inputs separately from assumptions,
@@ -103,4 +106,5 @@ analysis UI behavior, exports, and verification evidence.
 
 - 2026-10-15: Shaped from catalog candidate 10 with manifest SLI-0054 through
   SLI-0057. DEC-0013 blocks CAP approval and delivery.
+- 2026-10-15: DEC-0013 was promoted through ADR-0015; the CAP returned to shaping for package revalidation before CAP-level approval.
 

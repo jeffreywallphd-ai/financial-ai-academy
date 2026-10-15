@@ -1,14 +1,14 @@
 ---
 id: DEC-0013
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-15
 parent: null
 depends_on: []
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0015-market-data-portfolio-method-registry.md
 ---
 
 # Decision Request: Establish Financial Analysis, Portfolio, and Backtest Semantics
@@ -60,8 +60,10 @@ operations review.
 
 ## Decision Record and Promotion
 
-Promote the selected ownership/semantic baseline to an ADR, module map, finance
-architecture, contract guidance, and decision readiness.
+[ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md)
+establishes Option A: Market data and Portfolio remain the domain owners, while
+a versioned dependency-free platform method registry provides reusable pure
+calculations without introducing an Analysis module.
 
 ## Dependent Planning Updates
 
@@ -70,4 +72,5 @@ Reconcile CAP-0012, CAP-0013, CAP-0014, and CAP-0015 before CAP approval.
 ## Planning History
 
 - 2026-10-15: Captured while shaping the financial and analytical catalog lane.
+- 2026-10-15: ADR-0015 established Market data and Portfolio ownership with a versioned platform method registry and no initial Analysis module.
 
