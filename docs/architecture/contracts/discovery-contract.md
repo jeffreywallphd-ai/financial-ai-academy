@@ -116,9 +116,10 @@ and time, total matches, no more than 50 unchanged records, and an optional
 opaque next cursor. The cursor checksum detects accidental corruption and binds
 the canonical query fingerprint, generation, and next offset. Because it grants
 no authority and exposes only public ordering state, it does not require a
-credential or durable secret. Invalid shape/tamper/query mismatch is an invalid
-query; a different projection generation is a stale cursor. Both fail without
-records, as does an absent or corrupt projection. Query cursors are transport
+credential or durable secret. Invalid shape, checksum mismatch, or query
+mismatch is an invalid query; a different projection generation is a stale
+cursor. Both fail without records, as does an absent or corrupt projection.
+Query cursors are transport
 state rather than durable evidence and may be invalidated explicitly by rebuild
 or rollback.
 

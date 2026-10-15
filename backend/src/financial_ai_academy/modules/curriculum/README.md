@@ -71,9 +71,11 @@ normalized title and opportunity identity as stable tie-breaks and never
 produce a relevance score.
 
 An opaque continuation cursor binds the canonical query fingerprint,
-projection generation, and next offset. Malformed, tampered, mismatched, or
-generation-stale cursors fail closed without records. Cursors grant no
-authority and are not durable learner evidence. The current 500-record
+projection generation, and next offset. Malformed, checksum-corrupted,
+query-mismatched, or generation-stale cursors fail closed without records. The
+unkeyed checksum detects accidental corruption; it does not claim adversarial
+integrity. Cursors grant no authority and are not durable learner evidence. The
+current 500-record
 projection bound lets the shared application core enforce identical local and
 future cloud semantics without a second index. The protected HTTP operation,
 generated client, browser controls, and live qualification remain WRK-0049

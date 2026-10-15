@@ -199,7 +199,7 @@ class DiscoveryQueryContractValidator:
                 )
 
     @staticmethod
-    def _raw_text(value: Mapping[str, Any]) -> None:
+    def _text_bounds(value: Mapping[str, Any]) -> None:
         for key in ("query", "prerequisite_query"):
             raw = value[key]
             if raw is None:
@@ -230,7 +230,7 @@ class DiscoveryQueryContractValidator:
     def validate_request(self, request: Mapping[str, Any]) -> None:
         self._version(request, "request")
         self._shape(self._request, request, "request")
-        self._raw_text(request)
+        self._text_bounds(request)
         self._duration(request)
 
     def validate_page(self, page: Mapping[str, Any]) -> None:
@@ -239,6 +239,7 @@ class DiscoveryQueryContractValidator:
         applied = page["applied_query"]
         self._shape(self._applied, applied, "applied_query")
         self._canonical_text(applied)
+        self._text_bounds(applied)
         self._canonical_filters(applied)
         self._duration(applied)
         records = page["records"]

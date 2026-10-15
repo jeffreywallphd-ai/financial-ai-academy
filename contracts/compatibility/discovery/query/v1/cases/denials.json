@@ -80,6 +80,14 @@
     "expected_code": "discovery_query.count_mismatch"
   },
   {
+    "id": "applied-query-term-count-over-bound",
+    "target": "page",
+    "op": "set",
+    "path": ["applied_query", "query"],
+    "value": "one two three four five six seven eight nine ten eleven",
+    "expected_code": "discovery_query.schema_invalid"
+  },
+  {
     "id": "record-does-not-match-query",
     "target": "page",
     "op": "set",
