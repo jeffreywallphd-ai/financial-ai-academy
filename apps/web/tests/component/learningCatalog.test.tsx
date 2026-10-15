@@ -51,7 +51,19 @@ describe("LearningCatalogPage", () => {
       .getByRole("heading", { name: plannedOpportunity.title })
       .closest("article");
     expect(plannedCard).not.toBeNull();
-    expect(within(plannedCard as HTMLElement).queryByRole("link")).toBeNull();
+    expect(
+      within(plannedCard as HTMLElement).queryByRole("link", {
+        name: "Open exact lesson",
+      }),
+    ).toBeNull();
+    expect(
+      within(plannedCard as HTMLElement).getByRole("link", {
+        name: "View details",
+      }),
+    ).toHaveAttribute(
+      "href",
+      "/learn/opportunities/portfolio-project-planned?return_to=%2Flearn",
+    );
     expect(
       within(plannedCard as HTMLElement).getByText(
         plannedOpportunity.availability_reason,
@@ -101,6 +113,12 @@ describe("LearningCatalogPage", () => {
     expect(screen.getByRole("link", { name: "Next page" })).toHaveAttribute(
       "href",
       `/learn?query=cash+flow&level=introductory&page_size=17&cursor=cursor.${"d".repeat(64)}`,
+    );
+    expect(
+      screen.getAllByRole("link", { name: "View details" })[0],
+    ).toHaveAttribute(
+      "href",
+      "/learn/opportunities/cash-flow-basics-primary?return_to=%2Flearn%3Fquery%3Dcash%2Bflow%26level%3Dintroductory%26page_size%3D17",
     );
   });
 });

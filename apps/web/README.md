@@ -61,6 +61,16 @@ planned, unavailable, and non-lesson kinds remain non-navigable. Missing
 authority, unavailable projection, network failure, or malformed success
 responses produce bounded states without stale or partial records.
 
+`/learn/opportunities/:opportunityId` resolves one selected identity only after
+the complete current queryless discovery snapshot passes envelope, record,
+fingerprint, order, and generation validation. It presents exact
+classification, topics, objectives, level, duration, prerequisites,
+availability, package identity/digest, publication facts, source fingerprint,
+and projection context. A cursor-free, same-origin `/learn` return reference
+may preserve canonical query state. Only a validated available lesson exposes
+its exact placement destination; malformed, changed, denied, unavailable, or
+invalid responses show bounded states without partial or substituted facts.
+
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated
 OpenAPI client. It renders only the closed safe body-node union and presents

@@ -22,10 +22,13 @@ function readableDate(value: string): string {
 
 function OpportunityCard({
   opportunity,
+  returnTo,
 }: {
   opportunity: LearningOpportunity;
+  returnTo: string;
 }) {
   const canOpen = opportunityCanOpen(opportunity);
+  const detailParameters = new URLSearchParams({ return_to: returnTo });
   return (
     <article className="catalog-card">
       <div className="catalog-card__heading">
@@ -113,6 +116,13 @@ function OpportunityCard({
         {opportunity.availability_reason}
       </p>
       <div className="catalog-card__action">
+        <Link
+          className="button button--secondary"
+          to={`/learn/opportunities/${encodeURIComponent(opportunity.opportunity_id)}?${detailParameters.toString()}`}
+        >
+          <Icon name="info-circle" />
+          View details
+        </Link>
         {canOpen ? (
           <Link
             className="button catalog-open-link"
@@ -256,6 +266,7 @@ export function LearningCatalogPage({
 }: {
   page: LearningCatalogQueryPage;
 }) {
+  const returnTo = queryPageHref(page.applied_query);
   return (
     <section className="learning-catalog">
       <header className="catalog-header">
@@ -293,7 +304,7 @@ export function LearningCatalogPage({
         >
           {page.records.map((opportunity) => (
             <li key={opportunity.opportunity_id}>
-              <OpportunityCard opportunity={opportunity} />
+              <OpportunityCard opportunity={opportunity} returnTo={returnTo} />
             </li>
           ))}
         </ul>

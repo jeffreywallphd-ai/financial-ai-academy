@@ -1,15 +1,19 @@
-import {
-  createBrowserRouter,
-  redirect,
-} from "react-router";
+import { createBrowserRouter, redirect } from "react-router";
 
 import { createFinancialAcademyApiClient } from "../generated/api-client";
 import { StatusPanel } from "../components/StatusPanel";
-import { createLearningCatalogLoader } from "../features/learning-catalog/api";
+import {
+  createLearningCatalogLoader,
+  createLearningOpportunityDetailLoader,
+} from "../features/learning-catalog/api";
 import {
   LearningCatalogLoadingState,
   LearningCatalogRoute,
 } from "../features/learning-catalog/LearningCatalogRoute";
+import {
+  LearningOpportunityDetailLoadingState,
+  LearningOpportunityDetailRoute,
+} from "../features/learning-catalog/LearningOpportunityDetailRoute";
 import { createLessonLoader } from "../features/lesson-reading/api";
 import {
   LessonLoadingState,
@@ -18,10 +22,13 @@ import {
 import { SingleProfileSession } from "../platform/auth/singleProfileSession";
 import { AppShell } from "./AppShell";
 
-
 const client = createFinancialAcademyApiClient(window.location.origin);
 const session = new SingleProfileSession(client);
 const learningCatalogLoader = createLearningCatalogLoader(client, session);
+const learningOpportunityDetailLoader = createLearningOpportunityDetailLoader(
+  client,
+  session,
+);
 const lessonLoader = createLessonLoader(client, session);
 
 function UnexpectedRouteError() {
@@ -65,6 +72,12 @@ export const router = createBrowserRouter([
         loader: learningCatalogLoader,
         Component: LearningCatalogRoute,
         HydrateFallback: LearningCatalogLoadingState,
+      },
+      {
+        path: "learn/opportunities/:opportunityId",
+        loader: learningOpportunityDetailLoader,
+        Component: LearningOpportunityDetailRoute,
+        HydrateFallback: LearningOpportunityDetailLoadingState,
       },
       {
         path: "learn/placements/:placementId",

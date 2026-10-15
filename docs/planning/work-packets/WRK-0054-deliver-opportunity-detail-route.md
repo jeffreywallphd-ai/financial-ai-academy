@@ -1,21 +1,21 @@
 ---
 id: WRK-0054
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0004
 updated: 2026-10-15
 parent: SLI-0020
 capability: CAP-0004
 depends_on: ["WRK-0053"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/features/learning-catalog/LearningCatalogPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityDetailPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityDetailRoute.tsx", "apps/web/src/styles/learning-catalog.css", "apps/web/tests/component/learningCatalog.test.tsx", "apps/web/tests/component/learningOpportunityDetail.test.tsx", "apps/web/tests/browser/learning-catalog/learning-catalog.spec.ts", "apps/web/README.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0020-inspect-and-compare-learning-opportunities.md", "docs/planning/work-packets/WRK-0054-deliver-opportunity-detail-route.md"]
-generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/features/learning-catalog/LearningCatalogPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityDetailPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityDetailRoute.tsx", "apps/web/src/styles/app.css", "apps/web/src/styles/base.css", "apps/web/src/styles/learning-catalog.css", "apps/web/tests/component/learningCatalog.test.tsx", "apps/web/tests/component/learningOpportunityDetail.test.tsx", "apps/web/tests/browser/learning-catalog/learning-catalog.spec.ts", "apps/web/dist", "apps/web/README.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0020-inspect-and-compare-learning-opportunities.md", "docs/planning/work-packets/WRK-0054-deliver-opportunity-detail-route.md"]
+generated_artifacts: ["apps/web/dist"]
+base_revision: bcf5a9b6ad3dfc81747dd840b17ed203b9fbea4c
+claim_id: WRK-0054:b97d3306-5159-4016-a8d4-d89ae498904c
+claimed_by: codex-cap-0004
+claimed_at: 2026-10-15T20:56:45Z
 ---
 
 # Agent Work Packet: Deliver the Opportunity Detail Route
@@ -69,9 +69,15 @@ contract or new asset is required.
 - Add token-only responsive detail/rail styling with light, dark, system,
   reduced-motion, forced-color, keyboard/focus, reflow, text-scaling, and long
   digest handling.
+- Correct the existing root minimum-width rule so a 200-percent text scale
+  cannot turn its rem-based 320-pixel guard into a 640-pixel viewport floor,
+  and allow the existing top bar to wrap instead of forcing its brand and theme
+  control onto one overflowing row.
 - Add component and mocked Chromium evidence for facts, exact actions,
   return-path continuity, denial/failure confidentiality, theme parity,
   keyboard focus, narrow reflow, forced colors, and axe behavior.
+- Regenerate the tracked static client from the verified source so the
+  Python-served production artifact contains the detail route.
 - Update the web README and synchronized planning lifecycle evidence.
 
 ## Out of Scope
@@ -80,7 +86,7 @@ Comparison selection or UI, saved/bookmarked details, browser storage, new
 tokens or icons, backend/API/schema/generated-client changes, direct record
 endpoint, enrollment, entitlement, prerequisite completion, recommendation,
 ranking, learner progress, activity execution beyond the existing exact lesson
-destination, production static generation, real PostgreSQL/live qualification,
+destination, real PostgreSQL/live qualification,
 provider integration, or background work.
 
 ## Expected File and Boundary Impact
@@ -90,7 +96,9 @@ provider integration, or background work.
 | Route composition | app shell/router and WRK-0053 loaders | `apps/web/src/app/router.tsx`, new detail route | Compose the current protected loader and bounded route states |
 | Catalog navigation | catalog page and query href model | `LearningCatalogPage.tsx` | Add a detail action with canonical cursor-free return state |
 | Detail presentation | discovery contract, existing card/lesson semantics, tokens/icons | new detail page and catalog stylesheet | Present exact current facts, provenance, limitations, and actions accessibly |
+| Shared reflow baseline | accepted accessibility standard and shell/root styles | `apps/web/src/styles/app.css`, `apps/web/src/styles/base.css` | Bound the existing minimum width and wrap the top bar under text scaling |
 | Component/browser evidence | catalog fixtures, component and Chromium catalog suites | listed tests | Prove success, failure, continuity, confidentiality, themes, focus, reflow, and axe |
+| Generated static client | current Vite output | `apps/web/dist` | Keep the Python-served artifact synchronized with the verified route source |
 | Documentation/lifecycle | web README, slice, packet, register | listed documentation files | Keep behavior and delivery state synchronized |
 
 ## Contracts and Interfaces

@@ -181,6 +181,7 @@
 @media (max-width: 39.99rem) {
   .app-topbar {
     align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   .brand-link small,
