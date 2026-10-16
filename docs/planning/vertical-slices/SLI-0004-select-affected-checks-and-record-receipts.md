@@ -1,10 +1,10 @@
 ---
 id: SLI-0004
 kind: vertical-slice
-planning_status: complete
+planning_status: active
 authority: noncanonical
-owner: codex-control-plane
-updated: 2026-10-15
+owner: codex-control-plane-correction
+updated: 2026-10-16
 parent: CAP-0002
 depends_on: ["SLI-0003"]
 decision_gates: []
@@ -154,3 +154,7 @@ therefore disabled rather than inferred.
 
 - 2026-10-15: Refined just in time after SLI-0003 completed; Candidate A scored
   14/14 and remains within the approved CAP-0002 manifest and risk posture.
+- 2026-10-16: Reopened through the bounded completed-work correction route for
+  WRK-0067 after independent review of a product packet showed web and live
+  test paths were not selecting behavior-exercising checks. Completed WRK-0012
+  history remains unchanged while the descendant correction is active.
