@@ -183,7 +183,7 @@ each packet starts.
 | --- | --- | --- | --- | --- |
 | WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | complete |
 | WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | complete |
-| JIT-C | Generate the public client and deliver the accessible practice-opening browser route | JIT-B | none | captured |
+| WRK-0094 | Deliver the accessible practice-opening browser route from the generated public client | WRK-0093 | none | ready |
 | JIT-D | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, and live local composition | JIT-C | none | captured |
 
 ## Verification and Qualification
@@ -273,3 +273,7 @@ cloud, and recovery behavior.
   backend passed 505 cases with 35 environment-marked skips, the real
   PostgreSQL practice qualifier passed, the exact-candidate verification
   receipt qualified, and aggregate readiness passed all 29 checks.
+- 2026-10-16: Refined JIT-C as WRK-0094. The packet consumes the existing
+  protected practice-opening API, validates and renders all three answer-safe
+  item shapes with plain learner language and complete technical evidence, and
+  adds no submission, scoring, browser authority, API fork, or AI mode.
