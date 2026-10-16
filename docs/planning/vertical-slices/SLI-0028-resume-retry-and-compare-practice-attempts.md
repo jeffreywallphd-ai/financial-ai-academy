@@ -223,7 +223,7 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0102 | Freeze draft/retry/history/review-target contracts, deterministic policy and projection rules, and anti-rigidity corpora | SLI-0027 | none | complete |
 | WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | complete |
-| WRK-0104 | Implement an Assessment-safe history source, Curriculum review-target resolution, and Learner-model history rebuild/persistence | WRK-0103 | none | active |
+| WRK-0104 | Implement an Assessment-safe history source, Curriculum review-target resolution, and Learner-model history rebuild/persistence | WRK-0103 | none | complete |
 | JIT-D | Expose the composed progress, review, and history operations through protected API, OpenAPI, and generated clients | WRK-0104 | none | captured |
 | JIT-E | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-D | none | captured |
 | JIT-F | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-E | none | captured |
@@ -325,4 +325,12 @@ mode, autonomous authority, provider, cloud, or external execution was added.
   Learner-model rebuildable projection. Protected API/OpenAPI/generated-client
   composition follows as its own packet so the core can be reviewed and reused
   independently without changing the approved slice outcome.
+- 2026-10-16: Completed WRK-0104 at exact implementation candidate
+  `7e2213f52a1516a442175e045e47ff8f8c7785c9`. The answer-safe Assessment
+  source, exact Curriculum mapping, and rebuildable Learner-model projection
+  passed affected unit, contract, real-PostgreSQL, architecture, documentation,
+  planning, whitespace, aggregate-readiness, and exact-candidate acceptance
+  checks. JIT-D is now dependency-ready for protected API/OpenAPI/generated-
+  client refinement, and the transport-neutral core remains reusable by
+  browser and headless clients.
 

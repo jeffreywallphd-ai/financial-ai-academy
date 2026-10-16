@@ -1,7 +1,7 @@
 ---
 id: WRK-0104
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -194,3 +194,15 @@ the CAP.
   former combined JIT-C seam into a core packet followed by a protected
   API/OpenAPI/generated-client packet, reducing review and write scope without
   changing SLI-0028 or CAP-0006 outcome, dependencies, or acceptance.
+- 2026-10-16: Completed at exact implementation candidate
+  `7e2213f52a1516a442175e045e47ff8f8c7785c9` with qualifying receipt digest
+  `sha256:85a046a2a9d6ba0188305488a04ec6229aceac12ab49635005a8c61528651263`.
+  Assessment now exposes a correlated answer-safe practice-history source,
+  Curriculum owns exact review-target mappings, and Learner model rebuilds an
+  atomic history projection without mastery or adaptive meaning. The affected
+  unit suites passed 136 tests, the three accepted contract suites passed 130,
+  the real-PostgreSQL matrix passed 35, architecture passed 15, and aggregate
+  readiness passed all 29 checks. Closed-contract enum validation and reverse
+  migration teardown were also proven by focused regressions. Protected HTTP,
+  OpenAPI, generated-client, browser, and live qualification work remains in
+  the dependent packets.
