@@ -191,7 +191,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | complete |
-| JIT-B | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | JIT-A | none | candidate |
+| WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | ready |
 | JIT-C | Add the protected public POST, reviewed OpenAPI/generated client, and accessible browser submit/result flow with headless parity | JIT-B | none | candidate |
 | JIT-D | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-C | none | candidate |
 
@@ -283,3 +283,7 @@ or autonomous authority was planned or implemented.
   affected-verification receipt qualified, independent review R02 accepted the
   exact candidate with R01-F001 closed and no open findings, and the public API
   remains the deferred shared boundary for browser and headless consumers.
+- 2026-10-16: Refined JIT-B as WRK-0097. It composes the transport-neutral
+  Assessment public operation and atomic append-only PostgreSQL evidence behind
+  the shared future HTTP boundary, without creating browser-specific behavior
+  or a separate AI mode.
