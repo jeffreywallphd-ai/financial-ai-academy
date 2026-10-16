@@ -99,6 +99,7 @@ outcomes, not ignored authority data or personal identifiers.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0027 | Add proportionate fixed and affected-scope qualification, reconcile documentation/gaps, and close CAP-0008 | WRK-0026 | none | complete |
+| WRK-0084 | Qualify the integrated executable-order projection, active-descendant promotion, and roadmap-card rendering as one exact candidate | WRK-0080, WRK-0081, WRK-0083 | none | active |
 
 ## Verification and Qualification
 
@@ -164,3 +165,10 @@ drift occurred.
   overflow.
 - 2026-10-15: Closed deterministically after WRK-0027 completed and the final
   slice completion structure, evidence, known gaps, and CAP conformance passed.
+- 2026-10-16: Added bounded correction qualification WRK-0084 after separate
+  allocator, projection, and site-consumer corrections converged on one exact
+  candidate. The packet retains affected-scope evidence and adds no new CAP
+  outcome or approval gate.
+- 2026-10-16: Activated WRK-0084 against the pre-correction base after its
+  completed dependencies, exact cumulative scope, checks, and absence of a
+  decision gate were validated. The packet performs qualification only.
