@@ -19,6 +19,7 @@ from financial_ai_academy.modules.content.ports.repositories import (
 from financial_ai_academy.modules.content.public import (
     AdmitLessonPackageRequest,
     GetPublishedAssessmentDefinitionRequest,
+    GetPublishedPracticeDefinitionRequest,
     GetPublishedLessonVersionRequest,
     LessonErrorCode,
     LessonReadError,
@@ -38,6 +39,10 @@ SCHEMAS = REPOSITORY / "contracts/learning/lesson-package/v1"
 SUCCESSOR = (
     REPOSITORY
     / "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-knowledge-check"
+)
+PRACTICE = (
+    REPOSITORY
+    / "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice"
 )
 
 
@@ -360,3 +365,42 @@ def test_invalid_private_definition_fails_before_publication(
     assert captured.value.code is LessonErrorCode.INVALID_PACKAGE
     assert captured.value.diagnostic_code == "assessment.schema_invalid"
     assert repository.records == {}
+
+
+def test_practice_admission_exposes_exact_private_definition_only_internally(
+    tmp_path: Path,
+) -> None:
+    service, _repository, _storage = build_service(tmp_path)
+    accepted = service.admit_lesson_package(AdmitLessonPackageRequest(PRACTICE))
+    definition = service.get_published_practice_definition(
+        GetPublishedPracticeDefinitionRequest(
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+            practice_id="risk-return-practice",
+        )
+    )
+    expected = (PRACTICE / "practices/practice-1.json").read_bytes()
+    assert definition.value == expected
+    assert definition.file_digest == hashlib.sha256(expected).hexdigest()
+    assert definition.practice_id == "risk-return-practice"
+    assert definition.package_digest == accepted.package_digest
+    assert not hasattr(definition, "path")
+    assert not hasattr(definition, "object_key")
+
+
+def test_practice_definition_query_fails_closed_for_stale_digest(
+    tmp_path: Path,
+) -> None:
+    service, _repository, _storage = build_service(tmp_path)
+    accepted = service.admit_lesson_package(AdmitLessonPackageRequest(PRACTICE))
+    with pytest.raises(LessonReadError) as captured:
+        service.get_published_practice_definition(
+            GetPublishedPracticeDefinitionRequest(
+                package_id=accepted.package_id,
+                package_version=accepted.package_version,
+                package_digest="a" * 64,
+                practice_id="risk-return-practice",
+            )
+        )
+    assert captured.value.code is LessonErrorCode.NOT_FOUND

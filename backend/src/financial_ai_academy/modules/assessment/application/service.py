@@ -13,6 +13,7 @@ from ..domain.models import (
     AssessmentSubmissionCandidate,
     score_single_select,
 )
+from ..domain.practice import PracticePresentation, PracticePresentationContext
 from ..ports.definition_parser import (
     AssessmentDefinitionParserPort,
     DefinitionParsingFailure,
@@ -31,6 +32,10 @@ from ..ports.repositories import (
     KnowledgeCheckAlreadyCompleted,
     SubmissionConflict,
 )
+from ..ports.practice_definition import (
+    PracticeDefinitionFailure,
+    PracticeDefinitionPort,
+)
 from ..ports.system import ClockPort, IdGeneratorPort
 from ..public import (
     AssessmentError,
@@ -40,6 +45,7 @@ from ..public import (
     KnowledgeCheckPresentation,
     KnowledgeCheckResult,
     OpenPlacedKnowledgeCheckRequest,
+    OpenPlacedPracticeRequest,
     ReadCompletedKnowledgeChecksRequest,
     SubmitPlacedKnowledgeCheckRequest,
 )
@@ -55,6 +61,7 @@ class AssessmentService:
         repository: AssessmentRepositoryPort,
         clock: ClockPort,
         ids: IdGeneratorPort,
+        practice_parser: PracticeDefinitionPort | None = None,
     ) -> None:
         self._curriculum = curriculum
         self._content = content
@@ -63,12 +70,90 @@ class AssessmentService:
         self._repository = repository
         self._clock = clock
         self._ids = ids
+        self._practice_parser = practice_parser
 
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest
     ) -> KnowledgeCheckPresentation:
         reference, definition = self._resolve(request.placement_id)
         return self._presentation(reference, definition)
+
+    def open_placed_practice(
+        self, request: OpenPlacedPracticeRequest
+    ) -> PracticePresentation:
+        parser = self._practice_parser
+        if parser is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice activities are unavailable.",
+                reference=request.placement_id,
+            )
+        try:
+            reference = self._curriculum.resolve_practice(
+                request.placement_id
+            )
+            document = self._content.get_practice_exact(reference)
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "The exact practice definition is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        if (
+            document.package_id,
+            document.package_version,
+            document.package_digest,
+            document.practice_id,
+        ) != (
+            reference.package_id,
+            reference.package_version,
+            reference.package_digest,
+            reference.practice_id,
+        ):
+            raise self._stale_practice("definition")
+        try:
+            definition = parser.parse(document.value)
+        except PracticeDefinitionFailure as error:
+            public_code = (
+                AssessmentErrorCode.UNSUPPORTED_VERSION
+                if "unsupported" in error.code
+                else AssessmentErrorCode.INVALID_DEFINITION
+            )
+            raise AssessmentError(
+                public_code,
+                "The practice definition was rejected.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        if (
+            definition.practice_id,
+            definition.practice_version,
+            definition.definition_digest,
+        ) != (
+            reference.practice_id,
+            reference.practice_version,
+            reference.definition_digest,
+        ):
+            raise self._stale_practice("practice")
+        try:
+            return parser.project(
+                definition,
+                PracticePresentationContext(
+                    placement_id=reference.placement_id,
+                    package_id=reference.package_id,
+                    package_version=reference.package_version,
+                    package_digest=reference.package_digest,
+                ),
+            )
+        except PracticeDefinitionFailure as error:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_DEFINITION,
+                "The practice definition was rejected.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
 
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest
@@ -399,4 +484,13 @@ class AssessmentService:
             "Knowledge-check version references do not match.",
             reference=reference,
             diagnostic_code="assessment.stale_reference",
+        )
+
+    @staticmethod
+    def _stale_practice(reference: str) -> AssessmentError:
+        return AssessmentError(
+            AssessmentErrorCode.STALE_REFERENCE,
+            "Practice version references do not match.",
+            reference=reference,
+            diagnostic_code="assessment.practice.stale_reference",
         )

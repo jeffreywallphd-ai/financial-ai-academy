@@ -24,6 +24,7 @@ from .runner import (
 REPOSITORY = Path(__file__).resolve().parents[4]
 CORPUS = REPOSITORY / "contracts/compatibility/lesson-package/v1"
 APPROVED = CORPUS / "approved/intro-risk-return"
+PRACTICE = CORPUS / "approved/intro-risk-return-practice"
 SCHEMA_DIR = REPOSITORY / "contracts/learning/lesson-package/v1"
 
 
@@ -60,6 +61,7 @@ def refresh_declaration(root: Path, logical: str) -> None:
     declarations = [
         manifest["lesson"],
         *manifest["assessments"],
+        *manifest.get("practices", []),
         *manifest["assets"],
     ]
     value = (root / logical).read_bytes()
@@ -124,6 +126,7 @@ def test_all_json_schemas_are_valid_draft_2020_12() -> None:
         "image-asset.schema.json",
         "manifest.schema.json",
         "package-index.schema.json",
+        "practice-file.schema.json",
         "source.schema.json",
     }
     for path in schemas:
@@ -142,6 +145,24 @@ def test_approved_package_matches_committed_digest_vector() -> None:
     assert result.package_digest == vector["package_digest"]
     assert result.index_bytes.hex() == vector["canonical_index_utf8_hex"]
     assert list(result.index) == vector["entries"]
+
+
+def test_additive_practice_package_validates_without_changing_v1_fixture() -> None:
+    result = LessonPackageValidator(SCHEMA_DIR).validate(PRACTICE)
+    assert result.manifest["package_version"] == "2.0.0"
+    assert result.manifest["practices"][0]["practice_id"] == (
+        "risk-return-practice"
+    )
+    assert len(result.index) == 3
+
+
+def test_practice_identity_mismatch_fails_closed(tmp_path: Path) -> None:
+    target = tmp_path / "practice-package"
+    shutil.copytree(PRACTICE, target)
+    manifest = load_manifest(target)
+    manifest["practices"][0]["practice_id"] = "another-practice"
+    write_manifest(target, manifest)
+    assert_rejected(target, "assessment.practice.stale_reference")
 
 
 def test_index_is_independent_of_input_enumeration_order() -> None:

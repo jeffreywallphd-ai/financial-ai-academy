@@ -19,12 +19,24 @@ from jsonschema import Draft202012Validator, FormatChecker
 from markdown_it import MarkdownIt
 from referencing import Registry, Resource
 
+try:
+    from assessment_practice.runner import (
+        PracticeConformanceFailure,
+        PracticeContractValidator,
+    )
+except ModuleNotFoundError:  # pragma: no cover - module CLI import shape
+    from tests.contract.assessment_practice.runner import (
+        PracticeConformanceFailure,
+        PracticeContractValidator,
+    )
+
 
 SUPPORTED_SCHEMA_VERSION = "1.0.0"
 SUPPORTED_CAPABILITIES = {
     "lesson.commonmark.v1",
     "asset.raster.v1",
     "assessment.reference.v1",
+    "assessment.practice.v1",
 }
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 MARKDOWN_DESTINATION_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)")
@@ -243,7 +255,7 @@ def declaration_records(manifest: Mapping[str, object]) -> list[dict[str, object
     records: list[dict[str, object]] = []
     if isinstance(lesson, dict):
         records.append(dict(lesson))
-    for field in ("assessments", "assets"):
+    for field in ("assessments", "practices", "assets"):
         value = manifest.get(field)
         if isinstance(value, list):
             records.extend(dict(item) for item in value if isinstance(item, dict))
@@ -418,6 +430,28 @@ class LessonPackageValidator:
                 width, height = dimensions
                 if width <= 0 or height <= 0 or width * height > self.limits.max_image_pixels:
                     reject("package.limit_exceeded", logical, "Image dimensions exceed the accepted limit.")
+
+        for declaration in manifest.get("practices", []):
+            logical = str(declaration["path"])
+            try:
+                document = json.loads(files[logical].decode("utf-8"))
+                if not isinstance(document, dict):
+                    raise ValueError("practice definition must be an object")
+                PracticeContractValidator().validate_definition(document)
+            except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as error:
+                if isinstance(error, PracticeConformanceFailure):
+                    reject(error.code, error.reference, error.message)
+                reject(
+                    "assessment.practice.schema_invalid",
+                    declaration.get("practice_id", "practice"),
+                    "Practice definition is malformed.",
+                )
+            if document["practice"]["practice_id"] != declaration["practice_id"]:
+                reject(
+                    "assessment.practice.stale_reference",
+                    "practice_id",
+                    "Practice identity does not match its package declaration.",
+                )
 
         try:
             lesson_text = files[lesson_path].decode("utf-8")

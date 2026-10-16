@@ -9,6 +9,7 @@ import struct
 import unicodedata
 from dataclasses import dataclass
 from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
 from pathlib import Path, PurePosixPath
 from typing import Iterable, Mapping, Sequence
 from urllib.parse import urlsplit
@@ -50,8 +51,12 @@ SUPPORTED_CAPABILITIES = {
     "lesson.commonmark.v1",
     "asset.raster.v1",
     "assessment.reference.v1",
+    "assessment.practice.v1",
 }
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
+PRACTICE_DECIMAL_RE = re.compile(
+    r"^-?(0|[1-9][0-9]*)(?:\.([0-9]{1,6}))?$"
+)
 MARKDOWN_DESTINATION_RE = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)")
 WINDOWS_RESERVED = {
     "con",
@@ -254,7 +259,7 @@ def _declarations(manifest: Mapping[str, object]) -> list[dict[str, object]]:
     lesson = manifest.get("lesson")
     if isinstance(lesson, dict):
         result.append(dict(lesson))
-    for field in ("assessments", "assets"):
+    for field in ("assessments", "practices", "assets"):
         records = manifest.get(field)
         if isinstance(records, list):
             result.extend(
@@ -342,6 +347,148 @@ def _validate_assessment_file(
         )
 
 
+def _validate_practice_decimal(value: str, scale: int, reference: str) -> Decimal:
+    match = PRACTICE_DECIMAL_RE.fullmatch(value)
+    if match is None or len(match.group(2) or "") != scale:
+        _reject(
+            "assessment.practice.invalid_decimal",
+            reference,
+            "Practice decimal does not match its declared scale.",
+        )
+    try:
+        parsed = Decimal(value)
+    except InvalidOperation:
+        _reject(
+            "assessment.practice.invalid_decimal",
+            reference,
+            "Practice decimal is invalid.",
+        )
+    if value.startswith("-0") and parsed == 0:
+        _reject(
+            "assessment.practice.invalid_decimal",
+            reference,
+            "Practice decimal is not canonical.",
+        )
+    return parsed
+
+
+def _validate_practice_file(
+    value: bytes,
+    declaration: Mapping[str, object],
+    validator: Draft202012Validator,
+) -> None:
+    identity = declaration.get("practice_id", "practice")
+    try:
+        document = json.loads(value.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        _reject(
+            "assessment.practice.schema_invalid",
+            identity,
+            "Practice definition is not valid UTF-8 JSON.",
+        )
+    if not isinstance(document, dict) or _json_depth(document) > 20:
+        _reject(
+            "assessment.practice.schema_invalid",
+            identity,
+            "Practice definition structure is invalid.",
+        )
+    errors = sorted(
+        validator.iter_errors(document),
+        key=lambda error: tuple(str(item) for item in error.absolute_path),
+    )
+    if errors:
+        reference = (
+            ".".join(str(item) for item in errors[0].absolute_path)
+            or str(identity)
+        )
+        _reject(
+            "assessment.practice.schema_invalid",
+            reference,
+            "Practice definition does not satisfy the accepted contract.",
+        )
+    practice = document["practice"]
+    if practice["practice_id"] != identity:
+        _reject(
+            "assessment.practice.stale_reference",
+            "practice_id",
+            "Practice identity does not match its package declaration.",
+        )
+    canonical = json.dumps(
+        practice,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    if _sha256(canonical) != document["definition_digest"]:
+        _reject(
+            "assessment.practice.definition_digest_mismatch",
+            "definition_digest",
+            "Practice definition digest does not match its meaning.",
+        )
+    item_ids = [item["item_id"] for item in practice["items"]]
+    source_ids = [item["resource_id"] for item in practice["source_references"]]
+    review_ids = [item["resource_id"] for item in practice["review_references"]]
+    if any(
+        len(values) != len(set(values))
+        for values in (item_ids, source_ids, review_ids)
+    ):
+        _reject(
+            "assessment.practice.invalid_definition",
+            "practice",
+            "Practice identities must be unique.",
+        )
+    declared_review = set(review_ids)
+    for index, item in enumerate(practice["items"]):
+        if any(
+            not set(feedback["review_reference_ids"]).issubset(declared_review)
+            for feedback in item["feedback"].values()
+        ):
+            _reject(
+                "assessment.practice.invalid_definition",
+                f"items.{index}.feedback",
+                "Practice feedback references must be declared.",
+            )
+        if item["item_type"] in {"single_select", "multiple_select"}:
+            option_ids = [option["option_id"] for option in item["options"]]
+            correct = (
+                {item["correct_option_id"]}
+                if item["item_type"] == "single_select"
+                else set(item["correct_option_ids"])
+            )
+            if len(option_ids) != len(set(option_ids)) or not correct.issubset(
+                set(option_ids)
+            ):
+                _reject(
+                    "assessment.practice.invalid_definition",
+                    f"items.{index}.options",
+                    "Practice option membership is invalid.",
+                )
+            continue
+        response = item["response"]
+        answer = item["answer"]
+        values = (
+            [answer["value"]]
+            if answer["mode"] == "exact"
+            else [answer["lower"], answer["upper"]]
+        )
+        decimals = [
+            _validate_practice_decimal(
+                value, response["scale"], f"items.{index}.answer"
+            )
+            for value in values
+        ]
+        if not response["allow_negative"] and any(value < 0 for value in decimals):
+            _reject(
+                "assessment.practice.invalid_decimal",
+                f"items.{index}.answer",
+                "Negative practice answers are not allowed.",
+            )
+        if answer["mode"] == "inclusive_range" and decimals[0] > decimals[1]:
+            _reject(
+                "assessment.practice.invalid_decimal",
+                f"items.{index}.answer",
+                "Practice range bounds are inverted.",
+            )
 class ContractLessonPackageValidator:
     """Applies WRK-0001 schemas and compatibility-sensitive semantic rules."""
 
@@ -350,6 +497,7 @@ class ContractLessonPackageValidator:
         schema_dir: Path,
         limits: PackageLimits | None = None,
         assessment_schema_dir: Path | None = None,
+        practice_schema_dir: Path | None = None,
     ) -> None:
         self._schema_dir = schema_dir
         self._limits = limits or PackageLimits()
@@ -366,6 +514,18 @@ class ContractLessonPackageValidator:
         )
         Draft202012Validator.check_schema(assessment_schema)
         self._assessment_validator = Draft202012Validator(assessment_schema)
+        practice_dir = (
+            practice_schema_dir
+            if practice_schema_dir is not None
+            else schema_dir.parents[1] / "assessment/practice/v1"
+        )
+        practice_schema = json.loads(
+            (practice_dir / "definition.schema.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        Draft202012Validator.check_schema(practice_schema)
+        self._practice_validator = Draft202012Validator(practice_schema)
 
     def validate_directory(self, root: Path) -> ValidatedLessonPackage:
         if root.is_symlink():
@@ -561,6 +721,12 @@ class ContractLessonPackageValidator:
                 measured[str(declaration["path"])],
                 declaration,
                 self._assessment_validator,
+            )
+        for declaration in manifest.get("practices", []):
+            _validate_practice_file(
+                measured[str(declaration["path"])],
+                declaration,
+                self._practice_validator,
             )
 
         try:

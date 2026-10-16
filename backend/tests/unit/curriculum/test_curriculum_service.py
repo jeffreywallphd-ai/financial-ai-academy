@@ -23,10 +23,13 @@ from financial_ai_academy.modules.curriculum.public import (
     AssessmentPlacement,
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
+    CreatePracticePlacementRequest,
     LessonPlacement,
     LessonReadingResult,
     OpenPlacedLessonRequest,
+    PracticePlacement,
     ResolvePlacedAssessmentRequest,
+    ResolvePlacedPracticeRequest,
 )
 
 
@@ -42,6 +45,7 @@ class MemoryCurriculumRepository:
     def __init__(self) -> None:
         self.records: dict[str, LessonPlacement] = {}
         self.assessments: dict[str, AssessmentPlacement] = {}
+        self.practices: dict[str, PracticePlacement] = {}
 
     def get(self, placement_id: str) -> LessonPlacement | None:
         return self.records.get(placement_id)
@@ -88,6 +92,31 @@ class MemoryCurriculumRepository:
             "item_version",
             "scoring_policy_id",
             "scoring_policy_version",
+        )
+        if any(
+            getattr(existing, field) != getattr(placement, field)
+            for field in comparable
+        ):
+            raise PlacementConflict
+        return existing, False
+
+    def get_practice(self, placement_id: str) -> PracticePlacement | None:
+        return self.practices.get(placement_id)
+
+    def save_practice_if_absent(
+        self, placement: PracticePlacement
+    ) -> tuple[PracticePlacement, bool]:
+        existing = self.practices.get(placement.placement_id)
+        if existing is None:
+            self.practices[placement.placement_id] = placement
+            return placement, True
+        comparable = (
+            "package_id",
+            "package_version",
+            "package_digest",
+            "practice_id",
+            "practice_version",
+            "definition_digest",
         )
         if any(
             getattr(existing, field) != getattr(placement, field)
@@ -286,3 +315,83 @@ def test_assessment_reference_must_match_exact_lesson(
         service.create_assessment_placement(request)
     assert captured.value.code is LessonErrorCode.INVALID_PACKAGE
     assert repository.assessments == {}
+
+
+def practice_request_for(
+    lesson: PublishedLesson,
+) -> CreatePracticePlacementRequest:
+    return CreatePracticePlacementRequest(
+        placement_id="intro-risk-return-primary",
+        package_id=lesson.package_id,
+        package_version=lesson.package_version,
+        package_digest=lesson.package_digest,
+        practice_id="risk-return-practice",
+        practice_version="1.0.0",
+        definition_digest="a" * 64,
+    )
+
+
+def test_create_and_resolve_exact_practice_reference(
+    lesson: PublishedLesson,
+) -> None:
+    repository = MemoryCurriculumRepository()
+    service = CurriculumService(repository, FakeContentGateway(lesson))
+    lesson_placement = service.create_lesson_placement(request_for(lesson))
+    request = practice_request_for(lesson)
+
+    created = service.create_practice_placement(request)
+    repeated = service.create_practice_placement(request)
+    resolved = service.resolve_placed_practice(
+        ResolvePlacedPracticeRequest(lesson_placement.placement_id)
+    )
+
+    assert created == repeated == resolved
+    assert resolved.definition_digest == "a" * 64
+
+
+def test_practice_reference_must_match_exact_lesson(
+    lesson: PublishedLesson,
+) -> None:
+    repository = MemoryCurriculumRepository()
+    service = CurriculumService(repository, FakeContentGateway(lesson))
+    service.create_lesson_placement(request_for(lesson))
+    request = practice_request_for(lesson)
+    mismatched = CreatePracticePlacementRequest(
+        placement_id=request.placement_id,
+        package_id=request.package_id,
+        package_version=request.package_version,
+        package_digest="b" * 64,
+        practice_id=request.practice_id,
+        practice_version=request.practice_version,
+        definition_digest=request.definition_digest,
+    )
+
+    with pytest.raises(LessonReadError) as captured:
+        service.create_practice_placement(mismatched)
+
+    assert captured.value.code is LessonErrorCode.INVALID_PACKAGE
+    assert repository.practices == {}
+
+
+def test_practice_reference_is_immutable_for_a_placement(
+    lesson: PublishedLesson,
+) -> None:
+    repository = MemoryCurriculumRepository()
+    service = CurriculumService(repository, FakeContentGateway(lesson))
+    service.create_lesson_placement(request_for(lesson))
+    request = practice_request_for(lesson)
+    service.create_practice_placement(request)
+    conflict = CreatePracticePlacementRequest(
+        placement_id=request.placement_id,
+        package_id=request.package_id,
+        package_version=request.package_version,
+        package_digest=request.package_digest,
+        practice_id="another-practice",
+        practice_version=request.practice_version,
+        definition_digest="b" * 64,
+    )
+
+    with pytest.raises(LessonReadError) as captured:
+        service.create_practice_placement(conflict)
+
+    assert captured.value.code is LessonErrorCode.IMMUTABLE_CONFLICT

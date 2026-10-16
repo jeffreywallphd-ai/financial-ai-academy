@@ -2115,6 +2115,71 @@
         "title": "ListItemModel",
         "type": "object"
       },
+      "MultipleSelectPracticeItemModel": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_type": {
+            "const": "multiple_select",
+            "title": "Item Type",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/PracticeOptionModel"
+            },
+            "maxItems": 12,
+            "minItems": 3,
+            "title": "Options",
+            "type": "array"
+          },
+          "prompt": {
+            "maxLength": 600,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Prompt",
+            "type": "string"
+          },
+          "scoring_policy_id": {
+            "const": "multiple-select-exact-set",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_version",
+          "item_type",
+          "prompt",
+          "scoring_policy_id",
+          "scoring_policy_version",
+          "max_score",
+          "options"
+        ],
+        "title": "MultipleSelectPracticeItemModel",
+        "type": "object"
+      },
       "NavigationReasonResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -2233,6 +2298,81 @@
           "projection_digest"
         ],
         "title": "NavigationStateResponseModel",
+        "type": "object"
+      },
+      "NumericPracticeItemModel": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_negative": {
+            "title": "Allow Negative",
+            "type": "boolean"
+          },
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_type": {
+            "const": "numeric_entry",
+            "title": "Item Type",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "prompt": {
+            "maxLength": 600,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Prompt",
+            "type": "string"
+          },
+          "scale": {
+            "maximum": 6.0,
+            "minimum": 0.0,
+            "title": "Scale",
+            "type": "integer"
+          },
+          "scoring_policy_id": {
+            "const": "numeric-exact-or-inclusive-range",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          },
+          "unit_label": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Unit Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_version",
+          "item_type",
+          "prompt",
+          "scoring_policy_id",
+          "scoring_policy_version",
+          "max_score",
+          "scale",
+          "unit_label",
+          "allow_negative"
+        ],
+        "title": "NumericPracticeItemModel",
         "type": "object"
       },
       "OpportunityAvailability": {
@@ -2403,6 +2543,247 @@
         "title": "PassiveAssetModel",
         "type": "object"
       },
+      "PracticeAttemptPolicyModel": {
+        "additionalProperties": false,
+        "properties": {
+          "history_visible": {
+            "const": true,
+            "title": "History Visible",
+            "type": "boolean"
+          },
+          "max_attempts": {
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Max Attempts",
+            "type": "integer"
+          },
+          "policy_id": {
+            "const": "formative-retry",
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "const": "1.0.0",
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "resume_allowed": {
+            "const": true,
+            "title": "Resume Allowed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "policy_id",
+          "policy_version",
+          "max_attempts",
+          "resume_allowed",
+          "history_visible"
+        ],
+        "title": "PracticeAttemptPolicyModel",
+        "type": "object"
+      },
+      "PracticeOptionModel": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Label",
+            "type": "string"
+          },
+          "option_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Option Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "option_id",
+          "label"
+        ],
+        "title": "PracticeOptionModel",
+        "type": "object"
+      },
+      "PracticePresentationResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_policy": {
+            "$ref": "#/components/schemas/PracticeAttemptPolicyModel"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "instructions": {
+            "maxLength": 600,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Instructions",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "multiple_select": "#/components/schemas/MultipleSelectPracticeItemModel",
+                  "numeric_entry": "#/components/schemas/NumericPracticeItemModel",
+                  "single_select": "#/components/schemas/SingleSelectPracticeItemModel"
+                },
+                "propertyName": "item_type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SingleSelectPracticeItemModel"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleSelectPracticeItemModel"
+                },
+                {
+                  "$ref": "#/components/schemas/NumericPracticeItemModel"
+                }
+              ]
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "practice_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Practice Id",
+            "type": "string"
+          },
+          "practice_version": {
+            "const": "1.0.0",
+            "title": "Practice Version",
+            "type": "string"
+          },
+          "purpose": {
+            "maxLength": 600,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Purpose",
+            "type": "string"
+          },
+          "review_references": {
+            "items": {
+              "$ref": "#/components/schemas/PracticeResourceReferenceModel"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Review References",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/PracticeResourceReferenceModel"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "definition_digest",
+          "practice_id",
+          "practice_version",
+          "title",
+          "purpose",
+          "instructions",
+          "attempt_policy",
+          "source_references",
+          "review_references",
+          "items"
+        ],
+        "title": "PracticePresentationResponseModel",
+        "type": "object"
+      },
+      "PracticeResourceReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "resource_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Resource Digest",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource_id",
+          "resource_version",
+          "resource_digest",
+          "title"
+        ],
+        "title": "PracticeResourceReferenceModel",
+        "type": "object"
+      },
       "PublicationProvenanceModel": {
         "additionalProperties": false,
         "properties": {
@@ -2474,6 +2855,71 @@
           "expires_at"
         ],
         "title": "SessionBootstrapResponseModel",
+        "type": "object"
+      },
+      "SingleSelectPracticeItemModel": {
+        "additionalProperties": false,
+        "properties": {
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_type": {
+            "const": "single_select",
+            "title": "Item Type",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/PracticeOptionModel"
+            },
+            "maxItems": 8,
+            "minItems": 2,
+            "title": "Options",
+            "type": "array"
+          },
+          "prompt": {
+            "maxLength": 600,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Prompt",
+            "type": "string"
+          },
+          "scoring_policy_id": {
+            "const": "single-select-exact-match",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_version",
+          "item_type",
+          "prompt",
+          "scoring_policy_id",
+          "scoring_policy_version",
+          "max_score",
+          "options"
+        ],
+        "title": "SingleSelectPracticeItemModel",
         "type": "object"
       },
       "SoftBreakModel": {
@@ -3822,6 +4268,116 @@
         "summary": "Get Placed Lesson",
         "tags": [
           "curriculum"
+        ]
+      }
+    },
+    "/api/v1/curriculum/placements/{placement_id}/practice": {
+      "get": {
+        "operationId": "getPlacedPractice",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "placement_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Placement Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticePresentationResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Placed Practice",
+        "tags": [
+          "assessment"
         ]
       }
     },

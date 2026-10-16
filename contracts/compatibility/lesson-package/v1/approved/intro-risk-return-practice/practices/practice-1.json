@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "definition_digest": "d08e8f645941494bef7cc83c5987f36861023f4fba0b97653b91e5d774b202ca",
+  "practice": {
+    "practice_id": "risk-return-practice",
+    "practice_version": "1.0.0",
+    "title": "Practice risk and return basics",
+    "purpose": "Check your understanding with a formative item. Results are learning evidence, not an investment judgment.",
+    "instructions": "Choose the best answer. You can review the approved resource before trying again.",
+    "attempt_policy": {
+      "policy_id": "formative-retry",
+      "policy_version": "1.0.0",
+      "max_attempts": 3,
+      "resume_allowed": true,
+      "history_visible": true
+    },
+    "source_references": [
+      {
+        "resource_id": "risk-return-reading",
+        "resource_version": "1.0.0",
+        "resource_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "title": "Risk and return reading"
+      }
+    ],
+    "review_references": [
+      {
+        "resource_id": "risk-return-review",
+        "resource_version": "1.0.0",
+        "resource_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "title": "Review risk and return"
+      }
+    ],
+    "items": [
+      {
+        "item_id": "risk-meaning",
+        "item_version": "1.0.0",
+        "item_type": "single_select",
+        "prompt": "Which statement best describes investment risk?",
+        "scoring_policy": {
+          "policy_id": "single-select-exact-match",
+          "policy_version": "1.0.0",
+          "max_score": 1
+        },
+        "options": [
+          {"option_id": "uncertainty", "label": "Outcomes can differ from what was expected."},
+          {"option_id": "guarantee", "label": "Every investment has a guaranteed return."}
+        ],
+        "correct_option_id": "uncertainty",
+        "feedback": {
+          "correct": {"feedback_id": "risk-correct", "text": "Correct. Risk includes uncertainty about future outcomes.", "review_reference_ids": ["risk-return-review"]},
+          "incorrect": {"feedback_id": "risk-review", "text": "Review how uncertainty affects possible outcomes.", "review_reference_ids": ["risk-return-review"]}
+        }
+      }
+    ]
+  }
+}

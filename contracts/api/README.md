@@ -4,6 +4,17 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/curriculum/placements/{placement_id}/practice` is the protected
+answer-safe practice opening. It requires the opaque session and server-issued
+lesson-read permission and accepts only the placement path identifier: no body,
+query-selected learner, private definition, answer, provider, or version
+override is accepted. The closed v1 response carries exact package and practice
+provenance, bounded attempt metadata, resource references, and ordered
+single-select, multiple-select, or numeric item presentations. It excludes
+correct option IDs, numeric answers/ranges, and every feedback branch. Opening
+is read-only. The reviewed OpenAPI and generated client are the same contract
+for browser and headless HTTP consumers; no separate AI mode is defined.
+
 `GET /api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state`
 is the protected exact-version learner navigation read. It requires the opaque
 session and server-issued `adaptation.navigation.read`, derives the learner

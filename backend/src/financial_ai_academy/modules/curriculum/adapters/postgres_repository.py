@@ -25,6 +25,7 @@ from ..public import (
     OpportunityAvailability,
     OpportunityKind,
     OpportunityLevel,
+    PracticePlacement,
     curriculum_graph_from_mapping,
     curriculum_graph_payload,
 )
@@ -217,6 +218,86 @@ class PostgresCurriculumRepository:
         ):
             raise PlacementConflict(
                 "Placement identity already maps to another assessment."
+            )
+        return existing, False
+
+    def get_practice(self, placement_id: str) -> PracticePlacement | None:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    placement_id,
+                    package_id,
+                    package_version,
+                    package_digest,
+                    practice_id,
+                    practice_version,
+                    definition_digest,
+                    created_at
+                FROM curriculum.practice_placements
+                WHERE placement_id = %s
+                """,
+                (placement_id,),
+            ).fetchone()
+        return self._practice_from_row(row) if row else None
+
+    def save_practice_if_absent(
+        self, placement: PracticePlacement
+    ) -> tuple[PracticePlacement, bool]:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                INSERT INTO curriculum.practice_placements (
+                    placement_id,
+                    package_id,
+                    package_version,
+                    package_digest,
+                    practice_id,
+                    practice_version,
+                    definition_digest,
+                    created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (placement_id) DO NOTHING
+                RETURNING *
+                """,
+                (
+                    placement.placement_id,
+                    placement.package_id,
+                    placement.package_version,
+                    placement.package_digest,
+                    placement.practice_id,
+                    placement.practice_version,
+                    placement.definition_digest,
+                    placement.created_at,
+                ),
+            ).fetchone()
+            if row is not None:
+                return self._practice_from_row(row), True
+            row = connection.execute(
+                """
+                SELECT * FROM curriculum.practice_placements
+                WHERE placement_id = %s
+                """,
+                (placement.placement_id,),
+            ).fetchone()
+        if row is None:
+            raise RuntimeError("Practice placement insert did not become visible.")
+        existing = self._practice_from_row(row)
+        comparable = (
+            "package_id",
+            "package_version",
+            "package_digest",
+            "practice_id",
+            "practice_version",
+            "definition_digest",
+        )
+        if any(
+            getattr(existing, field) != getattr(placement, field)
+            for field in comparable
+        ):
+            raise PlacementConflict(
+                "Placement identity already maps to another practice."
             )
         return existing, False
 
@@ -597,6 +678,22 @@ class PostgresCurriculumRepository:
             item_version=str(row["item_version"]),
             scoring_policy_id=str(row["scoring_policy_id"]),
             scoring_policy_version=str(row["scoring_policy_version"]),
+            created_at=created_at,
+        )
+
+    @staticmethod
+    def _practice_from_row(row: dict[str, Any]) -> PracticePlacement:
+        created_at = row["created_at"]
+        if not isinstance(created_at, datetime):
+            raise ValueError("Practice placement timestamp is invalid.")
+        return PracticePlacement(
+            placement_id=str(row["placement_id"]),
+            package_id=str(row["package_id"]),
+            package_version=str(row["package_version"]),
+            package_digest=str(row["package_digest"]),
+            practice_id=str(row["practice_id"]),
+            practice_version=str(row["practice_version"]),
+            definition_digest=str(row["definition_digest"]),
             created_at=created_at,
         )
 

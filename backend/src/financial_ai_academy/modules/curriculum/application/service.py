@@ -26,6 +26,7 @@ from ..public import (
     BrowseLearningOpportunitiesRequest,
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
+    CreatePracticePlacementRequest,
     CurriculumGraph,
     CurriculumGraphError,
     CurriculumGraphErrorCode,
@@ -44,11 +45,13 @@ from ..public import (
     OpportunityAvailability,
     OpportunityKind,
     OpportunityLevel,
+    PracticePlacement,
     QueryLearningOpportunitiesRequest,
     PublishCurriculumGraphRequest,
     RebuildLearningOpportunityProjectionRequest,
     RegisterLessonOpportunityRequest,
     ResolvePlacedAssessmentRequest,
+    ResolvePlacedPracticeRequest,
     validate_curriculum_graph,
 )
 from .query import (
@@ -229,6 +232,72 @@ class CurriculumService:
             raise LessonReadError(
                 LessonErrorCode.NOT_FOUND,
                 "Assessment placement was not found.",
+                reference=request.placement_id,
+            )
+        return placement
+
+    def create_practice_placement(
+        self, request: CreatePracticePlacementRequest
+    ) -> PracticePlacement:
+        lesson = self._get_placement(request.placement_id)
+        if (
+            lesson.package_id,
+            lesson.package_version,
+            lesson.package_digest,
+        ) != (
+            request.package_id,
+            request.package_version,
+            request.package_digest,
+        ):
+            raise LessonReadError(
+                LessonErrorCode.INVALID_PACKAGE,
+                "Practice placement does not match the exact lesson.",
+                reference=request.placement_id,
+            )
+        self._validate_practice_reference(request)
+        candidate = PracticePlacement(
+            placement_id=request.placement_id,
+            package_id=request.package_id,
+            package_version=request.package_version,
+            package_digest=request.package_digest,
+            practice_id=request.practice_id,
+            practice_version=request.practice_version,
+            definition_digest=request.definition_digest,
+            created_at=self._clock(),
+        )
+        try:
+            stored, _created = self._repository.save_practice_if_absent(
+                candidate
+            )
+        except PlacementConflict as error:
+            raise LessonReadError(
+                LessonErrorCode.IMMUTABLE_CONFLICT,
+                "The placement already maps to another practice.",
+                reference=request.placement_id,
+            ) from error
+        except Exception as error:
+            raise LessonReadError(
+                LessonErrorCode.UNAVAILABLE,
+                "Practice placement storage is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        return stored
+
+    def resolve_placed_practice(
+        self, request: ResolvePlacedPracticeRequest
+    ) -> PracticePlacement:
+        try:
+            placement = self._repository.get_practice(request.placement_id)
+        except Exception as error:
+            raise LessonReadError(
+                LessonErrorCode.UNAVAILABLE,
+                "Practice placement storage is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        if placement is None:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "Practice placement was not found.",
                 reference=request.placement_id,
             )
         return placement
@@ -1043,5 +1112,20 @@ class CurriculumService:
             raise LessonReadError(
                 LessonErrorCode.INVALID_PACKAGE,
                 "Assessment placement reference is invalid.",
+                reference=request.placement_id,
+            )
+
+    @staticmethod
+    def _validate_practice_reference(
+        request: CreatePracticePlacementRequest,
+    ) -> None:
+        if (
+            not _PLACEMENT_ID.fullmatch(request.practice_id)
+            or request.practice_version != "1.0.0"
+            or not _DIGEST.fullmatch(request.definition_digest)
+        ):
+            raise LessonReadError(
+                LessonErrorCode.INVALID_PACKAGE,
+                "Practice placement reference is invalid.",
                 reference=request.placement_id,
             )

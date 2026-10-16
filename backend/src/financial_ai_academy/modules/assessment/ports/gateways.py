@@ -32,12 +32,42 @@ class DefinitionDocument:
     value: bytes
 
 
+@dataclass(frozen=True, slots=True)
+class PlacedPracticeReference:
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    practice_id: str
+    practice_version: str
+    definition_digest: str
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeDefinitionDocument:
+    package_id: str
+    package_version: str
+    package_digest: str
+    practice_id: str
+    schema_version: str
+    file_digest: str
+    value: bytes
+
+
 class CurriculumAssessmentGatewayPort(Protocol):
     def resolve(self, placement_id: str) -> PlacedAssessmentReference: ...
+
+    def resolve_practice(
+        self, placement_id: str
+    ) -> PlacedPracticeReference: ...
 
 
 class ContentDefinitionGatewayPort(Protocol):
     def get_exact(
         self, reference: PlacedAssessmentReference
     ) -> DefinitionDocument: ...
+
+    def get_practice_exact(
+        self, reference: PlacedPracticeReference
+    ) -> PracticeDefinitionDocument: ...
 

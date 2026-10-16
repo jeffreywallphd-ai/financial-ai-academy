@@ -54,10 +54,11 @@ Practice presentation repeats its exact placement, package, definition,
 practice, item, policy, source, and review-reference provenance. It excludes
 correct option identities, accepted numeric values/ranges, the private policy
 object, and all feedback branches. The pure parser/projector returns immutable
-typed values and performs no persistence, network, clock, API, or scoring side
-effect. Its presentation value is transport-neutral: later HTTP and other
-supported clients must map the same public operation rather than create a
-browser-owned contract.
+typed values and performs no persistence, network, clock, or scoring side
+effect. Its presentation value is transport-neutral. The protected HTTP route,
+reviewed OpenAPI snapshot, generated TypeScript client, and future supported
+clients all map the same public operation rather than create a browser-owned
+contract.
 
 ## Submission and Evidence
 
@@ -138,15 +139,17 @@ rebuild, Audit reconciliation, and private-host live close/reopen path are also
 directly covered. Background delivery, recovery, managed cloud, built-in/OIDC,
 production database roles, and broader Assessment families remain gaps.
 
-Practice v1 currently has executable private-definition and safe-presentation
-schemas, a canonical compatibility corpus, and a production parser/projector.
-Package admission, exact placement resolution, public application operations,
-protected HTTP/OpenAPI, generated clients, browser rendering, response
-submission, scoring, feedback, retry enforcement, evidence, events, and
-persistence remain unqualified until their owning packets deliver them. No
-separate AI/headless mode is defined; retaining the shared public API boundary
-keeps a future non-browser consumer possible without creating another domain
-core.
+Practice v1 now has executable private-definition and safe-presentation
+schemas, a canonical compatibility corpus, additive package admission, exact
+Content retrieval, immutable Curriculum placement, a production
+parser/projector and public open operation, protected HTTP/OpenAPI, generated
+TypeScript client, and real-PostgreSQL composition evidence. Repeated opening
+is read-only and returns no answer or feedback branch. Browser rendering,
+response submission, scoring, feedback selection, retry enforcement, evidence,
+events, and practice persistence remain unqualified until their owning packets
+deliver them. No separate AI/headless mode is defined; the shared public API is
+the supported non-browser seam and keeps a future consumer possible without
+creating another domain core.
 
 Assessment now also exposes a typed, read-only completion-event replay query
 for one server-supplied learner and exact placement. It validates retained

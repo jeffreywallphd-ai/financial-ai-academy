@@ -20,10 +20,22 @@ from financial_ai_academy.modules.content.ports.package_validator import (
 REPOSITORY = Path(__file__).resolve().parents[4]
 CORPUS = REPOSITORY / "contracts/compatibility/lesson-package/v1"
 APPROVED = CORPUS / "approved/intro-risk-return"
+PRACTICE = CORPUS / "approved/intro-risk-return-practice"
 SCHEMAS = REPOSITORY / "contracts/learning/lesson-package/v1"
 DENIALS = json.loads(
     (CORPUS / "cases/denials.json").read_text(encoding="utf-8")
 )
+
+
+def test_production_validator_accepts_additive_practice_package() -> None:
+    validated = ContractLessonPackageValidator(SCHEMAS).validate_directory(
+        PRACTICE
+    )
+    definition = json.loads(
+        validated.files["practices/practice-1.json"].decode("utf-8")
+    )
+    assert validated.lesson.package_version == "2.0.0"
+    assert definition["practice"]["practice_id"] == "risk-return-practice"
 
 
 def set_manifest_value(manifest: dict[str, object], path: str, value: object) -> None:

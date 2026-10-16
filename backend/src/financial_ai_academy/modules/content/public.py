@@ -226,6 +226,25 @@ class PublishedAssessmentDefinition:
     value: bytes
 
 
+@dataclass(frozen=True, slots=True)
+class GetPublishedPracticeDefinitionRequest:
+    package_id: str
+    package_version: str
+    package_digest: str
+    practice_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class PublishedPracticeDefinition:
+    package_id: str
+    package_version: str
+    package_digest: str
+    practice_id: str
+    schema_version: str
+    file_digest: str
+    value: bytes
+
+
 @runtime_checkable
 class ContentOperations(Protocol):
     def admit_lesson_package(
@@ -239,3 +258,7 @@ class ContentOperations(Protocol):
     def get_published_assessment_definition(
         self, request: GetPublishedAssessmentDefinitionRequest
     ) -> PublishedAssessmentDefinition: ...
+
+    def get_published_practice_definition(
+        self, request: GetPublishedPracticeDefinitionRequest
+    ) -> PublishedPracticeDefinition: ...

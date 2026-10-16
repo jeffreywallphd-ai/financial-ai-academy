@@ -87,9 +87,15 @@ The executable profile uses schema version `1.0.0` and permits only these declar
 
 - `lesson.commonmark.v1`;
 - `asset.raster.v1`;
-- `assessment.reference.v1`.
+- `assessment.reference.v1`;
+- `assessment.practice.v1`.
 
-The manifest schema delegates source, lesson-file, assessment-file, passive-image, and package-index records to stable Draft 2020-12 schema identifiers under `contracts/learning/lesson-package/v1/`. The assessment record is deliberately closure-only: it assigns no answer, scoring, attempt, or completion authority to Content.
+The manifest schema delegates source, lesson-file, assessment-file,
+practice-file, passive-image, and package-index records to stable Draft 2020-12
+schema identifiers under `contracts/learning/lesson-package/v1/`. Assessment
+records are deliberately closure-only: they assign no answer, scoring, attempt,
+or completion authority to Content. The optional practice declaration is
+additive, so existing package-v1 bytes and digests remain unchanged.
 
 Admission enforces these initial measured limits:
 
@@ -144,6 +150,19 @@ completion-event semantics. Direct tests now cover Content admission/private
 retrieval and Assessment application/PostgreSQL scoring/persistence. API, UI,
 recovery, and cloud support for the successor remain separate qualification
 work.
+
+### Practice-bearing Successor Fixture
+
+The synthetic `intro-risk-return@2.0.0` fixture carries one exact practice-v1
+definition and package digest
+`90aa018475ddc4414b8000f612422fffc173c72e7e5ef818dba061b39a0a5a21`.
+Its private definition meaning digest is
+`d08e8f645941494bef7cc83c5987f36861023f4fba0b97653b91e5d774b202ca`.
+Content validates the complete private file during admission and exposes it
+only through an exact public module query. Curriculum stores a distinct
+immutable practice placement, and Assessment alone projects the answer-safe
+learner representation. Direct tests cover admission, exact retrieval,
+placement/reapply/teardown, public composition, and protected API opening.
 
 ## Explicit Non-Scope
 

@@ -25,6 +25,11 @@ class SingleProfileApplicationSettings:
         return self.lesson_schema_dir.parents[1] / "assessment" / "v1"
 
     @property
+    def practice_schema_dir(self) -> Path:
+        """Return the Assessment practice v1 schema directory."""
+        return self.assessment_schema_dir / "practice" / "v1"
+
+    @property
     def assessment_event_schema_dir(self) -> Path:
         """Return the Assessment v1 event schema from the contract root."""
         return (
@@ -43,6 +48,8 @@ class SingleProfileApplicationSettings:
             raise ValueError("Lesson schema directory is unavailable.")
         if not self.assessment_schema_dir.is_dir():
             raise ValueError("Assessment schema directory is unavailable.")
+        if not self.practice_schema_dir.is_dir():
+            raise ValueError("Practice schema directory is unavailable.")
         if not self.assessment_event_schema_dir.is_dir():
             raise ValueError("Assessment event schema directory is unavailable.")
         if not self.migrations_dir.is_dir():

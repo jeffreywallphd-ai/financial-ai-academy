@@ -31,6 +31,9 @@ from financial_ai_academy.modules.assessment.adapters.event_contract import (
 from financial_ai_academy.modules.assessment.adapters.postgres_repository import (
     PostgresAssessmentRepository,
 )
+from financial_ai_academy.modules.assessment.adapters.practice_contract import (
+    ContractPracticeDefinitionAdapter,
+)
 from financial_ai_academy.modules.assessment.adapters.system import (
     UtcClock,
     UuidGenerator,
@@ -147,6 +150,7 @@ def build_application_services(
         PostgresAssessmentRepository(settings.postgres_dsn),
         UtcClock(),
         UuidGenerator(),
+        ContractPracticeDefinitionAdapter(settings.practice_schema_dir),
     )
     learner_model = LearnerModelService(
         AssessmentCompletionEvidenceSource(assessment),

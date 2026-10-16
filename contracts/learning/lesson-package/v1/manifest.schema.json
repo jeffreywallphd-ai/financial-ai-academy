@@ -14,6 +14,7 @@
     "lesson": {"$ref": "file.schema.json"},
     "sources": {"type": "array", "minItems": 1, "maxItems": 50, "items": {"$ref": "source.schema.json"}},
     "assessments": {"type": "array", "maxItems": 20, "items": {"$ref": "assessment-file.schema.json"}},
+    "practices": {"type": "array", "maxItems": 20, "items": {"$ref": "practice-file.schema.json"}},
     "assets": {"type": "array", "maxItems": 50, "items": {"$ref": "image-asset.schema.json"}},
     "provenance": {
       "type": "object",
@@ -26,6 +27,6 @@
         "educational_use_notice": {"type": "string", "minLength": 1, "maxLength": 500}
       }
     },
-    "capabilities": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "enum": ["lesson.commonmark.v1", "asset.raster.v1", "assessment.reference.v1"]}}
+    "capabilities": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"type": "string", "enum": ["lesson.commonmark.v1", "asset.raster.v1", "assessment.reference.v1", "assessment.practice.v1"]}}
   }
 }

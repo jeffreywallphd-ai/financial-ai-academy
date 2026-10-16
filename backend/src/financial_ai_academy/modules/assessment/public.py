@@ -7,6 +7,8 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol
 
+from .domain.practice import PracticePresentation
+
 
 class AssessmentErrorCode(StrEnum):
     INVALID_DEFINITION = "invalid_definition"
@@ -78,6 +80,11 @@ class KnowledgeCheckPresentation:
 
 @dataclass(frozen=True, slots=True)
 class OpenPlacedKnowledgeCheckRequest:
+    placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class OpenPlacedPracticeRequest:
     placement_id: str
 
 
@@ -168,6 +175,10 @@ class AssessmentOperations(Protocol):
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest
     ) -> KnowledgeCheckPresentation: ...
+
+    def open_placed_practice(
+        self, request: OpenPlacedPracticeRequest
+    ) -> PracticePresentation: ...
 
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest

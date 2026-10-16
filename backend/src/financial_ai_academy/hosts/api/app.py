@@ -35,6 +35,7 @@ from financial_ai_academy.modules.assessment.public import (
     AssessmentErrorCode,
     AssessmentOperations,
     OpenPlacedKnowledgeCheckRequest,
+    OpenPlacedPracticeRequest,
     SubmitPlacedKnowledgeCheckRequest,
 )
 from financial_ai_academy.modules.audit.public import (
@@ -94,6 +95,7 @@ from .models import (
     LessonCompletionResponseModel,
     LessonReadingResponseModel,
     NavigationStateResponseModel,
+    PracticePresentationResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     activity_launch_response,
@@ -105,6 +107,7 @@ from .models import (
     lesson_completion_response,
     lesson_response,
     navigation_state_response,
+    practice_presentation_response,
 )
 
 
@@ -778,6 +781,34 @@ def create_app(services: ApiServices) -> FastAPI:
             OpenPlacedKnowledgeCheckRequest(placement_id)
         )
         return knowledge_check_presentation_response(presentation)
+
+    @app.get(
+        "/api/v1/curriculum/placements/{placement_id}/practice",
+        response_model=PracticePresentationResponseModel,
+        operation_id="getPlacedPractice",
+        responses=_ERROR_RESPONSES,
+        tags=["assessment"],
+    )
+    def get_placed_practice(
+        request: Request,
+        placement_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        _context: LearnerContext = Depends(lesson_context),
+    ) -> PracticePresentationResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Practice opening does not accept query input.",
+                reference="query",
+            )
+        assessment = _assessment_service(services.assessment)
+        presentation = assessment.open_placed_practice(
+            OpenPlacedPracticeRequest(placement_id)
+        )
+        return practice_presentation_response(presentation)
 
     @app.post(
         "/api/v1/curriculum/placements/{placement_id}/knowledge-check/submissions",

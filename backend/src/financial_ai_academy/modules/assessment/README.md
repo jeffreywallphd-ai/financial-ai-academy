@@ -6,15 +6,15 @@ attempt/response/score/completion evidence, and the bounded completion event.
 
 The additive practice-v1 parser/projector accepts single-select,
 multiple-select exact-set, and fixed-decimal numeric definitions and produces
-an immutable answer-safe presentation. It is transport-neutral and has no
-persistence, clock, network, scoring, or learner-state side effect. The
-protected public operation and API that will compose Content and Curriculum
-are introduced in a later packet; browser and headless clients must use that
-same operation rather than importing this adapter.
+an immutable answer-safe presentation. The application service resolves exact
+Content bytes and the Curriculum placement through public-only gateways, then
+exposes the same protected operation to browser and non-browser clients. Opening
+has no persistence, clock, scoring, or learner-state side effect.
 
 ## Public operations
 
 - `open_placed_knowledge_check(OpenPlacedKnowledgeCheckRequest) -> KnowledgeCheckPresentation`
+- `open_placed_practice(OpenPlacedPracticeRequest) -> PracticePresentation`
 - `submit_placed_knowledge_check(SubmitPlacedKnowledgeCheckRequest) -> KnowledgeCheckResult`
 - `read_completed_knowledge_checks(ReadCompletedKnowledgeChecksRequest) -> tuple[KnowledgeCheckCompletionEvent, ...]`
 
@@ -23,6 +23,12 @@ facades and returns no correct option, private scoring object, or feedback. The
 submission operation requires server-resolved learner context and exact public
 version tokens. Assessment alone validates the option, calculates `0|1`, and
 selects reviewed feedback.
+
+The practice-open operation resolves one immutable multi-item definition and
+returns exact package/practice provenance, public prompts and choices, numeric
+response constraints, attempt-policy metadata, and resource references. It
+never returns correct option IDs, accepted numeric values/ranges, or feedback.
+Submission and scoring for this practice family are not implemented yet.
 
 ## Persistence
 

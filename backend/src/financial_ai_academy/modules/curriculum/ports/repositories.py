@@ -11,6 +11,7 @@ from ..public import (
     LearningOpportunityRecord,
     LessonOpportunityClassification,
     LessonPlacement,
+    PracticePlacement,
 )
 
 
@@ -40,6 +41,12 @@ class CurriculumRepositoryPort(Protocol):
     def save_assessment_if_absent(
         self, placement: AssessmentPlacement
     ) -> tuple[AssessmentPlacement, bool]: ...
+
+    def get_practice(self, placement_id: str) -> PracticePlacement | None: ...
+
+    def save_practice_if_absent(
+        self, placement: PracticePlacement
+    ) -> tuple[PracticePlacement, bool]: ...
 
     def get_graph_exact(
         self,

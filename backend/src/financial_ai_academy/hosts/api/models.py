@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import asdict
 from datetime import date, datetime
 from typing import Annotated, Literal, Union
 from uuid import UUID
@@ -17,6 +18,7 @@ from financial_ai_academy.modules.adaptation.public import (
 from financial_ai_academy.modules.assessment.public import (
     KnowledgeCheckPresentation,
     KnowledgeCheckResult,
+    PracticePresentation,
 )
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import (
@@ -619,6 +621,173 @@ class KnowledgeCheckPresentationResponseModel(ApiModel):
     )
 
 
+class PracticeResourceReferenceModel(ApiModel):
+    resource_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    resource_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    )
+    resource_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    title: str = Field(
+        min_length=1,
+        max_length=160,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+
+
+class PracticeAttemptPolicyModel(ApiModel):
+    policy_id: Literal["formative-retry"]
+    policy_version: Literal["1.0.0"]
+    max_attempts: int = Field(ge=1, le=10)
+    resume_allowed: Literal[True]
+    history_visible: Literal[True]
+
+
+class PracticeOptionModel(ApiModel):
+    option_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    label: str = Field(
+        min_length=1,
+        max_length=160,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+
+
+class SingleSelectPracticeItemModel(ApiModel):
+    item_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    item_version: Literal["1.0.0"]
+    item_type: Literal["single_select"]
+    prompt: str = Field(
+        min_length=1,
+        max_length=600,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    scoring_policy_id: Literal["single-select-exact-match"]
+    scoring_policy_version: Literal["1.0.0"]
+    max_score: Literal[1]
+    options: list[PracticeOptionModel] = Field(min_length=2, max_length=8)
+
+
+class MultipleSelectPracticeItemModel(ApiModel):
+    item_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    item_version: Literal["1.0.0"]
+    item_type: Literal["multiple_select"]
+    prompt: str = Field(
+        min_length=1,
+        max_length=600,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    scoring_policy_id: Literal["multiple-select-exact-set"]
+    scoring_policy_version: Literal["1.0.0"]
+    max_score: Literal[1]
+    options: list[PracticeOptionModel] = Field(min_length=3, max_length=12)
+
+
+class NumericPracticeItemModel(ApiModel):
+    item_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    item_version: Literal["1.0.0"]
+    item_type: Literal["numeric_entry"]
+    prompt: str = Field(
+        min_length=1,
+        max_length=600,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    scoring_policy_id: Literal["numeric-exact-or-inclusive-range"]
+    scoring_policy_version: Literal["1.0.0"]
+    max_score: Literal[1]
+    scale: int = Field(ge=0, le=6)
+    unit_label: str = Field(
+        min_length=1,
+        max_length=160,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    allow_negative: bool
+
+
+PracticePresentationItemModel = Annotated[
+    Union[
+        SingleSelectPracticeItemModel,
+        MultipleSelectPracticeItemModel,
+        NumericPracticeItemModel,
+    ],
+    Field(discriminator="item_type"),
+]
+
+
+class PracticePresentationResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    placement_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    )
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    practice_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    practice_version: Literal["1.0.0"]
+    title: str = Field(
+        min_length=1,
+        max_length=160,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    purpose: str = Field(
+        min_length=1,
+        max_length=600,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    instructions: str = Field(
+        min_length=1,
+        max_length=600,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    attempt_policy: PracticeAttemptPolicyModel
+    source_references: list[PracticeResourceReferenceModel] = Field(
+        min_length=1, max_length=8
+    )
+    review_references: list[PracticeResourceReferenceModel] = Field(
+        min_length=1, max_length=8
+    )
+    items: list[PracticePresentationItemModel] = Field(
+        min_length=1, max_length=20
+    )
+
+
 class KnowledgeCheckSubmissionRequestModel(ApiModel):
     schema_version: Literal["1.0.0"]
     submission_id: UUID
@@ -941,6 +1110,14 @@ def knowledge_check_result_response(
             text=result.feedback.text,
         ),
         submitted_at=result.submitted_at,
+    )
+
+
+def practice_presentation_response(
+    presentation: PracticePresentation,
+) -> PracticePresentationResponseModel:
+    return PracticePresentationResponseModel.model_validate(
+        asdict(presentation)
     )
 
 

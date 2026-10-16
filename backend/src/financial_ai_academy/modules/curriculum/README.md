@@ -9,6 +9,8 @@ package ID, semantic version, and digest.
 - `CurriculumService.open_placed_lesson(OpenPlacedLessonRequest) -> LessonReadingResult`
 - `CurriculumService.create_assessment_placement(CreateAssessmentPlacementRequest) -> AssessmentPlacement`
 - `CurriculumService.resolve_placed_assessment(ResolvePlacedAssessmentRequest) -> AssessmentPlacement`
+- `CurriculumService.create_practice_placement(CreatePracticePlacementRequest) -> PracticePlacement`
+- `CurriculumService.resolve_placed_practice(ResolvePlacedPracticeRequest) -> PracticePlacement`
 - `CurriculumService.register_lesson_opportunity(RegisterLessonOpportunityRequest) -> LessonOpportunityClassification`
 - `CurriculumService.rebuild_learning_opportunity_projection(RebuildLearningOpportunityProjectionRequest) -> LearningOpportunityBrowse`
 - `CurriculumService.browse_learning_opportunities(BrowseLearningOpportunitiesRequest) -> LearningOpportunityBrowse`
@@ -29,6 +31,11 @@ The `curriculum_0001_assessment_placements` stream adds a separate exact
 Assessment reference keyed by the existing lesson placement. It stores package,
 definition, item, and policy versions/digests without interpreting the private
 definition or reading Content/Assessment persistence.
+
+The additive `curriculum_0004_practice_placements` stream stores a separate
+immutable package/practice/version/digest reference for an existing lesson
+placement. It does not reuse the singular knowledge-check item/policy fields,
+interpret private answers, or read Content/Assessment persistence.
 
 ## Discovery projection core
 

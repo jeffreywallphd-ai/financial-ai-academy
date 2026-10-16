@@ -96,6 +96,34 @@ class ResolvePlacedAssessmentRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class PracticePlacement:
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    practice_id: str
+    practice_version: str
+    definition_digest: str
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class CreatePracticePlacementRequest:
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    practice_id: str
+    practice_version: str
+    definition_digest: str
+
+
+@dataclass(frozen=True, slots=True)
+class ResolvePlacedPracticeRequest:
+    placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
 class PublishCurriculumGraphRequest:
     graph: CurriculumGraph
 
@@ -316,6 +344,14 @@ class CurriculumOperations(Protocol):
     def resolve_placed_assessment(
         self, request: ResolvePlacedAssessmentRequest
     ) -> AssessmentPlacement: ...
+
+    def create_practice_placement(
+        self, request: CreatePracticePlacementRequest
+    ) -> PracticePlacement: ...
+
+    def resolve_placed_practice(
+        self, request: ResolvePlacedPracticeRequest
+    ) -> PracticePlacement: ...
 
     def publish_curriculum_graph(
         self, request: PublishCurriculumGraphRequest

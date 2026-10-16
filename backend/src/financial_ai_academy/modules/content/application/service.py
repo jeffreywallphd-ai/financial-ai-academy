@@ -16,10 +16,12 @@ from ..public import (
     AdmitLessonPackageRequest,
     GetPublishedLessonVersionRequest,
     GetPublishedAssessmentDefinitionRequest,
+    GetPublishedPracticeDefinitionRequest,
     LessonErrorCode,
     LessonReadError,
     PublishedLesson,
     PublishedAssessmentDefinition,
+    PublishedPracticeDefinition,
 )
 
 
@@ -112,7 +114,10 @@ class ContentService:
         self, request: GetPublishedAssessmentDefinitionRequest
     ) -> PublishedAssessmentDefinition:
         stored = self._get_existing(request.package_id, request.package_version)
-        if stored is None or stored.lesson.package_digest != request.package_digest:
+        if (
+            stored is None
+            or stored.lesson.package_digest != request.package_digest
+        ):
             raise LessonReadError(
                 LessonErrorCode.NOT_FOUND,
                 "The exact published assessment definition was not found.",
@@ -120,7 +125,9 @@ class ContentService:
             )
         validated = self._validate_stored(stored)
         try:
-            manifest = json.loads(validated.files["manifest.json"].decode("utf-8"))
+            manifest = json.loads(
+                validated.files["manifest.json"].decode("utf-8")
+            )
             declaration = next(
                 item
                 for item in manifest["assessments"]
@@ -138,6 +145,47 @@ class ContentService:
             package_version=stored.lesson.package_version,
             package_digest=stored.lesson.package_digest,
             assessment_id=str(declaration["assessment_id"]),
+            schema_version=str(declaration["schema_version"]),
+            file_digest=str(declaration["sha256"]),
+            value=value,
+        )
+
+    def get_published_practice_definition(
+        self, request: GetPublishedPracticeDefinitionRequest
+    ) -> PublishedPracticeDefinition:
+        stored = self._get_existing(request.package_id, request.package_version)
+        if stored is None or stored.lesson.package_digest != request.package_digest:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "The exact published practice definition was not found.",
+                reference=f"{request.package_id}@{request.package_version}",
+            )
+        validated = self._validate_stored(stored)
+        try:
+            manifest = json.loads(validated.files["manifest.json"].decode("utf-8"))
+            declaration = next(
+                item
+                for item in manifest.get("practices", [])
+                if item["practice_id"] == request.practice_id
+            )
+            value = validated.files[declaration["path"]]
+        except (
+            KeyError,
+            StopIteration,
+            TypeError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+        ) as error:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "The exact published practice definition was not found.",
+                reference=request.practice_id,
+            ) from error
+        return PublishedPracticeDefinition(
+            package_id=stored.lesson.package_id,
+            package_version=stored.lesson.package_version,
+            package_digest=stored.lesson.package_digest,
+            practice_id=str(declaration["practice_id"]),
             schema_version=str(declaration["schema_version"]),
             file_digest=str(declaration["sha256"]),
             value=value,
