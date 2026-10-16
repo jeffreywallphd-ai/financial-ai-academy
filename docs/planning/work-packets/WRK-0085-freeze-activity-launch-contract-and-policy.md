@@ -1,9 +1,9 @@
 ---
 id: WRK-0085
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0005
 updated: 2026-10-16
 parent: SLI-0024
 capability: CAP-0005
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/adaptation/domain/activity_launch.py", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/contract/adaptation_activity_launch/__init__.py", "backend/tests/contract/adaptation_activity_launch/runner.py", "backend/tests/contract/adaptation_activity_launch/test_conformance.py", "backend/tests/contract/adaptation_navigation/test_conformance.py", "backend/tests/unit/adaptation/test_activity_launch_policy.py", "contracts/learning/README.md", "contracts/learning/adaptation/v1/README.md", "contracts/learning/adaptation/v1/activity-launch.schema.json", "contracts/compatibility/adaptation-activity-launch/v1/README.md", "contracts/compatibility/adaptation-activity-launch/v1/approved/launch.json", "contracts/compatibility/adaptation-activity-launch/v1/cases/denials.json", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/assurance/architecture-verification.md", "docs/planning/work-packets/WRK-0085-freeze-activity-launch-contract-and-policy.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: a34a94cedf72aef5fbbf3b3210f29cef29ec92b9
-claim_id: WRK-0085:2f2a8976-1780-4129-8d28-c73075b2cce9
+base_revision: 532cfc8786e45761fd778511fe04ca596a769979
+claim_id: WRK-0085:835077da-624a-4f5a-94f3-07634e94312d
 claimed_by: codex-cap-0005
-claimed_at: 2026-10-16T12:06:26Z
+claimed_at: 2026-10-16T12:09:01Z
 ---
 
 # Agent Work Packet: Freeze the Activity-Launch Contract and Policy
@@ -212,3 +212,6 @@ Leave JIT-B dependency-ready or return one bounded blocker.
   bounded compatibility-test correction does not change the packet outcome,
   contract meaning, acceptance set, or CAP authority and requires no new
   approval or review cycle.
+- 2026-10-16: Reclaimed from corrected base
+  `532cfc8786e45761fd778511fe04ca596a769979` after the expanded exact scope
+  passed planning, documentation, and whitespace checks.
