@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import copy
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -19,7 +20,7 @@ for path in (HERE, PLANNING):
 
 from approval_store import empty_store, load_store, save_store, store_path  # noqa: E402
 from contracts import ControlError  # noqa: E402
-from control_plane import load_local_review_request  # noqa: E402
+from control_plane import git_whitespace_only_delta, load_local_review_request  # noqa: E402
 from financial_academy_review_ledger import FinancialAcademyReviewLedger  # noqa: E402
 from review import REVIEW_TYPE, ReviewService, open_findings  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
@@ -72,6 +73,7 @@ class FixtureCandidate:
     def __init__(self) -> None:
         self.next_candidate = "b" * 40
         self.descendant = True
+        self.cleanup_delta = True
 
     @staticmethod
     def current_identity() -> dict[str, str]:
@@ -121,7 +123,7 @@ class ReviewServiceTests(unittest.TestCase):
         ledger = MemoryLedger()
         candidate = FixtureCandidate()
         receipts = ReceiptStore(root)
-        service = ReviewService(root, project, state, candidate, catalog(), ledger, receipts)
+        service = ReviewService(root, project, state, candidate, catalog(), ledger, receipts, cleanup_delta_checker=lambda _ancestor, _descendant: candidate.cleanup_delta)
         return service, state, ledger, candidate, receipts
 
     def receipt(self, receipts: ReceiptStore, candidate: str) -> Path:
@@ -181,6 +183,18 @@ class ReviewServiceTests(unittest.TestCase):
             self.assertEqual(1, len(ledger.items))
             self.assertEqual("a" * 40, state.load()["work_items"]["WORK-1"]["submission"]["review_inheritance"]["basis_candidate"])
 
+            candidate = service.candidate
+            candidate.next_candidate = "c" * 40
+            repeated = service.resubmit("WORK-1", owner="owner", claim_id="claim-1", cleanup_only=True)
+            self.assertEqual("review.cleanup-descendant-submitted", repeated["code"])
+            repeated_inheritance = state.load()["work_items"]["WORK-1"]["submission"]["review_inheritance"]
+            self.assertEqual("a" * 40, repeated_inheritance["basis_candidate"])
+            self.assertEqual("R01", repeated_inheritance["basis_round_id"])
+            self.assertEqual("inherited-pending-verification", service.status("WORK-1")["data"]["review_binding"])
+            self.receipt(receipts, "c" * 40)
+            self.assertEqual("inherited", service.status("WORK-1")["data"]["review_binding"])
+            self.assertEqual(1, len(ledger.items))
+
     def test_cleanup_route_refuses_blocking_or_adverse_findings(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-cleanup-denial-") as directory:
             service, _state, _ledger, _candidate, receipts = self.prepare(Path(directory))
@@ -194,6 +208,35 @@ class ReviewServiceTests(unittest.TestCase):
             with self.assertRaises(ControlError) as refused:
                 service.resubmit("WORK-1", owner="owner", claim_id="claim-1", cleanup_only=True)
             self.assertEqual("review.cleanup-resubmit-not-authorized", refused.exception.code)
+
+        with tempfile.TemporaryDirectory(prefix="review-cleanup-substantive-") as directory:
+            service, _state, _ledger, candidate, receipts = self.prepare(Path(directory))
+            cleanup = [{"severity": "low", "finding_class": "cleanup", "blocking": False, "title": "Formatting", "criterion": "formatting is tidy", "evidence": ["blank line"]}]
+            service.record("WORK-1", reviewer_label="independent", status="accepted", receipt_path=self.receipt(receipts, "a" * 40), findings=cleanup, closures=[])
+            candidate.cleanup_delta = False
+            with self.assertRaises(ControlError) as substantive:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1", cleanup_only=True)
+            self.assertEqual("review.cleanup-delta-not-proven", substantive.exception.code)
+
+    def test_git_cleanup_delta_accepts_whitespace_and_rejects_substantive_change(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="review-cleanup-git-") as directory:
+            root = Path(directory)
+            subprocess.run(["git", "init", "-b", "main"], cwd=root, check=True, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
+            subprocess.run(["git", "config", "user.name", "Fixture"], cwd=root, check=True)
+            source = root / "example.txt"
+            source.write_text("alpha\nbeta\n", encoding="utf-8")
+            subprocess.run(["git", "add", "example.txt"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-m", "base"], cwd=root, check=True, capture_output=True)
+            base = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            source.write_text("alpha\n\nbeta\n", encoding="utf-8")
+            subprocess.run(["git", "commit", "-am", "whitespace"], cwd=root, check=True, capture_output=True)
+            whitespace = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertTrue(git_whitespace_only_delta(root, base, whitespace))
+            source.write_text("alpha\n\ngamma\n", encoding="utf-8")
+            subprocess.run(["git", "commit", "-am", "substantive"], cwd=root, check=True, capture_output=True)
+            substantive = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_whitespace_only_delta(root, whitespace, substantive))
 
     def test_self_review_and_duplicate_candidate_are_refused(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-independent-") as directory:

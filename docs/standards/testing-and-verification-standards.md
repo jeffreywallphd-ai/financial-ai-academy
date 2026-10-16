@@ -52,10 +52,12 @@ Review is risk-proportionate. A finding is `substantive` by default. Only a
 blocking substantive finding may produce an adverse disposition. An explicitly
 classified `cleanup` finding is non-blocking and is limited to work that does
 not change functionality, meaning, accessibility, security, data, contracts,
-policy, or required evidence. If cleanup is corrected immediately, a strict
-descendant requires fresh affected verification but inherits the accepted
-review; it does not start another review round. Cleanup may instead be recorded
-for later work without blocking completion.
+policy, or required evidence. If a cleanup correction is mechanically proven
+to change only whitespace or blank lines, a strict descendant requires fresh
+affected verification but inherits the accepted review; it does not start
+another review round. An unproven or semantic descendant uses the ordinary
+review path. Cleanup may instead be recorded for later work without blocking
+completion.
 
 During alpha and beta development, non-functional UI styling concerns normally
 belong in the final cleanup capability rather than interrupting functional CAP
@@ -63,9 +65,12 @@ delivery. The user may explicitly move one earlier. Treat a UI concern as
 substantive—not deferred cleanup—when it impairs an action, comprehension,
 accessible name or interaction, keyboard/focus use, required contrast or
 hierarchy, responsive use, safety or risk meaning, or another acceptance
-criterion. Apply the same consequence test to whitespace, formatting, prose,
-and similar hygiene findings: fix them on the verified cleanup path or defer
-them; do not manufacture a correction/re-review loop.
+criterion. Non-functional styling is deferred rather than repaired in the
+functional CAP; an explicit user request may move it earlier as separately
+scoped work. Apply the same consequence test to whitespace, formatting, prose,
+and similar hygiene findings: use the verified no-re-review path only for a
+mechanically proven whitespace/blank-line delta, otherwise defer the concern or
+use ordinary review. Do not manufacture a correction/re-review loop.
 
 Control policy uses one stable rule inventory in local and CI profiles. A
 profile may change fact availability but not rule meaning: ignored local facts

@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -38,12 +40,22 @@ from telemetry import TelemetrySink, emit_safely
 def repository_root(requested: Path | None) -> Path:
     if requested is not None:
         return requested.resolve()
-    import subprocess
-
     completed = subprocess.run(["git", "rev-parse", "--show-toplevel"], check=False, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if completed.returncode:
         raise ControlError("repository.not-found", "No Git repository root could be resolved.", {}, ["Pass --root with the intended repository checkout."])
     return Path(completed.stdout.strip()).resolve()
+
+
+def git_whitespace_only_delta(root: Path, ancestor: str, descendant: str) -> bool:
+    environment = dict(os.environ)
+    environment["GIT_CONFIG_NOSYSTEM"] = "1"
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    prefix = ["git", "-c", "core.hooksPath=NUL" if os.name == "nt" else "core.hooksPath=/dev/null", "diff", "--quiet"]
+    changed = subprocess.run([*prefix, ancestor, descendant, "--"], cwd=root, check=False, capture_output=True, env=environment)
+    if changed.returncode != 1:
+        return False
+    ignored = subprocess.run([*prefix, "--ignore-all-space", "--ignore-blank-lines", ancestor, descendant, "--"], cwd=root, check=False, capture_output=True, env=environment)
+    return ignored.returncode == 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -218,7 +230,7 @@ def main() -> int:
         engine = ControlPlane(project, candidate, state)
         catalog = financial_academy_catalog()
         verifier = VerificationService(root, project, state, catalog, candidate)
-        reviewer = ReviewService(root, project, state, candidate, catalog, FinancialAcademyReviewLedger(root))
+        reviewer = ReviewService(root, project, state, candidate, catalog, FinancialAcademyReviewLedger(root), cleanup_delta_checker=lambda ancestor, descendant: git_whitespace_only_delta(root, ancestor, descendant))
         policy = financial_academy_policy_service(root, project)
         operator = OperatorStatusService(FinancialAcademyStatusAdapter(root, project))
         starter, corrections, maintenance = financial_academy_operation_services(root, project)

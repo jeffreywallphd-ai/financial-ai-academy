@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from contracts import ControlError, success
 from ports import CandidateAdapter, ProjectAdapter
@@ -118,6 +118,7 @@ class ReviewService:
         catalog: CheckCatalog,
         ledger: ReviewLedgerPort,
         receipts: ReceiptStore | None = None,
+        cleanup_delta_checker: Callable[[str, str], bool] | None = None,
     ) -> None:
         self.root = root.resolve()
         self.project = project
@@ -126,6 +127,81 @@ class ReviewService:
         self.catalog = catalog
         self.ledger = ledger
         self.receipts = receipts or ReceiptStore(root)
+        self.cleanup_delta_checker = cleanup_delta_checker or (lambda _ancestor, _descendant: False)
+
+    def _has_qualifying_receipt(self, work_id: str, candidate: str) -> bool:
+        return bool(candidate) and any(
+            not validate_receipt(self.receipts.load(path), self.catalog, current_candidate=candidate)
+            for path in reversed(self.receipts.paths(work_id, candidate))
+        )
+
+    def _valid_inheritance(
+        self,
+        rounds: list[dict[str, Any]],
+        submission: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        inheritance = submission.get("review_inheritance")
+        if not isinstance(inheritance, dict) or inheritance.get("schema_version") != "cleanup-review-inheritance-v1":
+            return None
+        basis = next(
+            (
+                item
+                for item in rounds
+                if item.get("status") == "accepted"
+                and item.get("candidate") == inheritance.get("basis_candidate")
+                and item.get("round_id") == inheritance.get("basis_round_id")
+            ),
+            None,
+        )
+        opened = open_findings(rounds)
+        addressed = sorted(str(value) for value in inheritance.get("addressed_cleanup_finding_ids", []))
+        cleanup = sorted(
+            identifier
+            for identifier, item in opened.items()
+            if item.get("finding_class", "substantive") == "cleanup" and not item.get("blocking")
+        )
+        parent = str(submission.get("parent_candidate", ""))
+        candidate = str(submission.get("candidate", ""))
+        if (
+            basis is None
+            or not rounds
+            or rounds[-1].get("status") != "accepted"
+            or not addressed
+            or addressed != cleanup
+            or not parent
+            or not candidate
+            or not self.cleanup_delta_checker(parent, candidate)
+        ):
+            return None
+        return inheritance
+
+    def _cleanup_basis(
+        self,
+        work_id: str,
+        rounds: list[dict[str, Any]],
+        submission: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        current = str(submission.get("candidate", ""))
+        opened = open_findings(rounds)
+        cleanup = sorted(
+            identifier
+            for identifier, item in opened.items()
+            if item.get("finding_class", "substantive") == "cleanup" and not item.get("blocking")
+        )
+        if rounds and rounds[-1].get("status") == "accepted" and rounds[-1].get("candidate") == current and cleanup and len(cleanup) == len(opened):
+            return {
+                "basis_candidate": current,
+                "basis_round_id": str(rounds[-1]["round_id"]),
+                "addressed_cleanup_finding_ids": cleanup,
+            }
+        inheritance = self._valid_inheritance(rounds, submission)
+        if inheritance is not None and self._has_qualifying_receipt(work_id, current):
+            return {
+                "basis_candidate": str(inheritance["basis_candidate"]),
+                "basis_round_id": str(inheritance["basis_round_id"]),
+                "addressed_cleanup_finding_ids": sorted(str(value) for value in inheritance["addressed_cleanup_finding_ids"]),
+            }
+        return None
 
     def _submitted(self, work_id: str) -> tuple[dict[str, Any], dict[str, Any], bool]:
         self.project.require_delivery_authority(work_id)
@@ -143,17 +219,9 @@ class ReviewService:
         submission = submission if isinstance(submission, dict) else {}
         candidate = str(submission.get("candidate", ""))
         rounds = self.ledger.rounds(work_id)
-        inheritance = submission.get("review_inheritance")
-        inherited = isinstance(inheritance, dict) and any(
-            item.get("status") == "accepted"
-            and item.get("candidate") == inheritance.get("basis_candidate")
-            and item.get("round_id") == inheritance.get("basis_round_id")
-            for item in rounds
-        )
-        verified = inherited and any(
-            not validate_receipt(self.receipts.load(path), self.catalog, current_candidate=candidate)
-            for path in reversed(self.receipts.paths(work_id, candidate))
-        )
+        inheritance = self._valid_inheritance(rounds, submission)
+        inherited = inheritance is not None
+        verified = inherited and self._has_qualifying_receipt(work_id, candidate)
         opened = effective_open_findings(rounds, submission if verified else None)
         blocking = sorted(identifier for identifier, item in opened.items() if item.get("blocking"))
         exact = any(item.get("candidate") == candidate and item.get("status") == "accepted" for item in rounds)
@@ -253,24 +321,9 @@ class ReviewService:
     ) -> dict[str, Any]:
         authority = self.project.require_delivery_authority(work_id)
         rounds = self.ledger.rounds(work_id)
-        opened = open_findings(rounds)
-        cleanup_finding_ids = sorted(
-            identifier
-            for identifier, item in opened.items()
-            if item.get("finding_class", "substantive") == "cleanup" and not item.get("blocking")
-        )
-        cleanup_mode = bool(
-            cleanup_only
-            and rounds
-            and rounds[-1].get("status") == "accepted"
-            and cleanup_finding_ids
-            and len(cleanup_finding_ids) == len(opened)
-        )
-        if cleanup_only and not cleanup_mode:
-            raise ControlError("review.cleanup-resubmit-not-authorized", "Cleanup-only resubmission requires an accepted review with only open non-blocking cleanup findings.", {"latest_status": rounds[-1].get("status") if rounds else None, "open_finding_count": len(opened)}, ["Use the ordinary correction and re-review path for substantive findings, or record an accepted review containing explicit cleanup findings."])
-        if not cleanup_mode and (not rounds or rounds[-1].get("status") not in ADVERSE):
+        if not cleanup_only and (not rounds or rounds[-1].get("status") not in ADVERSE):
             raise ControlError("review.resubmit-not-authorized", "Corrected resubmission requires the latest immutable review to be adverse.", {"latest_status": rounds[-1].get("status") if rounds else None}, ["Record the independent technical disposition first, or use --cleanup-only after accepted review when every open finding is cleanup."])
-        if not cleanup_mode and consecutive_adverse(rounds) >= 2 and not (root_cause or "").strip():
+        if not cleanup_only and consecutive_adverse(rounds) >= 2 and not (root_cause or "").strip():
             raise ControlError("review.root-cause-required", "A third candidate after two adverse rounds requires root-cause evidence.", {}, ["Pass concise root-cause evidence with the corrected resubmission."])
         projection = self.project.projection(work_id)
 
@@ -278,18 +331,22 @@ class ReviewService:
             work = envelope["work_items"].get(work_id)
             if not isinstance(work, dict) or not isinstance(work.get("submission"), dict):
                 raise ControlError("review.resubmit-not-applicable", "No prior submitted candidate is available.", {}, ["Submit and review the initial candidate first."])
-            prior_candidate = str(work["submission"]["candidate"])
+            prior_submission = work["submission"]
+            prior_candidate = str(prior_submission["candidate"])
             claim = work.get("claim") or {}
             submission = self.candidate.submission(base_revision=str(claim.get("base_revision", "")), candidate=candidate, allowed_paths=list(authority["allowed_paths"]), declared_inputs=list(authority["canonical_inputs"]) + (declared_inputs or []))
             if not self.candidate.is_strict_descendant(prior_candidate, str(submission["candidate"])):
                 raise ControlError("review.not-strict-descendant", "A corrected candidate must be a strict descendant of the reviewed candidate.", {"reviewed_candidate": prior_candidate, "candidate": submission["candidate"]}, ["Create and submit a clean descendant preserving prior history."])
+            cleanup_basis = self._cleanup_basis(work_id, rounds, prior_submission) if cleanup_only else None
+            if cleanup_only and cleanup_basis is None:
+                raise ControlError("review.cleanup-resubmit-not-authorized", "Cleanup-only resubmission requires an exact accepted candidate or a verified inherited candidate with only cleanup findings.", {"latest_status": rounds[-1].get("status") if rounds else None}, ["Verify the current cleanup descendant, or use the ordinary correction and re-review path for substantive findings."])
+            if cleanup_only and not self.cleanup_delta_checker(prior_candidate, str(submission["candidate"])):
+                raise ControlError("review.cleanup-delta-not-proven", "The incremental descendant is not mechanically proven to contain only whitespace cleanup.", {"parent_candidate": prior_candidate, "candidate": submission["candidate"]}, ["Keep the accepted candidate and defer the concern, or use the ordinary independent-review path for this descendant."])
             successor_work = resubmit_work(work, owner=owner, claim_id=claim_id, submission=submission, expected_revision=expected_revision, root_cause=(root_cause or "").strip() or None)
-            if cleanup_mode:
+            if cleanup_only and cleanup_basis is not None:
                 successor_work["submission"]["review_inheritance"] = {
                     "schema_version": "cleanup-review-inheritance-v1",
-                    "basis_candidate": prior_candidate,
-                    "basis_round_id": str(rounds[-1]["round_id"]),
-                    "addressed_cleanup_finding_ids": cleanup_finding_ids,
+                    **cleanup_basis,
                 }
             successor = copy.deepcopy(envelope)
             successor["revision"] = int(envelope["revision"]) + 1
@@ -298,6 +355,6 @@ class ReviewService:
 
         envelope, recovered = self.state.mutate(projection, transition)
         work = envelope["work_items"][work_id]
-        code = "review.cleanup-descendant-submitted" if cleanup_mode else "review.corrected-descendant-submitted"
-        message = f"Recorded {'cleanup-only ' if cleanup_mode else ''}corrected descendant for {work_id}; fresh verification is required."
-        return success(code, message, revision=envelope["revision"], data={"work_id": work_id, "candidate": work["submission"]["candidate"], "parent_candidate": work["submission"]["parent_candidate"], "fresh_verification_required": True, "review_inherited_after_verification": cleanup_mode, "transaction_recovered": recovered})
+        code = "review.cleanup-descendant-submitted" if cleanup_only else "review.corrected-descendant-submitted"
+        message = f"Recorded {'cleanup-only ' if cleanup_only else ''}corrected descendant for {work_id}; fresh verification is required."
+        return success(code, message, revision=envelope["revision"], data={"work_id": work_id, "candidate": work["submission"]["candidate"], "parent_candidate": work["submission"]["parent_candidate"], "fresh_verification_required": True, "review_inherited_after_verification": cleanup_only, "transaction_recovered": recovered})

@@ -190,10 +190,12 @@ denial, strict-descendant corrections, fresh-verification requirements,
 root-cause escalation, append-only ignored-ledger storage, and proportionate
 cleanup findings. Cleanup cannot cause an adverse disposition. A strict
 cleanup-only descendant of an accepted candidate inherits that review only
-after its own qualifying affected-verification receipt, so formatting or
-cosmetic corrections do not require a redundant review round while substantive
-functionality, semantics, accessibility, security, data, contract, policy, and
-evidence findings retain the full correction and re-review path.
+when Git proves the incremental delta changes whitespace or blank lines and the
+descendant has its own qualifying affected-verification receipt. Repeated
+cleanup descendants retain the original accepted basis. Semantic formatting,
+styling, functionality, accessibility, security, data, contract, policy, and
+evidence changes retain the ordinary review path; repository policy may defer
+non-functional styling rather than interrupt the current functional CAP.
 Policy/status tests cover local/CI rule parity, explicit unavailable evidence,
 report confinement and privacy, stale-local reconciliation, one-command
 read-only status, bounded remediation, and absence of approval or full-suite
