@@ -48,16 +48,30 @@ class LearnerLanguageTests(unittest.TestCase):
         self.assertEqual(1, inspected)
 
     def test_technical_record_and_code_identifier_are_not_primary_copy(self) -> None:
-        source = """const curriculumGraph = value;
+        source = """export const Example = () => {
+const curriculumGraph = value;
+const internalMessage = "Approved curriculum graph";
 return (
   <details>
     <summary>Technical record</summary>
     <dl><dt>Graph relationships</dt><dd>{curriculumGraph}</dd></dl>
   </details>
-);"""
+);
+};"""
         findings, errors, _ = self.inspect(source)
         self.assertEqual([], errors)
         self.assertFalse(any(item.severity == "blocking" for item in findings))
+
+    def test_multiline_jsx_text_is_inspected_on_its_content_line(self) -> None:
+        source = """<section>
+  <p>
+    Approved curriculum graph
+  </p>
+</section>"""
+        findings, errors, inspected = self.inspect(source, {3})
+        self.assertEqual([], errors)
+        self.assertEqual(1, inspected)
+        self.assertIn("primary.curriculum-graph", {item.rule_id for item in findings})
 
     def test_advisory_language_never_becomes_blocking(self) -> None:
         source = (
@@ -78,6 +92,13 @@ return (
         self.assertEqual([], errors)
         self.assertNotIn("primary.curriculum-graph", {item.rule_id for item in findings})
         self.assertIn("primary.apply-query", {item.rule_id for item in findings})
+
+    def test_narrow_exception_suppresses_only_one_same_rule_occurrence(self) -> None:
+        source = """{/* learner-language: allow primary.curriculum-graph; reason=the lesson compares graph models; explained=the paragraph below */}
+<p>Curriculum graph and curriculum graph</p>"""
+        findings, errors, _ = self.inspect(source)
+        self.assertEqual([], errors)
+        self.assertIn("primary.curriculum-graph", {item.rule_id for item in findings})
 
     def test_malformed_or_stale_exception_fails_narrowly(self) -> None:
         malformed = """{/* learner-language: allow missing-rule; reason=needed here; explained=next paragraph */}
@@ -187,6 +208,19 @@ class LearnerLanguageGitTests(unittest.TestCase):
         report = json.loads(first.stdout)
         self.assertEqual(0, report["blocking_count"])
         self.assertGreaterEqual(report["advisory_count"], 1)
+
+    def test_json_contract_covers_argument_and_configuration_errors_without_local_paths(self) -> None:
+        conflict = self.cli("--all", "--base-ref", "HEAD", "--json")
+        self.assertEqual(2, conflict.returncode)
+        self.assertEqual("", conflict.stderr)
+        self.assertEqual("error", json.loads(conflict.stdout)["status"])
+
+        missing = self.cli("--config", "missing.json", "--json")
+        self.assertEqual(2, missing.returncode)
+        self.assertEqual("", missing.stderr)
+        report = json.loads(missing.stdout)
+        self.assertEqual("error", report["status"])
+        self.assertNotIn(str(self.root), missing.stdout)
 
 
 if __name__ == "__main__":

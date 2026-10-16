@@ -37,8 +37,8 @@ telemetry.
 technical-record label, visible attributes, high-confidence rules, and
 advisory settings. Generated clients, tests and fixtures, CSS, distribution
 output, documentation, identifiers, comments, imports, `<code>` values, and
-content inside a native `Technical record` disclosure are not primary learner
-copy for this check.
+non-rendered quoted code values are not primary learner copy for this check.
+Content inside a native `Technical record` disclosure is also excluded.
 
 Blocking rules cover only reviewed internal phrases that have an accepted
 learner replacement. Sentence length, possible jargon, and possible unexplained

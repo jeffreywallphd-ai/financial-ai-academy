@@ -11,7 +11,7 @@ import subprocess
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path, PurePosixPath
-from typing import Iterable, Sequence
+from typing import Sequence
 
 
 REPORT_SCHEMA = "learner-language-report-v1"
@@ -25,8 +25,7 @@ EXCEPTION_RE = re.compile(
 )
 HUNK_RE = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
 ATTRIBUTE_TEMPLATE = r"(?:{attributes})\s*=\s*(?:\"([^\"]+)\"|'([^']+)'|\{{\s*\"([^\"]+)\"\s*\}}|\{{\s*'([^']+)'\s*\}})"
-STRING_RE = re.compile(r"(?<![A-Za-z0-9_])(?:\"([^\"\\]*(?:\\.[^\"\\]*)*)\"|'([^'\\]*(?:\\.[^'\\]*)*)')")
-JSX_TEXT_RE = re.compile(r">\s*([^<>{}\n][^<>{}\n]*?)\s*<")
+JSX_TEXT_RE = re.compile(r">([^<>{}]+)<", re.DOTALL)
 ACRONYM_RE = re.compile(r"\b[A-Z]{3,6}\b")
 WORD_RE = re.compile(r"\b[\w'-]+\b", re.UNICODE)
 SENTENCE_RE = re.compile(r"[^.!?]+[.!?]?")
@@ -64,6 +63,14 @@ class ExceptionDirective:
 
 
 @dataclass(frozen=True)
+class CandidateFragment:
+    value: str
+    line: int
+    anchor_line: int
+    covered_lines: frozenset[int]
+
+
+@dataclass(frozen=True)
 class Configuration:
     include: tuple[str, ...]
     exclude: tuple[str, ...]
@@ -94,8 +101,10 @@ def _require_string_list(value: object, label: str) -> tuple[str, ...]:
 def load_configuration(path: Path) -> Configuration:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exception:
-        raise CheckError(f"Unable to read learner-language configuration: {exception}") from exception
+    except OSError as exception:
+        raise CheckError("Unable to read learner-language configuration.") from exception
+    except json.JSONDecodeError as exception:
+        raise CheckError("Learner-language configuration is not valid JSON.") from exception
     if not isinstance(payload, dict) or payload.get("schema_version") != RULES_SCHEMA:
         raise CheckError(f"Configuration schema_version must be {RULES_SCHEMA}.")
 
@@ -166,8 +175,8 @@ def _git(root: Path, arguments: Sequence[str], *, allow_failure: bool = False) -
         errors="replace",
     )
     if completed.returncode and not allow_failure:
-        detail = completed.stderr.strip() or completed.stdout.strip() or "unknown Git error"
-        raise CheckError(f"Git source selection failed: {detail}")
+        operation = arguments[0] if arguments else "operation"
+        raise CheckError(f"Git source selection failed during {operation}.")
     return completed
 
 
@@ -201,7 +210,7 @@ def changed_lines(root: Path, base_ref: str | None) -> dict[str, set[int]]:
     if base_ref:
         verified = _git(root, ["rev-parse", "--verify", f"{base_ref}^{{commit}}"], allow_failure=True)
         if verified.returncode:
-            raise CheckError(f"Base revision does not resolve to a commit: {base_ref}")
+            raise CheckError("Base revision does not resolve to a commit.")
         diff = _git(root, [*arguments, base_ref, "--"]).stdout
         selected = _parse_changed_lines(diff)
     else:
@@ -289,17 +298,43 @@ def _strip_comments(lines: Sequence[str]) -> list[str]:
     return cleaned
 
 
-def _candidate_fragments(line: str, configuration: Configuration) -> tuple[str, ...]:
-    fragments: list[str] = []
+def _line_number(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+def _source_candidates(lines: Sequence[str], configuration: Configuration) -> tuple[CandidateFragment, ...]:
+    fragments: list[CandidateFragment] = []
     attributes = "|".join(re.escape(item) for item in configuration.visible_attributes)
     attribute_re = re.compile(ATTRIBUTE_TEMPLATE.format(attributes=attributes), re.IGNORECASE)
-    for match in attribute_re.finditer(line):
-        fragments.append(next(value for value in match.groups() if value is not None))
-    fragments.extend(match.group(1).strip() for match in JSX_TEXT_RE.finditer(line))
-    if not re.match(r"^\s*(?:import|export\s+.+\s+from)\b", line):
-        for match in STRING_RE.finditer(line):
-            fragments.append(next(value for value in match.groups() if value is not None))
-    return tuple(dict.fromkeys(value for value in fragments if value.strip()))
+    for line_number, line in enumerate(lines, start=1):
+        for match in attribute_re.finditer(line):
+            value = next(value for value in match.groups() if value is not None).strip()
+            if value:
+                fragments.append(CandidateFragment(value, line_number, line_number, frozenset({line_number})))
+
+    source = "\n".join(lines)
+    for match in JSX_TEXT_RE.finditer(source):
+        raw = match.group(1)
+        value = " ".join(raw.split())
+        if not value:
+            continue
+        group_start = match.start(1)
+        anchor_line = _line_number(source, match.start())
+        content_lines = {
+            _line_number(source, group_start + item.start())
+            for item in re.finditer(r"\S+", raw)
+        }
+        if not content_lines:
+            continue
+        fragments.append(
+            CandidateFragment(value, min(content_lines), anchor_line, frozenset(content_lines))
+        )
+
+    return tuple(
+        dict.fromkeys(
+            fragment for fragment in fragments if fragment.value.strip()
+        )
+    )
 
 
 def _directives(
@@ -361,23 +396,26 @@ def inspect_source(
     findings: list[Finding] = []
     inspected = 0
 
-    for line_number in sorted(number for number in selected if 1 <= number <= len(raw_lines)):
-        if line_number in technical or "<code" in raw_lines[line_number - 1].casefold():
+    for candidate in _source_candidates(cleaned_lines, configuration):
+        if not selected.intersection(candidate.covered_lines):
             continue
-        fragments = _candidate_fragments(cleaned_lines[line_number - 1], configuration)
-        if not fragments:
+        if candidate.line in technical or candidate.anchor_line in technical:
+            continue
+        if any("<code" in raw_lines[number - 1].casefold() for number in candidate.covered_lines):
             continue
         inspected += 1
-        for fragment in fragments:
-            for rule in configuration.blocking_rules:
-                if not rule.pattern.search(fragment):
-                    continue
-                key = (line_number, rule.identifier)
-                if key in directives:
-                    used.add(key)
-                    continue
-                findings.append(Finding(rule.identifier, "blocking", path, line_number, rule.message, rule.replacement))
-            findings.extend(_advisories(path, line_number, fragment, configuration))
+        for rule in configuration.blocking_rules:
+            matches = list(rule.pattern.finditer(candidate.value))
+            if not matches:
+                continue
+            key = (candidate.anchor_line, rule.identifier)
+            remaining = len(matches)
+            if key in directives and key not in used:
+                used.add(key)
+                remaining -= 1
+            if remaining:
+                findings.append(Finding(rule.identifier, "blocking", path, candidate.line, rule.message, rule.replacement))
+        findings.extend(_advisories(path, candidate.line, candidate.value, configuration))
 
     for key, directive in directives.items():
         if key not in used:
@@ -404,7 +442,7 @@ def run_check(
         try:
             text = source.read_text(encoding="utf-8")
         except (OSError, UnicodeError) as exception:
-            errors.append(f"{path}: unable to read UTF-8 source: {exception}")
+            errors.append(f"{path}: unable to read UTF-8 source")
             continue
         source_findings, source_errors, source_regions = inspect_source(path, text, selection[path], configuration)
         findings.extend(source_findings)
@@ -447,17 +485,28 @@ def _human(report: dict[str, object]) -> str:
     return "\n".join(lines)
 
 
+class SafeArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        raise CheckError(f"Invalid command arguments: {message}")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    arguments = list(argv) if argv is not None else sys.argv[1:]
+    json_requested = "--json" in arguments
+    parser = SafeArgumentParser(description=__doc__)
     parser.add_argument("--base-ref", help="Git revision used to select changed learner-facing lines")
     parser.add_argument("--all", action="store_true", dest="all_sources", help="check all owned learner-facing source")
     parser.add_argument("--json", action="store_true", help="emit the stable machine-readable result")
     parser.add_argument("--root", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--config", default=DEFAULT_CONFIG, help=argparse.SUPPRESS)
-    args = parser.parse_args(argv)
-    if args.all_sources and args.base_ref:
-        parser.error("--all and --base-ref are mutually exclusive")
+    selection = "changed"
+    base_ref: str | None = None
     try:
+        args = parser.parse_args(arguments)
+        base_ref = args.base_ref
+        selection = "all" if args.all_sources else ("base-ref" if args.base_ref else "changed")
+        if args.all_sources and args.base_ref:
+            raise CheckError("Invalid command arguments: --all and --base-ref are mutually exclusive.")
         root = repository_root(args.root) if args.root else repository_root()
         configuration = load_configuration(root / args.config)
         report = run_check(root, configuration, base_ref=args.base_ref, all_sources=args.all_sources)
@@ -465,8 +514,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         report = {
             "schema_version": REPORT_SCHEMA,
             "status": "error",
-            "selection": "all" if args.all_sources else ("base-ref" if args.base_ref else "changed"),
-            "base_ref": args.base_ref,
+            "selection": selection,
+            "base_ref": base_ref,
             "selected_files": 0,
             "inspected_regions": 0,
             "blocking_count": 0,
@@ -474,7 +523,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "findings": [],
             "errors": [str(exception)],
         }
-    print(json.dumps(report, indent=2, sort_keys=True) if args.json else _human(report))
+    print(json.dumps(report, indent=2, sort_keys=True) if json_requested else _human(report))
     if report["status"] == "error":
         return 2
     return 1 if report["blocking_count"] else 0

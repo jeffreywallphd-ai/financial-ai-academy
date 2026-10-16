@@ -231,3 +231,7 @@ runtime or public contract changed.
   narrow exceptions, stable machine report, documentation, and direct anti-
   rigidity tests. Exact-candidate verification and independent disposition
   remain before completion and JIT-B refinement.
+- 2026-10-16: WRK-0079 bounded correction tightened multiline visible-text
+  extraction, code-value exclusion, one-occurrence exception confinement, and
+  privacy-safe JSON error handling. These are implementation-contract fixes
+  inside the same packet, not CAP or slice drift.
