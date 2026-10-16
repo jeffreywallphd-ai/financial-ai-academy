@@ -1,7 +1,7 @@
 ---
 id: WRK-0104
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/migrations/README.md", "backend/migrations/curriculum/", "backend/migrations/learner_model/", "backend/src/financial_ai_academy/modules/assessment/", "backend/src/financial_ai_academy/modules/curriculum/", "backend/src/financial_ai_academy/modules/learner_model/", "backend/tests/integration/assessment/", "backend/tests/integration/curriculum/", "backend/tests/integration/learner_model/", "backend/tests/unit/assessment/", "backend/tests/unit/curriculum/", "backend/tests/unit/learner_model/", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/curriculum-graph-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0028-resume-retry-and-compare-practice-attempts.md", "docs/planning/work-packets/WRK-0104-compose-practice-review-history-core.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 25e0ce0aa469d8ffe02ec8ad826262fd8f357709
+claim_id: WRK-0104:35352888-dcc3-4860-a5eb-2a67b3b77ebe
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T17:47:54Z
 ---
 
 # Agent Work Packet: Compose Practice Review and History Core
