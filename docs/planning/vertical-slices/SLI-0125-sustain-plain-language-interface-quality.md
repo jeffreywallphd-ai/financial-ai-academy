@@ -1,7 +1,7 @@
 ---
 id: SLI-0125
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -200,12 +200,39 @@ or route optional polish to CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery updates the development-tools index, agent-readiness documentation,
-interface-language verification guidance, and the affected assurance map. It
-records the checker/configuration boundary, exit semantics, exclusions,
-exception format, base-ref behavior, exact test results, full-scope result,
-aggregate readiness result, assumptions, known gaps, and confirmation that no
-runtime or public contract changed.
+The development-tools index, agent-readiness and learner-language guidance,
+architecture-verification map, slice, packets, and planning register now agree
+on the checker boundary, exit semantics, exclusions, exception format,
+candidate-bound base behavior, and proportionate affected-check selection.
+WRK-0079 and WRK-0082 are complete with their claim and base-revision evidence
+retained. The deterministic completion-structure check passed for both packets.
+
+All 3 readiness-runner tests, 14 learner-language tests, 24 affected-
+verification tests, and 11 control-plane regression tests pass; 2 platform-
+capability cases remain skipped as designed. Controlled full-scope
+qualification inspected 275 visible regions in 17 owned files with 0 blocking
+and 0 advisory findings. Planning validated 160 artifacts, documentation
+validated 303 Markdown files plus catalogs, design validation checked 125
+tokens and 56 icons, Python compilation and Git whitespace passed, and the
+aggregate runner passed all 29 fixed readiness checks against the packet base.
+
+Failure and anti-rigidity evidence covers blocking raw terms, advisory-only
+copy, malformed or stale exceptions, missing or nonexact candidate bases,
+generated and technical-record exclusions, documentation, unrelated code,
+CSS, and whitespace-only changes. Blocking copy fails narrowly; advisories,
+CSS, and whitespace do not. An initial run that used the Windows sandbox's OS
+temporary directory failed only because that directory denied fixture writes;
+the unchanged suites passed in the repository-owned prepared temporary root.
+
+No public schema, generated client, application runtime, browser behavior,
+styling, dependency, provider, learner data, external service, or durable state
+changed. No migration, rollback of data, backup, recovery, or external
+qualification is applicable. Browser, backend, database, and Docker suites were
+not run for this tooling-only slice; their product-facing acceptance evidence
+is retained by completed SLI-0122 through SLI-0124. The checker remains a
+deliberately bounded lexical aid, so human review continues to own meaning,
+financial nuance, comprehension, and tone. The slice conforms to the approved
+CAP package with no material drift or unresolved decision.
 
 ## Planning History
 
@@ -253,3 +280,10 @@ runtime or public contract changed.
   `84fa2e62f95fa7dd0e7bacb47110e8938dfa7596` after all qualifying checks
   passed and the bounded candidate-binding, owned-source, and documentation-
   exclusion defects were closed. Slice completion qualification is next.
+- 2026-10-16: Entered slice verification with WRK-0079 and WRK-0082 complete,
+  their claim and base-revision evidence retained, and no unresolved decision
+  or material CAP-package drift.
+- 2026-10-16: Completed SLI-0125 after its two-packet structure gate, focused
+  positive and refusal evidence, controlled full-scope scan, planning,
+  documentation, design, compilation, whitespace, and all 29 aggregate
+  readiness checks passed. No runtime or public-contract boundary changed.

@@ -1,7 +1,7 @@
 ---
 id: CAP-0030
 kind: capability
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -165,9 +165,50 @@ verification evidence. External source links and applicability notes may be
 registered, but no proprietary source text or controlled vocabulary is copied
 into the repository.
 
+## Completion Evidence
+
+All four approved manifest slices are complete. SLI-0122 established the
+learner-facing language standard and applied it to discovery. SLI-0123 applied
+the same task-first language and progressive technical records to curriculum
+state. SLI-0124 clarified lesson, knowledge-check, completion, and recovery
+language. SLI-0125 delivered the bounded changed-copy checker, narrow reasoned
+exceptions, fixed readiness integration, candidate-bound affected selection,
+and explicit anti-rigidity protection.
+
+The first three slices retain focused component, mocked and isolated live
+Chromium, keyboard, accessibility, responsive, forced-color, reduced-motion,
+and light/dark/system-theme evidence for the learner routes changed by this
+CAP. Their acceptance evidence also preserves exact eligibility, grading,
+version, evidence, provenance, answer-secrecy, and safe-failure meaning. The
+final tooling-only slice passed its two-packet completion structure, 3
+readiness-runner tests, 14 checker tests, 24 affected-verification tests, 11
+control-plane regression tests, a controlled scan of 275 regions in 17 files,
+planning, documentation, design, compilation, whitespace, and all 29 aggregate
+readiness checks. Two platform-capability cases were skipped as designed.
+
+The delivered control blocks only the approved high-confidence corpus. It
+keeps heuristics advisory, allows one-source-occurrence exceptions, ignores
+generated and intentionally technical material, and does not select language
+evaluation for CSS, whitespace, tool documentation, fixtures, or unrelated
+implementation. The Windows sandbox's denied OS temporary directory caused an
+environment-only first attempt; unchanged tests passed in the prepared local
+temporary root and did not trigger a correction cycle.
+
+No public contract, domain authority, runtime state, dependency, provider,
+external service, or migration changed. Technical evidence remains complete
+and accessible behind plain labels. The residual lexical limitation is
+explicit: deterministic checks complement rather than replace human review of
+meaning, financial nuance, comprehension, accessibility, and tone. CAP-0030
+conforms to its approved package, has no unresolved decision gate, and is
+complete.
+
 ## Planning History
 
 - 2026-10-15: Shaped from an authorized plain-language and information-
   architecture review of current learner interfaces. The package separates
   discovery, curriculum, and lesson/completion outcomes, then qualifies the
   reusable guidance and deliberately non-rigid checks.
+- 2026-10-16: Completed all four approved slices with cumulative learner-route,
+  accessibility, browser, failure, provenance, theme, responsive, checker,
+  anti-rigidity, and aggregate-readiness evidence. The capability moved to
+  `complete` with no material package drift or unresolved durable decision.
