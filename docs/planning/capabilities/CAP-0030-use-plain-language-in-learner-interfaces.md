@@ -1,10 +1,10 @@
 ---
 id: CAP-0030
 kind: capability
-planning_status: shaping
+planning_status: ready
 authority: noncanonical
 owner: codex-plain-language-ui
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0001", "CAP-0004"]
 decision_gates: []
