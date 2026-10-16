@@ -1,7 +1,7 @@
 import { useLoaderData, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
-import type { PracticeActivityRouteState } from "./model";
+import type { PracticeActivityRouteState, PracticeSubmitter } from "./model";
 import { PracticeActivityPage } from "./PracticeActivityPage";
 
 
@@ -25,15 +25,22 @@ export function PracticeActivityLoadingState() {
 export function PracticeActivityRouteView({
   onRetry,
   state,
+  submitPractice,
 }: {
   onRetry: () => void;
   state: PracticeActivityRouteState;
+  submitPractice: PracticeSubmitter;
 }) {
   switch (state.status) {
     case "loading":
       return <PracticeActivityLoadingState />;
     case "ready":
-      return <PracticeActivityPage practice={state.practice} />;
+      return (
+        <PracticeActivityPage
+          practice={state.practice}
+          submitPractice={submitPractice}
+        />
+      );
     case "unauthorized":
       return (
         <StatusPanel
@@ -97,7 +104,11 @@ export function PracticeActivityRouteView({
   }
 }
 
-export function PracticeActivityRoute() {
+export function PracticeActivityRoute({
+  submitPractice,
+}: {
+  submitPractice: PracticeSubmitter;
+}) {
   const state = useLoaderData<PracticeActivityRouteState>();
   const revalidator = useRevalidator();
   const displayedState =
@@ -108,6 +119,7 @@ export function PracticeActivityRoute() {
     <PracticeActivityRouteView
       onRetry={() => revalidator.revalidate()}
       state={displayedState}
+      submitPractice={submitPractice}
     />
   );
 }

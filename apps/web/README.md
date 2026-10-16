@@ -177,27 +177,29 @@ single-profile session and opens one exact practice activity through the
 generated public API client. The browser validates the complete answer-safe
 presentation before showing the title, purpose, instructions, attempt-policy
 meaning, learning and review material, and ordered single-select,
-multiple-select, or fixed-decimal response controls. Learner-facing copy states
-that responses entered during this opening step are neither checked nor saved.
-There is no submission control, answer key, accepted numeric value or range,
-private feedback, scoring authority, attempt evidence, local persistence, or
-browser-selected learner. Exact placement, package, practice, definition,
-question, policy, choice, resource, version, and digest facts remain available
-under the accessible `Technical record`. Missing access, missing activity,
-temporary failure, malformed content, unknown response types, extra private
-fields, duplicate identities, or placement mismatch fails the whole view to a
-bounded learner-focused state without partial questions or choices. The same
-protected HTTP operation remains available to non-browser and future headless
-clients; the page does not define a second contract or a separate AI mode.
+multiple-select, or fixed-decimal response controls. The learner can now check
+one complete response set through generated `submitPlacedPractice`. The
+browser copies exact presentation selectors, creates one stable submission
+UUID, and sends no learner, score, time, evidence, or policy override. An
+uncertain transport retry reuses the identical prepared document and UUID
+rather than reading changed form state.
 
-The reviewed OpenAPI and generated TypeScript client also expose protected
-whole-practice submission at the placement's `/practice/submissions` route.
-Its closed request covers all three supported response shapes and its response
-contains ordered learner-safe outcomes without learner identity, internal
-request fingerprint, answer keys, or evaluator declarations. The public route
-is independently qualified for non-browser use. This opening page does not call
-it yet; the dependent browser-result packet will use this generated operation
-rather than introducing browser-only scoring or another API.
+The page validates and correlates the complete closed result before it shows
+the server-returned score, outcome, submitted values, applicable feedback,
+review material, saved time, or evidence references. It never compares an
+answer with an answer key or calculates correctness. Invalid or private-field-
+bearing results fail closed without partial feedback. Incomplete input focuses
+the first question to fix; session, stale-version, conflicting, completed,
+unavailable, and unexpected outcomes have bounded learner-focused recovery
+copy. The current application saves the first completed attempt; additional
+attempts, pause-and-return, and earlier-attempt review remain deferred to the
+next slice.
+
+Exact placement, package, practice, definition, question, policy, choice,
+resource, result, attempt, evidence, version, digest, and time facts remain
+available under accessible `Technical record` disclosures. The reviewed POST
+remains independently usable by command-line, service, and future headless
+clients. The page does not define a second contract or a separate AI mode.
 
 The browser never selects the learner, reads the HttpOnly cookie, imports
 backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a

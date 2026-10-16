@@ -4,6 +4,38 @@ import type { components } from "../../generated/api-client";
 export type PracticePresentation =
   components["schemas"]["PracticePresentationResponseModel"];
 export type PracticeItem = PracticePresentation["items"][number];
+export type PracticeSubmission =
+  components["schemas"]["PracticeSubmissionRequestModel"];
+export type PracticeSubmissionResult =
+  components["schemas"]["PracticeSubmissionResultResponseModel"];
+
+export type PreparedPracticeSubmission = Readonly<{
+  body: PracticeSubmission;
+  placementId: string;
+}>;
+
+export type PracticeSubmissionPreparation =
+  | { status: "ready"; submission: PreparedPracticeSubmission }
+  | { status: "invalid"; itemId: string };
+
+export type PracticeSubmissionOutcome =
+  | { status: "result"; result: PracticeSubmissionResult }
+  | { status: "invalid-request" }
+  | { status: "unauthorized" }
+  | { status: "forbidden" }
+  | { status: "not-found" }
+  | { status: "stale" }
+  | { status: "conflict" }
+  | { status: "already-completed" }
+  | { status: "unavailable" }
+  | { status: "invalid-result" }
+  | { status: "unexpected" };
+
+export type PracticeSubmitter = (
+  practice: PracticePresentation,
+  submission: PreparedPracticeSubmission,
+  signal?: AbortSignal,
+) => Promise<PracticeSubmissionOutcome>;
 
 export type PracticeActivityRouteState =
   | { status: "loading" }
@@ -19,6 +51,10 @@ const DIGEST = /^[a-f0-9]{64}$/;
 const IDENTIFIER = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 const SEMANTIC_VERSION =
   /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const TIMESTAMP =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
 const UNSAFE_TEXT = /[<>&]/u;
 
 const ROOT_KEYS = [
@@ -60,6 +96,43 @@ const ITEM_COMMON_KEYS = [
   "prompt",
   "scoring_policy_id",
   "scoring_policy_version",
+] as const;
+const RESULT_ROOT_KEYS = [
+  "attempt_id",
+  "attempt_policy_id",
+  "attempt_policy_version",
+  "definition_digest",
+  "evidence_id",
+  "item_results",
+  "max_score",
+  "outcome",
+  "package_digest",
+  "package_id",
+  "package_version",
+  "placement_id",
+  "practice_id",
+  "practice_version",
+  "review_reference_ids",
+  "schema_version",
+  "score",
+  "submission_id",
+  "submitted_at",
+] as const;
+const RESULT_COMMON_KEYS = [
+  "correct",
+  "feedback",
+  "item_id",
+  "item_type",
+  "item_version",
+  "max_score",
+  "score",
+  "scoring_policy_id",
+  "scoring_policy_version",
+] as const;
+const FEEDBACK_KEYS = [
+  "feedback_id",
+  "review_reference_ids",
+  "text",
 ] as const;
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -224,6 +297,272 @@ function policyIsSafe(value: unknown): boolean {
     policy.resume_allowed === true &&
     policy.history_visible === true
   );
+}
+
+export function canonicalDecimalPattern(
+  scale: number,
+  allowNegative: boolean,
+): string {
+  const unsignedInteger = "(?:0|[1-9][0-9]*)";
+  if (scale === 0) {
+    return allowNegative
+      ? "(?:0|[1-9][0-9]*|-[1-9][0-9]*)"
+      : unsignedInteger;
+  }
+  const unsignedDecimal = `${unsignedInteger}\\.[0-9]{${scale}}`;
+  if (!allowNegative) {
+    return unsignedDecimal;
+  }
+  const negativeNonzeroDecimal = `-(?!0\\.0{${scale}})(?:0|[1-9][0-9]*)\\.[0-9]{${scale}}`;
+  return `(?:${unsignedDecimal}|${negativeNonzeroDecimal})`;
+}
+
+function decimalIsCanonical(
+  value: string,
+  scale: number,
+  allowNegative: boolean,
+): boolean {
+  return new RegExp(
+    `^(?:${canonicalDecimalPattern(scale, allowNegative)})$`,
+    "u",
+  ).test(value);
+}
+
+export function preparePracticeSubmission(
+  practice: PracticePresentation,
+  formData: FormData,
+  submissionId: string,
+): PracticeSubmissionPreparation {
+  const responses: PracticeSubmission["responses"][number][] = [];
+  for (const item of practice.items) {
+    const values = formData
+      .getAll(item.item_id)
+      .filter((value): value is string => typeof value === "string");
+    if (item.item_type === "single_select") {
+      const selected = values[0];
+      if (
+        values.length !== 1 ||
+        selected === undefined ||
+        !item.options.some((option) => option.option_id === selected)
+      ) {
+        return { status: "invalid", itemId: item.item_id };
+      }
+      responses.push({
+        item_id: item.item_id,
+        item_type: item.item_type,
+        item_version: item.item_version,
+        scoring_policy_id: item.scoring_policy_id,
+        scoring_policy_version: item.scoring_policy_version,
+        selected_option_id: selected,
+      });
+      continue;
+    }
+    if (item.item_type === "multiple_select") {
+      const selected = new Set(values);
+      if (
+        values.length === 0 ||
+        selected.size !== values.length ||
+        values.some(
+          (value) =>
+            !item.options.some((option) => option.option_id === value),
+        )
+      ) {
+        return { status: "invalid", itemId: item.item_id };
+      }
+      responses.push({
+        item_id: item.item_id,
+        item_type: item.item_type,
+        item_version: item.item_version,
+        scoring_policy_id: item.scoring_policy_id,
+        scoring_policy_version: item.scoring_policy_version,
+        selected_option_ids: values,
+      });
+      continue;
+    }
+    const entered = values[0] ?? "";
+    if (
+      values.length !== 1 ||
+      !decimalIsCanonical(entered, item.scale, item.allow_negative)
+    ) {
+      return { status: "invalid", itemId: item.item_id };
+    }
+    responses.push({
+      entered_value: entered,
+      item_id: item.item_id,
+      item_type: item.item_type,
+      item_version: item.item_version,
+      scoring_policy_id: item.scoring_policy_id,
+      scoring_policy_version: item.scoring_policy_version,
+    });
+  }
+  return {
+    status: "ready",
+    submission: {
+      placementId: practice.placement_id,
+      body: {
+        schema_version: "1.0.0",
+        submission_id: submissionId,
+        placement_id: practice.placement_id,
+        package_id: practice.package_id,
+        package_version: practice.package_version,
+        package_digest: practice.package_digest,
+        definition_digest: practice.definition_digest,
+        practice_id: practice.practice_id,
+        practice_version: practice.practice_version,
+        attempt_policy_id: practice.attempt_policy.policy_id,
+        attempt_policy_version: practice.attempt_policy.policy_version,
+        responses,
+      },
+    },
+  };
+}
+
+function uniqueIdentifiers(
+  value: unknown,
+  allowed: ReadonlySet<string>,
+): value is string[] {
+  return (
+    boundedArray(value, 1, 8) &&
+    value.every((item) => typeof item === "string" && allowed.has(item)) &&
+    new Set(value).size === value.length
+  );
+}
+
+function sameStringSet(first: readonly string[], second: readonly string[]) {
+  return (
+    first.length === second.length &&
+    first.every((value) => second.includes(value)) &&
+    new Set(first).size === first.length &&
+    new Set(second).size === second.length
+  );
+}
+
+function resultItemIsSafe(
+  value: unknown,
+  practiceItem: PracticeItem,
+  response: PracticeSubmission["responses"][number],
+  reviewIds: ReadonlySet<string>,
+): boolean {
+  const item = record(value);
+  if (
+    item === null ||
+    !Number.isInteger(item.score) ||
+    Number(item.score) < 0 ||
+    Number(item.score) > 1 ||
+    item.max_score !== 1 ||
+    typeof item.correct !== "boolean" ||
+    item.correct !== (item.score === 1) ||
+    item.item_id !== practiceItem.item_id ||
+    item.item_type !== practiceItem.item_type ||
+    item.item_version !== practiceItem.item_version ||
+    item.scoring_policy_id !== practiceItem.scoring_policy_id ||
+    item.scoring_policy_version !== practiceItem.scoring_policy_version
+  ) {
+    return false;
+  }
+  const feedback = record(item.feedback);
+  if (
+    feedback === null ||
+    !exactKeys(feedback, FEEDBACK_KEYS) ||
+    !identifier(feedback.feedback_id) ||
+    !safeText(feedback.text, 600) ||
+    !uniqueIdentifiers(feedback.review_reference_ids, reviewIds)
+  ) {
+    return false;
+  }
+  if (
+    item.item_type === "single_select" &&
+    response.item_type === "single_select"
+  ) {
+    return (
+      exactKeys(item, [...RESULT_COMMON_KEYS, "selected_option_id"]) &&
+      item.selected_option_id === response.selected_option_id
+    );
+  }
+  if (
+    item.item_type === "multiple_select" &&
+    response.item_type === "multiple_select"
+  ) {
+    return (
+      exactKeys(item, [...RESULT_COMMON_KEYS, "selected_option_ids"]) &&
+      Array.isArray(item.selected_option_ids) &&
+      item.selected_option_ids.every(
+        (candidate): candidate is string => typeof candidate === "string",
+      ) &&
+      sameStringSet(
+        item.selected_option_ids,
+        response.selected_option_ids,
+      )
+    );
+  }
+  return (
+    item.item_type === "numeric_entry" &&
+    response.item_type === "numeric_entry" &&
+    exactKeys(item, [...RESULT_COMMON_KEYS, "entered_value"]) &&
+    item.entered_value === response.entered_value
+  );
+}
+
+export function practiceSubmissionResultIsSafe(
+  value: unknown,
+  practice: PracticePresentation,
+  submission: PreparedPracticeSubmission,
+): value is PracticeSubmissionResult {
+  const result = record(value);
+  if (
+    result === null ||
+    !exactKeys(result, RESULT_ROOT_KEYS) ||
+    result.schema_version !== "1.0.0" ||
+    typeof result.attempt_id !== "string" ||
+    !UUID.test(result.attempt_id) ||
+    typeof result.evidence_id !== "string" ||
+    !UUID.test(result.evidence_id) ||
+    result.submission_id !== submission.body.submission_id ||
+    result.placement_id !== practice.placement_id ||
+    result.package_id !== practice.package_id ||
+    result.package_version !== practice.package_version ||
+    result.package_digest !== practice.package_digest ||
+    result.definition_digest !== practice.definition_digest ||
+    result.practice_id !== practice.practice_id ||
+    result.practice_version !== practice.practice_version ||
+    result.attempt_policy_id !== practice.attempt_policy.policy_id ||
+    result.attempt_policy_version !== practice.attempt_policy.policy_version ||
+    !Number.isInteger(result.score) ||
+    !Number.isInteger(result.max_score) ||
+    Number(result.max_score) !== practice.items.length ||
+    Number(result.score) < 0 ||
+    Number(result.score) > Number(result.max_score) ||
+    (result.outcome !== "all_correct" && result.outcome !== "review_needed") ||
+    result.outcome !==
+      (result.score === result.max_score ? "all_correct" : "review_needed") ||
+    typeof result.submitted_at !== "string" ||
+    !TIMESTAMP.test(result.submitted_at) ||
+    Number.isNaN(Date.parse(result.submitted_at)) ||
+    !Array.isArray(result.item_results) ||
+    result.item_results.length !== practice.items.length
+  ) {
+    return false;
+  }
+  const reviewIds = new Set(
+    practice.review_references.map((reference) => reference.resource_id),
+  );
+  if (!uniqueIdentifiers(result.review_reference_ids, reviewIds)) {
+    return false;
+  }
+  let score = 0;
+  for (const [index, practiceItem] of practice.items.entries()) {
+    const response = submission.body.responses[index];
+    const itemResult = result.item_results[index];
+    if (
+      response === undefined ||
+      itemResult === undefined ||
+      !resultItemIsSafe(itemResult, practiceItem, response, reviewIds)
+    ) {
+      return false;
+    }
+    score += itemResult.score;
+  }
+  return score === result.score;
 }
 
 export function practicePresentationIsSafe(

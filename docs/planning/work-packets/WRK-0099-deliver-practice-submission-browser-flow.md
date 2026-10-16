@@ -208,7 +208,38 @@ not change, leaving WRK-0100 dependency-ready.
 
 ## Implementation Evidence
 
-Pending implementation.
+- The practice route now receives an injected submitter that calls only the
+  generated `submitPlacedPractice` operation. One complete form produces the
+  three closed response variants, exact opened-presentation selectors, and one
+  browser-generated submission UUID without learner, score, time, evidence, or
+  policy-override fields.
+- The first uncertain transport or service failure locks the answered form and
+  exposes a retry that resends the same immutable prepared value and submission
+  UUID. One expired session is renewed at most once and also resends that exact
+  value. Duplicate in-flight writes are suppressed.
+- The browser validates exact result keys, UUIDs, timestamp, selectors,
+  ordered item closure, submitted values, score totals, outcome, feedback, and
+  visible review references before showing any result. Unknown/private fields,
+  mismatched responses, totals, references, or provenance fail the whole result
+  closed. Correctness and scoring remain server-owned.
+- The learner flow supplies plain input, pending, saved-result, unavailable,
+  denied, stale, conflict, completed-attempt, invalid-request, and invalid-
+  result states; focuses the first incomplete question or returned status;
+  retains exact technical evidence; and explains that retry/history behavior
+  remains deferred without overstating the accepted attempt maximum.
+- Focused model/component evidence passes 46 tests and focused Chromium passes
+  eight generated-client submission, exact retry, session renewal, completed-
+  attempt denial, confidentiality, focus, responsive, forced-color, reduced-
+  motion, theme-parity, and axe scenarios. The full web suite passes 197 tests;
+  generated-client reproduction, typecheck, lint, production build, learner-
+  language changed/full checks, design-system, architecture, security,
+  documentation, planning, and whitespace checks pass. The fixed aggregate
+  readiness gate passes all 29 checks.
+- No backend, API/OpenAPI, generated client, accepted schema, persistence,
+  migration, dependency, lockfile, shared design token/icon, retry/history
+  policy, live seed, separate AI mode, autonomous authority, or external-
+  execution boundary changed. The public POST remains directly available to
+  non-browser and future headless consumers.
 
 ## Planning History
 
@@ -220,3 +251,8 @@ Pending implementation.
   gate confirmed current CAP authority, completed dependency, decision
   readiness, exact browser scope, unchanged public contract, and no active
   ownership collision.
+- 2026-10-16: Implemented the generated-client practice form, stable exact
+  retry, fail-closed correlated result, accessible learner feedback, and
+  bounded denial states. Focused and full browser checks preserve the same
+  independently callable API without adding browser scoring or an AI-specific
+  path.

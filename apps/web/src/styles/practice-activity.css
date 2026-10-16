@@ -133,6 +133,113 @@
   font: inherit;
 }
 
+.practice-item input:disabled {
+  cursor: not-allowed;
+}
+
+.practice-field-error {
+  margin: var(--faa-space-3) 0 0;
+  color: var(--faa-color-danger);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.practice-submit {
+  margin-top: var(--faa-space-6);
+}
+
+.practice-submission-status {
+  margin-top: var(--faa-space-6);
+}
+
+.practice-submission-status > p,
+.practice-submission-error,
+.practice-result {
+  padding: var(--faa-space-5);
+  border: var(--faa-border-width) solid var(--faa-color-border-strong);
+  border-radius: var(--faa-radius-card);
+  background: var(--faa-color-surface-subtle);
+}
+
+.practice-submission-error {
+  border-color: var(--faa-color-warning);
+  background: var(--faa-color-warning-surface);
+}
+
+.practice-submission-error h2,
+.practice-result h2 {
+  margin-top: 0;
+}
+
+.practice-submission-error:focus-visible,
+.practice-submission-status > div:focus-visible {
+  outline: 3px solid var(--faa-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.practice-result {
+  border-color: var(--faa-color-success);
+  background: var(--faa-color-success-surface);
+}
+
+.practice-result-summary {
+  font-size: var(--faa-font-size-body-lg);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.practice-result-score {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--faa-space-6);
+}
+
+.practice-result-score div {
+  flex: 1 1 0;
+}
+
+.practice-result-score dt {
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-caption);
+}
+
+.practice-result-score dd {
+  margin: var(--faa-space-1) 0 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.practice-result-list {
+  display: grid;
+  gap: var(--faa-space-4);
+  padding-left: var(--faa-space-6);
+}
+
+.practice-result-list article {
+  padding: var(--faa-space-4);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+  background: var(--faa-color-surface);
+}
+
+.practice-result-list h3 {
+  margin-top: 0;
+  font-size: var(--faa-font-size-card-title);
+  line-height: var(--faa-line-height-card-title);
+}
+
+.practice-result details dl {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.practice-result details dd {
+  margin: var(--faa-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.practice-result details code {
+  font-family: var(--faa-font-mono);
+}
+
 .practice-options input:focus-visible,
 .practice-item > input:focus-visible {
   outline: 3px solid var(--faa-color-focus-ring);
@@ -229,7 +336,9 @@
 @media (forced-colors: active) {
   .practice-options label,
   .practice-item,
-  .practice-notice {
+  .practice-notice,
+  .practice-result,
+  .practice-submission-error {
     border-color: CanvasText;
   }
 }

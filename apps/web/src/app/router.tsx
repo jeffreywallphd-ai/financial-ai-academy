@@ -32,7 +32,10 @@ import {
   LessonLoadingState,
   LessonRoute,
 } from "../features/lesson-reading/LessonRoute";
-import { createPracticeActivityLoader } from "../features/practice-activity/api";
+import {
+  createPracticeActivityLoader,
+  createPracticeActivitySubmitter,
+} from "../features/practice-activity/api";
 import {
   PracticeActivityLoadingState,
   PracticeActivityRoute,
@@ -51,6 +54,7 @@ const learningOpportunityComparisonLoader =
   createLearningOpportunityComparisonLoader(client, session);
 const lessonLoader = createLessonLoader(client, session);
 const practiceActivityLoader = createPracticeActivityLoader(client, session);
+const practiceActivitySubmitter = createPracticeActivitySubmitter(client, session);
 const curriculumGraphLoader = createCurriculumGraphLoader(client, session);
 const curriculumActivityLauncher = createCurriculumActivityLauncher(
   client,
@@ -61,6 +65,10 @@ function CurriculumGraphRouteWithDependencies() {
   return (
     <CurriculumGraphRoute launchActivity={curriculumActivityLauncher} />
   );
+}
+
+function PracticeActivityRouteWithDependencies() {
+  return <PracticeActivityRoute submitPractice={practiceActivitySubmitter} />;
 }
 
 function UnexpectedRouteError() {
@@ -126,7 +134,7 @@ export const router = createBrowserRouter([
       {
         path: "learn/placements/:placementId/practice",
         loader: practiceActivityLoader,
-        Component: PracticeActivityRoute,
+        Component: PracticeActivityRouteWithDependencies,
         HydrateFallback: PracticeActivityLoadingState,
       },
       {

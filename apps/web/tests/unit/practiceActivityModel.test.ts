@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { canonicalDecimalPattern } from "../../src/features/practice-activity/PracticeActivityPage";
-import { practicePresentationIsSafe } from "../../src/features/practice-activity/model";
-import { practiceFixture } from "../component/practiceFixture";
+import {
+  canonicalDecimalPattern,
+  practiceSubmissionResultIsSafe,
+  preparePracticeSubmission,
+  practicePresentationIsSafe,
+} from "../../src/features/practice-activity/model";
+import {
+  practiceFixture,
+  practiceResultFixture,
+} from "../component/practiceFixture";
 
 
 function fixture(): Record<string, unknown> {
@@ -18,6 +25,16 @@ function matchesCanonicalDecimal(
     `^(?:${canonicalDecimalPattern(scale, allowNegative)})$`,
     "u",
   ).test(value);
+}
+
+function completeFormData() {
+  const form = new FormData();
+  form.append("risk-meaning", "uncertainty");
+  form.append("risk-factors", "time");
+  form.append("risk-factors", "market");
+  form.append("risk-factors", "fees");
+  form.append("simple-return", "5.00");
+  return form;
 }
 
 describe("practice presentation validation", () => {
@@ -113,5 +130,138 @@ describe("practice presentation validation", () => {
     expect(matchesCanonicalDecimal("1.00", 2, false)).toBe(true);
     expect(matchesCanonicalDecimal("-0.01", 2, false)).toBe(false);
     expect(matchesCanonicalDecimal("-1.00", 2, false)).toBe(false);
+  });
+
+  it("builds the exact generated submission without learner or scoring authority", () => {
+    const prepared = preparePracticeSubmission(
+      practiceFixture,
+      completeFormData(),
+      practiceResultFixture.submission_id,
+    );
+    expect(prepared.status).toBe("ready");
+    if (prepared.status !== "ready") {
+      return;
+    }
+    expect(prepared.submission.body.responses).toHaveLength(3);
+    expect(prepared.submission.body.responses[1]).toEqual(
+      expect.objectContaining({
+        item_type: "multiple_select",
+        selected_option_ids: ["time", "market", "fees"],
+      }),
+    );
+    expect("learner_id" in prepared.submission.body).toBe(false);
+    expect("score" in prepared.submission.body).toBe(false);
+  });
+
+  it.each([
+    ["missing response", (form: FormData) => form.delete("risk-factors")],
+    ["unknown option", (form: FormData) => form.set("risk-meaning", "private-answer")],
+    ["duplicate option", (form: FormData) => form.append("risk-factors", "time")],
+    ["noncanonical decimal", (form: FormData) => form.set("simple-return", "05.0")],
+  ])("rejects %s before submission", (_name, mutate) => {
+    const form = completeFormData();
+    mutate(form);
+    expect(
+      preparePracticeSubmission(
+        practiceFixture,
+        form,
+        practiceResultFixture.submission_id,
+      ).status,
+    ).toBe("invalid");
+  });
+
+  it("accepts a complete correlated result and order-independent multiple selection", () => {
+    const prepared = preparePracticeSubmission(
+      practiceFixture,
+      completeFormData(),
+      practiceResultFixture.submission_id,
+    );
+    expect(prepared.status).toBe("ready");
+    if (prepared.status !== "ready") {
+      return;
+    }
+    const result = structuredClone(practiceResultFixture);
+    const multiple = result.item_results[1];
+    expect(multiple?.item_type).toBe("multiple_select");
+    if (!multiple || multiple.item_type !== "multiple_select") {
+      return;
+    }
+    multiple.selected_option_ids = ["fees", "time", "market"];
+    expect(
+      practiceSubmissionResultIsSafe(
+        result,
+        practiceFixture,
+        prepared.submission,
+      ),
+    ).toBe(true);
+  });
+
+  it("accepts a valid one-question activity without fixture-count assumptions", () => {
+    const practice = structuredClone(practiceFixture);
+    practice.items = [practice.items[0]!];
+    const form = new FormData();
+    form.append("risk-meaning", "uncertainty");
+    const prepared = preparePracticeSubmission(
+      practice,
+      form,
+      practiceResultFixture.submission_id,
+    );
+    expect(prepared.status).toBe("ready");
+    if (prepared.status !== "ready") {
+      return;
+    }
+    const result = {
+      ...structuredClone(practiceResultFixture),
+      score: 1,
+      max_score: 1,
+      outcome: "all_correct" as const,
+      item_results: [structuredClone(practiceResultFixture.item_results[0]!)],
+    };
+    expect(
+      practiceSubmissionResultIsSafe(result, practice, prepared.submission),
+    ).toBe(true);
+  });
+
+  it.each([
+    ["private result field", (result: Record<string, unknown>) => {
+      result.learner_id = "private-learner";
+    }],
+    ["mismatched definition", (result: Record<string, unknown>) => {
+      result.definition_digest = "f".repeat(64);
+    }],
+    ["mismatched submitted response", (result: Record<string, unknown>) => {
+      const items = result.item_results as Record<string, unknown>[];
+      items[0]!.selected_option_id = "guarantee";
+    }],
+    ["duplicate result item", (result: Record<string, unknown>) => {
+      const items = result.item_results as Record<string, unknown>[];
+      items[1] = structuredClone(items[0]!);
+    }],
+    ["unavailable review reference", (result: Record<string, unknown>) => {
+      result.review_reference_ids = ["private-review"];
+    }],
+    ["inconsistent total", (result: Record<string, unknown>) => {
+      result.score = 3;
+      result.outcome = "all_correct";
+    }],
+  ])("rejects %s without partial interpretation", (_name, mutate) => {
+    const prepared = preparePracticeSubmission(
+      practiceFixture,
+      completeFormData(),
+      practiceResultFixture.submission_id,
+    );
+    expect(prepared.status).toBe("ready");
+    if (prepared.status !== "ready") {
+      return;
+    }
+    const result = structuredClone(practiceResultFixture) as unknown as Record<string, unknown>;
+    mutate(result);
+    expect(
+      practiceSubmissionResultIsSafe(
+        result,
+        practiceFixture,
+        prepared.submission,
+      ),
+    ).toBe(false);
   });
 });

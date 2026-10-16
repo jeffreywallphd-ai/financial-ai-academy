@@ -333,3 +333,9 @@ or autonomous authority was planned or implemented.
   current CAP authority, completed WRK-0098 dependency, resolved decisions,
   bounded browser-only scope, unchanged public API, and collision-free
   ownership. No lower-level approval was requested.
+- 2026-10-16: WRK-0099 implemented the accessible generated-client submission
+  and saved-result flow for all three response types. Browser checks prove
+  exact retry identity, one bounded session renewal, complete-result
+  correlation, answer confidentiality, plain recovery, theme/reflow/media
+  parity, and no client scoring. The public POST remains independently usable
+  by non-browser and future headless consumers.

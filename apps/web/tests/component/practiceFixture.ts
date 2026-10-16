@@ -1,4 +1,7 @@
-import type { PracticePresentation } from "../../src/features/practice-activity/model";
+import type {
+  PracticePresentation,
+  PracticeSubmissionResult,
+} from "../../src/features/practice-activity/model";
 
 
 export const practiceFixture = {
@@ -85,3 +88,74 @@ export const practiceFixture = {
     },
   ],
 } satisfies PracticePresentation;
+
+export const practiceResultFixture = {
+  schema_version: "1.0.0",
+  attempt_id: "11111111-1111-4111-8111-111111111111",
+  evidence_id: "22222222-2222-4222-8222-222222222222",
+  submission_id: "33333333-3333-4333-8333-333333333333",
+  placement_id: practiceFixture.placement_id,
+  package_id: practiceFixture.package_id,
+  package_version: practiceFixture.package_version,
+  package_digest: practiceFixture.package_digest,
+  definition_digest: practiceFixture.definition_digest,
+  practice_id: practiceFixture.practice_id,
+  practice_version: practiceFixture.practice_version,
+  attempt_policy_id: practiceFixture.attempt_policy.policy_id,
+  attempt_policy_version: practiceFixture.attempt_policy.policy_version,
+  score: 2,
+  max_score: 3,
+  outcome: "review_needed",
+  review_reference_ids: ["risk-return-review"],
+  item_results: [
+    {
+      item_id: "risk-meaning",
+      item_type: "single_select",
+      item_version: "1.0.0",
+      scoring_policy_id: "single-select-exact-match",
+      scoring_policy_version: "1.0.0",
+      selected_option_id: "uncertainty",
+      score: 1,
+      max_score: 1,
+      correct: true,
+      feedback: {
+        feedback_id: "risk-meaning-correct",
+        text: "Risk includes uncertainty about future outcomes.",
+        review_reference_ids: ["risk-return-review"],
+      },
+    },
+    {
+      item_id: "risk-factors",
+      item_type: "multiple_select",
+      item_version: "1.0.0",
+      scoring_policy_id: "multiple-select-exact-set",
+      scoring_policy_version: "1.0.0",
+      selected_option_ids: ["time", "market", "fees"],
+      score: 1,
+      max_score: 1,
+      correct: true,
+      feedback: {
+        feedback_id: "risk-factors-correct",
+        text: "Time, market conditions, and costs can affect outcomes.",
+        review_reference_ids: ["risk-return-review"],
+      },
+    },
+    {
+      item_id: "simple-return",
+      item_type: "numeric_entry",
+      item_version: "1.0.0",
+      scoring_policy_id: "numeric-exact-or-inclusive-range",
+      scoring_policy_version: "1.0.0",
+      entered_value: "5.00",
+      score: 0,
+      max_score: 1,
+      correct: false,
+      feedback: {
+        feedback_id: "simple-return-review",
+        text: "Review how the example return is calculated.",
+        review_reference_ids: ["risk-return-review"],
+      },
+    },
+  ],
+  submitted_at: "2026-10-16T16:00:00Z",
+} satisfies PracticeSubmissionResult;
