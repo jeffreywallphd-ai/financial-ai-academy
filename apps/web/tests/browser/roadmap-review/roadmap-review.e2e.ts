@@ -52,9 +52,14 @@ test("navigates the live hierarchy and preserves honest missing states", async (
   await expect(page.locator(".plan-document script")).toHaveCount(0);
 
   await page.goto("/capability/track-progress-and-competency-evidence");
-  await expect(page.getByText(/No governed CAP package/)).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Track Progress and Competency Evidence" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /SLI-0038: detailed plan not refined yet/ })).toBeVisible();
 
   await page.goto("/slice/SLI-0018");
+  await expect(page.getByRole("heading", { level: 2, name: "Associated work" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /WRK-0043/ })).toBeVisible();
+
+  await page.goto("/slice/SLI-0038");
   await expect(page.getByText(/has not been refined/)).toBeVisible();
   await expect(page.getByText(/does not block review of other work/)).toBeVisible();
 

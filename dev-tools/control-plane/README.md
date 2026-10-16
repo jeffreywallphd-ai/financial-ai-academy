@@ -169,6 +169,10 @@ remove the working tree's `apps/web/dist`, including when that path is absent, a
 file, a link, or is being changed concurrently. Temporary output is deleted
 with the snapshot, while the controller's post-run clean-HEAD check remains
 authoritative.
+The roadmap-review browser check likewise runs from an isolated candidate
+snapshot and substitutes an ephemeral loopback port only in that snapshot, so
+an already running review site cannot block qualification or be reused as
+evidence.
 Review tests cover independent one-round acceptance, self-review denial,
 immutable candidate rounds, blocking findings, explicit closure, stale-receipt
 denial, strict-descendant corrections, fresh-verification requirements,

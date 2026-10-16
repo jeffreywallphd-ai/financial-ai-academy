@@ -18,7 +18,11 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from contracts import ControlError  # noqa: E402
-from check_approved_lesson import WebRuntime, execute as execute_web_check  # noqa: E402
+from check_approved_lesson import (  # noqa: E402
+    WebRuntime,
+    copy_tracked_candidate,
+    execute as execute_web_check,
+)
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
@@ -363,6 +367,85 @@ class RepositoryWebCheckTests(unittest.TestCase):
             self.assertEqual(
                 "worktree-index", dist.joinpath("index.html").read_text(encoding="utf-8")
             )
+
+    def test_candidate_snapshot_exports_commit_bytes_and_omits_tracked_build(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="candidate-export-") as directory:
+            source = Path(directory) / "source"
+            target = Path(directory) / "target"
+            source.mkdir()
+            subprocess.run(["git", "init", "--quiet"], cwd=source, check=True)
+            subprocess.run(
+                ["git", "config", "user.email", "snapshot@example.invalid"],
+                cwd=source,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Snapshot Test"],
+                cwd=source,
+                check=True,
+            )
+            tracked = source / "candidate.txt"
+            tracked.write_text("committed", encoding="utf-8")
+            dist = source / "apps" / "web" / "dist"
+            dist.mkdir(parents=True)
+            dist.joinpath("index.html").write_text("tracked-build", encoding="utf-8")
+            subprocess.run(["git", "add", "."], cwd=source, check=True)
+            subprocess.run(
+                ["git", "commit", "--quiet", "-m", "fixture"],
+                cwd=source,
+                check=True,
+            )
+            tracked.write_text("mutable-worktree", encoding="utf-8")
+            target.mkdir()
+            copy_tracked_candidate(source, target)
+            self.assertEqual(
+                "committed", target.joinpath("candidate.txt").read_text(encoding="utf-8")
+            )
+            self.assertFalse(target.joinpath("apps", "web", "dist").exists())
+
+    def test_roadmap_check_uses_isolated_dynamic_port(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="roadmap-check-") as directory:
+            root = Path(directory)
+            config = (
+                root
+                / "apps"
+                / "web"
+                / "tests"
+                / "browser"
+                / "roadmap-review.config.ts"
+            )
+            config.parent.mkdir(parents=True)
+            original = "origin 8765; command 8765; readiness 8765"
+            config.write_text(original, encoding="utf-8")
+
+            def prepare_snapshot(source: Path, target: Path) -> None:
+                target_config = target / config.relative_to(source)
+                target_config.parent.mkdir(parents=True)
+                target_config.write_text(
+                    config.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+
+            def runner(command: tuple[str, ...], *, root: Path) -> None:
+                self.assertIn(
+                    "apps/web/tests/browser/roadmap-review.config.ts", command
+                )
+                isolated = root / config.relative_to(Path(directory))
+                rendered = isolated.read_text(encoding="utf-8")
+                self.assertNotIn("8765", rendered)
+                self.assertEqual(3, rendered.count("45999"))
+
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+            ):
+                execute_web_check(
+                    "roadmap",
+                    root=root,
+                    command_runner=runner,
+                    version_reader=self.versions,
+                    snapshot_preparer=prepare_snapshot,
+                    port_selector=lambda: 45999,
+                )
+            self.assertEqual(original, config.read_text(encoding="utf-8"))
 
     def test_live_check_never_mutates_existing_or_missing_worktree_build(self) -> None:
         for build_exists in (False, True):

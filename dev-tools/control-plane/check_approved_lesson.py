@@ -4,13 +4,16 @@
 from __future__ import annotations
 
 import argparse
+import io
 import os
 import shutil
+import socket
 import subprocess
 import sys
+import tarfile
 import tempfile
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Callable, Mapping, Sequence
 
 
@@ -99,28 +102,27 @@ def npm_command(runtime: WebRuntime, root: Path, *arguments: str) -> tuple[str, 
 
 def copy_tracked_candidate(source_root: Path, target_root: Path) -> None:
     completed = subprocess.run(
-        ["git", "ls-files", "-z"],
+        ["git", "archive", "--format=tar", "HEAD"],
         cwd=source_root,
         check=False,
         capture_output=True,
     )
     if completed.returncode != 0:
-        raise RuntimeError("Unable to enumerate the exact tracked candidate.")
-    for raw_path in completed.stdout.split(b"\0"):
-        if not raw_path:
-            continue
-        value = os.fsdecode(raw_path).replace("\\", "/")
-        relative = Path(value)
-        if relative.is_absolute() or ".." in relative.parts:
-            raise RuntimeError("Git returned an unsafe tracked candidate path.")
-        if relative.parts[:3] == ("apps", "web", "dist"):
-            continue
-        source = source_root / relative
-        target = target_root / relative
-        if source.is_symlink() or not source.is_file():
-            raise RuntimeError(f"Unsupported tracked candidate path: {value}")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, target)
+        raise RuntimeError("Unable to export the exact tracked candidate.")
+    with tarfile.open(fileobj=io.BytesIO(completed.stdout), mode="r:") as archive:
+        members: list[tarfile.TarInfo] = []
+        for member in archive.getmembers():
+            relative = PurePosixPath(member.name)
+            if relative.is_absolute() or ".." in relative.parts:
+                raise RuntimeError("Git returned an unsafe tracked candidate path.")
+            if relative.parts[:3] == ("apps", "web", "dist"):
+                continue
+            if not (member.isfile() or member.isdir()):
+                raise RuntimeError(
+                    f"Unsupported tracked candidate path: {member.name}"
+                )
+            members.append(member)
+        archive.extractall(target_root, members=members, filter="data")
 
 
 def link_web_dependencies(source_root: Path, target_root: Path) -> None:
@@ -149,6 +151,56 @@ def prepare_candidate_snapshot(source_root: Path, target_root: Path) -> None:
     target_root.mkdir(parents=True, exist_ok=False)
     copy_tracked_candidate(source_root, target_root)
     link_web_dependencies(source_root, target_root)
+
+
+def select_loopback_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def run_roadmap_in_snapshot(
+    runtime: WebRuntime,
+    *,
+    root: Path,
+    command_runner: Callable[..., None] = run_checked,
+    snapshot_preparer: Callable[[Path, Path], None] = prepare_candidate_snapshot,
+    port_selector: Callable[[], int] = select_loopback_port,
+) -> None:
+    with tempfile.TemporaryDirectory(prefix="faa-affected-roadmap-") as directory:
+        snapshot = Path(directory) / "candidate"
+        snapshot_preparer(root, snapshot)
+        config = (
+            snapshot
+            / "apps"
+            / "web"
+            / "tests"
+            / "browser"
+            / "roadmap-review.config.ts"
+        )
+        source = config.read_text(encoding="utf-8")
+        if source.count("8765") != 3:
+            raise RuntimeError(
+                "The roadmap review config no longer has the expected isolated-port seam."
+            )
+        config.write_text(
+            source.replace("8765", str(port_selector())),
+            encoding="utf-8",
+        )
+        command_runner(
+            npm_command(
+                runtime,
+                snapshot,
+                "exec",
+                "--",
+                "playwright",
+                "test",
+                "--config",
+                "apps/web/tests/browser/roadmap-review.config.ts",
+                "apps/web/tests/browser/roadmap-review",
+            ),
+            root=snapshot,
+        )
 
 
 def run_build_in_snapshot(
@@ -202,6 +254,7 @@ def execute(
     command_runner: Callable[..., None] = run_checked,
     version_reader: Callable[..., str] = capture,
     snapshot_preparer: Callable[[Path, Path], None] = prepare_candidate_snapshot,
+    port_selector: Callable[[], int] = select_loopback_port,
 ) -> None:
     runtime = resolve_runtime(environment)
     require_versions(runtime, root=root, version_reader=version_reader)
@@ -220,17 +273,6 @@ def execute(
             "--",
             *MOCKED_BROWSER_SUITES,
         ),
-        "roadmap": npm_command(
-            runtime,
-            root,
-            "exec",
-            "--",
-            "playwright",
-            "test",
-            "--config",
-            "tests/browser/roadmap-review.config.ts",
-            "apps/web/tests/browser/roadmap-review",
-        ),
     }
     if mode == "build":
         run_build_in_snapshot(
@@ -246,6 +288,15 @@ def execute(
             root=root,
             command_runner=command_runner,
             snapshot_preparer=snapshot_preparer,
+        )
+        return
+    if mode == "roadmap":
+        run_roadmap_in_snapshot(
+            runtime,
+            root=root,
+            command_runner=command_runner,
+            snapshot_preparer=snapshot_preparer,
+            port_selector=port_selector,
         )
         return
     if mode == "local-scripts":

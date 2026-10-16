@@ -10,7 +10,7 @@ capability: CAP-0002
 depends_on: ["WRK-0012"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0067-cover-web-and-live-affected-verification.md"]
+write_scope: ["apps/web/tests/browser/roadmap-review/roadmap-review.e2e.ts", "dev-tools/control-plane/README.md", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0067-cover-web-and-live-affected-verification.md"]
 generated_artifacts: []
 base_revision: d98fb06d5370358c02b0cc7840feb7cae5e3cf68
 claim_id: WRK-0067:47dd5928-895f-43cd-a3e2-1eb258efe3ff
@@ -61,6 +61,9 @@ approved-lesson runner before editing.
 - Classify first-class web build, generated-client, mocked-browser,
   roadmap-review, local-runtime, local-script, and documentation paths without
   routing documentation-only or Python-only changes through unrelated checks.
+- Keep the roadmap-review hierarchy browser fixture aligned with current
+  dynamic planning data so the newly selected behavior check proves both
+  refined and honestly unrefined routes.
 - Add bounded isolated build/live wrappers with deterministic tests for
   absent, present, unexpected, linked, and concurrently changing worktree
   build paths plus failing subprocesses.
@@ -81,6 +84,7 @@ evidence reuse, approval topology, or any arbitrary command surface.
 | Repository check adapter | catalog definitions and path patterns | `financial_academy_checks.py` | Select real web/live evidence for affected paths |
 | Composed live check | development/runtime prerequisites and current runner | `check_approved_lesson.py` | Build and restore exact tracked static input around the existing runner |
 | Anti-rigidity evidence | selector and wrapper tests | `test_verification.py` | Prove precision, cleanup, and failure behavior |
+| Roadmap browser fixture | current dynamic plan routes and honest missing states | `roadmap-review.e2e.ts` | Keep the newly selected real behavior check executable without weakening assertions |
 | Operator reference | affected-verification guidance | control-plane README | Explain selection and prerequisites |
 | Planning lineage | completed parent slice, packet, register | named planning files | Preserve a bounded descendant correction |
 
@@ -137,3 +141,9 @@ verification contracts did not change.
   snapshot instead of a broader generated-output claim; these are bounded
   correctness and anti-rigidity refinements within the same routed adapter
   scope.
+- 2026-10-16: R02 review and a real roadmap-mode probe found an invalid config
+  path, a predictable collision with an open review site, and a stale dynamic
+  roadmap expectation. The same bounded correction now runs roadmap Chromium
+  from an isolated ephemeral-port snapshot and refreshes the fixture to assert
+  one current governed capability, one refined slice, and one honestly
+  unrefined declared slice.
