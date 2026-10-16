@@ -1,7 +1,7 @@
 ---
 id: WRK-0077
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -161,3 +161,7 @@ readiness, assumptions, JIT-C work, and any cosmetic issue deferred to CAP-0031.
 - 2026-10-16: Refined SLI-0124 JIT-B around knowledge-check result/recovery,
   saved completion, accessible complete technical records, flexible semantic
   evidence, and unchanged Assessment/Learner-model authority.
+- 2026-10-16: Submitted exact implementation candidate
+  `9eedd397616dcc93ae3eedd821b14fb20e684cca` after focused component,
+  typecheck, lint, design, planning, documentation, whitespace, and aggregate-
+  readiness checks passed.
