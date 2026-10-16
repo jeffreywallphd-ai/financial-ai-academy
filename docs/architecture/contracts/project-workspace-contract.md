@@ -147,6 +147,13 @@ commits the next aggregate plus any opaque artifact reference in one
 transaction. Exact retry returns the original accepted workspace; changed key
 reuse and stale revision fail without overwrite.
 
+Opening a Project with no stored workspace returns a deterministic empty
+revision-one view without writing durable state. The first authorized mutation
+or snapshot close initializes that exact view inside the write path, then
+rechecks its expected revision before acceptance. GET therefore remains a
+read-only operation, while every workspace-creating path retains write
+permission and same-origin protection.
+
 Artifact bytes are staged, verified by exact byte count and SHA-256, finalized
 under a domain-separated content-addressed object key, and only then referenced
 by Project metadata. A metadata failure may leave an unreferenced immutable
@@ -154,6 +161,9 @@ object for bounded reconciliation but cannot expose a partial live manifest.
 Downloads recheck stored metadata and bytes and use attachment, `nosniff`, and
 integrity headers. No download path invokes an interpreter, active renderer,
 network client, package manager, secret source, or provider.
+The same byte-integrity check runs before an idempotent upload replay can return
+the previously accepted workspace; a changed byte string cannot be treated as
+an exact retry merely because its manifest and key match.
 
 `project.project_snapshots` stores the immutable snapshot document and the exact
 workspace document it closes. A transaction lock confirms the expected live

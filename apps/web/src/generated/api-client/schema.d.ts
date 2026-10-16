@@ -935,6 +935,12 @@ export interface components {
       readonly "provenance": components["schemas"]["ArtifactProvenanceModel"];
       readonly "result_classification"?: "observed" | "calculated" | "simulated" | "predicted" | "generated" | "narrative" | null;
     };
+    readonly "ProjectArtifactMutationRequestModel": {
+      readonly "expected_workspace_revision": number;
+      readonly "idempotency_key": string;
+      readonly "mutation": components["schemas"]["AddProjectArtifactModel"];
+      readonly "schema_version": "1.0.0";
+    };
     readonly "ProjectArtifactReferenceModel": {
       readonly "artifact_id": string;
       readonly "artifact_version": number;
@@ -959,7 +965,7 @@ export interface components {
     };
     readonly "ProjectArtifactUploadRequestModel": {
       readonly "content_base64": string;
-      readonly "intent": components["schemas"]["ProjectWorkspaceMutationRequestModel"];
+      readonly "intent": components["schemas"]["ProjectArtifactMutationRequestModel"];
     };
     readonly "ProjectCreateRequestModel": {
       readonly "charter": string;
@@ -1101,7 +1107,7 @@ export interface components {
     readonly "ProjectWorkspaceMutationRequestModel": {
       readonly "expected_workspace_revision": number;
       readonly "idempotency_key": string;
-      readonly "mutation": components["schemas"]["AddProjectNoteModel"] | components["schemas"]["ReplaceProjectNoteModel"] | components["schemas"]["AddProjectReferenceModel"] | components["schemas"]["ReplaceProjectReferenceModel"] | components["schemas"]["AddProjectArtifactModel"] | components["schemas"]["AddProjectDomainLinkModel"] | components["schemas"]["RemoveProjectDomainLinkModel"];
+      readonly "mutation": components["schemas"]["AddProjectNoteModel"] | components["schemas"]["ReplaceProjectNoteModel"] | components["schemas"]["AddProjectReferenceModel"] | components["schemas"]["ReplaceProjectReferenceModel"] | components["schemas"]["AddProjectDomainLinkModel"] | components["schemas"]["RemoveProjectDomainLinkModel"];
       readonly "schema_version": "1.0.0";
     };
     readonly "ProjectWorkspaceResponseModel": {

@@ -10,7 +10,7 @@ capability: CAP-0007
 depends_on: [WRK-0118]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client", "apps/web/tests/contract", "backend/migrations/project", "backend/migrations/README.md", "backend/src/financial_ai_academy/bootstrap", "backend/src/financial_ai_academy/hosts", "backend/src/financial_ai_academy/modules/identity", "backend/src/financial_ai_academy/modules/project", "backend/tests/architecture", "backend/tests/integration/api", "backend/tests/integration/project", "backend/tests/unit/identity", "backend/tests/unit/project", "backend/tests/unit/test_bootstrap_settings.py", "contracts/api", "deployments/local", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/assurance/known-verification-gaps.md", "docs/operations/local-development.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0119-deliver-project-workspace-persistence-public-api.md"]
+write_scope: ["apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client", "apps/web/tests/contract", "backend/migrations/project", "backend/migrations/README.md", "backend/src/financial_ai_academy/bootstrap", "backend/src/financial_ai_academy/hosts", "backend/src/financial_ai_academy/modules/identity", "backend/src/financial_ai_academy/modules/project", "backend/tests/architecture", "backend/tests/integration/api", "backend/tests/integration/project", "backend/tests/unit/identity", "backend/tests/unit/project", "backend/tests/unit/test_bootstrap_settings.py", "contracts/api", "deployments/local", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/assurance/known-verification-gaps.md", "docs/operations/local-development.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0119-deliver-project-workspace-persistence-public-api.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
 base_revision: 7403e3d5f4624cf3e6c706d7240994a56c5b710b
 claim_id: WRK-0119:c3f655b1-e7f7-4513-9dcf-93de2f1c7403
@@ -269,3 +269,7 @@ separate AI mode, or autonomous authority was added.
 - 2026-10-16: Incrementally included Identity permission regression tests after
   the API write boundary required the new `project.write` permission to be
   verified with its existing permission set. Product scope is unchanged.
+- 2026-10-16: Incrementally included the canonical contract-architecture index
+  after independent review found its Project-contract status stale. This is
+  documentation reconciliation inside the accepted API and contract boundary,
+  not a change to product scope.

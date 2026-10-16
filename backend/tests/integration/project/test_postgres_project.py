@@ -31,6 +31,8 @@ from financial_ai_academy.modules.project.public import (
     CreateProjectRequest,
     MutateProjectWorkspaceRequest,
     OpenProjectWorkspaceRequest,
+    ProjectError,
+    ProjectErrorCode,
 )
 from financial_ai_academy.modules.project.ports.repositories import (
     ProjectIdempotencyConflict,
@@ -225,6 +227,7 @@ def test_workspace_and_snapshot_survive_repository_restart() -> None:
     opened = service.open_workspace(
         OpenProjectWorkspaceRequest("learner-1", created.project_id)
     )
+    assert selected.get_workspace("learner-1", created.project_id) is None
     changed = service.mutate_workspace(
         MutateProjectWorkspaceRequest(
             "learner-1",
@@ -273,6 +276,150 @@ def test_workspace_and_snapshot_survive_repository_restart() -> None:
             ),
         )
     ) == snapshot
+
+
+def test_concurrent_workspace_mutations_allow_one_revision_winner_and_replay() -> None:
+    creator = ProjectService(
+        repository(),
+        ContractProjectAdapter(SCHEMAS),
+        UnusedGateway(),
+        UnusedGateway(),
+        Clock(),
+        Identifiers(),
+    )
+    created = creator.create_project(
+        CreateProjectRequest(
+            "learner-1",
+            ProjectCreateIntent(
+                "1.0.0",
+                "workspace-race-create",
+                "Concurrent Project",
+                "Keep one accepted revision without overwriting work.",
+                IndependentProjectOrigin(),
+            ),
+        )
+    )
+
+    def mutate(number: int):
+        subject = ProjectService(
+            repository(),
+            ContractProjectAdapter(SCHEMAS),
+            UnusedGateway(),
+            UnusedGateway(),
+            Clock(),
+            Identifiers(),
+        )
+        request = MutateProjectWorkspaceRequest(
+            "learner-1",
+            created.project_id,
+            WorkspaceMutationIntent(
+                "1.0.0",
+                f"workspace-race-{number}",
+                1,
+                AddNoteMutation(f"Note {number}", f"Body {number}"),
+            ),
+        )
+        try:
+            return request, subject.mutate_workspace(request), None
+        except ProjectError as error:
+            return request, None, error.code
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = tuple(executor.map(mutate, (1, 2)))
+
+    accepted = [result for result in results if result[1] is not None]
+    rejected = [result for result in results if result[2] is not None]
+    assert len(accepted) == len(rejected) == 1
+    assert rejected[0][2] is ProjectErrorCode.STALE_REVISION
+    assert creator.mutate_workspace(accepted[0][0]) == accepted[0][1]
+    assert repository().get_workspace(
+        "learner-1", created.project_id
+    ) == accepted[0][1]
+
+
+def test_workspace_down_migration_refuses_all_retained_workspace_records() -> None:
+    assert POSTGRES_DSN is not None
+    selected = repository()
+    subject = ProjectService(
+        selected,
+        ContractProjectAdapter(SCHEMAS),
+        UnusedGateway(),
+        UnusedGateway(),
+        Clock(),
+        Identifiers(),
+    )
+    created = subject.create_project(
+        CreateProjectRequest(
+            "learner-1",
+            ProjectCreateIntent(
+                "1.0.0",
+                "retained-workspace-create",
+                "Retained workspace",
+                "Prove that retained workspace evidence blocks rollback.",
+                IndependentProjectOrigin(),
+            ),
+        )
+    )
+    changed = subject.mutate_workspace(
+        MutateProjectWorkspaceRequest(
+            "learner-1",
+            created.project_id,
+            WorkspaceMutationIntent(
+                "1.0.0",
+                "retained-workspace-note",
+                1,
+                AddNoteMutation("Retained", "Keep this exact record."),
+            ),
+        )
+    )
+    subject.close_snapshot(
+        CloseProjectSnapshotRequest(
+            "learner-1",
+            created.project_id,
+            ProjectSnapshotCloseIntent(
+                "1.0.0",
+                "retained-workspace-snapshot",
+                created.revision,
+                changed.workspace_revision,
+            ),
+        )
+    )
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            """
+            INSERT INTO project.project_artifact_objects (
+                learner_id, project_id, artifact_id, artifact_version,
+                object_key, content_digest, byte_count
+            ) VALUES (%s, %s, %s, 1, %s, %s, 0)
+            """,
+            (
+                "learner-1",
+                created.project_id,
+                "retained-artifact",
+                f"{'a' * 2}/{'a' * 64}",
+                "b" * 64,
+            ),
+        )
+    workspace_down = (
+        MIGRATIONS / "project/project_0002_workspace_snapshots.down.sql"
+    ).read_text(encoding="utf-8")
+
+    with pytest.raises(psycopg.Error):
+        with psycopg.connect(POSTGRES_DSN) as connection:
+            connection.execute(workspace_down)
+
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        counts = tuple(
+            connection.execute(f"SELECT count(*) FROM project.{table}")
+            .fetchone()[0]
+            for table in (
+                "project_workspaces",
+                "project_workspace_mutations",
+                "project_artifact_objects",
+                "project_snapshots",
+            )
+        )
+    assert counts == (1, 1, 1, 1)
 
 
 def test_down_migration_refuses_retained_project_rows() -> None:

@@ -476,6 +476,9 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
         base_url=ORIGIN,
         backend_options={"loop_factory": asyncio.SelectorEventLoop},
     ) as subject:
+        unauthorized_workspace = subject.get(
+            "/api/v1/projects/project-guess/workspace"
+        )
         bootstrapped = subject.post(
             "/api/v1/session/single-profile",
             headers=headers(),
@@ -490,6 +493,23 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
         project_id = independent.json()["project_id"]
         workspace = subject.get(
             f"/api/v1/projects/{project_id}/workspace"
+        )
+        with psycopg.connect(POSTGRES_DSN) as connection:
+            workspace_rows_after_get = connection.execute(
+                "SELECT count(*) FROM project.project_workspaces"
+            ).fetchone()[0]
+        missing_origin = subject.post(
+            f"/api/v1/projects/{project_id}/workspace/mutations",
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "api-note-without-origin",
+                "expected_workspace_revision": 1,
+                "mutation": {
+                    "operation": "add_note",
+                    "title": "Unprotected",
+                    "body": "This request must not be accepted.",
+                },
+            },
         )
         note = subject.post(
             f"/api/v1/projects/{project_id}/workspace/mutations",
@@ -506,6 +526,53 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
             },
         )
         artifact_content = b"scenario,value\nbase,1\n"
+        artifact_mutation = {
+            "operation": "add_artifact",
+            "artifact": {
+                "artifact_kind": "dataset",
+                "logical_path": "data/scenario.csv",
+                "media_type": "text/csv",
+                "inspection_mode": "plain_text",
+                "byte_count": len(artifact_content),
+                "content_digest": hashlib.sha256(
+                    artifact_content
+                ).hexdigest(),
+                "provenance": {
+                    "source_type": "learner_created",
+                    "source_title": "API scenario",
+                },
+                "assumptions": [],
+            },
+        }
+        artifact_on_mutation_route = subject.post(
+            f"/api/v1/projects/{project_id}/workspace/mutations",
+            headers=headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "api-artifact-wrong-route",
+                "expected_workspace_revision": 2,
+                "mutation": artifact_mutation,
+            },
+        )
+        note_on_artifact_route = subject.post(
+            f"/api/v1/projects/{project_id}/artifacts",
+            headers=headers(),
+            json={
+                "intent": {
+                    "schema_version": "1.0.0",
+                    "idempotency_key": "api-note-wrong-route",
+                    "expected_workspace_revision": 2,
+                    "mutation": {
+                        "operation": "add_note",
+                        "title": "Wrong route",
+                        "body": "This is not an artifact.",
+                    },
+                },
+                "content_base64": base64.b64encode(
+                    artifact_content
+                ).decode("ascii"),
+            },
+        )
         artifact = subject.post(
             f"/api/v1/projects/{project_id}/artifacts",
             headers=headers(),
@@ -514,28 +581,40 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
                     "schema_version": "1.0.0",
                     "idempotency_key": "api-artifact-1",
                     "expected_workspace_revision": 2,
-                    "mutation": {
-                        "operation": "add_artifact",
-                        "artifact": {
-                            "artifact_kind": "dataset",
-                            "logical_path": "data/scenario.csv",
-                            "media_type": "text/csv",
-                            "inspection_mode": "plain_text",
-                            "byte_count": len(artifact_content),
-                            "content_digest": hashlib.sha256(
-                                artifact_content
-                            ).hexdigest(),
-                            "provenance": {
-                                "source_type": "learner_created",
-                                "source_title": "API scenario",
-                            },
-                            "assumptions": [],
-                        },
-                    },
+                    "mutation": artifact_mutation,
                 },
                 "content_base64": base64.b64encode(
                     artifact_content
                 ).decode("ascii"),
+            },
+        )
+        altered_replay = subject.post(
+            f"/api/v1/projects/{project_id}/artifacts",
+            headers=headers(),
+            json={
+                "intent": {
+                    "schema_version": "1.0.0",
+                    "idempotency_key": "api-artifact-1",
+                    "expected_workspace_revision": 2,
+                    "mutation": artifact_mutation,
+                },
+                "content_base64": base64.b64encode(
+                    b"altered artifact bytes"
+                ).decode("ascii"),
+            },
+        )
+        stale_note = subject.post(
+            f"/api/v1/projects/{project_id}/workspace/mutations",
+            headers=headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "api-stale-note",
+                "expected_workspace_revision": 2,
+                "mutation": {
+                    "operation": "add_note",
+                    "title": "Stale",
+                    "body": "This must not overwrite the artifact revision.",
+                },
             },
         )
         artifact_record = artifact.json()["artifacts"][0]
@@ -578,12 +657,22 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
     assert start_options.status_code == 200
     assert start_options.json()["records"] == [start_option.json()]
     assert independent.status_code == learning.status_code == 200
+    assert unauthorized_workspace.status_code == 401
     assert workspace.status_code == note.status_code == artifact.status_code == 200
+    assert workspace_rows_after_get == 0
+    assert missing_origin.status_code == 403
+    assert artifact_on_mutation_route.status_code == 400
+    assert note_on_artifact_route.status_code == 400
+    assert altered_replay.status_code == 503
+    assert altered_replay.json()["code"] == "integrity_failure"
+    assert stale_note.status_code == 409
     assert download.status_code == snapshot.status_code == export.status_code == 200
     assert download.content == artifact_content
     assert download.headers["content-disposition"].startswith("attachment")
     assert download.headers["x-content-type-options"] == "nosniff"
     assert download.headers["x-artifact-media-type"] == "text/csv"
+    assert "object_key" not in artifact.text
+    assert "storage" not in artifact.text
     assert export.json()["files"][0]["content_base64"] == base64.b64encode(
         artifact_content
     ).decode("ascii")

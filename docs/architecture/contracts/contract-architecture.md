@@ -46,17 +46,22 @@ depend on versioned job operations and canonical at-least-once state meaning,
 not PostgreSQL rows, future broker receipts, or provider job payloads.
 
 Reusable project records additionally follow
-[ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md). Exact schemas will
-separate the mutable Project workspace, immutable digest-bound snapshots,
-Assessment submissions by snapshot reference, and typed references to
-independently owned learning and domain resources. A project-domain link never
-transfers the referenced aggregate's authority to Project.
-The first additive executable family now fixes a Content-owned immutable
-learning-project brief, a Project-owned closed independent-or-learning create
-intent, and a learner-safe active Project shell. Learning origin retains exact
-package, brief, Curriculum, and placement versions and digests. The schemas do
-not yet establish package admission, placement, persistence, HTTP, artifacts,
-snapshots, submissions, or domain links.
+[ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md). The additive
+executable family separates the mutable Project workspace, immutable digest-
+bound snapshots, and typed references to independently owned learning and
+domain resources. A project-domain link never transfers the referenced
+aggregate's authority to Project. Content-owned learning briefs and Project-
+owned origins retain exact package, brief, Curriculum, and placement versions
+and digests.
+
+The Project seam now establishes its shell, workspace, inert-artifact manifest,
+snapshot, evidence-export, PostgreSQL persistence, protected HTTP, reviewed
+OpenAPI, and generated-client contracts. Workspace reads are side-effect free;
+the first authorized mutation or snapshot close creates the empty revision-one
+workspace when needed. Artifact upload has its own request shape and validates
+the supplied bytes before either acceptance or idempotent replay. Assessment
+submission by snapshot reference and production domain-owner adapters remain
+separate later seams.
 
 Portable financial methods, portfolio records, and simulation results
 additionally follow

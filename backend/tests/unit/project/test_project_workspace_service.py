@@ -232,6 +232,11 @@ class MemoryObjects:
         return self.objects[object_key]
 
 
+class FailingFinalizeObjects(MemoryObjects):
+    def finalize(self, staged: StagedProjectObject) -> None:
+        raise OSError("simulated finalize interruption")
+
+
 class Clock:
     def __init__(self) -> None:
         self.tick = 0
@@ -293,11 +298,12 @@ def intent(key: str, revision: int, mutation) -> WorkspaceMutationIntent:
 
 
 def test_workspace_artifact_snapshot_and_export_are_one_headless_core() -> None:
-    subject, _repository, _objects = service()
+    subject, repository, _objects = service()
     shell = create(subject)
     opened = subject.open_workspace(
         OpenProjectWorkspaceRequest("learner-1", shell.project_id)
     )
+    assert repository.workspaces == {}
     noted = subject.mutate_workspace(
         MutateProjectWorkspaceRequest(
             "learner-1",
@@ -371,6 +377,97 @@ def test_workspace_artifact_snapshot_and_export_are_one_headless_core() -> None:
     assert continued.workspace_revision == 4
     assert exported.manifest.export.workspace_record.workspace_revision == 3
     assert exported.files[0].content == content
+
+
+def test_artifact_replay_revalidates_bytes_before_returning_accepted_work() -> None:
+    subject, repository, objects = service()
+    shell = create(subject)
+    content = b"accepted bytes"
+    artifact = ProjectArtifactInput(
+        ArtifactKind.SUPPORTING_FILE,
+        "evidence.txt",
+        "text/plain",
+        InspectionMode.PLAIN_TEXT,
+        len(content),
+        hashlib.sha256(content).hexdigest(),
+        None,
+        ArtifactProvenance(
+            ProvenanceSourceType.LEARNER_CREATED, "Replay evidence"
+        ),
+        None,
+        (),
+    )
+    request = UploadProjectArtifactRequest(
+        "learner-1",
+        shell.project_id,
+        intent("artifact-replay", 1, AddArtifactMutation(artifact)),
+        content,
+    )
+    accepted = subject.upload_artifact(request)
+
+    assert subject.upload_artifact(request) == accepted
+    with pytest.raises(ProjectError) as changed_bytes:
+        subject.upload_artifact(
+            UploadProjectArtifactRequest(
+                request.learner_id,
+                request.project_id,
+                request.intent,
+                b"altered bytes!",
+            )
+        )
+
+    assert changed_bytes.value.code is ProjectErrorCode.INTEGRITY_FAILURE
+    assert repository.workspaces[("learner-1", shell.project_id)] == accepted
+    assert len(objects.objects) == 1
+
+
+def test_interrupted_artifact_finalize_exposes_no_workspace_manifest() -> None:
+    repository = MemoryRepository()
+    objects = FailingFinalizeObjects()
+    subject = ProjectService(
+        repository,
+        ContractProjectAdapter(ROOT / "contracts/learning/project/v1"),
+        UnusedGateway(),
+        UnusedGateway(),
+        Clock(),
+        Identifiers(),
+        objects,
+    )
+    shell = create(subject)
+    content = b"bounded evidence"
+    artifact = ProjectArtifactInput(
+        ArtifactKind.SUPPORTING_FILE,
+        "evidence.txt",
+        "text/plain",
+        InspectionMode.PLAIN_TEXT,
+        len(content),
+        hashlib.sha256(content).hexdigest(),
+        None,
+        ArtifactProvenance(
+            ProvenanceSourceType.LEARNER_CREATED, "Interrupted evidence"
+        ),
+        None,
+        (),
+    )
+
+    with pytest.raises(ProjectError) as interrupted:
+        subject.upload_artifact(
+            UploadProjectArtifactRequest(
+                "learner-1",
+                shell.project_id,
+                intent("artifact-interrupted", 1, AddArtifactMutation(artifact)),
+                content,
+            )
+        )
+
+    assert interrupted.value.code is ProjectErrorCode.UNAVAILABLE
+    assert subject.open_workspace(
+        OpenProjectWorkspaceRequest("learner-1", shell.project_id)
+    ).artifacts == ()
+    assert repository.mutations == {}
+    assert repository.artifacts == {}
+    assert objects.staged == {}
+    assert objects.objects == {}
 
 
 def test_exact_replay_stale_revision_and_changed_key_fail_without_overwrite() -> None:

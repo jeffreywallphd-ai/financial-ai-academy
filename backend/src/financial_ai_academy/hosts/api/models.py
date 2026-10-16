@@ -304,7 +304,6 @@ ProjectWorkspaceMutationModel = Annotated[
         ReplaceProjectNoteModel,
         AddProjectReferenceModel,
         ReplaceProjectReferenceModel,
-        AddProjectArtifactModel,
         AddProjectDomainLinkModel,
         RemoveProjectDomainLinkModel,
     ],
@@ -319,8 +318,15 @@ class ProjectWorkspaceMutationRequestModel(ApiModel):
     mutation: ProjectWorkspaceMutationModel
 
 
+class ProjectArtifactMutationRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: Identifier
+    expected_workspace_revision: int = Field(ge=1)
+    mutation: AddProjectArtifactModel
+
+
 class ProjectArtifactUploadRequestModel(ApiModel):
-    intent: ProjectWorkspaceMutationRequestModel
+    intent: ProjectArtifactMutationRequestModel
     content_base64: str = Field(max_length=13981016)
 
     @field_validator("content_base64")
@@ -2098,7 +2104,8 @@ def project_list_response(
 
 
 def project_workspace_mutation_intent(
-    value: ProjectWorkspaceMutationRequestModel,
+    value: ProjectWorkspaceMutationRequestModel
+    | ProjectArtifactMutationRequestModel,
 ) -> WorkspaceMutationIntent:
     mutation = value.mutation
     if isinstance(mutation, AddProjectNoteModel):

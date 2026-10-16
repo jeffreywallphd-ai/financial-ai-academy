@@ -63,6 +63,12 @@ overwrite work. Snapshots store the exact closed workspace record and remain
 unchanged while later live work continues. OpenAPI and the generated client
 give browser and headless consumers the same operations.
 
+An empty workspace read is a stable side-effect-free view derived from the
+Project shell. Only the first authorized mutation or snapshot close persists
+revision one, under the write boundary and after a second revision check.
+Artifact upload has a distinct public request type, and its exact bytes are
+verified before both first acceptance and idempotent replay.
+
 This seam does not yet render workspace UI or validate a production domain
 owner.
 The synthetic Portfolio-named fixture proves only that the provider-neutral

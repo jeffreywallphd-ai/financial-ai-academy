@@ -239,20 +239,17 @@ class ProjectService:
                 request.learner_id, request.project_id
             )
             if current is None:
-                now = self._clock.now()
-                current = self._repository.get_or_create_workspace(
-                    ProjectWorkspace(
-                        schema_version="1.0.0",
-                        project_id=shell.project_id,
-                        learner_id=shell.learner_id,
-                        workspace_revision=1,
-                        notes=(),
-                        references=(),
-                        artifacts=(),
-                        domain_links=(),
-                        created_at=now,
-                        updated_at=now,
-                    )
+                current = ProjectWorkspace(
+                    schema_version="1.0.0",
+                    project_id=shell.project_id,
+                    learner_id=shell.learner_id,
+                    workspace_revision=1,
+                    notes=(),
+                    references=(),
+                    artifacts=(),
+                    domain_links=(),
+                    created_at=shell.created_at,
+                    updated_at=shell.created_at,
                 )
             return self._revalidate_workspace(current)
         except ProjectError:
@@ -353,6 +350,9 @@ class ProjectService:
             )
             if shell.revision != intent.expected_project_revision:
                 raise self._stale(request.project_id)
+            if workspace.workspace_revision != intent.expected_workspace_revision:
+                raise self._stale(request.project_id)
+            workspace = self._repository.get_or_create_workspace(workspace)
             if workspace.workspace_revision != intent.expected_workspace_revision:
                 raise self._stale(request.project_id)
             material, material_document = self._snapshot_material(shell, workspace)
@@ -691,6 +691,15 @@ class ProjectService:
             self._contract.workspace_mutation_intent_document(intent)
         )
         try:
+            if isinstance(intent.mutation, AddArtifactMutation):
+                artifact = intent.mutation.artifact
+                if (
+                    content is None
+                    or len(content) != artifact.byte_count
+                    or hashlib.sha256(content).hexdigest()
+                    != artifact.content_digest
+                ):
+                    raise self._integrity("mutation.artifact.content_digest")
             replay = self._repository.get_workspace_mutation_replay(
                 learner_id, project_id, intent.idempotency_key
             )
@@ -704,6 +713,9 @@ class ProjectService:
             )
             if current.workspace_revision != intent.expected_workspace_revision:
                 raise self._stale(project_id)
+            current = self._repository.get_or_create_workspace(current)
+            if current.workspace_revision != intent.expected_workspace_revision:
+                raise self._stale(project_id)
             now = self._clock.now()
             candidate, artifact = self._apply_mutation(
                 current, intent, now, content=content
@@ -713,12 +725,6 @@ class ProjectService:
             if artifact is not None:
                 if self._object_storage is None or content is None:
                     raise self._unavailable(artifact.artifact_id)
-                if (
-                    len(content) != artifact.byte_count
-                    or hashlib.sha256(content).hexdigest()
-                    != artifact.content_digest
-                ):
-                    raise self._integrity(artifact.artifact_id)
                 storage_digest = hashlib.sha256(
                     b"project-artifact-v1\0" + content
                 ).hexdigest()

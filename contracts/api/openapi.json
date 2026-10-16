@@ -4799,6 +4799,39 @@
         "title": "ProjectArtifactInputModel",
         "type": "object"
       },
+      "ProjectArtifactMutationRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_workspace_revision": {
+            "minimum": 1.0,
+            "title": "Expected Workspace Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "mutation": {
+            "$ref": "#/components/schemas/AddProjectArtifactModel"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "idempotency_key",
+          "expected_workspace_revision",
+          "mutation"
+        ],
+        "title": "ProjectArtifactMutationRequestModel",
+        "type": "object"
+      },
       "ProjectArtifactReferenceModel": {
         "additionalProperties": false,
         "properties": {
@@ -4979,7 +5012,7 @@
             "type": "string"
           },
           "intent": {
-            "$ref": "#/components/schemas/ProjectWorkspaceMutationRequestModel"
+            "$ref": "#/components/schemas/ProjectArtifactMutationRequestModel"
           }
         },
         "required": [
@@ -5927,7 +5960,6 @@
           "mutation": {
             "discriminator": {
               "mapping": {
-                "add_artifact": "#/components/schemas/AddProjectArtifactModel",
                 "add_domain_link": "#/components/schemas/AddProjectDomainLinkModel",
                 "add_note": "#/components/schemas/AddProjectNoteModel",
                 "add_reference": "#/components/schemas/AddProjectReferenceModel",
@@ -5949,9 +5981,6 @@
               },
               {
                 "$ref": "#/components/schemas/ReplaceProjectReferenceModel"
-              },
-              {
-                "$ref": "#/components/schemas/AddProjectArtifactModel"
               },
               {
                 "$ref": "#/components/schemas/AddProjectDomainLinkModel"
