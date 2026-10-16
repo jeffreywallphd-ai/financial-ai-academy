@@ -106,6 +106,10 @@ function client({
     data: incompleteCompletion,
     response: new Response(null, { status: 200 }),
   },
+  presentationResponse = {
+    data: presentation,
+    response: new Response(null, { status: 200 }),
+  },
   post = vi.fn().mockResolvedValue({
     data: result,
     response: new Response(null, { status: 200 }),
@@ -113,6 +117,7 @@ function client({
 }: {
   completionError?: boolean;
   completionResponse?: ApiResult;
+  presentationResponse?: ApiResult;
   post?: ReturnType<typeof vi.fn>;
 } = {}) {
   const get = vi.fn().mockImplementation(async (path: string) => {
@@ -122,10 +127,7 @@ function client({
       }
       return completionResponse;
     }
-    return {
-      data: presentation,
-      response: new Response(null, { status: 200 }),
-    };
+    return presentationResponse;
   });
   return {
     api: {
@@ -190,13 +192,30 @@ describe("KnowledgeCheck", () => {
     const technicalDetails = technicalRecord.closest("details");
     expect(technicalDetails).toHaveAttribute("open");
     const technical = within(technicalDetails as HTMLElement);
+    expect(technical.getByText(result.schema_version)).toBeVisible();
+    expect(technical.getByText(result.placement_id)).toBeVisible();
     expect(
       technical.getByText(
         `${presentation.package_id} version ${presentation.package_version}`,
       ),
     ).toBeVisible();
     expect(technical.getByText(presentation.package_digest)).toBeVisible();
+    expect(
+      technical.getByText(
+        `${presentation.assessment_id} version ${presentation.assessment_version}`,
+      ),
+    ).toBeVisible();
     expect(technical.getByText(presentation.definition_digest)).toBeVisible();
+    expect(
+      technical.getByText(
+        `${presentation.item_id} version ${presentation.item_version}`,
+      ),
+    ).toBeVisible();
+    expect(
+      technical.getByText(
+        `${presentation.scoring_policy_id} version ${presentation.scoring_policy_version}`,
+      ),
+    ).toBeVisible();
     expect(technical.getByText(result.attempt_id)).toBeVisible();
     expect(technical.getByText(result.evidence_id)).toBeVisible();
     expect(technical.getByText(result.submission_id)).toBeVisible();
@@ -207,6 +226,79 @@ describe("KnowledgeCheck", () => {
       "higher-potential-higher-uncertainty",
     );
     expect(request.body.learner_id).toBeUndefined();
+  });
+
+  it("keeps incorrect reviewed feedback distinct from mastery", async () => {
+    const user = userEvent.setup();
+    const incorrectResult = {
+      ...result,
+      correct: false,
+      score: 0,
+      feedback: {
+        feedback_id: "risk-return-review",
+        text: "Review how uncertainty relates to potential return.",
+      },
+    };
+    const { api } = client({
+      post: vi.fn().mockResolvedValue({
+        data: incorrectResult,
+        response: new Response(null, { status: 200 }),
+      }),
+    });
+    render(
+      <KnowledgeCheck
+        client={api}
+        placementId="intro-risk-return-check"
+      />,
+    );
+
+    await user.click(
+      await screen.findByRole("radio", { name: /guarantees a higher return/i }),
+    );
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Review the concept" }),
+    ).toBeVisible();
+    expect(screen.getByText(incorrectResult.feedback.text)).toBeVisible();
+    expect(screen.getByText(/Score: 0 of 1/i)).toBeVisible();
+    expect(
+      screen.getByText(/does not show mastery or certification/i),
+    ).toBeVisible();
+  });
+
+  it.each([
+    {
+      name: "conflicting exact references",
+      status: 409,
+      message: /page no longer matches.*No new result was recorded/i,
+    },
+    {
+      name: "denied learner session",
+      status: 403,
+      message: /couldn't check your answer.*No result was recorded/i,
+    },
+  ])("explains $name without claiming a result", async ({ status, message }) => {
+    const user = userEvent.setup();
+    const post = vi.fn().mockResolvedValue({
+      response: new Response(null, { status }),
+    });
+    const { api } = client({ post });
+    render(
+      <KnowledgeCheck
+        client={api}
+        placementId="intro-risk-return-check"
+      />,
+    );
+
+    await user.click(
+      await screen.findByRole("radio", { name: /Higher potential return/i }),
+    );
+    await user.click(screen.getByRole("button", { name: "Check answer" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(message);
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("heading", { name: "Knowledge check complete" })).not.toBeInTheDocument();
   });
 
   it("reuses one submission identity for an unchanged safe retry", async () => {
@@ -270,12 +362,55 @@ describe("KnowledgeCheck", () => {
     for (const technicalRecord of technicalRecords) {
       await user.click(technicalRecord);
     }
-    expect(screen.getByText(completedCompletion.source_digest)).toBeVisible();
-    expect(screen.getByText(presentation.package_digest)).toBeVisible();
-    expect(screen.getByText(presentation.definition_digest)).toBeVisible();
-    expect(screen.getByText(completionEntry.event_id)).toBeVisible();
-    expect(screen.getByText(completionEntry.attempt_id)).toBeVisible();
-    expect(screen.getByText(completionEntry.evidence_id)).toBeVisible();
+    const completionTechnical = within(
+      technicalRecords[0]!.closest("details") as HTMLElement,
+    );
+    expect(
+      completionTechnical.getByText(completedCompletion.projection_version),
+    ).toBeVisible();
+    expect(
+      completionTechnical.getByText(completedCompletion.placement_id),
+    ).toBeVisible();
+    expect(
+      completionTechnical.getByText(completedCompletion.completion_meaning),
+    ).toBeVisible();
+    expect(
+      completionTechnical.getByText(completedCompletion.rebuilt_at),
+    ).toBeVisible();
+    expect(
+      completionTechnical.getByText(completedCompletion.source_digest),
+    ).toBeVisible();
+    const resultTechnical = within(
+      technicalRecords[1]!.closest("details") as HTMLElement,
+    );
+    expect(
+      resultTechnical.getByText(
+        `${completionEntry.package_id} version ${completionEntry.package_version}`,
+      ),
+    ).toBeVisible();
+    expect(resultTechnical.getByText(completionEntry.package_digest)).toBeVisible();
+    expect(
+      resultTechnical.getByText(
+        `${completionEntry.assessment_id} version ${completionEntry.assessment_version}`,
+      ),
+    ).toBeVisible();
+    expect(
+      resultTechnical.getByText(completionEntry.definition_digest),
+    ).toBeVisible();
+    expect(
+      resultTechnical.getByText(
+        `${completionEntry.item_id} version ${completionEntry.item_version}`,
+      ),
+    ).toBeVisible();
+    expect(
+      resultTechnical.getByText(
+        `${completionEntry.scoring_policy_id} version ${completionEntry.scoring_policy_version}`,
+      ),
+    ).toBeVisible();
+    expect(resultTechnical.getByText(completionEntry.completed_at)).toBeVisible();
+    expect(resultTechnical.getByText(completionEntry.event_id)).toBeVisible();
+    expect(resultTechnical.getByText(completionEntry.attempt_id)).toBeVisible();
+    expect(resultTechnical.getByText(completionEntry.evidence_id)).toBeVisible();
     expect(screen.getByText(/not a mastery or certification/i)).toBeVisible();
     expect(screen.getByText(/does not provide investment advice/i)).toBeVisible();
     expect(screen.queryAllByRole("radio")).toHaveLength(0);
@@ -375,5 +510,46 @@ describe("KnowledgeCheck", () => {
     expect(screen.getByText(message)).toBeVisible();
     expect(screen.queryAllByRole("radio")).toHaveLength(0);
     expect(get).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    {
+      name: "denied",
+      response: { response: new Response(null, { status: 403 }) },
+      message: /couldn't open this knowledge check with your learner session/i,
+    },
+    {
+      name: "malformed",
+      response: {
+        data: { ...presentation, options: [] },
+        response: new Response(null, { status: 200 }),
+      },
+      message: /couldn't safely show this knowledge check/i,
+    },
+    {
+      name: "unavailable",
+      response: { response: new Response(null, { status: 503 }) },
+      message: /couldn't open this knowledge check right now/i,
+    },
+  ])("fails closed when the knowledge check is $name", async ({
+    message,
+    response,
+  }) => {
+    const { api, get } = client({ presentationResponse: response });
+    render(
+      <KnowledgeCheck
+        client={api}
+        placementId="intro-risk-return-check"
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Knowledge check unavailable",
+      }),
+    ).toBeVisible();
+    expect(screen.getByText(message)).toBeVisible();
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    expect(get).toHaveBeenCalledTimes(2);
   });
 });
