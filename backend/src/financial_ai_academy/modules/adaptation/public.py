@@ -54,12 +54,6 @@ class AdaptationOperations(Protocol):
         request: OpenNavigationStateRequest,
     ) -> NavigationStateProjection: ...
 
-    def resolve_activity_launch(
-        self,
-        request: ResolveActivityLaunchRequest,
-    ) -> ActivityLaunchResolution: ...
-
-
 __all__ = [
     "ActivityNavigationState",
     "ActivityLaunchError",

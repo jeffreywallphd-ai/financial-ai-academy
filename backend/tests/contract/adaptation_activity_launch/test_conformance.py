@@ -80,6 +80,8 @@ def test_schema_is_closed_valid_draft_2020_12() -> None:
     assert list(Draft202012Validator(schema).iter_errors(approved)) == []
     extended = {**approved, "learner_id": "private"}
     assert list(Draft202012Validator(schema).iter_errors(extended))
+    prerelease = {**approved, "package_version": "1.0.0-beta.1"}
+    assert list(Draft202012Validator(schema).iter_errors(prerelease)) == []
 
 
 def test_approved_launch_matches_graph_navigation_and_public_policy() -> None:
@@ -121,6 +123,7 @@ def test_denial_corpus_names_all_required_bounded_refusals() -> None:
         ("assessment", "adaptation_activity_launch.unsupported_activity"),
         ("context", "adaptation_activity_launch.context_mismatch"),
         ("digest", "adaptation_activity_launch.navigation_mismatch"),
+        ("fabricated", "adaptation_activity_launch.navigation_mismatch"),
     ],
 )
 def test_denials_are_deterministic_and_sanitized(mutation: str, expected_code: str) -> None:
@@ -137,6 +140,12 @@ def test_denials_are_deterministic_and_sanitized(mutation: str, expected_code: s
         launch["activity_id"] = "activity-risk-return-check"
     elif mutation == "context":
         launch["curriculum_version"] = "2.0.0"
+    elif mutation == "fabricated":
+        navigation["activity_states"][0]["eligibility"] = "fabricated"
+        navigation["projection_digest"] = projection_digest(navigation)
+        launch["navigation_projection_digest"] = navigation[
+            "projection_digest"
+        ]
     else:
         navigation["projection_digest"] = "f" * 64
     with pytest.raises(ConformanceFailure) as captured:

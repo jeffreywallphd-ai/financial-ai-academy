@@ -112,8 +112,16 @@ def projection_digest(projection: Mapping[str, Any]) -> str:
 class ActivityLaunchContractValidator:
     def __init__(self, schema_path: Path | None = None) -> None:
         self.schema = load_json(schema_path or default_schema_path())
+        self.navigation_schema = load_json(
+            (schema_path or default_schema_path()).parent
+            / "navigation-state.schema.json"
+        )
         Draft202012Validator.check_schema(self.schema)
+        Draft202012Validator.check_schema(self.navigation_schema)
         self._validator = Draft202012Validator(self.schema)
+        self._navigation_validator = Draft202012Validator(
+            self.navigation_schema
+        )
 
     def validate(
         self,
@@ -127,6 +135,12 @@ class ActivityLaunchContractValidator:
                 "schema_version",
                 "Activity launch version is unsupported.",
             )
+        if navigation.get("schema_version") != SUPPORTED_VERSION:
+            reject(
+                "adaptation_activity_launch.navigation_mismatch",
+                "navigation-state",
+                "Activity launch navigation state does not match.",
+            )
         error = next(iter(self._validator.iter_errors(launch)), None)
         if error is not None:
             reference = ".".join(str(part) for part in error.absolute_path)
@@ -134,6 +148,18 @@ class ActivityLaunchContractValidator:
                 "adaptation_activity_launch.schema_invalid",
                 reference or "activity-launch",
                 "Activity launch record is malformed.",
+            )
+        navigation_error = next(
+            iter(self._navigation_validator.iter_errors(navigation)), None
+        )
+        if navigation_error is not None:
+            reference = ".".join(
+                str(part) for part in navigation_error.absolute_path
+            )
+            reject(
+                "adaptation_activity_launch.navigation_mismatch",
+                reference or "navigation-state",
+                "Activity launch navigation state does not match.",
             )
         shared = ("curriculum_id", "curriculum_version", "graph_digest")
         if any(
@@ -165,12 +191,22 @@ class ActivityLaunchContractValidator:
                 "navigation-state",
                 "Activity launch navigation state does not match.",
             )
+        graph_activities = graph.get("activities", [])
+        navigation_states = navigation.get("activity_states", [])
+        if [item.get("activity_id") for item in navigation_states] != [
+            item.get("activity_id") for item in graph_activities
+        ]:
+            reject(
+                "adaptation_activity_launch.navigation_mismatch",
+                "activity_states",
+                "Activity launch navigation state does not match.",
+            )
         activities = {
-            item["activity_id"]: item for item in graph.get("activities", [])
+            item["activity_id"]: item for item in graph_activities
         }
         states = {
             item["activity_id"]: item
-            for item in navigation.get("activity_states", [])
+            for item in navigation_states
         }
         activity = activities.get(launch["activity_id"])
         state = states.get(launch["activity_id"])
@@ -191,6 +227,12 @@ class ActivityLaunchContractValidator:
                 "adaptation_activity_launch.activity_locked",
                 launch["activity_id"],
                 "Activity is not ready to open.",
+            )
+        if state.get("eligibility") != "eligible":
+            reject(
+                "adaptation_activity_launch.navigation_mismatch",
+                launch["activity_id"],
+                "Activity launch navigation state does not match.",
             )
         reference = activity.get("reference", {})
         if activity.get("kind") != "lesson" or reference.get("reference_kind") != "lesson_placement":

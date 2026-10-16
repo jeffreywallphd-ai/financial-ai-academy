@@ -27,6 +27,8 @@ from financial_ai_academy.modules.adaptation.public import (
     resolve_activity_launch,
 )
 from financial_ai_academy.modules.curriculum.public import (
+    CurriculumActivityKind,
+    LessonActivityReference,
     curriculum_graph_digest,
     curriculum_graph_from_mapping,
 )
@@ -189,6 +191,55 @@ def test_assessment_activity_is_explicitly_unsupported() -> None:
     with pytest.raises(ActivityLaunchError) as captured:
         resolve_activity_launch(_request("activity-risk-return-check"))
     assert captured.value.code is ActivityLaunchErrorCode.UNSUPPORTED_ACTIVITY
+
+
+def test_locked_assessment_is_classified_as_unsupported_before_state() -> None:
+    projection = _state_change(
+        _projection(),
+        "activity-risk-return-check",
+        eligibility=EligibilityState.LOCKED,
+    )
+    with pytest.raises(ActivityLaunchError) as captured:
+        resolve_activity_launch(
+            _request("activity-risk-return-check", projection=projection)
+        )
+    assert captured.value.code is ActivityLaunchErrorCode.UNSUPPORTED_ACTIVITY
+
+
+def test_valid_prerelease_lesson_package_version_is_preserved() -> None:
+    graph = _graph()
+    activities = tuple(
+        replace(
+            activity,
+            reference=LessonActivityReference(
+                placement_id=activity.reference.placement_id,
+                package_id=activity.reference.package_id,
+                package_version="1.0.0-beta.1",
+                package_digest=activity.reference.package_digest,
+            ),
+        )
+        if activity.activity_id == "activity-risk-return-lesson"
+        and activity.kind is CurriculumActivityKind.LESSON
+        else activity
+        for activity in graph.activities
+    )
+    candidate = replace(
+        graph,
+        activities=activities,
+        graph_digest="0" * 64,
+    )
+    graph = replace(candidate, graph_digest=curriculum_graph_digest(candidate))
+    navigation = evaluate_navigation_state(
+        EvaluateNavigationStateRequest(
+            graph=graph,
+            activity_facts=_facts(),
+            evaluated_at=_projection().evaluated_at,
+        )
+    )
+    result = resolve_activity_launch(
+        _request(graph=graph, projection=navigation)
+    )
+    assert result.package_version == "1.0.0-beta.1"
 
 
 @pytest.mark.parametrize(

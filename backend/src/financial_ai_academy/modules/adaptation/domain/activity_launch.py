@@ -31,6 +31,10 @@ from financial_ai_academy.modules.curriculum.public import (
 SCHEMA_VERSION = "1.0.0"
 IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._:-]{0,127}$")
 VERSION = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+SEMANTIC_VERSION = re.compile(
+    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+    r"(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+)
 DIGEST = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -117,6 +121,16 @@ def _identifier(value: object, reference: str) -> str:
 
 def _version(value: object, reference: str) -> str:
     if not isinstance(value, str) or VERSION.fullmatch(value) is None:
+        _reject(
+            ActivityLaunchErrorCode.INVALID_CONTEXT,
+            reference,
+            "Activity launch context is invalid.",
+        )
+    return value
+
+
+def _semantic_version(value: object, reference: str) -> str:
+    if not isinstance(value, str) or SEMANTIC_VERSION.fullmatch(value) is None:
         _reject(
             ActivityLaunchErrorCode.INVALID_CONTEXT,
             reference,
@@ -274,6 +288,16 @@ def resolve_activity_launch(
             "Activity is not part of this curriculum version.",
         )
     activity, state = selected
+    reference = activity.reference
+    if (
+        activity.kind is not CurriculumActivityKind.LESSON
+        or not isinstance(reference, LessonActivityReference)
+    ):
+        _reject(
+            ActivityLaunchErrorCode.UNSUPPORTED_ACTIVITY,
+            request.activity_id,
+            "This activity type cannot be opened here.",
+        )
     if (
         state.availability is ActivitySourceState.UNAVAILABLE
         or state.completion is CompletionState.UNAVAILABLE
@@ -296,19 +320,9 @@ def resolve_activity_launch(
             request.activity_id,
             "Activity launch navigation state is invalid.",
         )
-    reference = activity.reference
-    if (
-        activity.kind is not CurriculumActivityKind.LESSON
-        or not isinstance(reference, LessonActivityReference)
-    ):
-        _reject(
-            ActivityLaunchErrorCode.UNSUPPORTED_ACTIVITY,
-            request.activity_id,
-            "This activity type cannot be opened here.",
-        )
     _identifier(reference.placement_id, "placement_id")
     _identifier(reference.package_id, "package_id")
-    _version(reference.package_version, "package_version")
+    _semantic_version(reference.package_version, "package_version")
     _digest(reference.package_digest, "package_digest")
     return ActivityLaunchResolution(
         schema_version=SCHEMA_VERSION,

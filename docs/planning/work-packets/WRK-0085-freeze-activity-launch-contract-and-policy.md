@@ -75,8 +75,9 @@ boundary tests, architecture verification, and the nearest contract READMEs.
   privacy/field closure.
 - Pure immutable launch request/result types, stable bounded error codes, exact
   validation, deterministic destination construction, and payload mapping.
-- Public Adaptation exports/protocol method for the pure decision without
-  importing another module's internals.
+- Public Adaptation exports for the pure decision without importing another
+  module's internals. The composed service/protocol operation is deferred to
+  JIT-B, when current public gateways are available to supply fresh inputs.
 - Focused unit tests for eligible entry/prerequisite, completed review,
   optional and unbranched activities, sibling order, projection mismatch,
   refusal paths, deterministic output, and no mutation.
@@ -215,3 +216,9 @@ Leave JIT-B dependency-ready or return one bounded blocker.
 - 2026-10-16: Reclaimed from corrected base
   `532cfc8786e45761fd778511fe04ca596a769979` after the expanded exact scope
   passed planning, documentation, and whitespace checks.
+- 2026-10-16: Independent R01 review required four bounded corrections. The
+  pure launch function remains public, while its composed service/protocol
+  member is deferred together to JIT-B so the current service continues to
+  satisfy its declared operations contract. The same correction also closes
+  navigation validation, prerelease package compatibility, and unsupported-
+  kind precedence without expanding this packet's boundary.

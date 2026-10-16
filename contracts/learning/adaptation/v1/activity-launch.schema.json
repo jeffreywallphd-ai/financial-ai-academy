@@ -28,7 +28,7 @@
     "evaluated_at": { "$ref": "#/$defs/timestamp" },
     "placement_id": { "$ref": "#/$defs/identifier" },
     "package_id": { "$ref": "#/$defs/identifier" },
-    "package_version": { "$ref": "#/$defs/version" },
+    "package_version": { "$ref": "#/$defs/semantic_version" },
     "package_digest": { "$ref": "#/$defs/digest" },
     "destination": {
       "type": "string",
@@ -43,6 +43,10 @@
     "version": {
       "type": "string",
       "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "semantic_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
     },
     "digest": {
       "type": "string",
