@@ -27,6 +27,10 @@ from store import StateStore, atomic_write, canonical_bytes, confined_path
 RISK_ORDER = {"low": 0, "medium": 1, "high": 2}
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 BASE_REVISION_ARGUMENT = "{base_revision}"
+CURRENT_PYTHON_ARGUMENT = "{current_python}"
+CONTROL_PLANE_FILE = re.compile(
+    r"^\{control_plane_file:([A-Za-z0-9][A-Za-z0-9._-]*)\}$"
+)
 EXACT_REVISION = re.compile(r"^[0-9a-f]{40,64}$")
 
 
@@ -36,6 +40,12 @@ def utc_timestamp() -> str:
 
 def digest(value: object) -> str:
     return "sha256:" + hashlib.sha256(canonical_bytes(value)).hexdigest()
+
+
+def control_plane_file_argument(filename: str) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", filename):
+        raise ValueError("control-plane command files must be safe basenames")
+    return f"{{control_plane_file:{filename}}}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,17 +150,46 @@ def select_checks(
 
 
 def materialize_arguments(check: CheckDefinition, plan: dict[str, Any]) -> tuple[str, ...]:
-    if BASE_REVISION_ARGUMENT not in check.argv:
-        return check.argv
     base_revision = plan.get("base_revision")
-    if not isinstance(base_revision, str) or not EXACT_REVISION.fullmatch(base_revision):
-        raise ControlError(
-            "verification.base-revision-required",
-            "This affected check requires an exact submitted base revision.",
-            {"check_id": check.check_id},
-            ["Regenerate the plan from the exact packet submission."],
-        )
-    return tuple(base_revision if value == BASE_REVISION_ARGUMENT else value for value in check.argv)
+    materialized: list[str] = []
+    control_plane_root = Path(__file__).resolve().parent
+    for value in check.argv:
+        if value == BASE_REVISION_ARGUMENT:
+            if not isinstance(base_revision, str) or not EXACT_REVISION.fullmatch(
+                base_revision
+            ):
+                raise ControlError(
+                    "verification.base-revision-required",
+                    "This affected check requires an exact submitted base revision.",
+                    {"check_id": check.check_id},
+                    ["Regenerate the plan from the exact packet submission."],
+                )
+            materialized.append(base_revision)
+            continue
+        if value == CURRENT_PYTHON_ARGUMENT:
+            materialized.append(sys.executable)
+            continue
+        matched = CONTROL_PLANE_FILE.fullmatch(value)
+        if matched:
+            resolved = control_plane_root / matched.group(1)
+            if not resolved.is_file():
+                raise ControlError(
+                    "verification.control-file-missing",
+                    "A trusted logical control-plane command file is unavailable.",
+                    {"check_id": check.check_id, "logical_argument": value},
+                    ["Restore the tracked controller file before verification."],
+                )
+            materialized.append(str(resolved))
+            continue
+        if value.startswith("{control_plane_file:"):
+            raise ControlError(
+                "verification.control-file-invalid",
+                "A logical control-plane command file identity is malformed.",
+                {"check_id": check.check_id},
+                ["Use a safe tracked control-plane filename without path separators."],
+            )
+        materialized.append(value)
+    return tuple(materialized)
 
 
 def environment_fingerprint() -> dict[str, Any]:

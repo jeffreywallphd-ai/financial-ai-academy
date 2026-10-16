@@ -10,7 +10,7 @@ capability: CAP-0002
 depends_on: ["WRK-0114"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0115-run-current-check-logic-on-exact-candidates.md"]
+write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "dev-tools/control-plane/verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0115-run-current-check-logic-on-exact-candidates.md"]
 generated_artifacts: []
 base_revision: 2c03265419a6115427d0371359c42d9b585ffda9
 claim_id: WRK-0115:f4f00386-2a67-4ace-b979-9a120a114072
@@ -27,7 +27,7 @@ wrapper while targeting the submitted exact-candidate root. This lets a current
 catalog add or correct a check for a historical product candidate without
 requiring out-of-scope control-plane files in that product packet. Implement the
 bounded WRK-0012 correction route with digest
-`sha256:0eefef5bb72831c10ca640b8122bce9fe29dda51d70ed0cd42c426532b526864`.
+`sha256:90555fb8f500dbc529976d4e0c23ca9e0e0247c7a93426b3ab40d6f132fd2803`.
 
 ## Required Context
 
@@ -49,8 +49,10 @@ tests, and the nearest control-plane README before editing.
 ## In Scope
 
 - Add an explicit repository-root argument to the web-check wrapper.
-- Define repository web-check commands with the current wrapper's resolved path
+- Define repository web-check commands with a portable logical wrapper identity
   and the exact candidate working root.
+- Materialize a portable logical wrapper identity only at execution time and
+  bind the wrapper bytes into the tracked check contract.
 - Prove a wrapper outside a historical candidate invokes commands against that
   candidate, including a mode absent from the historical wrapper.
 - Preserve current runtime preparation, isolation, catalog digest, and narrow
@@ -68,6 +70,7 @@ files into product packets, or a new approval stage.
 | --- | --- | --- |
 | Web-check wrapper | CLI root argument and focused tests | target an explicit exact-candidate repository |
 | Repository catalog | resolved current-wrapper command | separate trusted check logic from candidate inputs |
+| Verification executor | bounded logical-wrapper materialization | keep the catalog portable while executing trusted current bytes |
 | Operator guidance | control-plane README | document the ownership and confinement boundary |
 | Planning lineage | this packet, parent slice, register | retain bounded correction provenance |
 
@@ -131,3 +134,7 @@ gaps.
   for a historical product candidate but its relative command resolved the
   older candidate wrapper. The bounded correction separates current trusted
   check logic from exact candidate inputs without widening the product packet.
+- 2026-10-16: Incrementally refined after execution evidence showed that an
+  absolute wrapper path was not portable or content-bound. The replacement
+  correction route adds the existing reusable verification seam without
+  changing product scope or requiring a new approval stage.

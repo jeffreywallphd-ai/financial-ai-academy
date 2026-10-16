@@ -196,8 +196,15 @@ and command semantics from the current control plane while reading source,
 tests, dependencies, and build inputs only from that exact candidate. This
 keeps a newly added or corrected check executable for an older product
 candidate without copying control-plane files into the product packet. The
-fully materialized wrapper path and candidate-root argument remain in the plan
-and receipt.
+catalog records a portable logical wrapper identity and its tracked content
+digest. The executor resolves that identity to the current control-plane file
+only when the check runs; the materialized path, expected digest, and explicit
+candidate-root argument remain in the receipt. The wrapper validates its bytes
+before and after execution and rejects roots that lack the repository's bounded
+web markers, so a historical candidate cannot substitute its older wrapper or
+redirect the current command into an unrelated directory.
+Direct developer invocations may omit the digest for convenience, but those
+ad hoc runs are not catalog-bound and cannot produce qualifying receipts.
 
 Roadmap-review implementation paths are also divided by their owning boundary:
 TypeScript source selects qualification, typecheck, DOM unit, and Chromium

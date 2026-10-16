@@ -2,17 +2,26 @@
 
 from __future__ import annotations
 
-import sys
+import hashlib
 from pathlib import Path
 
-from verification import CheckCatalog, CheckDefinition
+from verification import (
+    CURRENT_PYTHON_ARGUMENT,
+    CheckCatalog,
+    CheckDefinition,
+    control_plane_file_argument,
+)
 
 
 def catalog() -> CheckCatalog:
-    python = sys.executable
+    python = CURRENT_PYTHON_ARGUMENT
+    wrapper = Path(__file__).resolve().with_name("check_approved_lesson.py")
+    wrapper_digest = "sha256:" + hashlib.sha256(wrapper.read_bytes()).hexdigest()
     web_check = (
         python,
-        str(Path(__file__).resolve().with_name("check_approved_lesson.py")),
+        control_plane_file_argument("check_approved_lesson.py"),
+        "--self-sha256",
+        wrapper_digest,
         "--root",
         ".",
     )
@@ -126,7 +135,7 @@ def catalog() -> CheckCatalog:
         *roadmap_document_paths,
     )
     return CheckCatalog(
-        "financial-ai-academy-v7",
+        "financial-ai-academy-v8",
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
             CheckDefinition("control-plane:review", (python, "dev-tools/control-plane/test_review.py"), ("dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py"), "medium", 11, description="Technical review, corrected-descendant, and review-ledger behavior"),

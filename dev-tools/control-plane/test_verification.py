@@ -26,18 +26,23 @@ from check_approved_lesson import (  # noqa: E402
     child_environment,
     copy_tracked_candidate,
     execute as execute_web_check,
+    execute_bound_check,
+    file_digest,
     resolve_runtime,
 )
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
     BASE_REVISION_ARGUMENT,
+    CURRENT_PYTHON_ARGUMENT,
     CheckCatalog,
     CheckDefinition,
     ReceiptStore,
     VerificationService,
     environment_fingerprint,
     execute_plan,
+    control_plane_file_argument,
+    materialize_arguments,
     select_checks,
     validate_receipt,
 )
@@ -479,26 +484,49 @@ class SelectionTests(unittest.TestCase):
             for check in repository_catalog().checks
             if check.check_id == "roadmap-review:server"
         )
+        self.assertEqual(CURRENT_PYTHON_ARGUMENT, definition.argv[0])
         self.assertEqual(
-            (
-                sys.executable,
-                str((HERE / "check_approved_lesson.py").resolve()),
-                "--root",
-                ".",
-                "--mode",
-                "roadmap-server",
-            ),
-            definition.argv,
+            control_plane_file_argument("check_approved_lesson.py"),
+            definition.argv[1],
         )
+        self.assertEqual("--self-sha256", definition.argv[2])
+        self.assertEqual(file_digest(HERE / "check_approved_lesson.py"), definition.argv[3])
+        self.assertEqual(("--root", ".", "--mode", "roadmap-server"), definition.argv[4:])
 
     def test_repository_catalog_runs_current_wrapper_against_candidate_root(self) -> None:
-        command = repository_catalog().by_id("project:browser").argv
+        definition = repository_catalog().by_id("project:browser")
+        command = materialize_arguments(
+            definition,
+            select_checks(
+                repository_catalog(),
+                "a" * 40,
+                ["apps/web/src/features/project-workspace/model.ts"],
+            ),
+        )
 
         self.assertEqual(sys.executable, command[0])
         self.assertEqual(
             (HERE / "check_approved_lesson.py").resolve(), Path(command[1]).resolve()
         )
-        self.assertEqual(("--root", ".", "--mode", "project-browser"), command[2:])
+        self.assertEqual("--self-sha256", command[2])
+        self.assertEqual(file_digest(Path(command[1])), command[3])
+        self.assertEqual(("--root", ".", "--mode", "project-browser"), command[4:])
+        self.assertNotIn(str(HERE.resolve()), json.dumps(definition.contract()))
+
+    def test_logical_control_file_refuses_path_escape(self) -> None:
+        with self.assertRaises(ValueError):
+            control_plane_file_argument("../check_approved_lesson.py")
+
+        malformed = CheckDefinition(
+            "malformed:fixture",
+            (CURRENT_PYTHON_ARGUMENT, "{control_plane_file:../escape.py}"),
+            ("docs/**",),
+            "low",
+            1,
+        )
+        with self.assertRaises(ControlError) as refused:
+            materialize_arguments(malformed, {"base_revision": None})
+        self.assertEqual("verification.control-file-invalid", refused.exception.code)
 
     def test_unclassified_path_refuses_instead_of_arbitrary_or_full_fallback(self) -> None:
         with self.assertRaises(ControlError) as refused:
@@ -559,6 +587,18 @@ class ExecutionAndReceiptTests(unittest.TestCase):
 
 class RepositoryWebCheckTests(unittest.TestCase):
     runtime = WebRuntime(node="node", npm=("npm",))
+
+    @staticmethod
+    def mark_repository(root: Path) -> None:
+        (root / "apps" / "web" / "tests" / "browser").mkdir(
+            parents=True, exist_ok=True
+        )
+        (root / "apps" / "web" / "package.json").write_text(
+            '{"name":"candidate"}\n', encoding="utf-8"
+        )
+        (root / "apps" / "web" / "tests" / "browser" / "playwright.config.ts").write_text(
+            "export default {};\n", encoding="utf-8"
+        )
 
     @staticmethod
     def versions(command: tuple[str, ...], *, root: Path) -> str:
@@ -655,6 +695,73 @@ class RepositoryWebCheckTests(unittest.TestCase):
         self.assertEqual(1, len(commands))
         self.assertIn("apps/web/tests/browser/project-workspace", commands[0])
         self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
+
+    def test_bound_current_wrapper_runs_new_mode_against_distinct_candidate_root(self) -> None:
+        commands: list[tuple[tuple[str, ...], Path]] = []
+        with tempfile.TemporaryDirectory(prefix="two-root-candidate-") as directory:
+            candidate = Path(directory)
+            self.mark_repository(candidate)
+            obsolete = candidate / "dev-tools" / "control-plane"
+            obsolete.mkdir(parents=True)
+            obsolete.joinpath("check_approved_lesson.py").write_text(
+                "# historical wrapper without project-browser\n", encoding="utf-8"
+            )
+
+            def runner(command: tuple[str, ...], *, root: Path) -> None:
+                commands.append((command, root))
+
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+            ):
+                execute_bound_check(
+                    "project-browser",
+                    root=candidate,
+                    expected_wrapper_digest=file_digest(
+                        HERE / "check_approved_lesson.py"
+                    ),
+                    command_runner=runner,
+                    version_reader=self.versions,
+                )
+
+        self.assertEqual(1, len(commands))
+        self.assertEqual(candidate.resolve(), commands[0][1])
+        self.assertIn("apps/web/tests/browser/project-workspace", commands[0][0])
+
+    def test_bound_wrapper_refuses_invalid_root_before_runtime_resolution(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="invalid-candidate-") as directory:
+            with mock.patch("check_approved_lesson.resolve_runtime") as resolver:
+                with self.assertRaisesRegex(RuntimeError, "not a compatible"):
+                    execute_bound_check(
+                        "project-browser",
+                        root=Path(directory),
+                        expected_wrapper_digest=file_digest(
+                            HERE / "check_approved_lesson.py"
+                        ),
+                    )
+                resolver.assert_not_called()
+
+    def test_bound_wrapper_refuses_bytes_changed_during_execution(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="mutating-wrapper-") as directory:
+            root = Path(directory)
+            candidate = root / "candidate"
+            wrapper = root / "check_approved_lesson.py"
+            candidate.mkdir()
+            self.mark_repository(candidate)
+            wrapper.write_text("# trusted bytes\n", encoding="utf-8")
+            expected = file_digest(wrapper)
+
+            def mutate(mode: str, *, root: Path, **options: object) -> None:
+                del mode, root, options
+                wrapper.write_text("# changed bytes\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(RuntimeError, "digest does not match"):
+                execute_bound_check(
+                    "project-browser",
+                    root=candidate,
+                    expected_wrapper_digest=expected,
+                    wrapper=wrapper,
+                    executor=mutate,
+                )
 
     def test_explicit_runtime_is_available_to_child_processes(self) -> None:
         runtime = WebRuntime(

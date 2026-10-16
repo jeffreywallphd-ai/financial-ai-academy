@@ -186,3 +186,6 @@ test-only changes remain free of unrelated live and aggregate requirements.
 - 2026-10-16: Reopened through a bounded WRK-0012 correction route after
   historical-candidate qualification showed that a current catalog command
   still resolved the older candidate's wrapper implementation.
+- 2026-10-16: Refined the corrective increment so current wrapper commands use
+  a portable logical identity, bind tracked wrapper bytes, resolve only at
+  execution time, and fail closed for incompatible candidate roots.

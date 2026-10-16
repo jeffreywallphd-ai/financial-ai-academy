@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -17,7 +19,8 @@ from pathlib import Path, PurePosixPath
 from typing import Callable, Mapping, Sequence
 
 
-REPOSITORY = Path(__file__).resolve().parents[2]
+WRAPPER = Path(__file__).resolve()
+REPOSITORY = WRAPPER.parents[2]
 REQUIRED_NODE_MAJOR = 24
 REQUIRED_NPM = "10.8.2"
 MOCKED_BROWSER_SUITES = (
@@ -26,6 +29,10 @@ MOCKED_BROWSER_SUITES = (
     "apps/web/tests/browser/lesson-reading",
 )
 PROJECT_BROWSER_SUITE = "apps/web/tests/browser/project-workspace"
+REPOSITORY_MARKERS = (
+    "apps/web/package.json",
+    "apps/web/tests/browser/playwright.config.ts",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,6 +40,49 @@ class WebRuntime:
     node: str
     npm: tuple[str, ...]
     python: str = sys.executable
+
+
+def file_digest(path: Path) -> str:
+    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def require_wrapper_digest(wrapper: Path, expected_digest: str) -> None:
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", expected_digest):
+        raise RuntimeError("The trusted wrapper digest is malformed.")
+    try:
+        observed = file_digest(wrapper)
+    except OSError as error:
+        raise RuntimeError("The trusted web-check wrapper is unavailable.") from error
+    if observed != expected_digest:
+        raise RuntimeError("The trusted web-check wrapper digest does not match.")
+
+
+def validate_repository_root(root: Path) -> Path:
+    resolved = root.resolve()
+    missing = [marker for marker in REPOSITORY_MARKERS if not (resolved / marker).is_file()]
+    if not resolved.is_dir() or missing:
+        raise RuntimeError(
+            "The supplied candidate root is not a compatible Financial AI Academy repository."
+        )
+    return resolved
+
+
+def execute_bound_check(
+    mode: str,
+    *,
+    root: Path,
+    expected_wrapper_digest: str | None,
+    wrapper: Path = WRAPPER,
+    executor: Callable[..., None] | None = None,
+    **execution_options: object,
+) -> None:
+    candidate_root = validate_repository_root(root)
+    if expected_wrapper_digest is not None:
+        require_wrapper_digest(wrapper, expected_wrapper_digest)
+    selected_executor = executor or execute
+    selected_executor(mode, root=candidate_root, **execution_options)
+    if expected_wrapper_digest is not None:
+        require_wrapper_digest(wrapper, expected_wrapper_digest)
 
 
 def resolve_python(environment: Mapping[str, str], *, root: Path) -> str:
@@ -414,6 +464,13 @@ def execute(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--self-sha256",
+        help=(
+            "Tracked SHA-256 identity required by catalog-driven verification; "
+            "ad hoc developer checks may omit it and do not create qualifying evidence."
+        ),
+    )
+    parser.add_argument(
         "--root",
         default=str(REPOSITORY),
         help="Exact candidate repository root; defaults to this checkout.",
@@ -438,7 +495,11 @@ def main() -> int:
         required=True,
     )
     args = parser.parse_args()
-    execute(args.mode, root=Path(args.root).resolve())
+    execute_bound_check(
+        args.mode,
+        root=Path(args.root),
+        expected_wrapper_digest=args.self_sha256,
+    )
     return 0
 
 
