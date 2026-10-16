@@ -1,7 +1,7 @@
 ---
 id: WRK-0092
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -258,6 +258,13 @@ external execution changed, then leave JIT-B dependency-ready.
   OpenAPI, generated client, browser UI, persistence, migration, scoring,
   feedback selection, retry enforcement, evidence, event, AI mode, model
   authority, dependency, or external execution changed.
+- The exact corrected candidate is
+  `7d2f92153065e5847a5db2d7d731b65709625562`. Fresh affected verification
+  passed planning tools, planning integrity, documentation integrity, and
+  architecture integrity with qualifying receipt digest
+  `sha256:e235e5294ebe0b5d8db7a5e734c339a03969ea447188a223ffb5ff4165a04c3c`.
+  All three candidate-audit findings are closed and no substantive finding
+  remains.
 
 ## Planning History
 
@@ -279,3 +286,7 @@ external execution changed, then leave JIT-B dependency-ready.
   vector in both implementations, and decimal plus resource-count boundary
   evidence now covers the packet's stated acceptance set. Focused and legacy
   suites pass 91 tests on the corrected descendant.
+- 2026-10-16: Completed at corrected exact candidate `7d2f921` after fresh
+  affected verification and technical closure of every open finding. The next
+  packet may compose Content, Curriculum, Assessment, and the protected API
+  without reopening this frozen contract family.

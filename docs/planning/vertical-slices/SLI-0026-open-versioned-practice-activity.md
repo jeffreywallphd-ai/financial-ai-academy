@@ -181,7 +181,7 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | active |
+| WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | complete |
 | JIT-B | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | JIT-A | none | captured |
 | JIT-C | Generate the public client and deliver the accessible practice-opening browser route | JIT-B | none | captured |
 | JIT-D | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, and live local composition | JIT-C | none | captured |
@@ -254,3 +254,7 @@ cloud, and recovery behavior.
 - 2026-10-16: Activated WRK-0092 after revalidating current CAP authority,
   manifest membership, decision readiness, exact write scope, and collision-
   free ownership. Packet-start froze the contract/domain acceptance set.
+- 2026-10-16: Completed WRK-0092 at exact candidate `7d2f921` with the additive
+  practice-v1 schemas, compatibility corpus, immutable Assessment values, and
+  transport-neutral answer-safe parser/projector. The protected API remains
+  the next packet's boundary; no separate AI mode was introduced.
