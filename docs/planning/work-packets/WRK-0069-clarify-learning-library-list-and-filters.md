@@ -1,7 +1,7 @@
 ---
 id: WRK-0069
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -149,3 +149,11 @@ detail/comparison/error packet dependency-ready or return a bounded blocker.
   limited to the result-list experience and component evidence so destination
   pages, route failures, and browser qualification can be reviewed in their
   own dependency-ordered increments.
+- 2026-10-16: Completed the list, filter, card, comparison-control, and
+  technical-record language update while preserving query names, ordering,
+  destinations, selection bounds, publication facts, and exact technical
+  values. Focused component evidence covers lesson and project kinds,
+  persistent topic-format help, accessible technical disclosure, flexible
+  result shapes, and region-scoped anti-rigidity assertions. The selected
+  planning, documentation, typecheck, lint, unit, and production-build checks
+  passed against the exact candidate; browser qualification remains in JIT-D.

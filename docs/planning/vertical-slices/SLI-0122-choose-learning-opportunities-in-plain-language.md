@@ -142,7 +142,7 @@ each packet starts. The planned dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0068 | Establish the normative language standard, content style guide, initial term map, and workflow routing | none | none | complete |
-| WRK-0069 | Apply the standard to catalog list/filter/card presentation and focused component evidence | WRK-0068 | none | active |
+| WRK-0069 | Apply the standard to catalog list/filter/card presentation and focused component evidence | WRK-0068 | none | complete |
 | JIT-C | Apply the standard to detail/comparison/loading/error presentation and focused component evidence | JIT-B | none | captured |
 | JIT-D | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | JIT-C | none | captured |
 
@@ -212,3 +212,7 @@ copying approval or reviewer records into tracked files.
 - 2026-10-16: Activated WRK-0069 after validating its dependency, current CAP
   authority, exact write scope, acceptance manifest, and collision-free file
   lease.
+- 2026-10-16: Completed WRK-0069 with task-focused learning-library labels,
+  kind-sensitive version/package descriptions, persistent topic-format help,
+  accessible progressive disclosure, and anti-rigidity tests scoped only to
+  their owned learner-facing regions. JIT-C is now dependency-ready.
