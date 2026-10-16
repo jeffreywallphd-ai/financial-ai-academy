@@ -67,8 +67,9 @@ contracts, the curriculum page/model/fixture/component test, and
 
 - Learner-focused page, view, objective, competency, grouping, ungrouped-
   activity, connection, publication, source, and return labels.
-- Plain labels for the unchanged completion, requirement, availability, and
-  eligibility/readiness values and their server-provided explanations.
+- Plain labels and explanations for the unchanged completion, requirement,
+  availability, and eligibility/readiness values; the exact recorded reason
+  wording remains in the technical record with its code and references.
 - `Technical record` disclosures for each activity's exact identity/resource
   and reason codes/references, relationship IDs/types, and complete page-level
   graph/navigation provenance.

@@ -20,6 +20,28 @@ function label(value: string): string {
     .join(" ");
 }
 
+function completionLabel(value: ActivityNavigationState["completion"]): string {
+  if (value === "completed") return "Finished";
+  if (value === "incomplete") return "Not finished";
+  return "Status unavailable";
+}
+
+function readinessLabel(value: ActivityNavigationState["eligibility"]): string {
+  if (value === "eligible") return "Ready";
+  if (value === "locked") return "Blocked";
+  return "Status unavailable";
+}
+
+function requirementLabel(value: ActivityNavigationState["requirement"]): string {
+  if (value === "required") return "Required";
+  if (value === "optional") return "Optional";
+  return "Status unavailable";
+}
+
+function availabilityLabel(value: ActivityNavigationState["availability"]): string {
+  return value === "available" ? "Available" : "Unavailable";
+}
+
 function readableDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
     day: "numeric",
@@ -42,6 +64,40 @@ function activityReference(activity: CurriculumActivity): string {
   return reference.reference_kind === "lesson_placement"
     ? `${reference.package_id}@${reference.package_version} · placement ${reference.placement_id}`
     : `${reference.assessment_id}@${reference.assessment_version} · placement ${reference.placement_id}`;
+}
+
+function activityDigest(activity: CurriculumActivity): string {
+  const reference = activity.reference;
+  return reference.reference_kind === "lesson_placement"
+    ? reference.package_digest
+    : reference.definition_digest;
+}
+
+function reasonText(
+  reason: ActivityNavigationState["reasons"][number],
+): string {
+  switch (reason.code) {
+    case "activity_completed":
+      return "This activity is recorded as finished.";
+    case "required_activity":
+      return "This activity is a required part of the learning path.";
+    case "optional_activity":
+      return "This activity is an optional part of the learning path.";
+    case "unassigned_activity":
+      return "This activity is part of the learning path but is not in a learning group.";
+    case "activity_source_unavailable":
+      return "The learning material is not available right now.";
+    case "completion_source_unavailable":
+      return "The system cannot confirm whether this activity is finished.";
+    case "entry_activity":
+      return "This activity has no required earlier activity.";
+    case "prerequisite_incomplete":
+      return "Finish an earlier activity before starting this one.";
+    case "prerequisite_unavailable":
+      return "The system cannot check an earlier activity right now.";
+    case "prerequisite_satisfied":
+      return "The required earlier activity is finished.";
+  }
 }
 
 function relationshipText(
@@ -87,48 +143,100 @@ function ActivityCard({
     <article className="curriculum-graph__activity">
       <p className="curriculum-graph__badge">{label(activity.kind)}</p>
       <h4>{activity.title}</h4>
-      <dl>
-        <div>
-          <dt>Activity ID</dt>
-          <dd>
-            <code>{activity.activity_id}</code>
-          </dd>
-        </div>
-        <div>
-          <dt>Exact resource</dt>
-          <dd>{activityReference(activity)}</dd>
-        </div>
-      </dl>
       <div className="curriculum-graph__navigation-state">
         <h5>
           <Icon name={navigationIcon(navigationState)} />
-          Current navigation state
+          Current activity status
         </h5>
         <dl className="curriculum-graph__state-dimensions">
           <div>
-            <dt>Completion</dt>
-            <dd>{label(navigationState.completion)}</dd>
+            <dt>Progress</dt>
+            <dd>{completionLabel(navigationState.completion)}</dd>
           </div>
           <div>
-            <dt>Eligibility</dt>
-            <dd>{label(navigationState.eligibility)}</dd>
+            <dt>Ready to start</dt>
+            <dd>{readinessLabel(navigationState.eligibility)}</dd>
           </div>
           <div>
-            <dt>Requirement</dt>
-            <dd>{label(navigationState.requirement)}</dd>
+            <dt>Part of your path</dt>
+            <dd>{requirementLabel(navigationState.requirement)}</dd>
           </div>
           <div>
-            <dt>Availability</dt>
-            <dd>{label(navigationState.availability)}</dd>
+            <dt>Learning material</dt>
+            <dd>{availabilityLabel(navigationState.availability)}</dd>
           </div>
         </dl>
         <div className="curriculum-graph__state-reasons">
-          <h6>Why this state applies</h6>
+          <h6>Why you see this status</h6>
           <ol>
             {navigationState.reasons.map((reason, index) => (
               <li key={`${reason.code}:${index}`}>
-                <p>{reason.explanation}</p>
-                <span>{label(reason.code)}</span>
+                <p>{reasonText(reason)}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <details>
+          <summary>Technical record</summary>
+          <dl>
+            <div>
+              <dt>Activity ID</dt>
+              <dd>
+                <code>{activity.activity_id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Exact resource</dt>
+              <dd>
+                <code>{activityReference(activity)}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Resource digest</dt>
+              <dd>
+                <code>{activityDigest(activity)}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Completion state</dt>
+              <dd>
+                <code>{navigationState.completion}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Eligibility state</dt>
+              <dd>
+                <code>{navigationState.eligibility}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Requirement state</dt>
+              <dd>
+                <code>{navigationState.requirement}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Availability state</dt>
+              <dd>
+                <code>{navigationState.availability}</code>
+              </dd>
+            </div>
+          </dl>
+          <ol aria-label={`${activity.title} technical status reasons`}>
+            {navigationState.reasons.map((reason, index) => (
+              <li key={`${reason.code}:technical:${index}`}>
+                <dl>
+                  <div>
+                    <dt>Reason code</dt>
+                    <dd>
+                      <code>{reason.code}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Recorded explanation</dt>
+                    <dd>{reason.explanation}</dd>
+                  </div>
+                </dl>
                 <ul aria-label={`${label(reason.code)} references`}>
                   {reason.references.map((reference) => (
                     <li key={reference}>
@@ -139,7 +247,7 @@ function ActivityCard({
               </li>
             ))}
           </ol>
-        </div>
+        </details>
       </div>
     </article>
   );
@@ -181,7 +289,7 @@ function GraphFacts({
 
   return (
     <div
-      aria-label={`${label(view)} curriculum graph`}
+      aria-label={`${label(view)} learning path`}
       className={`curriculum-graph__facts curriculum-graph__facts--${view}`}
       data-testid={`curriculum-graph-${view}`}
     >
@@ -195,7 +303,17 @@ function GraphFacts({
             <li key={objective.objective_id}>
               <h3>{objective.title}</h3>
               <p>{objective.description}</p>
-              <code>{objective.objective_id}</code>
+              <details>
+                <summary>Technical record</summary>
+                <dl>
+                  <div>
+                    <dt>Objective ID</dt>
+                    <dd>
+                      <code>{objective.objective_id}</code>
+                    </dd>
+                  </div>
+                </dl>
+              </details>
             </li>
           ))}
         </ol>
@@ -211,7 +329,17 @@ function GraphFacts({
             <li key={competency.competency_id}>
               <h3>{competency.title}</h3>
               <p>{competency.description}</p>
-              <code>{competency.competency_id}</code>
+              <details>
+                <summary>Technical record</summary>
+                <dl>
+                  <div>
+                    <dt>Competency ID</dt>
+                    <dd>
+                      <code>{competency.competency_id}</code>
+                    </dd>
+                  </div>
+                </dl>
+              </details>
             </li>
           ))}
         </ol>
@@ -219,13 +347,13 @@ function GraphFacts({
 
       <section className="curriculum-graph__section curriculum-graph__branches">
         <div className="curriculum-graph__section-heading">
-          <p className="eyebrow">Reviewed structure</p>
-          <h2>Learning branches and activities</h2>
+          <p className="eyebrow">Your learning path</p>
+          <h2>Learning groups and activities</h2>
         </div>
         {presentation.branches.length === 0 ? (
           <p className="curriculum-graph__empty">
-            This curriculum does not define branch groupings. Its activities
-            remain visible below.
+            This learning path does not use groups. Its activities remain
+            visible below.
           </p>
         ) : (
           <ol className="curriculum-graph__branch-list">
@@ -234,11 +362,21 @@ function GraphFacts({
                 <header>
                   <div>
                     <p className="curriculum-graph__badge">
-                      {label(branch.kind)} branch
+                      {label(branch.kind)} group
                     </p>
                     <h3>{branch.title}</h3>
                   </div>
-                  <code>{branch.branch_id}</code>
+                  <details>
+                    <summary>Technical record</summary>
+                    <dl>
+                      <div>
+                        <dt>Branch ID</dt>
+                        <dd>
+                          <code>{branch.branch_id}</code>
+                        </dd>
+                      </div>
+                    </dl>
+                  </details>
                 </header>
                 <div className="curriculum-graph__activity-grid">
                   {branch.activity_ids.map((activityId) => {
@@ -258,10 +396,10 @@ function GraphFacts({
         )}
         {unbranchedActivities.length > 0 ? (
           <section className="curriculum-graph__unbranched">
-            <h3>Activities outside branch groupings</h3>
+            <h3>Activities outside learning groups</h3>
             <p>
-              These reviewed activities belong to the curriculum without a
-              branch label.
+              These activities are part of the learning path without a group
+              label.
             </p>
             <div className="curriculum-graph__activity-grid">
               {unbranchedActivities.map((activity) => (
@@ -281,19 +419,34 @@ function GraphFacts({
       <section className="curriculum-graph__section curriculum-graph__relationships">
         <div className="curriculum-graph__section-heading">
           <p className="eyebrow">Connections</p>
-          <h2>Graph relationships</h2>
+          <h2>How the activities connect</h2>
         </div>
         {graph.relationships.length === 0 ? (
           <p className="curriculum-graph__empty">
-            No relationships are declared for this graph version.
+            This learning path does not list any connections.
           </p>
         ) : (
           <ol>
             {graph.relationships.map((relationship) => (
               <li key={relationship.relationship_id}>
                 <p>{relationshipText(relationship, titles)}</p>
-                <span>{label(relationship.kind)}</span>
-                <code>{relationship.relationship_id}</code>
+                <details>
+                  <summary>Technical record</summary>
+                  <dl>
+                    <div>
+                      <dt>Relationship type</dt>
+                      <dd>
+                        <code>{relationship.kind}</code>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Relationship ID</dt>
+                      <dd>
+                        <code>{relationship.relationship_id}</code>
+                      </dd>
+                    </div>
+                  </dl>
+                </details>
               </li>
             ))}
           </ol>
@@ -314,18 +467,10 @@ export function CurriculumGraphPage({
   return (
     <section className="curriculum-graph">
       <header className="curriculum-graph__header">
-        <p className="eyebrow">Approved curriculum graph</p>
+        <p className="eyebrow">Approved learning path</p>
         <h1>{graph.title}</h1>
         <p>{graph.summary}</p>
         <dl className="curriculum-graph__identity">
-          <div>
-            <dt>Exact version</dt>
-            <dd>
-              <code>
-                {graph.curriculum_id}@{graph.curriculum_version}
-              </code>
-            </dd>
-          </div>
           <div>
             <dt>Published</dt>
             <dd>
@@ -335,19 +480,18 @@ export function CurriculumGraphPage({
             </dd>
           </div>
           <div>
-            <dt>Publication state</dt>
+            <dt>Status</dt>
             <dd>{label(graph.publication_state)}</dd>
           </div>
         </dl>
         <p className="curriculum-graph__notice">
-          Current completion, eligibility, requirement, availability, and
-          explanations are evaluated by the server from bounded evidence. The
-          browser does not calculate them or choose a path. Completion is not a
-          mastery or competency judgment.
+          These status details come from the current learning record. They show
+          what is finished, required, available, ready, or blocked. They do not
+          measure mastery or competency and do not recommend a path.
         </p>
       </header>
 
-      <div aria-label="Curriculum graph view" className="curriculum-graph__view-control" role="group">
+      <div aria-label="Learning path view" className="curriculum-graph__view-control" role="group">
         <button
           aria-pressed={view === "list"}
           className="button"
@@ -374,25 +518,26 @@ export function CurriculumGraphPage({
 
       <section className="curriculum-graph__provenance">
         <div className="curriculum-graph__section-heading">
-          <p className="eyebrow">Provenance</p>
-          <h2>Exact graph and navigation records</h2>
+          <p className="eyebrow">Supporting information</p>
+          <h2>Source and technical record</h2>
         </div>
         <p>
           <Icon name="citation" />
-          This graph and its current navigation projection are displayed from
-          protected versioned records. Presentation hints affect order only and
-          do not add facts.
+          This approved learning path and its current activity status come from
+          protected records. The view can change the order on screen, but it
+          does not add or change learning facts.
         </p>
-        <ul aria-label="Curriculum source references">
-          {graph.source_references.map((reference) => (
-            <li key={reference}>
-              <code>{reference}</code>
-            </li>
-          ))}
-        </ul>
         <details>
-          <summary>Technical graph and navigation identity</summary>
+          <summary>Technical record</summary>
           <dl>
+            <div>
+              <dt>Curriculum ID and version</dt>
+              <dd>
+                <code>
+                  {graph.curriculum_id}@{graph.curriculum_version}
+                </code>
+              </dd>
+            </div>
             <div>
               <dt>Schema version</dt>
               <dd>
@@ -434,11 +579,18 @@ export function CurriculumGraphPage({
               </dd>
             </div>
           </dl>
+          <ul aria-label="Curriculum source references">
+            {graph.source_references.map((reference) => (
+              <li key={reference}>
+                <code>{reference}</code>
+              </li>
+            ))}
+          </ul>
         </details>
       </section>
 
       <Link className="button button--secondary curriculum-graph__back" to="/learn">
-        Return to learning catalog
+        Return to learning library
       </Link>
     </section>
   );

@@ -109,16 +109,18 @@ validated available lesson exposes its exact placement destination. The return
 reference preserves canonical `/learn` query state without a transient cursor.
 
 `/learn/curricula/:curriculumId/versions/:curriculumVersion` opens one exact
-approved curriculum graph. Its accessible list view is the default; a peer map
-view presents the same objectives, competencies, branches, activities, and
-relationships with a responsive grouping layout rather than fixed canvas
+approved learning path. Its accessible list view is the default; a peer map
+view presents the same objectives, competencies, learning groups, activities,
+and connections with a responsive grouping layout rather than fixed canvas
 coordinates. Optional or absent presentation hints, variable record counts,
-same-kind shared branch memberships, activities outside branches, and empty
-branch or relationship sets remain valid. The route shows exact source
-references, publication facts, schema version, graph digest, navigation policy,
-evaluation time, source-set digest, and projection digest. Every activity shows
-the four orthogonal server-evaluated state dimensions and the complete ordered
-reason/reference list in both peer views. It exposes no activity-launch action,
+same-kind shared branch memberships, activities outside groups, and empty group
+or connection sets remain valid. Primary labels explain progress, readiness,
+path requirement, learning-material availability, and the server-provided
+reasons for each status. Exact activity/resource identity, state values, reason
+codes/references, source references, schema, graph and policy identity,
+evaluation time, and digests remain complete under accessible `Technical
+record` disclosures. Both peer views preserve the four orthogonal
+server-evaluated state dimensions. The route exposes no activity-launch action,
 mastery claim, recommendation, or browser-owned learner-state inference.
 Malformed links, denial, missing exact versions, unavailable state, graph/state
 mismatch, or an invalid success response fail closed without substituting a
