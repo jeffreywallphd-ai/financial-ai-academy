@@ -198,8 +198,8 @@ each packet starts.
 | --- | --- | --- | --- | --- |
 | WRK-0109 | Freeze learning-project-brief and Project-shell contracts, origin semantics, compatibility fixtures, and pure Project domain values | none | none | complete |
 | WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | complete |
-| WRK-0111 | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | WRK-0110 | none | active |
-| JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | JIT-C | none | pending just-in-time refinement |
+| WRK-0111 | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | WRK-0110 | none | complete |
+| WRK-0116 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | WRK-0111 | none | ready |
 
 ## Verification and Qualification
 
@@ -286,3 +286,8 @@ not delivered or qualified.
   Project list/create/reopen browser flow; it does not broaden Project
   ownership or add artifacts, execution, submissions, Portfolio behavior, or
   AI authority.
+- 2026-10-16: Completed WRK-0111 after its corrected exact candidate passed
+  focused Project API, generated-client, browser, live-composition,
+  architecture, security, language, design, documentation, and aggregate
+  readiness checks. Refined JIT-D as WRK-0116 to perform evidence-only
+  cumulative qualification before closing the slice.

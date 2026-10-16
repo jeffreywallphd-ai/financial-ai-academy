@@ -1,7 +1,7 @@
 ---
 id: WRK-0111
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -222,3 +222,9 @@ separate AI mode, or autonomous authority was added.
   affected verification found a stale isolated-composition fixture and a 200%
   zoom navigation overflow. Scope, acceptance, ownership, and CAP authority are
   unchanged.
+- 2026-10-16: Completed the corrected exact candidate after focused Project
+  API, generated-client, browser, live-composition, architecture, security,
+  language, design, documentation, and aggregate readiness checks passed. The
+  delivered flow retains full origin provenance, rotates idempotency intent
+  after material edits or conflicts, and recovers safely from stale learning
+  selections without adding browser-only authority.
