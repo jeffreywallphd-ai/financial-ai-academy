@@ -1,10 +1,10 @@
 ---
 id: SLI-0012
 kind: vertical-slice
-planning_status: complete
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0003
-updated: 2026-10-15
+owner: unassigned
+updated: 2026-10-16
 parent: CAP-0003
 depends_on: ["SLI-0011"]
 decision_gates: []
@@ -97,6 +97,7 @@ prompts, credentials, approval/reviewer data, or personal identity requirements.
 | WRK-0020 | Deliver the local edit-intent and exclusive file-lease plane, repository authority adapter, CLI/docs, and tests | WRK-0019 | none | complete |
 | WRK-0023 | Revalidate active WRK authority on lease renewal while preserving post-completion release | WRK-0020 | none | complete |
 | WRK-0029 | Stabilize independent-process same-file races while preserving disjoint-file and read concurrency | WRK-0023 | none | complete |
+| WRK-0064 | Allow an authorized successor to recover only its exact in-scope paths from an expired grouped lease while retaining residual ownership and lineage | WRK-0029 | none | ready |
 
 ## Verification and Qualification
 
@@ -161,3 +162,7 @@ safety without adding a broad coordination barrier.
 - 2026-10-15: WRK-0029 completed after Windows path normalization, deleted-lock
   revalidation, 500 consecutive race passes, and full control-plane and
   aggregate readiness qualification; the slice returned to its complete state.
+- 2026-10-16: Reopened through the bounded completed-work correction route
+  after WRK-0063 reproduced an excessive-rigidity deadlock: complete-set
+  recovery required unrelated historical files outside the successor packet's
+  scope. WRK-0064 freezes path-bounded recovery with residual ownership.
