@@ -61,6 +61,43 @@ def test_inconsistent_duplicate_event_fails_closed() -> None:
     assert captured.value.code == "learner_model.practice_history.inconsistent_duplicate"
 
 
+def _second_attempt(first: dict[str, Any]) -> dict[str, Any]:
+    attempt = copy.deepcopy(first)
+    attempt["attempt_order"] = 2
+    attempt["event_id"] = "66666666-6666-4666-8666-666666666666"
+    attempt["attempt_id"] = "77777777-7777-4777-8777-777777777777"
+    attempt["evidence_id"] = "88888888-8888-4888-8888-888888888888"
+    attempt["submission_id"] = "99999999-9999-4999-8999-999999999999"
+    attempt["completed_at"] = "2026-10-16T16:00:00Z"
+    return attempt
+
+
+@pytest.mark.parametrize(
+    "identity",
+    ["attempt_id", "evidence_id", "submission_id", "attempt_order"],
+)
+def test_conflicting_provenance_identity_reuse_fails_closed(identity: str) -> None:
+    first = _approved()["attempts"][0]
+    second = _second_attempt(first)
+    second[identity] = first[identity]
+    with pytest.raises(PracticeHistoryFailure) as captured:
+        ordered_unique_attempts([first, second])
+    assert captured.value.code == "learner_model.practice_history.inconsistent_duplicate"
+    assert captured.value.reference == identity
+
+
+def test_item_signature_cannot_drift_between_attempts() -> None:
+    history = _approved()
+    second = _second_attempt(history["attempts"][0])
+    second["item_summaries"] = list(reversed(second["item_summaries"]))
+    history["attempts"].append(second)
+    history["source_digest"] = source_digest(history["attempts"])
+    with pytest.raises(PracticeHistoryFailure) as captured:
+        PracticeHistoryValidator().validate(history)
+    assert captured.value.code == "learner_model.practice_history.inconsistent_attempt"
+    assert captured.value.reference == "item_summaries"
+
+
 def test_variable_attempt_count_and_input_order_are_not_fixture_locked() -> None:
     history = _approved()
     template = history["attempts"][0]

@@ -6,5 +6,7 @@
   {"id": "unavailable-with-destination", "target": "unavailable", "op": "copy_destination", "expected_code": "curriculum.practice_review.schema_invalid"},
   {"id": "unavailable-without-reason", "target": "unavailable", "op": "delete", "path": ["unavailable_reason"], "expected_code": "curriculum.practice_review.schema_invalid"},
   {"id": "bad-resource-version", "target": "available", "op": "set", "path": ["resource_version"], "value": "current", "expected_code": "curriculum.practice_review.schema_invalid"},
-  {"id": "private-provider-payload", "target": "available", "op": "set", "path": ["provider_payload"], "value": {"key": "secret"}, "expected_code": "curriculum.practice_review.schema_invalid"}
+  {"id": "private-provider-payload", "target": "available", "op": "set", "path": ["provider_payload"], "value": {"key": "secret"}, "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "html-like-title", "target": "available", "op": "set", "path": ["resource_title"], "value": "<script>alert(1)</script>", "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "control-title", "target": "available", "op": "set", "path": ["resource_title"], "value": "Review\nresource", "expected_code": "curriculum.practice_review.schema_invalid"}
 ]

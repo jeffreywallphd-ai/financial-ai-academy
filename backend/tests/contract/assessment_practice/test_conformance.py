@@ -19,6 +19,7 @@ from .runner import (
     canonical_practice_bytes,
     canonical_draft_responses_bytes,
     canonical_submission_bytes,
+    classify_draft_save,
     corpus_dir,
     definition_digest,
     draft_response_fingerprint,
@@ -110,6 +111,18 @@ def test_draft_fingerprint_is_order_independent_and_supports_empty_progress() ->
     PracticeContractValidator().validate_draft_save(
         definition, presentation, draft_save
     )
+
+
+def test_conditional_draft_save_distinguishes_replay_replace_and_conflict() -> None:
+    draft_save, draft, _ = map(copy.deepcopy, approved_progress())
+    assert classify_draft_save(None, draft_save) == "create"
+    assert classify_draft_save(draft, draft_save) == "replay"
+    draft_save["responses"] = []
+    assert classify_draft_save(draft, draft_save) == "conflict"
+    draft_save["expected_revision"] = draft["revision"]
+    assert classify_draft_save(draft, draft_save) == "replace"
+    draft_save["expected_revision"] = 2
+    assert classify_draft_save(None, draft_save) == "conflict"
 
 
 @pytest.mark.parametrize("maximum", range(1, 11))

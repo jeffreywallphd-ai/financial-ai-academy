@@ -159,6 +159,22 @@ def draft_response_fingerprint(responses: Sequence[Mapping[str, Any]]) -> str:
     return hashlib.sha256(canonical_draft_responses_bytes(responses)).hexdigest()
 
 
+def classify_draft_save(
+    current_draft: Mapping[str, Any] | None,
+    draft_save: Mapping[str, Any],
+) -> str:
+    """Classify conditional-save behavior without assigning server authority."""
+    expected_revision = int(draft_save["expected_revision"])
+    if current_draft is None:
+        return "create" if expected_revision == 0 else "conflict"
+    fingerprint = draft_response_fingerprint(draft_save["responses"])
+    if fingerprint == current_draft["response_fingerprint"]:
+        return "replay"
+    if expected_revision != current_draft["revision"]:
+        return "conflict"
+    return "replace"
+
+
 def canonical_submission_bytes(submission: Mapping[str, Any]) -> bytes:
     canonical = copy.deepcopy(dict(submission))
     responses = canonical.get("responses")

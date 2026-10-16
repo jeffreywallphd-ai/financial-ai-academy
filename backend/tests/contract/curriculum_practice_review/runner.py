@@ -65,7 +65,8 @@ class PracticeReviewValidator:
 
 
 def select_review_targets(
-    declared_reference_ids: Sequence[str],
+    practice_placement_id: str,
+    declared_references: Sequence[Mapping[str, str]],
     incorrect_item_reference_ids: Sequence[Sequence[str]],
     targets: Sequence[Mapping[str, Any]],
 ) -> list[Mapping[str, Any]]:
@@ -75,9 +76,48 @@ def select_review_targets(
         for item_references in incorrect_item_reference_ids
         for reference_id in item_references
     }
-    ordered = [reference_id for reference_id in declared_reference_ids if reference_id in requested]
-    by_id = {str(target["resource_id"]): target for target in targets}
-    return [by_id[reference_id] for reference_id in ordered if reference_id in by_id]
+    declared_by_id = {
+        str(reference["resource_id"]): reference for reference in declared_references
+    }
+    if len(declared_by_id) != len(declared_references):
+        raise PracticeReviewFailure(
+            "curriculum.practice_review.inconsistent_mapping",
+            "declared_references",
+            "Practice review resource identities must be unique.",
+        )
+    by_key: dict[tuple[str, str, str, str], Mapping[str, Any]] = {}
+    validator = PracticeReviewValidator()
+    for target in targets:
+        validator.validate(target)
+        key = (
+            str(target["practice_placement_id"]),
+            str(target["resource_id"]),
+            str(target["resource_version"]),
+            str(target["resource_digest"]),
+        )
+        previous = by_key.get(key)
+        if previous is not None and previous != target:
+            raise PracticeReviewFailure(
+                "curriculum.practice_review.inconsistent_mapping",
+                "target",
+                "An exact practice review mapping has conflicting meaning.",
+            )
+        by_key[key] = target
+    selected: list[Mapping[str, Any]] = []
+    for reference in declared_references:
+        reference_id = str(reference["resource_id"])
+        if reference_id not in requested:
+            continue
+        key = (
+            practice_placement_id,
+            reference_id,
+            str(reference["resource_version"]),
+            str(reference["resource_digest"]),
+        )
+        target = by_key.get(key)
+        if target is not None:
+            selected.append(target)
+    return selected
 
 
 def main(argv: Sequence[str] | None = None) -> int:

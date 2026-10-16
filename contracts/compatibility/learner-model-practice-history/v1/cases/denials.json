@@ -7,5 +7,8 @@
   {"id": "correctness-contradiction", "op": "set", "path": ["attempts", 0, "item_summaries", 1, "correct"], "value": true, "expected_code": "learner_model.practice_history.inconsistent_attempt"},
   {"id": "review-on-correct-item", "op": "set", "path": ["attempts", 0, "item_summaries", 0, "review_reference_ids"], "value": ["risk-return-review"], "expected_code": "learner_model.practice_history.inconsistent_attempt"},
   {"id": "source-digest-mismatch", "op": "set", "path": ["source_digest"], "value": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "expected_code": "learner_model.practice_history.source_digest_mismatch"},
-  {"id": "attempt-order-gap", "op": "set", "path": ["attempts", 0, "attempt_order"], "value": 2, "expected_code": "learner_model.practice_history.inconsistent_attempt"}
+  {"id": "attempt-order-gap", "op": "set", "path": ["attempts", 0, "attempt_order"], "value": 2, "expected_code": "learner_model.practice_history.inconsistent_attempt"},
+  {"id": "item-policy-mismatch", "op": "set", "path": ["attempts", 0, "item_summaries", 0, "scoring_policy_id"], "value": "numeric-exact-or-inclusive-range", "expected_code": "learner_model.practice_history.schema_invalid"},
+  {"id": "duplicate-item-id", "op": "set", "path": ["attempts", 0, "item_summaries", 1, "item_id"], "value": "risk-meaning", "expected_code": "learner_model.practice_history.inconsistent_attempt"},
+  {"id": "incorrect-without-review", "op": "set", "path": ["attempts", 0, "item_summaries", 1, "review_reference_ids"], "value": [], "expected_code": "learner_model.practice_history.inconsistent_attempt"}
 ]

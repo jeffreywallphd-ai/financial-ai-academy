@@ -23,6 +23,11 @@
     "itemSummary": {
       "type": "object", "additionalProperties": false,
       "required": ["item_id", "item_version", "item_type", "scoring_policy_id", "scoring_policy_version", "score", "max_score", "correct", "review_reference_ids"],
+      "oneOf": [
+        {"properties": {"item_type": {"const": "single_select"}, "scoring_policy_id": {"const": "single-select-exact-match"}}},
+        {"properties": {"item_type": {"const": "multiple_select"}, "scoring_policy_id": {"const": "multiple-select-exact-set"}}},
+        {"properties": {"item_type": {"const": "numeric_entry"}, "scoring_policy_id": {"const": "numeric-exact-or-inclusive-range"}}}
+      ],
       "properties": {
         "item_id": {"$ref": "#/$defs/id"}, "item_version": {"const": "1.0.0"},
         "item_type": {"enum": ["single_select", "multiple_select", "numeric_entry"]},

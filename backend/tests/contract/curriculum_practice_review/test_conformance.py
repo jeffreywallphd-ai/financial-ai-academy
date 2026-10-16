@@ -45,7 +45,12 @@ def test_schema_and_both_states_validate() -> None:
 def test_selection_is_unique_and_declaration_ordered_not_ranked() -> None:
     available, unavailable = _approved()
     selected = select_review_targets(
-        ["additional-review", "risk-return-review", "unused-review"],
+        "risk-return-practice-placement",
+        [
+            {key: unavailable[key] for key in ("resource_id", "resource_version", "resource_digest")},
+            {key: available[key] for key in ("resource_id", "resource_version", "resource_digest")},
+            {"resource_id": "unused-review", "resource_version": "1.0.0", "resource_digest": "e" * 64},
+        ],
         [["risk-return-review", "additional-review"], ["risk-return-review"]],
         [available, unavailable],
     )
@@ -59,10 +64,61 @@ def test_selection_is_unique_and_declaration_ordered_not_ranked() -> None:
 def test_missing_mapping_is_not_substituted() -> None:
     available, _ = _approved()
     assert select_review_targets(
-        ["unmapped-review", "risk-return-review"],
+        "risk-return-practice-placement",
+        [{"resource_id": "unmapped-review", "resource_version": "1.0.0", "resource_digest": "e" * 64}],
         [["unmapped-review"]],
         [available],
     ) == []
+
+
+def test_selection_matches_complete_placement_resource_tuple() -> None:
+    available, _ = _approved()
+    declared = [
+        {key: available[key] for key in ("resource_id", "resource_version", "resource_digest")}
+    ]
+    wrong_placement = copy.deepcopy(available)
+    wrong_placement["practice_placement_id"] = "another-practice-placement"
+    wrong_version = copy.deepcopy(available)
+    wrong_version["resource_version"] = "2.0.0"
+    wrong_digest = copy.deepcopy(available)
+    wrong_digest["resource_digest"] = "e" * 64
+    selected = select_review_targets(
+        "risk-return-practice-placement",
+        declared,
+        [["risk-return-review"]],
+        [wrong_placement, wrong_version, wrong_digest, available],
+    )
+    assert selected == [available]
+
+
+def test_conflicting_exact_mapping_duplicate_fails_closed() -> None:
+    available, _ = _approved()
+    conflicting = copy.deepcopy(available)
+    conflicting["destination"]["section_id"] = "different-review-section"
+    declared = [
+        {key: available[key] for key in ("resource_id", "resource_version", "resource_digest")}
+    ]
+    with pytest.raises(PracticeReviewFailure) as captured:
+        select_review_targets(
+            "risk-return-practice-placement",
+            declared,
+            [["risk-return-review"]],
+            [available, conflicting],
+        )
+    assert captured.value.code == "curriculum.practice_review.inconsistent_mapping"
+
+
+def test_exact_mapping_duplicate_is_idempotent() -> None:
+    available, _ = _approved()
+    declared = [
+        {key: available[key] for key in ("resource_id", "resource_version", "resource_digest")}
+    ]
+    assert select_review_targets(
+        "risk-return-practice-placement",
+        declared,
+        [["risk-return-review"]],
+        [available, copy.deepcopy(available)],
+    ) == [available]
 
 
 @pytest.mark.parametrize(

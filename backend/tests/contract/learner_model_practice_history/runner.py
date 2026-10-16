@@ -81,6 +81,7 @@ def ordered_unique_attempts(
 ) -> list[dict[str, Any]]:
     """Return stable attempt order while making exact event replay idempotent."""
     by_event: dict[str, dict[str, Any]] = {}
+    identities: dict[tuple[str, object], dict[str, Any]] = {}
     for value in attempts:
         attempt = copy.deepcopy(dict(value))
         event_id = str(attempt.get("event_id", ""))
@@ -91,6 +92,24 @@ def ordered_unique_attempts(
                 "event_id",
                 "A source event identity was reused for different meaning.",
             )
+        if previous is not None:
+            continue
+        for field in (
+            "event_id",
+            "attempt_id",
+            "evidence_id",
+            "submission_id",
+            "attempt_order",
+        ):
+            key = (field, attempt.get(field))
+            collision = identities.get(key)
+            if collision is not None and collision != attempt:
+                raise PracticeHistoryFailure(
+                    "learner_model.practice_history.inconsistent_duplicate",
+                    field,
+                    "A source identity was reused for different meaning.",
+                )
+            identities[key] = attempt
         by_event[event_id] = attempt
     return sorted(by_event.values(), key=lambda value: int(value.get("attempt_order", 0)))
 
@@ -131,13 +150,34 @@ class PracticeHistoryValidator:
                 "attempt_order",
                 "Practice attempt order must be contiguous.",
             )
+        stable_item_signature: tuple[tuple[object, ...], ...] | None = None
         for attempt in attempts:
+            item_ids = [item["item_id"] for item in attempt["item_summaries"]]
+            if len(item_ids) != len(set(item_ids)):
+                self._inconsistent("item_id")
+            item_signature = tuple(
+                (
+                    item["item_id"],
+                    item["item_version"],
+                    item["item_type"],
+                    item["scoring_policy_id"],
+                    item["scoring_policy_version"],
+                    item["max_score"],
+                )
+                for item in attempt["item_summaries"]
+            )
+            if stable_item_signature is None:
+                stable_item_signature = item_signature
+            elif item_signature != stable_item_signature:
+                self._inconsistent("item_summaries")
             item_score = sum(item["score"] for item in attempt["item_summaries"])
             item_maximum = sum(item["max_score"] for item in attempt["item_summaries"])
             for item in attempt["item_summaries"]:
                 if item["correct"] is not (item["score"] == item["max_score"]):
                     self._inconsistent("correct")
                 if item["correct"] and item["review_reference_ids"]:
+                    self._inconsistent("review_reference_ids")
+                if not item["correct"] and not item["review_reference_ids"]:
                     self._inconsistent("review_reference_ids")
             if (
                 attempt["score"] != item_score
