@@ -1,7 +1,7 @@
 ---
 id: WRK-0084
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-roadmap-order-qualification
 updated: 2026-10-16
@@ -167,3 +167,6 @@ the operator-owned-server condition without overstating evidence.
   `8d72372ceb4314cf2b7221db257ed75c88ed8ab2` with a three-file documentation
   lease for qualification evidence and lifecycle reconciliation. No product or
   implementation edit is authorized by this packet.
+- 2026-10-16: Submitted the integrated exact candidate after current allocation
+  reported CAP-0030 first as in progress, followed by CAP-0005 and CAP-0006 as
+  proposals, and every required focused and aggregate check passed.
