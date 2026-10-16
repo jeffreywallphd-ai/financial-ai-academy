@@ -1,7 +1,7 @@
 ---
 id: SLI-0029
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -245,3 +245,6 @@ authority, provider, cloud profile, or external execution was planned or added.
   first cumulative matrix with one bounded packet. It preserves the shared
   API-first browser/headless core, reuses still-current exact evidence, and
   avoids duplicate meta-infrastructure or inconsequential acceptance gates.
+- 2026-10-16: Activated WRK-0108 after validating current CAP membership,
+  completed dependencies, decision readiness, the documentation-only write
+  scope, implementation gate, and collision-free ownership.

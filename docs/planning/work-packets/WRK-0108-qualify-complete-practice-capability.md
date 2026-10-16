@@ -1,7 +1,7 @@
 ---
 id: WRK-0108
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0006-practice-and-demonstrate-understanding.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0029-qualify-complete-practice-capability.md", "docs/planning/work-packets/WRK-0108-qualify-complete-practice-capability.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 0a51e615f692ef41fd09ab59fb01465ad360f0d7
+claim_id: WRK-0108:a1e9ff60-892c-4fae-bccf-dfefb64bae93
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T19:13:45Z
 ---
 
 # Agent Work Packet: Qualify the Complete Practice Capability
@@ -211,3 +211,6 @@ integration when every deterministic closure condition passes.
   one documentation-only acceptance map and current exact evidence rather than
   another meta-runner or duplicate API. Any material product or harness defect
   stops this packet and routes to separately bounded work.
+- 2026-10-16: Claimed from base revision `0a51e61` after revalidating the CAP
+  binding, refined slice, completed dependencies, decision readiness, exact
+  documentation-only scope, and absence of an active file collision.
