@@ -14,6 +14,13 @@ const NAVIGATION_PATTERN =
 const GRAPH_URL =
   "/learn/curricula/investing-foundations/versions/1.0.0";
 
+function displayLabel(value: string): string {
+  return value
+    .split(/[-_]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function json(route: Route, status: number, body: unknown) {
   return route.fulfill({
     status,
@@ -40,7 +47,7 @@ async function mockReadyGraph(
   );
 }
 
-test("renders an exact protected graph with list-map and theme parity", async ({
+test("renders an exact protected learning path with list-map and theme parity", async ({
   page,
 }) => {
   await mockReadyGraph(page);
@@ -49,25 +56,112 @@ test("renders an exact protected graph with list-map and theme parity", async ({
   await expect(
     page.getByRole("heading", { level: 1, name: "Investing Foundations" }),
   ).toBeVisible();
+  const cardOccurrences = (activityId: string) =>
+    Math.max(
+      1,
+      curriculumGraphFixture.branches.filter((branch) =>
+        branch.activity_ids.includes(activityId),
+      ).length,
+    );
+  const expectedActivityCards = curriculumGraphFixture.activities.reduce(
+    (count, activity) => count + cardOccurrences(activity.activity_id),
+    0,
+  );
+  const expectedBlockedCards = navigationStateFixture.activity_states.reduce(
+    (count, state) =>
+      count +
+      (state.eligibility === "locked" ? cardOccurrences(state.activity_id) : 0),
+    0,
+  );
+  const expectedOptionalReasonCards =
+    navigationStateFixture.activity_states.reduce(
+      (count, state) =>
+        count +
+        (state.reasons.some((reason) => reason.code === "optional_activity")
+          ? cardOccurrences(state.activity_id)
+          : 0),
+      0,
+    );
+  await expect(page.getByRole("article")).toHaveCount(expectedActivityCards);
   await expect(
-    page.getByText("investing-foundations@1.0.0", { exact: true }),
-  ).toBeVisible();
-  await expect(page.getByRole("article")).toHaveCount(6);
-  await expect(page.getByText("Locked")).toHaveCount(3);
+    page.getByRole("article").getByText("Blocked", { exact: true }),
+  ).toHaveCount(expectedBlockedCards);
   await expect(
-    page.getByText(
-      "The approved curriculum assigns this activity only to optional branches.",
+    page.getByRole("article").getByText(
+      "This activity is an optional part of the learning path.",
+      { exact: true },
     ),
-  ).toHaveCount(2);
+  ).toHaveCount(expectedOptionalReasonCards);
   await expect(
-    page.getByRole("article").getByText("branch-practice"),
-  ).toHaveCount(2);
-  await expect(
-    page.getByRole("heading", { name: "Activities outside branch groupings" }),
+    page.getByRole("heading", { name: "Activities outside learning groups" }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: /open|start|launch/i })).toHaveCount(
     0,
   );
+  await expect(
+    page.getByRole("heading", { name: /curriculum graph/i }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Eligibility state", { exact: true }).first(),
+  ).toBeHidden();
+  await expect(
+    page.getByText("Navigation projection digest", { exact: true }),
+  ).toBeHidden();
+
+  const pageRecord = page.locator(".curriculum-graph__provenance");
+  await pageRecord.locator("summary").click();
+  for (const value of [
+    `${curriculumGraphFixture.curriculum_id}@${curriculumGraphFixture.curriculum_version}`,
+    curriculumGraphFixture.schema_version,
+    navigationStateFixture.schema_version,
+    curriculumGraphFixture.graph_digest,
+    navigationStateFixture.evaluated_at,
+    `${navigationStateFixture.policy_id}@${navigationStateFixture.policy_version}`,
+    navigationStateFixture.source_set_digest,
+    navigationStateFixture.projection_digest,
+    ...curriculumGraphFixture.source_references,
+  ]) {
+    await expect(pageRecord.getByText(value, { exact: true }).first()).toBeVisible();
+  }
+
+  const [firstActivity] = curriculumGraphFixture.activities;
+  expect(firstActivity).toBeDefined();
+  if (!firstActivity) throw new Error("Expected at least one activity.");
+  const firstState = navigationStateFixture.activity_states.find(
+    (state) => state.activity_id === firstActivity.activity_id,
+  );
+  expect(firstState).toBeDefined();
+  if (!firstState) throw new Error("Expected state for the first activity.");
+  const firstCard = page
+    .getByRole("article")
+    .filter({
+      has: page.getByRole("heading", { name: firstActivity.title }),
+    })
+    .first();
+  await firstCard.getByText("Technical record").click();
+  const activityIdRow = firstCard.getByText("Activity ID").locator("..");
+  await expect(
+    activityIdRow.getByText(firstActivity.activity_id, { exact: true }),
+  ).toBeVisible();
+  const firstDigest =
+    firstActivity.reference.reference_kind === "lesson_placement"
+      ? firstActivity.reference.package_digest
+      : firstActivity.reference.definition_digest;
+  await expect(
+    firstCard.getByText(firstDigest, { exact: true }),
+  ).toBeVisible();
+  for (const reason of firstState.reasons) {
+    await expect(firstCard.getByText(reason.code, { exact: true })).toBeVisible();
+    await expect(
+      firstCard.getByText(reason.explanation, { exact: true }),
+    ).toBeVisible();
+    const references = firstCard.getByRole("list", {
+      name: `${displayLabel(reason.code)} references`,
+    });
+    for (const reference of reason.references) {
+      await expect(references.getByText(reference, { exact: true })).toBeVisible();
+    }
+  }
 
   const listFacts = await page.getByTestId("curriculum-graph-list").innerText();
   await page.getByRole("button", { name: "Map view" }).click();
@@ -89,7 +183,7 @@ test("renders an exact protected graph with list-map and theme parity", async ({
   }
 });
 
-test("keeps the graph operable with keyboard, narrow reflow, forced colors, reduced motion, and 200-percent text", async ({
+test("keeps the learning path operable with keyboard, narrow reflow, forced colors, reduced motion, and 200-percent text", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 720 });
@@ -139,7 +233,7 @@ test("keeps the graph operable with keyboard, narrow reflow, forced colors, redu
   expect(dimensions.duration).toBe("0ms");
 });
 
-test("denies the route before requesting a graph", async ({ page }) => {
+test("denies the route before requesting a learning path", async ({ page }) => {
   let graphRequested = false;
   let navigationRequested = false;
   await page.route(SESSION_PATTERN, (route) =>
@@ -161,7 +255,7 @@ test("denies the route before requesting a graph", async ({ page }) => {
 
   await page.goto(GRAPH_URL);
   await expect(
-    page.getByRole("heading", { name: "Curriculum graph access unavailable" }),
+    page.getByRole("heading", { name: "Learning path access unavailable" }),
   ).toBeVisible();
   await expect(page.getByText("Investing Foundations")).toHaveCount(0);
   expect(graphRequested).toBe(false);
@@ -179,7 +273,7 @@ test("fails closed for invalid, missing, and malformed exact graph requests", as
   await mockReadyGraph(page, invalid);
   await page.goto(GRAPH_URL);
   await expect(
-    page.getByRole("heading", { name: "Curriculum graph response unavailable" }),
+    page.getByRole("heading", { name: "Learning path unavailable" }),
   ).toBeVisible();
   await expect(page.getByText("Investing Foundations")).toHaveCount(0);
   await expect(page.getByText("hidden")).toHaveCount(0);
@@ -197,7 +291,7 @@ test("fails closed for invalid, missing, and malformed exact graph requests", as
     "/learn/curricula/investing-foundations/versions/9.9.9",
   );
   await expect(
-    page.getByRole("heading", { name: "Curriculum graph version not found" }),
+    page.getByRole("heading", { name: "Learning path version not found" }),
   ).toBeVisible();
 
   let malformedRequested = false;
@@ -208,12 +302,12 @@ test("fails closed for invalid, missing, and malformed exact graph requests", as
   });
   await page.goto(`${GRAPH_URL}?latest=true`);
   await expect(
-    page.getByRole("heading", { name: "Curriculum graph link unavailable" }),
+    page.getByRole("heading", { name: "Learning path link unavailable" }),
   ).toBeVisible();
   expect(malformedRequested).toBe(false);
 });
 
-test("fails the whole page closed for an unavailable or mismatched navigation projection", async ({
+test("fails the whole page closed for unavailable or mismatched path status", async ({
   page,
 }) => {
   await mockReadyGraph(page, curriculumGraphFixture, {
@@ -222,7 +316,7 @@ test("fails the whole page closed for an unavailable or mismatched navigation pr
   });
   await page.goto(GRAPH_URL);
   await expect(
-    page.getByRole("heading", { name: "Curriculum graph response unavailable" }),
+    page.getByRole("heading", { name: "Learning path unavailable" }),
   ).toBeVisible();
   await expect(page.getByText("Investing Foundations")).toHaveCount(0);
 
@@ -231,7 +325,7 @@ test("fails the whole page closed for an unavailable or mismatched navigation pr
   await page.goto(GRAPH_URL);
   await expect(
     page.getByRole("heading", {
-      name: "Curriculum graph temporarily unavailable",
+      name: "Learning path temporarily unavailable",
     }),
   ).toBeVisible();
   await expect(page.getByText("Investing Foundations")).toHaveCount(0);

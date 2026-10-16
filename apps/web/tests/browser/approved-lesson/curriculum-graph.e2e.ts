@@ -24,15 +24,37 @@ function displayLabel(value: string): string {
     .join(" ");
 }
 
+function completionLabel(value: ActivityNavigationState["completion"]): string {
+  if (value === "completed") return "Finished";
+  if (value === "incomplete") return "Not finished";
+  return "Status unavailable";
+}
+
+function readinessLabel(value: ActivityNavigationState["eligibility"]): string {
+  if (value === "eligible") return "Ready";
+  if (value === "locked") return "Blocked";
+  return "Status unavailable";
+}
+
+function requirementLabel(value: ActivityNavigationState["requirement"]): string {
+  if (value === "required") return "Required";
+  if (value === "optional") return "Optional";
+  return "Not in a group";
+}
+
+function availabilityLabel(value: ActivityNavigationState["availability"]): string {
+  return value === "available" ? "Available" : "Unavailable";
+}
+
 async function expectNavigationFacts(
   card: Locator,
   state: ActivityNavigationState,
 ) {
   for (const [dimension, value] of [
-    ["Completion", state.completion],
-    ["Eligibility", state.eligibility],
-    ["Requirement", state.requirement],
-    ["Availability", state.availability],
+    ["Progress", completionLabel(state.completion)],
+    ["Ready to start", readinessLabel(state.eligibility)],
+    ["Part of your path", requirementLabel(state.requirement)],
+    ["Learning material", availabilityLabel(state.availability)],
   ] as const) {
     const row = card.getByText(dimension, { exact: true }).locator("..");
     await expect(
@@ -45,13 +67,26 @@ async function expectNavigationFacts(
   await expect(reasonItems).toHaveCount(state.reasons.length);
   for (const [index, reason] of state.reasons.entries()) {
     const reasonItem = reasonItems.nth(index);
+    const plainReason = (await reasonItem.locator("p").innerText()).trim();
+    expect(plainReason.length).toBeGreaterThan(0);
+    expect(plainReason).not.toBe(reason.code);
+  }
+
+  await card.getByText("Technical record").click();
+  for (const value of [
+    state.completion,
+    state.eligibility,
+    state.requirement,
+    state.availability,
+  ]) {
+    await expect(card.getByText(value, { exact: true }).first()).toBeVisible();
+  }
+  for (const reason of state.reasons) {
+    await expect(card.getByText(reason.code, { exact: true })).toBeVisible();
     await expect(
-      reasonItem.getByText(reason.explanation, { exact: true }),
+      card.getByText(reason.explanation, { exact: true }),
     ).toBeVisible();
-    await expect(
-      reasonItem.getByText(displayLabel(reason.code), { exact: true }),
-    ).toBeVisible();
-    const references = reasonItem.getByRole("list", {
+    const references = card.getByRole("list", {
       name: `${displayLabel(reason.code)} references`,
     });
     await expect(references.getByRole("listitem")).toHaveCount(
@@ -146,35 +181,50 @@ test("opens the live exact graph with peer views, provenance, and flexible group
     );
   }
 
+  await expect(page.locator(`time[datetime="${graph.published_at}"]`)).toBeVisible();
+  await expect(page.getByText(graph.summary, { exact: true })).toBeVisible();
+  const pageRecord = page.locator(".curriculum-graph__provenance");
+  await pageRecord.locator("summary").click();
   await expect(
-    page.getByText(`${graph.curriculum_id}@${graph.curriculum_version}`, {
+    pageRecord.getByText(`${graph.curriculum_id}@${graph.curriculum_version}`, {
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.locator(`time[datetime="${graph.published_at}"]`)).toBeVisible();
-  await expect(page.getByText(graph.summary, { exact: true })).toBeVisible();
-  for (const source of graph.source_references) {
-    await expect(page.getByText(source, { exact: true })).toBeVisible();
-  }
-  await page
-    .locator("summary", { hasText: "Technical graph and navigation identity" })
-    .click();
-  await expect(page.getByText(graph.graph_digest, { exact: true })).toBeVisible();
+  const graphSchemaRow = pageRecord
+    .getByText("Graph schema version")
+    .locator("..");
+  const navigationSchemaRow = pageRecord
+    .getByText("Navigation schema version")
+    .locator("..");
   await expect(
-    page.getByText(
+    graphSchemaRow.getByText(graph.schema_version, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    navigationSchemaRow.getByText(navigationState.schema_version, {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    pageRecord.getByText(graph.graph_digest, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    pageRecord.getByText(
       `${navigationState.policy_id}@${navigationState.policy_version}`,
       { exact: true },
     ),
   ).toBeVisible();
   await expect(
-    page.getByText(navigationState.source_set_digest, { exact: true }),
+    pageRecord.getByText(navigationState.source_set_digest, { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText(navigationState.projection_digest, { exact: true }),
+    pageRecord.getByText(navigationState.projection_digest, { exact: true }),
   ).toBeVisible();
   await expect(
-    page.locator(`time[datetime="${navigationState.evaluated_at}"]`),
+    pageRecord.getByText(navigationState.evaluated_at, { exact: true }),
   ).toBeVisible();
+  for (const source of graph.source_references) {
+    await expect(pageRecord.getByText(source, { exact: true })).toBeVisible();
+  }
 
   const list = page.getByTestId("curriculum-graph-list");
   await expect(list).toBeVisible();
@@ -200,11 +250,20 @@ test("opens the live exact graph with peer views, provenance, and flexible group
       branch.activity_ids.includes(activity.activity_id),
     ).length;
     const cards = page.getByRole("article").filter({
-      has: page.getByText(activity.activity_id, { exact: true }),
+      has: page.getByRole("heading", { level: 4, name: activity.title }),
     });
     await expect(cards).toHaveCount(Math.max(1, branchOccurrences));
     for (let index = 0; index < (await cards.count()); index += 1) {
-      await expectNavigationFacts(cards.nth(index), state);
+      const card = cards.nth(index);
+      await expectNavigationFacts(card, state);
+      await expect(
+        card.getByText(activity.activity_id, { exact: true }),
+      ).toBeVisible();
+      const digest =
+        activity.reference.reference_kind === "lesson_placement"
+          ? activity.reference.package_digest
+          : activity.reference.definition_digest;
+      await expect(card.getByText(digest, { exact: true })).toBeVisible();
     }
   }
   await expect(page.getByRole("link", { name: /open|start|launch/i })).toHaveCount(
@@ -329,7 +388,7 @@ test("denies graph facts without context and never substitutes a missing version
 
   await page.goto(`/learn/curricula/${CURRICULUM_ID}/versions/9.9.9`);
   await expect(
-    page.getByRole("heading", { name: "Curriculum graph version not found" }),
+    page.getByRole("heading", { name: "Learning path version not found" }),
   ).toBeVisible();
   await expect(page.getByText("Investing Foundations")).toHaveCount(0);
   await expect(page.getByText(/latest version was substituted/i)).toBeVisible();
