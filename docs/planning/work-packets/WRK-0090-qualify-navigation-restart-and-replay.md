@@ -213,10 +213,14 @@ dependency-ready.
   deletes against the rebuildable Learner-model history and projection tables.
   It observes Assessment evidence and outbox counts before and after, then
   requires normal API access to rebuild nonempty derived state.
-- Nine focused orchestration tests pass. They cover seed-free restart command
+- Fourteen focused orchestration tests pass. They cover seed-free restart command
   construction, headless public API routing, graph/launch drift denial,
   time/digest anti-rigidity, exact reset scope, source preservation, semantic
   replay, graceful/forced stop, and failed-readiness cleanup.
+- Teardown now attempts application, exact container, and bounded data-root
+  cleanup independently. Injected failure at each stage proves later stages
+  still run; bounded stage/type diagnostics attach to an existing primary error
+  instead of replacing it, or become the cleanup error when no primary exists.
 - The isolated PostgreSQL 18.4/Python/public-API/generated-client/Chromium run
   passes all eight browser scenarios plus the new replay phase. It preserves
   Assessment sources and rebuilds three projection rows and one history row
@@ -242,3 +246,8 @@ dependency-ready.
   report, focused tests, and synchronized contract/deployment guidance. The
   exact implementation candidate is ready for affected verification and
   independent review.
+- 2026-10-16: Independent R01 identified that sequential `finally` cleanup
+  could skip later exact resources after an earlier teardown exception. The
+  bounded correction now attempts every teardown stage, preserves the primary
+  failure with aggregated safe cleanup notes, and injects failure at each stage
+  in focused tests. No product or API boundary changed.

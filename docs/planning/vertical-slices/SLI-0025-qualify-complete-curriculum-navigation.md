@@ -255,3 +255,7 @@ plan remain out of scope.
 - 2026-10-16: Submitted WRK-0090 exact candidate `03f55a5` for affected
   verification and independent review after focused, live, documentation,
   planning, whitespace, and aggregate readiness checks passed.
+- 2026-10-16: Independent R01 found one bounded failure-containment gap in
+  multi-stage harness teardown. WRK-0090 now attempts all exact cleanup stages
+  and preserves primary plus aggregated cleanup diagnostics; CAP scope and
+  public API behavior remain unchanged.

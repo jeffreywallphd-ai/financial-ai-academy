@@ -414,3 +414,72 @@ def test_start_application_stops_a_process_that_never_becomes_ready(
     assert process.terminated is True
     assert process.killed is False
     assert process.waits == [10]
+
+
+@pytest.mark.parametrize(
+    "failed_stage",
+    ["application", "database container", "temporary data"],
+)
+def test_cleanup_attempts_every_exact_stage_after_each_injected_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    failed_stage: str,
+) -> None:
+    calls: list[str] = []
+
+    def stage(label: str):
+        def cleanup(_target: object) -> None:
+            calls.append(label)
+            if label == failed_stage:
+                raise RuntimeError("private cleanup detail")
+
+        return cleanup
+
+    monkeypatch.setattr(runner, "stop_application", stage("application"))
+    monkeypatch.setattr(
+        runner,
+        "remove_container",
+        stage("database container"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_data_root",
+        stage("temporary data"),
+    )
+
+    failures = runner.cleanup_qualification(
+        application=object(),
+        container_name="faa-wrk0005-postgres-test",
+        data_root=Path("bounded-data"),
+    )
+
+    assert calls == ["application", "database container", "temporary data"]
+    assert failures == (f"{failed_stage} (RuntimeError)",)
+    assert "private cleanup detail" not in failures[0]
+
+
+def test_cleanup_diagnostics_preserve_the_primary_failure() -> None:
+    primary = ValueError("primary qualification failure")
+
+    with pytest.raises(ValueError, match="primary qualification failure") as captured:
+        runner.finish_after_cleanup(
+            primary,
+            ("application (TimeoutExpired)", "temporary data (PermissionError)"),
+        )
+
+    assert captured.value is primary
+    assert captured.value.__notes__ == [
+        "Qualification cleanup also failed for: application "
+        "(TimeoutExpired), temporary data (PermissionError)."
+    ]
+
+
+def test_cleanup_failure_without_primary_error_remains_bounded() -> None:
+    with pytest.raises(RuntimeError) as captured:
+        runner.finish_after_cleanup(
+            None,
+            ("database container (RuntimeError)",),
+        )
+
+    assert str(captured.value) == (
+        "Qualification cleanup failed for: database container (RuntimeError)."
+    )

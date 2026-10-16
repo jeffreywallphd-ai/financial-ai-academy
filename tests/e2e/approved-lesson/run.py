@@ -223,6 +223,46 @@ def stop_application(application: subprocess.Popen[str] | None) -> None:
         application.wait(timeout=5)
 
 
+def cleanup_qualification(
+    *,
+    application: subprocess.Popen[str] | None,
+    container_name: str | None,
+    data_root: Path | None,
+) -> tuple[str, ...]:
+    failures: list[str] = []
+    steps = (
+        ("application", lambda: stop_application(application)),
+        ("database container", lambda: remove_container(container_name)),
+        ("temporary data", lambda: remove_data_root(data_root)),
+    )
+    for label, cleanup in steps:
+        try:
+            cleanup()
+        except Exception as error:
+            failures.append(f"{label} ({type(error).__name__})")
+    return tuple(failures)
+
+
+def finish_after_cleanup(
+    primary_error: BaseException | None,
+    cleanup_failures: tuple[str, ...],
+) -> None:
+    if primary_error is not None:
+        if cleanup_failures:
+            primary_error.add_note(
+                "Qualification cleanup also failed for: "
+                + ", ".join(cleanup_failures)
+                + "."
+            )
+        raise primary_error.with_traceback(primary_error.__traceback__)
+    if cleanup_failures:
+        raise RuntimeError(
+            "Qualification cleanup failed for: "
+            + ", ".join(cleanup_failures)
+            + "."
+        )
+
+
 def _request_json(
     opener: urllib.request.OpenerDirector,
     *,
@@ -591,6 +631,7 @@ def main() -> int:
     application_log = data_root / "python-application.log"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
+    primary_error: BaseException | None = None
 
     try:
         if external_dsn:
@@ -688,20 +729,31 @@ def main() -> int:
             "static_serving": "same-origin Python application",
         }
         print(json.dumps(report, indent=2, sort_keys=True))
-        return 0
-    except Exception:
-        if application_log.is_file():
-            diagnostics = application_log.read_text(
-                encoding="utf-8", errors="replace"
+    except BaseException as error:
+        primary_error = error
+        try:
+            if application_log.is_file():
+                diagnostics = application_log.read_text(
+                    encoding="utf-8", errors="replace"
+                )
+                if external_dsn:
+                    diagnostics = diagnostics.replace(
+                        external_dsn,
+                        "<redacted-dsn>",
+                    )
+                print(diagnostics[-4000:], file=sys.stderr)
+        except Exception as diagnostic_error:
+            error.add_note(
+                "Qualification diagnostic collection also failed "
+                f"({type(diagnostic_error).__name__})."
             )
-            if external_dsn:
-                diagnostics = diagnostics.replace(external_dsn, "<redacted-dsn>")
-            print(diagnostics[-4000:], file=sys.stderr)
-        raise
-    finally:
-        stop_application(application)
-        remove_container(container_name)
-        remove_data_root(data_root)
+    cleanup_failures = cleanup_qualification(
+        application=application,
+        container_name=container_name,
+        data_root=data_root,
+    )
+    finish_after_cleanup(primary_error, cleanup_failures)
+    return 0
 
 
 if __name__ == "__main__":
