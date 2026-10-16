@@ -228,6 +228,36 @@
   border-radius: var(--faa-radius-card);
 }
 
+.curriculum-graph__activity[aria-current="step"] {
+  border-color: var(--faa-color-action-primary);
+  outline: var(--faa-border-width) solid var(--faa-color-action-primary);
+}
+
+.curriculum-graph__current {
+  display: flex;
+  align-items: center;
+  gap: var(--faa-space-2);
+  color: var(--faa-color-brand);
+  font-size: var(--faa-font-size-ui);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.curriculum-graph__launch {
+  display: grid;
+  justify-items: start;
+  gap: var(--faa-space-3);
+  padding-top: var(--faa-space-3);
+  border-top: var(--faa-border-width) solid var(--faa-color-border);
+}
+
+.curriculum-graph__launch p {
+  padding: var(--faa-space-3);
+  color: var(--faa-color-text-secondary);
+  background: var(--faa-color-warning-surface);
+  border: var(--faa-border-width) solid var(--faa-color-warning);
+  border-radius: var(--faa-radius-control);
+}
+
 .curriculum-graph__navigation-state {
   display: grid;
   min-width: 0;
@@ -385,6 +415,12 @@
     background: Canvas;
     border-color: CanvasText;
     box-shadow: none;
+  }
+
+  .curriculum-graph__activity[aria-current="step"],
+  .curriculum-graph__launch p {
+    border-color: Highlight;
+    outline-color: Highlight;
   }
 
   .curriculum-graph__view-control .button[aria-pressed="true"] {

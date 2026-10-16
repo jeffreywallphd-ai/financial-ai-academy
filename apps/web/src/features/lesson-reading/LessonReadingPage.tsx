@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
 import { LessonBody } from "./LessonBody";
@@ -17,9 +18,11 @@ function formatDate(value: string) {
 export function LessonReadingPage({
   knowledgeCheck,
   lesson,
+  returnTo,
 }: {
   knowledgeCheck?: ReactNode;
   lesson: Lesson;
+  returnTo?: string | undefined;
 }) {
   return (
     <div className="lesson-layout">
@@ -37,6 +40,11 @@ export function LessonReadingPage({
             Learn the key ideas with reviewed educational material and clear
             source information.
           </p>
+          {returnTo ? (
+            <Link className="button button--secondary lesson-return" to={returnTo}>
+              Return to learning path
+            </Link>
+          ) : null}
         </header>
 
         <section

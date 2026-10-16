@@ -46,6 +46,12 @@
   line-height: var(--faa-line-height-body-lg);
 }
 
+.lesson-return {
+  display: inline-flex;
+  margin-top: var(--faa-space-5);
+  text-decoration: none;
+}
+
 .objectives-card {
   margin: var(--faa-space-8) var(--faa-space-0);
   padding: var(--faa-space-6);

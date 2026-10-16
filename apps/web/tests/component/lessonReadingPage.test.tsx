@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 
 import { LessonReadingPage } from "../../src/features/lesson-reading/LessonReadingPage";
@@ -57,6 +58,24 @@ describe("LessonReadingPage", () => {
     );
     expect(source).toHaveAttribute("target", "_blank");
     expect(source).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("shows a bounded same-origin return action only when context is valid", () => {
+    render(
+      <MemoryRouter>
+        <LessonReadingPage
+          lesson={lessonFixture}
+          returnTo="/learn/curricula/investing-foundations/versions/1.0.0?activity=activity-risk-return-lesson"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Return to learning path" }),
+    ).toHaveAttribute(
+      "href",
+      "/learn/curricula/investing-foundations/versions/1.0.0?activity=activity-risk-return-lesson",
+    );
   });
 });
 

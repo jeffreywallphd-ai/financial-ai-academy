@@ -1,12 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createCurriculumGraphLoader } from "../../src/features/curriculum-graph/api";
 import {
+  createCurriculumActivityLauncher,
+  createCurriculumGraphLoader,
+} from "../../src/features/curriculum-graph/api";
+import {
+  activityLaunchIsSafe,
   curriculumGraphIsSafe,
   curriculumGraphPresentation,
+  lessonDestinationWithReturnContext,
   navigationStateIsSafe,
   parseCurriculumGraphSelection,
 } from "../../src/features/curriculum-graph/model";
+import type { ActivityLaunch } from "../../src/features/curriculum-graph/model";
 import type { FinancialAcademyApiClient } from "../../src/generated/api-client";
 import type { SingleProfileSession } from "../../src/platform/auth/singleProfileSession";
 import {
@@ -19,8 +25,23 @@ const expected = {
   curriculumVersion: "1.0.0",
 };
 
+const activityLaunchFixture = {
+  schema_version: "1.0.0",
+  curriculum_id: "investing-foundations",
+  curriculum_version: "1.0.0",
+  graph_digest: "f".repeat(64),
+  activity_id: "activity-risk-return-lesson",
+  navigation_projection_digest: "2".repeat(64),
+  evaluated_at: "2026-10-15T12:30:00Z",
+  placement_id: "intro-risk-return-primary",
+  package_id: "intro-risk-return",
+  package_version: "1.0.0",
+  package_digest: "a".repeat(64),
+  destination: "/learn/placements/intro-risk-return-primary",
+} satisfies ActivityLaunch;
+
 describe("curriculum graph route model", () => {
-  it("accepts exact safe route identifiers without query or fragment state", () => {
+  it("accepts exact identifiers and only one bounded current-activity query", () => {
     expect(
       parseCurriculumGraphSelection(
         expected.curriculumId,
@@ -28,6 +49,16 @@ describe("curriculum graph route model", () => {
         "https://academy.test/learn/curricula/investing-foundations/versions/1.0.0",
       ),
     ).toEqual(expected);
+    expect(
+      parseCurriculumGraphSelection(
+        expected.curriculumId,
+        expected.curriculumVersion,
+        "https://academy.test/learn/curricula/investing-foundations/versions/1.0.0?activity=activity-risk-return-lesson",
+      ),
+    ).toEqual({
+      ...expected,
+      selectedActivityId: "activity-risk-return-lesson",
+    });
     expect(
       parseCurriculumGraphSelection(
         "Investing Foundations",
@@ -47,6 +78,13 @@ describe("curriculum graph route model", () => {
         expected.curriculumId,
         expected.curriculumVersion,
         "https://academy.test/learn?latest=true",
+      ),
+    ).toBeNull();
+    expect(
+      parseCurriculumGraphSelection(
+        expected.curriculumId,
+        expected.curriculumVersion,
+        "https://academy.test/learn?activity=activity-a&activity=activity-b",
       ),
     ).toBeNull();
   });
@@ -203,6 +241,112 @@ describe("curriculum graph route model", () => {
 
     flexibleSource.source_references[0] = `zz:${"😀".repeat(256)}`;
     expect(curriculumGraphIsSafe(flexibleSource, expected)).toBe(false);
+  });
+});
+
+describe("curriculum activity launch model", () => {
+  it("accepts only the exact graph, projection, lesson resource, and destination", () => {
+    expect(
+      activityLaunchIsSafe(
+        activityLaunchFixture,
+        curriculumGraphFixture,
+        navigationStateFixture,
+        activityLaunchFixture.activity_id,
+      ),
+    ).toBe(true);
+    expect(
+      activityLaunchIsSafe(
+        {
+          ...activityLaunchFixture,
+          navigation_projection_digest: "7".repeat(64),
+          evaluated_at: "2026-10-16T12:45:00Z",
+        },
+        curriculumGraphFixture,
+        navigationStateFixture,
+        activityLaunchFixture.activity_id,
+      ),
+    ).toBe(true);
+    expect(
+      lessonDestinationWithReturnContext(activityLaunchFixture),
+    ).toBe(
+      "/learn/placements/intro-risk-return-primary?curriculum_id=investing-foundations&curriculum_version=1.0.0&activity_id=activity-risk-return-lesson",
+    );
+
+    for (const changed of [
+      { graph_digest: "9".repeat(64) },
+      { placement_id: "different-placement" },
+      { destination: "https://attacker.invalid/lesson" },
+    ]) {
+      expect(
+        activityLaunchIsSafe(
+          { ...activityLaunchFixture, ...changed },
+          curriculumGraphFixture,
+          navigationStateFixture,
+          activityLaunchFixture.activity_id,
+        ),
+      ).toBe(false);
+    }
+  });
+
+  it("uses the generated launch operation, renews once, and fails stale responses closed", async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce({ response: new Response(null, { status: 401 }) })
+      .mockResolvedValueOnce({
+        data: activityLaunchFixture,
+        response: new Response(null, { status: 200 }),
+      });
+    const ensure = vi.fn().mockResolvedValue({ status: "ready" });
+    const invalidate = vi.fn();
+    const launcher = createCurriculumActivityLauncher(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      { ensure, invalidate } as unknown as SingleProfileSession,
+    );
+
+    await expect(
+      launcher(
+        curriculumGraphFixture,
+        navigationStateFixture,
+        activityLaunchFixture.activity_id,
+        new AbortController().signal,
+      ),
+    ).resolves.toEqual({
+      status: "ready",
+      activityId: activityLaunchFixture.activity_id,
+      destination:
+        "/learn/placements/intro-risk-return-primary?curriculum_id=investing-foundations&curriculum_version=1.0.0&activity_id=activity-risk-return-lesson",
+    });
+    expect(ensure).toHaveBeenCalledTimes(2);
+    expect(invalidate).toHaveBeenCalledOnce();
+    expect(get).toHaveBeenNthCalledWith(
+      2,
+      "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/activities/{activity_id}/launch",
+      expect.objectContaining({
+        params: {
+          path: {
+            activity_id: "activity-risk-return-lesson",
+            curriculum_id: "investing-foundations",
+            curriculum_version: "1.0.0",
+          },
+        },
+      }),
+    );
+
+    get.mockResolvedValueOnce({
+      data: { ...activityLaunchFixture, graph_digest: "0".repeat(64) },
+      response: new Response(null, { status: 200 }),
+    });
+    await expect(
+      launcher(
+        curriculumGraphFixture,
+        navigationStateFixture,
+        activityLaunchFixture.activity_id,
+        new AbortController().signal,
+      ),
+    ).resolves.toEqual({
+      status: "invalid",
+      activityId: activityLaunchFixture.activity_id,
+    });
   });
 });
 
@@ -380,6 +524,53 @@ describe("curriculum graph loader", () => {
         response: new Response(null, { status: 200 }),
       });
     await expect(request()).resolves.toEqual({ status: "invalid-response" });
+  });
+
+  it("retains current position only when the fresh graph contains the selected activity", async () => {
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: curriculumGraphFixture,
+        response: new Response(null, { status: 200 }),
+      })
+      .mockResolvedValueOnce({
+        data: navigationStateFixture,
+        response: new Response(null, { status: 200 }),
+      })
+      .mockResolvedValueOnce({
+        data: curriculumGraphFixture,
+        response: new Response(null, { status: 200 }),
+      })
+      .mockResolvedValueOnce({
+        data: navigationStateFixture,
+        response: new Response(null, { status: 200 }),
+      });
+    const loader = createCurriculumGraphLoader(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      {
+        ensure: vi.fn().mockResolvedValue({ status: "ready" }),
+        invalidate: vi.fn(),
+      } as unknown as SingleProfileSession,
+    );
+    const request = (activityId: string) =>
+      loader({
+        params: expected,
+        request: new Request(
+          `https://academy.test/learn/curricula/investing-foundations/versions/1.0.0?activity=${activityId}`,
+        ),
+      } as never);
+
+    await expect(request("activity-risk-return-lesson")).resolves.toEqual({
+      status: "ready",
+      graph: curriculumGraphFixture,
+      navigationState: navigationStateFixture,
+      currentActivityId: "activity-risk-return-lesson",
+    });
+    await expect(request("activity-not-in-this-graph")).resolves.toEqual({
+      status: "ready",
+      graph: curriculumGraphFixture,
+      navigationState: navigationStateFixture,
+    });
   });
 
   it("rejects a malformed selection and session denial before graph transport", async () => {

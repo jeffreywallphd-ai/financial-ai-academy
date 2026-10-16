@@ -3,6 +3,7 @@ import { useLoaderData, useRevalidator } from "react-router";
 import { StatusPanel } from "../../components/StatusPanel";
 import { KnowledgeCheck } from "./KnowledgeCheck";
 import { LessonReadingPage } from "./LessonReadingPage";
+import { curriculumReturnDestination } from "./model";
 import type { LessonRouteState } from "./model";
 
 
@@ -40,6 +41,11 @@ export function LessonRouteView({
             <KnowledgeCheck placementId={state.lesson.placement_id} />
           }
           lesson={state.lesson}
+          returnTo={
+            state.returnContext
+              ? curriculumReturnDestination(state.returnContext)
+              : undefined
+          }
         />
       );
     case "unauthorized":

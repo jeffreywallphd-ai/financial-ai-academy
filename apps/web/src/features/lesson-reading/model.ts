@@ -6,7 +6,11 @@ export type Lesson =
 
 export type LessonRouteState =
   | { status: "loading" }
-  | { status: "ready"; lesson: Lesson }
+  | {
+      status: "ready";
+      lesson: Lesson;
+      returnContext: LessonReturnContext | null;
+    }
   | { status: "unauthorized" }
   | { status: "forbidden" }
   | { status: "not-found" }
@@ -18,7 +22,16 @@ interface NodeBudget {
   remaining: number;
 }
 
+export interface LessonReturnContext {
+  curriculumId: string;
+  curriculumVersion: string;
+  activityId: string;
+}
+
 const DIGEST = /^[a-f0-9]{64}$/;
+const IDENTIFIER = /^[a-z0-9][a-z0-9._-]{2,63}$/;
+const SEMANTIC_VERSION =
+  /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
 const ASSET_LOCATOR =
   /^\/api\/v1\/content\/assets\/[a-z0-9][a-z0-9._-]{2,63}$/;
 
@@ -30,6 +43,49 @@ function record(value: unknown): Record<string, unknown> | null {
 
 function nonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
+}
+
+export function parseLessonReturnContext(
+  url: string,
+): LessonReturnContext | null {
+  let request: URL;
+  try {
+    request = new URL(url);
+  } catch {
+    return null;
+  }
+  const expectedKeys = [
+    "activity_id",
+    "curriculum_id",
+    "curriculum_version",
+  ];
+  const actualKeys = [...request.searchParams.keys()].sort();
+  if (
+    request.hash !== "" ||
+    actualKeys.length !== expectedKeys.length ||
+    actualKeys.some((key, index) => key !== expectedKeys[index]) ||
+    expectedKeys.some((key) => request.searchParams.getAll(key).length !== 1)
+  ) {
+    return null;
+  }
+  const curriculumId = request.searchParams.get("curriculum_id");
+  const curriculumVersion = request.searchParams.get("curriculum_version");
+  const activityId = request.searchParams.get("activity_id");
+  return typeof curriculumId === "string" &&
+    IDENTIFIER.test(curriculumId) &&
+    typeof curriculumVersion === "string" &&
+    SEMANTIC_VERSION.test(curriculumVersion) &&
+    typeof activityId === "string" &&
+    IDENTIFIER.test(activityId)
+    ? { curriculumId, curriculumVersion, activityId }
+    : null;
+}
+
+export function curriculumReturnDestination(
+  context: LessonReturnContext,
+): string {
+  const query = new URLSearchParams({ activity: context.activityId });
+  return `/learn/curricula/${encodeURIComponent(context.curriculumId)}/versions/${encodeURIComponent(context.curriculumVersion)}?${query.toString()}`;
 }
 
 function safeHttpsLocator(value: unknown): value is string {

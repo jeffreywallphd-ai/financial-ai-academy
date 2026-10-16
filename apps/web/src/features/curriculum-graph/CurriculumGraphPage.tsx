@@ -3,6 +3,7 @@ import { Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
 import type {
+  ActivityLaunchViewState,
   ActivityNavigationState,
   CurriculumActivity,
   CurriculumGraph,
@@ -124,15 +125,58 @@ function navigationIcon(state: ActivityNavigationState) {
   return "info-circle" as const;
 }
 
+function launchFailureText(status: ActivityLaunchViewState["status"]): string {
+  if (status === "blocked") {
+    return "This lesson is not ready to open. Refresh the learning path to see its current status.";
+  }
+  if (status === "forbidden" || status === "unauthorized") {
+    return "We could not confirm access to this lesson.";
+  }
+  if (status === "not-found") {
+    return "This exact lesson could not be found.";
+  }
+  if (status === "invalid") {
+    return "We could not safely open this lesson.";
+  }
+  return "This lesson is temporarily unavailable. Try again.";
+}
+
 function ActivityCard({
   activity,
+  current,
+  launchState,
   navigationState,
+  onLaunch,
 }: {
   activity: CurriculumActivity;
+  current: boolean;
+  launchState: ActivityLaunchViewState;
   navigationState: ActivityNavigationState;
+  onLaunch: (activityId: string) => void;
 }) {
+  const openable =
+    activity.kind === "lesson" &&
+    navigationState.availability === "available" &&
+    navigationState.eligibility === "eligible" &&
+    navigationState.completion !== "unavailable";
+  const pending =
+    launchState.status === "launching" &&
+    launchState.activityId === activity.activity_id;
+  const failed =
+    launchState.status !== "idle" &&
+    launchState.status !== "launching" &&
+    launchState.activityId === activity.activity_id;
   return (
-    <article className="curriculum-graph__activity">
+    <article
+      aria-current={current ? "step" : undefined}
+      className="curriculum-graph__activity"
+    >
+      {current ? (
+        <p className="curriculum-graph__current">
+          <Icon name="learn" />
+          Current activity
+        </p>
+      ) : null}
       <p className="curriculum-graph__badge">{label(activity.kind)}</p>
       <h4>{activity.title}</h4>
       <div className="curriculum-graph__navigation-state">
@@ -241,17 +285,44 @@ function ActivityCard({
           </ol>
         </details>
       </div>
+      {openable ? (
+        <div className="curriculum-graph__launch">
+          <button
+            className="button"
+            disabled={pending}
+            onClick={() => onLaunch(activity.activity_id)}
+            type="button"
+          >
+            {pending
+              ? "Opening lesson…"
+              : navigationState.completion === "completed"
+                ? "Review lesson"
+                : "Start lesson"}
+          </button>
+          {failed ? (
+            <p aria-live="polite" role="status">
+              {launchFailureText(launchState.status)}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }
 
 function GraphFacts({
+  currentActivityId,
   graph,
+  launchState,
   navigationState,
+  onLaunch,
   view,
 }: {
+  currentActivityId?: string | undefined;
   graph: CurriculumGraph;
+  launchState: ActivityLaunchViewState;
   navigationState: NavigationState;
+  onLaunch: (activityId: string) => void;
   view: GraphView;
 }) {
   const presentation = curriculumGraphPresentation(graph);
@@ -376,8 +447,11 @@ function GraphFacts({
                     return activity ? (
                       <ActivityCard
                         activity={activity}
+                        current={activityId === currentActivityId}
                         key={`${branch.branch_id}:${activityId}`}
+                        launchState={launchState}
                         navigationState={navigationByActivityId.get(activityId)!}
+                        onLaunch={onLaunch}
                       />
                     ) : null;
                   })}
@@ -397,10 +471,13 @@ function GraphFacts({
               {unbranchedActivities.map((activity) => (
                 <ActivityCard
                   activity={activity}
+                  current={activity.activity_id === currentActivityId}
                   key={activity.activity_id}
+                  launchState={launchState}
                   navigationState={navigationByActivityId.get(
                     activity.activity_id,
                   )!}
+                  onLaunch={onLaunch}
                 />
               ))}
             </div>
@@ -449,11 +526,17 @@ function GraphFacts({
 }
 
 export function CurriculumGraphPage({
+  currentActivityId,
   graph,
+  launchState = { status: "idle" },
   navigationState,
+  onLaunch = () => undefined,
 }: {
+  currentActivityId?: string | undefined;
   graph: CurriculumGraph;
+  launchState?: ActivityLaunchViewState;
   navigationState: NavigationState;
+  onLaunch?: (activityId: string) => void;
 }) {
   const [view, setView] = useState<GraphView>("list");
   return (
@@ -503,8 +586,11 @@ export function CurriculumGraphPage({
       </div>
 
       <GraphFacts
+        currentActivityId={currentActivityId}
         graph={graph}
+        launchState={launchState}
         navigationState={navigationState}
+        onLaunch={onLaunch}
         view={view}
       />
 

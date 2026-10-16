@@ -10,12 +10,12 @@ capability: CAP-0005
 depends_on: ["WRK-0086"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/features/curriculum-graph/model.ts", "apps/web/src/features/curriculum-graph/api.ts", "apps/web/src/features/curriculum-graph/CurriculumGraphRoute.tsx", "apps/web/src/features/curriculum-graph/CurriculumGraphPage.tsx", "apps/web/src/features/lesson-reading/model.ts", "apps/web/src/features/lesson-reading/api.ts", "apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/styles/curriculum-graph.css", "apps/web/src/styles/lesson-reading.css", "apps/web/tests/unit/curriculumGraphModel.test.ts", "apps/web/tests/unit/lessonModel.test.ts", "apps/web/tests/component/curriculumGraph.test.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/README.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/planning/work-packets/WRK-0087-deliver-curriculum-launch-and-return-ui.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/register.md"]
-generated_artifacts: []
-base_revision: 87c0455bef3c0dfa1a7336064b48d4201dd804eb
-claim_id: WRK-0087:051323bd-bf02-424f-9d61-1456811614a5
+write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/features/curriculum-graph/model.ts", "apps/web/src/features/curriculum-graph/api.ts", "apps/web/src/features/curriculum-graph/CurriculumGraphRoute.tsx", "apps/web/src/features/curriculum-graph/CurriculumGraphPage.tsx", "apps/web/src/features/lesson-reading/model.ts", "apps/web/src/features/lesson-reading/api.ts", "apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/styles/curriculum-graph.css", "apps/web/src/styles/lesson-reading.css", "apps/web/tests/unit/curriculumGraphModel.test.ts", "apps/web/tests/unit/lessonModel.test.ts", "apps/web/tests/component/curriculumGraph.test.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/dist", "apps/web/README.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/planning/work-packets/WRK-0087-deliver-curriculum-launch-and-return-ui.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/register.md"]
+generated_artifacts: ["apps/web/dist"]
+base_revision: 7bfb3a7a61ae715d2c82fe3ca6c7a6d726ecbc38
+claim_id: WRK-0087:cf174cae-825f-4540-a63b-fe044386abb6
 claimed_by: codex-cap-0005
-claimed_at: 2026-10-16T12:48:32Z
+claimed_at: 2026-10-16T12:55:14Z
 ---
 
 # Agent Work Packet: Deliver Curriculum Launch and Return UI
@@ -44,8 +44,10 @@ reviewed icons; content-language guidance; and decision readiness.
   the generated launch operation. It never constructs a lesson placement from
   graph data or treats displayed eligibility as permission.
 - The returned launch value must match the requested graph, activity, current
-  graph digest, navigation projection, exact lesson placement/package, and the
-  fixed same-origin lesson path before navigation.
+  graph digest, exact lesson placement/package, and fixed same-origin lesson
+  path before navigation. Its evaluation time and projection digest are newly
+  produced by the server and are validated as bounded provenance rather than
+  compared with the necessarily earlier screen projection.
 - One client-side route action owns session renewal, launch transport, bounded
   failures, and navigation data. Activity cards remain presentation-only.
 - Structured query values carry curriculum ID, version, and activity ID to the
@@ -90,11 +92,11 @@ new design tokens or icons; and broad visual polish.
 | Graph feature | closed graph/navigation models and route | model, API action, route, page, focused tests | Validate launch and expose equivalent learner actions |
 | Lesson feature | protected lesson loader and reading page | model, loader, route, page, focused tests | Carry non-authoritative exact return context |
 | Router | existing graph loader and lesson route | route action wiring only | Compose generated client/session without global feature coupling |
-| Interface | current graph/lesson CSS and design contract | functional selectors using existing tokens | Show pending/current/return meaning accessibly |
+| Interface | current graph/lesson CSS, tracked static build, and design contract | functional selectors using existing tokens plus deterministic `apps/web/dist` output | Show pending/current/return meaning accessibly and keep the Python-served bundle current |
 | Evidence | web README and adaptive-navigation contract | bounded notes plus packet/slice/register | Keep UI and planning behavior discoverable |
 
-No backend, contract snapshot, generated source, design token, icon, fixture
-database, or deployment file may change.
+No backend, contract snapshot, generated API source, design token, icon source,
+fixture database, or deployment file may change.
 
 ## Contracts and Interfaces
 
@@ -106,7 +108,8 @@ the requested activity. Raw server details and arbitrary destinations never
 reach rendered feedback.
 
 The launch validator closes every response field and correlates graph,
-projection, activity, placement, package, and destination. The return context
+activity, placement, package, and destination while validating the fresh
+projection provenance. The return context
 has exactly `curriculum_id`, `curriculum_version`, and `activity_id`; malformed,
 partial, duplicate, extra, cross-origin, or fragmented forms are ignored on the
 lesson and cannot change authorization. The graph accepts only
@@ -128,7 +131,7 @@ files. No overlapping file lease may be active.
 | Eligible lesson | Lesson is available, eligible, and incomplete | Learner chooses `Start lesson` | Generated launch runs and only a correlated same-origin lesson destination opens | unit + component |
 | Completed lesson | Lesson is available, eligible, and complete | Learner chooses `Review lesson` | Same server check runs; completion is not mutated | component |
 | Non-openable activity | Activity is locked, unavailable, or an assessment | Path renders in list or map | Facts remain visible and no launch control exists | component anti-rigidity |
-| Tampered/stale launch | Response mismatches graph, activity, placement, package, digest, projection, or path | Action resolves | Browser fails closed and does not navigate | unit |
+| Tampered/stale launch | Response mismatches graph, activity, placement, package, graph digest, path, or has malformed fresh projection provenance | Action resolves | Browser fails closed and does not navigate | unit |
 | Session expiry | First launch is unauthorized | Session renews once | Exact launch retries once; a second denial stays bounded | unit |
 | Return | Lesson has complete valid return context | Learner returns | Exact graph route reloads with the activity visibly current | unit + component |
 | Invalid return | Return context is partial, extra, malformed, or absent from graph | Page renders | It grants nothing, creates no external link, and no false marker appears | unit + component |
@@ -156,6 +159,35 @@ Update the web README, adaptive-navigation contract, this packet, SLI-0024,
 and the planning register with launch/return/current-position behavior, exact
 checks, anti-rigidity coverage, assumptions, known gaps, and migration
 non-applicability. Do not store reviewer or approval metadata in tracked files.
+
+## Implementation Evidence
+
+- The graph route now uses the generated `getCurriculumActivityLaunch`
+  operation through the existing session boundary. It retries one expired
+  session once, maps denials to bounded learner-facing states, and navigates
+  only after the closed response matches the exact graph, activity, lesson
+  placement/package, graph digest, and derived same-origin lesson path.
+- Eligible incomplete and completed lessons expose `Start lesson` and `Review
+  lesson` respectively. Locked, unavailable, and assessment activities retain
+  all facts without a launch control. List and map reuse the same activity
+  component and action logic without graph-shape branches.
+- The lesson accepts only a complete exact curriculum/version/activity return
+  set and derives its local path. Returning reloads graph and Navigation state;
+  only a selected identifier present in the fresh graph receives visible
+  `Current activity` text and `aria-current="step"`.
+- Focused model/component verification passed 56 tests and the complete web
+  unit/component regression passed 150 tests. Generated-client contract use,
+  TypeScript typecheck, lint, production build, design-system validation,
+  planning, documentation, and whitespace checks passed. The tracked static
+  production bundle was regenerated from the verified source.
+- Flexible unbranched, optional, shared same-kind, and reordered graph behavior
+  remains data-driven. Fresh server launch evaluation time/projection provenance
+  is accepted without stale equality, while malformed or mismatched graph,
+  activity, resource, digest, and destination data fails closed.
+- No backend, API, OpenAPI, generated API source, permission, persistence,
+  evidence, ranking, recommendation, mastery, provider, queue, cloud, or
+  external-action boundary changed. Live composed-system qualification remains
+  JIT-D.
 
 ## Stop Conditions
 
@@ -191,3 +223,8 @@ authority changes. Leave JIT-D able to qualify one deterministic browser flow.
   `87c0455bef3c0dfa1a7336064b48d4201dd804eb` after revalidating current CAP
   authority, the completed dependency, exact browser-only scope, reproducible
   checks, and no decision or active ownership collision.
+- 2026-10-16: Expanded the active packet by one generated-artifact boundary
+  after the production build confirmed that `apps/web/dist` is tracked and
+  Python-served. The packet was released and re-claimed from the same source
+  base so a fresh start manifest and exclusive lease cover the exact static
+  files; no product behavior, decision, or approval boundary changed.

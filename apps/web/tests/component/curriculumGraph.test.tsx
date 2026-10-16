@@ -55,7 +55,8 @@ describe("CurriculumGraphPage", () => {
       ).length,
     ).toBeGreaterThan(0);
     expect(screen.queryByText("Mastery")).toBeNull();
-    expect(screen.queryByRole("link", { name: /open|start|launch/i })).toBeNull();
+    expect(screen.getByRole("button", { name: "Review lesson" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Start lesson" })).toBeVisible();
 
     const pageRecord = within(
       document.querySelector(".curriculum-graph__provenance")!,
@@ -180,6 +181,67 @@ describe("CurriculumGraphPage", () => {
     ).toBeVisible();
     expect(screen.getAllByRole("article")).toHaveLength(
       curriculumGraphFixture.activities.length,
+    );
+  });
+
+  it("offers only server-checked lesson actions and preserves them in the peer map", async () => {
+    const user = userEvent.setup();
+    const onLaunch = vi.fn();
+    render(
+      <MemoryRouter>
+        <CurriculumGraphPage
+          graph={curriculumGraphFixture}
+          navigationState={navigationStateFixture}
+          onLaunch={onLaunch}
+        />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Review lesson" }));
+    expect(onLaunch).toHaveBeenCalledWith("activity-risk-return-lesson");
+    for (const heading of screen.getAllByRole("heading", {
+      level: 4,
+      name: "Explore diversification",
+    })) {
+      expect(heading.closest("article")).not.toHaveTextContent(
+        /start lesson|review lesson/i,
+      );
+    }
+    expect(
+      screen.getByRole("heading", {
+        name: "Check risk and return understanding",
+      }).closest("article"),
+    ).not.toHaveTextContent(/start lesson|review lesson/i);
+
+    await user.click(screen.getByRole("button", { name: "Map view" }));
+    expect(screen.getByRole("button", { name: "Review lesson" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Start lesson" })).toBeVisible();
+  });
+
+  it("marks refreshed current position in text and non-color semantics", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <CurriculumGraphPage
+          currentActivityId="activity-risk-return-lesson"
+          graph={curriculumGraphFixture}
+          launchState={{
+            status: "blocked",
+            activityId: "activity-risk-return-lesson",
+          }}
+          navigationState={navigationStateFixture}
+        />
+      </MemoryRouter>,
+    );
+
+    const current = screen.getByText("Current activity").closest("article");
+    expect(current).toHaveAttribute("aria-current", "step");
+    expect(current).toHaveTextContent(/not ready to open/i);
+
+    await user.click(screen.getByRole("button", { name: "Map view" }));
+    expect(screen.getByText("Current activity").closest("article")).toHaveAttribute(
+      "aria-current",
+      "step",
     );
   });
 });

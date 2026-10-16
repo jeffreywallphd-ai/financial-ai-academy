@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import {
   useLoaderData,
   useNavigate,
@@ -7,7 +8,20 @@ import {
 
 import { StatusPanel } from "../../components/StatusPanel";
 import { CurriculumGraphPage } from "./CurriculumGraphPage";
-import type { CurriculumGraphRouteState } from "./model";
+import type {
+  ActivityLaunchResult,
+  ActivityLaunchViewState,
+  CurriculumGraph,
+  CurriculumGraphRouteState,
+  NavigationState,
+} from "./model";
+
+export type CurriculumActivityLauncher = (
+  graph: CurriculumGraph,
+  navigationState: NavigationState,
+  activityId: string,
+  signal: AbortSignal,
+) => Promise<ActivityLaunchResult>;
 
 export function CurriculumGraphLoadingState() {
   return (
@@ -27,11 +41,15 @@ export function CurriculumGraphLoadingState() {
 }
 
 export function CurriculumGraphRouteView({
+  launchState = { status: "idle" },
   onCatalog,
+  onLaunch = () => undefined,
   onRetry,
   state,
 }: {
+  launchState?: ActivityLaunchViewState;
   onCatalog: () => void;
+  onLaunch?: (activityId: string) => void;
   onRetry: () => void;
   state: CurriculumGraphRouteState;
 }) {
@@ -41,8 +59,11 @@ export function CurriculumGraphRouteView({
     case "ready":
       return (
         <CurriculumGraphPage
+          currentActivityId={state.currentActivityId}
           graph={state.graph}
+          launchState={launchState}
           navigationState={state.navigationState}
+          onLaunch={onLaunch}
         />
       );
     case "invalid-selection":
@@ -121,18 +142,53 @@ export function CurriculumGraphRouteView({
   }
 }
 
-export function CurriculumGraphRoute() {
+export function CurriculumGraphRoute({
+  launchActivity,
+}: {
+  launchActivity: CurriculumActivityLauncher;
+}) {
   const state = useLoaderData<CurriculumGraphRouteState>();
   const navigate = useNavigate();
   const navigation = useNavigation();
   const revalidator = useRevalidator();
+  const controllerRef = useRef<AbortController | null>(null);
+  const [launchState, setLaunchState] = useState<ActivityLaunchViewState>({
+    status: "idle",
+  });
+  useEffect(
+    () => () => {
+      controllerRef.current?.abort();
+    },
+    [],
+  );
+  const onLaunch = async (activityId: string) => {
+    if (state.status !== "ready") return;
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    setLaunchState({ status: "launching", activityId });
+    const result = await launchActivity(
+      state.graph,
+      state.navigationState,
+      activityId,
+      controller.signal,
+    );
+    if (controller.signal.aborted) return;
+    if (result.status === "ready") {
+      await navigate(result.destination);
+      return;
+    }
+    setLaunchState(result);
+  };
   const displayedState =
     navigation.state === "loading" || revalidator.state === "loading"
       ? ({ status: "loading" } as const)
       : state;
   return (
     <CurriculumGraphRouteView
+      launchState={launchState}
       onCatalog={() => void navigate("/learn")}
+      onLaunch={(activityId) => void onLaunch(activityId)}
       onRetry={() => revalidator.revalidate()}
       state={displayedState}
     />

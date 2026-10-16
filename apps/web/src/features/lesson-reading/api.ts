@@ -4,9 +4,10 @@ import type { FinancialAcademyApiClient } from "../../generated/api-client";
 import type { SingleProfileSession } from "../../platform/auth/singleProfileSession";
 import type {
   Lesson,
+  LessonReturnContext,
   LessonRouteState,
 } from "./model";
-import { lessonContentIsSafe } from "./model";
+import { lessonContentIsSafe, parseLessonReturnContext } from "./model";
 
 
 function sessionFailureState(
@@ -63,6 +64,7 @@ async function readLesson(
   client: FinancialAcademyApiClient,
   session: SingleProfileSession,
   placementId: string,
+  returnContext: LessonReturnContext | null,
   signal: AbortSignal,
   retryUnauthorized: boolean,
 ): Promise<LessonRouteState> {
@@ -81,7 +83,7 @@ async function readLesson(
     if (result.response.status === 200 && result.data) {
       const lesson = result.data as Lesson;
       return lessonContentIsSafe(lesson)
-        ? { status: "ready", lesson }
+        ? { status: "ready", lesson, returnContext }
         : { status: "invalid-content" };
     }
     if (result.response.status === 401 && retryUnauthorized) {
@@ -94,6 +96,7 @@ async function readLesson(
         client,
         session,
         placementId,
+        returnContext,
         signal,
         false,
       );
@@ -127,6 +130,7 @@ export function createLessonLoader(
       client,
       session,
       placementId,
+      parseLessonReturnContext(request.url),
       request.signal,
       true,
     );

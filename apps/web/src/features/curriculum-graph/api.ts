@@ -3,11 +3,16 @@ import type { LoaderFunctionArgs } from "react-router";
 import type { FinancialAcademyApiClient } from "../../generated/api-client";
 import type { SingleProfileSession } from "../../platform/auth/singleProfileSession";
 import type {
+  ActivityLaunchResult,
+  CurriculumGraph,
   CurriculumGraphRouteState,
   CurriculumGraphSelection,
+  NavigationState,
 } from "./model";
 import {
+  activityLaunchIsSafe,
   curriculumGraphIsSafe,
+  lessonDestinationWithReturnContext,
   navigationStateIsSafe,
   parseCurriculumGraphSelection,
 } from "./model";
@@ -35,6 +40,18 @@ function navigationResponseState(status: number): CurriculumGraphRouteState {
     return { status: "unavailable" };
   }
   return { status: "unexpected" };
+}
+
+function launchResponseState(
+  status: number,
+  activityId: string,
+): ActivityLaunchResult {
+  if (status === 401) return { status: "unauthorized", activityId };
+  if (status === 403) return { status: "forbidden", activityId };
+  if (status === 404) return { status: "not-found", activityId };
+  if (status === 409) return { status: "blocked", activityId };
+  if (status === 400) return { status: "invalid", activityId };
+  return { status: "unavailable", activityId };
 }
 
 async function readCurriculumState(
@@ -97,12 +114,116 @@ async function readCurriculumState(
           status: "ready",
           graph: graphResult.data,
           navigationState: navigationResult.data,
+          ...(selection.selectedActivityId !== undefined &&
+          graphResult.data.activities.some(
+            (activity) =>
+              activity.activity_id === selection.selectedActivityId,
+          )
+            ? { currentActivityId: selection.selectedActivityId }
+            : {}),
         }
       : { status: "invalid-response" };
   } catch (error) {
     if (signal.aborted) throw error;
     return { status: "unavailable" };
   }
+}
+
+async function launchCurriculumActivity(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  graph: CurriculumGraph,
+  navigationState: NavigationState,
+  activityId: string,
+  signal: AbortSignal,
+  retryUnauthorized: boolean,
+): Promise<ActivityLaunchResult> {
+  try {
+    const result = await client.GET(
+      "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/activities/{activity_id}/launch",
+      {
+        params: {
+          path: {
+            curriculum_id: graph.curriculum_id,
+            curriculum_version: graph.curriculum_version,
+            activity_id: activityId,
+          },
+        },
+        signal,
+      },
+    );
+    if (result.response.status === 401 && retryUnauthorized) {
+      session.invalidate();
+      const renewed = await session.ensure(signal);
+      if (renewed.status === "error") {
+        return {
+          status:
+            renewed.kind === "unexpected" ? "unavailable" : renewed.kind,
+          activityId,
+        };
+      }
+      return launchCurriculumActivity(
+        client,
+        session,
+        graph,
+        navigationState,
+        activityId,
+        signal,
+        false,
+      );
+    }
+    if (result.response.status !== 200) {
+      return launchResponseState(result.response.status, activityId);
+    }
+    return result.data &&
+      activityLaunchIsSafe(
+        result.data,
+        graph,
+        navigationState,
+        activityId,
+      )
+      ? {
+          status: "ready",
+          activityId,
+          destination: lessonDestinationWithReturnContext(result.data),
+        }
+      : { status: "invalid", activityId };
+  } catch (error) {
+    if (signal.aborted) throw error;
+    return { status: "unavailable", activityId };
+  }
+}
+
+export function createCurriculumActivityLauncher(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+) {
+  return async (
+    graph: CurriculumGraph,
+    navigationState: NavigationState,
+    activityId: string,
+    signal: AbortSignal,
+  ): Promise<ActivityLaunchResult> => {
+    const established = await session.ensure(signal);
+    if (established.status === "error") {
+      return {
+        status:
+          established.kind === "unexpected"
+            ? "unavailable"
+            : established.kind,
+        activityId,
+      };
+    }
+    return launchCurriculumActivity(
+      client,
+      session,
+      graph,
+      navigationState,
+      activityId,
+      signal,
+      true,
+    );
+  };
 }
 
 export function createCurriculumGraphLoader(

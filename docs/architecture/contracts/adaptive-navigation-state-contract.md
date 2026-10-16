@@ -106,5 +106,21 @@ application operation opens one fresh exact graph, observes current completion,
 evaluates Navigation state once, and resolves the launch against that matching
 pair. The protected bodyless GET requires both existing navigation-read and
 lesson-read permissions and is published as `getCurriculumActivityLaunch` in
-the reviewed OpenAPI and generated TypeScript client. Browser actions and
-return behavior remain later SLI-0024 seams.
+the reviewed OpenAPI and generated TypeScript client.
+
+The learning-path browser consumes only that generated operation for eligible
+lesson start and review controls. It validates the closed launch response
+against the exact graph, selected activity, lesson placement/package, and
+derived same-origin path before navigation. Because launch performs a fresh
+evaluation, its bounded evaluation time and projection digest may be newer than
+the state already on screen; the browser validates their contract shapes but
+does not demand stale equality or recompute policy. Locked, unavailable, and
+assessment activities expose no launch control, while a direct attempt still
+fails at the server boundary.
+
+The lesson carries an optional all-or-none exact curriculum/activity return
+context. It derives a same-origin graph path rather than accepting an arbitrary
+URL. Returning reloads the exact graph and current Navigation state; a selected
+activity is marked in visible text plus `aria-current` only when the fresh graph
+contains it. That URL state is disposable presentation context, not a durable
+position, evidence record, launch grant, or source of authorization.

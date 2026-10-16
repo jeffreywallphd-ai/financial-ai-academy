@@ -50,8 +50,12 @@ The generated client additionally includes `getCurriculumActivityLaunch` for
 the protected bodyless activity-launch GET. It accepts only curriculum ID,
 version, and activity ID. Learner identity, permissions, current state,
 eligibility, placement, package, and destination remain server-owned. The
-learner-facing controls and return context that will consume this operation are
-deliberately deferred to the next SLI-0024 packet.
+learning-path route uses that operation for `Start lesson` and `Review lesson`,
+closes and correlates the returned graph/activity/resource/destination before
+navigating, and never constructs a placement from displayed graph state. A new
+server evaluation can legitimately carry a later evaluation time and
+projection digest than the displayed state; the closed launch result remains
+authoritative for that request.
 
 The learning-catalog client also defines the reusable selection seam for
 detail and comparison routes. One detail ID or two through four distinct
@@ -127,8 +131,12 @@ reasons for each status. Exact activity/resource identity, state values, reason
 codes/references, source references, schema, graph and policy identity,
 evaluation time, and digests remain complete under accessible `Technical
 record` disclosures. Both peer views preserve the four orthogonal
-server-evaluated state dimensions. The route exposes no activity-launch action,
-mastery claim, recommendation, or browser-owned learner-state inference. Links
+server-evaluated state dimensions and expose the same server-checked start or
+review action only for available eligible lessons. Locked, unavailable, and
+assessment activities retain their facts without a launch control. A returning
+lesson marks a current activity in visible text and `aria-current` only after a
+fresh exact graph confirms the identifier. This marker is presentation, not
+authorization, mastery, recommendation, or browser-owned learner state. Links
 that cannot be used, learner-access problems, missing versions, temporary
 failures, and unsafe incomplete results show bounded task-focused states. They
 never substitute another version or reveal partial learning-path details.
@@ -143,6 +151,10 @@ Loading and bounded failures state the learner-visible result, protected-record
 meaning, and existing safe action without exposing internal checks. Unknown
 nodes, unsafe locators, denial, missing exact placement, integrity failure, and
 unavailable responses continue to fail to bounded page states.
+When a lesson was opened from a learning path, the route accepts only the
+complete exact curriculum ID, version, and activity-ID return set. It derives a
+same-origin learning-path link from those values; partial, duplicate, extra,
+malformed, or absent context creates no return action and grants no access.
 The same route reads the exact Assessment presentation and submits one
 single-choice response through the generated client. Scoring and learner
 identity remain server-authoritative; the browser never receives the answer

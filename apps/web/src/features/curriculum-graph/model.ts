@@ -18,11 +18,31 @@ export type ActivityNavigationState =
   components["schemas"]["ActivityNavigationStateResponseModel"];
 export type NavigationReason =
   components["schemas"]["NavigationReasonResponseModel"];
+export type ActivityLaunch =
+  components["schemas"]["ActivityLaunchResponseModel"];
 
 export interface CurriculumGraphSelection {
   curriculumId: string;
   curriculumVersion: string;
+  selectedActivityId?: string;
 }
+
+export type ActivityLaunchFailure =
+  | "blocked"
+  | "forbidden"
+  | "invalid"
+  | "not-found"
+  | "unauthorized"
+  | "unavailable";
+
+export type ActivityLaunchResult =
+  | { status: "ready"; activityId: string; destination: string }
+  | { status: ActivityLaunchFailure; activityId: string };
+
+export type ActivityLaunchViewState =
+  | { status: "idle" }
+  | { status: "launching"; activityId: string }
+  | { status: ActivityLaunchFailure; activityId: string };
 
 export type CurriculumGraphRouteState =
   | { status: "loading" }
@@ -30,6 +50,7 @@ export type CurriculumGraphRouteState =
       status: "ready";
       graph: CurriculumGraph;
       navigationState: NavigationState;
+      currentActivityId?: string;
     }
   | { status: "invalid-selection" }
   | { status: "unauthorized" }
@@ -117,6 +138,20 @@ const ACTIVITY_NAVIGATION_STATE_KEYS = [
   "requirement",
 ] as const;
 const NAVIGATION_REASON_KEYS = ["code", "explanation", "references"] as const;
+const ACTIVITY_LAUNCH_KEYS = [
+  "activity_id",
+  "curriculum_id",
+  "curriculum_version",
+  "destination",
+  "evaluated_at",
+  "graph_digest",
+  "navigation_projection_digest",
+  "package_digest",
+  "package_id",
+  "package_version",
+  "placement_id",
+  "schema_version",
+] as const;
 const NAVIGATION_REASON_CODES = [
   "activity_completed",
   "required_activity",
@@ -347,12 +382,74 @@ export function parseCurriculumGraphSelection(
   } catch {
     return null;
   }
-  return identifier(curriculumId) &&
-    version(curriculumVersion) &&
-    request.search === "" &&
-    request.hash === ""
-    ? { curriculumId, curriculumVersion }
+  if (
+    !identifier(curriculumId) ||
+    !version(curriculumVersion) ||
+    request.hash !== ""
+  ) {
+    return null;
+  }
+  if (request.search === "") return { curriculumId, curriculumVersion };
+  if (
+    [...request.searchParams.keys()].some((key) => key !== "activity") ||
+    request.searchParams.getAll("activity").length !== 1
+  ) {
+    return null;
+  }
+  const selectedActivityId = request.searchParams.get("activity");
+  return identifier(selectedActivityId)
+    ? { curriculumId, curriculumVersion, selectedActivityId }
     : null;
+}
+
+export function activityLaunchIsSafe(
+  value: unknown,
+  graph: CurriculumGraph,
+  navigationState: NavigationState,
+  activityId: string,
+): value is ActivityLaunch {
+  const candidate = record(value);
+  const activity = graph.activities.find(
+    (item) => item.activity_id === activityId,
+  );
+  const activityState = navigationState.activity_states.find(
+    (item) => item.activity_id === activityId,
+  );
+  if (
+    candidate === null ||
+    activity?.reference.reference_kind !== "lesson_placement" ||
+    activityState === undefined ||
+    !hasExactKeys(candidate, ACTIVITY_LAUNCH_KEYS)
+  ) {
+    return false;
+  }
+  const reference = activity.reference;
+  return (
+    candidate.schema_version === "1.0.0" &&
+    candidate.curriculum_id === graph.curriculum_id &&
+    candidate.curriculum_version === graph.curriculum_version &&
+    candidate.graph_digest === graph.graph_digest &&
+    candidate.activity_id === activityId &&
+    digest(candidate.navigation_projection_digest) &&
+    validDateTime(candidate.evaluated_at) &&
+    candidate.placement_id === reference.placement_id &&
+    candidate.package_id === reference.package_id &&
+    candidate.package_version === reference.package_version &&
+    candidate.package_digest === reference.package_digest &&
+    candidate.destination ===
+      `/learn/placements/${encodeURIComponent(reference.placement_id)}`
+  );
+}
+
+export function lessonDestinationWithReturnContext(
+  launch: ActivityLaunch,
+): string {
+  const query = new URLSearchParams({
+    curriculum_id: launch.curriculum_id,
+    curriculum_version: launch.curriculum_version,
+    activity_id: launch.activity_id,
+  });
+  return `${launch.destination}?${query.toString()}`;
 }
 
 export function curriculumGraphIsSafe(

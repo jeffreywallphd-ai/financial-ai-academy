@@ -2,7 +2,10 @@ import { createBrowserRouter, redirect } from "react-router";
 
 import { createFinancialAcademyApiClient } from "../generated/api-client";
 import { StatusPanel } from "../components/StatusPanel";
-import { createCurriculumGraphLoader } from "../features/curriculum-graph/api";
+import {
+  createCurriculumActivityLauncher,
+  createCurriculumGraphLoader,
+} from "../features/curriculum-graph/api";
 import {
   CurriculumGraphLoadingState,
   CurriculumGraphRoute,
@@ -43,6 +46,16 @@ const learningOpportunityComparisonLoader =
   createLearningOpportunityComparisonLoader(client, session);
 const lessonLoader = createLessonLoader(client, session);
 const curriculumGraphLoader = createCurriculumGraphLoader(client, session);
+const curriculumActivityLauncher = createCurriculumActivityLauncher(
+  client,
+  session,
+);
+
+function CurriculumGraphRouteWithDependencies() {
+  return (
+    <CurriculumGraphRoute launchActivity={curriculumActivityLauncher} />
+  );
+}
 
 function UnexpectedRouteError() {
   return (
@@ -107,7 +120,7 @@ export const router = createBrowserRouter([
       {
         path: "learn/curricula/:curriculumId/versions/:curriculumVersion",
         loader: curriculumGraphLoader,
-        Component: CurriculumGraphRoute,
+        Component: CurriculumGraphRouteWithDependencies,
         HydrateFallback: CurriculumGraphLoadingState,
       },
       {
