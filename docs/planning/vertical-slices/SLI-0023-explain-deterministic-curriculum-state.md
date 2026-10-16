@@ -175,7 +175,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0062 | Freeze the navigation-state contract, pure Adaptation policy, public operation, reason semantics, and focused anti-rigidity corpus | none | none | complete |
-| JIT-B | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | refine after WRK-0062 completes |
+| WRK-0063 | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | ready |
 | JIT-C | Annotate the existing accessible map/list through the generated client without client-side policy | JIT-B | none | refine after JIT-B completes |
 | JIT-D | Qualify the live projection, failure paths, accessibility, provenance, module ownership, and documentation | JIT-C | none | refine after JIT-C completes |
 
@@ -251,3 +251,8 @@ was introduced.
   denials, and durable anti-rigidity coverage. JIT-B is now dependency-ready for
   refinement and must consume the published public seams without revising v1
   meaning.
+- 2026-10-16: Refined JIT-B as WRK-0063 around the Adaptation application
+  composition, public Curriculum and Learner-model gateways, server-issued
+  navigation permission, protected exact-version API, reviewed OpenAPI, and
+  generated TypeScript client. Assessment-activity completion remains explicitly
+  unavailable rather than inferred.
