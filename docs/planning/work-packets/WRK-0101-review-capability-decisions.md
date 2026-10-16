@@ -1,7 +1,7 @@
 ---
 id: WRK-0101
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-roadmap-decision-review
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/financial_academy_roadmap_review.py", "dev-tools/control-plane/roadmap_review.py", "dev-tools/control-plane/test_roadmap_review.py", "dev-tools/control-plane/README.md", "dev-tools/roadmap-review-site/README.md", "dev-tools/roadmap-review-site/server.py", "dev-tools/roadmap-review-site/test_server.py", "dev-tools/roadmap-review-site/test_qualification.py", "dev-tools/roadmap-review-site/src/app.ts", "dev-tools/roadmap-review-site/src/model.ts", "dev-tools/roadmap-review-site/tests/app.test.ts", "dev-tools/roadmap-review-site/tests/model.test.ts", "apps/web/tests/browser/roadmap-review/roadmap-review.e2e.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md", "docs/planning/work-packets/WRK-0101-review-capability-decisions.md"]
 generated_artifacts: [".local-codex/roadmap-review-site/app.js", ".local-codex/roadmap-review-site/model.js", "artifacts/playwright/roadmap-review"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b530b6d9163067c15a88e6daf0706ce04bc3a538
+claim_id: WRK-0101:0a6dbc5c-9985-44df-803c-dbd931402515
+claimed_by: codex-roadmap-decision-review
+claimed_at: 2026-10-16T16:53:47Z
 ---
 
 # Agent Work Packet: Review Capability Decisions
@@ -158,3 +158,6 @@ conformance, commit, branch, worktree, and integration instructions.
 - 2026-10-16: Promoted to ready after focused packet validation and the
   repository planning-integrity check passed with resolved dependencies,
   bounded scope, executable checks, and no durable decision gate.
+- 2026-10-16: Activated on the isolated `codex/cap-0008-decision-pages`
+  branch after the implementation gate passed and the packet received a
+  current exact-scope claim.

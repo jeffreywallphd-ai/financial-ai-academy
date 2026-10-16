@@ -99,7 +99,7 @@ with repository-relative source and the projection source fingerprint.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0026 | Enrich the generic hierarchy and deliver safe dynamic candidate/CAP/slice/work detail routes, renderers, tests, and guidance | WRK-0025 | none | complete |
-| WRK-0101 | Add dynamically projected decision status links to CAP/SLI/WRK views and safe DEC detail routes | WRK-0026, WRK-0084 | none | ready |
+| WRK-0101 | Add dynamically projected decision status links to CAP/SLI/WRK views and safe DEC detail routes | WRK-0026, WRK-0084 | none | active |
 
 ## Verification and Qualification
 
@@ -158,3 +158,6 @@ the slice conforms to CAP-0008.
 - 2026-10-16: Added bounded extension WRK-0101 for dynamic DEC status links and
   detail pages. This preserves the slice's read-only, inert, route-confined
   hierarchy and does not expose ignored approval records.
+- 2026-10-16: Activated WRK-0101 after the current CAP-0008 package,
+  implementation gate, completed dependencies, isolated branch, and bounded
+  non-overlapping scope were validated.
