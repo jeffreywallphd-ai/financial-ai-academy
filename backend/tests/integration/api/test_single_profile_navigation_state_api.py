@@ -5,10 +5,14 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
+from financial_ai_academy.hosts.api.models import (
+    NavigationReasonResponseModel,
+)
 from financial_ai_academy.modules.adaptation.public import (
     ActivitySourceFact,
     ActivitySourceState,
@@ -196,11 +200,23 @@ def test_missing_or_insufficient_context_denies_before_adaptation() -> None:
     assert denied_service.calls == []
 
 
-def test_client_authority_selectors_are_rejected_before_adaptation() -> None:
+@pytest.mark.parametrize(
+    "query",
+    [
+        {"learner_id": LEARNER_ID},
+        {"permission": "adaptation.navigation.read"},
+        {"policy_id": "other"},
+        {"policy_version": "9.9.9"},
+        {"provider": "other"},
+        {"latest": "true"},
+        {"debug": "true"},
+    ],
+)
+def test_query_parameters_are_rejected_before_adaptation(query) -> None:
     adaptation = Adaptation()
     result = client(
         Identity(("adaptation.navigation.read",)), adaptation
-    ).get(path(), params={"learner_id": LEARNER_ID, "policy_id": "other"})
+    ).get(path(), params=query)
 
     assert result.status_code == 400
     assert adaptation.calls == []
@@ -257,4 +273,33 @@ def test_openapi_contains_only_the_exact_generated_operation_inputs() -> None:
         "curriculum_id",
         "curriculum_version",
     ]
+    components = generated["components"]["schemas"]
+    reason = components["NavigationReasonResponseModel"]["properties"]
+    activity = components[
+        "ActivityNavigationStateResponseModel"
+    ]["properties"]
+    state = components["NavigationStateResponseModel"]["properties"]
+    assert reason["references"]["maxItems"] == 10
+    assert reason["references"]["uniqueItems"] is True
+    assert activity["reasons"]["minItems"] == 2
+    assert activity["reasons"]["maxItems"] == 2002
+    assert state["activity_states"]["uniqueItems"] is True
+    assert "(?:-" not in state["policy_version"]["pattern"]
+    assert state["evaluated_at"]["pattern"].startswith("^[0-9]{4}")
     assert OPENAPI.read_bytes() == generate_bytes()
+
+
+def test_navigation_reason_runtime_matches_v1_reference_bounds() -> None:
+    model = NavigationReasonResponseModel(
+        code="prerequisite_incomplete",
+        explanation="Every referenced prerequisite remains explicit.",
+        references=["activity-target", "activity-one", "edge-one", "edge-two"],
+    )
+    assert len(model.references) == 4
+
+    with pytest.raises(ValueError):
+        NavigationReasonResponseModel(
+            code="prerequisite_incomplete",
+            explanation="Duplicate references are not contract-valid.",
+            references=["activity-target", "activity-target"],
+        )

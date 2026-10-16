@@ -10,7 +10,7 @@ capability: CAP-0005
 depends_on: ["WRK-0062"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/src/financial_ai_academy/modules/adaptation/application/", "backend/src/financial_ai_academy/modules/adaptation/ports/", "backend/src/financial_ai_academy/modules/adaptation/adapters/", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/identity/README.md", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/adaptation/", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/integration/api/", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/src/generated/api-client/", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/README.md", "deployments/local/serve.py", "tests/architecture/test_approved_lesson_boundaries.py", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/planning/work-packets/WRK-0063-compose-protected-navigation-state-api.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/adaptation/application/", "backend/src/financial_ai_academy/modules/adaptation/ports/", "backend/src/financial_ai_academy/modules/adaptation/adapters/", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/identity/README.md", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/adaptation/", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/integration/api/", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/src/generated/api-client/", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/README.md", "deployments/local/serve.py", "tests/architecture/test_approved_lesson_boundaries.py", "dev-tools/control-plane/test_file_leases.py", "dev-tools/control-plane/test_portfolio_ordering.py", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/planning/work-packets/WRK-0063-compose-protected-navigation-state-api.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
 base_revision: 2698d088ca18e3af7dd5832a9b3e4553d6b13217
 claim_id: WRK-0063:c391a755-a007-4ea1-a600-c03c37d756b2
@@ -229,17 +229,24 @@ that context, rejects client authority selectors, maps exact graph absence to
 404 and source/composition failure to 503, and returns no learner identity.
 The reviewed OpenAPI snapshot and generated TypeScript client publish
 `getCurriculumNavigationState` with only curriculum ID and version inputs.
+Malformed upstream views degrade inside their owning adapters, every query
+parameter is rejected before Adaptation, and the HTTP response constraints now
+match the executable navigation-state v1 identifier, version, timestamp,
+reference-bound, and uniqueness rules. The readiness harness also uses
+self-contained authority collaborators, so a fork without ignored local
+approval state runs the same control-plane tests.
 
 Verification at candidate preparation produced these results:
 
-- packet-focused Adaptation, Identity, API, and architecture tests: 62 passed;
+- packet-focused Adaptation, Identity, API, and architecture tests: 72 passed;
 - adjacent Adaptation/Curriculum contract, Learner-model, graph API, and
   completion API tests: 64 passed;
-- complete backend suite against the qualified local PostgreSQL service: 393
+- complete backend suite against the qualified local PostgreSQL service: 403
   passed;
 - reviewed OpenAPI and generated-client determinism checks: passed;
 - generated-client contract test and TypeScript typecheck: passed;
 - architecture fitness functions, including local composition: 13 passed;
+- fork-safe portfolio ordering and file-lease control tests: 24 passed;
 - graph-order, absent-layout/shared-branch, orthogonal-degradation,
   exact-version mismatch, unsupported assessment completion, selected-
   authority, and bounded-failure anti-rigidity scenarios: passed.
@@ -289,3 +296,9 @@ consume one exact generated operation, or return a bounded blocker.
   Entered exact-candidate verification after the complete backend suite and
   local-composition architecture fixtures passed against their qualified
   boundaries.
+- 2026-10-16: Hardened the descendant candidate so malformed public-source
+  views degrade per activity, the query-free operation rejects every query
+  parameter, and the HTTP/OpenAPI response matches the executable v1 bounds.
+  Removed ignored-ledger and hard-coded-current-CAP assumptions from the two
+  control-plane tests that must also run in a forked checkout, then returned
+  the packet to exact-candidate verification.

@@ -270,3 +270,7 @@ was introduced.
   protected API, reviewed OpenAPI/generated client, local-composition fixture,
   and packet-specific anti-rigidity coverage implemented. JIT-C remains
   unopened until that candidate is accepted and completed.
+- 2026-10-16: WRK-0063 hardened malformed-source degradation, query-free API
+  enforcement, exact v1 response bounds, and fork-safe readiness tests in a
+  strict descendant candidate; full PostgreSQL, web, architecture, planning,
+  documentation, and readiness qualification remained green.

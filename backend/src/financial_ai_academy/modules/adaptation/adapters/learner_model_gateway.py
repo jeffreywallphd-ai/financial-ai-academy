@@ -34,33 +34,31 @@ class PublicLearnerModelCompletionGateway:
                     placement_id=placement_id,
                 )
             )
+            if (
+                view.placement_id != placement_id
+                or not isinstance(view.completed, bool)
+                or not isinstance(view.source_digest, str)
+                or _DIGEST.fullmatch(view.source_digest) is None
+                or (
+                    view.completed
+                    and getattr(view, "completion_meaning", None)
+                    != "bounded_knowledge_check_completed"
+                )
+                or (
+                    not view.completed
+                    and getattr(view, "completion_meaning", None)
+                    != "not_completed"
+                )
+            ):
+                raise ValueError("Lesson completion view is inconsistent.")
+            return LessonCompletionObservation(
+                CompletionState.COMPLETED
+                if view.completed
+                else CompletionState.INCOMPLETE,
+                view.source_digest,
+            )
         except Exception:
             return LessonCompletionObservation(
                 CompletionState.UNAVAILABLE,
                 fallback_digest,
             )
-        if (
-            view.placement_id != placement_id
-            or not isinstance(view.completed, bool)
-            or _DIGEST.fullmatch(view.source_digest) is None
-            or (
-                view.completed
-                and getattr(view, "completion_meaning", None)
-                != "bounded_knowledge_check_completed"
-            )
-            or (
-                not view.completed
-                and getattr(view, "completion_meaning", None)
-                != "not_completed"
-            )
-        ):
-            return LessonCompletionObservation(
-                CompletionState.UNAVAILABLE,
-                fallback_digest,
-            )
-        return LessonCompletionObservation(
-            CompletionState.COMPLETED
-            if view.completed
-            else CompletionState.INCOMPLETE,
-            view.source_digest,
-        )

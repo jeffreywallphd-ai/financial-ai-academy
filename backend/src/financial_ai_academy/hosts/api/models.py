@@ -212,10 +212,24 @@ GraphVersion = Annotated[
     ),
 ]
 GraphDigest = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
-PolicyIdentifier = Annotated[
+NavigationIdentifier = Annotated[
     str,
     Field(pattern=r"^[a-z0-9][a-z0-9._:-]{0,127}$"),
 ]
+NavigationVersion = Annotated[
+    str,
+    Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    ),
+]
+NAVIGATION_TIMESTAMP_PATTERN = (
+    r"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])"
+    r"T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]"
+    r"(\.[0-9]{1,6})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])$"
+)
 
 
 class CurriculumObjectiveResponseModel(ApiModel):
@@ -356,35 +370,66 @@ class NavigationReasonResponseModel(ApiModel):
         "prerequisite_satisfied",
     ]
     explanation: str = Field(min_length=1, max_length=240)
-    references: list[GraphIdentifier] = Field(min_length=1, max_length=3)
+    references: list[NavigationIdentifier] = Field(
+        min_length=1,
+        max_length=10,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+    @field_validator("references")
+    @classmethod
+    def references_are_unique(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("Navigation reason references must be unique.")
+        return value
 
 
 class ActivityNavigationStateResponseModel(ApiModel):
-    activity_id: GraphIdentifier
+    activity_id: NavigationIdentifier
     completion: Literal["completed", "incomplete", "unavailable"]
     eligibility: Literal["eligible", "locked", "unavailable"]
     requirement: Literal["required", "optional", "unassigned"]
     availability: Literal["available", "unavailable"]
     reasons: list[NavigationReasonResponseModel] = Field(
-        min_length=1,
+        min_length=2,
         max_length=2002,
     )
 
 
 class NavigationStateResponseModel(ApiModel):
     schema_version: Literal["1.0.0"]
-    curriculum_id: GraphIdentifier
-    curriculum_version: GraphVersion
+    curriculum_id: NavigationIdentifier
+    curriculum_version: NavigationVersion
     graph_digest: GraphDigest
-    policy_id: PolicyIdentifier
-    policy_version: GraphVersion
-    evaluated_at: datetime
+    policy_id: NavigationIdentifier
+    policy_version: NavigationVersion
+    evaluated_at: datetime = Field(
+        json_schema_extra={"pattern": NAVIGATION_TIMESTAMP_PATTERN}
+    )
     source_set_digest: GraphDigest
     activity_states: list[ActivityNavigationStateResponseModel] = Field(
         min_length=1,
         max_length=500,
+        json_schema_extra={"uniqueItems": True},
     )
     projection_digest: GraphDigest
+
+    @field_validator("evaluated_at")
+    @classmethod
+    def evaluated_at_has_offset(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Navigation evaluation time requires an offset.")
+        return value
+
+    @field_validator("activity_states")
+    @classmethod
+    def activity_states_are_unique(
+        cls, value: list[ActivityNavigationStateResponseModel]
+    ) -> list[ActivityNavigationStateResponseModel]:
+        activity_ids = [item.activity_id for item in value]
+        if len(activity_ids) != len(set(activity_ids)):
+            raise ValueError("Navigation activity states must be unique.")
+        return value
 
 
 class DiscoveryProvenanceResponseModel(ApiModel):

@@ -32,10 +32,23 @@ from financial_ai_academy.modules.learner_model.public import (
 
 
 class CurriculumOperations:
-    graph = object()
-    graph_error: Exception | None = None
-    lesson_error: Exception | None = None
-    assessment_error: Exception | None = None
+    def __init__(self) -> None:
+        self.graph = object()
+        self.graph_error: Exception | None = None
+        self.lesson_error: Exception | None = None
+        self.assessment_error: Exception | None = None
+        self.lesson_result = SimpleNamespace(
+            placement_id="lesson-placement",
+            package_id="lesson-package",
+            package_version="1.0.0",
+            package_digest="a" * 64,
+        )
+        self.assessment_result = SimpleNamespace(
+            placement_id="assessment-placement",
+            assessment_id="assessment-one",
+            assessment_version="1.0.0",
+            definition_digest="b" * 64,
+        )
 
     def open_curriculum_graph(self, request):
         self.graph_request = request
@@ -47,23 +60,13 @@ class CurriculumOperations:
         self.lesson_request = request
         if self.lesson_error:
             raise self.lesson_error
-        return SimpleNamespace(
-            placement_id="lesson-placement",
-            package_id="lesson-package",
-            package_version="1.0.0",
-            package_digest="a" * 64,
-        )
+        return self.lesson_result
 
     def resolve_placed_assessment(self, request):
         self.assessment_request = request
         if self.assessment_error:
             raise self.assessment_error
-        return SimpleNamespace(
-            placement_id="assessment-placement",
-            assessment_id="assessment-one",
-            assessment_version="1.0.0",
-            definition_digest="b" * 64,
-        )
+        return self.assessment_result
 
 
 def test_curriculum_gateway_preserves_exact_public_requests_and_matches() -> None:
@@ -138,6 +141,36 @@ def test_activity_read_failures_and_exact_mismatches_become_unavailable() -> Non
     )
 
 
+def test_malformed_activity_views_degrade_without_escaping() -> None:
+    operations = CurriculumOperations()
+    operations.lesson_result = SimpleNamespace(
+        placement_id="lesson-placement",
+        package_id="lesson-package",
+        package_version="1.0.0",
+    )
+    operations.assessment_result = SimpleNamespace(
+        placement_id="assessment-placement",
+        assessment_id="assessment-one",
+        assessment_version="1.0.0",
+        definition_digest=42,
+    )
+    gateway = PublicCurriculumNavigationGateway(operations)  # type: ignore[arg-type]
+
+    assert not gateway.lesson_is_available(
+        LessonSourceReference(
+            "lesson-placement", "lesson-package", "1.0.0", "a" * 64
+        )
+    )
+    assert not gateway.assessment_is_available(
+        AssessmentSourceReference(
+            "assessment-placement",
+            "assessment-one",
+            "1.0.0",
+            "b" * 64,
+        )
+    )
+
+
 class LearnerModelOperations:
     def __init__(self, result) -> None:
         self.result = result
@@ -195,6 +228,17 @@ def test_completion_gateway_maps_exact_public_view() -> None:
             completed=True,
             completion_meaning="not_completed",
             source_digest="c" * 64,
+        ),
+        SimpleNamespace(
+            placement_id="lesson-placement",
+            completed=True,
+            completion_meaning="bounded_knowledge_check_completed",
+        ),
+        SimpleNamespace(
+            placement_id="lesson-placement",
+            completed=True,
+            completion_meaning="bounded_knowledge_check_completed",
+            source_digest=42,
         ),
     ],
 )

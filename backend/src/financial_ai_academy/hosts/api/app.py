@@ -562,15 +562,7 @@ def create_app(services: ApiServices) -> FastAPI:
         ),
         context: LearnerContext = Depends(adaptation_context),
     ) -> NavigationStateResponseModel:
-        forbidden_selectors = {
-            "actor_id",
-            "learner_id",
-            "latest",
-            "permission",
-            "policy_id",
-            "provider",
-        }
-        if forbidden_selectors.intersection(request.query_params):
+        if request.query_params:
             raise RequestValidationError([])
         adaptation = _adaptation_service(services.adaptation)
         projection = adaptation.open_navigation_state(

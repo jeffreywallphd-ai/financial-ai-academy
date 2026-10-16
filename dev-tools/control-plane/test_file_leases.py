@@ -11,6 +11,7 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -256,12 +257,15 @@ class FileLeaseCoreTests(unittest.TestCase):
 
 
 class FinancialAcademyEditingTests(unittest.TestCase):
-    def test_active_packet_authorizes_cap_slice_or_work_lane_but_not_scope_escape(self) -> None:
+    @patch("financial_academy.require_current_package", return_value={})
+    @patch("financial_academy.load_store", return_value=(object(), Path("unused")))
+    def test_active_packet_authorizes_cap_slice_or_work_lane_but_not_scope_escape(
+        self, _load_store: object, _require_current_package: object
+    ) -> None:
         relatives = [
             "docs/planning/capabilities/CAP-0003-plan-and-orchestrate-capability-portfolios.md",
             "docs/planning/vertical-slices/SLI-0014-qualify-portfolio-control-plane.md",
             *[f"docs/planning/work-packets/WRK-{number:04d}-" for number in range(17, 23)],
-            ".local-codex/approvals/ledger.json",
         ]
         with tempfile.TemporaryDirectory(prefix="editing-adapter-") as directory:
             root = Path(directory)

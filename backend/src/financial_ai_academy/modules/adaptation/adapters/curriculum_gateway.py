@@ -54,14 +54,14 @@ class PublicCurriculumNavigationGateway:
             reading = self._operations.open_placed_lesson(
                 OpenPlacedLessonRequest(reference.placement_id)
             )
+            return (
+                reading.placement_id == reference.placement_id
+                and reading.package_id == reference.package_id
+                and reading.package_version == reference.package_version
+                and reading.package_digest == reference.package_digest
+            )
         except Exception:
             return False
-        return (
-            reading.placement_id == reference.placement_id
-            and reading.package_id == reference.package_id
-            and reading.package_version == reference.package_version
-            and reading.package_digest == reference.package_digest
-        )
 
     def assessment_is_available(
         self, reference: AssessmentSourceReference
@@ -70,11 +70,13 @@ class PublicCurriculumNavigationGateway:
             placement = self._operations.resolve_placed_assessment(
                 ResolvePlacedAssessmentRequest(reference.placement_id)
             )
+            return (
+                placement.placement_id == reference.placement_id
+                and placement.assessment_id == reference.assessment_id
+                and placement.assessment_version
+                == reference.assessment_version
+                and placement.definition_digest
+                == reference.definition_digest
+            )
         except Exception:
             return False
-        return (
-            placement.placement_id == reference.placement_id
-            and placement.assessment_id == reference.assessment_id
-            and placement.assessment_version == reference.assessment_version
-            and placement.definition_digest == reference.definition_digest
-        )
