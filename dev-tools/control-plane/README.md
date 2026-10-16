@@ -280,6 +280,11 @@ evidence, so normal documentation updates do not create false drift. Low- and
 medium-risk routes remain affected-check plus one-review paths; only explicit
 shared/control impact adds aggregate readiness.
 
+Run `packet-start` immediately after every new claim. If bounded correction
+returns a packet to `active` and exposes a missing manifest for that same claim,
+run the command before restoring `verifying`; never create or edit a manifest
+by hand.
+
 Completed work is never reopened in place. `correction-route` creates an
 ignored, scope-confined route to one descendant WRK under the same slice; that
 just-in-time packet does not need a new approval while it conforms to the CAP.
