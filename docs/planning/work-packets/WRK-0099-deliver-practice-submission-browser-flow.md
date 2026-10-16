@@ -1,7 +1,7 @@
 ---
 id: WRK-0099
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -256,3 +256,6 @@ not change, leaving WRK-0100 dependency-ready.
   bounded denial states. Focused and full browser checks preserve the same
   independently callable API without adding browser scoring or an AI-specific
   path.
+- 2026-10-16: Submitted exact candidate
+  `16a85659b488663210f40e51cb74f68b63e1dd1a` for fresh affected
+  verification and independent technical review.
