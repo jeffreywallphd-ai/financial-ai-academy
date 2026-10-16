@@ -32,6 +32,11 @@ import {
   LessonLoadingState,
   LessonRoute,
 } from "../features/lesson-reading/LessonRoute";
+import { createPracticeActivityLoader } from "../features/practice-activity/api";
+import {
+  PracticeActivityLoadingState,
+  PracticeActivityRoute,
+} from "../features/practice-activity/PracticeActivityRoute";
 import { SingleProfileSession } from "../platform/auth/singleProfileSession";
 import { AppShell } from "./AppShell";
 
@@ -45,6 +50,7 @@ const learningOpportunityDetailLoader = createLearningOpportunityDetailLoader(
 const learningOpportunityComparisonLoader =
   createLearningOpportunityComparisonLoader(client, session);
 const lessonLoader = createLessonLoader(client, session);
+const practiceActivityLoader = createPracticeActivityLoader(client, session);
 const curriculumGraphLoader = createCurriculumGraphLoader(client, session);
 const curriculumActivityLauncher = createCurriculumActivityLauncher(
   client,
@@ -116,6 +122,12 @@ export const router = createBrowserRouter([
         loader: lessonLoader,
         Component: LessonRoute,
         HydrateFallback: LessonLoadingState,
+      },
+      {
+        path: "learn/placements/:placementId/practice",
+        loader: practiceActivityLoader,
+        Component: PracticeActivityRoute,
+        HydrateFallback: PracticeActivityLoadingState,
       },
       {
         path: "learn/curricula/:curriculumId/versions/:curriculumVersion",

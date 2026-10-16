@@ -172,6 +172,24 @@ with direct reload guidance and without fabricating a completion or erasing
 evidence. The browser sends no learner selector and receives no answer key,
 Audit row, or mastery interpretation.
 
+`/learn/placements/:placementId/practice` establishes the same supported
+single-profile session and opens one exact practice activity through the
+generated public API client. The browser validates the complete answer-safe
+presentation before showing the title, purpose, instructions, attempt-policy
+meaning, learning and review material, and ordered single-select,
+multiple-select, or fixed-decimal response controls. Learner-facing copy states
+that responses entered during this opening step are neither checked nor saved.
+There is no submission control, answer key, accepted numeric value or range,
+private feedback, scoring authority, attempt evidence, local persistence, or
+browser-selected learner. Exact placement, package, practice, definition,
+question, policy, choice, resource, version, and digest facts remain available
+under the accessible `Technical record`. Missing access, missing activity,
+temporary failure, malformed content, unknown response types, extra private
+fields, duplicate identities, or placement mismatch fails the whole view to a
+bounded learner-focused state without partial questions or choices. The same
+protected HTTP operation remains available to non-browser and future headless
+clients; the page does not define a second contract or a separate AI mode.
+
 The browser never selects the learner, reads the HttpOnly cookie, imports
 backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference
