@@ -1,7 +1,7 @@
 ---
 id: WRK-0073
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -168,6 +168,36 @@ planning/readiness and affected-verification results, assumptions, recovery-
 copy work left to the next packet, browser work left to the final packet, and
 any cosmetic item deferred to CAP-0031.
 
+## Completion Evidence
+
+- Delivered an approved learning-path presentation with learner-focused group,
+  connection, progress, readiness, requirement, availability, and reason
+  language. The list and map views retain equivalent facts, and no launch,
+  recommendation, ranking, mastery, or browser-owned state inference was added.
+- Preserved exact curriculum/activity/resource identity, resource digests,
+  graph and navigation schemas, graph/policy identity, exact evaluation time,
+  source references, graph/source-set/projection digests, state values, reason
+  codes, recorded explanations, reason references, and relationship identity
+  in keyboard-operable `Technical record` disclosures.
+- Focused component qualification passed all 11 curriculum scenarios, including
+  flexible graph shapes and computed fixture cardinality. TypeScript typecheck,
+  lint, design-system, planning, documentation, Git whitespace, and aggregate
+  readiness checks passed.
+- Exact corrected candidate
+  `8a81dcbba3b875c6e395829f5dfb0d43faa8a2ef` received a qualifying affected-
+  verification receipt at `.local-codex/control-plane/receipts/WRK-0073/`
+  `8a81dcbba3b875c6e395829f5dfb0d43faa8a2ef/`
+  `20261016T100903Z-55cbe5c4-c6a1-4671-813e-29bfab59181b.json`.
+- Independent R01 identified that `unassigned` had collapsed into unavailable
+  and that exact navigation schema/time evidence was incomplete. The corrected
+  descendant gives `unassigned` its distinct `Not in a group` label and exposes
+  the complete exact provenance set; R02 accepted both closures with no new
+  substantive finding.
+- Public contracts, generated clients, graph/state/reason semantics, sessions,
+  authorization, ordering, activity actions, persistence, and migrations are
+  unchanged. Route recovery language remains JIT-B; Chromium qualification
+  remains JIT-C. No cosmetic issue blocked delivery or required re-review.
+
 ## Planning History
 
 - 2026-10-16: Refined SLI-0123 JIT-A around the ready learning-path page,
@@ -177,3 +207,6 @@ any cosmetic item deferred to CAP-0031.
   `6fd652ba0e7029550568416a9c8058558bbb8d7a` after focused component,
   typecheck, lint, planning, documentation, design-system, whitespace, and
   aggregate-readiness checks passed.
+- 2026-10-16: Completed WRK-0073 on corrected exact candidate
+  `8a81dcbba3b875c6e395829f5dfb0d43faa8a2ef` after fresh affected verification
+  qualified and independent R02 closed the two R01 state/provenance findings.
