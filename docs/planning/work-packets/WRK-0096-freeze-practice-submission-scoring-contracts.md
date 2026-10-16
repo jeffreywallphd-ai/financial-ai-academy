@@ -1,7 +1,7 @@
 ---
 id: WRK-0096
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -283,3 +283,8 @@ execution changed, then leave JIT-B dependency-ready.
   Result and event schemas now require canonical UTC RFC 3339 timestamps ending
   in `Z`, matching the production adapter, and both independent conformance and
   production tests reject a correlated non-zero-offset chain.
+- 2026-10-16: Finalized corrected candidate
+  `40128f1514f8619aa34ea31cf2b559bdf6847343` after the fresh affected-
+  verification receipt qualified and independent review R02 accepted the exact
+  candidate with R01-F001 closed and no open findings. WRK-0096 is complete;
+  persistence, HTTP, generated-client, and browser work remain deferred.

@@ -190,7 +190,7 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | verifying |
+| WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | complete |
 | JIT-B | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | JIT-A | none | candidate |
 | JIT-C | Add the protected public POST, reviewed OpenAPI/generated client, and accessible browser submit/result flow with headless parity | JIT-B | none | candidate |
 | JIT-D | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-C | none | candidate |
@@ -279,3 +279,7 @@ or autonomous authority was planned or implemented.
   aligning result/event schemas and conformance evidence with the production
   adapter's canonical UTC timestamp rule. The correction does not change the
   slice or CAP boundary.
+- 2026-10-16: Completed WRK-0096 at corrected candidate `40128f1`. The fresh
+  affected-verification receipt qualified, independent review R02 accepted the
+  exact candidate with R01-F001 closed and no open findings, and the public API
+  remains the deferred shared boundary for browser and headless consumers.
