@@ -4,7 +4,8 @@ The intended complete local profile includes the static web application,
 Python API and worker, PostgreSQL, filesystem object storage, and DuckDB/Parquet
 analytics. Only the bounded approved-lesson, curriculum-graph, discovery-query,
 deterministic-navigation-state, deterministic assessment, answer-safe practice
-opening, and retained-completion `single_profile` path is qualified today.
+opening, retained-completion, and Project list/create/reopen `single_profile`
+path is qualified today.
 This is a development/CI qualification topology, not a production
 publication, backup, restore, availability, or remote-hosting claim.
 
@@ -39,6 +40,12 @@ through public application operations. The additional
 two fixed classifications before the same single atomic rebuild. Normal
 startup does not seed or rebuild data, and ordinary approved-fixture startup
 does not require the larger query corpus.
+
+The same explicit approved-fixture flag also admits one reviewed Project
+package, publishes its exact Curriculum graph and placement, and makes the
+learning brief available through the protected Project start-option API. The
+Projects browser uses that same API as headless clients; the fixture is not a
+production bootstrap rule.
 
 ## One-Command Development
 
@@ -161,7 +168,10 @@ graph is available at
 `/learn/curricula/investing-foundations/versions/1.0.0`; its qualification-only
 successor is independently available at version `1.1.0`. The answer-safe
 practice is available at
-`/learn/placements/intro-risk-return-practice/practice`. Stop the Python process,
+`/learn/placements/intro-risk-return-practice/practice`. The Project list is
+available at `/projects`; it can create independent work or start the exact
+reviewed `Compare investment choices` brief and reopen the result through the
+public Project API. Stop the Python process,
 then tear down only this qualification composition:
 
 ```powershell

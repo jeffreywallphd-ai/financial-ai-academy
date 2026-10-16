@@ -92,6 +92,7 @@ def test_exact_placement_survives_restart_and_replays_idempotently() -> None:
     assert replay_created is False
     assert replay == created
     assert second.get_project_brief(created.placement_id) == created
+    assert second.list_project_briefs() == (created,)
 
 
 def test_same_placement_identity_rejects_changed_exact_meaning() -> None:

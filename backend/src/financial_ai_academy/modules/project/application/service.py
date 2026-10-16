@@ -27,10 +27,13 @@ from ..ports.repositories import ProjectIdempotencyConflict, ProjectRepositoryPo
 from ..ports.system import ClockPort, IdentifierPort
 from ..public import (
     CreateProjectRequest,
+    LearningProjectStartOption,
+    ListLearningProjectStartOptionsRequest,
     ListProjectsRequest,
     OpenProjectRequest,
     ProjectError,
     ProjectErrorCode,
+    ResolveLearningProjectStartOptionRequest,
 )
 
 
@@ -85,37 +88,15 @@ class ProjectService:
         approved_brief = None
         origin = request.intent.origin
         if isinstance(origin, LearningProjectOrigin):
-            try:
-                placement = self._placements.resolve(origin.placement_id)
-                self._match_placement(origin, placement)
-                approved_brief = self._briefs.resolve(origin)
-            except ProjectError:
-                raise
-            except LessonReadError as error:
-                code = (
-                    ProjectErrorCode.UNAVAILABLE
-                    if error.code
-                    in {
-                        LessonErrorCode.UNAVAILABLE,
-                        LessonErrorCode.INTEGRITY_FAILURE,
-                    }
-                    else ProjectErrorCode.INVALID_REQUEST
+            option, approved_brief = self._resolve_learning_option(
+                origin.placement_id
+            )
+            if option.origin != origin:
+                raise ProjectError(
+                    ProjectErrorCode.INVALID_REQUEST,
+                    "The learning Project source is not current.",
+                    reference=origin.placement_id,
                 )
-                raise ProjectError(
-                    code,
-                    "The exact learning Project source is unavailable."
-                    if code is ProjectErrorCode.UNAVAILABLE
-                    else "The learning Project source is not current.",
-                    reference=origin.placement_id,
-                ) from error
-            except ProjectContractFailure as error:
-                raise self._invalid(error.reference) from error
-            except Exception as error:
-                raise ProjectError(
-                    ProjectErrorCode.UNAVAILABLE,
-                    "The learning Project source is unavailable.",
-                    reference=origin.placement_id,
-                ) from error
         try:
             intent = self._revalidate_intent(request.intent, approved_brief)
             fingerprint = self._fingerprint(intent)
@@ -202,6 +183,115 @@ class ProjectService:
                 ProjectErrorCode.UNAVAILABLE,
                 "Project storage is unavailable.",
                 reference=request.project_id,
+            ) from error
+
+    def resolve_learning_project_start_option(
+        self, request: ResolveLearningProjectStartOptionRequest
+    ) -> LearningProjectStartOption:
+        if not _IDENTIFIER.fullmatch(request.placement_id):
+            raise self._invalid("placement")
+        option, _brief = self._resolve_learning_option(request.placement_id)
+        return option
+
+    def list_learning_project_start_options(
+        self, _request: ListLearningProjectStartOptionsRequest
+    ) -> tuple[LearningProjectStartOption, ...]:
+        try:
+            placements = self._placements.list()
+        except LessonReadError as error:
+            raise ProjectError(
+                ProjectErrorCode.UNAVAILABLE,
+                "Learning Project choices are unavailable.",
+                reference="project-start-options",
+            ) from error
+        except Exception as error:
+            raise ProjectError(
+                ProjectErrorCode.UNAVAILABLE,
+                "Learning Project choices are unavailable.",
+                reference="project-start-options",
+            ) from error
+        return tuple(
+            self._resolve_learning_option(placement.placement_id)[0]
+            for placement in placements
+        )
+
+    def _resolve_learning_option(
+        self, placement_id: str
+    ) -> tuple[LearningProjectStartOption, LearningProjectBrief]:
+        try:
+            placement = self._placements.resolve(placement_id)
+            source = LearningProjectOrigin(
+                project_brief_schema_version=(
+                    placement.project_brief_schema_version
+                ),
+                package_id=placement.package_id,
+                package_version=placement.package_version,
+                package_digest=placement.package_digest,
+                brief_id=placement.brief_id,
+                brief_version=placement.brief_version,
+                brief_digest=placement.brief_digest,
+                curriculum_id=placement.curriculum_id,
+                curriculum_version=placement.curriculum_version,
+                curriculum_digest=placement.curriculum_digest,
+                placement_id=placement.placement_id,
+                placement_version=placement.placement_version,
+                placement_digest=placement.placement_digest,
+                brief_title="pending exact brief validation",
+                brief_purpose="pending exact brief validation",
+            )
+            approved_brief = self._briefs.resolve(source)
+            origin = LearningProjectOrigin(
+                project_brief_schema_version=approved_brief.schema_version,
+                package_id=placement.package_id,
+                package_version=placement.package_version,
+                package_digest=placement.package_digest,
+                brief_id=approved_brief.brief_id,
+                brief_version=approved_brief.brief_version,
+                brief_digest=approved_brief.brief_digest,
+                curriculum_id=placement.curriculum_id,
+                curriculum_version=placement.curriculum_version,
+                curriculum_digest=placement.curriculum_digest,
+                placement_id=placement.placement_id,
+                placement_version=placement.placement_version,
+                placement_digest=placement.placement_digest,
+                brief_title=approved_brief.title,
+                brief_purpose=approved_brief.purpose,
+            )
+            self._match_placement(origin, placement)
+            return (
+                LearningProjectStartOption(
+                    title=approved_brief.title,
+                    purpose=approved_brief.purpose,
+                    origin=origin,
+                ),
+                approved_brief,
+            )
+        except ProjectError:
+            raise
+        except LessonReadError as error:
+            code = (
+                ProjectErrorCode.UNAVAILABLE
+                if error.code
+                in {
+                    LessonErrorCode.UNAVAILABLE,
+                    LessonErrorCode.INTEGRITY_FAILURE,
+                }
+                else ProjectErrorCode.INVALID_REQUEST
+            )
+            raise ProjectError(
+                code,
+                "The exact learning Project source is unavailable."
+                if code is ProjectErrorCode.UNAVAILABLE
+                else "The learning Project source is not current.",
+                reference=placement_id,
+            ) from error
+        except ProjectContractFailure as error:
+            raise self._invalid(error.reference) from error
+        except Exception as error:
+            raise ProjectError(
+                ProjectErrorCode.UNAVAILABLE,
+                "The learning Project source is unavailable.",
+                reference=placement_id,
             ) from error
 
     def _revalidate_intent(

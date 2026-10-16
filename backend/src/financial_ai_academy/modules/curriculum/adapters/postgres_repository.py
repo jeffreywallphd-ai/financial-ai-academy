@@ -320,6 +320,17 @@ class PostgresCurriculumRepository:
             ).fetchone()
         return self._project_brief_from_row(row) if row else None
 
+    def list_project_briefs(self) -> tuple[ProjectBriefPlacement, ...]:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            rows = connection.execute(
+                """
+                SELECT * FROM curriculum.project_brief_placements
+                ORDER BY created_at, placement_id
+                LIMIT 501
+                """
+            ).fetchall()
+        return tuple(self._project_brief_from_row(row) for row in rows)
+
     def save_project_brief_if_absent(
         self, placement: ProjectBriefPlacement
     ) -> tuple[ProjectBriefPlacement, bool]:

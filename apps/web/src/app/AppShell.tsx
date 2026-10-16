@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation, useNavigation } from "react-router";
+import { Link, NavLink, Outlet, useLocation, useNavigation } from "react-router";
 
 import { Icon } from "../components/Icon";
 import { ThemeControl } from "../platform/theme/theme";
@@ -9,7 +9,9 @@ export function AppShell() {
   const navigation = useNavigation();
   const skipLabel = location.pathname.startsWith("/learn/placements/")
     ? "Skip to lesson"
-    : "Skip to learning content";
+    : location.pathname.startsWith("/projects")
+      ? "Skip to Project content"
+      : "Skip to learning content";
   return (
     <>
       <a className="skip-link" href="#main-content">
@@ -29,6 +31,10 @@ export function AppShell() {
             <small>Learning before trading</small>
           </span>
         </Link>
+        <nav aria-label="Primary" className="app-nav">
+          <NavLink to="/learn">Learning library</NavLink>
+          <NavLink to="/projects">Projects</NavLink>
+        </nav>
         <ThemeControl />
       </header>
       <main

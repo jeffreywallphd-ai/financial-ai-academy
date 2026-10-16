@@ -64,6 +64,20 @@ clients. Headless access does not create a second domain core or grant AI
 authority over eligibility, authorization, grading, financial calculations,
 or durable state changes.
 
+Protected learning-start list and exact reads return only the approved title,
+purpose, and complete immutable origin. They create no learner record and are
+not a reservation or approval. Project resolves each record through public
+Curriculum and Content operations; the browser never authors or guesses source
+versions or digests. `POST /api/v1/projects` resolves the source again before
+persistence, so stale form state fails closed.
+
+The `/projects`, `/projects/new`, and `/projects/:projectId` browser routes use
+only the generated public client. They support independent and learning-backed
+creation, learner-scoped list/reopen, and one idempotency key for an unchanged
+retry. A material draft change uses a new key. Primary copy uses learner terms;
+exact identifiers, versions, revisions, and digests remain available in a
+keyboard-reachable Technical record disclosure.
+
 ## Compatibility
 
 Version 1 accepts only `independent` and `learning` origins. New origin kinds,
@@ -73,6 +87,6 @@ review. Harmless valid text, identities, milestone/source counts within bounds,
 and generated time or ID values must not depend on one fixture.
 
 Artifact manifests, workspace resources, snapshots, typed domain links,
-Assessment submissions, and browser Project behavior are separate bounded
-delivery seams. ADR-0011 continues to require inert data if artifact contracts
-are introduced later.
+Assessment submissions, and Project workspace-resource behavior are separate
+bounded delivery seams. ADR-0011 continues to require inert data if artifact
+contracts are introduced later.

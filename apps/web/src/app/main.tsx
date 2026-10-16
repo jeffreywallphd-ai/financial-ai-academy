@@ -10,6 +10,7 @@ import "../styles/learning-catalog.css";
 import "../styles/curriculum-graph.css";
 import "../styles/lesson-reading.css";
 import "../styles/practice-activity.css";
+import "../styles/project-workspace.css";
 import { ThemeProvider } from "../platform/theme/theme";
 import { router } from "./router";
 

@@ -18,6 +18,8 @@ type PracticeSubmissionResult =
   components["schemas"]["PracticeSubmissionResultResponseModel"];
 type ProjectCreateRequest =
   components["schemas"]["ProjectCreateRequestModel"];
+type LearningProjectStartOption =
+  components["schemas"]["LearningProjectStartOptionResponseModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -65,6 +67,15 @@ const independentProject: ProjectCreateRequest = {
 
 void client.POST("/api/v1/projects", { body: independentProject });
 void client.GET("/api/v1/projects");
+void client.GET("/api/v1/projects/start-options");
+const learningStart = client.GET(
+  "/api/v1/projects/start-options/{placement_id}",
+  { params: { path: { placement_id: "risk-return-project-primary" } } },
+);
+void learningStart.then((result) => {
+  const option: LearningProjectStartOption | undefined = result.data;
+  void option;
+});
 void client.GET("/api/v1/projects/{project_id}", {
   params: { path: { project_id: "project-1" } },
 });

@@ -22,10 +22,12 @@ from financial_ai_academy.modules.project.ports.repositories import (
 )
 from financial_ai_academy.modules.project.public import (
     CreateProjectRequest,
+    ListLearningProjectStartOptionsRequest,
     ListProjectsRequest,
     OpenProjectRequest,
     ProjectError,
     ProjectErrorCode,
+    ResolveLearningProjectStartOptionRequest,
 )
 
 
@@ -119,11 +121,19 @@ class Briefs:
 class Placements:
     def __init__(self, placement: ProjectBriefPlacement) -> None:
         self.placement = placement
+        self.placements = (placement,)
         self.calls = 0
 
-    def resolve(self, _placement_id: str) -> ProjectBriefPlacement:
+    def resolve(self, placement_id: str) -> ProjectBriefPlacement:
         self.calls += 1
-        return self.placement
+        return next(
+            placement
+            for placement in self.placements
+            if placement.placement_id == placement_id
+        )
+
+    def list(self) -> tuple[ProjectBriefPlacement, ...]:
+        return self.placements
 
 
 def learning_setup() -> tuple[object, ProjectBriefPlacement, LearningProjectOrigin]:
@@ -264,6 +274,73 @@ def test_learning_create_retains_exact_source_and_rejects_stale_placement() -> N
         service.create_project(CreateProjectRequest("learner-1", stale))
     assert captured.value.code is ProjectErrorCode.INVALID_REQUEST
     assert len(repository.rows) == 1
+
+
+def test_learning_start_option_is_exact_read_only_input_for_creation() -> None:
+    service, repository, briefs, placements = build_service()
+    _brief, _placement, origin = learning_setup()
+
+    option = service.resolve_learning_project_start_option(
+        ResolveLearningProjectStartOptionRequest(origin.placement_id)
+    )
+
+    assert option.title == origin.brief_title
+    assert option.purpose == origin.brief_purpose
+    assert option.origin == origin
+    assert repository.rows == {}
+    assert briefs.calls == placements.calls == 1
+
+
+def test_learning_start_options_list_is_exact_read_only_and_not_fixture_bound() -> None:
+    service, repository, briefs, placements = build_service()
+    _brief, _placement, origin = learning_setup()
+
+    options = service.list_learning_project_start_options(
+        ListLearningProjectStartOptionsRequest()
+    )
+
+    assert tuple(option.origin for option in options) == (origin,)
+    assert repository.rows == {}
+    assert briefs.calls == placements.calls == 1
+
+
+def test_learning_start_options_accept_empty_and_preserve_varied_source_order() -> None:
+    service, repository, briefs, placements = build_service()
+    _brief, placement, _origin = learning_setup()
+    placements.placements = ()
+    assert service.list_learning_project_start_options(
+        ListLearningProjectStartOptionsRequest()
+    ) == ()
+
+    alternate = replace(
+        placement,
+        placement_id="unicode-project-alternate",
+        placement_digest="e" * 64,
+    )
+    placements.placements = (alternate, placement)
+    options = service.list_learning_project_start_options(
+        ListLearningProjectStartOptionsRequest()
+    )
+
+    assert tuple(option.origin.placement_id for option in options) == (
+        alternate.placement_id,
+        placement.placement_id,
+    )
+    assert repository.rows == {}
+    assert briefs.calls == placements.calls == 2
+
+
+def test_learning_start_option_rejects_changed_brief_identity() -> None:
+    service, _repository, briefs, _placements = build_service()
+    _brief, placement, _origin = learning_setup()
+    briefs.brief = replace(briefs.brief, brief_digest="e" * 64)
+
+    with pytest.raises(ProjectError) as captured:
+        service.resolve_learning_project_start_option(
+            ResolveLearningProjectStartOptionRequest(placement.placement_id)
+        )
+
+    assert captured.value.code is ProjectErrorCode.INVALID_REQUEST
 
 
 def test_cross_learner_open_is_indistinguishable_from_unknown_project() -> None:

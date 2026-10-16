@@ -68,6 +68,23 @@ class OpenProjectRequest:
     project_id: str
 
 
+@dataclass(frozen=True, slots=True)
+class ResolveLearningProjectStartOptionRequest:
+    placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ListLearningProjectStartOptionsRequest:
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class LearningProjectStartOption:
+    title: str
+    purpose: str
+    origin: LearningProjectOrigin
+
+
 class ProjectOperations(Protocol):
     def create_project(self, request: CreateProjectRequest) -> ProjectShell: ...
 
@@ -77,12 +94,22 @@ class ProjectOperations(Protocol):
 
     def open_project(self, request: OpenProjectRequest) -> ProjectShell: ...
 
+    def resolve_learning_project_start_option(
+        self, request: ResolveLearningProjectStartOptionRequest
+    ) -> LearningProjectStartOption: ...
+
+    def list_learning_project_start_options(
+        self, request: ListLearningProjectStartOptionsRequest
+    ) -> tuple[LearningProjectStartOption, ...]: ...
+
 
 __all__ = [
     "CreateProjectRequest",
     "IndependentProjectOrigin",
     "LearningProjectBrief",
     "LearningProjectOrigin",
+    "LearningProjectStartOption",
+    "ListLearningProjectStartOptionsRequest",
     "ListProjectsRequest",
     "OpenProjectRequest",
     "ProjectCreateIntent",
@@ -91,4 +118,5 @@ __all__ = [
     "ProjectOperations",
     "ProjectOrigin",
     "ProjectShell",
+    "ResolveLearningProjectStartOptionRequest",
 ]

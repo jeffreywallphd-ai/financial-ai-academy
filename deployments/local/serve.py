@@ -7,6 +7,7 @@ import json
 import sys
 from collections.abc import Awaitable, Callable
 from dataclasses import replace
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -36,7 +37,17 @@ from financial_ai_academy.modules.curriculum.public import (  # noqa: E402
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
     CreatePracticePlacementRequest,
+    CreateProjectBriefPlacementRequest,
+    CurriculumActivity,
+    CurriculumActivityKind,
+    CurriculumBranch,
+    CurriculumBranchKind,
+    CurriculumCompetency,
     CurriculumGraph,
+    CurriculumObjective,
+    CurriculumPresentationOrder,
+    CurriculumRelationship,
+    CurriculumRelationshipKind,
     LessonActivityReference,
     OpportunityAvailability,
     OpportunityLevel,
@@ -74,6 +85,15 @@ APPROVED_PRACTICE_FIXTURE = (
     / "v1"
     / "approved"
     / "intro-risk-return-practice"
+)
+APPROVED_PROJECT_FIXTURE = (
+    REPOSITORY
+    / "contracts"
+    / "compatibility"
+    / "lesson-package"
+    / "v1"
+    / "approved"
+    / "intro-risk-return-project"
 )
 CURRICULUM_GRAPH_FIXTURE = (
     REPOSITORY
@@ -125,6 +145,88 @@ QUERY_OPPORTUNITY_FIXTURES = (
         ),
     },
 )
+
+PROJECT_SOURCE_PLACEMENT_ID = "risk-return-project-source"
+PROJECT_PLACEMENT_ID = "risk-return-project-primary"
+PROJECT_BRIEF_DIGEST = (
+    "1f234681a4b9262dd49e01c82c8c6a12f6a64d13845bea6140708a7d16f061ff"
+)
+
+
+def qualification_project_graph(
+    *, package_id: str, package_version: str, package_digest: str
+) -> CurriculumGraph:
+    activity_id = "activity-risk-return-project"
+    candidate = CurriculumGraph(
+        schema_version="1.0.0",
+        curriculum_id="financial-foundations-projects",
+        curriculum_version="1.0.0",
+        title="Financial foundations Projects",
+        summary=(
+            "A bounded path from reviewed learning material to an applied "
+            "educational Project."
+        ),
+        publication_state="approved",
+        published_at=datetime(2026, 8, 4, tzinfo=timezone.utc),
+        source_references=(f"content:{package_id}@{package_version}",),
+        objectives=(
+            CurriculumObjective(
+                "objective-apply-risk-return",
+                "Apply risk and return ideas",
+                "Use consistent criteria in an educational comparison.",
+            ),
+        ),
+        competencies=(
+            CurriculumCompetency(
+                "competency-apply-risk-return",
+                "Risk and return application",
+                "Apply evidence without making an investment recommendation.",
+            ),
+        ),
+        activities=(
+            CurriculumActivity(
+                activity_id,
+                "Start the risk and return Project",
+                CurriculumActivityKind.LESSON,
+                LessonActivityReference(
+                    PROJECT_SOURCE_PLACEMENT_ID,
+                    package_id,
+                    package_version,
+                    package_digest,
+                ),
+            ),
+        ),
+        branches=(
+            CurriculumBranch(
+                "branch-applied-project",
+                "Applied Project",
+                CurriculumBranchKind.REQUIRED,
+                (activity_id,),
+            ),
+        ),
+        relationships=(
+            CurriculumRelationship(
+                "relationship-project-objective",
+                CurriculumRelationshipKind.OBJECTIVE_COMPETENCY,
+                "objective-apply-risk-return",
+                "competency-apply-risk-return",
+            ),
+            CurriculumRelationship(
+                "relationship-project-develops",
+                CurriculumRelationshipKind.ACTIVITY_DEVELOPS_COMPETENCY,
+                activity_id,
+                "competency-apply-risk-return",
+            ),
+        ),
+        graph_digest="0" * 64,
+        presentation_order=CurriculumPresentationOrder(
+            objective_ids=("objective-apply-risk-return",),
+            competency_ids=("competency-apply-risk-return",),
+            activity_ids=(activity_id,),
+            branch_ids=("branch-applied-project",),
+        ),
+    )
+    return replace(candidate, graph_digest=curriculum_graph_digest(candidate))
 
 
 def qualification_graph(
@@ -319,6 +421,9 @@ def build_local_app(
         accepted_practice = services.content.admit_lesson_package(
             AdmitLessonPackageRequest(APPROVED_PRACTICE_FIXTURE)
         )
+        accepted_project = services.content.admit_lesson_package(
+            AdmitLessonPackageRequest(APPROVED_PROJECT_FIXTURE)
+        )
         graphs = qualification_graph_versions(
             package_id=accepted.package_id,
             package_version=accepted.package_version,
@@ -421,6 +526,39 @@ def build_local_app(
                 )
         services.curriculum.rebuild_learning_opportunity_projection(
             RebuildLearningOpportunityProjectionRequest()
+        )
+        project_graph = qualification_project_graph(
+            package_id=accepted_project.package_id,
+            package_version=accepted_project.package_version,
+            package_digest=accepted_project.package_digest,
+        )
+        services.curriculum.create_lesson_placement(
+            CreateLessonPlacementRequest(
+                placement_id=PROJECT_SOURCE_PLACEMENT_ID,
+                package_id=accepted_project.package_id,
+                package_version=accepted_project.package_version,
+                package_digest=accepted_project.package_digest,
+            )
+        )
+        services.curriculum.publish_curriculum_graph(
+            PublishCurriculumGraphRequest(graph=project_graph)
+        )
+        services.curriculum.create_project_brief_placement(
+            CreateProjectBriefPlacementRequest(
+                placement_id=PROJECT_PLACEMENT_ID,
+                placement_version="1.0.0",
+                curriculum_id=project_graph.curriculum_id,
+                curriculum_version=project_graph.curriculum_version,
+                curriculum_digest=project_graph.graph_digest,
+                activity_id="activity-risk-return-project",
+                package_id=accepted_project.package_id,
+                package_version=accepted_project.package_version,
+                package_digest=accepted_project.package_digest,
+                brief_id="risk-return-project",
+                brief_version="1.0.0",
+                brief_digest=PROJECT_BRIEF_DIGEST,
+                project_brief_schema_version="1.0.0",
+            )
         )
 
     app = create_app(

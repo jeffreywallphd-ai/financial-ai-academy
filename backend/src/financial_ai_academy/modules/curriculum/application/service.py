@@ -40,6 +40,7 @@ from ..public import (
     LearningOpportunityBrowse,
     LearningOpportunityQueryPage,
     LearningOpportunityRecord,
+    ListProjectBriefPlacementsRequest,
     LessonOpportunityClassification,
     LessonActivityReference,
     LessonPlacement,
@@ -466,6 +467,25 @@ class CurriculumService:
                 reference=request.placement_id,
             )
         return placement
+
+    def list_project_brief_placements(
+        self, _request: ListProjectBriefPlacementsRequest
+    ) -> tuple[ProjectBriefPlacement, ...]:
+        try:
+            placements = self._repository.list_project_briefs()
+        except Exception as error:
+            raise LessonReadError(
+                LessonErrorCode.UNAVAILABLE,
+                "Project brief placement storage is unavailable.",
+                reference="project-brief-placements",
+            ) from error
+        if len(placements) > 500:
+            raise LessonReadError(
+                LessonErrorCode.UNAVAILABLE,
+                "Project brief placements exceed the supported read limit.",
+                reference="project-brief-placements",
+            )
+        return placements
 
     @staticmethod
     def _project_brief_placement_digest(

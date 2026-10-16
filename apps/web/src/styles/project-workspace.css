@@ -1,0 +1,211 @@
+.project-page {
+  display: grid;
+  gap: var(--faa-space-8);
+  max-width: var(--faa-layout-content-max);
+  margin: var(--faa-space-0) auto;
+}
+
+.project-page__header {
+  display: grid;
+  max-width: var(--faa-layout-reading-max);
+  gap: var(--faa-space-3);
+}
+
+.project-page__header h1,
+.project-page__header p,
+.project-section h2,
+.project-card h3,
+.project-panel h2 {
+  margin: var(--faa-space-0);
+}
+
+.project-page__header h1 {
+  font-family: var(--faa-font-display);
+  font-size: var(--faa-font-size-page);
+  line-height: var(--faa-line-height-page);
+}
+
+.project-page__header > p:not(.eyebrow),
+.project-card > p,
+.project-panel > p,
+.project-form__help {
+  color: var(--faa-color-text-secondary);
+}
+
+.project-page__header .button {
+  width: fit-content;
+}
+
+.project-button--primary {
+  color: var(--faa-color-on-action-primary);
+  background: var(--faa-color-action-primary);
+  border-color: var(--faa-color-action-primary);
+  text-decoration: none;
+}
+
+.project-button--primary:hover {
+  background: var(--faa-color-action-primary-hover);
+}
+
+.project-section {
+  display: grid;
+  gap: var(--faa-space-4);
+}
+
+.project-section h2,
+.project-panel h2 {
+  font-family: var(--faa-font-display);
+  font-size: var(--faa-font-size-section);
+  line-height: var(--faa-line-height-section);
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--faa-layout-grid-gap);
+  padding: var(--faa-space-0);
+  margin: var(--faa-space-0);
+  list-style: none;
+}
+
+.project-card,
+.project-panel,
+.project-form,
+.project-empty,
+.project-form-error,
+.project-loading {
+  padding: var(--faa-space-6);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-card);
+}
+
+.project-card {
+  display: grid;
+  align-content: start;
+  gap: var(--faa-space-3);
+}
+
+.project-card h3 {
+  font-size: var(--faa-font-size-card-title);
+  line-height: var(--faa-line-height-card-title);
+}
+
+.project-card .button {
+  width: fit-content;
+  margin-top: auto;
+  text-decoration: none;
+}
+
+.project-card__meta,
+.project-form__help {
+  font-size: var(--faa-font-size-ui);
+}
+
+.project-empty {
+  margin: var(--faa-space-0);
+  color: var(--faa-color-text-secondary);
+  background: var(--faa-color-surface-subtle);
+}
+
+.project-detail,
+.project-create {
+  max-width: var(--faa-layout-reading-max);
+}
+
+.project-panel,
+.project-form {
+  display: grid;
+  gap: var(--faa-space-4);
+}
+
+.project-facts,
+.project-technical {
+  display: grid;
+  gap: var(--faa-space-3);
+  margin: var(--faa-space-0);
+}
+
+.project-facts div,
+.project-technical div {
+  display: grid;
+  gap: var(--faa-space-1);
+}
+
+.project-facts dt,
+.project-technical dt,
+.project-form label {
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.project-facts dd,
+.project-technical dd {
+  margin: var(--faa-space-0);
+  overflow-wrap: anywhere;
+}
+
+.project-form input,
+.project-form textarea {
+  width: 100%;
+  min-height: var(--faa-control-height);
+  padding: var(--faa-space-3);
+  color: var(--faa-color-text-primary);
+  background: var(--faa-color-control);
+  border: var(--faa-border-width) solid var(--faa-color-border-strong);
+  border-radius: var(--faa-radius-control);
+  font: inherit;
+}
+
+.project-form textarea {
+  resize: vertical;
+}
+
+.project-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--faa-space-3);
+}
+
+.project-form-error {
+  color: var(--faa-color-text-primary);
+  background: var(--faa-color-danger-surface);
+  border-color: var(--faa-color-danger);
+}
+
+.project-form-error p {
+  margin-bottom: var(--faa-space-0);
+}
+
+.project-loading {
+  min-height: var(--faa-layout-rail);
+  max-width: var(--faa-layout-reading-max);
+  margin: var(--faa-space-12) auto;
+}
+
+@media (max-width: 39.99rem) {
+  .project-card,
+  .project-panel,
+  .project-form,
+  .project-empty,
+  .project-form-error {
+    padding: var(--faa-space-4);
+  }
+
+  .project-form__actions .button {
+    width: 100%;
+  }
+}
+
+@media (forced-colors: active) {
+  .project-card,
+  .project-panel,
+  .project-form,
+  .project-empty,
+  .project-form-error,
+  .project-loading,
+  .project-button--primary {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+}

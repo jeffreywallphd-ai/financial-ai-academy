@@ -40,6 +40,7 @@ from financial_ai_academy.modules.learner_model.public import (
 from financial_ai_academy.modules.project.public import (
     IndependentProjectOrigin,
     LearningProjectOrigin,
+    LearningProjectStartOption,
     ProjectCreateIntent,
     ProjectShell,
 )
@@ -118,6 +119,18 @@ class ProjectShellResponseModel(ApiModel):
 
 class ProjectListResponseModel(ApiModel):
     records: list[ProjectShellResponseModel]
+
+
+class LearningProjectStartOptionResponseModel(ApiModel):
+    title: str = Field(min_length=1, max_length=120)
+    purpose: str = Field(min_length=1, max_length=2000)
+    origin: LearningProjectOriginModel
+
+
+class LearningProjectStartOptionListResponseModel(ApiModel):
+    records: list[LearningProjectStartOptionResponseModel] = Field(
+        max_length=500
+    )
 
 
 class InlineTextModel(ApiModel):
@@ -1762,6 +1775,25 @@ def project_list_response(
 ) -> ProjectListResponseModel:
     return ProjectListResponseModel(
         records=[project_shell_response(shell) for shell in shells]
+    )
+
+
+def learning_project_start_option_response(
+    option: LearningProjectStartOption,
+) -> LearningProjectStartOptionResponseModel:
+    return LearningProjectStartOptionResponseModel.model_validate(
+        asdict(option)
+    )
+
+
+def learning_project_start_option_list_response(
+    options: tuple[LearningProjectStartOption, ...],
+) -> LearningProjectStartOptionListResponseModel:
+    return LearningProjectStartOptionListResponseModel(
+        records=[
+            learning_project_start_option_response(option)
+            for option in options
+        ]
     )
 
 

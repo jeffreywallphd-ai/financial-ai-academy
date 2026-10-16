@@ -74,6 +74,29 @@
   color: currentColor;
 }
 
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--faa-space-2);
+  margin-inline-start: auto;
+}
+
+.app-nav a {
+  min-height: var(--faa-target-min);
+  padding: var(--faa-space-2) var(--faa-space-3);
+  color: var(--faa-color-nav-muted);
+  border-radius: var(--faa-radius-control);
+  font-size: var(--faa-font-size-ui);
+  font-weight: var(--faa-font-weight-semibold);
+  text-decoration: none;
+}
+
+.app-nav a:hover,
+.app-nav a[aria-current="page"] {
+  color: var(--faa-color-nav-active-text);
+  background: var(--faa-color-nav-active-bg);
+}
+
 .theme-control {
   display: inline-flex;
   min-height: var(--faa-target-min);
@@ -189,6 +212,12 @@
     display: none;
   }
 
+  .app-nav {
+    order: 3;
+    width: 100%;
+    margin-inline-start: var(--faa-space-0);
+  }
+
   #main-content {
     padding-top: var(--faa-space-6);
   }
@@ -202,5 +231,11 @@
     color: CanvasText;
     background: Canvas;
     border-color: CanvasText;
+  }
+
+  .app-nav a {
+    color: LinkText;
+    background: Canvas;
+    border: var(--faa-border-width) solid CanvasText;
   }
 }

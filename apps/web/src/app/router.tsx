@@ -42,6 +42,18 @@ import {
   PracticeActivityLoadingState,
   PracticeActivityRoute,
 } from "../features/practice-activity/PracticeActivityRoute";
+import {
+  createProjectCreateAction,
+  createProjectCreateLoader,
+  createProjectDetailLoader,
+  createProjectListLoader,
+} from "../features/project-workspace/api";
+import {
+  ProjectCreateRoute,
+  ProjectDetailRoute,
+  ProjectListRoute,
+  ProjectLoadingState,
+} from "../features/project-workspace/ProjectRoutes";
 import { SingleProfileSession } from "../platform/auth/singleProfileSession";
 import { AppShell } from "./AppShell";
 
@@ -64,6 +76,10 @@ const curriculumActivityLauncher = createCurriculumActivityLauncher(
   client,
   session,
 );
+const projectListLoader = createProjectListLoader(client, session);
+const projectDetailLoader = createProjectDetailLoader(client, session);
+const projectCreateLoader = createProjectCreateLoader(client, session);
+const projectCreateAction = createProjectCreateAction(client, session);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -116,6 +132,25 @@ export const router = createBrowserRouter([
         loader: () => redirect("/learn"),
         Component: LearningCatalogLoadingState,
         HydrateFallback: LearningCatalogLoadingState,
+      },
+      {
+        path: "projects",
+        loader: projectListLoader,
+        Component: ProjectListRoute,
+        HydrateFallback: ProjectLoadingState,
+      },
+      {
+        path: "projects/new",
+        loader: projectCreateLoader,
+        action: projectCreateAction,
+        Component: ProjectCreateRoute,
+        HydrateFallback: ProjectLoadingState,
+      },
+      {
+        path: "projects/:projectId",
+        loader: projectDetailLoader,
+        Component: ProjectDetailRoute,
+        HydrateFallback: ProjectLoadingState,
       },
       {
         path: "learn",

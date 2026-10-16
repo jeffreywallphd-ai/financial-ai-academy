@@ -13,6 +13,7 @@ package ID, semantic version, and digest.
 - `CurriculumService.resolve_placed_practice(ResolvePlacedPracticeRequest) -> PracticePlacement`
 - `CurriculumService.create_project_brief_placement(CreateProjectBriefPlacementRequest) -> ProjectBriefPlacement`
 - `CurriculumService.resolve_project_brief_placement(ResolveProjectBriefPlacementRequest) -> ProjectBriefPlacement`
+- `CurriculumService.list_project_brief_placements(ListProjectBriefPlacementsRequest) -> tuple[ProjectBriefPlacement, ...]`
 - `CurriculumService.register_practice_review_target(RegisterPracticeReviewTargetRequest) -> PracticeReviewTarget`
 - `CurriculumService.resolve_practice_review_targets(...) -> tuple[PracticeReviewTarget, ...]`
 - `CurriculumService.register_lesson_opportunity(RegisterLessonOpportunityRequest) -> LessonOpportunityClassification`
@@ -63,7 +64,9 @@ retains no brief bytes. Creation resolves the exact published Curriculum graph,
 checks that the named lesson activity references the same exact package, and
 verifies the brief through Content's public facade. Replay is idempotent,
 changed placement meaning is rejected, and development rollback refuses
-retained placements.
+retained placements. The bounded list read preserves creation-time and
+placement-ID order and exists so Project can present zero, one, or many exact
+learning starts without querying Curriculum storage.
 
 ## Discovery projection core
 

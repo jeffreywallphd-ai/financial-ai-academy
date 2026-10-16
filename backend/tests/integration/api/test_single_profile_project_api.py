@@ -36,14 +36,20 @@ from financial_ai_academy.modules.identity.public import (
     IdentityErrorCode,
     LearnerContext,
 )
-from financial_ai_academy.modules.project.domain.project import ProjectShell
+from financial_ai_academy.modules.project.domain.project import (
+    LearningProjectOrigin,
+    ProjectShell,
+)
 from financial_ai_academy.modules.project.public import (
     CreateProjectRequest,
     IndependentProjectOrigin,
+    LearningProjectStartOption,
+    ListLearningProjectStartOptionsRequest,
     ListProjectsRequest,
     OpenProjectRequest,
     ProjectError,
     ProjectErrorCode,
+    ResolveLearningProjectStartOptionRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
@@ -214,6 +220,49 @@ class Projects:
             )
         return shell
 
+    def resolve_learning_project_start_option(
+        self, request: ResolveLearningProjectStartOptionRequest
+    ) -> LearningProjectStartOption:
+        if request.placement_id != "risk-return-project-primary":
+            raise ProjectError(
+                ProjectErrorCode.INVALID_REQUEST,
+                "The learning Project source is not current.",
+                reference=request.placement_id,
+            )
+        origin = LearningProjectOrigin(
+            "1.0.0",
+            "intro-risk-return-project",
+            "1.0.0",
+            "a" * 64,
+            "risk-return-project",
+            "1.0.0",
+            "b" * 64,
+            "financial-foundations",
+            "1.0.0",
+            "c" * 64,
+            request.placement_id,
+            "1.0.0",
+            "d" * 64,
+            "Compare investment choices",
+            "Practice a structured educational comparison.",
+        )
+        return LearningProjectStartOption(
+            title=origin.brief_title,
+            purpose=origin.brief_purpose,
+            origin=origin,
+        )
+
+    def list_learning_project_start_options(
+        self, _request: ListLearningProjectStartOptionsRequest
+    ) -> tuple[LearningProjectStartOption, ...]:
+        return (
+            self.resolve_learning_project_start_option(
+                ResolveLearningProjectStartOptionRequest(
+                    "risk-return-project-primary"
+                )
+            ),
+        )
+
 
 def client() -> TestClient:
     policy = SingleProfileRequestPolicy(
@@ -311,6 +360,28 @@ def test_state_change_requires_same_origin_but_headless_gets_do_not() -> None:
 
     assert denied.status_code == 403
     assert allowed.status_code == 200
+
+
+def test_headless_start_option_is_protected_and_contains_no_storage_facts() -> None:
+    subject = client()
+    denied = subject.get(
+        "/api/v1/projects/start-options/risk-return-project-primary"
+    )
+    subject.cookies.set(COOKIE, "session-a")
+    response = subject.get(
+        "/api/v1/projects/start-options/risk-return-project-primary"
+    )
+    listed = subject.get("/api/v1/projects/start-options")
+
+    assert denied.status_code == 401
+    assert response.status_code == 200
+    assert listed.status_code == 200
+    assert listed.json()["records"] == [response.json()]
+    assert response.json()["title"] == "Compare investment choices"
+    assert response.json()["origin"]["placement_id"] == (
+        "risk-return-project-primary"
+    )
+    assert {"storage", "path", "object_key"}.isdisjoint(response.json())
 
 
 @pytest.mark.postgres
@@ -414,39 +485,25 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
             headers=headers(),
             json=independent_payload(),
         )
+        start_option = subject.get(
+            "/api/v1/projects/start-options/risk-return-project-primary"
+        )
+        start_options = subject.get("/api/v1/projects/start-options")
         learning_payload = {
             "schema_version": "1.0.0",
             "idempotency_key": "learning-project-1",
             "title": "My learning Project",
             "charter": "Apply the approved brief without making a recommendation.",
-            "origin": {
-                "origin_type": "learning",
-                "project_brief_schema_version": "1.0.0",
-                "package_id": accepted.package_id,
-                "package_version": accepted.package_version,
-                "package_digest": accepted.package_digest,
-                "brief_id": "risk-return-project",
-                "brief_version": "1.0.0",
-                "brief_digest": (
-                    "1f234681a4b9262dd49e01c82c8c6a12f6a64d13845bea6140708a7d16f061ff"
-                ),
-                "curriculum_id": placement.curriculum_id,
-                "curriculum_version": placement.curriculum_version,
-                "curriculum_digest": placement.curriculum_digest,
-                "placement_id": placement.placement_id,
-                "placement_version": placement.placement_version,
-                "placement_digest": placement.placement_digest,
-                "brief_title": "Compare investment choices",
-                "brief_purpose": (
-                    "Practice a structured, educational comparison without making a recommendation."
-                ),
-            },
+            "origin": start_option.json()["origin"],
         }
         learning = subject.post(
             "/api/v1/projects", headers=headers(), json=learning_payload
         )
         listed = subject.get("/api/v1/projects")
 
+    assert start_option.status_code == 200
+    assert start_options.status_code == 200
+    assert start_options.json()["records"] == [start_option.json()]
     assert independent.status_code == learning.status_code == 200
     assert [record["title"] for record in listed.json()["records"]] == [
         "Compare evidence",

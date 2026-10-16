@@ -89,11 +89,13 @@ from financial_ai_academy.modules.learner_model.public import (
 )
 from financial_ai_academy.modules.project.public import (
     CreateProjectRequest,
+    ListLearningProjectStartOptionsRequest,
     ListProjectsRequest,
     OpenProjectRequest,
     ProjectError,
     ProjectErrorCode,
     ProjectOperations,
+    ResolveLearningProjectStartOptionRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     RequestPolicyViolation,
@@ -111,6 +113,8 @@ from .models import (
     KnowledgeCheckSubmissionRequestModel,
     LearningOpportunityBrowseResponseModel,
     LearningOpportunityQueryPageResponseModel,
+    LearningProjectStartOptionResponseModel,
+    LearningProjectStartOptionListResponseModel,
     LessonCompletionResponseModel,
     LessonReadingResponseModel,
     NavigationStateResponseModel,
@@ -133,6 +137,8 @@ from .models import (
     learning_opportunity_query_page_response,
     lesson_completion_response,
     lesson_response,
+    learning_project_start_option_response,
+    learning_project_start_option_list_response,
     navigation_state_response,
     practice_presentation_response,
     practice_draft_response,
@@ -695,6 +701,43 @@ def create_app(services: ApiServices) -> FastAPI:
             ListProjectsRequest(learner_id=context.learner_id)
         )
         return project_list_response(shells)
+
+    @app.get(
+        "/api/v1/projects/start-options",
+        response_model=LearningProjectStartOptionListResponseModel,
+        operation_id="listLearningProjectStartOptions",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def list_learning_project_start_options(
+        _context: LearnerContext = Depends(project_create_context),
+    ) -> LearningProjectStartOptionListResponseModel:
+        options = project_operations().list_learning_project_start_options(
+            ListLearningProjectStartOptionsRequest()
+        )
+        return learning_project_start_option_list_response(options)
+
+    @app.get(
+        "/api/v1/projects/start-options/{placement_id}",
+        response_model=LearningProjectStartOptionResponseModel,
+        operation_id="getLearningProjectStartOption",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def get_learning_project_start_option(
+        placement_id: str = Path(
+            min_length=1,
+            max_length=128,
+            pattern=r"^[a-z0-9][a-z0-9._-]*$",
+        ),
+        _context: LearnerContext = Depends(project_create_context),
+    ) -> LearningProjectStartOptionResponseModel:
+        option = project_operations().resolve_learning_project_start_option(
+            ResolveLearningProjectStartOptionRequest(
+                placement_id=placement_id
+            )
+        )
+        return learning_project_start_option_response(option)
 
     @app.get(
         "/api/v1/projects/{project_id}",

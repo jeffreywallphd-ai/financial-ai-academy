@@ -8,6 +8,7 @@ from financial_ai_academy.modules.content.public import (
 )
 from financial_ai_academy.modules.curriculum.public import (
     CurriculumOperations,
+    ListProjectBriefPlacementsRequest,
     ProjectBriefPlacement,
     ResolveProjectBriefPlacementRequest,
 )
@@ -44,4 +45,9 @@ class PublicCurriculumProjectPlacementGateway:
     def resolve(self, placement_id: str) -> ProjectBriefPlacement:
         return self._curriculum.resolve_project_brief_placement(
             ResolveProjectBriefPlacementRequest(placement_id=placement_id)
+        )
+
+    def list(self) -> tuple[ProjectBriefPlacement, ...]:
+        return self._curriculum.list_project_brief_placements(
+            ListProjectBriefPlacementsRequest()
         )

@@ -164,6 +164,11 @@ class ResolveProjectBriefPlacementRequest:
     placement_id: str
 
 
+@dataclass(frozen=True, slots=True)
+class ListProjectBriefPlacementsRequest:
+    pass
+
+
 class PracticeReviewState(StrEnum):
     AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
@@ -487,6 +492,10 @@ class CurriculumOperations(Protocol):
     def resolve_project_brief_placement(
         self, request: ResolveProjectBriefPlacementRequest
     ) -> ProjectBriefPlacement: ...
+
+    def list_project_brief_placements(
+        self, request: ListProjectBriefPlacementsRequest
+    ) -> tuple[ProjectBriefPlacement, ...]: ...
 
     def register_practice_review_target(
         self, request: RegisterPracticeReviewTargetRequest

@@ -20,6 +20,7 @@ from financial_ai_academy.modules.curriculum.ports.repositories import (
 from financial_ai_academy.modules.curriculum.public import (
     CreateProjectBriefPlacementRequest,
     LessonActivityReference,
+    ListProjectBriefPlacementsRequest,
     ProjectBriefPlacement,
     ResolveProjectBriefPlacementRequest,
 )
@@ -94,6 +95,9 @@ class Repository:
             return self.value
         return None
 
+    def list_project_briefs(self) -> tuple[ProjectBriefPlacement, ...]:
+        return () if self.value is None else (self.value,)
+
 
 def request() -> CreateProjectBriefPlacementRequest:
     return CreateProjectBriefPlacementRequest(
@@ -134,6 +138,9 @@ def test_exact_project_brief_placement_is_idempotent_and_resolvable() -> None:
     assert created == replay == resolved
     assert created.created_at == NOW
     assert len(created.placement_digest) == 64
+    assert subject.list_project_brief_placements(
+        ListProjectBriefPlacementsRequest()
+    ) == (created,)
 
 
 def test_stale_brief_reference_fails_before_placement_persistence() -> None:
