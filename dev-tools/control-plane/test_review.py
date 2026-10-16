@@ -24,7 +24,12 @@ from control_plane import git_terminal_blank_line_only_delta, load_local_review_
 from financial_academy_review_ledger import FinancialAcademyReviewLedger  # noqa: E402
 from git_candidate import GitCandidateAdapter  # noqa: E402
 from provenance import envelope as provenance_envelope  # noqa: E402
-from review import REVIEW_TYPE, ReviewService, open_findings  # noqa: E402
+from review import (  # noqa: E402
+    REVIEW_TYPE,
+    ReviewService,
+    equivalent_failed_verification_route,
+    open_findings,
+)
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
     CheckCatalog,
@@ -111,6 +116,65 @@ class MemoryLedger:
 
 def catalog() -> CheckCatalog:
     return CheckCatalog("review-fixture-v1", (CheckDefinition("docs:fixture", (sys.executable, "-c", "pass"), ("docs/**",), "low", 10),))
+
+
+def catalog_evolution_checks() -> dict[str, CheckDefinition]:
+    return {
+        "original": CheckDefinition(
+            "docs:fixture",
+            (sys.executable, "-c", "pass"),
+            ("docs/**",),
+            "low",
+            10,
+        ),
+        "unrelated": CheckDefinition(
+            "src:fixture",
+            (sys.executable, "-c", "pass"),
+            ("src/**",),
+            "low",
+            20,
+        ),
+        "newly_affected": CheckDefinition(
+            "docs:extra",
+            (sys.executable, "-c", "pass"),
+            ("docs/**",),
+            "low",
+            20,
+        ),
+        "changed_command": CheckDefinition(
+            "docs:fixture",
+            (sys.executable, "-c", "raise SystemExit(1)"),
+            ("docs/**",),
+            "low",
+            10,
+        ),
+        "historical_narrow": CheckDefinition(
+            "docs:fixture",
+            (sys.executable, "-c", "pass"),
+            ("docs/README.md",),
+            "low",
+            10,
+        ),
+    }
+
+
+def evolved_service(
+    root: Path,
+    state: StateStore,
+    candidate: FixtureCandidate,
+    ledger: MemoryLedger,
+    receipts: ReceiptStore,
+    checks: tuple[CheckDefinition, ...],
+) -> ReviewService:
+    return ReviewService(
+        root,
+        FixtureProject(root),
+        state,
+        candidate,
+        CheckCatalog("review-fixture-v2", checks),
+        ledger,
+        receipts,
+    )
 
 
 class ReviewServiceTests(unittest.TestCase):
@@ -540,62 +604,75 @@ class ReviewServiceTests(unittest.TestCase):
             self.assertEqual("review.resubmit-not-authorized", reviewed.exception.code)
             self.assertEqual(1, len(ledger.items))
 
+    def test_catalog_equivalence_predicate_binds_route_and_command(self) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="review-catalog-predicate-"
+        ) as directory:
+            root = Path(directory)
+            _service, _state, _ledger, _candidate, receipts = self.prepare(root)
+            receipt = receipts.load(self.failed_receipt(receipts, "a" * 40))
+            checks = catalog_evolution_checks()
+
+            equivalent = CheckCatalog(
+                "review-fixture-v2",
+                (checks["original"], checks["unrelated"]),
+            )
+            self.assertTrue(
+                equivalent_failed_verification_route(equivalent, receipt)
+            )
+
+            for label, changed_catalog in (
+                (
+                    "newly-affected",
+                    CheckCatalog(
+                        "review-fixture-v2",
+                        (checks["original"], checks["newly_affected"]),
+                    ),
+                ),
+                (
+                    "changed-command",
+                    CheckCatalog(
+                        "review-fixture-v2",
+                        (checks["changed_command"], checks["unrelated"]),
+                    ),
+                ),
+            ):
+                with self.subTest(label=label):
+                    self.assertFalse(
+                        equivalent_failed_verification_route(
+                            changed_catalog,
+                            receipt,
+                        )
+                    )
+
+            missing_command = copy.deepcopy(receipt)
+            missing_command["attempts"][0].pop("argv")
+            self.assertFalse(
+                equivalent_failed_verification_route(equivalent, missing_command)
+            )
+
+            rematched_receipt = receipts.load(
+                self.failed_receipt(
+                    receipts,
+                    "a" * 40,
+                    changed_paths=["docs/README.md", "docs/guide.md"],
+                    receipt_catalog=CheckCatalog(
+                        "review-fixture-v1",
+                        (checks["historical_narrow"], checks["unrelated"]),
+                    ),
+                )
+            )
+            self.assertFalse(
+                equivalent_failed_verification_route(
+                    equivalent,
+                    rematched_receipt,
+                )
+            )
+
     def test_failed_verification_allows_only_equivalent_catalog_evolution(
         self,
     ) -> None:
-        def evolved_service(
-            root: Path,
-            state: StateStore,
-            candidate: FixtureCandidate,
-            ledger: MemoryLedger,
-            receipts: ReceiptStore,
-            checks: tuple[CheckDefinition, ...],
-        ) -> ReviewService:
-            return ReviewService(
-                root,
-                FixtureProject(root),
-                state,
-                candidate,
-                CheckCatalog("review-fixture-v2", checks),
-                ledger,
-                receipts,
-            )
-
-        original = CheckDefinition(
-            "docs:fixture",
-            (sys.executable, "-c", "pass"),
-            ("docs/**",),
-            "low",
-            10,
-        )
-        unrelated = CheckDefinition(
-            "src:fixture",
-            (sys.executable, "-c", "pass"),
-            ("src/**",),
-            "low",
-            20,
-        )
-        newly_affected = CheckDefinition(
-            "docs:extra",
-            (sys.executable, "-c", "pass"),
-            ("docs/**",),
-            "low",
-            20,
-        )
-        changed_command = CheckDefinition(
-            "docs:fixture",
-            (sys.executable, "-c", "raise SystemExit(1)"),
-            ("docs/**",),
-            "low",
-            10,
-        )
-        historical_narrow = CheckDefinition(
-            "docs:fixture",
-            (sys.executable, "-c", "pass"),
-            ("docs/README.md",),
-            "low",
-            10,
-        )
+        checks = catalog_evolution_checks()
 
         with tempfile.TemporaryDirectory(
             prefix="review-catalog-equivalent-"
@@ -609,7 +686,7 @@ class ReviewServiceTests(unittest.TestCase):
                 candidate,
                 ledger,
                 receipts,
-                (original, unrelated),
+                (checks["original"], checks["unrelated"]),
             )
             result = equivalent.resubmit(
                 "WORK-1",
@@ -622,8 +699,20 @@ class ReviewServiceTests(unittest.TestCase):
             )
 
         for label, checks in (
-            ("newly-affected", (original, newly_affected)),
-            ("changed-command", (changed_command, unrelated)),
+            (
+                "newly-affected",
+                (
+                    catalog_evolution_checks()["original"],
+                    catalog_evolution_checks()["newly_affected"],
+                ),
+            ),
+            (
+                "changed-command",
+                (
+                    catalog_evolution_checks()["changed_command"],
+                    catalog_evolution_checks()["unrelated"],
+                ),
+            ),
         ):
             with self.subTest(label=label), tempfile.TemporaryDirectory(
                 prefix=f"review-catalog-{label}-"
@@ -667,7 +756,10 @@ class ReviewServiceTests(unittest.TestCase):
                 changed_paths=changed_paths,
                 receipt_catalog=CheckCatalog(
                     "review-fixture-v1",
-                    (historical_narrow, unrelated),
+                    (
+                        catalog_evolution_checks()["historical_narrow"],
+                        catalog_evolution_checks()["unrelated"],
+                    ),
                 ),
             )
             rematched = evolved_service(
@@ -676,7 +768,10 @@ class ReviewServiceTests(unittest.TestCase):
                 candidate,
                 ledger,
                 receipts,
-                (original, unrelated),
+                (
+                    catalog_evolution_checks()["original"],
+                    catalog_evolution_checks()["unrelated"],
+                ),
             )
             with self.assertRaises(ControlError) as refused:
                 rematched.resubmit(
@@ -722,7 +817,10 @@ class ReviewServiceTests(unittest.TestCase):
                 candidate,
                 ledger,
                 receipts,
-                (original, unrelated),
+                (
+                    catalog_evolution_checks()["original"],
+                    catalog_evolution_checks()["unrelated"],
+                ),
             )
             with self.assertRaises(ControlError) as refused:
                 missing_command.resubmit(

@@ -67,6 +67,68 @@ def consecutive_adverse(rounds: list[dict[str, Any]]) -> int:
     return count
 
 
+def equivalent_failed_verification_route(
+    catalog: CheckCatalog,
+    receipt: dict[str, Any],
+) -> bool:
+    """Return true only when catalog drift preserves the executed route."""
+
+    plan = receipt.get("plan")
+    attempts = receipt.get("attempts")
+    if not isinstance(plan, dict) or not isinstance(attempts, list):
+        return False
+    candidate = plan.get("candidate")
+    changed_paths = plan.get("changed_paths")
+    base_revision = plan.get("base_revision")
+    if not isinstance(candidate, str) or not isinstance(changed_paths, list):
+        return False
+    try:
+        current = select_checks(
+            catalog,
+            candidate,
+            [str(path) for path in changed_paths],
+            base_revision=(
+                str(base_revision) if base_revision is not None else None
+            ),
+        )
+        historical_route = [
+            (
+                item.get("check_id"),
+                sorted(str(path) for path in item.get("matched_paths", [])),
+            )
+            for item in plan.get("selected", [])
+            if isinstance(item, dict)
+        ]
+        current_route = [
+            (
+                item.get("check_id"),
+                sorted(str(path) for path in item.get("matched_paths", [])),
+            )
+            for item in current["selected"]
+        ]
+        if historical_route != current_route:
+            return False
+        attempts_by_id = {
+            str(item.get("check_id")): item
+            for item in attempts
+            if isinstance(item, dict)
+        }
+        if len(attempts_by_id) != len(current_route):
+            return False
+        for check_id, _matched_paths in current_route:
+            attempt = attempts_by_id.get(str(check_id))
+            if attempt is None or not isinstance(attempt.get("argv"), list):
+                return False
+            expected = list(
+                materialize_arguments(catalog.by_id(str(check_id)), current)
+            )
+            if attempt["argv"] != expected:
+                return False
+    except (ControlError, TypeError, ValueError):
+        return False
+    return True
+
+
 def validate_findings(round_id: str, findings: object) -> list[dict[str, Any]]:
     if not isinstance(findings, list):
         raise ControlError("review.findings-invalid", "Review findings must be an array.", {}, ["Use the local review-request schema."])
@@ -200,68 +262,7 @@ class ReviewService:
         return errors == [
             "catalog digest is stale",
             "one or more selected checks failed or timed out",
-        ] and self._catalog_route_is_equivalent(receipt)
-
-    def _catalog_route_is_equivalent(self, receipt: dict[str, Any]) -> bool:
-        """Prove catalog drift did not alter the candidate's affected route."""
-
-        plan = receipt.get("plan")
-        attempts = receipt.get("attempts")
-        if not isinstance(plan, dict) or not isinstance(attempts, list):
-            return False
-        candidate = plan.get("candidate")
-        changed_paths = plan.get("changed_paths")
-        base_revision = plan.get("base_revision")
-        if not isinstance(candidate, str) or not isinstance(changed_paths, list):
-            return False
-        try:
-            current = select_checks(
-                self.catalog,
-                candidate,
-                [str(path) for path in changed_paths],
-                base_revision=(
-                    str(base_revision) if base_revision is not None else None
-                ),
-            )
-            historical_route = [
-                (
-                    item.get("check_id"),
-                    sorted(str(path) for path in item.get("matched_paths", [])),
-                )
-                for item in plan.get("selected", [])
-                if isinstance(item, dict)
-            ]
-            current_route = [
-                (
-                    item.get("check_id"),
-                    sorted(str(path) for path in item.get("matched_paths", [])),
-                )
-                for item in current["selected"]
-            ]
-            if historical_route != current_route:
-                return False
-            attempts_by_id = {
-                str(item.get("check_id")): item
-                for item in attempts
-                if isinstance(item, dict)
-            }
-            if len(attempts_by_id) != len(current_route):
-                return False
-            for check_id, _matched_paths in current_route:
-                attempt = attempts_by_id.get(str(check_id))
-                if attempt is None or not isinstance(attempt.get("argv"), list):
-                    return False
-                expected = list(
-                    materialize_arguments(
-                        self.catalog.by_id(str(check_id)),
-                        current,
-                    )
-                )
-                if attempt["argv"] != expected:
-                    return False
-        except (ControlError, TypeError, ValueError):
-            return False
-        return True
+        ] and equivalent_failed_verification_route(self.catalog, receipt)
 
     def _valid_inheritance(
         self,

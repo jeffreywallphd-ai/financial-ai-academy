@@ -232,13 +232,14 @@ styling, functionality, accessibility, security, data, contract, policy, and
 evidence changes retain the ordinary review path; repository policy may defer
 non-functional styling rather than interrupt the current functional CAP.
 
-One stale-catalog case remains usable without weakening that rule: if a later
-catalog revision recomputes the exact same selected check IDs, matched paths,
-and materialized commands for the historical candidate, the failed execution
-may still authorize its strict correction. The receipt must record every exact
-executed command and pass every other integrity and submission-binding check.
-A newly affected, removed, renamed, rematched, or command-changed check fails
-closed and requires current exact-candidate evidence.
+One stale-catalog case remains usable without weakening that rule. A reusable,
+side-effect-free predicate recomputes the historical candidate's affected route
+against the current catalog before the review service authorizes correction.
+The selected check IDs, matched paths, and materialized commands must be exact
+matches. The receipt must record every executed command and pass every other
+integrity and submission-binding check. A newly affected, removed, renamed,
+rematched, or command-changed check fails closed and requires current
+exact-candidate evidence.
 Policy/status tests cover local/CI rule parity, explicit unavailable evidence,
 report confinement and privacy, stale-local reconciliation, one-command
 read-only status, bounded remediation, and absence of approval or full-suite

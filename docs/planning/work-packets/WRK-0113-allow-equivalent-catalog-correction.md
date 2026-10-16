@@ -33,10 +33,11 @@ This packet implements the bounded WRK-0112 correction route with digest
 
 ## Required Context
 
-Read the repository startup sources, CAP-0002, SLI-0004, SLI-0005, WRK-0012,
-WRK-0013, WRK-0070, WRK-0112, the recorded correction route, concurrent-work
-and testing guidance, the receipt/review implementation and tests, the tracked
-check catalog, and the nearest control-plane README before editing.
+Read `AGENTS.md`, `docs/README.md`, the repository startup sources, CAP-0002,
+SLI-0004, SLI-0005, WRK-0012, WRK-0013, WRK-0070, WRK-0112, the recorded
+correction route, concurrent-work and testing guidance, the receipt/review
+implementation and tests, the tracked check catalog, and the nearest
+control-plane README before editing.
 
 ## Decisions and Assumptions
 
@@ -117,3 +118,6 @@ remaining gaps. Keep technical-review records only in ignored local storage.
   the global digest and unintentionally blocked an unrelated product packet's
   otherwise valid failed-verification correction. The packet preserves every
   affected-route invariant and adds no approval stage.
+- 2026-10-16: Isolated the route comparison as a reusable pure predicate and
+  added direct positive and fail-closed coverage so the exact candidate carries
+  the implementation, denial evidence, and operator contract together.
