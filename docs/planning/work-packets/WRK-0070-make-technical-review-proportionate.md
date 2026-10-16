@@ -25,9 +25,10 @@ claimed_at: 2026-10-16T09:20:05Z
 Correct the reusable review service so inconsequential cleanup findings cannot
 force an adverse disposition or a full correction/re-review loop. An accepted
 candidate may carry explicitly classified non-blocking cleanup findings. A
-strict descendant mechanically proven to change only whitespace or blank lines
-must receive fresh affected verification but may inherit the accepted technical
-review. Other cleanup is deferred or uses the ordinary review path.
+strict descendant mechanically proven to change only terminal blank lines in
+an approved source or documentation file type must receive fresh affected
+verification but may inherit the accepted technical review. Other cleanup is
+deferred or uses the ordinary review path.
 
 This packet implements the bounded correction route recorded for WRK-0013. It
 preserves exact-candidate lineage, append-only reviewer evidence, independent
@@ -51,8 +52,9 @@ implementation, its tests, and the nearest README.
   cannot by itself produce `changes-requested` or `rejected`.
 - Review inheritance is allowed only for a strict descendant of an accepted
   candidate, only while every addressed open finding is cleanup, only when Git
-  proves the incremental delta changes whitespace or blank lines, and only
-  after fresh affected verification of the descendant.
+  proves the incremental delta changes terminal blank lines in an approved
+  source or documentation file type, and only after fresh affected verification
+  of the descendant.
 - Repeated verified cleanup descendants retain the original accepted candidate
   and review-round basis; an inherited candidate is never used as a fake round.
 - The repository-specific alpha/beta UI deferral policy belongs in the testing
@@ -64,13 +66,13 @@ implementation, its tests, and the nearest README.
   validation/refusal codes.
 - Enforcement that cleanup findings are non-blocking and cannot support an
   adverse disposition.
-- A whitespace-only corrected-descendant route after acceptance, with explicit
-  inherited-review lineage, mechanical delta proof, and fresh-verification
-  requirement.
+- A terminal-blank-line-only corrected-descendant route after acceptance, with
+  explicit inherited-review lineage, mechanical delta proof, and
+  fresh-verification requirement.
 - Status projection that distinguishes exact, pending inherited, and verified
   inherited review without rewriting reviewer history.
-- Anti-rigidity tests for whitespace cleanup, repeated inherited descendants,
-  semantic-change denial, and retained hard stops for substantive
+- Anti-rigidity tests for terminal blank-line cleanup, repeated inherited
+  descendants, indentation/string/file-class denial, and retained hard stops for substantive
   functionality, accessibility, security, data, contract, and semantic
   findings.
 - Reusable documentation and repository-specific alpha/beta UI deferral rules.
@@ -96,9 +98,10 @@ of the eventual product-cleanup capability.
 The existing review round remains append-only. Finding records gain an additive
 class with `substantive` as the legacy default. Cleanup-only resubmission gains
 an explicit CLI flag and records the original accepted-review basis in the
-submission. The repository adapter must mechanically prove the incremental
-Git delta is whitespace-only. The exact descendant still requires a qualifying
-receipt before inherited acceptance becomes effective.
+submission. The repository adapter must mechanically prove the incremental Git
+delta changes only terminal blank lines in an approved file type. The exact
+descendant still requires a qualifying receipt before inherited acceptance
+becomes effective.
 
 ## Dependencies and Parallel Safety
 
@@ -112,11 +115,11 @@ to the completed packet's original control-plane and guidance boundary.
 | --- | --- |
 | Blank line or formatting cleanup | The finding is accepted as cleanup and cannot cause an adverse disposition |
 | Alpha/beta cosmetic UI concern | It is non-blocking unless it impairs function, meaning, access, safety, contrast, hierarchy, or responsive use; repository guidance routes it to final cleanup |
-| Whitespace cleanup fixed immediately | A strict descendant is mechanically proven whitespace-only, submitted with inherited-review lineage, receives fresh affected verification, and needs no new review round |
+| Terminal blank-line cleanup fixed immediately | A strict descendant is mechanically proven to change only terminal blank lines in an approved file type, submitted with inherited-review lineage, receives fresh affected verification, and needs no new review round |
 | Cleanup deferred | The accepted candidate remains completable with the non-blocking finding visible for backlog capture |
 | Substantive defect | A blocking substantive finding still requires a strict descendant, fresh verification, explicit closure, and independent re-review |
-| Semantic or styling edit | It cannot inherit review through the whitespace-only route; styling is deferred to final cleanup unless explicitly moved earlier |
-| Attempted bypass | Cleanup inheritance is refused for adverse reviews, blocking findings, non-descendants, unverified descendants, or a delta that is not mechanically whitespace-only |
+| Internal whitespace, indentation, string, or styling edit | It cannot inherit review through the terminal-blank-line route; styling is deferred to final cleanup unless explicitly moved earlier |
+| Attempted bypass | Cleanup inheritance is refused for adverse reviews, blocking findings, non-descendants, unverified descendants, unapproved file types, or a delta beyond terminal blank lines |
 | Legacy finding | A finding without the additive class retains substantive behavior |
 
 ## Verification Commands

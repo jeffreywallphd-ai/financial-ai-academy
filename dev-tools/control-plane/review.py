@@ -341,7 +341,7 @@ class ReviewService:
             if cleanup_only and cleanup_basis is None:
                 raise ControlError("review.cleanup-resubmit-not-authorized", "Cleanup-only resubmission requires an exact accepted candidate or a verified inherited candidate with only cleanup findings.", {"latest_status": rounds[-1].get("status") if rounds else None}, ["Verify the current cleanup descendant, or use the ordinary correction and re-review path for substantive findings."])
             if cleanup_only and not self.cleanup_delta_checker(prior_candidate, str(submission["candidate"])):
-                raise ControlError("review.cleanup-delta-not-proven", "The incremental descendant is not mechanically proven to contain only whitespace cleanup.", {"parent_candidate": prior_candidate, "candidate": submission["candidate"]}, ["Keep the accepted candidate and defer the concern, or use the ordinary independent-review path for this descendant."])
+                raise ControlError("review.cleanup-delta-not-proven", "The incremental descendant is not mechanically proven to change only terminal blank lines in an approved source or documentation file type.", {"parent_candidate": prior_candidate, "candidate": submission["candidate"]}, ["Keep the accepted candidate and defer the concern, or use the ordinary independent-review path for this descendant."])
             successor_work = resubmit_work(work, owner=owner, claim_id=claim_id, submission=submission, expected_revision=expected_revision, root_cause=(root_cause or "").strip() or None)
             if cleanup_only and cleanup_basis is not None:
                 successor_work["submission"]["review_inheritance"] = {

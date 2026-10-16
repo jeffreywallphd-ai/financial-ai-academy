@@ -20,7 +20,7 @@ for path in (HERE, PLANNING):
 
 from approval_store import empty_store, load_store, save_store, store_path  # noqa: E402
 from contracts import ControlError  # noqa: E402
-from control_plane import git_whitespace_only_delta, load_local_review_request  # noqa: E402
+from control_plane import git_terminal_blank_line_only_delta, load_local_review_request  # noqa: E402
 from financial_academy_review_ledger import FinancialAcademyReviewLedger  # noqa: E402
 from review import REVIEW_TYPE, ReviewService, open_findings  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
@@ -218,25 +218,48 @@ class ReviewServiceTests(unittest.TestCase):
                 service.resubmit("WORK-1", owner="owner", claim_id="claim-1", cleanup_only=True)
             self.assertEqual("review.cleanup-delta-not-proven", substantive.exception.code)
 
-    def test_git_cleanup_delta_accepts_whitespace_and_rejects_substantive_change(self) -> None:
+    def test_git_cleanup_delta_accepts_only_terminal_blank_lines(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-cleanup-git-") as directory:
             root = Path(directory)
             subprocess.run(["git", "init", "-b", "main"], cwd=root, check=True, capture_output=True)
             subprocess.run(["git", "config", "user.email", "fixture@example.invalid"], cwd=root, check=True)
             subprocess.run(["git", "config", "user.name", "Fixture"], cwd=root, check=True)
-            source = root / "example.txt"
-            source.write_text("alpha\nbeta\n", encoding="utf-8")
-            subprocess.run(["git", "add", "example.txt"], cwd=root, check=True)
+            source = root / "example.py"
+            yaml = root / "example.yaml"
+            text = root / "example.txt"
+            source.write_text('if True:\n    value = "alpha beta"\n', encoding="utf-8")
+            yaml.write_text("parent:\n  child: value\n", encoding="utf-8")
+            text.write_text("alpha\n", encoding="utf-8")
+            subprocess.run(["git", "add", "example.py", "example.yaml", "example.txt"], cwd=root, check=True)
             subprocess.run(["git", "commit", "-m", "base"], cwd=root, check=True, capture_output=True)
             base = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
-            source.write_text("alpha\n\nbeta\n", encoding="utf-8")
-            subprocess.run(["git", "commit", "-am", "whitespace"], cwd=root, check=True, capture_output=True)
-            whitespace = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
-            self.assertTrue(git_whitespace_only_delta(root, base, whitespace))
-            source.write_text("alpha\n\ngamma\n", encoding="utf-8")
-            subprocess.run(["git", "commit", "-am", "substantive"], cwd=root, check=True, capture_output=True)
-            substantive = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
-            self.assertFalse(git_whitespace_only_delta(root, whitespace, substantive))
+            source.write_text('if True:\n    value = "alpha beta"\n\n', encoding="utf-8")
+            subprocess.run(["git", "commit", "-am", "terminal blank line"], cwd=root, check=True, capture_output=True)
+            terminal = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertTrue(git_terminal_blank_line_only_delta(root, base, terminal))
+
+            source.write_text('if True:\nvalue = "alpha beta"\n\n', encoding="utf-8")
+            subprocess.run(["git", "commit", "-am", "python indentation"], cwd=root, check=True, capture_output=True)
+            python_indentation = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, terminal, python_indentation))
+
+            subprocess.run(["git", "checkout", base, "--", "example.py", "example.yaml", "example.txt"], cwd=root, check=True)
+            yaml.write_text("parent:\nchild: value\n", encoding="utf-8")
+            subprocess.run(["git", "commit", "-am", "yaml indentation"], cwd=root, check=True, capture_output=True)
+            yaml_indentation = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, base, yaml_indentation))
+
+            subprocess.run(["git", "checkout", base, "--", "example.py", "example.yaml", "example.txt"], cwd=root, check=True)
+            source.write_text('if True:\n    value = "alpha  beta"\n', encoding="utf-8")
+            subprocess.run(["git", "commit", "-am", "string whitespace"], cwd=root, check=True, capture_output=True)
+            string_whitespace = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, base, string_whitespace))
+
+            subprocess.run(["git", "checkout", base, "--", "example.py", "example.yaml", "example.txt"], cwd=root, check=True)
+            text.write_text("alpha\n\n", encoding="utf-8")
+            subprocess.run(["git", "commit", "-am", "unapproved file class"], cwd=root, check=True, capture_output=True)
+            unapproved_file = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, base, unapproved_file))
 
     def test_self_review_and_duplicate_candidate_are_refused(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-independent-") as directory:

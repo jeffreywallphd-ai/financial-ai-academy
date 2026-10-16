@@ -109,7 +109,7 @@ SLI-0004 verification must run fresh before another review.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | complete |
-| WRK-0070 | Correct review proportionality so mechanically proven whitespace-only descendants receive fresh verification without redundant re-review | WRK-0013 | none | verifying |
+| WRK-0070 | Correct review proportionality so mechanically proven terminal-blank-line descendants receive fresh verification without redundant re-review | WRK-0013 | none | verifying |
 
 ## Verification and Qualification
 

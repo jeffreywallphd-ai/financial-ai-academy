@@ -46,16 +46,66 @@ def repository_root(requested: Path | None) -> Path:
     return Path(completed.stdout.strip()).resolve()
 
 
-def git_whitespace_only_delta(root: Path, ancestor: str, descendant: str) -> bool:
+SAFE_TERMINAL_BLANK_LINE_SUFFIXES = {
+    ".css",
+    ".html",
+    ".js",
+    ".jsx",
+    ".md",
+    ".py",
+    ".pyi",
+    ".rst",
+    ".scss",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".yaml",
+    ".yml",
+}
+
+
+def _without_terminal_blank_lines(payload: bytes) -> bytes:
+    lines = payload.splitlines(keepends=True)
+    while lines and not lines[-1].strip(b" \t\r\n"):
+        lines.pop()
+    return b"".join(lines)
+
+
+def git_terminal_blank_line_only_delta(root: Path, ancestor: str, descendant: str) -> bool:
     environment = dict(os.environ)
     environment["GIT_CONFIG_NOSYSTEM"] = "1"
     environment["GIT_NO_REPLACE_OBJECTS"] = "1"
-    prefix = ["git", "-c", "core.hooksPath=NUL" if os.name == "nt" else "core.hooksPath=/dev/null", "diff", "--quiet"]
-    changed = subprocess.run([*prefix, ancestor, descendant, "--"], cwd=root, check=False, capture_output=True, env=environment)
-    if changed.returncode != 1:
+    git = ["git", "-c", "core.hooksPath=NUL" if os.name == "nt" else "core.hooksPath=/dev/null"]
+    changed = subprocess.run([*git, "diff", "--name-status", "-z", ancestor, descendant, "--"], cwd=root, check=False, capture_output=True, env=environment)
+    if changed.returncode or not changed.stdout:
         return False
-    ignored = subprocess.run([*prefix, "--ignore-all-space", "--ignore-blank-lines", ancestor, descendant, "--"], cwd=root, check=False, capture_output=True, env=environment)
-    return ignored.returncode == 0
+    fields = changed.stdout.split(b"\0")
+    if fields[-1] != b"":
+        return False
+    fields.pop()
+    if len(fields) % 2:
+        return False
+    paths: list[str] = []
+    for offset in range(0, len(fields), 2):
+        if fields[offset] != b"M":
+            return False
+        try:
+            path = fields[offset + 1].decode("utf-8")
+        except UnicodeDecodeError:
+            return False
+        if Path(path).suffix.lower() not in SAFE_TERMINAL_BLANK_LINE_SUFFIXES:
+            return False
+        paths.append(path)
+    if not paths:
+        return False
+    for path in paths:
+        before = subprocess.run([*git, "show", f"{ancestor}:{path}"], cwd=root, check=False, capture_output=True, env=environment)
+        after = subprocess.run([*git, "show", f"{descendant}:{path}"], cwd=root, check=False, capture_output=True, env=environment)
+        if before.returncode or after.returncode or before.stdout == after.stdout:
+            return False
+        if _without_terminal_blank_lines(before.stdout) != _without_terminal_blank_lines(after.stdout):
+            return False
+    return True
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -230,7 +280,7 @@ def main() -> int:
         engine = ControlPlane(project, candidate, state)
         catalog = financial_academy_catalog()
         verifier = VerificationService(root, project, state, catalog, candidate)
-        reviewer = ReviewService(root, project, state, candidate, catalog, FinancialAcademyReviewLedger(root), cleanup_delta_checker=lambda ancestor, descendant: git_whitespace_only_delta(root, ancestor, descendant))
+        reviewer = ReviewService(root, project, state, candidate, catalog, FinancialAcademyReviewLedger(root), cleanup_delta_checker=lambda ancestor, descendant: git_terminal_blank_line_only_delta(root, ancestor, descendant))
         policy = financial_academy_policy_service(root, project)
         operator = OperatorStatusService(FinancialAcademyStatusAdapter(root, project))
         starter, corrections, maintenance = financial_academy_operation_services(root, project)

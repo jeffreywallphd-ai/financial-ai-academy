@@ -190,8 +190,11 @@ denial, strict-descendant corrections, fresh-verification requirements,
 root-cause escalation, append-only ignored-ledger storage, and proportionate
 cleanup findings. Cleanup cannot cause an adverse disposition. A strict
 cleanup-only descendant of an accepted candidate inherits that review only
-when Git proves the incremental delta changes whitespace or blank lines and the
-descendant has its own qualifying affected-verification receipt. Repeated
+when Git proves the incremental delta changes only terminal blank lines in an
+approved source or documentation file type and the descendant has its own
+qualifying affected-verification receipt. Internal whitespace, indentation,
+string content, unapproved file classes, and all other edits are refused.
+Repeated
 cleanup descendants retain the original accepted basis. Semantic formatting,
 styling, functionality, accessibility, security, data, contract, policy, and
 evidence changes retain the ordinary review path; repository policy may defer
