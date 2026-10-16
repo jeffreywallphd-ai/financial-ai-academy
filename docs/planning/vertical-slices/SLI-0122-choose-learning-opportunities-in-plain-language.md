@@ -144,7 +144,7 @@ each packet starts. The planned dependency-ordered seams are:
 | WRK-0068 | Establish the normative language standard, content style guide, initial term map, and workflow routing | none | none | complete |
 | WRK-0069 | Apply the standard to catalog list/filter/card presentation and focused component evidence | WRK-0068 | none | complete |
 | WRK-0071 | Apply the standard to detail/comparison/loading/error presentation and focused component evidence | WRK-0069 | none | complete |
-| WRK-0072 | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | WRK-0071 | none | active |
+| WRK-0072 | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | WRK-0071 | none | verifying |
 
 ## Verification and Qualification
 
