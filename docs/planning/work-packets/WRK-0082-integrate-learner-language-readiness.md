@@ -1,7 +1,7 @@
 ---
 id: WRK-0082
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -225,3 +225,8 @@ all approved acceptance criteria remain satisfied.
   Candidate-bound integration tests prove blocking copy fails while advisory
   and whitespace-only descendants pass; direct and full-scope checks cover
   checker or rule changes without escalating ordinary UI work.
+- 2026-10-16: Completed against corrected candidate
+  `84fa2e62f95fa7dd0e7bacb47110e8938dfa7596` after the exact qualifying
+  receipt passed all eight selected checks and the bounded correction findings
+  were closed. No runtime, public-contract, browser, CSS, dependency, provider,
+  or external-service boundary changed.

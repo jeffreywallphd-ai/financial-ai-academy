@@ -163,7 +163,7 @@ each packet starts. The planned dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0079 | Implement the deterministic diff-aware checker, owned configuration, narrow exceptions, corpus, and direct unit/CLI evidence | SLI-0122, SLI-0123, SLI-0124 | none | complete |
-| WRK-0082 | Integrate the checker with aggregate readiness, add anti-rigidity and forwarding evidence, reconcile documentation, and qualify the slice | WRK-0079 | none | verifying |
+| WRK-0082 | Integrate the checker with aggregate readiness, add anti-rigidity and forwarding evidence, reconcile documentation, and qualify the slice | WRK-0079 | none | complete |
 
 ## Verification and Qualification
 
@@ -249,3 +249,7 @@ runtime or public contract changed.
 - 2026-10-16: Moved WRK-0082 to verification after readiness base-ref
   forwarding, narrow affected selection, excluded-path behavior, controlled
   full-scope qualification, and the 29-check aggregate readiness suite passed.
+- 2026-10-16: Completed WRK-0082 against exact candidate
+  `84fa2e62f95fa7dd0e7bacb47110e8938dfa7596` after all qualifying checks
+  passed and the bounded candidate-binding, owned-source, and documentation-
+  exclusion defects were closed. Slice completion qualification is next.
