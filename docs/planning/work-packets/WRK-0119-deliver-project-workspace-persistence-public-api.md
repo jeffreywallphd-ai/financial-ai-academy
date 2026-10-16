@@ -1,7 +1,7 @@
 ---
 id: WRK-0119
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client", "apps/web/tests/contract", "backend/migrations/project", "backend/migrations/README.md", "backend/src/financial_ai_academy/bootstrap", "backend/src/financial_ai_academy/hosts", "backend/src/financial_ai_academy/modules/identity", "backend/src/financial_ai_academy/modules/project", "backend/tests/architecture", "backend/tests/integration/api", "backend/tests/integration/project", "backend/tests/unit/project", "backend/tests/unit/test_bootstrap_settings.py", "contracts/api", "deployments/local", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/assurance/known-verification-gaps.md", "docs/operations/local-development.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0119-deliver-project-workspace-persistence-public-api.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
-base_revision:
-claim_id:
-claimed_by:
-claimed_at:
+base_revision: 7403e3d5f4624cf3e6c706d7240994a56c5b710b
+claim_id: WRK-0119:c3f655b1-e7f7-4513-9dcf-93de2f1c7403
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-16T23:12:08Z
 ---
 
 # Agent Work Packet: Deliver Project Workspace Persistence and Public API
@@ -263,3 +263,6 @@ separate AI mode, or autonomous authority was added.
   composes the accepted portable contracts into the smallest complete
   Project-owned persistence and public API seam, keeping the browser interface
   separate while preserving equal generated-client access for headless use.
+- 2026-10-16: Activated after confirming the WRK-0118 dependency, current CAP
+  package binding, decision readiness, API-first headless parity, and exact
+  file ownership. Packet-start selected the affected evidence route.
