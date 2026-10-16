@@ -144,6 +144,7 @@ def test_non_ascii_digest_uses_direct_utf8() -> None:
         ("A", "P", 1, 1),
         ("Plain words", "A useful purpose.", 3, 2),
         ("Café review", "Compare examples from 東京.", 5, 4),
+        ("Boundary review", "Use every allowed entry.", 20, 20),
     ],
 )
 def test_valid_briefs_do_not_depend_on_fixture_wording_or_counts(
@@ -164,7 +165,7 @@ def test_valid_briefs_do_not_depend_on_fixture_wording_or_counts(
         {
             "resource_id": f"source-{index}",
             "resource_version": "1.0.0",
-            "resource_digest": f"{index:x}" * 64,
+            "resource_digest": f"{index % 16:x}" * 64,
             "title": f"Source {index}",
         }
         for index in range(1, source_count + 1)
@@ -185,3 +186,42 @@ def test_public_shapes_reject_private_or_out_of_boundary_fields(
         "project.contract.schema_invalid",
         "project.contract.private_field",
     }
+
+
+def test_source_reference_overflow_fails_closed() -> None:
+    document = copy.deepcopy(load("brief.json"))
+    brief = document["brief"]  # type: ignore[assignment]
+    brief["source_references"] = [
+        {
+            "resource_id": f"source-{index}",
+            "resource_version": "1.0.0",
+            "resource_digest": f"{index % 16:x}" * 64,
+            "title": f"Source {index}",
+        }
+        for index in range(21)
+    ]
+    document["brief_digest"] = brief_digest(document)
+    with pytest.raises(ProjectConformanceFailure) as captured:
+        ProjectContractValidator().validate_brief(document)
+    assert captured.value.code == "project.contract.schema_invalid"
+
+
+@pytest.mark.parametrize(
+    ("brief_id", "accepted"),
+    [
+        ("a", True),
+        ("a" * 128, True),
+        ("", False),
+        ("a" * 129, False),
+    ],
+)
+def test_identifier_length_edges(brief_id: str, accepted: bool) -> None:
+    document = copy.deepcopy(load("brief.json"))
+    document["brief"]["brief_id"] = brief_id  # type: ignore[index]
+    document["brief_digest"] = brief_digest(document)
+    if accepted:
+        ProjectContractValidator().validate_brief(document)
+    else:
+        with pytest.raises(ProjectConformanceFailure) as captured:
+            ProjectContractValidator().validate_brief(document)
+        assert captured.value.code == "project.contract.schema_invalid"

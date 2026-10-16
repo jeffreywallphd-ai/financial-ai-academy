@@ -45,22 +45,8 @@ class ContractProjectAdapter:
     def parse_brief(self, value: bytes) -> LearningProjectBrief:
         document = self._document(value, "brief")
         self._version(document)
-        self._shape("brief", document)
+        self._validate_brief_document(document)
         brief = document["brief"]
-        measured = hashlib.sha256(self._canonical_bytes(brief)).hexdigest()
-        if measured != document["brief_digest"]:
-            self._reject(
-                "project.contract.brief_digest_mismatch",
-                "brief_digest",
-            )
-        self._unique(
-            [item["milestone_id"] for item in brief["milestones"]],
-            "brief.milestones",
-        )
-        self._unique(
-            [item["resource_id"] for item in brief["source_references"]],
-            "brief.source_references",
-        )
         return LearningProjectBrief(
             schema_version=document["schema_version"],
             brief_id=brief["brief_id"],
@@ -148,7 +134,7 @@ class ContractProjectAdapter:
             "brief_digest": value.brief_digest,
             "brief": brief,
         }
-        self._shape("brief", document)
+        self._validate_brief_document(document)
         return document
 
     def intent_document(self, value: ProjectCreateIntent) -> dict[str, object]:
@@ -163,6 +149,10 @@ class ContractProjectAdapter:
         return document
 
     def shell_document(self, value: ProjectShell) -> dict[str, object]:
+        created_at = self._aware_timestamp(value.created_at, "created_at")
+        updated_at = self._aware_timestamp(value.updated_at, "updated_at")
+        if updated_at < created_at:
+            self._reject("project.contract.invalid_shell", "updated_at")
         document: dict[str, object] = {
             "schema_version": value.schema_version,
             "project_id": value.project_id,
@@ -172,8 +162,8 @@ class ContractProjectAdapter:
             "origin": asdict(value.origin),
             "lifecycle": value.lifecycle,
             "revision": value.revision,
-            "created_at": self._format_timestamp(value.created_at),
-            "updated_at": self._format_timestamp(value.updated_at),
+            "created_at": self._format_timestamp(created_at),
+            "updated_at": self._format_timestamp(updated_at),
         }
         self._shape("shell", document)
         return document
@@ -218,6 +208,24 @@ class ContractProjectAdapter:
                 "project.contract.schema_invalid",
                 reference or kind,
             )
+
+    def _validate_brief_document(self, document: Mapping[str, Any]) -> None:
+        self._shape("brief", document)
+        brief = document["brief"]
+        measured = hashlib.sha256(self._canonical_bytes(brief)).hexdigest()
+        if measured != document["brief_digest"]:
+            self._reject(
+                "project.contract.brief_digest_mismatch",
+                "brief_digest",
+            )
+        self._unique(
+            [item["milestone_id"] for item in brief["milestones"]],
+            "brief.milestones",
+        )
+        self._unique(
+            [item["resource_id"] for item in brief["source_references"]],
+            "brief.source_references",
+        )
 
     def _unique(self, values: list[str], reference: str) -> None:
         if len(values) != len(set(values)):
@@ -275,6 +283,15 @@ class ContractProjectAdapter:
     @staticmethod
     def _timestamp(value: str) -> datetime:
         return datetime.fromisoformat(value.removesuffix("Z") + "+00:00")
+
+    @staticmethod
+    def _aware_timestamp(value: datetime, reference: str) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ProjectContractFailure(
+                "project.contract.invalid_shell",
+                reference,
+            )
+        return value
 
     @staticmethod
     def _format_timestamp(value: datetime) -> str:

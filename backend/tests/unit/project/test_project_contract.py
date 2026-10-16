@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import copy
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, asdict, replace
+from datetime import datetime, timedelta, timezone
+import hashlib
 import json
 from pathlib import Path
 
@@ -12,6 +14,7 @@ from financial_ai_academy.modules.project.adapters.project_contract import (
 )
 from financial_ai_academy.modules.project.domain.project import (
     IndependentProjectOrigin,
+    LearningProjectBrief,
     LearningProjectOrigin,
 )
 from financial_ai_academy.modules.project.ports.project_contract import (
@@ -34,6 +37,25 @@ def load(name: str) -> dict[str, object]:
 
 def encoded(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False).encode("utf-8")
+
+
+def refreshed_brief_digest(brief: LearningProjectBrief) -> str:
+    value = {
+        "brief_id": brief.brief_id,
+        "brief_version": brief.brief_version,
+        "title": brief.title,
+        "purpose": brief.purpose,
+        "milestones": [asdict(item) for item in brief.milestones],
+        "source_references": [asdict(item) for item in brief.source_references],
+    }
+    return hashlib.sha256(
+        json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
 
 
 def test_parser_returns_immutable_brief_values() -> None:
@@ -141,3 +163,74 @@ def test_contract_adapter_is_side_effect_free() -> None:
     second = contract.parse_shell((APPROVED / "learning-shell.json").read_bytes())
     assert first == second
     assert contract.shell_document(first) == contract.shell_document(second)
+
+
+@pytest.mark.parametrize("reference", ["created_at", "updated_at"])
+def test_shell_projection_rejects_naive_time(reference: str) -> None:
+    contract = adapter()
+    shell = contract.parse_shell((APPROVED / "independent-shell.json").read_bytes())
+    invalid = replace(shell, **{reference: datetime(2026, 1, 1, 12, 0)})
+    with pytest.raises(ProjectContractFailure) as captured:
+        contract.shell_document(invalid)
+    assert captured.value.code == "project.contract.invalid_shell"
+    assert captured.value.reference == reference
+
+
+def test_shell_projection_normalizes_aware_offset_time() -> None:
+    contract = adapter()
+    shell = contract.parse_shell((APPROVED / "independent-shell.json").read_bytes())
+    eastern = timezone(-timedelta(hours=5))
+    projected = contract.shell_document(
+        replace(
+            shell,
+            created_at=datetime(2026, 1, 1, 12, 0, tzinfo=eastern),
+            updated_at=datetime(2026, 1, 1, 12, 1, tzinfo=eastern),
+        )
+    )
+    assert projected["created_at"] == "2026-01-01T17:00:00Z"
+    assert projected["updated_at"] == "2026-01-01T17:01:00Z"
+
+
+def test_shell_projection_rejects_reverse_chronology() -> None:
+    contract = adapter()
+    shell = contract.parse_shell((APPROVED / "independent-shell.json").read_bytes())
+    invalid = replace(
+        shell,
+        created_at=datetime(2026, 1, 1, 12, 1, tzinfo=timezone.utc),
+        updated_at=datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc),
+    )
+    with pytest.raises(ProjectContractFailure) as captured:
+        contract.shell_document(invalid)
+    assert captured.value.code == "project.contract.invalid_shell"
+    assert captured.value.reference == "updated_at"
+
+
+@pytest.mark.parametrize("duplicate", ["milestone", "source"])
+def test_brief_projection_rejects_duplicate_identities(duplicate: str) -> None:
+    contract = adapter()
+    brief = contract.parse_brief((APPROVED / "brief.json").read_bytes())
+    if duplicate == "milestone":
+        invalid = replace(
+            brief,
+            milestones=(brief.milestones[0], brief.milestones[0]),
+        )
+    else:
+        invalid = replace(
+            brief,
+            source_references=(
+                brief.source_references[0],
+                brief.source_references[0],
+            ),
+        )
+    invalid = replace(invalid, brief_digest=refreshed_brief_digest(invalid))
+    with pytest.raises(ProjectContractFailure) as captured:
+        contract.brief_document(invalid)
+    assert captured.value.code == "project.contract.invalid_brief"
+
+
+def test_brief_projection_rejects_stale_digest() -> None:
+    contract = adapter()
+    brief = contract.parse_brief((APPROVED / "brief.json").read_bytes())
+    with pytest.raises(ProjectContractFailure) as captured:
+        contract.brief_document(replace(brief, brief_digest="f" * 64))
+    assert captured.value.code == "project.contract.brief_digest_mismatch"

@@ -1,7 +1,7 @@
 ---
 id: WRK-0109
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -249,10 +249,13 @@ leave JIT-B dependency-ready.
   A learning intent requires exact approved brief schema, identity, version,
   digest, title, and purpose correlation. Shell parsing preserves accepted
   origin without requiring a newer source lookup.
-- Focused contract and unit evidence passes 47 tests covering both origins,
+- Focused contract and unit evidence passes 60 tests covering both origins,
   digest behavior, semantic correlation, closed shapes, bounds, confidentiality,
   immutable values, deterministic round trips, varied valid text/counts, and
-  side-effect freedom. The standalone compatibility runner also passes.
+  side-effect freedom. Direct projector cases prove fail-closed digest,
+  identity-uniqueness, aware-time, and chronology handling; boundary cases
+  cover accepted 20-item collections, overflow, and identifier edges. The
+  standalone compatibility runner also passes.
 - Architecture passes 16 tests; security passes 10 control groups; work-packet,
   planning, documentation, compilation, and whitespace checks pass. The first
   architecture run used a sandbox-owned temporary directory and was rerun
