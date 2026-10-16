@@ -1,7 +1,7 @@
 ---
 id: SLI-0004
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -191,3 +191,12 @@ test-only changes remain free of unrelated live and aggregate requirements.
   execution time, and fail closed for incompatible candidate roots.
 - 2026-10-16: Moved pre-launch and post-run wrapper authentication into the
   reusable executor and added receipt-level observed-identity evidence.
+
+The completed WRK-0115 corrective descendant makes current catalog commands
+portable across checkouts while preserving exact candidate inputs. Logical
+wrapper identities bind tracked SHA-256 bytes; the generic executor resolves
+and authenticates those bytes before launch, reauthenticates after every
+subprocess outcome, and records both observations. A distinct historical
+candidate root with an obsolete wrapper still runs current Project behavior,
+while incompatible roots fail before runtime resolution. The exact candidate
+passed seven affected checks and the aggregate 29-check readiness gate.

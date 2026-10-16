@@ -1,7 +1,7 @@
 ---
 id: WRK-0115
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -144,3 +144,25 @@ gaps.
 - 2026-10-16: Strengthened the reusable executor so wrapper authentication is
   independent of wrapper-controlled code and remains enforced across every
   subprocess outcome.
+
+## Completion Evidence
+
+- Exact candidate `776103672741dc59247c6e29f01e0c88de7a6402` is a strict
+  descendant inside the declared eight-file scope.
+- The qualifying receipt selected and passed seven affected checks:
+  control-plane lifecycle and verification, planning behavior and integrity,
+  documentation integrity, focused Project Chromium behavior, and live local
+  qualification. Candidate stability remained true after execution.
+- Wrapper-backed attempts record the portable logical identity, resolved path,
+  expected digest, and matching pre-launch and post-run observations.
+- Focused verification passed 37 tests with two platform-dependent skips;
+  control-plane lifecycle passed 13 tests; planning and documentation checks
+  passed; aggregate readiness passed all 29 checks; `git diff --check` passed.
+- No public product API, schema, migration, or provider boundary changed. The
+  change is confined to reusable verification execution and this repository's
+  catalog adapter. Direct developer checks remain available without creating
+  qualifying evidence.
+- No managed-cloud or external environment qualification was required. The
+  remaining theoretical file-open race is mitigated by independent pre/post
+  executor authentication plus wrapper self-validation; authenticated snapshot
+  execution remains optional hardening rather than a delivery blocker.
