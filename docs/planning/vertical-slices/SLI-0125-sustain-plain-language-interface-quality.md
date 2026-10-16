@@ -162,7 +162,7 @@ each packet starts. The planned dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0079 | Implement the deterministic diff-aware checker, owned configuration, narrow exceptions, corpus, and direct unit/CLI evidence | SLI-0122, SLI-0123, SLI-0124 | none | active |
+| WRK-0079 | Implement the deterministic diff-aware checker, owned configuration, narrow exceptions, corpus, and direct unit/CLI evidence | SLI-0122, SLI-0123, SLI-0124 | none | complete |
 | JIT-B | Integrate the checker with aggregate readiness, add anti-rigidity and forwarding evidence, reconcile documentation, and qualify the slice | JIT-A | none | planned |
 
 ## Verification and Qualification
@@ -235,3 +235,7 @@ runtime or public contract changed.
   extraction, code-value exclusion, one-occurrence exception confinement, and
   privacy-safe JSON error handling. These are implementation-contract fixes
   inside the same packet, not CAP or slice drift.
+- 2026-10-16: Completed WRK-0079 after exact-candidate verification confirmed
+  all required checks and the bounded extraction and reporting defects were
+  closed. JIT-B is now dependency-ready for readiness integration and final
+  slice qualification.

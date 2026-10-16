@@ -1,7 +1,7 @@
 ---
 id: WRK-0079
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -278,3 +278,7 @@ ready or return one bounded blocker.
   configuration, source, and Git error remains structured and privacy-
   minimized. Direct regression coverage increased from 11 to 14 tests without
   changing runtime product or public-contract scope.
+- 2026-10-16: Completed against corrected candidate
+  `2e9c7278899cfd03565f3bc059adcd7f4b673e9e` after the qualifying verification
+  receipt passed planning-tool, planning-integrity, and documentation-integrity
+  checks and all bounded extraction and machine-report findings were closed.
