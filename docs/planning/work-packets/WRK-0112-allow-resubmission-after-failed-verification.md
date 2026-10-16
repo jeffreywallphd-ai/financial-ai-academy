@@ -1,7 +1,7 @@
 ---
 id: WRK-0112
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
