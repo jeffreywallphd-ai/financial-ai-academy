@@ -1,7 +1,7 @@
 ---
 id: WRK-0088
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/modules/adaptation/README.md", "deployments/local/README.md", "deployments/local/serve.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/work-packets/WRK-0088-qualify-live-curriculum-activity-launch.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: aac03a5fccdcb0b080bc3e4c8431e49cbb5b496e
+claim_id: WRK-0088:28f852a3-4eee-4d9c-b3f2-3d2da7b997a6
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T13:04:25Z
 ---
 
 # Agent Work Packet: Qualify Live Curriculum Activity Launch
