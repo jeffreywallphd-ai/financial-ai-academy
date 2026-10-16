@@ -224,7 +224,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0102 | Freeze draft/retry/history/review-target contracts, deterministic policy and projection rules, and anti-rigidity corpora | SLI-0027 | none | complete |
 | WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | complete |
 | WRK-0104 | Implement an Assessment-safe history source, Curriculum review-target resolution, and Learner-model history rebuild/persistence | WRK-0103 | none | complete |
-| JIT-D | Expose the composed progress, review, and history operations through protected API, OpenAPI, and generated clients | WRK-0104 | none | captured |
+| WRK-0105 | Expose the composed progress, review, and history operations through protected API, OpenAPI, and generated clients | WRK-0104 | none | ready |
 | JIT-E | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-D | none | captured |
 | JIT-F | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-E | none | captured |
 
@@ -333,4 +333,7 @@ mode, autonomous authority, provider, cloud, or external execution was added.
   checks. JIT-D is now dependency-ready for protected API/OpenAPI/generated-
   client refinement, and the transport-neutral core remains reusable by
   browser and headless clients.
+- 2026-10-16: Refined JIT-D as WRK-0105 for one protected practice-progress
+  read, conditional draft save, reviewed OpenAPI snapshot, and generated client
+  seam. Browser behavior and live qualification remain dependent packets.
 
