@@ -142,13 +142,16 @@ identity remain server-authoritative; the browser never receives the answer
 key.
 
 The route first calls the protected exact-placement completion-history query.
-When retained completion exists, it shows the reproduced bounded result,
-source-set digest, exact lesson and Assessment versions/digests, score, time,
-and source event/attempt/evidence references without requesting another
-knowledge-check presentation. Empty history continues to the answer-safe form.
-Denied, malformed, or unavailable history fails closed without fabricating a
-completion or erasing evidence. The browser sends no learner selector and
-receives no answer key, Audit row, or mastery interpretation.
+When saved completion exists, the main flow shows the score, time, and bounded
+non-mastery/non-advice meaning without requesting another knowledge-check
+presentation. Exact source, lesson, Assessment, question, scoring-policy,
+event, attempt, evidence, version, digest, and rebuild facts remain complete
+under accessible `Technical record` disclosures. A just-submitted result uses
+the same pattern for its exact result provenance. Empty history continues to
+the answer-safe form. Denied, malformed, or unavailable history fails closed
+with direct reload guidance and without fabricating a completion or erasing
+evidence. The browser sends no learner selector and receives no answer key,
+Audit row, or mastery interpretation.
 
 The browser never selects the learner, reads the HttpOnly cookie, imports
 backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a

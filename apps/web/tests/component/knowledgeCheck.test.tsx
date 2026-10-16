@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -182,7 +182,26 @@ describe("KnowledgeCheck", () => {
         name: "Knowledge check complete",
       }),
     ).toBeVisible();
-    expect(screen.getByText(/not mastery or certification/i)).toBeVisible();
+    expect(
+      screen.getByText(/does not show mastery or certification/i),
+    ).toBeVisible();
+    const technicalRecord = screen.getByText("Technical record");
+    await user.click(technicalRecord);
+    const technicalDetails = technicalRecord.closest("details");
+    expect(technicalDetails).toHaveAttribute("open");
+    const technical = within(technicalDetails as HTMLElement);
+    expect(
+      technical.getByText(
+        `${presentation.package_id} version ${presentation.package_version}`,
+      ),
+    ).toBeVisible();
+    expect(technical.getByText(presentation.package_digest)).toBeVisible();
+    expect(technical.getByText(presentation.definition_digest)).toBeVisible();
+    expect(technical.getByText(result.attempt_id)).toBeVisible();
+    expect(technical.getByText(result.evidence_id)).toBeVisible();
+    expect(technical.getByText(result.submission_id)).toBeVisible();
+    expect(technical.getByText(result.submitted_at)).toBeVisible();
+    expect(technical.getByText(result.feedback.feedback_id)).toBeVisible();
     const request = post.mock.calls[0]?.[1];
     expect(request.body.selected_option_id).toBe(
       "higher-potential-higher-uncertainty",
@@ -214,7 +233,7 @@ describe("KnowledgeCheck", () => {
     );
     await user.click(screen.getByRole("button", { name: "Check answer" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      /safely reuse this submission/i,
+      /reuse this answer.*duplicate result/i,
     );
     await user.click(screen.getByRole("button", { name: "Check answer" }));
     await screen.findByRole("heading", { name: "Knowledge check complete" });
@@ -226,6 +245,7 @@ describe("KnowledgeCheck", () => {
   });
 
   it("reopens exact retained evidence without requesting another presentation", async () => {
+    const user = userEvent.setup();
     const { api, get, post } = client({
       completionResponse: {
         data: completedCompletion,
@@ -241,10 +261,16 @@ describe("KnowledgeCheck", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Retained lesson completion",
+        name: "Saved lesson completion",
       }),
     ).toBeVisible();
     expect(screen.getByText(/1 of 1/i)).toBeVisible();
+    const technicalRecords = screen.getAllByText("Technical record");
+    expect(technicalRecords).toHaveLength(2);
+    for (const technicalRecord of technicalRecords) {
+      await user.click(technicalRecord);
+    }
+    expect(screen.getByText(completedCompletion.source_digest)).toBeVisible();
     expect(screen.getByText(presentation.package_digest)).toBeVisible();
     expect(screen.getByText(presentation.definition_digest)).toBeVisible();
     expect(screen.getByText(completionEntry.event_id)).toBeVisible();
@@ -258,6 +284,43 @@ describe("KnowledgeCheck", () => {
     expect(document.body.textContent).not.toMatch(/selected_option|answer key/i);
   });
 
+  it("renders every safe saved result without assuming one history item", async () => {
+    const user = userEvent.setup();
+    const secondEntry = {
+      ...completionEntry,
+      event_id: "88888888-8888-4888-8888-888888888888",
+      attempt_id: "99999999-9999-4999-8999-999999999999",
+      evidence_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      completed_at: "2026-10-15T13:00:00Z",
+    };
+    const { api } = client({
+      completionResponse: {
+        data: { ...completedCompletion, history: [completionEntry, secondEntry] },
+        response: new Response(null, { status: 200 }),
+      },
+    });
+    render(
+      <KnowledgeCheck
+        client={api}
+        placementId="intro-risk-return-check"
+      />,
+    );
+
+    await screen.findByRole("heading", { name: "Saved lesson completion" });
+    expect(
+      screen.getAllByRole("article", { name: /Saved result \d/ }),
+    ).toHaveLength(2);
+    const technicalRecords = screen.getAllByText("Technical record");
+    expect(technicalRecords).toHaveLength(3);
+    expect(
+      screen.getByLabelText("Technical record for saved result 2"),
+    ).toBeVisible();
+    await user.click(technicalRecords[2]!);
+    expect(screen.getByText(secondEntry.event_id)).toBeVisible();
+    expect(screen.getByText(secondEntry.attempt_id)).toBeVisible();
+    expect(screen.getByText(secondEntry.evidence_id)).toBeVisible();
+  });
+
   it.each([
     {
       name: "denied",
@@ -266,7 +329,7 @@ describe("KnowledgeCheck", () => {
           response: new Response(null, { status: 403 }),
         },
       },
-      message: /cannot open this completion record/i,
+      message: /couldn't open your saved completion/i,
     },
     {
       name: "malformed",
@@ -276,7 +339,7 @@ describe("KnowledgeCheck", () => {
           response: new Response(null, { status: 200 }),
         },
       },
-      message: /did not pass the safe presentation checks/i,
+      message: /couldn't safely show your saved completion/i,
     },
     {
       name: "unavailable",
@@ -285,12 +348,12 @@ describe("KnowledgeCheck", () => {
           response: new Response(null, { status: 503 }),
         },
       },
-      message: /temporarily unavailable/i,
+      message: /couldn't check for a saved completion/i,
     },
     {
       name: "network failure",
       options: { completionError: true },
-      message: /temporarily unavailable/i,
+      message: /couldn't check for a saved completion/i,
     },
   ])("fails closed when retained completion is $name", async ({
     message,
@@ -306,7 +369,7 @@ describe("KnowledgeCheck", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Completion record unavailable",
+        name: "Saved completion unavailable",
       }),
     ).toBeVisible();
     expect(screen.getByText(message)).toBeVisible();

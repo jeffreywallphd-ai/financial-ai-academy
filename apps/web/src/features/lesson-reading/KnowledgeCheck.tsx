@@ -174,39 +174,67 @@ function RetainedCompletion({ completion }: { completion: Completion }) {
       aria-labelledby="retained-completion-title"
       className="knowledge-check-card completion-card"
     >
-      <p className="eyebrow">Retained learning evidence</p>
-      <h2 id="retained-completion-title">Retained lesson completion</h2>
+      <p className="eyebrow">Your saved result</p>
+      <h2 id="retained-completion-title">Saved lesson completion</h2>
       <p>
-        Your completion was reproduced from retained Assessment evidence for
-        this exact lesson placement.
+        This completion comes from your saved knowledge-check result for this
+        lesson.
       </p>
 
       <dl className="completion-summary">
         <div>
-          <dt>Completion meaning</dt>
-          <dd>Bounded knowledge check completed</dd>
+          <dt>Result</dt>
+          <dd>Knowledge check completed</dd>
         </div>
         <div>
-          <dt>Projection rebuilt</dt>
+          <dt>Progress updated</dt>
           <dd>
             <time dateTime={completion.rebuilt_at}>
               {formatTimestamp(completion.rebuilt_at)} UTC
             </time>
           </dd>
         </div>
-        <div>
-          <dt>Source-set digest</dt>
-          <dd>
-            <code>{completion.source_digest}</code>
-          </dd>
-        </div>
       </dl>
 
-      <h3>Completion evidence</h3>
+      <details>
+        <summary aria-label="Technical record for saved completion">
+          Technical record
+        </summary>
+        <dl>
+          {completion.projection_version ? (
+            <div>
+              <dt>Progress data format</dt>
+              <dd>{completion.projection_version}</dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>Lesson placement</dt>
+            <dd>{completion.placement_id}</dd>
+          </div>
+          <div>
+            <dt>Completion record type</dt>
+            <dd>{completion.completion_meaning}</dd>
+          </div>
+          <div>
+            <dt>Progress updated at</dt>
+            <dd>
+              <code>{completion.rebuilt_at}</code>
+            </dd>
+          </div>
+          <div>
+            <dt>Evidence-source integrity code</dt>
+            <dd>
+              <code>{completion.source_digest}</code>
+            </dd>
+          </div>
+        </dl>
+      </details>
+
+      <h3>Saved results</h3>
       <ol className="completion-history">
-        {completion.history.map((entry) => (
+        {completion.history.map((entry, index) => (
           <li key={entry.event_id}>
-            <article aria-label={`Completion event ${entry.event_id}`}>
+            <article aria-label={`Saved result ${index + 1}`}>
               <dl>
                 <div>
                   <dt>Score</dt>
@@ -222,70 +250,85 @@ function RetainedCompletion({ completion }: { completion: Completion }) {
                     </time>
                   </dd>
                 </div>
-                <div>
-                  <dt>Lesson package</dt>
-                  <dd>
-                    {entry.package_id} version {entry.package_version}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Package digest</dt>
-                  <dd>
-                    <code>{entry.package_digest}</code>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Assessment</dt>
-                  <dd>
-                    {entry.assessment_id} version {entry.assessment_version}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Definition digest</dt>
-                  <dd>
-                    <code>{entry.definition_digest}</code>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Item</dt>
-                  <dd>
-                    {entry.item_id} version {entry.item_version}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Scoring policy</dt>
-                  <dd>
-                    {entry.scoring_policy_id} version{" "}
-                    {entry.scoring_policy_version}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Attempt reference</dt>
-                  <dd>
-                    <code>{entry.attempt_id}</code>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Evidence reference</dt>
-                  <dd>
-                    <code>{entry.evidence_id}</code>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Source event</dt>
-                  <dd>
-                    <code>{entry.event_id}</code>
-                  </dd>
-                </div>
               </dl>
+              <details>
+                <summary
+                  aria-label={`Technical record for saved result ${index + 1}`}
+                >
+                  Technical record
+                </summary>
+                <dl>
+                  <div>
+                    <dt>Lesson package</dt>
+                    <dd>
+                      {entry.package_id} version {entry.package_version}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Lesson integrity code</dt>
+                    <dd>
+                      <code>{entry.package_digest}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Assessment</dt>
+                    <dd>
+                      {entry.assessment_id} version {entry.assessment_version}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Assessment integrity code</dt>
+                    <dd>
+                      <code>{entry.definition_digest}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Question</dt>
+                    <dd>
+                      {entry.item_id} version {entry.item_version}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Scoring policy</dt>
+                    <dd>
+                      {entry.scoring_policy_id} version{" "}
+                      {entry.scoring_policy_version}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Completed at</dt>
+                    <dd>
+                      <code>{entry.completed_at}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Attempt reference</dt>
+                    <dd>
+                      <code>{entry.attempt_id}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Evidence reference</dt>
+                    <dd>
+                      <code>{entry.evidence_id}</code>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Source event</dt>
+                    <dd>
+                      <code>{entry.event_id}</code>
+                    </dd>
+                  </div>
+                </dl>
+              </details>
             </article>
           </li>
         ))}
       </ol>
       <p className="completion-limitation">
-        This is evidence of one bounded knowledge check. It is not a mastery or
-        certification decision and does not provide investment advice,
-        suitability, or performance evidence.
+        This saved result shows that you completed this knowledge check. It is
+        not a mastery or certification decision and does not provide investment
+        advice, suitability, or performance evidence.
       </p>
     </section>
   );
@@ -395,7 +438,7 @@ export function KnowledgeCheck({
   if (load.status === "loading") {
     return (
       <section aria-live="polite" className="knowledge-check-card">
-        <p role="status">Checking retained completion evidence…</p>
+        <p role="status">Checking for a saved completion…</p>
       </section>
     );
   }
@@ -403,12 +446,21 @@ export function KnowledgeCheck({
     return <RetainedCompletion completion={load.completion} />;
   }
   if (load.status !== "ready") {
-    const subject =
-      load.stage === "completion" ? "completion record" : "knowledge check";
-    const copy = {
-      denied: `Your learner session cannot open this ${subject}.`,
-      invalid: `This ${subject} did not pass the safe presentation checks.`,
-      unavailable: `The exact ${subject} is temporarily unavailable.`,
+    const completionCopy = {
+      denied:
+        "We couldn't open your saved completion with this learner session. Reload the lesson to start a new session.",
+      invalid:
+        "We couldn't safely show your saved completion. No partial record was shown.",
+      unavailable:
+        "We couldn't check for a saved completion right now. Reload the lesson to try again.",
+    }[load.status];
+    const knowledgeCheckCopy = {
+      denied:
+        "We couldn't open this knowledge check with your learner session. Reload the lesson to start a new session.",
+      invalid:
+        "We couldn't safely show this knowledge check. No question or choices were shown.",
+      unavailable:
+        "We couldn't open this knowledge check right now. Reload the lesson to try again.",
     }[load.status];
     return (
       <section
@@ -417,10 +469,13 @@ export function KnowledgeCheck({
       >
         <h2 id="knowledge-check-status">
           {load.stage === "completion"
-            ? "Completion record unavailable"
+            ? "Saved completion unavailable"
             : "Knowledge check unavailable"}
         </h2>
-        <p>{copy} Your learning record was not changed.</p>
+        <p>
+          {load.stage === "completion" ? completionCopy : knowledgeCheckCopy}{" "}
+          Your learning record was not changed.
+        </p>
       </section>
     );
   }
@@ -537,26 +592,112 @@ export function KnowledgeCheck({
             <p>{submission.result.feedback.text}</p>
             <p>
               Score: {submission.result.score} of {submission.result.max_score}.
-              This records this bounded check, not mastery or certification.
+              This result records this knowledge check only. It does not show
+              mastery or certification.
             </p>
+            <details>
+              <summary aria-label="Technical record for checked answer">
+                Technical record
+              </summary>
+              <dl>
+                {submission.result.schema_version ? (
+                  <div>
+                    <dt>Result data format</dt>
+                    <dd>{submission.result.schema_version}</dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt>Lesson placement</dt>
+                  <dd>{submission.result.placement_id}</dd>
+                </div>
+                <div>
+                  <dt>Lesson package</dt>
+                  <dd>
+                    {submission.result.package_id} version{" "}
+                    {submission.result.package_version}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Lesson integrity code</dt>
+                  <dd>
+                    <code>{submission.result.package_digest}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Assessment</dt>
+                  <dd>
+                    {submission.result.assessment_id} version{" "}
+                    {submission.result.assessment_version}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Assessment integrity code</dt>
+                  <dd>
+                    <code>{submission.result.definition_digest}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Question</dt>
+                  <dd>
+                    {submission.result.item_id} version{" "}
+                    {submission.result.item_version}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Scoring policy</dt>
+                  <dd>
+                    {submission.result.scoring_policy_id} version{" "}
+                    {submission.result.scoring_policy_version}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Feedback reference</dt>
+                  <dd>{submission.result.feedback.feedback_id}</dd>
+                </div>
+                <div>
+                  <dt>Recorded at</dt>
+                  <dd>
+                    <code>{submission.result.submitted_at}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Attempt reference</dt>
+                  <dd>
+                    <code>{submission.result.attempt_id}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Evidence reference</dt>
+                  <dd>
+                    <code>{submission.result.evidence_id}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Submission reference</dt>
+                  <dd>
+                    <code>{submission.result.submission_id}</code>
+                  </dd>
+                </div>
+              </dl>
+            </details>
           </section>
         ) : null}
         {submission.status === "conflict" ? (
           <p className="knowledge-check-message" role="alert">
-            This submission no longer matches the exact knowledge check. Reload
-            the lesson before trying again.
+            This page no longer matches the knowledge check. Reload the lesson
+            before trying again. No new result was recorded.
           </p>
         ) : null}
         {submission.status === "denied" ? (
           <p className="knowledge-check-message" role="alert">
-            Your learner session cannot submit this knowledge check. No result
-            was recorded.
+            We couldn't check your answer with this learner session. Reload the
+            lesson to start a new session. No result was recorded.
           </p>
         ) : null}
         {submission.status === "unavailable" ? (
           <p className="knowledge-check-message" role="alert">
-            The answer could not be recorded. Try again to safely reuse this
-            submission without creating duplicate evidence.
+            We couldn't record your answer. Try again. We will reuse this answer
+            instead of creating a duplicate result.
           </p>
         ) : null}
       </div>
