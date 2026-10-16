@@ -190,7 +190,7 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | candidate |
+| WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | ready |
 | JIT-B | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | JIT-A | none | candidate |
 | JIT-C | Add the protected public POST, reviewed OpenAPI/generated client, and accessible browser submit/result flow with headless parity | JIT-B | none | candidate |
 | JIT-D | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-C | none | candidate |
@@ -262,3 +262,7 @@ or autonomous authority was planned or implemented.
 - 2026-10-16: Recorded the public API as the continuing product boundary for
   browser and future headless AI consumers. A separate AI mode, protocol, and
   autonomous action plan remain explicitly deferred.
+- 2026-10-16: Refined JIT-A as WRK-0096 around additive submission, result, and
+  completion-event contracts plus pure deterministic scoring and canonical
+  request identity. Persistence and the public API remain the next packet's
+  boundary.
