@@ -431,7 +431,16 @@ class LessonPackageValidator:
                 if width <= 0 or height <= 0 or width * height > self.limits.max_image_pixels:
                     reject("package.limit_exceeded", logical, "Image dimensions exceed the accepted limit.")
 
+        practice_ids: set[str] = set()
         for declaration in manifest.get("practices", []):
+            practice_id = str(declaration["practice_id"])
+            if practice_id in practice_ids:
+                reject(
+                    "assessment.practice.invalid_definition",
+                    practice_id,
+                    "Practice identity is declared more than once.",
+                )
+            practice_ids.add(practice_id)
             logical = str(declaration["path"])
             try:
                 document = json.loads(files[logical].decode("utf-8"))

@@ -722,7 +722,16 @@ class ContractLessonPackageValidator:
                 declaration,
                 self._assessment_validator,
             )
+        practice_ids: set[str] = set()
         for declaration in manifest.get("practices", []):
+            practice_id = str(declaration["practice_id"])
+            if practice_id in practice_ids:
+                _reject(
+                    "assessment.practice.invalid_definition",
+                    practice_id,
+                    "Practice identity is declared more than once.",
+                )
+            practice_ids.add(practice_id)
             _validate_practice_file(
                 measured[str(declaration["path"])],
                 declaration,

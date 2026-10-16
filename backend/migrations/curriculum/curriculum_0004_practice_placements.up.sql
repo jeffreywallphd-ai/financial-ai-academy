@@ -15,15 +15,5 @@ CREATE TABLE curriculum.practice_placements (
         CHECK (definition_digest ~ '^[a-f0-9]{64}$')
 );
 
-CREATE UNIQUE INDEX curriculum_exact_practice_reference
-    ON curriculum.practice_placements (
-        package_id,
-        package_version,
-        package_digest,
-        practice_id,
-        practice_version,
-        definition_digest
-    );
-
 COMMENT ON TABLE curriculum.practice_placements IS
     'Curriculum-owned exact Content practice references; no cross-module persistence access.';

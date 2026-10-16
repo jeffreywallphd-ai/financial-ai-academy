@@ -38,6 +38,46 @@ def test_production_validator_accepts_additive_practice_package() -> None:
     assert definition["practice"]["practice_id"] == "risk-return-practice"
 
 
+def test_production_validator_rejects_duplicate_practice_identity(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "practice-package"
+    shutil.copytree(PRACTICE, root)
+    original = json.loads(
+        (root / "practices/practice-1.json").read_text(encoding="utf-8")
+    )
+    original["practice"]["title"] = "A different risk and return practice"
+    original["definition_digest"] = hashlib.sha256(
+        json.dumps(
+            original["practice"],
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+    duplicate_path = root / "practices/practice-2.json"
+    duplicate_path.write_text(
+        json.dumps(original, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    duplicate_value = duplicate_path.read_bytes()
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    duplicate = dict(manifest["practices"][0])
+    duplicate.update(
+        path="practices/practice-2.json",
+        size_bytes=len(duplicate_value),
+        sha256=hashlib.sha256(duplicate_value).hexdigest(),
+    )
+    manifest["practices"].append(duplicate)
+    write_manifest(root, manifest)
+
+    with pytest.raises(PackageValidationFailure) as captured:
+        ContractLessonPackageValidator(SCHEMAS).validate_directory(root)
+
+    assert captured.value.code == "assessment.practice.invalid_definition"
+
+
 def set_manifest_value(manifest: dict[str, object], path: str, value: object) -> None:
     parts = path.split(".")
     current: dict[str, object] = manifest

@@ -28,7 +28,11 @@ from financial_ai_academy.modules.content.adapters.postgres_repository import (
     PostgresContentRepository,
 )
 from financial_ai_academy.modules.content.application.service import ContentService
-from financial_ai_academy.modules.content.public import AdmitLessonPackageRequest
+from financial_ai_academy.modules.content.public import (
+    AdmitLessonPackageRequest,
+    LessonErrorCode,
+    LessonReadError,
+)
 from financial_ai_academy.modules.curriculum.adapters.content_gateway import (
     PublicContentGateway,
 )
@@ -145,6 +149,14 @@ def test_exact_practice_opens_through_public_module_boundaries(
             package_digest=accepted.package_digest,
         )
     )
+    second_lesson = curriculum.create_lesson_placement(
+        CreateLessonPlacementRequest(
+            placement_id="intro-risk-return-secondary",
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+        )
+    )
     curriculum.create_practice_placement(
         CreatePracticePlacementRequest(
             placement_id=lesson.placement_id,
@@ -156,6 +168,30 @@ def test_exact_practice_opens_through_public_module_boundaries(
             definition_digest=DEFINITION_DIGEST,
         )
     )
+    curriculum.create_practice_placement(
+        CreatePracticePlacementRequest(
+            placement_id=second_lesson.placement_id,
+            package_id=second_lesson.package_id,
+            package_version=second_lesson.package_version,
+            package_digest=second_lesson.package_digest,
+            practice_id="risk-return-practice",
+            practice_version="1.0.0",
+            definition_digest=DEFINITION_DIGEST,
+        )
+    )
+    with pytest.raises(LessonReadError) as captured:
+        curriculum.create_practice_placement(
+            CreatePracticePlacementRequest(
+                placement_id=lesson.placement_id,
+                package_id=lesson.package_id,
+                package_version=lesson.package_version,
+                package_digest=lesson.package_digest,
+                practice_id="risk-return-practice",
+                practice_version="1.0.0",
+                definition_digest="e" * 64,
+            )
+        )
+    assert captured.value.code is LessonErrorCode.IMMUTABLE_CONFLICT
     assessment = AssessmentService(
         PublicCurriculumAssessmentGateway(curriculum),
         PublicContentDefinitionGateway(content),
@@ -173,11 +209,16 @@ def test_exact_practice_opens_through_public_module_boundaries(
     second = assessment.open_placed_practice(
         OpenPlacedPracticeRequest(lesson.placement_id)
     )
+    reused = assessment.open_placed_practice(
+        OpenPlacedPracticeRequest(second_lesson.placement_id)
+    )
 
     assert first == second
+    assert reused.definition_digest == first.definition_digest
+    assert reused.placement_id == second_lesson.placement_id
     assert first.definition_digest == DEFINITION_DIGEST
     assert [item.item_type for item in first.items] == ["single_select"]
     with psycopg.connect(POSTGRES_DSN) as connection:
         assert connection.execute(
             "SELECT count(*) FROM curriculum.practice_placements"
-        ).fetchone()[0] == 1
+        ).fetchone()[0] == 2

@@ -165,6 +165,42 @@ def test_practice_identity_mismatch_fails_closed(tmp_path: Path) -> None:
     assert_rejected(target, "assessment.practice.stale_reference")
 
 
+def test_duplicate_practice_identity_with_different_meaning_fails_closed(
+    tmp_path: Path,
+) -> None:
+    target = tmp_path / "practice-package"
+    shutil.copytree(PRACTICE, target)
+    original_path = target / "practices/practice-1.json"
+    document = json.loads(original_path.read_text(encoding="utf-8"))
+    document["practice"]["title"] = "A different risk and return practice"
+    document["definition_digest"] = hashlib.sha256(
+        json.dumps(
+            document["practice"],
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+    duplicate_path = target / "practices/practice-2.json"
+    duplicate_path.write_text(
+        json.dumps(document, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    duplicate_value = duplicate_path.read_bytes()
+    manifest = load_manifest(target)
+    duplicate = dict(manifest["practices"][0])
+    duplicate.update(
+        path="practices/practice-2.json",
+        size_bytes=len(duplicate_value),
+        sha256=hashlib.sha256(duplicate_value).hexdigest(),
+    )
+    manifest["practices"].append(duplicate)
+    write_manifest(target, manifest)
+
+    assert_rejected(target, "assessment.practice.invalid_definition")
+
+
 def test_index_is_independent_of_input_enumeration_order() -> None:
     result = LessonPackageValidator(SCHEMA_DIR).validate(APPROVED)
     assert canonical_index_bytes(result.index) == canonical_index_bytes(

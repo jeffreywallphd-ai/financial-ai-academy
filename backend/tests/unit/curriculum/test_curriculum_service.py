@@ -349,6 +349,39 @@ def test_create_and_resolve_exact_practice_reference(
     assert resolved.definition_digest == "a" * 64
 
 
+def test_exact_practice_reference_can_be_reused_at_another_placement(
+    lesson: PublishedLesson,
+) -> None:
+    repository = MemoryCurriculumRepository()
+    service = CurriculumService(repository, FakeContentGateway(lesson))
+    first_lesson = service.create_lesson_placement(request_for(lesson))
+    second_lesson = service.create_lesson_placement(
+        CreateLessonPlacementRequest(
+            placement_id="intro-risk-return-secondary",
+            package_id=lesson.package_id,
+            package_version=lesson.package_version,
+            package_digest=lesson.package_digest,
+        )
+    )
+    first_request = practice_request_for(lesson)
+    second_request = CreatePracticePlacementRequest(
+        placement_id=second_lesson.placement_id,
+        package_id=first_request.package_id,
+        package_version=first_request.package_version,
+        package_digest=first_request.package_digest,
+        practice_id=first_request.practice_id,
+        practice_version=first_request.practice_version,
+        definition_digest=first_request.definition_digest,
+    )
+
+    first = service.create_practice_placement(first_request)
+    second = service.create_practice_placement(second_request)
+
+    assert first.placement_id == first_lesson.placement_id
+    assert second.placement_id == second_lesson.placement_id
+    assert first.definition_digest == second.definition_digest
+
+
 def test_practice_reference_must_match_exact_lesson(
     lesson: PublishedLesson,
 ) -> None:
