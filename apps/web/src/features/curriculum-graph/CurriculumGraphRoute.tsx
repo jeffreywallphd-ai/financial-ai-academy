@@ -167,12 +167,19 @@ export function CurriculumGraphRoute({
     const controller = new AbortController();
     controllerRef.current = controller;
     setLaunchState({ status: "launching", activityId });
-    const result = await launchActivity(
-      state.graph,
-      state.navigationState,
-      activityId,
-      controller.signal,
-    );
+    let result: ActivityLaunchResult;
+    try {
+      result = await launchActivity(
+        state.graph,
+        state.navigationState,
+        activityId,
+        controller.signal,
+      );
+    } catch {
+      if (controller.signal.aborted) return;
+      setLaunchState({ status: "unavailable", activityId });
+      return;
+    }
     if (controller.signal.aborted) return;
     if (result.status === "ready") {
       await navigate(result.destination);
