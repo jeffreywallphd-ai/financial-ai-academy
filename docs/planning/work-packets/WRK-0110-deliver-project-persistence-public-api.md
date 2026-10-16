@@ -1,9 +1,9 @@
 ---
 id: WRK-0110
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0007
 updated: 2026-10-16
 parent: SLI-0030
 capability: CAP-0007
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client", "apps/web/tests/contract/client-usage.ts", "backend/migrations/curriculum", "backend/migrations/project", "backend/migrations/README.md", "backend/src/financial_ai_academy/bootstrap", "backend/src/financial_ai_academy/hosts", "backend/src/financial_ai_academy/modules/content", "backend/src/financial_ai_academy/modules/curriculum", "backend/src/financial_ai_academy/modules/identity", "backend/src/financial_ai_academy/modules/project", "backend/tests/architecture", "backend/tests/contract/lesson_package", "backend/tests/integration/api", "backend/tests/integration/curriculum", "backend/tests/integration/project", "backend/tests/unit/content", "backend/tests/unit/curriculum", "backend/tests/unit/project", "contracts/api", "contracts/compatibility/lesson-package/v1", "contracts/learning/lesson-package/v1", "deployments/local", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0110-deliver-project-persistence-public-api.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 8996f2b8b4e83cef98df5ae1f7faadececc409f8
+claim_id: WRK-0110:ff17f873-984c-4a2f-a53d-dd80db350663
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-16T19:48:39Z
 ---
 
 # Agent Work Packet: Deliver Project Persistence and Public API
