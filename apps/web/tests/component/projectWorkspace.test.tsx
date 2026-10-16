@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { ProjectCreatePage } from "../../src/features/project-workspace/ProjectCreatePage";
 import { ProjectDetailPage } from "../../src/features/project-workspace/ProjectDetailPage";
 import { ProjectListPage } from "../../src/features/project-workspace/ProjectListPage";
-import type { LearningProjectStartOption, ProjectShell } from "../../src/features/project-workspace/model";
+import type { LearningProjectStartOption, ProjectShell, ProjectSnapshot, ProjectWorkspace } from "../../src/features/project-workspace/model";
 
 const origin = {
   origin_type: "learning" as const,
@@ -39,6 +39,20 @@ const project: ProjectShell = {
   created_at: "2026-10-16T20:00:00Z",
   updated_at: "2026-10-16T20:00:00Z",
 };
+const workspace: ProjectWorkspace = {
+  schema_version: "1.0.0",
+  project_id: project.project_id,
+  learner_id: project.learner_id,
+  workspace_revision: 1,
+  notes: [],
+  references: [],
+  artifacts: [],
+  domain_links: [],
+  created_at: "2026-10-16T20:00:00Z",
+  updated_at: "2026-10-16T20:00:00Z",
+};
+const downloadArtifact = async () => ({ status: "unavailable" as const });
+const exportSnapshot = async () => ({ status: "unavailable" as const });
 
 describe("Project learner pages", () => {
   it("renders zero or several records without assuming one fixture", () => {
@@ -54,7 +68,8 @@ describe("Project learner pages", () => {
 
   it("keeps exact provenance in a keyboard-reachable technical record", async () => {
     const user = userEvent.setup();
-    render(<MemoryRouter><ProjectDetailPage project={project} /></MemoryRouter>);
+    const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} snapshots={[]} workspace={workspace} /> }], { initialEntries: [`/projects/${project.project_id}`] });
+    render(<RouterProvider router={router} />);
     expect(screen.getByRole("heading", { level: 1, name: project.title })).toBeVisible();
     expect(screen.getByText(origin.brief_title, { exact: true })).toBeVisible();
     expect(screen.getByText(project.project_id)).not.toBeVisible();
@@ -65,6 +80,44 @@ describe("Project learner pages", () => {
     expect(screen.getByText(origin.curriculum_digest)).toBeVisible();
     expect(screen.getByText(origin.project_brief_schema_version)).toBeVisible();
     expect(document.body.textContent).not.toMatch(/database|object storage|foreign key/i);
+  });
+
+  it("shows flexible workspace records, inert file limits, and snapshot continuation in plain language", async () => {
+    const varied: ProjectWorkspace = {
+      ...workspace,
+      workspace_revision: 7,
+      notes: [{ note_id: "note-cafe", note_version: 2, title: "Résumé", body: "Line one\nLine two", created_at: workspace.created_at, updated_at: workspace.updated_at }],
+      references: [{ reference_id: "source-one", reference_version: 1, title: "Reviewed source", url: "https://example.test/source", source_name: "Example publisher", created_at: workspace.created_at, updated_at: workspace.updated_at }],
+      artifacts: [{ artifact_id: "artifact-one", artifact_version: 1, artifact_kind: "dataset", logical_path: "data/café.csv", media_type: "text/csv", inspection_mode: "plain_text", byte_count: 8, content_digest: "e".repeat(64), provenance: { source_type: "learner_created", source_title: "Learner table" }, assumptions: ["Educational example"], created_at: workspace.created_at }],
+    };
+    const snapshot: ProjectSnapshot = { schema_version: "1.0.0", snapshot_id: "snapshot-one", snapshot_digest: "f".repeat(64), closed_at: workspace.updated_at, snapshot: { project_id: project.project_id, learner_id: project.learner_id, project_revision: 1, project_shell_digest: "a".repeat(64), workspace_revision: 6, workspace_created_at: workspace.created_at, workspace_updated_at: workspace.updated_at, notes: [], references: [], artifacts: [], domain_links: [] } };
+    const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} snapshots={[snapshot]} workspace={varied} /> }], { initialEntries: [`/projects/${project.project_id}`] });
+    render(<RouterProvider router={router} />);
+
+    expect(screen.getByText("Résumé")).toBeVisible();
+    expect(document.querySelector(".project-preserved-text")?.textContent).toBe("Line one\nLine two");
+    expect(screen.getByRole("link", { name: "Open source in a new tab" })).toHaveAttribute("href", "https://example.test/source");
+    expect(screen.getByRole("button", { name: "Download original file" })).toBeVisible();
+    expect(screen.getAllByText(/does not run, expand, or actively preview/i)).not.toHaveLength(0);
+    expect(screen.getByText(/It contains 0 notes/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Save checkpoint" })).toBeVisible();
+  });
+
+  it("submits one bounded note intent and explains stale work without overwriting it", async () => {
+    const submissions: FormData[] = [];
+    const router = createMemoryRouter([{ path: "/projects/:projectId", action: async ({ request }) => { const form = await request.formData(); submissions.push(form); return { status: "error" as const, kind: "stale" as const, intent: "note" as const, idempotencyKey: String(form.get("idempotency_key")) }; }, element: <ProjectDetailPage actionState={{ status: "error", kind: "stale", intent: "note", idempotencyKey: "old-key" }} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} snapshots={[]} workspace={workspace} /> }], { initialEntries: [`/projects/${project.project_id}`] });
+    render(<RouterProvider router={router} />);
+    const user = userEvent.setup();
+
+    expect(screen.getByText(/earlier work is still protected/i)).toBeVisible();
+    await user.type(screen.getByLabelText("Note title"), "My note");
+    await user.type(screen.getByLabelText("Note"), "A bounded observation.");
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(submissions[0]?.get("intent")).toBe("add-note");
+    expect(submissions[0]?.get("expected_workspace_revision")).toBe("1");
+    expect(submissions[0]?.has("learner_id")).toBe(false);
   });
 
   it("keeps one retry key for unchanged input and replaces it after intent changes", async () => {

@@ -3,14 +3,40 @@ import type { components } from "../../generated/api-client";
 export type ProjectShell = components["schemas"]["ProjectShellResponseModel"];
 export type LearningProjectStartOption =
   components["schemas"]["LearningProjectStartOptionResponseModel"];
+export type ProjectWorkspace = components["schemas"]["ProjectWorkspaceResponseModel"];
+export type ProjectSnapshot = components["schemas"]["ProjectSnapshotResponseModel"];
+export type ProjectArtifact = components["schemas"]["ProjectArtifactResponseModel"];
+export type ProjectReference = components["schemas"]["ProjectReferenceResponseModel"];
+export type ProjectNote = components["schemas"]["ProjectNoteResponseModel"];
+export type ProjectEvidenceExportBundle = components["schemas"]["ProjectEvidenceExportBundleResponseModel"];
 
 export type ProjectListRouteState =
   | { status: "ready"; projects: readonly ProjectShell[]; options: readonly LearningProjectStartOption[] }
   | { status: "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected" };
 
 export type ProjectDetailRouteState =
-  | { status: "ready"; project: ProjectShell }
+  | {
+      status: "ready";
+      project: ProjectShell;
+      workspace: ProjectWorkspace;
+      snapshots: readonly ProjectSnapshot[];
+    }
   | { status: "invalid-selection" | "not-found" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected" };
+
+export type ProjectWorkspaceActionState = {
+  status: "error";
+  kind: "invalid-input" | "stale" | "conflict" | "not-found" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected";
+  intent: "note" | "reference" | "artifact" | "snapshot";
+  idempotencyKey: string;
+};
+
+export type ProjectDownloadOutcome =
+  | { status: "ready"; bytes: ArrayBuffer; fileName: string; mediaType: string }
+  | { status: "not-found" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected" };
+
+export type ProjectExportOutcome =
+  | { status: "ready"; content: string; fileName: string }
+  | { status: "not-found" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected" };
 
 export type ProjectCreateRouteState =
   | { status: "ready"; option: LearningProjectStartOption | null; idempotencyKey: string }
@@ -37,6 +63,17 @@ function exactKeys(value: Record<string, unknown>, keys: readonly string[]) {
   return actual.length === keys.length && keys.slice().sort().every((key, index) => key === actual[index]);
 }
 
+function exactOptionalKeys(
+  value: Record<string, unknown>,
+  required: readonly string[],
+  optional: readonly string[] = [],
+) {
+  const actual = Object.keys(value);
+  const accepted = new Set([...required, ...optional]);
+  return required.every((key) => Object.hasOwn(value, key))
+    && actual.every((key) => accepted.has(key));
+}
+
 function text(value: unknown, minimum: number, maximum: number): value is string {
   return typeof value === "string" && value === value.trim() && value.length >= minimum && value.length <= maximum && !/[\0\r\n]/.test(value);
 }
@@ -52,6 +89,40 @@ function timestamp(value: unknown): value is string {
   return month <= 12 && day <= new Date(Date.UTC(year, month, 0)).getUTCDate()
     && hour! <= 23 && minute! <= 59 && second! <= 59 && offsetHour! <= 23 && offsetMinute! <= 59
     && !Number.isNaN(Date.parse(value));
+}
+
+function utcTimestamp(value: unknown): value is string {
+  return typeof value === "string" && value.endsWith("Z") && timestamp(value);
+}
+
+function boundedText(value: unknown, minimum: number, maximum: number, allowAngles = false): value is string {
+  return typeof value === "string" && value.length >= minimum && value.length <= maximum
+    && !value.includes("\0") && (allowAngles || (!value.includes("<") && !value.includes(">")));
+}
+
+function positiveInteger(value: unknown): value is number {
+  return Number.isInteger(value) && Number(value) >= 1;
+}
+
+function digest(value: unknown): value is string {
+  return typeof value === "string" && DIGEST.test(value);
+}
+
+function optionalBoundedText(value: unknown, maximum: number): boolean {
+  return value === undefined || value === null || boundedText(value, 1, maximum);
+}
+
+function optionalDigest(value: unknown): boolean {
+  return value === undefined || value === null || digest(value);
+}
+
+function httpsUrl(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > 2048) return false;
+  try {
+    return new URL(value).protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 export function projectIdentifierIsSafe(value: unknown): value is string {
@@ -117,6 +188,208 @@ export function learningStartOptionListIsSafe(value: unknown): value is { record
   if (!record(value) || !exactKeys(value, ["records"]) || !Array.isArray(value.records) || value.records.length > 500) return false;
   return value.records.every(learningProjectStartOptionIsSafe)
     && new Set(value.records.map((item) => item.origin.placement_id)).size === value.records.length;
+}
+
+function noteIsSafe(value: unknown): value is ProjectNote {
+  return record(value) && exactKeys(value, ["note_id", "note_version", "title", "body", "created_at", "updated_at"])
+    && projectIdentifierIsSafe(value.note_id) && positiveInteger(value.note_version)
+    && boundedText(value.title, 1, 120) && boundedText(value.body, 1, 20000, true)
+    && utcTimestamp(value.created_at) && utcTimestamp(value.updated_at);
+}
+
+function referenceIsSafe(value: unknown): value is ProjectReference {
+  if (!record(value) || !exactOptionalKeys(value,
+    ["reference_id", "reference_version", "title", "url", "source_name", "created_at", "updated_at"],
+    ["source_version", "source_digest", "license", "use_constraints"],
+  )) return false;
+  return projectIdentifierIsSafe(value.reference_id) && positiveInteger(value.reference_version)
+    && boundedText(value.title, 1, 160) && httpsUrl(value.url) && boundedText(value.source_name, 1, 160)
+    && optionalBoundedText(value.source_version, 128) && optionalDigest(value.source_digest)
+    && optionalBoundedText(value.license, 160) && optionalBoundedText(value.use_constraints, 1000)
+    && utcTimestamp(value.created_at) && utcTimestamp(value.updated_at);
+}
+
+function provenanceIsSafe(value: unknown): boolean {
+  if (!record(value) || !exactOptionalKeys(value, ["source_type", "source_title"],
+    ["source_version", "source_url", "source_digest", "license", "use_constraints"])) return false;
+  return ["learner_created", "supplied", "external"].includes(String(value.source_type))
+    && boundedText(value.source_title, 1, 160)
+    && optionalBoundedText(value.source_version, 128)
+    && (value.source_url === undefined || value.source_url === null || httpsUrl(value.source_url))
+    && optionalDigest(value.source_digest)
+    && optionalBoundedText(value.license, 160)
+    && optionalBoundedText(value.use_constraints, 1000);
+}
+
+function environmentIsSafe(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  return record(value) && exactOptionalKeys(value, ["name", "version"], ["dependency_digest"])
+    && boundedText(value.name, 1, 120) && boundedText(value.version, 1, 120)
+    && optionalDigest(value.dependency_digest);
+}
+
+function artifactIsSafe(value: unknown): value is ProjectArtifact {
+  if (!record(value) || !exactOptionalKeys(value, [
+    "artifact_id", "artifact_version", "artifact_kind", "logical_path", "media_type",
+    "inspection_mode", "byte_count", "content_digest", "provenance", "assumptions", "created_at",
+  ], ["result_classification", "environment"])) return false;
+  const path = value.logical_path;
+  return projectIdentifierIsSafe(value.artifact_id) && positiveInteger(value.artifact_version)
+    && ["dataset", "notebook", "code", "environment", "result", "reflection", "supporting_file"].includes(String(value.artifact_kind))
+    && typeof path === "string" && path.length >= 1 && path.length <= 240
+    && !path.includes("\0") && !path.includes("\\") && !path.startsWith("/") && !/^[A-Za-z]:/.test(path)
+    && ["application/octet-stream", "application/json", "application/pdf", "application/x-ipynb+json", "text/csv", "text/markdown", "text/plain", "text/x-python"].includes(String(value.media_type))
+    && ["metadata_only", "plain_text"].includes(String(value.inspection_mode))
+    && Number.isInteger(value.byte_count) && Number(value.byte_count) >= 0 && Number(value.byte_count) <= 10_485_760
+    && digest(value.content_digest)
+    && (value.result_classification === undefined || value.result_classification === null
+      || ["observed", "calculated", "simulated", "predicted", "generated", "narrative"].includes(String(value.result_classification)))
+    && provenanceIsSafe(value.provenance) && environmentIsSafe(value.environment)
+    && Array.isArray(value.assumptions) && value.assumptions.length <= 20
+    && value.assumptions.every((item) => boundedText(item, 1, 4000))
+    && utcTimestamp(value.created_at);
+}
+
+function domainLinkIsSafe(value: unknown): boolean {
+  if (!record(value) || !exactOptionalKeys(value, [
+    "link_id", "link_type", "owner_module", "resource_type", "resource_id", "owner_reference_digest",
+    "target_status", "provenance", "validated_at", "created_at",
+  ], ["resource_version", "resource_as_of"])) return false;
+  return projectIdentifierIsSafe(value.link_id)
+    && ["context", "input", "comparison", "output"].includes(String(value.link_type))
+    && projectIdentifierIsSafe(value.owner_module) && projectIdentifierIsSafe(value.resource_type)
+    && projectIdentifierIsSafe(value.resource_id) && digest(value.owner_reference_digest)
+    && value.target_status === "available" && boundedText(value.provenance, 1, 1000)
+    && optionalBoundedText(value.resource_version, 128)
+    && (value.resource_as_of === undefined || value.resource_as_of === null || utcTimestamp(value.resource_as_of))
+    && (typeof value.resource_version === "string" || typeof value.resource_as_of === "string")
+    && utcTimestamp(value.validated_at) && utcTimestamp(value.created_at);
+}
+
+export function projectWorkspaceIsSafe(value: unknown, project?: ProjectShell): value is ProjectWorkspace {
+  if (!record(value) || !exactKeys(value, [
+    "schema_version", "project_id", "learner_id", "workspace_revision", "notes", "references",
+    "artifacts", "domain_links", "created_at", "updated_at",
+  ])) return false;
+  if (value.schema_version !== "1.0.0" || !projectIdentifierIsSafe(value.project_id)
+    || !projectIdentifierIsSafe(value.learner_id) || !positiveInteger(value.workspace_revision)
+    || !utcTimestamp(value.created_at) || !utcTimestamp(value.updated_at)) return false;
+  if (project && (value.project_id !== project.project_id || value.learner_id !== project.learner_id)) return false;
+  if (!Array.isArray(value.notes) || value.notes.length > 50 || !value.notes.every(noteIsSafe)
+    || !Array.isArray(value.references) || value.references.length > 50 || !value.references.every(referenceIsSafe)
+    || !Array.isArray(value.artifacts) || value.artifacts.length > 100 || !value.artifacts.every(artifactIsSafe)
+    || !Array.isArray(value.domain_links) || value.domain_links.length > 50 || !value.domain_links.every(domainLinkIsSafe)) return false;
+  return new Set(value.notes.map((item) => item.note_id)).size === value.notes.length
+    && new Set(value.references.map((item) => item.reference_id)).size === value.references.length
+    && new Set(value.artifacts.map((item) => `${item.artifact_id}@${item.artifact_version}`)).size === value.artifacts.length
+    && new Set(value.domain_links.map((item) => item.link_id)).size === value.domain_links.length;
+}
+
+function versionReferenceIsSafe(value: unknown): boolean {
+  return record(value) && exactKeys(value, ["record_id", "record_version", "record_digest"])
+    && projectIdentifierIsSafe(value.record_id) && positiveInteger(value.record_version) && digest(value.record_digest);
+}
+
+function artifactReferenceIsSafe(value: unknown): boolean {
+  return record(value) && exactKeys(value, ["artifact_id", "artifact_version", "manifest_digest", "content_digest", "byte_count"])
+    && projectIdentifierIsSafe(value.artifact_id) && positiveInteger(value.artifact_version)
+    && digest(value.manifest_digest) && digest(value.content_digest)
+    && Number.isInteger(value.byte_count) && Number(value.byte_count) >= 0 && Number(value.byte_count) <= 10_485_760;
+}
+
+function linkReferenceIsSafe(value: unknown): boolean {
+  return record(value) && exactKeys(value, ["link_id", "record_digest", "owner_reference_digest"])
+    && projectIdentifierIsSafe(value.link_id) && digest(value.record_digest) && digest(value.owner_reference_digest);
+}
+
+export function projectSnapshotIsSafe(value: unknown, project?: ProjectShell): value is ProjectSnapshot {
+  if (!record(value) || !exactKeys(value, ["schema_version", "snapshot_id", "snapshot_digest", "snapshot", "closed_at"])
+    || value.schema_version !== "1.0.0" || !projectIdentifierIsSafe(value.snapshot_id)
+    || !digest(value.snapshot_digest) || !utcTimestamp(value.closed_at) || !record(value.snapshot)) return false;
+  const material = value.snapshot;
+  if (!exactKeys(material, [
+    "project_id", "learner_id", "project_revision", "project_shell_digest", "workspace_revision",
+    "workspace_created_at", "workspace_updated_at", "notes", "references", "artifacts", "domain_links",
+  ]) || !projectIdentifierIsSafe(material.project_id) || !projectIdentifierIsSafe(material.learner_id)
+    || !positiveInteger(material.project_revision) || !digest(material.project_shell_digest)
+    || !positiveInteger(material.workspace_revision) || !utcTimestamp(material.workspace_created_at)
+    || !utcTimestamp(material.workspace_updated_at)) return false;
+  if (project && (material.project_id !== project.project_id || material.learner_id !== project.learner_id)) return false;
+  return Array.isArray(material.notes) && material.notes.length <= 50 && material.notes.every(versionReferenceIsSafe)
+    && Array.isArray(material.references) && material.references.length <= 50 && material.references.every(versionReferenceIsSafe)
+    && Array.isArray(material.artifacts) && material.artifacts.length <= 100 && material.artifacts.every(artifactReferenceIsSafe)
+    && Array.isArray(material.domain_links) && material.domain_links.length <= 50 && material.domain_links.every(linkReferenceIsSafe);
+}
+
+export function projectSnapshotListIsSafe(value: unknown, project?: ProjectShell): value is { records: readonly ProjectSnapshot[] } {
+  return record(value) && exactKeys(value, ["records"]) && Array.isArray(value.records)
+    && value.records.length <= 500 && value.records.every((item) => projectSnapshotIsSafe(item, project))
+    && new Set(value.records.map((item) => item.snapshot_id)).size === value.records.length;
+}
+
+function evidenceArtifactFileIsSafe(value: unknown): boolean {
+  return record(value) && exactKeys(value, ["artifact_id", "artifact_version", "byte_count", "content_digest", "logical_path", "manifest_digest", "media_type"])
+    && projectIdentifierIsSafe(value.artifact_id) && positiveInteger(value.artifact_version)
+    && Number.isInteger(value.byte_count) && Number(value.byte_count) >= 0 && Number(value.byte_count) <= 10_485_760
+    && digest(value.content_digest) && digest(value.manifest_digest)
+    && typeof value.logical_path === "string" && value.logical_path.length >= 1 && value.logical_path.length <= 240
+    && !value.logical_path.includes("\0") && !value.logical_path.includes("\\") && !value.logical_path.startsWith("/")
+    && typeof value.media_type === "string" && value.media_type.length >= 1 && value.media_type.length <= 160;
+}
+
+function excludedArtifactIsSafe(value: unknown): boolean {
+  return record(value) && exactKeys(value, ["artifact_id", "artifact_version", "reason"])
+    && projectIdentifierIsSafe(value.artifact_id) && positiveInteger(value.artifact_version)
+    && ["source_use_restricted", "not_authorized", "content_unavailable"].includes(String(value.reason));
+}
+
+function evidenceFileContentIsSafe(value: unknown): boolean {
+  return record(value) && exactKeys(value, ["artifact_id", "artifact_version", "content_base64", "logical_path"])
+    && projectIdentifierIsSafe(value.artifact_id) && positiveInteger(value.artifact_version)
+    && typeof value.content_base64 === "string" && value.content_base64.length <= 14_000_000
+    && /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value.content_base64)
+    && typeof value.logical_path === "string" && value.logical_path.length >= 1 && value.logical_path.length <= 240
+    && !value.logical_path.includes("\0") && !value.logical_path.includes("\\") && !value.logical_path.startsWith("/");
+}
+
+export function projectEvidenceExportBundleIsSafe(
+  value: unknown,
+  projectId: string,
+  snapshotId: string,
+): value is ProjectEvidenceExportBundle {
+  if (!record(value) || !exactKeys(value, ["manifest", "files"]) || !record(value.manifest) || !Array.isArray(value.files)
+    || !exactKeys(value.manifest, ["schema_version", "export_id", "export_digest", "generated_at", "export"])
+    || value.manifest.schema_version !== "1.0.0" || !projectIdentifierIsSafe(value.manifest.export_id)
+    || !digest(value.manifest.export_digest) || !utcTimestamp(value.manifest.generated_at) || !record(value.manifest.export)) return false;
+  const material = value.manifest.export;
+  if (!exactKeys(material, ["artifact_files", "excluded_artifacts", "format", "project_id", "snapshot_digest", "snapshot_id", "snapshot_record", "workspace_record"])
+    || material.format !== "project-evidence-manifest-v1" || material.project_id !== projectId || material.snapshot_id !== snapshotId
+    || !digest(material.snapshot_digest) || !projectSnapshotIsSafe(material.snapshot_record)
+    || !projectWorkspaceIsSafe(material.workspace_record)
+    || material.snapshot_record.snapshot_id !== snapshotId || material.snapshot_record.snapshot_digest !== material.snapshot_digest
+    || material.snapshot_record.snapshot.project_id !== projectId || material.workspace_record.project_id !== projectId
+    || material.snapshot_record.snapshot.learner_id !== material.workspace_record.learner_id
+    || material.snapshot_record.snapshot.workspace_revision !== material.workspace_record.workspace_revision
+    || material.snapshot_record.snapshot.workspace_created_at !== material.workspace_record.created_at
+    || material.snapshot_record.snapshot.workspace_updated_at !== material.workspace_record.updated_at
+    || !Array.isArray(material.artifact_files) || material.artifact_files.length > 100 || !material.artifact_files.every(evidenceArtifactFileIsSafe)
+    || !Array.isArray(material.excluded_artifacts) || material.excluded_artifacts.length > 100 || !material.excluded_artifacts.every(excludedArtifactIsSafe)
+    || value.files.length > 100 || !value.files.every(evidenceFileContentIsSafe)) return false;
+  const included = new Map(material.artifact_files.map((file) => [`${file.artifact_id}@${file.artifact_version}`, file]));
+  const excluded = new Set(material.excluded_artifacts.map((file) => `${file.artifact_id}@${file.artifact_version}`));
+  const snapshotted = new Map(material.snapshot_record.snapshot.artifacts.map((file) => [`${file.artifact_id}@${file.artifact_version}`, file]));
+  if (included.size !== material.artifact_files.length || excluded.size !== material.excluded_artifacts.length
+    || [...included.keys()].some((key) => excluded.has(key))
+    || included.size + excluded.size !== snapshotted.size
+    || [...snapshotted.keys()].some((key) => !included.has(key) && !excluded.has(key))
+    || [...included].some(([key, file]) => {
+      const reference = snapshotted.get(key);
+      return !reference || reference.byte_count !== file.byte_count || reference.content_digest !== file.content_digest
+        || reference.manifest_digest !== file.manifest_digest;
+    })) return false;
+  const contentKeys = value.files.map((file) => `${file.artifact_id}@${file.artifact_version}`);
+  return new Set(contentKeys).size === contentKeys.length && contentKeys.length === included.size
+    && value.files.every((file) => included.get(`${file.artifact_id}@${file.artifact_version}`)?.logical_path === file.logical_path);
 }
 
 export function readableProjectDate(value: string): string {

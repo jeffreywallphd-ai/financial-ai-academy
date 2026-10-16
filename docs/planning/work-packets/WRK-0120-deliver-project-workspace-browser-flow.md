@@ -10,8 +10,8 @@ capability: CAP-0007
 depends_on: [WRK-0119]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/src/app/router.tsx", "apps/web/src/features/project-workspace", "apps/web/src/styles/project-workspace.css", "apps/web/tests/browser/project-workspace", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/projectWorkspaceModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0120-deliver-project-workspace-browser-flow.md"]
-generated_artifacts: []
+write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/src/app/router.tsx", "apps/web/src/features/project-workspace", "apps/web/src/styles/project-workspace.css", "apps/web/tests/browser/project-workspace", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/projectWorkspaceModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0120-deliver-project-workspace-browser-flow.md"]
+generated_artifacts: ["apps/web/dist"]
 base_revision: ee41aaa3a7115d708b9cac2869b78b82619d4273
 claim_id: WRK-0120:55e5cd63-b9ed-4b62-b90d-b053c9dd29b5
 claimed_by: codex-cap-0007
@@ -234,3 +234,7 @@ effect, managed-cloud profile, or separate AI mode was added.
   current CAP package, decision readiness, API-first/headless parity, and the
   exact non-overlapping browser scope. Packet-start freezes this acceptance
   set before implementation.
+- 2026-10-16: Incrementally included the tracked static browser bundle after
+  the production build showed that the delivered route would otherwise remain
+  absent from the Python-served artifact. This is generated output from the
+  accepted browser source and does not change product scope or authority.

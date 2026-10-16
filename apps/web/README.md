@@ -220,11 +220,33 @@ backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference
 persisted by this slice.
 
+`/projects` lists the learner's current Projects and reviewed learning-based
+starting points. `/projects/new` creates either an independent Project or one
+bound to the exact current learning brief. `/projects/:projectId` consumes the
+generated public client to open the Project shell, live workspace, and saved
+checkpoint list as one closed view. It supports bounded notes and HTTPS source
+records, inert files up to the accepted limit, explicit original-file
+downloads, fixed evidence checkpoints, JSON evidence-record downloads, and
+continued live work after a checkpoint. The browser recomputes upload byte
+count and SHA-256, verifies downloaded file integrity, closes every returned
+record before display, and keeps exact IDs, versions, revisions, and digests in
+accessible `Technical record` disclosures. Server authorization, optimistic
+revision checks, request replay, provenance rules, snapshot immutability, and
+artifact admission remain authoritative in the public API and are equally
+available to command-line, service, and future headless clients.
+
+Project files are never executed, expanded, installed, sent to a provider, or
+actively rendered. The route does not create live Portfolio state, financial
+actions or advice, Assessment evidence, mastery/completion state, learner-model
+updates, managed-cloud protection, or a separate AI mode. Typed records owned
+by other modules can be displayed only when the API returns an admitted link;
+the browser does not invent one.
+
 The application shell uses the canonical primary sidebar: expanded at wide
 desktop widths, compact with labeled hover/focus disclosures at intermediate
-desktop widths, and an accessible menu drawer on narrow viewports. `Learn` is
-the only active destination in this slice. Future product areas are visibly
-marked as planned and are not exposed as dead links or fictional routes.
+desktop widths, and an accessible menu drawer on narrow viewports. `Learn` and
+`Projects` are active destinations. Future product areas are visibly marked as
+planned and are not exposed as dead links or fictional routes.
 
 ## Commands
 

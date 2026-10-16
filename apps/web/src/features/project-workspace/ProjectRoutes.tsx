@@ -1,7 +1,7 @@
 import { useActionData, useLoaderData, useNavigate, useNavigation, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
-import type { ProjectCreateActionState, ProjectCreateRouteState, ProjectDetailRouteState, ProjectListRouteState } from "./model";
+import type { ProjectArtifact, ProjectCreateActionState, ProjectCreateRouteState, ProjectDetailRouteState, ProjectDownloadOutcome, ProjectExportOutcome, ProjectListRouteState, ProjectWorkspaceActionState } from "./model";
 import { ProjectCreatePage } from "./ProjectCreatePage";
 import { ProjectDetailPage } from "./ProjectDetailPage";
 import { ProjectListPage } from "./ProjectListPage";
@@ -29,14 +29,21 @@ export function ProjectListRoute() {
     : <Failure onAction={() => revalidator.revalidate()} status={state.status} />;
 }
 
-export function ProjectDetailRoute() {
+export function ProjectDetailRoute({
+  downloadArtifact,
+  exportSnapshot,
+}: {
+  downloadArtifact: (projectId: string, artifact: ProjectArtifact) => Promise<ProjectDownloadOutcome>;
+  exportSnapshot: (projectId: string, snapshotId: string) => Promise<ProjectExportOutcome>;
+}) {
   const state = useLoaderData<ProjectDetailRouteState>();
+  const actionState = useActionData<ProjectWorkspaceActionState>();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   if (navigation.state === "loading" || revalidator.state === "loading") return <ProjectLoadingState />;
   return state.status === "ready"
-    ? <ProjectDetailPage project={state.project} />
+    ? <ProjectDetailPage actionState={actionState} busy={navigation.state === "submitting"} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={state.project} snapshots={state.snapshots} workspace={state.workspace} />
     : <Failure onAction={() => state.status === "not-found" || state.status === "invalid-selection" ? void navigate("/projects") : revalidator.revalidate()} status={state.status} />;
 }
 

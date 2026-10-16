@@ -43,10 +43,13 @@ import {
   PracticeActivityRoute,
 } from "../features/practice-activity/PracticeActivityRoute";
 import {
+  createProjectArtifactDownloader,
   createProjectCreateAction,
   createProjectCreateLoader,
   createProjectDetailLoader,
   createProjectListLoader,
+  createProjectSnapshotExporter,
+  createProjectWorkspaceAction,
 } from "../features/project-workspace/api";
 import {
   ProjectCreateRoute,
@@ -78,6 +81,9 @@ const curriculumActivityLauncher = createCurriculumActivityLauncher(
 );
 const projectListLoader = createProjectListLoader(client, session);
 const projectDetailLoader = createProjectDetailLoader(client, session);
+const projectWorkspaceAction = createProjectWorkspaceAction(client, session);
+const projectArtifactDownloader = createProjectArtifactDownloader(client, session);
+const projectSnapshotExporter = createProjectSnapshotExporter(client, session);
 const projectCreateLoader = createProjectCreateLoader(client, session);
 const projectCreateAction = createProjectCreateAction(client, session);
 
@@ -93,6 +99,15 @@ function PracticeActivityRouteWithDependencies() {
       readProgress={practiceProgressReader}
       saveDraft={practiceDraftSaver}
       submitPractice={practiceActivitySubmitter}
+    />
+  );
+}
+
+function ProjectDetailRouteWithDependencies() {
+  return (
+    <ProjectDetailRoute
+      downloadArtifact={projectArtifactDownloader}
+      exportSnapshot={projectSnapshotExporter}
     />
   );
 }
@@ -149,7 +164,8 @@ export const router = createBrowserRouter([
       {
         path: "projects/:projectId",
         loader: projectDetailLoader,
-        Component: ProjectDetailRoute,
+        action: projectWorkspaceAction,
+        Component: ProjectDetailRouteWithDependencies,
         HydrateFallback: ProjectLoadingState,
       },
       {

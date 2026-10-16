@@ -45,6 +45,16 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
 } = {}) {
   let created: Record<string, unknown> | null = null;
   let creates = 0;
+  let workspaceRevision = 1;
+  const notes: Record<string, unknown>[] = [];
+  const references: Record<string, unknown>[] = [];
+  const artifacts: Record<string, unknown>[] = [];
+  const snapshots: Record<string, unknown>[] = [];
+  let artifactBytes = "";
+  const workspace = (projectId: string) => ({
+    schema_version: "1.0.0", project_id: projectId, learner_id: "learner-a", workspace_revision: workspaceRevision,
+    notes, references, artifacts, domain_links: [], created_at: "2026-10-16T20:00:00Z", updated_at: `2026-10-16T20:${String(workspaceRevision).padStart(2, "0")}:00Z`,
+  });
   await page.route("**/api/v1/session/single-profile", (route) => json(route, 201, {
     status: "ready", authentication_method: "single_profile", expires_at: "2026-10-16T22:00:00Z",
   }));
@@ -64,10 +74,48 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
       };
       return json(route, 200, created);
     }
+    const workspaceMatch = /^\/api\/v1\/projects\/([^/]+)\/workspace$/.exec(url.pathname);
+    if (request.method() === "GET" && workspaceMatch) return json(route, 200, workspace(workspaceMatch[1]!));
+    const mutationMatch = /^\/api\/v1\/projects\/([^/]+)\/workspace\/mutations$/.exec(url.pathname);
+    if (request.method() === "POST" && mutationMatch) {
+      const body = request.postDataJSON() as { mutation: Record<string, unknown> };
+      postBodies.push(body as unknown as Record<string, unknown>);
+      workspaceRevision += 1;
+      if (body.mutation.operation === "add_note") notes.push({ note_id: `note-${notes.length + 1}`, note_version: 1, title: body.mutation.title, body: body.mutation.body, created_at: "2026-10-16T20:01:00Z", updated_at: "2026-10-16T20:01:00Z" });
+      if (body.mutation.operation === "add_reference") references.push({ reference_id: `source-${references.length + 1}`, reference_version: 1, title: body.mutation.title, url: body.mutation.url, source_name: body.mutation.source_name, created_at: "2026-10-16T20:01:00Z", updated_at: "2026-10-16T20:01:00Z" });
+      return json(route, 200, workspace(mutationMatch[1]!));
+    }
+    const artifactCollectionMatch = /^\/api\/v1\/projects\/([^/]+)\/artifacts$/.exec(url.pathname);
+    if (request.method() === "POST" && artifactCollectionMatch) {
+      const body = request.postDataJSON() as { content_base64: string; intent: { mutation: { artifact: Record<string, unknown> } } };
+      postBodies.push(body as unknown as Record<string, unknown>);
+      artifactBytes = Buffer.from(body.content_base64, "base64").toString("utf8");
+      workspaceRevision += 1;
+      artifacts.push({ ...body.intent.mutation.artifact, artifact_id: `artifact-${artifacts.length + 1}`, artifact_version: 1, created_at: "2026-10-16T20:02:00Z" });
+      return json(route, 200, workspace(artifactCollectionMatch[1]!));
+    }
+    const artifactDownloadMatch = /^\/api\/v1\/projects\/([^/]+)\/artifacts\/([^/]+)\/versions\/(\d+)$/.exec(url.pathname);
+    if (request.method() === "GET" && artifactDownloadMatch) return route.fulfill({ status: 200, contentType: "application/octet-stream", body: artifactBytes });
+    const snapshotCollectionMatch = /^\/api\/v1\/projects\/([^/]+)\/snapshots$/.exec(url.pathname);
+    if (request.method() === "POST" && snapshotCollectionMatch) {
+      const body = request.postDataJSON() as Record<string, unknown>;
+      postBodies.push(body);
+      const record = { schema_version: "1.0.0", snapshot_id: `snapshot-${snapshots.length + 1}`, snapshot_digest: "f".repeat(64), closed_at: "2026-10-16T20:03:00Z", snapshot: { project_id: snapshotCollectionMatch[1], learner_id: "learner-a", project_revision: 1, project_shell_digest: "e".repeat(64), workspace_revision: workspaceRevision, workspace_created_at: "2026-10-16T20:00:00Z", workspace_updated_at: workspace(snapshotCollectionMatch[1]!).updated_at, notes: notes.map((note, index) => ({ record_id: note.note_id, record_version: 1, record_digest: String(index + 1).repeat(64).slice(0, 64) })), references: [], artifacts: artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, manifest_digest: "a".repeat(64), content_digest: artifact.content_digest, byte_count: artifact.byte_count })), domain_links: [] } };
+      snapshots.push(record);
+      return json(route, 200, record);
+    }
+    if (request.method() === "GET" && snapshotCollectionMatch) return json(route, 200, { records: snapshots });
+    const exportMatch = /^\/api\/v1\/projects\/([^/]+)\/snapshots\/([^/]+)\/export$/.exec(url.pathname);
+    if (request.method() === "GET" && exportMatch) {
+      const snapshotRecord = snapshots.find((item) => item.snapshot_id === exportMatch[2]);
+      const artifactFiles = artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, byte_count: artifact.byte_count, content_digest: artifact.content_digest, logical_path: artifact.logical_path, manifest_digest: "a".repeat(64), media_type: artifact.media_type }));
+      return json(route, 200, { manifest: { schema_version: "1.0.0", export_id: "export-one", export_digest: "a".repeat(64), generated_at: "2026-10-16T20:04:00Z", export: { format: "project-evidence-manifest-v1", project_id: exportMatch[1], snapshot_id: exportMatch[2], snapshot_digest: snapshotRecord?.snapshot_digest, snapshot_record: snapshotRecord, workspace_record: workspace(exportMatch[1]!), artifact_files: artifactFiles, excluded_artifacts: [] } }, files: artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, content_base64: Buffer.from(artifactBytes).toString("base64"), logical_path: artifact.logical_path })) });
+    }
     if (url.pathname === "/api/v1/projects/start-options") return json(route, 200, { records: [option] });
     if (url.pathname === `/api/v1/projects/start-options/${origin.placement_id}`) return options.staleStartOption ? json(route, 400, { code: "stale_source" }) : json(route, 200, option);
     if (url.pathname === "/api/v1/projects") return json(route, 200, { records: [independent] });
     if (url.pathname === "/api/v1/projects/project-learning" && created) return json(route, 200, created);
+    if (url.pathname === "/api/v1/projects/project-independent") return json(route, 200, independent);
     return json(route, 404, { code: "not_found" });
   });
 }
@@ -170,4 +218,45 @@ test("reflows at narrow width and keeps plain language outside technical records
   await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "active" });
   await page.getByRole("link", { name: "Start project" }).focus();
   expect(await page.getByRole("link", { name: "Start project" }).evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
+});
+
+test("saves Project work, keeps files inert, closes a snapshot, and continues working", async ({ page }) => {
+  const posts: Record<string, unknown>[] = [];
+  await mockProjects(page, posts);
+  await page.goto("/projects/project-independent");
+  await expect(page.getByRole("heading", { level: 2, name: "Notes" })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.getByLabel("Note title").fill("Evidence notes");
+  await page.getByLabel("Note", { exact: true }).fill("Compare the reviewed source with the learner-created table.");
+  await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: "Evidence notes" })).toBeVisible();
+
+  await page.getByLabel("File", { exact: true }).setInputFiles({ name: "evidence.txt", mimeType: "text/plain", buffer: Buffer.from("evidence") });
+  await page.getByLabel("File format").selectOption("text/plain");
+  await page.getByLabel("Source title", { exact: true }).last().fill("Learner evidence");
+  await page.getByRole("button", { name: "Add file" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: "evidence.txt" })).toBeVisible();
+  await expect(page.getByText(/does not run, expand, or actively preview/i).first()).toBeVisible();
+  const artifactDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download original file" }).click();
+  await expect((await artifactDownload).suggestedFilename()).toBe("evidence.txt");
+
+  await page.getByRole("button", { name: "Save checkpoint" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: /Checkpoint from/ })).toBeVisible();
+  await expect(page.getByText(/It contains 1 notes/)).toBeVisible();
+  const evidenceDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download evidence record" }).click();
+  await expect((await evidenceDownload).suggestedFilename()).toBe("project-independent-snapshot-1-evidence.json");
+
+  await page.getByLabel("Note title").last().fill("Continued work");
+  await page.getByLabel("Note", { exact: true }).last().fill("This change follows the closed snapshot.");
+  await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: "Continued work" })).toBeVisible();
+  await expect(page.getByText(/It contains 1 notes/)).toBeVisible();
+
+  const mutationBodies = posts.filter((body) => "mutation" in body);
+  expect(mutationBodies).toHaveLength(2);
+  for (const body of mutationBodies) expect(body).not.toHaveProperty("learner_id");
+  expect(posts.some((body) => "content_base64" in body)).toBe(true);
 });

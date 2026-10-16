@@ -14,6 +14,7 @@
 .project-page__header h1,
 .project-page__header p,
 .project-section h2,
+.project-section h3,
 .project-card h3,
 .project-panel h2 {
   margin: var(--faa-space-0);
@@ -119,6 +120,61 @@
   gap: var(--faa-space-4);
 }
 
+.project-form fieldset {
+  display: grid;
+  gap: var(--faa-space-3);
+  min-width: var(--faa-space-0);
+  padding: var(--faa-space-0);
+  margin: var(--faa-space-0);
+  border: var(--faa-space-0);
+}
+
+.project-form legend {
+  padding: var(--faa-space-0);
+  margin-bottom: var(--faa-space-3);
+  font-family: var(--faa-font-display);
+  font-size: var(--faa-font-size-card-title);
+  font-weight: var(--faa-font-weight-semibold);
+  line-height: var(--faa-line-height-card-title);
+}
+
+.project-form__details {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.project-form__detail-fields {
+  display: grid;
+  gap: var(--faa-space-3);
+  padding-top: var(--faa-space-3);
+}
+
+.project-work-list {
+  display: grid;
+  gap: var(--faa-space-4);
+  padding: var(--faa-space-0);
+  margin: var(--faa-space-0);
+  list-style: none;
+}
+
+.project-work-list h3,
+.project-work-list p {
+  margin: var(--faa-space-0);
+}
+
+.project-work-list details {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.project-work-list details[open] summary {
+  margin-bottom: var(--faa-space-3);
+}
+
+.project-preserved-text {
+  white-space: pre-wrap;
+}
+
 .project-facts,
 .project-technical {
   display: grid;
@@ -145,7 +201,8 @@
 }
 
 .project-form input,
-.project-form textarea {
+.project-form textarea,
+.project-form select {
   width: 100%;
   min-height: var(--faa-control-height);
   padding: var(--faa-space-3);
@@ -156,6 +213,10 @@
   font: inherit;
 }
 
+.project-form input[type="file"] {
+  min-height: auto;
+}
+
 .project-form textarea {
   resize: vertical;
 }
@@ -164,6 +225,19 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--faa-space-3);
+}
+
+.project-optional,
+.project-download-status {
+  color: var(--faa-color-text-secondary);
+}
+
+.project-download-status {
+  padding: var(--faa-space-4);
+  margin: var(--faa-space-0);
+  background: var(--faa-color-surface-subtle);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
 }
 
 .project-form-error {
