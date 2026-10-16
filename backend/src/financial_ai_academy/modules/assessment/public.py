@@ -7,7 +7,13 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol
 
-from .domain.practice import PracticePresentation, PracticeResult
+from .domain.practice import (
+    OrderedPracticeCompletionEvent,
+    PracticeDraft,
+    PracticePresentation,
+    PracticeResult,
+    PracticeRetryState,
+)
 
 
 class AssessmentErrorCode(StrEnum):
@@ -19,6 +25,7 @@ class AssessmentErrorCode(StrEnum):
     UNKNOWN_OPTION = "unknown_option"
     CONFLICT = "conflict"
     ALREADY_COMPLETED = "already_completed"
+    ATTEMPT_LIMIT_REACHED = "attempt_limit_reached"
     UNAUTHORIZED_CONTEXT = "unauthorized_context"
     UNAVAILABLE = "unavailable"
 
@@ -93,6 +100,25 @@ class SubmitPlacedPracticeRequest:
     learner_id: str
     placement_id: str
     submission: bytes
+
+
+@dataclass(frozen=True, slots=True)
+class ReadPlacedPracticeProgressRequest:
+    learner_id: str
+    placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class SavePlacedPracticeDraftRequest:
+    learner_id: str
+    placement_id: str
+    draft: bytes
+
+
+@dataclass(frozen=True, slots=True)
+class ReadCompletedPracticesRequest:
+    learner_id: str
+    placement_id: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -190,6 +216,22 @@ class AssessmentOperations(Protocol):
     def submit_placed_practice(
         self, request: SubmitPlacedPracticeRequest
     ) -> PracticeResult: ...
+
+    def read_placed_practice_draft(
+        self, request: ReadPlacedPracticeProgressRequest
+    ) -> PracticeDraft | None: ...
+
+    def save_placed_practice_draft(
+        self, request: SavePlacedPracticeDraftRequest
+    ) -> PracticeDraft: ...
+
+    def read_placed_practice_retry_state(
+        self, request: ReadPlacedPracticeProgressRequest
+    ) -> PracticeRetryState: ...
+
+    def read_completed_practices(
+        self, request: ReadCompletedPracticesRequest
+    ) -> tuple[OrderedPracticeCompletionEvent, ...]: ...
 
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest

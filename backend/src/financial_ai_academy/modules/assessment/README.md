@@ -25,6 +25,10 @@ persistence, publication, network, API, or UI action.
 - `open_placed_knowledge_check(OpenPlacedKnowledgeCheckRequest) -> KnowledgeCheckPresentation`
 - `open_placed_practice(OpenPlacedPracticeRequest) -> PracticePresentation`
 - `submit_placed_practice(SubmitPlacedPracticeRequest) -> PracticeResult`
+- `read_placed_practice_draft(ReadPlacedPracticeProgressRequest) -> PracticeDraft | None`
+- `save_placed_practice_draft(SavePlacedPracticeDraftRequest) -> PracticeDraft`
+- `read_placed_practice_retry_state(ReadPlacedPracticeProgressRequest) -> PracticeRetryState`
+- `read_completed_practices(ReadCompletedPracticesRequest) -> tuple[OrderedPracticeCompletionEvent, ...]`
 - `submit_placed_knowledge_check(SubmitPlacedKnowledgeCheckRequest) -> KnowledgeCheckResult`
 - `read_completed_knowledge_checks(ReadCompletedKnowledgeChecksRequest) -> tuple[KnowledgeCheckCompletionEvent, ...]`
 
@@ -54,6 +58,14 @@ IDs/time/result, distinct conflict and completed-attempt denials, and unchanged
 row counts after replay or refusal. No separate AI mode or autonomous action
 authority is part of this qualification.
 
+The transport-neutral practice-progress operations now validate partial draft
+snapshots, persist one server-revisioned draft for each learner and exact
+practice scope, derive retry availability from the immutable definition, and
+replay typed ordered completion events. They are application operations rather
+than browser services, so a later protected HTTP route, generated client,
+command-line tool, or headless consumer can use the same core. HTTP, generated-
+client, and browser exposure remains a later SLI-0028 seam.
+
 ## Persistence
 
 The `assessment_0001_knowledge_check_evidence` stream owns
@@ -68,12 +80,21 @@ The additive `assessment_0002_practice_evidence` stream owns separate
 `practice_attempts`, `practice_responses`, `practice_scores`,
 `practice_completion_evidence`, and `practice_outbox` tables. One transaction
 appends a complete definition-ordered aggregate and its confidential bounded
-completion event. Unique constraints enforce learner/submission idempotency and
-one completion for the exact placed practice version until the retry slice
-adds policy. Exact canonical replay returns the original server IDs, time, and
-result; conflicting reuse and a distinct post-completion submission fail
-without partial rows. The tables use the same append-only trigger as existing
-Assessment evidence and do not change knowledge-check storage.
+completion event. Unique constraints enforce learner/submission idempotency.
+Exact canonical replay returns the original server IDs, time, and result. The
+tables use the same append-only trigger as existing Assessment evidence and do
+not change knowledge-check storage.
+
+`assessment_0003_practice_progress` adds one mutable draft and one lock row per
+learner/exact-practice scope plus stable one-based attempt order. Existing
+attempts migrate to order 1 without changing retained result or event JSON.
+Inside one transaction, exact replay is resolved first, the exact scope is
+locked, the immutable definition limit from 1 through 10 is enforced, the next
+order is appended, and only a matching draft is removed after the whole
+aggregate/outbox succeeds. A stale conditional save, exhausted retry, or
+rollback preserves both the latest draft and all prior evidence. Development
+downgrade refuses to remove retry support when multiple retained attempts make
+the former one-completion constraint impossible to restore.
 
 The outbox row is durable event evidence only. No dispatcher, worker, broker,
 consumer, or delivery guarantee is implemented.
@@ -84,4 +105,9 @@ returns only the requested learner and placement, and uses occurrence/event ID
 ordering. It never acknowledges, marks, deletes, or claims delivery of an
 event. Later Learner-model and Audit consumers must remain idempotent and must
 not read these tables directly.
+
+Practice completion replay follows the same rule through a separate typed
+operation. It filters by learner and exact practice scope, validates each
+retained v1 envelope, returns stable attempt order, and exposes score/provenance
+facts without submitted values, feedback, answer keys, or raw database rows.
 

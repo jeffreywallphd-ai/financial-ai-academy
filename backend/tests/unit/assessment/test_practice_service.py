@@ -22,6 +22,7 @@ from financial_ai_academy.modules.assessment.ports.gateways import (
 )
 from financial_ai_academy.modules.assessment.ports.repositories import (
     PracticeAlreadyCompleted,
+    PracticeAttemptLimitReached,
     PracticeSubmissionConflict,
 )
 from financial_ai_academy.modules.assessment.public import (
@@ -103,8 +104,11 @@ class PracticeRepository:
         self.failure = failure
         self.candidates: list[object] = []
 
-    def record_practice_submission(self, candidate: object) -> tuple[object, bool]:
+    def record_practice_submission(
+        self, candidate: object, *, max_attempts: int
+    ) -> tuple[object, bool]:
         self.candidates.append(candidate)
+        assert max_attempts == 3
         if self.failure is not None:
             raise self.failure
         return candidate.result, True  # type: ignore[attr-defined]
@@ -273,6 +277,10 @@ def test_submit_practice_uses_server_metadata_and_public_application_seam() -> N
         (
             PracticeAlreadyCompleted("sentinel-secret-history"),
             AssessmentErrorCode.ALREADY_COMPLETED,
+        ),
+        (
+            PracticeAttemptLimitReached("sentinel-secret-limit"),
+            AssessmentErrorCode.ATTEMPT_LIMIT_REACHED,
         ),
     ],
 )

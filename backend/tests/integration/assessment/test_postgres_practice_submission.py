@@ -71,6 +71,7 @@ def migrated_database() -> object:
     expected = {
         "assessment_0001_knowledge_check_evidence",
         "assessment_0002_practice_evidence",
+        "assessment_0003_practice_progress",
     }
     assert {item.migration_id for item in runner.apply_all()} == expected
     assert {item.migration_id for item in runner.apply_all()} == expected
@@ -85,6 +86,8 @@ def empty_tables(migrated_database: object) -> None:
         connection.execute(
             """
             TRUNCATE TABLE
+                assessment.practice_drafts,
+                assessment.practice_retry_scopes,
                 assessment.practice_outbox,
                 assessment.practice_completion_evidence,
                 assessment.practice_scores,
@@ -247,20 +250,32 @@ def test_exact_replay_is_order_independent_and_survives_restart() -> None:
     assert row_counts() == (1, 3, 3, 1, 1)
 
 
-def test_conflict_and_second_attempt_preserve_original_evidence() -> None:
+def test_conflict_retry_limit_and_replay_preserve_all_evidence() -> None:
     service = build_service()
-    service.submit_placed_practice(request())
+    accepted = service.submit_placed_practice(request())
 
     with pytest.raises(AssessmentError) as conflict:
         service.submit_placed_practice(request(conflicting=True))
     assert conflict.value.code is AssessmentErrorCode.CONFLICT
 
-    with pytest.raises(AssessmentError) as completed:
+    service.submit_placed_practice(
+        request(submission_id="33333333-3333-4333-8333-333333333333")
+    )
+    service.submit_placed_practice(
+        request(submission_id="44444444-4444-4444-8444-444444444444")
+    )
+    with pytest.raises(AssessmentError) as exhausted:
         service.submit_placed_practice(
-            request(submission_id="33333333-3333-4333-8333-333333333333")
+            request(submission_id="55555555-5555-4555-8555-555555555555")
         )
-    assert completed.value.code is AssessmentErrorCode.ALREADY_COMPLETED
-    assert row_counts() == (1, 3, 3, 1, 1)
+    assert exhausted.value.code is AssessmentErrorCode.ATTEMPT_LIMIT_REACHED
+    assert service.submit_placed_practice(request(reorder=True)) == accepted
+    assert row_counts() == (3, 9, 9, 3, 3)
+    assert POSTGRES_DSN is not None
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT attempt_order FROM assessment.practice_attempts ORDER BY attempt_order"
+        ).fetchall() == [(1,), (2,), (3,)]
 
 
 def test_concurrent_exact_duplicate_returns_one_original_result() -> None:

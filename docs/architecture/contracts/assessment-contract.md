@@ -115,11 +115,13 @@ Assessment retains each accepted practice aggregate in separate additive
 attempt, ordered-response, item-score, completion-result, and practice-outbox
 tables in one PostgreSQL transaction. `(learner_id, submission_id)` plus the
 canonical request fingerprint provides idempotent replay. A matching replay
-returns the original complete result; conflicting reuse fails, and a distinct
-submission after the same placed practice version completes is denied until
-the retry slice supplies explicit policy. Every accepted row rejects ordinary
-update/delete. No Content, Curriculum, host, client, or future AI consumer may
-read or write these private tables.
+returns the original complete result. Conflicting reuse fails, while a distinct
+submission receives the next one-based order only after Assessment locks the
+complete learner/exact-practice scope and checks the immutable definition's
+limit. Existing attempts migrate to order 1 without changing result or event
+JSON. Every accepted row rejects ordinary update/delete. No Content,
+Curriculum, host, client, or future AI consumer may read or write these private
+tables.
 
 ## Completion Event
 
@@ -159,8 +161,18 @@ event, result, or evidence record.
 and the exact definition's `formative-retry@1.0.0` policy. It supports published
 limits from 1 through 10 and requires attempts used, attempts remaining,
 availability, and state to agree. Clients, including future headless clients,
-cannot grant retries or alter the attempt limit. These contract shapes do not
-yet qualify persistence, concurrency, public APIs, or draft clearing.
+cannot grant retries or alter the attempt limit.
+
+The Assessment application core implements these shapes through a closed
+progress adapter and owned PostgreSQL repository. Draft create/replay/replace
+is serialized by the same exact-scope lock used for submission. A successful
+complete submission removes only its matching draft after the result/outbox
+aggregate succeeds; a stale save, malformed request, exhausted retry, or
+rollback leaves the draft unchanged. Exact submission replay is checked before
+the limit. Typed completion replay validates retained envelopes and returns
+stable order without answers or feedback. Protected HTTP, OpenAPI/generated
+client, and browser exposure remain a later packet; the application seam is
+already transport-neutral for those and future headless consumers.
 
 ## Compatibility and Diagnostics
 
@@ -229,17 +241,19 @@ all three item types, selects reviewed feedback, and maps a safe correlated
 event without side effects. The transport-neutral application operation now
 resolves the exact definition, supplies server authority, and commits a
 complete append-only aggregate plus practice outbox atomically. Real-
-PostgreSQL evidence covers migration/reapply/teardown, exact and reordered
-replay, conflict, one-attempt enforcement, concurrency, rollback, restart,
-confidentiality, and mutation denial without changing knowledge-check storage.
+PostgreSQL evidence covers migration/reapply/controlled teardown, exact and
+reordered replay, conditional draft conflict, variable bounded retries, stable
+ordering, concurrent final-slot enforcement, atomic draft clearing, rollback,
+restart, typed replay, confidentiality, and mutation denial without changing
+knowledge-check storage or retained result/event bytes.
 Repeated opening remains read-only and returns no answer or feedback branch.
 Authorization host composition, the public POST, reviewed OpenAPI, generated
 client, bounded denials, and direct non-browser result confidentiality are now
-covered. Browser result flow, draft persistence, retry enforcement, history
-consumers, and review-target resolution remain unqualified until their owning
-packets deliver them. No separate AI/headless mode is defined; the shared public API remains
-the supported non-browser seam and keeps a future consumer possible without
-creating another domain core.
+covered. Browser result flow, composed public progress APIs, history consumers,
+and review-target resolution remain unqualified until their owning packets
+deliver them. No separate AI/headless mode is defined; the shared public
+application surface and existing public API remain the supported non-browser
+seams and keep a future consumer possible without creating another domain core.
 
 Assessment now also exposes a typed, read-only completion-event replay query
 for one server-supplied learner and exact placement. It validates retained

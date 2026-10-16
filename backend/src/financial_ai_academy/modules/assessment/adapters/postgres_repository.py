@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import datetime
+import hashlib
+import json
 from typing import Any, Mapping
 
 import psycopg
@@ -14,16 +16,21 @@ from ..domain.models import AssessmentSubmissionCandidate
 from ..domain.practice import (
     MultipleSelectPracticeResponse,
     NumericEntryPracticeResponse,
+    PracticeDraft,
+    PracticeDraftSave,
     PracticeFeedback,
     PracticeItemOutcome,
     PracticeResult,
+    PracticeScope,
     PracticeSubmissionCandidate,
     SingleSelectPracticeResponse,
 )
 from ..ports.repositories import (
     KnowledgeCheckAlreadyCompleted,
-    PracticeAlreadyCompleted,
+    PracticeAttemptLimitReached,
+    PracticeDraftConflict,
     PracticeSubmissionConflict,
+    StoredPracticeCompletionEvent,
     SubmissionConflict,
 )
 from ..public import (
@@ -186,11 +193,43 @@ class PostgresAssessmentRepository:
         return tuple(row["event_payload"] for row in rows)
 
     def record_practice_submission(
-        self, candidate: PracticeSubmissionCandidate
+        self, candidate: PracticeSubmissionCandidate, *, max_attempts: int
     ) -> tuple[PracticeResult, bool]:
+        if not 1 <= max_attempts <= 10:
+            raise ValueError("Practice attempt limit is outside the contract.")
         result = candidate.result
         with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
             with connection.transaction():
+                existing = self._find_existing_practice(connection, candidate)
+                if existing is not None:
+                    return existing, False
+                self._lock_practice_scope(connection, result)
+                existing = self._find_existing_practice(connection, candidate)
+                if existing is not None:
+                    return existing, False
+                row = connection.execute(
+                    """
+                    SELECT COALESCE(MAX(attempt_order), 0) AS last_order
+                    FROM assessment.practice_attempts
+                    WHERE learner_id = %s
+                      AND placement_id = %s
+                      AND package_id = %s
+                      AND package_version = %s
+                      AND package_digest = %s
+                      AND definition_digest = %s
+                      AND practice_id = %s
+                      AND practice_version = %s
+                      AND attempt_policy_id = %s
+                      AND attempt_policy_version = %s
+                    """,
+                    self._scope_values(result.learner_id, self._result_scope(result)),
+                ).fetchone()
+                last_order = int(row["last_order"])
+                if last_order >= max_attempts:
+                    raise PracticeAttemptLimitReached(
+                        "Practice attempt limit has been reached."
+                    )
+                attempt_order = last_order + 1
                 inserted = connection.execute(
                     """
                     INSERT INTO assessment.practice_attempts (
@@ -210,11 +249,12 @@ class PostgresAssessmentRepository:
                         score,
                         max_score,
                         outcome,
+                        attempt_order,
                         submitted_at
                     )
                     VALUES (
                         %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                        %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s
                     )
                     ON CONFLICT DO NOTHING
                     RETURNING attempt_id
@@ -236,12 +276,16 @@ class PostgresAssessmentRepository:
                         result.score,
                         result.max_score,
                         result.outcome,
+                        attempt_order,
                         result.submitted_at,
                     ),
                 ).fetchone()
                 if inserted is None:
-                    return self._resolve_existing_practice(
-                        connection, candidate
+                    existing = self._find_existing_practice(connection, candidate)
+                    if existing is not None:
+                        return existing, False
+                    raise RuntimeError(
+                        "Conflicting practice submission did not become visible."
                     )
                 for position, item in enumerate(result.item_results):
                     response = self._practice_response_to_dict(item)
@@ -332,7 +376,215 @@ class PostgresAssessmentRepository:
                         candidate.occurred_at,
                     ),
                 )
+                connection.execute(
+                    """
+                    DELETE FROM assessment.practice_drafts
+                    WHERE learner_id = %s
+                      AND placement_id = %s
+                      AND package_id = %s
+                      AND package_version = %s
+                      AND package_digest = %s
+                      AND definition_digest = %s
+                      AND practice_id = %s
+                      AND practice_version = %s
+                      AND attempt_policy_id = %s
+                      AND attempt_policy_version = %s
+                    """,
+                    self._scope_values(
+                        result.learner_id, self._result_scope(result)
+                    ),
+                )
         return result, True
+
+    def read_practice_draft(
+        self, *, learner_id: str, scope: PracticeScope
+    ) -> PracticeDraft | None:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT responses, response_fingerprint, revision, saved_at
+                FROM assessment.practice_drafts
+                WHERE learner_id = %s
+                  AND placement_id = %s
+                  AND package_id = %s
+                  AND package_version = %s
+                  AND package_digest = %s
+                  AND definition_digest = %s
+                  AND practice_id = %s
+                  AND practice_version = %s
+                  AND attempt_policy_id = %s
+                  AND attempt_policy_version = %s
+                """,
+                self._scope_values(learner_id, scope),
+            ).fetchone()
+        return None if row is None else self._draft_from_row(scope, row)
+
+    def save_practice_draft(
+        self,
+        *,
+        learner_id: str,
+        draft: PracticeDraftSave,
+        saved_at: datetime,
+    ) -> PracticeDraft:
+        scope = draft.scope
+        response_values = [
+            self._practice_response_value(response) for response in draft.responses
+        ]
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            with connection.transaction():
+                self._lock_scope(connection, learner_id, scope)
+                row = connection.execute(
+                    """
+                    SELECT responses, response_fingerprint, revision, saved_at
+                    FROM assessment.practice_drafts
+                    WHERE learner_id = %s
+                      AND placement_id = %s
+                      AND package_id = %s
+                      AND package_version = %s
+                      AND package_digest = %s
+                      AND definition_digest = %s
+                      AND practice_id = %s
+                      AND practice_version = %s
+                      AND attempt_policy_id = %s
+                      AND attempt_policy_version = %s
+                    FOR UPDATE
+                    """,
+                    self._scope_values(learner_id, scope),
+                ).fetchone()
+                if row is None:
+                    if draft.expected_revision != 0:
+                        raise PracticeDraftConflict(
+                            "Practice draft revision is stale."
+                        )
+                    revision = 1
+                    connection.execute(
+                        """
+                        INSERT INTO assessment.practice_drafts (
+                            learner_id,
+                            placement_id,
+                            package_id,
+                            package_version,
+                            package_digest,
+                            definition_digest,
+                            practice_id,
+                            practice_version,
+                            attempt_policy_id,
+                            attempt_policy_version,
+                            responses,
+                            response_fingerprint,
+                            revision,
+                            saved_at
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s,
+                            %s, %s, %s, %s, %s, %s, %s
+                        )
+                        """,
+                        (
+                            *self._scope_values(learner_id, scope),
+                            Jsonb(response_values),
+                            draft.response_fingerprint,
+                            revision,
+                            saved_at,
+                        ),
+                    )
+                elif row["response_fingerprint"] == draft.response_fingerprint:
+                    return self._draft_from_row(scope, row)
+                else:
+                    if int(row["revision"]) != draft.expected_revision:
+                        raise PracticeDraftConflict(
+                            "Practice draft revision is stale."
+                        )
+                    revision = int(row["revision"]) + 1
+                    connection.execute(
+                        """
+                        UPDATE assessment.practice_drafts
+                        SET responses = %s,
+                            response_fingerprint = %s,
+                            revision = %s,
+                            saved_at = %s
+                        WHERE learner_id = %s
+                          AND placement_id = %s
+                          AND package_id = %s
+                          AND package_version = %s
+                          AND package_digest = %s
+                          AND definition_digest = %s
+                          AND practice_id = %s
+                          AND practice_version = %s
+                          AND attempt_policy_id = %s
+                          AND attempt_policy_version = %s
+                        """,
+                        (
+                            Jsonb(response_values),
+                            draft.response_fingerprint,
+                            revision,
+                            saved_at,
+                            *self._scope_values(learner_id, scope),
+                        ),
+                    )
+        return PracticeDraft(
+            scope=scope,
+            responses=draft.responses,
+            revision=revision,
+            saved_at=saved_at,
+            response_fingerprint=draft.response_fingerprint,
+        )
+
+    def count_practice_attempts(
+        self, *, learner_id: str, scope: PracticeScope
+    ) -> int:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT count(*) AS attempts_used
+                FROM assessment.practice_attempts
+                WHERE learner_id = %s
+                  AND placement_id = %s
+                  AND package_id = %s
+                  AND package_version = %s
+                  AND package_digest = %s
+                  AND definition_digest = %s
+                  AND practice_id = %s
+                  AND practice_version = %s
+                  AND attempt_policy_id = %s
+                  AND attempt_policy_version = %s
+                """,
+                self._scope_values(learner_id, scope),
+            ).fetchone()
+        return int(row["attempts_used"])
+
+    def list_practice_completion_event_documents(
+        self, *, learner_id: str, scope: PracticeScope
+    ) -> tuple[StoredPracticeCompletionEvent, ...]:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            rows = connection.execute(
+                """
+                SELECT a.attempt_order, o.event_payload
+                FROM assessment.practice_outbox AS o
+                JOIN assessment.practice_completion_evidence AS e
+                  ON e.evidence_id = o.evidence_id
+                JOIN assessment.practice_attempts AS a
+                  ON a.attempt_id = e.attempt_id
+                WHERE a.learner_id = %s
+                  AND a.placement_id = %s
+                  AND a.package_id = %s
+                  AND a.package_version = %s
+                  AND a.package_digest = %s
+                  AND a.definition_digest = %s
+                  AND a.practice_id = %s
+                  AND a.practice_version = %s
+                  AND a.attempt_policy_id = %s
+                  AND a.attempt_policy_version = %s
+                ORDER BY a.attempt_order, o.event_id
+                """,
+                self._scope_values(learner_id, scope),
+            ).fetchall()
+        return tuple(
+            StoredPracticeCompletionEvent(
+                attempt_order=int(row["attempt_order"]),
+                document=row["event_payload"],
+            )
+            for row in rows
+        )
 
     def _resolve_existing(
         self,
@@ -378,11 +630,11 @@ class PostgresAssessmentRepository:
             )
         raise RuntimeError("Conflicting submission did not become visible.")
 
-    def _resolve_existing_practice(
+    def _find_existing_practice(
         self,
         connection: psycopg.Connection,
         candidate: PracticeSubmissionCandidate,
-    ) -> tuple[PracticeResult, bool]:
+    ) -> PracticeResult | None:
         result = candidate.result
         row = connection.execute(
             """
@@ -399,28 +651,138 @@ class PostgresAssessmentRepository:
                 raise PracticeSubmissionConflict(
                     "Submission identity maps to different input."
                 )
-            return self._practice_result_from_dict(row["result"]), False
-        row = connection.execute(
+            return self._practice_result_from_dict(row["result"])
+        return None
+
+    def _lock_practice_scope(
+        self,
+        connection: psycopg.Connection,
+        result: PracticeResult,
+    ) -> None:
+        self._lock_scope(
+            connection, result.learner_id, self._result_scope(result)
+        )
+
+    def _lock_scope(
+        self,
+        connection: psycopg.Connection,
+        learner_id: str,
+        scope: PracticeScope,
+    ) -> None:
+        values = self._scope_values(learner_id, scope)
+        connection.execute(
+            """
+            INSERT INTO assessment.practice_retry_scopes (
+                learner_id,
+                placement_id,
+                package_id,
+                package_version,
+                package_digest,
+                definition_digest,
+                practice_id,
+                practice_version,
+                attempt_policy_id,
+                attempt_policy_version
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING
+            """,
+            values,
+        )
+        connection.execute(
             """
             SELECT 1
-            FROM assessment.practice_attempts
+            FROM assessment.practice_retry_scopes
             WHERE learner_id = %s
               AND placement_id = %s
+              AND package_id = %s
+              AND package_version = %s
+              AND package_digest = %s
+              AND definition_digest = %s
               AND practice_id = %s
               AND practice_version = %s
+              AND attempt_policy_id = %s
+              AND attempt_policy_version = %s
+            FOR UPDATE
             """,
-            (
-                result.learner_id,
-                result.placement_id,
-                result.practice_id,
-                result.practice_version,
-            ),
+            values,
         ).fetchone()
-        if row is not None:
-            raise PracticeAlreadyCompleted(
-                "Practice activity already has accepted evidence."
-            )
-        raise RuntimeError("Conflicting practice submission did not become visible.")
+
+    @staticmethod
+    def _result_scope(result: PracticeResult) -> PracticeScope:
+        return PracticeScope(
+            placement_id=result.placement_id,
+            package_id=result.package_id,
+            package_version=result.package_version,
+            package_digest=result.package_digest,
+            definition_digest=result.definition_digest,
+            practice_id=result.practice_id,
+            practice_version=result.practice_version,
+            attempt_policy_id=result.attempt_policy_id,
+            attempt_policy_version=result.attempt_policy_version,
+        )
+
+    @staticmethod
+    def _scope_values(
+        learner_id: str, scope: PracticeScope
+    ) -> tuple[str, ...]:
+        return (
+            learner_id,
+            scope.placement_id,
+            scope.package_id,
+            scope.package_version,
+            scope.package_digest,
+            scope.definition_digest,
+            scope.practice_id,
+            scope.practice_version,
+            scope.attempt_policy_id,
+            scope.attempt_policy_version,
+        )
+
+    @classmethod
+    def _draft_from_row(
+        cls, scope: PracticeScope, row: Mapping[str, Any]
+    ) -> PracticeDraft:
+        values = row["responses"]
+        if not isinstance(values, list):
+            raise ValueError("Stored practice draft responses are invalid.")
+        responses = tuple(
+            cls._practice_response_from_dict(value, strict=True)
+            for value in values
+        )
+        fingerprint = cls._draft_response_fingerprint(responses)
+        if fingerprint != row["response_fingerprint"]:
+            raise ValueError("Stored practice draft fingerprint is invalid.")
+        return PracticeDraft(
+            scope=scope,
+            responses=responses,
+            revision=int(row["revision"]),
+            saved_at=row["saved_at"],
+            response_fingerprint=fingerprint,
+        )
+
+    @classmethod
+    def _draft_response_fingerprint(
+        cls,
+        responses: tuple[
+            SingleSelectPracticeResponse
+            | MultipleSelectPracticeResponse
+            | NumericEntryPracticeResponse,
+            ...,
+        ],
+    ) -> str:
+        canonical = [cls._practice_response_value(item) for item in responses]
+        for response in canonical:
+            selected = response.get("selected_option_ids")
+            if isinstance(selected, list):
+                response["selected_option_ids"] = sorted(selected)
+        canonical.sort(key=lambda item: str(item.get("item_id", "")))
+        value = json.dumps(
+            canonical,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+        return hashlib.sha256(value).hexdigest()
 
     @staticmethod
     def _result_to_dict(result: KnowledgeCheckResult) -> dict[str, object]:
@@ -488,7 +850,18 @@ class PostgresAssessmentRepository:
     def _practice_response_to_dict(
         item: PracticeItemOutcome,
     ) -> dict[str, object]:
-        response = item.response
+        return PostgresAssessmentRepository._practice_response_value(
+            item.response
+        )
+
+    @staticmethod
+    def _practice_response_value(
+        response: (
+            SingleSelectPracticeResponse
+            | MultipleSelectPracticeResponse
+            | NumericEntryPracticeResponse
+        ),
+    ) -> dict[str, object]:
         value: dict[str, object] = {
             "item_id": response.item_id,
             "item_version": response.item_version,
@@ -503,6 +876,56 @@ class PostgresAssessmentRepository:
         else:
             value["entered_value"] = response.entered_value
         return value
+
+    @staticmethod
+    def _practice_response_from_dict(
+        raw: Mapping[str, Any], *, strict: bool = False
+    ) -> (
+        SingleSelectPracticeResponse
+        | MultipleSelectPracticeResponse
+        | NumericEntryPracticeResponse
+    ):
+        item_type = str(raw.get("item_type", ""))
+        expected_keys = {
+            "item_id",
+            "item_version",
+            "item_type",
+            "scoring_policy_id",
+            "scoring_policy_version",
+            {
+                "single_select": "selected_option_id",
+                "multiple_select": "selected_option_ids",
+                "numeric_entry": "entered_value",
+            }.get(item_type, "invalid"),
+        }
+        if strict and set(raw) != expected_keys:
+            raise ValueError("Stored practice response shape is invalid.")
+        common = {
+            "item_id": str(raw["item_id"]),
+            "item_version": str(raw["item_version"]),
+            "item_type": item_type,
+            "scoring_policy_id": str(raw["scoring_policy_id"]),
+            "scoring_policy_version": str(raw["scoring_policy_version"]),
+        }
+        if common["item_type"] == "single_select":
+            return SingleSelectPracticeResponse(
+                **common,
+                selected_option_id=str(raw["selected_option_id"]),
+            )
+        if common["item_type"] == "multiple_select":
+            selected = raw["selected_option_ids"]
+            if not isinstance(selected, list):
+                raise ValueError("Stored multiple selection is invalid.")
+            return MultipleSelectPracticeResponse(
+                **common,
+                selected_option_ids=tuple(str(item) for item in selected),
+            )
+        if common["item_type"] == "numeric_entry":
+            return NumericEntryPracticeResponse(
+                **common,
+                entered_value=str(raw["entered_value"]),
+            )
+        raise ValueError("Stored practice response type is invalid.")
 
     @classmethod
     def _practice_result_to_dict(
@@ -558,35 +981,9 @@ class PostgresAssessmentRepository:
         for raw in raw_items:
             if not isinstance(raw, Mapping):
                 raise ValueError("Stored practice item result is invalid.")
-            common = {
-                "item_id": str(raw["item_id"]),
-                "item_version": str(raw["item_version"]),
-                "item_type": str(raw["item_type"]),
-                "scoring_policy_id": str(raw["scoring_policy_id"]),
-                "scoring_policy_version": str(
-                    raw["scoring_policy_version"]
-                ),
-            }
-            if common["item_type"] == "single_select":
-                response = SingleSelectPracticeResponse(
-                    **common,
-                    selected_option_id=str(raw["selected_option_id"]),
-                )
-            elif common["item_type"] == "multiple_select":
-                selected = raw["selected_option_ids"]
-                if not isinstance(selected, list):
-                    raise ValueError("Stored multiple selection is invalid.")
-                response = MultipleSelectPracticeResponse(
-                    **common,
-                    selected_option_ids=tuple(str(item) for item in selected),
-                )
-            elif common["item_type"] == "numeric_entry":
-                response = NumericEntryPracticeResponse(
-                    **common,
-                    entered_value=str(raw["entered_value"]),
-                )
-            else:
-                raise ValueError("Stored practice response type is invalid.")
+            response = PostgresAssessmentRepository._practice_response_from_dict(
+                raw
+            )
             feedback = raw["feedback"]
             if not isinstance(feedback, Mapping):
                 raise ValueError("Stored practice feedback is invalid.")

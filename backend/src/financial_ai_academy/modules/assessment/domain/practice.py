@@ -269,6 +269,84 @@ class PracticeSubmissionCandidate:
     occurred_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class PracticeScope:
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    definition_digest: str
+    practice_id: str
+    practice_version: str
+    attempt_policy_id: str
+    attempt_policy_version: str
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeDraftSave:
+    scope: PracticeScope
+    expected_revision: int
+    responses: tuple[PracticeResponse, ...]
+    response_fingerprint: str
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeDraft:
+    scope: PracticeScope
+    responses: tuple[PracticeResponse, ...]
+    revision: int
+    saved_at: datetime
+    response_fingerprint: str
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeRetryState:
+    scope: PracticeScope
+    attempts_used: int
+    max_attempts: int
+    attempts_remaining: int
+    can_retry: bool
+    state: Literal["available", "exhausted"]
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeCompletionItemScore:
+    item_id: str
+    item_version: str
+    item_type: Literal["single_select", "multiple_select", "numeric_entry"]
+    scoring_policy_id: str
+    scoring_policy_version: str
+    score: int
+    max_score: int
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeCompletionEvent:
+    schema_version: str
+    event_id: str
+    event_type: str
+    event_version: str
+    owner: str
+    occurred_at: datetime
+    idempotency_key: str
+    attempt_id: str
+    evidence_id: str
+    learner_id: str
+    submission_id: str
+    scope: PracticeScope
+    score: int
+    max_score: int
+    outcome: Literal["all_correct", "review_needed"]
+    item_scores: tuple[PracticeCompletionItemScore, ...]
+    completed_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class OrderedPracticeCompletionEvent:
+    attempt_order: int
+    event: PracticeCompletionEvent
+
+
 class PracticeScoringError(ValueError):
     def __init__(self, reference: str) -> None:
         super().__init__("Practice response was rejected.")
@@ -284,13 +362,8 @@ def score_practice(
 ) -> PracticeAggregateOutcome:
     """Validate and score one complete response set in definition order."""
 
-    by_id: dict[str, PracticeResponse] = {}
-    for response in responses:
-        if response.item_id in by_id:
-            raise PracticeScoringError("responses")
-        by_id[response.item_id] = response
-    expected_ids = {item.item_id for item in definition.items}
-    if set(by_id) != expected_ids:
+    by_id = _validated_response_map(definition, responses)
+    if set(by_id) != {item.item_id for item in definition.items}:
         raise PracticeScoringError("responses")
 
     results: list[PracticeItemOutcome] = []
@@ -322,6 +395,33 @@ def score_practice(
         outcome="all_correct" if score == maximum else "review_needed",
         review_reference_ids=tuple(review_ids),
     )
+
+
+def validate_practice_response_subset(
+    definition: PracticeDefinition,
+    responses: tuple[PracticeResponse, ...],
+) -> None:
+    """Validate a draft subset without requiring or exposing a score."""
+
+    _validated_response_map(definition, responses)
+
+
+def _validated_response_map(
+    definition: PracticeDefinition,
+    responses: tuple[PracticeResponse, ...],
+) -> dict[str, PracticeResponse]:
+    items = {item.item_id: item for item in definition.items}
+    by_id: dict[str, PracticeResponse] = {}
+    for response in responses:
+        if response.item_id in by_id:
+            raise PracticeScoringError("responses")
+        item = items.get(response.item_id)
+        if item is None:
+            raise PracticeScoringError(f"responses.{response.item_id}")
+        _validate_response_identity(item, response)
+        _score_item(item, response)
+        by_id[response.item_id] = response
+    return by_id
 
 
 def _validate_response_identity(

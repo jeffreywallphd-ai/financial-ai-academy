@@ -14,10 +14,14 @@ from ..domain.models import (
     score_single_select,
 )
 from ..domain.practice import (
+    OrderedPracticeCompletionEvent,
     PracticeDefinition,
+    PracticeDraft,
     PracticePresentation,
     PracticePresentationContext,
     PracticeResult,
+    PracticeRetryState,
+    PracticeScope,
 )
 from ..ports.definition_parser import (
     AssessmentDefinitionParserPort,
@@ -37,6 +41,8 @@ from ..ports.repositories import (
     AssessmentRepositoryPort,
     KnowledgeCheckAlreadyCompleted,
     PracticeAlreadyCompleted,
+    PracticeAttemptLimitReached,
+    PracticeDraftConflict,
     PracticeSubmissionConflict,
     SubmissionConflict,
 )
@@ -48,6 +54,10 @@ from ..ports.practice_submission import (
     PracticeSubmissionFailure,
     PracticeSubmissionPort,
 )
+from ..ports.practice_progress import (
+    PracticeProgressContractPort,
+    PracticeProgressFailure,
+)
 from ..ports.system import ClockPort, IdGeneratorPort
 from ..public import (
     AssessmentError,
@@ -58,7 +68,10 @@ from ..public import (
     KnowledgeCheckResult,
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
+    ReadCompletedPracticesRequest,
     ReadCompletedKnowledgeChecksRequest,
+    ReadPlacedPracticeProgressRequest,
+    SavePlacedPracticeDraftRequest,
     SubmitPlacedKnowledgeCheckRequest,
     SubmitPlacedPracticeRequest,
 )
@@ -76,6 +89,7 @@ class AssessmentService:
         ids: IdGeneratorPort,
         practice_parser: PracticeDefinitionPort | None = None,
         practice_submission_parser: PracticeSubmissionPort | None = None,
+        practice_progress_contract: PracticeProgressContractPort | None = None,
     ) -> None:
         self._curriculum = curriculum
         self._content = content
@@ -86,6 +100,7 @@ class AssessmentService:
         self._ids = ids
         self._practice_parser = practice_parser
         self._practice_submission_parser = practice_submission_parser
+        self._practice_progress_contract = practice_progress_contract
 
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest
@@ -162,7 +177,8 @@ class AssessmentService:
             ) from error
         try:
             stored, _created = self._repository.record_practice_submission(
-                candidate
+                candidate,
+                max_attempts=definition.attempt_policy.max_attempts,
             )
         except PracticeSubmissionConflict as error:
             raise AssessmentError(
@@ -178,6 +194,13 @@ class AssessmentService:
                 reference=request.placement_id,
                 diagnostic_code="assessment.practice.already_completed",
             ) from error
+        except PracticeAttemptLimitReached as error:
+            raise AssessmentError(
+                AssessmentErrorCode.ATTEMPT_LIMIT_REACHED,
+                "No more attempts are available for this practice activity.",
+                reference=request.placement_id,
+                diagnostic_code="assessment.practice.attempt_limit_reached",
+            ) from error
         except AssessmentError:
             raise
         except Exception as error:
@@ -187,6 +210,190 @@ class AssessmentService:
                 reference=request.placement_id,
             ) from error
         return stored
+
+    def read_placed_practice_draft(
+        self, request: ReadPlacedPracticeProgressRequest
+    ) -> PracticeDraft | None:
+        self._validate_uuid(request.learner_id, learner=True)
+        _reference, definition, scope = self._resolve_practice_progress(
+            request.placement_id
+        )
+        if not definition.attempt_policy.resume_allowed:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Saved progress is unavailable for this practice activity.",
+                reference=request.placement_id,
+            )
+        try:
+            return self._repository.read_practice_draft(
+                learner_id=request.learner_id,
+                scope=scope,
+            )
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Saved practice progress is unavailable.",
+                reference=request.placement_id,
+            ) from error
+
+    def save_placed_practice_draft(
+        self, request: SavePlacedPracticeDraftRequest
+    ) -> PracticeDraft:
+        self._validate_uuid(request.learner_id, learner=True)
+        progress = self._practice_progress_contract
+        if progress is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Saving practice progress is unavailable.",
+                reference=request.placement_id,
+            )
+        reference, definition, _scope = self._resolve_practice_progress(
+            request.placement_id
+        )
+        if not definition.attempt_policy.resume_allowed:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Saving practice progress is unavailable.",
+                reference=request.placement_id,
+            )
+        try:
+            draft = progress.parse_draft_save(
+                request.draft,
+                definition,
+                self._practice_context(reference),
+            )
+        except PracticeProgressFailure as error:
+            code = (
+                AssessmentErrorCode.UNSUPPORTED_VERSION
+                if error.code == "assessment.practice.unsupported_version"
+                else AssessmentErrorCode.STALE_REFERENCE
+                if error.code == "assessment.practice.stale_reference"
+                else AssessmentErrorCode.INVALID_SUBMISSION
+            )
+            raise AssessmentError(
+                code,
+                "Saved practice progress was rejected.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        try:
+            return self._repository.save_practice_draft(
+                learner_id=request.learner_id,
+                draft=draft,
+                saved_at=self._server_time(),
+            )
+        except PracticeDraftConflict as error:
+            raise AssessmentError(
+                AssessmentErrorCode.CONFLICT,
+                "Saved practice progress changed in another session.",
+                reference="expected_revision",
+                diagnostic_code="assessment.practice.draft_conflict",
+            ) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Saving practice progress is unavailable.",
+                reference=request.placement_id,
+            ) from error
+
+    def read_placed_practice_retry_state(
+        self, request: ReadPlacedPracticeProgressRequest
+    ) -> PracticeRetryState:
+        self._validate_uuid(request.learner_id, learner=True)
+        _reference, definition, scope = self._resolve_practice_progress(
+            request.placement_id
+        )
+        try:
+            used = self._repository.count_practice_attempts(
+                learner_id=request.learner_id,
+                scope=scope,
+            )
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice attempt availability is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        maximum = definition.attempt_policy.max_attempts
+        if used < 0 or used > maximum:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice attempt availability is unavailable.",
+                reference=request.placement_id,
+                diagnostic_code="assessment.practice.invalid_retry_state",
+            )
+        remaining = maximum - used
+        return PracticeRetryState(
+            scope=scope,
+            attempts_used=used,
+            max_attempts=maximum,
+            attempts_remaining=remaining,
+            can_retry=remaining > 0,
+            state="available" if remaining > 0 else "exhausted",
+        )
+
+    def read_completed_practices(
+        self, request: ReadCompletedPracticesRequest
+    ) -> tuple[OrderedPracticeCompletionEvent, ...]:
+        self._validate_uuid(request.learner_id, learner=True)
+        progress = self._practice_progress_contract
+        if progress is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice history is unavailable.",
+                reference=request.placement_id,
+            )
+        _reference, _definition, scope = self._resolve_practice_progress(
+            request.placement_id
+        )
+        try:
+            stored = self._repository.list_practice_completion_event_documents(
+                learner_id=request.learner_id,
+                scope=scope,
+            )
+            ordered = tuple(
+                OrderedPracticeCompletionEvent(
+                    attempt_order=item.attempt_order,
+                    event=progress.parse_completion_event(item.document),
+                )
+                for item in stored
+            )
+        except PracticeProgressFailure as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice history is unavailable.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice history is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        seen_events: set[str] = set()
+        for expected_order, item in enumerate(ordered, start=1):
+            event = item.event
+            if (
+                item.attempt_order != expected_order
+                or event.event_id in seen_events
+                or event.learner_id != request.learner_id
+                or event.scope != scope
+            ):
+                raise AssessmentError(
+                    AssessmentErrorCode.UNAVAILABLE,
+                    "Practice history is unavailable.",
+                    reference="event",
+                    diagnostic_code="assessment.practice.inconsistent_event",
+                )
+            seen_events.add(event.event_id)
+        return ordered
 
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest
@@ -437,6 +644,40 @@ class AssessmentService:
         ):
             raise self._stale_practice("practice")
         return reference, definition
+
+    def _resolve_practice_progress(
+        self, placement_id: str
+    ) -> tuple[PlacedPracticeReference, PracticeDefinition, PracticeScope]:
+        reference, definition = self._resolve_practice(placement_id)
+        return reference, definition, self._practice_scope(reference, definition)
+
+    @staticmethod
+    def _practice_context(
+        reference: PlacedPracticeReference,
+    ) -> PracticePresentationContext:
+        return PracticePresentationContext(
+            placement_id=reference.placement_id,
+            package_id=reference.package_id,
+            package_version=reference.package_version,
+            package_digest=reference.package_digest,
+        )
+
+    @staticmethod
+    def _practice_scope(
+        reference: PlacedPracticeReference,
+        definition: PracticeDefinition,
+    ) -> PracticeScope:
+        return PracticeScope(
+            placement_id=reference.placement_id,
+            package_id=reference.package_id,
+            package_version=reference.package_version,
+            package_digest=reference.package_digest,
+            definition_digest=definition.definition_digest,
+            practice_id=definition.practice_id,
+            practice_version=definition.practice_version,
+            attempt_policy_id=definition.attempt_policy.policy_id,
+            attempt_policy_version=definition.attempt_policy.policy_version,
+        )
 
     @staticmethod
     def _presentation(

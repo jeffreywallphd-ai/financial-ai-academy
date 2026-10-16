@@ -162,6 +162,15 @@ completion-history API behavior remain outside the lesson-read seam.
   evidence/event set; unique constraints distinguish exact replay, conflicting
   submission reuse, and already-completed submissions. Accepted rows reject
   ordinary update/delete.
+- Assessment separately owns one mutable `practice_drafts` row and one
+  transaction-lock row for each learner/exact-practice scope. Drafts are work
+  state, not evidence. Stable attempt order and immutable-definition limits are
+  enforced inside the same transaction that appends practice evidence and
+  clears only the matching draft.
+- Assessment exposes transport-neutral typed operations to read/save the exact
+  draft, derive retry state, and replay validated ordered practice completion
+  events. These operations contain no HTTP, browser, AI-specific, or cross-
+  module persistence behavior and are ready for later protected composition.
 - `assessment.knowledge-check.completed@1.0.0` refers to its durable evidence
   and excludes private answers, selected responses, and feedback. A synchronous
   validated replay source now feeds the implemented Learner-model and Audit

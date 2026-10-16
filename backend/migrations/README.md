@@ -27,6 +27,15 @@ evidence is not reinterpreted. Development/test teardown removes practice
 tables before the knowledge-check stream; retained evidence is never described
 as safely down-migratable.
 
+`assessment_0003_practice_progress` adds server-revisioned mutable drafts,
+exact-scope transaction-lock rows, and stable attempt order. Existing attempts
+become order 1 while retained result and completion-event JSON stay unchanged.
+The former one-completion uniqueness constraint becomes an exact-scope/order
+constraint so the application can enforce the immutable definition's bounded
+retry policy under a row lock. Drafts are mutable work, not evidence. The down
+migration is for controlled development only and fails rather than deleting or
+collapsing retained evidence when a scope contains more than one attempt.
+
 The same Curriculum stream owns
 `curriculum_0002_discovery_projection`. It stores immutable catalog
 classifications separately from the replaceable singleton discovery generation
