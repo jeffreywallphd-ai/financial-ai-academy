@@ -21,10 +21,11 @@ only diffs. `--base-ref` selects lines changed from one exact Git revision.
 TSX source; it is not the everyday mode.
 
 Agent readiness invokes the ordinary changed-copy mode and forwards its exact
-`--base-ref` when present. The affected-check catalog selects this command for
-owned application TSX and checker/configuration changes only. CSS, generated
-clients, tests/fixtures, documentation, and unrelated code do not select the
-learner-language check.
+`--base-ref` when present. For exact-candidate verification, the affected-check
+catalog binds owned application TSX to the submitted packet base revision. A
+checker or rule change selects the direct test corpus and controlled full-scope
+qualification instead. CSS, generated clients, UI tests/fixtures, tool
+documentation, and unrelated code do not select a learner-copy check.
 
 Exit codes are:
 

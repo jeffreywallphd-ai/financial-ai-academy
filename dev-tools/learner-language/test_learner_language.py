@@ -114,6 +114,8 @@ return (
         self.assertIn("stale", errors[0])
 
     def test_path_scope_excludes_css_tests_and_generated_source(self) -> None:
+        self.assertTrue(CHECK.owned_path("apps/web/src/app/AppShell.tsx", self.configuration))
+        self.assertTrue(CHECK.owned_path("apps/web/src/components/StatusPanel.tsx", self.configuration))
         self.assertTrue(CHECK.owned_path("apps/web/src/features/example/Page.tsx", self.configuration))
         self.assertFalse(CHECK.owned_path("apps/web/src/features/example/page.css", self.configuration))
         self.assertFalse(CHECK.owned_path("apps/web/tests/component/example.test.tsx", self.configuration))

@@ -10,7 +10,7 @@ capability: CAP-0030
 depends_on: ["WRK-0079"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/agent/README.md", "dev-tools/agent/check_ready.py", "dev-tools/agent/test_check_ready.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "dev-tools/learner-language/README.md", "docs/assurance/architecture-verification.md", "docs/planning/work-packets/WRK-0082-integrate-learner-language-readiness.md", "docs/planning/vertical-slices/SLI-0125-sustain-plain-language-interface-quality.md", "docs/planning/register.md"]
+write_scope: ["dev-tools/agent/README.md", "dev-tools/agent/check_ready.py", "dev-tools/agent/test_check_ready.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "dev-tools/control-plane/verification.py", "dev-tools/learner-language/README.md", "dev-tools/learner-language/rules.json", "dev-tools/learner-language/test_learner_language.py", "docs/assurance/architecture-verification.md", "docs/planning/work-packets/WRK-0082-integrate-learner-language-readiness.md", "docs/planning/vertical-slices/SLI-0125-sustain-plain-language-interface-quality.md", "docs/planning/register.md"]
 generated_artifacts: []
 base_revision: b95fbc41dc0f23aa33b6348d4f836e1ca84bf1b4
 claim_id: WRK-0082:9c3f2f14-5045-4361-bbb3-c426c79e6d7f
@@ -62,8 +62,9 @@ catalog, selection tests, and checker tests.
   and CI profiles, forwarding `--base-ref` when supplied.
 - Add direct readiness-runner tests for command presence, base forwarding,
   local no-base behavior, profile parity, and absence of `--all`.
-- Add a `learner-language:changed` affected-check definition for the checker,
-  configuration, direct tests, and owned TSX source.
+- Add candidate-bound changed-copy selection for owned TSX, direct unit
+  selection for checker/configuration/test changes, and controlled full-scope
+  selection for checker or rule changes.
 - Add catalog tests proving owned TSX selection and non-selection for CSS,
   whitespace-only scope represented by non-TSX paths, generated source,
   fixtures, documentation, and unrelated implementation.
@@ -96,11 +97,14 @@ The readiness check is named `learner-language quality` and invokes
 command. Machine readiness output retains only the existing command result
 hashes, sizes, status, and duration.
 
-The affected-check catalog adds `learner-language:changed` with a fixed Python
-command and low risk. Its paths cover `dev-tools/learner-language/**` and owned
-non-generated application TSX source. CSS, tests/fixtures, generated clients,
-documentation, and unrelated code must not match this definition. The catalog
-remains selection authority only, not approval or proof of copy semantics.
+The affected-check catalog adds three fixed low-risk commands. The unit corpus
+covers checker, configuration, and test changes; controlled full scope covers
+checker or rule changes; and `learner-language:changed` binds owned non-
+generated application TSX to the exact submitted packet base revision through
+a validated control-plane argument placeholder. CSS, tests/fixtures, generated
+clients, documentation, and unrelated code must not match the changed-copy
+definition. The catalog remains selection authority only, not approval or proof
+of copy semantics.
 
 ## Dependencies and Parallel Safety
 
@@ -173,13 +177,15 @@ all approved acceptance criteria remain satisfied.
   learner-language check in local and CI profiles. An exact base revision is
   forwarded to both planning lifecycle validation and learner-language
   selection; everyday readiness never supplies `--all`.
-- Affected-check catalog v4 selects `learner-language:changed` for the checker,
-  rule configuration, and owned app/component/feature TSX only. Tests prove
-  CSS, generated clients, UI fixtures, documentation, and unrelated control-
-  plane source do not select it or aggregate readiness.
-- All 3 readiness-catalog tests, 14 checker tests, and 22 affected-verification
+- Affected-check catalog v4 selects candidate-bound changed-copy evidence for
+  owned app/component/feature TSX, direct unit evidence for checker/config/test
+  changes, and controlled full scope for checker or rule changes. Tests prove
+  CSS, generated clients, UI fixtures, tool documentation, and unrelated
+  control-plane source do not select a learner-language check or aggregate
+  readiness.
+- All 3 readiness-catalog tests, 14 checker tests, and 24 affected-verification
   tests pass; 2 platform-capability cases are skipped as designed. Controlled
-  full scope inspected 269 visible regions in 12 files with zero blocking and
+  full scope inspected 275 visible regions in 17 files with zero blocking and
   zero advisory findings.
 - Planning validated 160 artifacts, documentation validated 303 Markdown files
   plus catalogs, design validation checked 125 tokens and 56 icons, Python
@@ -213,3 +219,9 @@ all approved acceptance criteria remain satisfied.
 - 2026-10-16: Submitted the bounded implementation candidate after its focused
   and aggregate evidence passed. The packet is verifying against the complete
   ten-file scope declared at activation.
+- 2026-10-16: Bounded correction now binds changed-copy execution to the exact
+  submitted base revision, includes root app and shared-component TSX in owned
+  source, and routes tool documentation only to documentation validation.
+  Candidate-bound integration tests prove blocking copy fails while advisory
+  and whitespace-only descendants pass; direct and full-scope checks cover
+  checker or rule changes without escalating ordinary UI work.

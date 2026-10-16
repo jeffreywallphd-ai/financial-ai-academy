@@ -26,6 +26,8 @@ from store import StateStore, atomic_write, canonical_bytes, confined_path
 
 RISK_ORDER = {"low": 0, "medium": 1, "high": 2}
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
+BASE_REVISION_ARGUMENT = "{base_revision}"
+EXACT_REVISION = re.compile(r"^[0-9a-f]{40,64}$")
 
 
 def utc_timestamp() -> str:
@@ -99,7 +101,13 @@ def normalize_path(path: str) -> str:
     return value
 
 
-def select_checks(catalog: CheckCatalog, candidate: str, changed_paths: list[str]) -> dict[str, Any]:
+def select_checks(
+    catalog: CheckCatalog,
+    candidate: str,
+    changed_paths: list[str],
+    *,
+    base_revision: str | None = None,
+) -> dict[str, Any]:
     paths = sorted({normalize_path(path) for path in changed_paths})
     selected: list[dict[str, Any]] = []
     deferred: list[dict[str, Any]] = []
@@ -120,6 +128,7 @@ def select_checks(catalog: CheckCatalog, candidate: str, changed_paths: list[str
     plan_core = {
         "schema_version": "check-plan-v1",
         "candidate": candidate,
+        "base_revision": base_revision,
         "changed_paths": paths,
         "catalog_id": catalog.catalog_id,
         "catalog_digest": catalog.catalog_digest,
@@ -128,6 +137,20 @@ def select_checks(catalog: CheckCatalog, candidate: str, changed_paths: list[str
         "deferred": deferred,
     }
     return {**plan_core, "plan_digest": digest(plan_core)}
+
+
+def materialize_arguments(check: CheckDefinition, plan: dict[str, Any]) -> tuple[str, ...]:
+    if BASE_REVISION_ARGUMENT not in check.argv:
+        return check.argv
+    base_revision = plan.get("base_revision")
+    if not isinstance(base_revision, str) or not EXACT_REVISION.fullmatch(base_revision):
+        raise ControlError(
+            "verification.base-revision-required",
+            "This affected check requires an exact submitted base revision.",
+            {"check_id": check.check_id},
+            ["Regenerate the plan from the exact packet submission."],
+        )
+    return tuple(base_revision if value == BASE_REVISION_ARGUMENT else value for value in check.argv)
 
 
 def environment_fingerprint() -> dict[str, Any]:
@@ -208,9 +231,10 @@ def execute_plan(root: Path, catalog: CheckCatalog, plan: dict[str, Any], grant:
     for selected in plan["selected"]:
         capability.authorize(command_id=str(selected["check_id"]), effect="subprocess", paths=[str(value) for value in selected["matched_paths"]])
         check = catalog.by_id(selected["check_id"])
+        arguments = materialize_arguments(check, plan)
         started = time.perf_counter()
         try:
-            completed = subprocess.run(list(check.argv), cwd=root, check=False, capture_output=True, timeout=check.timeout_seconds)
+            completed = subprocess.run(list(arguments), cwd=root, check=False, capture_output=True, timeout=check.timeout_seconds)
             exit_code = completed.returncode
             stdout = completed.stdout
             stderr = completed.stderr
@@ -224,7 +248,7 @@ def execute_plan(root: Path, catalog: CheckCatalog, plan: dict[str, Any], grant:
         attempts.append(
             {
                 "check_id": check.check_id,
-                "argv": list(check.argv),
+                "argv": list(arguments),
                 "exit_code": exit_code,
                 "duration_ms": duration_ms,
                 "stdout_sha256": hashlib.sha256(stdout).hexdigest(),
@@ -291,12 +315,22 @@ class VerificationService:
 
     def plan(self, work_id: str) -> dict[str, Any]:
         envelope, submission, recovered = self._submission(work_id)
-        plan = select_checks(self.catalog, str(submission["candidate"]), list(submission["changed_paths"]))
+        plan = select_checks(
+            self.catalog,
+            str(submission["candidate"]),
+            list(submission["changed_paths"]),
+            base_revision=str(submission["base_revision"]),
+        )
         return success("verification.plan-created", f"Selected {len(plan['selected'])} affected check(s) for {work_id}.", revision=envelope["revision"], data={"work_id": work_id, "plan": plan, "transaction_recovered": recovered})
 
     def verify(self, work_id: str) -> dict[str, Any]:
         envelope, submission, recovered = self._submission(work_id)
-        plan = select_checks(self.catalog, str(submission["candidate"]), list(submission["changed_paths"]))
+        plan = select_checks(
+            self.catalog,
+            str(submission["candidate"]),
+            list(submission["changed_paths"]),
+            base_revision=str(submission["base_revision"]),
+        )
         capability = grant_for_plan(plan)
         attempts = execute_plan(self.root, self.catalog, plan, capability)
         stability_errors: list[str] = []

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -14,6 +15,8 @@ from typing import Any
 from unittest import mock
 
 HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+TEST_TEMP_ROOT = ROOT / ".local-codex" / "t"
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
@@ -27,6 +30,7 @@ from check_approved_lesson import (  # noqa: E402
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
+    BASE_REVISION_ARGUMENT,
     CheckCatalog,
     CheckDefinition,
     ReceiptStore,
@@ -181,8 +185,18 @@ class SelectionTests(unittest.TestCase):
             ["dev-tools/learner-language/rules.json"],
         )
         self.assertEqual(
-            ["learner-language:changed"],
+            ["learner-language:unit", "learner-language:full"],
             [item["check_id"] for item in checker["selected"]],
+        )
+
+        tests = select_checks(
+            repository_catalog(),
+            "a" * 40,
+            ["dev-tools/learner-language/test_learner_language.py"],
+        )
+        self.assertEqual(
+            ["learner-language:unit"],
+            [item["check_id"] for item in tests["selected"]],
         )
 
     def test_non_copy_paths_do_not_select_learner_language(self) -> None:
@@ -190,6 +204,7 @@ class SelectionTests(unittest.TestCase):
             "apps/web/src/styles/lesson.css",
             "apps/web/src/generated/api-client/Page.tsx",
             "apps/web/tests/component/lesson.test.tsx",
+            "dev-tools/learner-language/README.md",
             "docs/design/style-guide.md",
             "dev-tools/control-plane/engine.py",
         )
@@ -198,7 +213,118 @@ class SelectionTests(unittest.TestCase):
                 plan = select_checks(repository_catalog(), "a" * 40, [path])
                 selected = {item["check_id"] for item in plan["selected"]}
                 self.assertNotIn("learner-language:changed", selected)
+                self.assertNotIn("learner-language:unit", selected)
+                self.assertNotIn("learner-language:full", selected)
                 self.assertNotIn("agent:readiness", selected)
+
+    def test_candidate_bound_language_check_inspects_clean_committed_diff(self) -> None:
+        TEST_TEMP_ROOT.mkdir(parents=True, exist_ok=True)
+        cases = {
+            "blocking": ("export const Page = () => <h1>Topic slug</h1>;\n", 1),
+            "advisory": ("export const Page = () => <p>UTILIZE this learning path.</p>;\n", 0),
+            "whitespace": ("export const Page = () =>   <h1>Learning path</h1>;\n", 0),
+        }
+        for name, (changed_source, expected_exit) in cases.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory(
+                prefix="candidate-language-", dir=TEST_TEMP_ROOT
+            ) as directory:
+                root = Path(directory)
+                (root / "docs").mkdir()
+                tool = root / "dev-tools" / "learner-language"
+                tool.mkdir(parents=True)
+                shutil.copy2(ROOT / "dev-tools/learner-language/rules.json", tool / "rules.json")
+                page = root / "apps" / "web" / "src" / "components" / "StatusPanel.tsx"
+                page.parent.mkdir(parents=True)
+                page.write_text(
+                    "export const Page = () => <h1>Learning path</h1>;\n",
+                    encoding="utf-8",
+                )
+                for arguments in (
+                    ("init", "-q"),
+                    ("config", "user.name", "Candidate Language Tests"),
+                    ("config", "user.email", "tests@example.invalid"),
+                    ("add", "."),
+                    ("commit", "-q", "-m", "baseline"),
+                ):
+                    subprocess.run(["git", *arguments], cwd=root, check=True, capture_output=True)
+                base = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    cwd=root,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout.strip()
+                page.write_text(changed_source, encoding="utf-8")
+                subprocess.run(["git", "add", "."], cwd=root, check=True, capture_output=True)
+                subprocess.run(
+                    ["git", "commit", "-q", "-m", name],
+                    cwd=root,
+                    check=True,
+                    capture_output=True,
+                )
+                candidate = subprocess.run(
+                    ["git", "rev-parse", "HEAD"],
+                    cwd=root,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout.strip()
+                catalog = CheckCatalog(
+                    "candidate-language-v1",
+                    (
+                        CheckDefinition(
+                            "learner-language:changed",
+                            (
+                                sys.executable,
+                                str(ROOT / "dev-tools/learner-language/check_learner_language.py"),
+                                "--root",
+                                ".",
+                                "--base-ref",
+                                BASE_REVISION_ARGUMENT,
+                            ),
+                            ("apps/web/src/components/*.tsx",),
+                            "low",
+                            1,
+                        ),
+                    ),
+                )
+                plan = select_checks(
+                    catalog,
+                    candidate,
+                    ["apps/web/src/components/StatusPanel.tsx"],
+                    base_revision=base,
+                )
+                attempt = execute_plan(root, catalog, plan)[0]
+                self.assertEqual(expected_exit, attempt["exit_code"])
+                self.assertEqual(base, attempt["argv"][-1])
+
+    def test_bound_check_refuses_missing_or_nonexact_base_revision(self) -> None:
+        catalog = CheckCatalog(
+            "bound-argument-v1",
+            (
+                CheckDefinition(
+                    "bound:fixture",
+                    (sys.executable, "-c", "print('not reached')", BASE_REVISION_ARGUMENT),
+                    ("docs/**",),
+                    "low",
+                    1,
+                ),
+            ),
+        )
+        for base_revision in (None, "HEAD", "abc123"):
+            with self.subTest(base_revision=base_revision):
+                plan = select_checks(
+                    catalog,
+                    "a" * 40,
+                    ["docs/README.md"],
+                    base_revision=base_revision,
+                )
+                with self.assertRaises(ControlError) as refused:
+                    execute_plan(ROOT, catalog, plan)
+                self.assertEqual(
+                    "verification.base-revision-required",
+                    refused.exception.code,
+                )
 
     def test_repository_path_classes_select_precise_behavior_checks(self) -> None:
         cases = {
@@ -661,7 +787,11 @@ class VerificationServiceTests(unittest.TestCase):
             "revision": 2,
             "state": "submitted",
             "claim": {"base_revision": "0" * 40},
-            "submission": {"candidate": "a" * 40, "changed_paths": ["docs/README.md"]},
+            "submission": {
+                "base_revision": "0" * 40,
+                "candidate": "a" * 40,
+                "changed_paths": ["docs/README.md"],
+            },
             "history": [],
         }
         atomic_write(state.state_path, canonical_bytes(envelope))

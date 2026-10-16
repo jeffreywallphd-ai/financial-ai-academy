@@ -1,8 +1,11 @@
 {
   "schema_version": "learner-language-rules-v1",
   "include": [
+    "apps/web/src/app/*.tsx",
     "apps/web/src/app/**/*.tsx",
+    "apps/web/src/components/*.tsx",
     "apps/web/src/components/**/*.tsx",
+    "apps/web/src/features/*.tsx",
     "apps/web/src/features/**/*.tsx"
   ],
   "exclude": [

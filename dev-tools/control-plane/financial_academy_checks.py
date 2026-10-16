@@ -89,20 +89,25 @@ def catalog() -> CheckCatalog:
         *local_script_paths,
         *live_runtime_paths,
     )
-    documentation_paths = (
-        "apps/web/README.md",
-        "deployments/local/README.md",
-        "dev-tools/control-plane/README.md",
-        *roadmap_document_paths,
+    learner_language_tool_paths = (
+        "dev-tools/learner-language/check_learner_language.py",
+        "dev-tools/learner-language/rules.json",
+        "dev-tools/learner-language/test_learner_language.py",
     )
-    learner_language_paths = (
-        "dev-tools/learner-language/**",
+    learner_language_owned_paths = (
         "apps/web/src/app/*.tsx",
         "apps/web/src/app/**/*.tsx",
         "apps/web/src/components/*.tsx",
         "apps/web/src/components/**/*.tsx",
         "apps/web/src/features/*.tsx",
         "apps/web/src/features/**/*.tsx",
+    )
+    documentation_paths = (
+        "apps/web/README.md",
+        "deployments/local/README.md",
+        "dev-tools/control-plane/README.md",
+        "dev-tools/learner-language/README.md",
+        *roadmap_document_paths,
     )
     return CheckCatalog(
         "financial-ai-academy-v4",
@@ -112,7 +117,9 @@ def catalog() -> CheckCatalog:
             CheckDefinition("planning:tools", (python, "dev-tools/planning/test_planning_tools.py"), ("dev-tools/planning/**", "docs/planning/**"), "medium", 20, description="Planning-tool behavior"),
             CheckDefinition("planning:integrity", (python, "dev-tools/planning/check_planning.py"), ("dev-tools/planning/**", "docs/planning/**"), "low", 30, description="Planning artifact integrity"),
             CheckDefinition("documentation:integrity", (python, "dev-tools/documentation/check_docs.py"), ("docs/**", "AGENTS.md", *documentation_paths), "low", 40, description="Documentation and context integrity"),
-            CheckDefinition("learner-language:changed", (python, "dev-tools/learner-language/check_learner_language.py"), learner_language_paths, "low", 42, description="Changed learner-facing copy and bounded language-check configuration"),
+            CheckDefinition("learner-language:unit", (python, "dev-tools/learner-language/test_learner_language.py"), learner_language_tool_paths, "low", 41, description="Learner-language checker, configuration, and anti-rigidity behavior"),
+            CheckDefinition("learner-language:full", (python, "dev-tools/learner-language/check_learner_language.py", "--all"), learner_language_tool_paths[:2], "low", 42, description="Controlled full-scope qualification after checker or rule changes"),
+            CheckDefinition("learner-language:changed", (python, "dev-tools/learner-language/check_learner_language.py", "--base-ref", "{base_revision}"), learner_language_owned_paths, "low", 43, description="Candidate-bound changed learner-facing copy"),
             CheckDefinition("roadmap-review:qualification", (python, "dev-tools/roadmap-review-site/test_qualification.py"), roadmap_qualification_paths, "medium", 45, description="Roadmap review projection and site contract"),
             CheckDefinition("roadmap-review:server", (*web_check, "--mode", "roadmap-server"), roadmap_server_paths, "medium", 46, description="Roadmap review read-only server behavior"),
             CheckDefinition("roadmap-review:typecheck", (*web_check, "--mode", "roadmap-typecheck"), roadmap_source_paths, "medium", 47, description="Roadmap review TypeScript boundary"),
