@@ -14,7 +14,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | CAP-0003 | Capability | [Plan and Orchestrate Capability Portfolios](capabilities/CAP-0003-plan-and-orchestrate-capability-portfolios.md) | complete | none | CAP-0002 | none | codex-cap-0003 | 2026-10-15 |
 | CAP-0004 | Capability | [Discover Learning Opportunities](capabilities/CAP-0004-discover-learning-opportunities.md) | complete | none | CAP-0001 | none | unassigned | 2026-10-15 |
 | CAP-0005 | Capability | [Navigate a Competency-Based Curriculum](capabilities/CAP-0005-navigate-competency-based-curriculum.md) | complete | none | CAP-0001 | none | codex-cap-0005 | 2026-10-16 |
-| CAP-0006 | Capability | [Practice and Demonstrate Understanding](capabilities/CAP-0006-practice-and-demonstrate-understanding.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
+| CAP-0006 | Capability | [Practice and Demonstrate Understanding](capabilities/CAP-0006-practice-and-demonstrate-understanding.md) | active | none | CAP-0001 | none | codex-cap-0006 | 2026-10-16 |
 | CAP-0007 | Capability | [Complete Applied Projects](capabilities/CAP-0007-complete-applied-projects.md) | ready | none | CAP-0005, CAP-0006 | resolved by ADR-0011 and ADR-0012 | unassigned | 2026-10-15 |
 | CAP-0008 | Capability | [Review Capability Delivery Roadmaps](capabilities/CAP-0008-review-capability-delivery-roadmaps.md) | complete | none | CAP-0003 | none | codex-roadmap-review | 2026-10-15 |
 | CAP-0009 | Capability | [Track Progress and Competency Evidence](capabilities/CAP-0009-track-progress-and-competency-evidence.md) | shaping | none | CAP-0001, CAP-0006 | DEC-0009 | unassigned | 2026-10-15 |

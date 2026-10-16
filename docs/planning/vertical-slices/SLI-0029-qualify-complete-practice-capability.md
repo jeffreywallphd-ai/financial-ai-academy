@@ -176,7 +176,7 @@ keys, private evaluator declarations, storage details, or raw diagnostics.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0108 | Run the cumulative capability matrix, close only directly observed acceptance gaps, reconcile the evidence map and known gaps, and deterministically close SLI-0029 and CAP-0006 | SLI-0028 | none | ready |
+| WRK-0108 | Run the cumulative capability matrix, close only directly observed acceptance gaps, reconcile the evidence map and known gaps, and deterministically close SLI-0029 and CAP-0006 | SLI-0028 | none | active |
 
 The packet is authored immediately before activation. If qualification finds a
 material product defect, WRK-0108 stops and a new bounded correction packet is
@@ -238,6 +238,30 @@ The final evidence must state that public APIs remain directly usable by future
 headless and AI consumers while no separate AI mode, agent protocol, autonomous
 authority, provider, cloud profile, or external execution was planned or added.
 
+### Qualification Result
+
+Every SLI-0029 acceptance scenario has direct passing evidence. The cumulative
+focused backend matrix passes 218 contract, deterministic-core, and protected-
+API checks. The unchanged WRK-0107 real-PostgreSQL matrix passes 220 checks, and
+its isolated live PostgreSQL/Python/public-API/headless/Chromium qualification
+passes ten scenarios at exact candidate `5706f9a94df400e2858bd524a1557062d9e01d41`.
+The approved-lesson harness passes 39 tests plus four parameterized subtests.
+
+The web matrix passes 210 tests across 15 files; TypeScript typecheck, lint,
+reviewed generated-client reproduction, production build, and 11 focused
+Chromium practice journeys pass. Architecture passes 16 tests, security passes
+10 control groups, and learner-language, design, documentation, planning,
+whitespace, and all 29 aggregate readiness checks pass. The exact supported
+practice API remains authoritative for both generated browser traffic and
+ordinary authenticated non-browser HTTP; no duplicate headless core exists.
+
+No product source, contract, API, schema, migration, generated client, UI,
+provider, deployment composition, or harness changed in this qualification
+packet. The architecture-verification and known-gap maps remain truthful as
+written. Managed-cloud behavior, tenancy, providers, background delivery,
+model grading, adaptive/mastery authority, arbitrary execution, a separate AI
+mode, and autonomous action remain explicitly unqualified.
+
 ## Planning History
 
 - 2026-10-16: Refined the final CAP-0006 manifest increment after SLI-0026
@@ -248,3 +272,6 @@ authority, provider, cloud profile, or external execution was planned or added.
 - 2026-10-16: Activated WRK-0108 after validating current CAP membership,
   completed dependencies, decision readiness, the documentation-only write
   scope, implementation gate, and collision-free ownership.
+- 2026-10-16: The cumulative SLI-0029 matrix passed with no product or harness
+  defect. The slice has one documentation-only exact candidate ready for
+  submission before deterministic completion.

@@ -1,10 +1,10 @@
 ---
 id: CAP-0006
 kind: capability
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
-updated: 2026-10-15
+owner: codex-cap-0006
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0001"]
 decision_gates: []
@@ -167,9 +167,50 @@ persistence and replay rules, API/generated-client behavior, accessible practice
 patterns, security/recovery evidence, module READMEs, verification maps, and
 known gaps.
 
+## Completion Evidence
+
+| Capability acceptance | Direct evidence |
+| --- | --- |
+| Supported items and responses have versioned contracts, deterministic scoring, compatibility, and denials | 130 executable contract/compatibility checks plus 58 deterministic domain/application checks cover the closed response families and malformed or unsupported cases |
+| Learners see exact purpose, policy, response requirements, versions, and approved sources before submission | Generated-client/component coverage, 11 focused Chromium journeys, and the unchanged isolated ten-scenario live qualification |
+| Valid results are reproducible and invalid, stale, duplicate, replayed, or unauthorized work creates no contradictory evidence | 30 protected API checks, the 220-check real-PostgreSQL matrix, security's 10 control groups, and live denial/conflict scenarios |
+| Interruption and retry preserve prior attempts, state, idempotency, and exact versions | Draft/retry/history application and PostgreSQL coverage plus focused save/resume, retry, session-renewal, and retained-history Chromium scenarios |
+| Targeted review is deterministic and does not claim recommendation, mastery, or advice authority | Review-selection contract/application/browser coverage and learner-language qualification |
+| Learner-model history rebuilds from Assessment evidence without mutating the source; Audit stays integrity-only | Real-PostgreSQL replay, source-preservation, interrupted-rebuild, rollback, and module-ownership checks |
+| Local and future cloud adapters can share API/core semantics without a deployment fork | Sixteen architecture checks, reviewed OpenAPI/generated-client reproduction, and the live browser plus ordinary authenticated non-browser HTTP observation |
+| Practice, feedback, review, retry, and history preserve accessible equivalent meaning | 210 web tests, 11 focused Chromium journeys, live Chromium qualification, and design validation of 125 tokens and 56 reviewed icons |
+
+The cumulative matrix also passes 39 approved-lesson harness tests plus four
+parameterized subtests, TypeScript typecheck, zero-warning lint, a 117-module
+production build, documentation and planning integrity, whitespace integrity,
+and all 29 fixed aggregate readiness checks. WRK-0107's exact qualifying
+receipt has digest
+`sha256:8283dd42cbb16b2901790a339270d078b0268fd9abf5c09083efdafa8d769270`.
+
+The public practice and session APIs remain directly usable by browser,
+command-line, service, and future headless AI clients. The browser consumes the
+generated public client and the live non-browser observer uses ordinary
+authenticated HTTP; neither uses backend internals or owns identity, grading,
+retry, evidence, completion, or history policy. CAP-0006 does not plan or
+qualify a separate AI mode, autonomous action, adaptive/mastery authority,
+managed-cloud profile, external provider, background delivery, or arbitrary
+execution.
+
+WRK-0108 changed only planning and qualification records. Product contracts,
+schemas, migrations, APIs, generated clients, interface behavior, provider
+ports, and the existing architecture-verification and known-gap maps remain
+compatible and unchanged. Windows sandbox temp and symlink restrictions were
+rerun with the bounded workspace temp directory and prepared runtime; no
+product defect was found.
+
 ## Planning History
 
 - 2026-10-15: Shaped from the catalog candidate “Practice and demonstrate
   understanding” as a complete `cap-package-v1` manifest. It depends only on
   CAP-0001 and may proceed in parallel with CAP-0004 and CAP-0005 after that
   foundation is complete, subject to just-in-time file-scope compatibility.
+- 2026-10-16: Completed the cumulative CAP-0006 qualification matrix through
+  WRK-0108. Every acceptance statement has direct focused, database, API,
+  browser, headless, architecture, security, accessibility, or recovery-bound
+  evidence; the documentation-only candidate is ready for exact-revision
+  submission before deterministic slice and capability closure.
