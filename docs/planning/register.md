@@ -172,6 +172,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0100 | Work packet | [Qualify Live Practice Submission](work-packets/WRK-0100-qualify-live-practice-submission.md) | complete | SLI-0027 | WRK-0099 | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0101 | Work packet | [Review Capability Decisions](work-packets/WRK-0101-review-capability-decisions.md) | complete | SLI-0036 | WRK-0026, WRK-0084 | none | codex-roadmap-decision-review | 2026-10-16 |
 | WRK-0102 | Work packet | [Freeze Practice Resume, Retry, and History Contracts](work-packets/WRK-0102-freeze-practice-resume-retry-history-contracts.md) | complete | SLI-0028 | none | none | codex-cap-0006 | 2026-10-16 |
+| WRK-0103 | Work packet | [Implement Practice Draft and Retry Persistence](work-packets/WRK-0103-implement-practice-draft-retry-persistence.md) | active | SLI-0028 | WRK-0102 | none | codex-cap-0006 | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

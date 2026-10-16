@@ -222,7 +222,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0102 | Freeze draft/retry/history/review-target contracts, deterministic policy and projection rules, and anti-rigidity corpora | SLI-0027 | none | complete |
-| JIT-B | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | JIT-A | none | captured |
+| WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | active |
 | JIT-C | Implement Curriculum review-target resolution, Learner-model history rebuild/persistence, protected composed API, OpenAPI, and generated client | JIT-B | none | captured |
 | JIT-D | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-C | none | captured |
 | JIT-E | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-D | none | captured |
