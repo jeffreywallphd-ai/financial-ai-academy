@@ -201,17 +201,10 @@ PRACTICE_DENIAL_ROOT_KEYS = frozenset(
 )
 PRACTICE_DENIAL_PRIVATE_FRAGMENTS = frozenset(
     {
-        "answer",
         "assessment.",
-        "authorization",
-        "bearer",
-        "cookie",
-        "credential",
-        "database",
         "entered_value",
         "evaluator",
         "learner_id",
-        "password",
         "postgres",
         "practice_attempts",
         "practice_drafts",
@@ -221,9 +214,7 @@ PRACTICE_DENIAL_PRIVATE_FRAGMENTS = frozenset(
         "selected_option_id",
         "sql",
         "stack trace",
-        "storage",
         "submission_id",
-        "token",
         "traceback",
     }
 )
@@ -1471,6 +1462,16 @@ def _assert_safe_practice_denial(
     )
     if private_path.search(message):
         raise RuntimeError("Practice denial exposed a private path or stack detail.")
+    credential_value = re.compile(
+        r"\b(?:authorization|bearer|cookie|credential|password|token)\b\s*[:=]",
+        re.I,
+    )
+    sql_detail = re.compile(
+        r"\b(?:delete\s+from|insert\s+into|select\s+.+\s+from|update\s+.+\s+set)\b",
+        re.I,
+    )
+    if credential_value.search(message) or sql_detail.search(message):
+        raise RuntimeError("Practice denial exposed private or diagnostic detail.")
 
 
 def observe_headless_practice_submission(

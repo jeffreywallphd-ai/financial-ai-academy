@@ -812,6 +812,15 @@ def test_practice_denial_is_closed_and_rejects_private_values() -> None:
         expected_status=409,
         expected_code="conflict",
     )
+    benign_wording = safe | {
+        "message": "Your answer was not saved. Authorization is required."
+    }
+    runner._assert_safe_practice_denial(
+        409,
+        benign_wording,
+        expected_status=409,
+        expected_code="conflict",
+    )
 
     leaked = safe | {
         "message": (
