@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timezone
 
 import pytest
@@ -181,3 +182,28 @@ def test_exact_identity_conflict_and_unsafe_title_fail_closed() -> None:
         )
     assert unsafe.value.code is PracticeReviewErrorCode.INVALID_RECORD
     assert "private" not in str(unsafe.value.as_dict())
+
+
+@pytest.mark.parametrize(
+    "target",
+    (
+        replace(available_target(), state="bogus"),  # type: ignore[arg-type]
+        replace(
+            available_target(),
+            state=PracticeReviewState.UNAVAILABLE,
+            destination=None,
+            unavailable_reason="bogus",  # type: ignore[arg-type]
+        ),
+    ),
+)
+def test_forged_review_state_or_reason_fails_closed(
+    target: PracticeReviewTarget,
+) -> None:
+    service = CurriculumService(Repository(), object())  # type: ignore[arg-type]
+
+    with pytest.raises(PracticeReviewError) as invalid:
+        service.register_practice_review_target(
+            RegisterPracticeReviewTargetRequest(target)
+        )
+
+    assert invalid.value.code is PracticeReviewErrorCode.INVALID_RECORD

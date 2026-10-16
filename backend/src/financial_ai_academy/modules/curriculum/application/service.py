@@ -1293,6 +1293,12 @@ class CurriculumService:
                 resource_title=target.resource_title,
             )
         )
+        if not isinstance(target.state, PracticeReviewState):
+            raise cls._practice_review_error(
+                PracticeReviewErrorCode.INVALID_RECORD,
+                "Practice review target is invalid.",
+                reference=target.resource_id,
+            )
         if (
             target.schema_version != "1.0.0"
             or not _PLACEMENT_ID.fullmatch(target.practice_placement_id)
@@ -1310,7 +1316,10 @@ class CurriculumService:
                 target.state is PracticeReviewState.UNAVAILABLE
                 and (
                     target.destination is not None
-                    or target.unavailable_reason is None
+                    or not isinstance(
+                        target.unavailable_reason,
+                        PracticeReviewUnavailableReason,
+                    )
                 )
             )
         ):
