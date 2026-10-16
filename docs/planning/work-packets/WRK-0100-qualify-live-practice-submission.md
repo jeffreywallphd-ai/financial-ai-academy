@@ -1,7 +1,7 @@
 ---
 id: WRK-0100
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -228,3 +228,9 @@ external execution was added. Leave SLI-0027 ready for deterministic closure.
 - 2026-10-16: Submitted exact candidate `7869614` for fresh affected
   verification and independent technical review. Lifecycle-only planning
   changes after this point do not alter that candidate.
+- 2026-10-16: Completed at exact candidate `7869614`. The fresh eight-check
+  affected-verification receipt qualified with authoritative digest
+  `sha256:f99ffe498e0bf036eb722d19948fcfd9876e85f5e3b4f18d72598925ce983cc5`,
+  and independent review R01 accepted the candidate with no findings. The live
+  browser and non-browser clients share the public API, while separate AI-mode
+  planning and autonomous authority remain out of scope.

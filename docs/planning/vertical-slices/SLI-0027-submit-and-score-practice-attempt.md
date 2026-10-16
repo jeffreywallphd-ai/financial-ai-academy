@@ -1,7 +1,7 @@
 ---
 id: SLI-0027
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -253,6 +253,53 @@ assumptions, residual gaps, and CAP-conformance assessment. It must state that a
 future headless AI consumer can reuse the public API while no separate AI mode
 or autonomous authority was planned or implemented.
 
+Completion evidence:
+
+- Delivered outcome and boundaries: WRK-0096 through WRK-0100 freeze the
+  request/result/event contracts and deterministic scorer, compose the
+  transport-neutral Assessment operation and atomic append-only PostgreSQL
+  aggregate, expose the protected public POST and generated client, deliver
+  the accessible browser flow, and qualify browser/non-browser parity across a
+  normal restart. All five packets are complete and linked above.
+- Acceptance evidence: contract/domain/application tests cover closed inputs,
+  canonical request identity, deterministic scoring, exact replay, conflict,
+  attempt limits, failures, and confidentiality; real PostgreSQL covers
+  atomicity, uniqueness, concurrency, rollback, restart, outbox correlation,
+  and unchanged knowledge-check behavior; API, component, Chromium, and live
+  checks cover authorization, malformed and stale input, generated-client use,
+  focus/live-region behavior, keyboard/reflow/media/theme parity, and all three
+  response types.
+- Exact cumulative results: 138 Assessment contract/unit tests, 14 isolated
+  PostgreSQL integration tests, 27 protected API integration tests, and 202 web
+  unit/component/contract tests passed. OpenAPI and generated-client snapshots
+  are current; TypeScript typecheck, lint, static build, architecture, ten
+  security control groups, learner-language, design-system, five packet
+  validators, documentation, planning, whitespace, and the 29-check aggregate
+  readiness gate passed. The isolated live qualification passed all ten
+  PostgreSQL/Python/headless/Chromium scenarios.
+- Exact candidate evidence: WRK-0100 candidate `7869614` has a fresh,
+  post-run-stable qualifying receipt with authoritative digest
+  `sha256:f99ffe498e0bf036eb722d19948fcfd9876e85f5e3b4f18d72598925ce983cc5`;
+  independent R01 review accepted it with no findings. Earlier packet
+  candidates and receipts remain recorded in their packet histories.
+- Compatibility and recovery: public schemas and generated clients remain
+  versioned and reproducible. The Assessment migration is additive; rollback
+  is destructive only before accepted evidence, while accepted evidence is
+  preserved through route rollback or a later governed migration. Live
+  restart ran without reseeding and returned the original result with unchanged
+  retained counts. No backup/restore or managed-cloud recovery claim is made.
+- Documentation and gaps: Assessment, API, web, deployment, contract,
+  persistence, architecture-verification, and known-gap guidance are current.
+  External managed-cloud profiles, non-Chromium engines, outbox delivery
+  consumers, retries/history/resume, mastery/adaptation, provider behavior, and
+  a separate AI mode remain unqualified or deliberately deferred to later
+  slices/capabilities.
+- Assumptions and conformance: one supported learner, one approved three-item
+  practice, PostgreSQL 18.4, loopback Python hosting, and the reviewed Chromium
+  path bound this evidence. The result conforms to the approved CAP-0006
+  package and ADR authority, creates no new durable decision, and needs no
+  lower-level completion approval.
+
 ## Planning History
 
 - 2026-10-16: Refined the second approved CAP-0006 manifest increment after
@@ -365,3 +412,12 @@ or autonomous authority was planned or implemented.
   confidentiality, accessibility, and unchanged results across a normal host
   restart without reseeding. No product contract, scoring policy, migration,
   separate AI mode, or autonomous authority changed.
+- 2026-10-16: WRK-0100 completed after its exact candidate received a fresh
+  qualifying affected-verification receipt and independent R01 acceptance with
+  no findings. All five SLI-0027 packets are complete; the slice entered
+  deterministic completion verification without requesting another approval.
+- 2026-10-16: Completed SLI-0027 after the structural completion gate, all
+  cumulative focused checks, real-PostgreSQL integration, live qualification,
+  packet validation, documentation/planning reconciliation, and aggregate
+  readiness passed. The slice stays within CAP-0006 and leaves SLI-0028 retry,
+  resume, history, and review routing as the next manifest increment.
