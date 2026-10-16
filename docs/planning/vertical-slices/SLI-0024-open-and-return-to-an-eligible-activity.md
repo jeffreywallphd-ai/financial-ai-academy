@@ -207,6 +207,7 @@ their work begins. The dependency-ordered seams are:
 | WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | complete |
 | WRK-0087 | Add learner actions, validated return context, and equivalent list/map current-position presentation | WRK-0086 | none | complete |
 | WRK-0088 | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | WRK-0087 | none | complete |
+| WRK-0089 | Select the prepared backend Python for portable exact-candidate live verification | WRK-0088 | none | ready |
 
 ## Verification and Qualification
 
@@ -336,3 +337,8 @@ and durable-state authority did not change.
   exact completion reuse, and changed-placement isolation without changing
   ordinary startup or adding product authority. The clean-host verifier Python
   selection is bounded successor maintenance before slice closure.
+- 2026-10-16: Refined JIT-E as WRK-0089 around explicit/prepared/fallback
+  Python selection, child propagation, exact live-runner invocation, regression
+  coverage, and accurate operator guidance. The correction stays inside the
+  approved qualification seam, changes no product API or learning behavior,
+  and requires no decision or lower-level approval.
