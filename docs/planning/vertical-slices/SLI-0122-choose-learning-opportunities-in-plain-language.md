@@ -1,7 +1,7 @@
 ---
 id: SLI-0122
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -181,13 +181,55 @@ material CAP-0030 drift.
 
 ## Documentation Impact and Completion Evidence
 
-Create the learner-facing language standard and content style guide, link them
-from the relevant agent, interface, context-routing, change-impact, and
-planning guidance, and update web-feature documentation where delivered terms
-are named. Completion evidence records each revised interaction, retained
-technical fact, unchanged behavior boundary, focused test result, accessibility
-and theme result, anti-rigidity evidence, assumptions, and known gaps without
-copying approval or reviewer records into tracked files.
+### Delivered outcome and affected boundaries
+
+- WRK-0068 established the normative learner-facing language standard, content
+  style guide, preferred-term map, progressive-disclosure boundary, and
+  proportionate review guidance.
+- WRK-0069 and WRK-0071 applied that contract to catalog filters/cards, detail,
+  comparison, loading, bounded failures, and safe actions. WRK-0072 qualified
+  the complete browser flow and preserved exact technical records.
+- The learner can find, filter, inspect, compare, and open current learning
+  opportunities using task-focused words. Planned or unavailable work remains
+  visible but non-executable; denied or invalid states remain fail-closed.
+- Public API, generated-client, domain, query, ordering, selection,
+  authorization, availability, exact-placement, provenance, persistence,
+  financial-risk, and session semantics are unchanged. No schema or data
+  migration exists.
+
+### Acceptance and verification evidence
+
+- All eight slice acceptance scenarios are covered across focused component
+  and browser evidence: topic filtering, detail, technical disclosure,
+  comparison, changed selection, session/failure handling, flexible catalog
+  shapes, and theme/access parity.
+- Focused component qualification passed 40 catalog/detail/comparison tests.
+  Pinned Chromium passed all 14 learning-catalog scenarios, including light,
+  dark, and system themes; axe analysis; keyboard focus; forced colors; reduced
+  motion; narrow layout; 200-percent text; denied, changed, malformed, and
+  invalid records; learner order; no-ranking meaning; and safe actions.
+- Browser evidence opens `Technical record` and verifies generation, schema,
+  IDs, kind-sensitive versions, exact packages, digests, and fingerprints for
+  the selected records. Assertions remain scoped to roles, actions, required
+  facts, and selected records rather than full prose or a fixed catalog size.
+- TypeScript type checking, lint, production build, design-system integrity,
+  planning integrity, documentation integrity, Git whitespace, exact-candidate
+  affected verification, and all 27 aggregate readiness checks passed. The
+  deterministic completion structure passed for SLI-0122 and WRK-0068,
+  WRK-0069, WRK-0071, and WRK-0072.
+
+### Documentation, assumptions, and residual risk
+
+- The language standard, content style guide, agent/interface/context/change-
+  impact/planning routes, and web-feature README describe the delivered terms
+  and technical-record pattern. Canonical product/domain/risk meaning required
+  no change.
+- Qualification uses the accepted pinned-Chromium and mocked API/session
+  browser profile. Cross-browser, live database/API, multi-profile, model,
+  mastery, recommendation, and cloud qualification are outside this slice.
+- No material CAP-0030 drift or unresolved decision gate was found.
+  Nonfunctional visual-polish preferences remain nonblocking and may be
+  addressed by CAP-0031 or pulled forward by explicit user request.
 
 ## Planning History
 
@@ -233,3 +275,7 @@ copying approval or reviewer records into tracked files.
   discovery flow, exact progressive-disclosure facts, task-focused actions,
   fail-closed states, theme and access modes, and anti-rigid selected-record
   assertions. The slice moved to deterministic verification.
+- 2026-10-16: Closed SLI-0122 after all four packets completed, the structural
+  completion gate passed, focused component and Chromium qualification passed,
+  affected verification remained exact and qualifying, and aggregate readiness
+  passed. No lower-level completion approval was requested.
