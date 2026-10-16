@@ -1,7 +1,7 @@
 ---
 id: WRK-0062
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -233,3 +233,8 @@ packet dependency-ready, or return a bounded blocker with no partial claim.
   composition or presentation work, stays inside the approved CAP-0005
   outcome and non-goals, and requires direct flexibility tests for every
   compatible graph variation named by the slice.
+- 2026-10-16: Submitted exact candidate 58947c0 after the focused contract,
+  policy, and architecture suites, the complete backend suite, documentation
+  and architecture checks, and all aggregate readiness gates passed. The
+  packet is verifying pending exact-candidate control-plane evidence and
+  independent review.
