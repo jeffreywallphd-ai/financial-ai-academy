@@ -99,7 +99,7 @@ with repository-relative source and the projection source fingerprint.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0026 | Enrich the generic hierarchy and deliver safe dynamic candidate/CAP/slice/work detail routes, renderers, tests, and guidance | WRK-0025 | none | complete |
-| WRK-0101 | Add dynamically projected decision status links to CAP/SLI/WRK views and safe DEC detail routes | WRK-0026, WRK-0084 | none | verifying |
+| WRK-0101 | Add dynamically projected decision status links to CAP/SLI/WRK views and safe DEC detail routes | WRK-0026, WRK-0084 | none | active |
 
 ## Verification and Qualification
 
@@ -164,3 +164,7 @@ the slice conforms to CAP-0008.
 - 2026-10-16: WRK-0101 entered verification after its dynamic decision
   projection, inherited links, detail routes, privacy boundary, and focused
   interface evidence passed affected and aggregate checks.
+- 2026-10-16: Returned WRK-0101 through the supported release/reclaim path with
+  its original base revision so the control plane can bind the exact clean Git
+  candidate before restoring the verifying state. Implementation scope and
+  evidence did not change.

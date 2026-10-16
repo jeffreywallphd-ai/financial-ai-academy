@@ -1,7 +1,7 @@
 ---
 id: WRK-0101
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-roadmap-decision-review
 updated: 2026-10-16
@@ -13,9 +13,9 @@ parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/financial_academy_roadmap_review.py", "dev-tools/control-plane/roadmap_review.py", "dev-tools/control-plane/test_roadmap_review.py", "dev-tools/control-plane/README.md", "dev-tools/roadmap-review-site/README.md", "dev-tools/roadmap-review-site/server.py", "dev-tools/roadmap-review-site/test_server.py", "dev-tools/roadmap-review-site/test_qualification.py", "dev-tools/roadmap-review-site/src/app.ts", "dev-tools/roadmap-review-site/src/model.ts", "dev-tools/roadmap-review-site/tests/app.test.ts", "dev-tools/roadmap-review-site/tests/model.test.ts", "apps/web/tests/browser/roadmap-review/roadmap-review.e2e.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md", "docs/planning/work-packets/WRK-0101-review-capability-decisions.md"]
 generated_artifacts: [".local-codex/roadmap-review-site/app.js", ".local-codex/roadmap-review-site/model.js", ".local-codex/roadmap-review-site/playwright-alt.config.cjs", "artifacts/playwright/roadmap-review"]
 base_revision: b530b6d9163067c15a88e6daf0706ce04bc3a538
-claim_id: WRK-0101:0a6dbc5c-9985-44df-803c-dbd931402515
+claim_id: WRK-0101:5b5d6540-deae-41b1-90ff-836cef3b0d45
 claimed_by: codex-roadmap-decision-review
-claimed_at: 2026-10-16T16:53:47Z
+claimed_at: 2026-10-16T17:02:16Z
 ---
 
 # Agent Work Packet: Review Capability Decisions
@@ -193,3 +193,7 @@ conformance, commit, branch, worktree, and integration instructions.
   projection, inherited status links, decision detail route, privacy and
   confinement boundaries, and operator guidance. Aggregate readiness passed;
   the packet is ready to enter exact-candidate independent review.
+- 2026-10-16: Corrected lifecycle sequencing through the supported
+  release/reclaim path after a verifying projection preceded exact-candidate
+  capture. The new claim retains the original implementation base; no product
+  scope or verification result changed.
