@@ -187,4 +187,3 @@ must not assume one fixture count or one hard-coded record.
 - Will the same words and actions remain available to keyboard and assistive-
   technology users at narrow widths and in every theme?
 - Do tests protect meaning without freezing prose unnecessarily?
-

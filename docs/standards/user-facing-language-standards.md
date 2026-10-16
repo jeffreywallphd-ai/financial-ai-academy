@@ -238,4 +238,3 @@ progressive disclosure; documentation and design-system checks; and the fixed
 aggregate readiness gate. Add contract, backend, database, or complete live
 qualification only when the affected behavior actually crosses those
 boundaries.
-
