@@ -1,7 +1,7 @@
 ---
 id: WRK-0105
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/generated/api-client/", "apps/web/tests/contract/generated-client.test.mjs", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/integration/api/test_single_profile_practice_progress_api.py", "backend/tests/integration/api/test_single_profile_practice_submission_api.py", "contracts/api/openapi.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0028-resume-retry-and-compare-practice-attempts.md", "docs/planning/work-packets/WRK-0105-expose-practice-progress-history-api.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 407f68f6587280a49a7da41537fc5dbbffde8bd3
+claim_id: WRK-0105:4c4acab2-2651-4ddc-abb7-ce6d52ad3bf4
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T18:06:10Z
 ---
 
 # Agent Work Packet: Expose Practice Progress and History API
