@@ -1,7 +1,7 @@
 ---
 id: WRK-0105
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -197,3 +197,36 @@ the CAP.
 - 2026-10-16: Authored just in time after WRK-0104 completed. The packet keeps
   the accepted transport-neutral core unchanged and bounds one independently
   reviewable protected API/OpenAPI/generated-client result before browser work.
+- 2026-10-16: Completed the protected progress read and conditional draft-save
+  API, production composition, reviewed OpenAPI snapshot, generated TypeScript
+  client, and bounded host regression coverage. Browser presentation and the
+  final real-composition qualification remain in the dependent seams.
+
+## Completion Evidence
+
+- Candidate `c6a162b2f75a4ccfc2ca19e1ecbc7e6ed474eac1` adds
+  `GET /api/v1/curriculum/placements/{placement_id}/practice/progress` and
+  `PUT /api/v1/curriculum/placements/{placement_id}/practice/draft` through the
+  existing opaque-session and same-origin host boundary. The request never
+  accepts a learner selector, and the response omits answers, evaluator rules,
+  raw evidence/event documents, persistence identifiers, and private failure
+  detail.
+- The production composition root supplies the contract-backed progress
+  adapter. It returns the current Assessment draft and retry state, the
+  Learner-model history view, and stable declaration-ordered Curriculum review
+  targets for the latest attempt. `ATTEMPT_LIMIT_REACHED` is a bounded conflict
+  rather than an internal error.
+- The checked OpenAPI snapshot and generated TypeScript client reproduce the
+  two operations byte-stably and remain usable by browser and non-browser
+  cookie-backed clients through the same public API.
+- Focused and affected evidence passed: 86 API integration tests with 6
+  PostgreSQL-dependent skips, 130 accepted contract tests, 15 architecture
+  checks, 202 web tests, TypeScript typecheck, lint, production build, OpenAPI
+  and generated-client checks, documentation, planning, whitespace, and all 29
+  aggregate readiness checks. The exact candidate has qualifying receipt
+  `20261016T181704Z-a5f91978-6e72-4ade-87ae-8d174fe04b1a.json` with digest
+  `sha256:a07553e86b2c9e194094168f901b57b9eba7b93c8cbadde0c857ab006572e5ae`.
+- No new durable decision, schema meaning, mastery/adaptive authority, provider,
+  cloud, queue, or external-execution choice was introduced. Accessible browser
+  resume/retry/history presentation and live PostgreSQL/headless/Chromium
+  qualification remain dependent work in SLI-0028.
