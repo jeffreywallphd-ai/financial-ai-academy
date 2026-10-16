@@ -1,7 +1,7 @@
 ---
 id: WRK-0106
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/router.tsx", "apps/web/src/features/practice-activity/api.ts", "apps/web/src/features/practice-activity/model.ts", "apps/web/src/features/practice-activity/PracticeActivityPage.tsx", "apps/web/src/features/practice-activity/PracticeActivityRoute.tsx", "apps/web/src/styles/practice-activity.css", "apps/web/tests/browser/practice-activity/practice-activity.spec.ts", "apps/web/tests/component/practiceActivity.test.tsx", "apps/web/tests/component/practiceFixture.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0028-resume-retry-and-compare-practice-attempts.md", "docs/planning/work-packets/WRK-0106-deliver-practice-resume-retry-history-browser.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 04c763ef40d07d07c62045f7b9e3b07bcd0d50e0
+claim_id: WRK-0106:60c162b3-27a9-4bf3-8922-ad4fa316cd11
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T18:21:10Z
 ---
 
 # Agent Work Packet: Deliver Practice Resume, Retry, and History Browser Flow
