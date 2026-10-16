@@ -25,6 +25,12 @@ assert.match(schema, /\/api\/v1\/curriculum\/opportunities/);
 assert.match(schema, /\/api\/v1\/curriculum\/graphs\/\{curriculum_id\}/);
 assert.match(schema, /operations\["getCurriculumGraphVersion"\]/);
 assert.match(schema, /CurriculumGraphResponseModel/);
+assert.match(
+  schema,
+  /\/api\/v1\/adaptation\/curricula\/\{curriculum_id\}\/versions\/\{curriculum_version\}\/navigation-state/,
+);
+assert.match(schema, /operations\["getCurriculumNavigationState"\]/);
+assert.match(schema, /NavigationStateResponseModel/);
 assert.match(schema, /operations\["browseLearningOpportunities"\]/);
 assert.match(schema, /operations\["queryLearningOpportunities"\]/);
 assert.match(schema, /LearningOpportunityQueryPageResponseModel/);

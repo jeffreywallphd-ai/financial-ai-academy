@@ -1,7 +1,7 @@
 ---
 id: WRK-0063
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -10,7 +10,7 @@ capability: CAP-0005
 depends_on: ["WRK-0062"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/src/financial_ai_academy/modules/adaptation/application/", "backend/src/financial_ai_academy/modules/adaptation/ports/", "backend/src/financial_ai_academy/modules/adaptation/adapters/", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/identity/README.md", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/adaptation/", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/integration/api/", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/src/generated/api-client/", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/README.md", "deployments/local/serve.py", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/planning/work-packets/WRK-0063-compose-protected-navigation-state-api.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/adaptation/application/", "backend/src/financial_ai_academy/modules/adaptation/ports/", "backend/src/financial_ai_academy/modules/adaptation/adapters/", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/identity/README.md", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/adaptation/", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/integration/api/", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/src/generated/api-client/", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/README.md", "deployments/local/serve.py", "tests/architecture/test_approved_lesson_boundaries.py", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/planning/work-packets/WRK-0063-compose-protected-navigation-state-api.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
 base_revision: 2698d088ca18e3af7dd5832a9b3e4553d6b13217
 claim_id: WRK-0063:c391a755-a007-4ea1-a600-c03c37d756b2
@@ -210,6 +210,43 @@ matrix, endpoint and permission, error profile, generated artifacts, focused
 and aggregate checks, anti-rigidity evidence, assumptions, and known gaps. Do
 not add approval or reviewer metadata to tracked files.
 
+## Implementation Evidence
+
+The provider-neutral Adaptation application service now opens one requested
+Curriculum graph, confirms its exact identity/version, and emits one source
+fact for every activity in graph order. Curriculum public operations determine
+lesson and assessment source availability. Learner-model public operations map
+exact lesson completion to `completed` or `incomplete`; malformed,
+cross-placement, inconsistent, or unavailable views map to `unavailable` with
+the exact lesson package digest as bounded fallback provenance. Assessment
+completion remains `unavailable` and uses the exact definition digest. The two
+dimensions are observed independently and the pure WRK-0062 policy runs once
+with an injected UTC time.
+
+The single-profile context now issues `adaptation.navigation.read`. The API
+host exposes the frozen exact-version GET, resolves learner identity only from
+that context, rejects client authority selectors, maps exact graph absence to
+404 and source/composition failure to 503, and returns no learner identity.
+The reviewed OpenAPI snapshot and generated TypeScript client publish
+`getCurriculumNavigationState` with only curriculum ID and version inputs.
+
+Verification at candidate preparation produced these results:
+
+- packet-focused Adaptation, Identity, API, and architecture tests: 62 passed;
+- adjacent Adaptation/Curriculum contract, Learner-model, graph API, and
+  completion API tests: 64 passed;
+- complete backend suite against the qualified local PostgreSQL service: 393
+  passed;
+- reviewed OpenAPI and generated-client determinism checks: passed;
+- generated-client contract test and TypeScript typecheck: passed;
+- architecture fitness functions, including local composition: 13 passed;
+- graph-order, absent-layout/shared-branch, orthogonal-degradation,
+  exact-version mismatch, unsupported assessment completion, selected-
+  authority, and bounded-failure anti-rigidity scenarios: passed.
+
+No migration, persistence, UI policy, learner selector, model, ranking,
+recommendation, mastery/competency claim, or external authority was added.
+
 ## Stop Conditions
 
 Stop for a need to infer assessment-activity completion; change Curriculum or
@@ -246,3 +283,9 @@ consume one exact generated operation, or return a bounded blocker.
 - 2026-10-16: Released to ready before implementation because an expired grouped
   file lease required a bounded correction to the reusable file-coordination
   control. No WRK-0063 implementation file was changed and its scope is stable.
+- 2026-10-16: Implemented the provider-neutral application composition,
+  server-issued permission, protected exact-version GET, closed response,
+  reviewed OpenAPI, generated client, documentation, and anti-rigidity tests.
+  Entered exact-candidate verification after the complete backend suite and
+  local-composition architecture fixtures passed against their qualified
+  boundaries.

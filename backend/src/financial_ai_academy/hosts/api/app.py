@@ -21,6 +21,12 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie
 
+from financial_ai_academy.modules.adaptation.public import (
+    AdaptationOperations,
+    NavigationStateOperationError,
+    NavigationStateOperationErrorCode,
+    OpenNavigationStateRequest,
+)
 from financial_ai_academy.modules.assessment.public import (
     AssessmentError,
     AssessmentErrorCode,
@@ -83,6 +89,7 @@ from .models import (
     LearningOpportunityQueryPageResponseModel,
     LessonCompletionResponseModel,
     LessonReadingResponseModel,
+    NavigationStateResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     curriculum_graph_response,
@@ -92,6 +99,7 @@ from .models import (
     learning_opportunity_query_page_response,
     lesson_completion_response,
     lesson_response,
+    navigation_state_response,
 )
 
 
@@ -102,6 +110,7 @@ class ApiServices:
     request_policy: SingleProfileRequestPolicy
     assessment: AssessmentOperations | None = None
     learner_model: LearnerModelOperations | None = None
+    adaptation: AdaptationOperations | None = None
     audit: AuditOperations | None = None
 
 
@@ -365,6 +374,28 @@ def create_app(services: ApiServices) -> FastAPI:
             request.state.correlation_id,
         )
 
+    @app.exception_handler(NavigationStateOperationError)
+    async def navigation_state_operation_error_handler(
+        request: Request, error: NavigationStateOperationError
+    ) -> JSONResponse:
+        http_status = {
+            NavigationStateOperationErrorCode.INVALID_CONTEXT: (
+                status.HTTP_401_UNAUTHORIZED
+            ),
+            NavigationStateOperationErrorCode.NOT_FOUND: (
+                status.HTTP_404_NOT_FOUND
+            ),
+            NavigationStateOperationErrorCode.UNAVAILABLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.safe_message,
+            request.state.correlation_id,
+        )
+
     @app.exception_handler(RequestValidationError)
     async def request_validation_handler(
         request: Request, _error: RequestValidationError
@@ -408,6 +439,16 @@ def create_app(services: ApiServices) -> FastAPI:
             raise IdentityError(
                 IdentityErrorCode.FORBIDDEN,
                 "The learner session cannot read curriculum graphs.",
+            )
+        return context
+
+    def adaptation_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "adaptation.navigation.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read navigation state.",
             )
         return context
 
@@ -498,6 +539,48 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         )
         return curriculum_graph_response(graph)
+
+    @app.get(
+        "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state",
+        response_model=NavigationStateResponseModel,
+        operation_id="getCurriculumNavigationState",
+        responses=_ERROR_RESPONSES,
+        tags=["adaptation"],
+    )
+    def get_curriculum_navigation_state(
+        request: Request,
+        curriculum_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        curriculum_version: str = Path(
+            pattern=(
+                r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+                r"(0|[1-9][0-9]*)$"
+            ),
+        ),
+        context: LearnerContext = Depends(adaptation_context),
+    ) -> NavigationStateResponseModel:
+        forbidden_selectors = {
+            "actor_id",
+            "learner_id",
+            "latest",
+            "permission",
+            "policy_id",
+            "provider",
+        }
+        if forbidden_selectors.intersection(request.query_params):
+            raise RequestValidationError([])
+        adaptation = _adaptation_service(services.adaptation)
+        projection = adaptation.open_navigation_state(
+            OpenNavigationStateRequest(
+                learner_id=context.learner_id,
+                curriculum_id=curriculum_id,
+                curriculum_version=curriculum_version,
+            )
+        )
+        return navigation_state_response(projection)
 
     @app.get(
         "/api/v1/curriculum/opportunities",
@@ -716,6 +799,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}"
             ]["get"]
             graph_operation["responses"].pop("422", None)
+            navigation_operation = schema["paths"][
+                "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state"
+            ]["get"]
+            navigation_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 
@@ -769,3 +856,14 @@ def _learner_model_service(
             "The completion view is unavailable.",
         )
     return learner_model
+
+
+def _adaptation_service(
+    adaptation: AdaptationOperations | None,
+) -> AdaptationOperations:
+    if adaptation is None:
+        raise NavigationStateOperationError(
+            NavigationStateOperationErrorCode.UNAVAILABLE,
+            "Navigation state is currently unavailable.",
+        )
+    return adaptation

@@ -4,6 +4,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from financial_ai_academy.modules.adaptation.adapters.curriculum_gateway import (
+    PublicCurriculumNavigationGateway,
+)
+from financial_ai_academy.modules.adaptation.adapters.learner_model_gateway import (
+    PublicLearnerModelCompletionGateway,
+)
+from financial_ai_academy.modules.adaptation.adapters.system import (
+    UtcClock as AdaptationUtcClock,
+)
+from financial_ai_academy.modules.adaptation.application.service import (
+    AdaptationService,
+)
 from financial_ai_academy.modules.assessment.adapters.content_gateway import (
     PublicContentDefinitionGateway,
 )
@@ -87,6 +99,7 @@ class ApplicationServices:
     curriculum: CurriculumService
     assessment: AssessmentService
     learner_model: LearnerModelService
+    adaptation: AdaptationService
     audit: AuditService
     identity: IdentityService
     request_policy: SingleProfileRequestPolicy
@@ -140,6 +153,11 @@ def build_application_services(
         PostgresCompletionProjectionRepository(settings.postgres_dsn),
         LearnerModelUtcClock(),
     )
+    adaptation = AdaptationService(
+        PublicCurriculumNavigationGateway(curriculum),
+        PublicLearnerModelCompletionGateway(learner_model),
+        AdaptationUtcClock(),
+    )
     audit = AuditService(
         AssessmentAuditEventSource(assessment),
         PostgresAuditRepository(settings.postgres_dsn),
@@ -154,6 +172,7 @@ def build_application_services(
         curriculum=curriculum,
         assessment=assessment,
         learner_model=learner_model,
+        adaptation=adaptation,
         audit=audit,
         identity=identity,
         request_policy=request_policy,

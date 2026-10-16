@@ -23,10 +23,11 @@ The shared application context carries:
 | `permissions` | Application-issued capabilities for the operation; provider claims are not direct authorization |
 
 The current private-host single-profile context issues separate
-`curriculum.discovery.read`, `curriculum.graph.read`, and
-`curriculum.lesson.read` capabilities. The host checks the specific operation
-capability after resolving the opaque session; clients cannot select or
-augment any capability.
+`adaptation.navigation.read`, `curriculum.discovery.read`,
+`curriculum.graph.read`, and `curriculum.lesson.read` capabilities. The host
+checks the specific operation capability after resolving the opaque session;
+clients cannot select or augment any capability. Navigation reads derive the
+learner from that context and accept no learner or policy selector.
 
 Identity privately maps a normalized provider instance and provider subject to platform actor and learner identifiers. That binding is unique, status-bearing, and provenance-aware. Password material, recovery secrets, sessions, OIDC tokens, and raw claims never enter learner context.
 

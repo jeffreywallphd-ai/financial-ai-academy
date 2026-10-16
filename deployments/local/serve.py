@@ -300,6 +300,7 @@ def build_local_app(
             request_policy=services.request_policy,
             assessment=services.assessment,
             learner_model=services.learner_model,
+            adaptation=services.adaptation,
             audit=services.audit,
         )
     )

@@ -1,6 +1,72 @@
 {
   "components": {
     "schemas": {
+      "ActivityNavigationStateResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Activity Id",
+            "type": "string"
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "title": "Availability",
+            "type": "string"
+          },
+          "completion": {
+            "enum": [
+              "completed",
+              "incomplete",
+              "unavailable"
+            ],
+            "title": "Completion",
+            "type": "string"
+          },
+          "eligibility": {
+            "enum": [
+              "eligible",
+              "locked",
+              "unavailable"
+            ],
+            "title": "Eligibility",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/NavigationReasonResponseModel"
+            },
+            "maxItems": 2002,
+            "minItems": 1,
+            "title": "Reasons",
+            "type": "array"
+          },
+          "requirement": {
+            "enum": [
+              "required",
+              "optional",
+              "unassigned"
+            ],
+            "title": "Requirement",
+            "type": "string"
+          }
+        },
+        "required": [
+          "activity_id",
+          "completion",
+          "eligibility",
+          "requirement",
+          "availability",
+          "reasons"
+        ],
+        "title": "ActivityNavigationStateResponseModel",
+        "type": "object"
+      },
       "ApiErrorEnvelope": {
         "additionalProperties": false,
         "properties": {
@@ -1968,6 +2034,127 @@
         "title": "ListItemModel",
         "type": "object"
       },
+      "NavigationReasonResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "activity_completed",
+              "required_activity",
+              "optional_activity",
+              "unassigned_activity",
+              "activity_source_unavailable",
+              "completion_source_unavailable",
+              "entry_activity",
+              "prerequisite_incomplete",
+              "prerequisite_unavailable",
+              "prerequisite_satisfied"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "explanation": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Explanation",
+            "type": "string"
+          },
+          "references": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "References",
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "explanation",
+          "references"
+        ],
+        "title": "NavigationReasonResponseModel",
+        "type": "object"
+      },
+      "NavigationStateResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "activity_states": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityNavigationStateResponseModel"
+            },
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Activity States",
+            "type": "array"
+          },
+          "curriculum_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Curriculum Id",
+            "type": "string"
+          },
+          "curriculum_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$",
+            "title": "Curriculum Version",
+            "type": "string"
+          },
+          "evaluated_at": {
+            "format": "date-time",
+            "title": "Evaluated At",
+            "type": "string"
+          },
+          "graph_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Graph Digest",
+            "type": "string"
+          },
+          "policy_id": {
+            "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$",
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$",
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "projection_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Projection Digest",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_set_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Set Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "curriculum_id",
+          "curriculum_version",
+          "graph_digest",
+          "policy_id",
+          "policy_version",
+          "evaluated_at",
+          "source_set_digest",
+          "activity_states",
+          "projection_digest"
+        ],
+        "title": "NavigationStateResponseModel",
+        "type": "object"
+      },
       "OpportunityAvailability": {
         "enum": [
           "available",
@@ -2423,6 +2610,116 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state": {
+      "get": {
+        "operationId": "getCurriculumNavigationState",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "curriculum_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Curriculum Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "curriculum_version",
+            "required": true,
+            "schema": {
+              "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+              "title": "Curriculum Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NavigationStateResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Curriculum Navigation State",
+        "tags": [
+          "adaptation"
+        ]
+      }
+    },
     "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}": {
       "get": {
         "operationId": "getCurriculumGraphVersion",

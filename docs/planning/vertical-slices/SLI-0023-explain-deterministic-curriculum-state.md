@@ -175,7 +175,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0062 | Freeze the navigation-state contract, pure Adaptation policy, public operation, reason semantics, and focused anti-rigidity corpus | none | none | complete |
-| WRK-0063 | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | active |
+| WRK-0063 | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | verifying |
 | JIT-C | Annotate the existing accessible map/list through the generated client without client-side policy | JIT-B | none | refine after JIT-B completes |
 | JIT-D | Qualify the live projection, failure paths, accessibility, provenance, module ownership, and documentation | JIT-C | none | refine after JIT-C completes |
 
@@ -265,3 +265,8 @@ was introduced.
 - 2026-10-16: Reactivated WRK-0063 after WRK-0064 completed path-bounded
   expired-lease recovery with exact-candidate verification, accepted review,
   and anti-rigidity evidence.
+- 2026-10-16: WRK-0063 entered exact-candidate verification with the
+  provider-neutral application service, independent source degradation,
+  protected API, reviewed OpenAPI/generated client, local-composition fixture,
+  and packet-specific anti-rigidity coverage implemented. JIT-C remains
+  unopened until that candidate is accepted and completed.

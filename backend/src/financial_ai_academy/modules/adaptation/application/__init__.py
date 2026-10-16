@@ -1,1 +1,5 @@
-"""Adaptation application composition is introduced by a later packet."""
+"""Adaptation application services."""
+
+from .service import AdaptationService
+
+__all__ = ["AdaptationService"]

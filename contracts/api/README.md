@@ -4,6 +4,16 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state`
+is the protected exact-version learner navigation read. It requires the opaque
+session and server-issued `adaptation.navigation.read`, derives the learner
+only from server context, and accepts no learner, permission, policy, provider,
+or latest-version selector. The closed v1 response contains every graph
+activity in graph order with orthogonal completion, eligibility, requirement,
+availability, bounded reasons, and exact graph/policy/source/result
+provenance. Unknown exact graphs map to 404; unavailable composition maps to
+503 without partial or alternate-version data.
+
 `GET /api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}`
 is the protected exact-version Curriculum graph read. It uses the opaque
 session and server-issued `curriculum.graph.read` permission, accepts no

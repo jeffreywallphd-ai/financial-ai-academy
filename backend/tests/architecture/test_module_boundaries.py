@@ -253,6 +253,15 @@ def test_adaptation_core_consumes_only_the_curriculum_public_surface() -> None:
     } == {f"{prefix}.public"}
 
 
+def test_adaptation_gateway_consumes_only_learner_model_public_surface() -> None:
+    path = MODULES / "adaptation/adapters/learner_model_gateway.py"
+    imported = imported_modules(path)
+    prefix = "financial_ai_academy.modules.learner_model"
+    assert {
+        item for item in imported if item.startswith(prefix)
+    } == {f"{prefix}.public"}
+
+
 def test_adaptation_core_has_no_model_provider_or_persistence_authority() -> None:
     source = "\n".join(
         path.read_text(encoding="utf-8")

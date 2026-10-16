@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from financial_ai_academy.modules.adaptation.application.service import (
+    NavigationStateOperationError,
+    NavigationStateOperationErrorCode,
+    OpenNavigationStateRequest,
+)
+
 from financial_ai_academy.modules.adaptation.domain.models import (
     ActivityNavigationState,
     ActivitySourceFact,
@@ -35,6 +41,11 @@ class AdaptationOperations(Protocol):
         request: EvaluateNavigationStateRequest,
     ) -> NavigationStateProjection: ...
 
+    def open_navigation_state(
+        self,
+        request: OpenNavigationStateRequest,
+    ) -> NavigationStateProjection: ...
+
 
 __all__ = [
     "ActivityNavigationState",
@@ -48,9 +59,12 @@ __all__ = [
     "EvaluateNavigationStateRequest",
     "NavigationReason",
     "NavigationReasonCode",
+    "NavigationStateOperationError",
+    "NavigationStateOperationErrorCode",
     "NavigationStateError",
     "NavigationStateErrorCode",
     "NavigationStateProjection",
+    "OpenNavigationStateRequest",
     "RequirementState",
     "canonical_projection_bytes",
     "canonical_source_set_bytes",

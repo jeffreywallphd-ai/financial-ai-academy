@@ -50,6 +50,7 @@ def local_services() -> SimpleNamespace:
         rebuild_learning_opportunity_projection=MagicMock(),
     )
     return SimpleNamespace(
+        adaptation=object(),
         assessment=object(),
         audit=object(),
         content=content,

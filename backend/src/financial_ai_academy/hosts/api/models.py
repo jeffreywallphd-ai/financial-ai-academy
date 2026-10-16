@@ -8,6 +8,10 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from financial_ai_academy.modules.adaptation.public import (
+    NavigationStateProjection,
+    navigation_state_payload,
+)
 from financial_ai_academy.modules.assessment.public import (
     KnowledgeCheckPresentation,
     KnowledgeCheckResult,
@@ -208,6 +212,10 @@ GraphVersion = Annotated[
     ),
 ]
 GraphDigest = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+PolicyIdentifier = Annotated[
+    str,
+    Field(pattern=r"^[a-z0-9][a-z0-9._:-]{0,127}$"),
+]
 
 
 class CurriculumObjectiveResponseModel(ApiModel):
@@ -332,6 +340,51 @@ class CurriculumGraphResponseModel(ApiModel):
         max_length=2000
     )
     graph_digest: GraphDigest
+
+
+class NavigationReasonResponseModel(ApiModel):
+    code: Literal[
+        "activity_completed",
+        "required_activity",
+        "optional_activity",
+        "unassigned_activity",
+        "activity_source_unavailable",
+        "completion_source_unavailable",
+        "entry_activity",
+        "prerequisite_incomplete",
+        "prerequisite_unavailable",
+        "prerequisite_satisfied",
+    ]
+    explanation: str = Field(min_length=1, max_length=240)
+    references: list[GraphIdentifier] = Field(min_length=1, max_length=3)
+
+
+class ActivityNavigationStateResponseModel(ApiModel):
+    activity_id: GraphIdentifier
+    completion: Literal["completed", "incomplete", "unavailable"]
+    eligibility: Literal["eligible", "locked", "unavailable"]
+    requirement: Literal["required", "optional", "unassigned"]
+    availability: Literal["available", "unavailable"]
+    reasons: list[NavigationReasonResponseModel] = Field(
+        min_length=1,
+        max_length=2002,
+    )
+
+
+class NavigationStateResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    curriculum_id: GraphIdentifier
+    curriculum_version: GraphVersion
+    graph_digest: GraphDigest
+    policy_id: PolicyIdentifier
+    policy_version: GraphVersion
+    evaluated_at: datetime
+    source_set_digest: GraphDigest
+    activity_states: list[ActivityNavigationStateResponseModel] = Field(
+        min_length=1,
+        max_length=500,
+    )
+    projection_digest: GraphDigest
 
 
 class DiscoveryProvenanceResponseModel(ApiModel):
@@ -657,6 +710,14 @@ def curriculum_graph_response(
 ) -> CurriculumGraphResponseModel:
     return CurriculumGraphResponseModel.model_validate(
         curriculum_graph_payload(graph)
+    )
+
+
+def navigation_state_response(
+    projection: NavigationStateProjection,
+) -> NavigationStateResponseModel:
+    return NavigationStateResponseModel.model_validate(
+        navigation_state_payload(projection)
     )
 
 

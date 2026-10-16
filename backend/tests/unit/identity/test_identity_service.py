@@ -145,6 +145,7 @@ def test_bootstrap_persists_stable_binding_and_rotates_sessions() -> None:
     assert first.context.session_id != second.context.session_id
     assert second.context.authentication_method == "single_profile"
     assert second.context.permissions == (
+        "adaptation.navigation.read",
         "curriculum.discovery.read",
         "curriculum.graph.read",
         "curriculum.lesson.read",

@@ -1,6 +1,6 @@
 # Deterministic Navigation-State Contract
 
-- Status: implemented for the transport-neutral rule baseline
+- Status: implemented for the deterministic application and API boundary
 - Canonical for: Adaptation-owned deterministic activity eligibility meaning
 - Related ADR: [ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md)
 
@@ -61,8 +61,18 @@ or persistence reference belongs in the portable contract.
 
 The executable JSON Schemas and compatibility corpus live under
 `contracts/learning/adaptation/v1/` and
-`contracts/compatibility/adaptation-navigation/v1/`. The implemented Python
-core is pure and transport-neutral. Curriculum/Learner-model gateways,
-authenticated composition, OpenAPI/generated clients, browser presentation,
-durable recommendation records, model ranking, experiments, and managed-cloud
-adapters are outside this contract's current qualification.
+`contracts/compatibility/adaptation-navigation/v1/`. The Python core is pure
+and transport-neutral. A framework-free application service opens the exact
+graph and exact activity sources through a Curriculum public gateway, obtains
+lesson completion through a Learner-model public gateway, evaluates with an
+injected UTC clock, and returns only a complete projection. Activity-source
+availability and completion degrade independently. Assessment completion is
+explicitly unavailable until a separate accepted public projection exists.
+
+The protected exact-version GET requires the server-issued
+`adaptation.navigation.read` capability, derives the learner only from the
+opaque session, and is published as `getCurriculumNavigationState` in the
+reviewed OpenAPI and generated TypeScript client. Browser presentation,
+composed live qualification, durable recommendation records, model ranking,
+experiments, and managed-cloud adapters remain outside the current
+qualification.

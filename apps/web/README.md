@@ -36,6 +36,13 @@ before it presents any structure. The browser preserves server-owned facts and
 uses optional presentation hints only for display order; it does not become a
 source of graph, eligibility, completion, or mastery authority.
 
+The generated client also includes `getCurriculumNavigationState` for the
+protected exact-version Adaptation projection. It accepts only curriculum ID
+and version; learner identity and navigation policy remain server-owned. No
+browser route consumes this operation yet, so the web application does not
+duplicate or present eligibility before the next SLI-0023 packet qualifies its
+accessible list/map annotations.
+
 The learning-catalog client also defines the reusable selection seam for
 detail and comparison routes. One detail ID or two through four distinct
 comparison IDs are accepted as navigation state; the protected queryless

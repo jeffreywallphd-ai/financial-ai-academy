@@ -25,3 +25,11 @@ permission, or fallback-version selector, and maps unknown versions to bounded
 404 responses while corrupt or unavailable stored meaning maps to 503. Graph
 admission remains an internal Curriculum operation.
 
+The API host exposes the computed-on-read projection at
+`GET /api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state`.
+It requires `adaptation.navigation.read`, resolves the learner only from the
+opaque server-side session, and accepts no learner, permission, policy,
+provider, or latest-version selector. The host maps the closed Adaptation
+projection without recomputing state; exact graph absence maps to 404 and
+unavailable source composition maps to 503 without a partial result.
+

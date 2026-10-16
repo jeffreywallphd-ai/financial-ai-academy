@@ -4,6 +4,11 @@ Bootstrap selects validated adapters and composes hosts from configuration. It i
 
 Bootstrap must fail clearly when required capabilities, secrets, migrations, or secure configuration are unavailable. Read operations must not silently install or repair providers.
 
+The shared composition root builds Adaptation from provider-neutral Curriculum
+and Learner-model public gateways plus a UTC clock. Local and future deployment
+profiles invoke the same framework-free application service; hosts do not
+select source providers or reproduce navigation policy.
+
 The loopback qualification host's explicit synthetic-fixture option composes
 the exact Content package, Curriculum placement and Assessment placement, then
 registers one discovery classification and rebuilds the derived catalog through
