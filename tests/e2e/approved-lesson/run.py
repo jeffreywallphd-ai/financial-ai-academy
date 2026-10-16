@@ -67,6 +67,9 @@ PRIVATE_PRACTICE_FIELDS = frozenset(
         "scoring_policy",
     }
 )
+SUPPORTED_PRACTICE_ITEM_TYPES = frozenset(
+    {"single_select", "multiple_select", "numeric_entry"}
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -530,11 +533,20 @@ def stable_practice_semantics(practice: dict[str, Any]) -> dict[str, Any]:
     if practice["placement_id"] != PRACTICE_PLACEMENT_ID:
         raise RuntimeError("Headless practice does not match the exact placement.")
     items = practice["items"]
-    if not isinstance(items, list) or [
+    if not isinstance(items, list) or not 1 <= len(items) <= 20:
+        raise RuntimeError("Headless practice has an invalid item collection.")
+    unsupported = [
         item.get("item_type") if isinstance(item, dict) else None
         for item in items
-    ] != ["single_select", "multiple_select", "numeric_entry"]:
-        raise RuntimeError("Headless practice does not preserve the closed item set.")
+        if not isinstance(item, dict)
+        or item.get("item_type") not in SUPPORTED_PRACTICE_ITEM_TYPES
+    ]
+    if unsupported:
+        raise RuntimeError(
+            "Headless practice contains unsupported item types: "
+            + ", ".join(str(item_type) for item_type in unsupported)
+            + "."
+        )
     leaked = PRIVATE_PRACTICE_FIELDS & _nested_mapping_keys(practice)
     if leaked:
         raise RuntimeError(
@@ -543,6 +555,21 @@ def stable_practice_semantics(practice: dict[str, Any]) -> dict[str, Any]:
             + "."
         )
     return {key: copy.deepcopy(practice[key]) for key in required}
+
+
+def assert_practice_fixture_coverage(practice: dict[str, Any]) -> None:
+    observed = {
+        item["item_type"]
+        for item in practice["items"]
+        if isinstance(item, dict) and "item_type" in item
+    }
+    missing = SUPPORTED_PRACTICE_ITEM_TYPES - observed
+    if missing:
+        raise RuntimeError(
+            "Qualification practice does not cover supported item types: "
+            + ", ".join(sorted(missing))
+            + "."
+        )
 
 
 def observe_headless_practice(origin: str) -> dict[str, Any]:
@@ -568,6 +595,7 @@ def observe_headless_practice(origin: str) -> dict[str, Any]:
     )
     if repeated != first:
         raise RuntimeError("Repeated headless practice reads changed meaning.")
+    assert_practice_fixture_coverage(first)
     return first
 
 

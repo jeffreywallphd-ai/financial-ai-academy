@@ -238,3 +238,8 @@ for deterministic closure or return one bounded blocker.
   the existing derived practice-schema directory. Expanded scope to the shared
   settings property and one direct regression; no API, domain, persistence, or
   product behavior changed.
+- 2026-10-16: The first live semantic helper made the three-item fixture order
+  authoritative. The bounded correction accepts
+  reordered and additional contract-valid supported items, rejects only unknown
+  item types or invalid collections, and keeps a separate coverage assertion
+  that this qualification fixture exercises all three supported response types.

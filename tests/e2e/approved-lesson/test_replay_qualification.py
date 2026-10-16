@@ -267,10 +267,26 @@ def test_practice_semantics_preserve_closed_public_shape() -> None:
     with pytest.raises(RuntimeError, match="exposed private fields"):
         runner.stable_practice_semantics(leaked)
 
-    changed_shape = practice()
-    changed_shape["items"].reverse()
-    with pytest.raises(RuntimeError, match="closed item set"):
-        runner.stable_practice_semantics(changed_shape)
+    reordered = practice()
+    reordered["items"].reverse()
+    reordered["items"].append(
+        {"item_id": "another-choice", "item_type": "single_select"}
+    )
+    assert runner.stable_practice_semantics(reordered) == reordered
+
+    unknown_shape = practice()
+    unknown_shape["items"][0]["item_type"] = "free_text"
+    with pytest.raises(RuntimeError, match="unsupported item types"):
+        runner.stable_practice_semantics(unknown_shape)
+
+
+def test_practice_fixture_coverage_requires_each_supported_shape() -> None:
+    runner.assert_practice_fixture_coverage(practice())
+
+    missing_numeric = practice()
+    missing_numeric["items"].pop()
+    with pytest.raises(RuntimeError, match="does not cover supported item types"):
+        runner.assert_practice_fixture_coverage(missing_numeric)
 
 
 def test_headless_practice_uses_session_and_repeated_public_gets(
