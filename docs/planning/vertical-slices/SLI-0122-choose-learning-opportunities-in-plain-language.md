@@ -144,7 +144,7 @@ each packet starts. The planned dependency-ordered seams are:
 | WRK-0068 | Establish the normative language standard, content style guide, initial term map, and workflow routing | none | none | complete |
 | WRK-0069 | Apply the standard to catalog list/filter/card presentation and focused component evidence | WRK-0068 | none | complete |
 | WRK-0071 | Apply the standard to detail/comparison/loading/error presentation and focused component evidence | WRK-0069 | none | complete |
-| WRK-0072 | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | WRK-0071 | none | ready |
+| WRK-0072 | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | WRK-0071 | none | active |
 
 ## Verification and Qualification
 
@@ -226,3 +226,6 @@ copying approval or reviewer records into tracked files.
 - 2026-10-16: Refined JIT-D as WRK-0072 around the existing pinned-Chromium
   learning-library suite, complete technical-record reachability, access and
   theme parity, anti-rigid assertions, and deterministic slice closure.
+- 2026-10-16: Activated WRK-0072 after confirming completed dependencies,
+  bounded browser/planning scope, exact acceptance scenarios, and no decision
+  gate or parallel file collision.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0072
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/learning-catalog/learning-catalog.spec.ts", "docs/planning/work-packets/WRK-0072-qualify-plain-language-learning-library.md", "docs/planning/vertical-slices/SLI-0122-choose-learning-opportunities-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: ["artifacts/playwright/wrk0004/**"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b81f3078e20486071e9da2985150ff62fc915749
+claim_id: WRK-0072:7bdaea75-3533-4cc3-a965-d7996182651d
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T09:47:28Z
 ---
 
 # Agent Work Packet: Qualify the Plain-Language Learning Library
@@ -171,3 +171,6 @@ and the next CAP-manifest action. Do not request a slice-level approval.
 - 2026-10-16: Refined JIT-D after WRK-0071 completed. The packet is limited to
   the existing learning-catalog Chromium specification plus planning closure,
   and treats cosmetic styling as deferred cleanup rather than a review gate.
+- 2026-10-16: Activated after validating its dependency, current CAP authority,
+  exact write and generated-artifact scope, completion scenarios, and absence
+  of an unresolved decision gate.
