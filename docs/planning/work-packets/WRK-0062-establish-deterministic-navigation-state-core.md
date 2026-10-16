@@ -1,7 +1,7 @@
 ---
 id: WRK-0062
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -236,5 +236,10 @@ packet dependency-ready, or return a bounded blocker with no partial claim.
 - 2026-10-16: Submitted exact candidate 58947c0 after the focused contract,
   policy, and architecture suites, the complete backend suite, documentation
   and architecture checks, and all aggregate readiness gates passed. The
-  packet is verifying pending exact-candidate control-plane evidence and
-  independent review.
+  packet entered verification pending exact-candidate control-plane evidence.
+- 2026-10-16: Completed at exact descendant candidate 04b71cf after strengthening
+  full-state conformance reconstruction, bounded malformed-collection handling,
+  and the durable flexible-shape corpus. The candidate passed 44 focused tests,
+  45 adjacent Curriculum and Learner-model tests, all 368 backend tests, the
+  architecture, planning, documentation, packet, diff, aggregate readiness,
+  and exact-candidate qualification checks.
