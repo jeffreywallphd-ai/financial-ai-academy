@@ -1,7 +1,7 @@
 ---
 id: WRK-0085
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/adaptation/domain/activity_launch.py", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/contract/adaptation_activity_launch/__init__.py", "backend/tests/contract/adaptation_activity_launch/runner.py", "backend/tests/contract/adaptation_activity_launch/test_conformance.py", "backend/tests/unit/adaptation/test_activity_launch_policy.py", "contracts/learning/README.md", "contracts/learning/adaptation/v1/README.md", "contracts/learning/adaptation/v1/activity-launch.schema.json", "contracts/compatibility/adaptation-activity-launch/v1/README.md", "contracts/compatibility/adaptation-activity-launch/v1/approved/launch.json", "contracts/compatibility/adaptation-activity-launch/v1/cases/denials.json", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/assurance/architecture-verification.md", "docs/planning/work-packets/WRK-0085-freeze-activity-launch-contract-and-policy.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: a34a94cedf72aef5fbbf3b3210f29cef29ec92b9
+claim_id: WRK-0085:2f2a8976-1780-4129-8d28-c73075b2cce9
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T12:06:26Z
 ---
 
 # Agent Work Packet: Freeze the Activity-Launch Contract and Policy
@@ -203,3 +203,7 @@ Leave JIT-B dependency-ready or return one bounded blocker.
   protected-launch design was refined. The packet freezes one reusable pure
   contract and policy seam before application/API composition, conforms to the
   approved CAP package, and adds no decision or lower-level approval gate.
+- 2026-10-16: Activated from base
+  `a34a94cedf72aef5fbbf3b3210f29cef29ec92b9` after the implementation gate
+  prerequisites confirmed current CAP authority, completed slice dependencies,
+  bounded write scope, and no unresolved decision or ownership collision.

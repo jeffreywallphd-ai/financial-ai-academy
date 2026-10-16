@@ -13,7 +13,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | CAP-0002 | Capability | [Operate the AI-Development Control Plane](capabilities/CAP-0002-operate-ai-development-control-plane.md) | complete | none | none | none | codex-control-plane | 2026-10-15 |
 | CAP-0003 | Capability | [Plan and Orchestrate Capability Portfolios](capabilities/CAP-0003-plan-and-orchestrate-capability-portfolios.md) | complete | none | CAP-0002 | none | codex-cap-0003 | 2026-10-15 |
 | CAP-0004 | Capability | [Discover Learning Opportunities](capabilities/CAP-0004-discover-learning-opportunities.md) | complete | none | CAP-0001 | none | unassigned | 2026-10-15 |
-| CAP-0005 | Capability | [Navigate a Competency-Based Curriculum](capabilities/CAP-0005-navigate-competency-based-curriculum.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
+| CAP-0005 | Capability | [Navigate a Competency-Based Curriculum](capabilities/CAP-0005-navigate-competency-based-curriculum.md) | active | none | CAP-0001 | none | codex-cap-0005 | 2026-10-16 |
 | CAP-0006 | Capability | [Practice and Demonstrate Understanding](capabilities/CAP-0006-practice-and-demonstrate-understanding.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-15 |
 | CAP-0007 | Capability | [Complete Applied Projects](capabilities/CAP-0007-complete-applied-projects.md) | ready | none | CAP-0005, CAP-0006 | resolved by ADR-0011 and ADR-0012 | unassigned | 2026-10-15 |
 | CAP-0008 | Capability | [Review Capability Delivery Roadmaps](capabilities/CAP-0008-review-capability-delivery-roadmaps.md) | complete | none | CAP-0003 | none | codex-roadmap-review | 2026-10-15 |
@@ -62,7 +62,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0021 | Vertical slice | [Qualify Learning Opportunity Discovery](vertical-slices/SLI-0021-qualify-learning-opportunity-discovery.md) | complete | CAP-0004 | SLI-0019, SLI-0020 | none | codex-cap-0004 | 2026-10-15 |
 | SLI-0022 | Vertical slice | [Open a Versioned Curriculum Graph](vertical-slices/SLI-0022-open-versioned-curriculum-graph.md) | complete | CAP-0005 | none | none | codex-cap-0005 | 2026-10-15 |
 | SLI-0023 | Vertical slice | [Explain Deterministic Curriculum State](vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md) | complete | CAP-0005 | SLI-0022 | none | codex-cap-0005 | 2026-10-16 |
-| SLI-0024 | Vertical slice | [Open and Return to an Eligible Activity](vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md) | ready | CAP-0005 | SLI-0023 | none | codex-cap-0005 | 2026-10-16 |
+| SLI-0024 | Vertical slice | [Open and Return to an Eligible Activity](vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md) | active | CAP-0005 | SLI-0023 | none | codex-cap-0005 | 2026-10-16 |
 | SLI-0034 | Vertical slice | [Project Dynamic Roadmap Review Data](vertical-slices/SLI-0034-project-dynamic-roadmap-review-data.md) | complete | CAP-0008 | none | none | codex-roadmap-order-correction | 2026-10-16 |
 | SLI-0035 | Vertical slice | [Review Capability Order and Parallelism](vertical-slices/SLI-0035-review-capability-order-and-parallelism.md) | complete | CAP-0008 | SLI-0034 | none | codex-roadmap-order-correction | 2026-10-16 |
 | SLI-0036 | Vertical slice | [Navigate Capability, Slice, and Work Plans](vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md) | complete | CAP-0008 | SLI-0034, SLI-0035 | none | codex-roadmap-review | 2026-10-15 |
@@ -150,7 +150,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0082 | Work packet | [Integrate Learner-Language Readiness](work-packets/WRK-0082-integrate-learner-language-readiness.md) | complete | SLI-0125 | WRK-0079 | none | codex-plain-language-ui | 2026-10-16 |
 | WRK-0083 | Work packet | [Promote Active-Descendant Allocation Lanes](work-packets/WRK-0083-promote-active-descendant-allocation-lanes.md) | complete | SLI-0013 | WRK-0021, WRK-0052 | none | codex-roadmap-order-correction | 2026-10-16 |
 | WRK-0084 | Work packet | [Qualify the Roadmap Work-Order Correction](work-packets/WRK-0084-qualify-roadmap-work-order-correction.md) | complete | SLI-0037 | WRK-0080, WRK-0081, WRK-0083 | none | codex-roadmap-order-qualification | 2026-10-16 |
-| WRK-0085 | Work packet | [Freeze the Activity-Launch Contract and Policy](work-packets/WRK-0085-freeze-activity-launch-contract-and-policy.md) | ready | SLI-0024 | none | none | codex-cap-0005 | 2026-10-16 |
+| WRK-0085 | Work packet | [Freeze the Activity-Launch Contract and Policy](work-packets/WRK-0085-freeze-activity-launch-contract-and-policy.md) | active | SLI-0024 | none | none | codex-cap-0005 | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

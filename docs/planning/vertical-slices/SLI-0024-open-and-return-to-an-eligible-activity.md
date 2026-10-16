@@ -1,7 +1,7 @@
 ---
 id: SLI-0024
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -274,3 +274,6 @@ and durable-state authority did not change.
 - 2026-10-16: Refined JIT-A as WRK-0085 around the closed activity-launch v1
   success contract, pure exact-input decision, stable bounded denials, public
   Adaptation surface, and direct compatibility/anti-rigidity evidence.
+- 2026-10-16: Activated WRK-0085 after revalidating the current CAP package,
+  completed dependency, exact bounded scope, executable checks, and absence of
+  a decision or active ownership collision.

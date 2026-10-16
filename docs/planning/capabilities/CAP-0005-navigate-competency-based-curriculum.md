@@ -1,10 +1,10 @@
 ---
 id: CAP-0005
 kind: capability
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
-updated: 2026-10-15
+owner: codex-cap-0005
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0001"]
 decision_gates: []
@@ -169,3 +169,6 @@ patterns, module READMEs, architecture verification, and known gaps.
   CAP-0001 and is intentionally parallel-safe at capability level with
   CAP-0004 and CAP-0006 once that foundation is complete; exact file-level
   compatibility remains a just-in-time packet concern.
+- 2026-10-16: Resumed approved delivery at SLI-0024 after SLI-0022 and SLI-0023
+  completed. The first exact launch-contract packet is active with no material
+  package drift or unresolved decision.
