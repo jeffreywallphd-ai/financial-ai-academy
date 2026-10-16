@@ -155,18 +155,22 @@ class ReviewServiceTests(unittest.TestCase):
         *,
         timed_out: bool = False,
         stable: bool = True,
+        changed_paths: list[str] | None = None,
+        receipt_catalog: CheckCatalog | None = None,
     ) -> Path:
-        plan = select_checks(catalog(), candidate, ["docs/README.md"])
+        paths = changed_paths or ["docs/README.md"]
+        plan = select_checks(receipt_catalog or catalog(), candidate, paths)
         attempts = [
             {
                 "check_id": "docs:fixture",
+                "argv": [sys.executable, "-c", "pass"],
                 "exit_code": None if timed_out else 1,
                 "timed_out": timed_out,
             }
         ]
         submission = {
             "candidate": candidate,
-            "changed_paths": ["docs/README.md"],
+            "changed_paths": paths,
             "recorded_at": "2026-10-15T12:00:00Z",
         }
         submission_digest = digest(submission)
@@ -536,6 +540,201 @@ class ReviewServiceTests(unittest.TestCase):
             self.assertEqual("review.resubmit-not-authorized", reviewed.exception.code)
             self.assertEqual(1, len(ledger.items))
 
+    def test_failed_verification_allows_only_equivalent_catalog_evolution(
+        self,
+    ) -> None:
+        def evolved_service(
+            root: Path,
+            state: StateStore,
+            candidate: FixtureCandidate,
+            ledger: MemoryLedger,
+            receipts: ReceiptStore,
+            checks: tuple[CheckDefinition, ...],
+        ) -> ReviewService:
+            return ReviewService(
+                root,
+                FixtureProject(root),
+                state,
+                candidate,
+                CheckCatalog("review-fixture-v2", checks),
+                ledger,
+                receipts,
+            )
+
+        original = CheckDefinition(
+            "docs:fixture",
+            (sys.executable, "-c", "pass"),
+            ("docs/**",),
+            "low",
+            10,
+        )
+        unrelated = CheckDefinition(
+            "src:fixture",
+            (sys.executable, "-c", "pass"),
+            ("src/**",),
+            "low",
+            20,
+        )
+        newly_affected = CheckDefinition(
+            "docs:extra",
+            (sys.executable, "-c", "pass"),
+            ("docs/**",),
+            "low",
+            20,
+        )
+        changed_command = CheckDefinition(
+            "docs:fixture",
+            (sys.executable, "-c", "raise SystemExit(1)"),
+            ("docs/**",),
+            "low",
+            10,
+        )
+        historical_narrow = CheckDefinition(
+            "docs:fixture",
+            (sys.executable, "-c", "pass"),
+            ("docs/README.md",),
+            "low",
+            10,
+        )
+
+        with tempfile.TemporaryDirectory(
+            prefix="review-catalog-equivalent-"
+        ) as directory:
+            root = Path(directory)
+            service, state, ledger, candidate, receipts = self.prepare(root)
+            self.failed_receipt(receipts, "a" * 40)
+            equivalent = evolved_service(
+                root,
+                state,
+                candidate,
+                ledger,
+                receipts,
+                (original, unrelated),
+            )
+            result = equivalent.resubmit(
+                "WORK-1",
+                owner="owner",
+                claim_id="claim-1",
+            )
+            self.assertEqual(
+                "review.corrected-descendant-submitted",
+                result["code"],
+            )
+
+        for label, checks in (
+            ("newly-affected", (original, newly_affected)),
+            ("changed-command", (changed_command, unrelated)),
+        ):
+            with self.subTest(label=label), tempfile.TemporaryDirectory(
+                prefix=f"review-catalog-{label}-"
+            ) as directory:
+                root = Path(directory)
+                service, state, ledger, candidate, receipts = self.prepare(root)
+                self.failed_receipt(receipts, "a" * 40)
+                changed = evolved_service(
+                    root,
+                    state,
+                    candidate,
+                    ledger,
+                    receipts,
+                    checks,
+                )
+                with self.assertRaises(ControlError) as refused:
+                    changed.resubmit(
+                        "WORK-1",
+                        owner="owner",
+                        claim_id="claim-1",
+                    )
+                self.assertEqual(
+                    "review.resubmit-not-authorized",
+                    refused.exception.code,
+                )
+
+        with tempfile.TemporaryDirectory(
+            prefix="review-catalog-rematched-"
+        ) as directory:
+            root = Path(directory)
+            service, state, ledger, candidate, receipts = self.prepare(root)
+            envelope = state.load()
+            changed_paths = ["docs/README.md", "docs/guide.md"]
+            envelope["work_items"]["WORK-1"]["submission"][
+                "changed_paths"
+            ] = changed_paths
+            atomic_write(state.state_path, canonical_bytes(envelope))
+            self.failed_receipt(
+                receipts,
+                "a" * 40,
+                changed_paths=changed_paths,
+                receipt_catalog=CheckCatalog(
+                    "review-fixture-v1",
+                    (historical_narrow, unrelated),
+                ),
+            )
+            rematched = evolved_service(
+                root,
+                state,
+                candidate,
+                ledger,
+                receipts,
+                (original, unrelated),
+            )
+            with self.assertRaises(ControlError) as refused:
+                rematched.resubmit(
+                    "WORK-1",
+                    owner="owner",
+                    claim_id="claim-1",
+                )
+            self.assertEqual(
+                "review.resubmit-not-authorized",
+                refused.exception.code,
+            )
+
+        with tempfile.TemporaryDirectory(
+            prefix="review-catalog-no-argv-"
+        ) as directory:
+            root = Path(directory)
+            service, state, ledger, candidate, receipts = self.prepare(root)
+            path = self.failed_receipt(receipts, "a" * 40)
+            document = json.loads(path.read_text(encoding="utf-8"))
+            document["attempts"][0].pop("argv")
+            document["provenance"] = provenance_envelope(
+                operation_id="verification.receipt",
+                output={
+                    "candidate": document["candidate"],
+                    "plan_digest": document["plan"]["plan_digest"],
+                    "attempts": document["attempts"],
+                },
+                revision=document["candidate"],
+                input_digest=document["submission_input_digest"],
+                capability_digest="sha256:" + "c" * 64,
+            )
+            document["receipt_digest"] = digest(
+                {
+                    key: value
+                    for key, value in document.items()
+                    if key != "receipt_digest"
+                }
+            )
+            path.write_bytes(canonical_bytes(document))
+            missing_command = evolved_service(
+                root,
+                state,
+                candidate,
+                ledger,
+                receipts,
+                (original, unrelated),
+            )
+            with self.assertRaises(ControlError) as refused:
+                missing_command.resubmit(
+                    "WORK-1",
+                    owner="owner",
+                    claim_id="claim-1",
+                )
+            self.assertEqual(
+                "review.resubmit-not-authorized",
+                refused.exception.code,
+            )
+
     def test_failed_verification_authority_binds_current_submission_and_chain_head(
         self,
     ) -> None:
@@ -663,6 +862,7 @@ class ReviewServiceTests(unittest.TestCase):
             attempts = [
                 {
                     "check_id": "docs:fixture",
+                    "argv": [sys.executable, "-c", "pass"],
                     "exit_code": 1,
                     "timed_out": False,
                 }

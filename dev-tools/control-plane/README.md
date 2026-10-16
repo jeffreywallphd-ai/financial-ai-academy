@@ -215,11 +215,11 @@ one or more selected checks failed or timed out. Receipt-chain order comes from
 digest lineage rather than timestamp/filename order and ambiguous chains fail
 closed. The replacement must still be a strict descendant inside packet scope
 and receives fresh verification plus the ordinary independent review. A
-passing receipt, stale catalog, submission, or candidate, incomplete coverage,
-candidate drift, malformed or digest-invalid receipt, or an already reviewed
-exact candidate cannot use this route. Authorization is recomputed from the
-current submitted state inside the state transition. Cleanup cannot cause an
-adverse disposition. A strict
+passing receipt, non-equivalent stale catalog, submission, or candidate,
+incomplete coverage, candidate drift, malformed or digest-invalid receipt, or
+an already reviewed exact candidate cannot use this route. Authorization is
+recomputed from the current submitted state inside the state transition.
+Cleanup cannot cause an adverse disposition. A strict
 cleanup-only descendant of an accepted candidate inherits that review only
 when Git proves the incremental delta changes only terminal blank lines in an
 approved UTF-8 source or documentation file type and the descendant has its own
@@ -231,6 +231,14 @@ cleanup descendants retain the original accepted basis. Semantic formatting,
 styling, functionality, accessibility, security, data, contract, policy, and
 evidence changes retain the ordinary review path; repository policy may defer
 non-functional styling rather than interrupt the current functional CAP.
+
+One stale-catalog case remains usable without weakening that rule: if a later
+catalog revision recomputes the exact same selected check IDs, matched paths,
+and materialized commands for the historical candidate, the failed execution
+may still authorize its strict correction. The receipt must record every exact
+executed command and pass every other integrity and submission-binding check.
+A newly affected, removed, renamed, rematched, or command-changed check fails
+closed and requires current exact-candidate evidence.
 Policy/status tests cover local/CI rule parity, explicit unavailable evidence,
 report confinement and privacy, stale-local reconciliation, one-command
 read-only status, bounded remediation, and absence of approval or full-suite
