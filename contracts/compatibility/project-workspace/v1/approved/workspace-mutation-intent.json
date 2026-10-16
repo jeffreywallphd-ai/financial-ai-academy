@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "add-result-001",
+  "expected_workspace_revision": 4,
+  "mutation": {
+    "operation": "add_artifact",
+    "artifact": {
+      "artifact_kind": "result",
+      "logical_path": "results/simulation.json",
+      "media_type": "application/json",
+      "inspection_mode": "metadata_only",
+      "byte_count": 256,
+      "content_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+      "result_classification": "simulated",
+      "provenance": {
+        "source_type": "learner_created",
+        "source_title": "Learner-created simulation output"
+      },
+      "environment": {
+        "name": "External learner environment",
+        "version": "2026.10",
+        "dependency_digest": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "assumptions": ["Inputs are synthetic and the result is educational."]
+    }
+  }
+}

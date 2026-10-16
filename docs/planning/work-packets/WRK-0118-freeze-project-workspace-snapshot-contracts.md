@@ -1,7 +1,7 @@
 ---
 id: WRK-0118
 kind: work-packet
-planning_status: ready
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["contracts/learning/project/v1", "contracts/compatibility/project-workspace/v1", "backend/src/financial_ai_academy/modules/project/README.md", "backend/src/financial_ai_academy/modules/project/domain", "backend/src/financial_ai_academy/modules/project/ports/project_contract.py", "backend/src/financial_ai_academy/modules/project/adapters/project_contract.py", "backend/tests/contract/project_workspace", "backend/tests/unit/project/test_project_contract.py", "docs/architecture/contracts/project-workspace-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0118-freeze-project-workspace-snapshot-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 60d9add2da4ac723e512f2c6979e83c937d06707
+claim_id: WRK-0118:61d67b63-06f8-4e0f-9920-8b3b89b406c1
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-16T22:37:41Z
 ---
 
 # Agent Work Packet: Freeze Project Workspace and Snapshot Contracts
@@ -272,9 +272,44 @@ risks; and explicit confirmation that no storage, API, browser, execution,
 Portfolio, Assessment, Learner-model, provider, or managed-cloud behavior was
 added.
 
+## Qualification Evidence
+
+- Five additive Project v1 schemas now close live workspace state, revision-
+  bound mutation intent, snapshot close intent, immutable snapshot material,
+  and deterministic evidence-export manifests without changing Project shell
+  v1 meaning.
+- The synthetic compatibility corpus covers varied notes, references, dataset,
+  notebook and simulated-result manifests, typed owner references, exact
+  snapshot record versions, use-restricted export exclusions, and direct-UTF-8
+  canonical digest vectors. It contains no personal or provider data and does
+  not claim a live Portfolio adapter.
+- Focused Project contract and domain verification passed 86 tests. The broader
+  backend architecture, contract, and unit corpus passed 675 tests, including
+  flexible zero/single/multiple workspace shapes and fail-closed traversal,
+  active-effect, incomplete-provenance, unsafe-inspection, stale-digest,
+  contradictory-export, and private-field cases.
+- Repository evidence passed 16 architecture checks, ten security control
+  groups, planning integrity for 202 artifacts, documentation integrity for 346
+  Markdown files plus catalogs, Python compile checks, whitespace integrity,
+  and all 29 aggregate readiness checks.
+- A direct all-backend invocation reached database-backed API integration and
+  waited for an unavailable isolated PostgreSQL environment, so it was stopped
+  and is not counted as evidence. This pure packet changes no repository,
+  migration, application, API, object-storage, browser, or deployment behavior;
+  real PostgreSQL and live API/browser qualification belong to later packets.
+- The same portable values and projectors are intended for the protected public
+  API used by browser and non-browser/headless clients. No AI-specific
+  transport, client-owned durable authority, execution surface, active preview,
+  archive import, Assessment effect, Learner-model effect, external provider,
+  managed-cloud profile, or financial action was introduced.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time as SLI-0031's first bounded packet after
   SLI-0030 completed and the workspace-to-snapshot slice was refined. It freezes
   additive portable contracts and pure policy only, preserves the public API as
   the future browser/headless boundary, and remains inside CAP-0007.
+- 2026-10-16: Moved to verifying after the additive executable schemas,
+  immutable domain values, parser/projector behavior, compatibility corpus, and
+  synchronized contract/module documentation passed the focused and repository
+  gates. Later persistence and presentation layers remain deliberately absent.

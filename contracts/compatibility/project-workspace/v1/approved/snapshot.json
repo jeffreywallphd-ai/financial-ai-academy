@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "snapshot_id": "snapshot-001",
+  "snapshot_digest": "51441b58ef5b075de9d7fb4807d7fc02cec7ad1e7076da8b9bd5065065aee75a",
+  "snapshot": {
+    "project_id": "project-independent",
+    "learner_id": "learner-local",
+    "project_revision": 1,
+    "project_shell_digest": "d0d1cf756a388587d89f00f1294ff13b8e50ae62ade82158f2018c64d57128b9",
+    "workspace_revision": 4,
+    "workspace_created_at": "2026-10-16T20:00:00Z",
+    "workspace_updated_at": "2026-10-16T20:30:00Z",
+    "notes": [
+      {
+        "record_id": "note-question",
+        "record_version": 2,
+        "record_digest": "469e3ed6c5cb685295e42324b0fce1623bbfb3a7bd669103ab464dcd8fdb9a87"
+      },
+      {
+        "record_id": "note-reflection",
+        "record_version": 1,
+        "record_digest": "872c53fb937a777a08d7f99e92d00db93c5b83c20feadc549aee1f424b39681e"
+      }
+    ],
+    "references": [
+      {
+        "record_id": "reference-method",
+        "record_version": 1,
+        "record_digest": "927f0adb0402291337be64ab14f625a86214d2101ac0794665258bb625087b21"
+      }
+    ],
+    "artifacts": [
+      {
+        "artifact_id": "artifact-data",
+        "artifact_version": 1,
+        "manifest_digest": "6f21f186404bc95a1b2b4ceba98813a0e9b68ba7a7bf40ddac82da22d88b0bdd",
+        "content_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "byte_count": 128
+      },
+      {
+        "artifact_id": "artifact-notebook",
+        "artifact_version": 1,
+        "manifest_digest": "65f97b3e79a052295e2bb94ddd1568f6cc1a57961c3282f50a853ca84fc73aa7",
+        "content_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+        "byte_count": 2048
+      },
+      {
+        "artifact_id": "artifact-result",
+        "artifact_version": 1,
+        "manifest_digest": "56e5ba2b5db7cc21631c2b92c42b346feac52ed8dc2484f7f8047db8ed2c0f52",
+        "content_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+        "byte_count": 256
+      }
+    ],
+    "domain_links": [
+      {
+        "link_id": "link-simulated-context",
+        "record_digest": "ea50657dc0523de81684d0711045a955f9566ae5299954e21e28eb2a18e2024b",
+        "owner_reference_digest": "7777777777777777777777777777777777777777777777777777777777777777"
+      }
+    ]
+  },
+  "closed_at": "2026-10-16T20:31:00Z"
+}

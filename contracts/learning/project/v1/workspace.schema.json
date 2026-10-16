@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/project/v1/workspace.schema.json",
+  "title": "Project Workspace v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_id",
+    "learner_id",
+    "workspace_revision",
+    "notes",
+    "references",
+    "artifacts",
+    "domain_links",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "project_id": { "$ref": "#/$defs/identifier" },
+    "learner_id": { "$ref": "#/$defs/identifier" },
+    "workspace_revision": { "type": "integer", "minimum": 1 },
+    "notes": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/note" }
+    },
+    "references": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/reference" }
+    },
+    "artifacts": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "#/$defs/artifact" }
+    },
+    "domain_links": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/domain_link" }
+    },
+    "created_at": { "$ref": "#/$defs/utc_time" },
+    "updated_at": { "$ref": "#/$defs/utc_time" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "semantic_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "utc_time": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "safe_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000,
+      "pattern": "^[^<>\\u0000]*$"
+    },
+    "note": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["note_id", "note_version", "title", "body", "created_at", "updated_at"],
+      "properties": {
+        "note_id": { "$ref": "#/$defs/identifier" },
+        "note_version": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^<>\\u0000]*$" },
+        "body": { "type": "string", "minLength": 1, "maxLength": 20000, "pattern": "^[^\\u0000]*$" },
+        "created_at": { "$ref": "#/$defs/utc_time" },
+        "updated_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_id", "reference_version", "title", "url", "source_name", "created_at", "updated_at"],
+      "properties": {
+        "reference_id": { "$ref": "#/$defs/identifier" },
+        "reference_version": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000]*$" },
+        "url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://" },
+        "source_name": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000]*$" },
+        "source_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "source_digest": { "$ref": "#/$defs/digest" },
+        "license": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000]*$" },
+        "use_constraints": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^<>\\u0000]*$" },
+        "created_at": { "$ref": "#/$defs/utc_time" },
+        "updated_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "source_title"],
+      "properties": {
+        "source_type": { "enum": ["learner_created", "supplied", "external"] },
+        "source_title": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000]*$" },
+        "source_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "source_url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://" },
+        "source_digest": { "$ref": "#/$defs/digest" },
+        "license": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000]*$" },
+        "use_constraints": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^<>\\u0000]*$" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^<>\\u0000]*$" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^<>\\u0000]*$" },
+        "dependency_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_id",
+        "artifact_version",
+        "artifact_kind",
+        "logical_path",
+        "media_type",
+        "inspection_mode",
+        "byte_count",
+        "content_digest",
+        "provenance",
+        "assumptions",
+        "created_at"
+      ],
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/identifier" },
+        "artifact_version": { "type": "integer", "minimum": 1 },
+        "artifact_kind": { "enum": ["dataset", "notebook", "code", "environment", "result", "reflection", "supporting_file"] },
+        "logical_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240,
+          "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000)[A-Za-z0-9._ -]+(?:/[A-Za-z0-9._ -]+)*$"
+        },
+        "media_type": { "enum": ["application/octet-stream", "application/json", "application/pdf", "application/x-ipynb+json", "text/csv", "text/markdown", "text/plain", "text/x-python"] },
+        "inspection_mode": { "enum": ["metadata_only", "plain_text"] },
+        "byte_count": { "type": "integer", "minimum": 0, "maximum": 10485760 },
+        "content_digest": { "$ref": "#/$defs/digest" },
+        "result_classification": { "enum": ["observed", "calculated", "simulated", "predicted", "generated", "narrative"] },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "environment": { "$ref": "#/$defs/environment" },
+        "assumptions": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/safe_text" }
+        },
+        "created_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "domain_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "link_id",
+        "link_type",
+        "owner_module",
+        "resource_type",
+        "resource_id",
+        "owner_reference_digest",
+        "target_status",
+        "provenance",
+        "validated_at",
+        "created_at"
+      ],
+      "properties": {
+        "link_id": { "$ref": "#/$defs/identifier" },
+        "link_type": { "enum": ["context", "input", "comparison", "output"] },
+        "owner_module": { "$ref": "#/$defs/identifier" },
+        "resource_type": { "$ref": "#/$defs/identifier" },
+        "resource_id": { "$ref": "#/$defs/identifier" },
+        "resource_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "resource_as_of": { "$ref": "#/$defs/utc_time" },
+        "owner_reference_digest": { "$ref": "#/$defs/digest" },
+        "target_status": { "const": "available" },
+        "provenance": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^<>\\u0000]*$" },
+        "validated_at": { "$ref": "#/$defs/utc_time" },
+        "created_at": { "$ref": "#/$defs/utc_time" }
+      },
+      "anyOf": [
+        { "required": ["resource_version"] },
+        { "required": ["resource_as_of"] }
+      ]
+    }
+  }
+}

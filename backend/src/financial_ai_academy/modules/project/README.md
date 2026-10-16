@@ -35,7 +35,20 @@ The Project seam remains transport-neutral:
 This seam has a Project-owned repository, migration, UTC/UUID adapters, and
 public HTTP/client boundary. The browser now composes list, create, and reopen
 pages exclusively through that generated client; it adds no browser-only
-authority. The module still has no edit, event, artifact, snapshot, execution,
-Assessment submission, Learner-model effect, Portfolio link, provider, or AI
-authority. Deterministic application policy remains authoritative when those
-later boundaries are added.
+authority.
+
+The additive workspace contract seam now defines framework-free immutable
+values and parser/projector behavior for bounded notes, HTTPS references,
+inert-artifact manifests, typed domain-resource references, snapshot closure,
+and evidence-export manifests. It fixes conservative counts and a 10 MiB
+per-artifact declaration limit, traversal-free logical paths, closed media and
+classification vocabularies, canonical direct-UTF-8 digests, exact live
+revision preconditions, and server-owned accepted identity/version/time.
+
+This contract seam does not yet persist workspace metadata or bytes, expose a
+workspace API, validate a production domain owner, or render workspace UI.
+The synthetic Portfolio-named fixture proves only that the provider-neutral
+reference shape can represent another owner; no live Portfolio contract,
+calculation, authorization, or copied state exists. Project still has no
+kernel, subprocess, package, network, secret, runtime, provider-execution,
+Assessment submission, completion, Learner-model, or autonomous AI authority.

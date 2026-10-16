@@ -17,6 +17,12 @@ from financial_ai_academy.modules.project.domain.project import (
     LearningProjectBrief,
     LearningProjectOrigin,
 )
+from financial_ai_academy.modules.project.domain.workspace import (
+    AddArtifactMutation,
+    ArtifactKind,
+    EvidenceClassification,
+    InspectionMode,
+)
 from financial_ai_academy.modules.project.ports.project_contract import (
     ProjectContractFailure,
 )
@@ -234,3 +240,114 @@ def test_brief_projection_rejects_stale_digest() -> None:
     with pytest.raises(ProjectContractFailure) as captured:
         contract.brief_document(replace(brief, brief_digest="f" * 64))
     assert captured.value.code == "project.contract.brief_digest_mismatch"
+
+
+def test_workspace_round_trip_returns_immutable_typed_values() -> None:
+    contract = adapter()
+    document = load("workspace.json")
+    workspace = contract.parse_workspace(encoded(document))
+    document["notes"][0]["title"] = "Changed later"  # type: ignore[index]
+
+    assert workspace.notes[0].title == "Question to test"
+    assert workspace.artifacts[0].artifact_kind is ArtifactKind.DATASET
+    assert workspace.artifacts[0].inspection_mode is InspectionMode.PLAIN_TEXT
+    assert (
+        workspace.artifacts[2].result_classification
+        is EvidenceClassification.SIMULATED
+    )
+    assert workspace.domain_links[0].owner_module == "portfolio"
+    assert contract.workspace_document(workspace) == load("workspace.json")
+    with pytest.raises(FrozenInstanceError):
+        workspace.workspace_revision = 5  # type: ignore[misc]
+
+
+def test_workspace_mutation_snapshot_and_export_round_trip() -> None:
+    contract = adapter()
+    mutation = contract.parse_workspace_mutation_intent(
+        (APPROVED / "workspace-mutation-intent.json").read_bytes()
+    )
+    close = contract.parse_snapshot_close_intent(
+        (APPROVED / "snapshot-close-intent.json").read_bytes()
+    )
+    snapshot = contract.parse_snapshot(
+        (APPROVED / "snapshot.json").read_bytes()
+    )
+    exported = contract.parse_evidence_export(
+        (APPROVED / "evidence-export.json").read_bytes()
+    )
+
+    assert isinstance(mutation.mutation, AddArtifactMutation)
+    assert mutation.expected_workspace_revision == 4
+    assert close.expected_project_revision == 1
+    assert snapshot.snapshot.workspace_revision == 4
+    assert exported.export.snapshot_id == snapshot.snapshot_id
+    assert contract.workspace_mutation_intent_document(mutation) == load(
+        "workspace-mutation-intent.json"
+    )
+    assert contract.snapshot_close_intent_document(close) == load(
+        "snapshot-close-intent.json"
+    )
+    assert contract.snapshot_document(snapshot) == load("snapshot.json")
+    assert contract.evidence_export_document(exported) == load(
+        "evidence-export.json"
+    )
+
+
+def test_snapshot_and_export_digest_changes_fail_closed() -> None:
+    contract = adapter()
+    snapshot = load("snapshot.json")
+    snapshot["snapshot"]["workspace_revision"] = 5  # type: ignore[index]
+    with pytest.raises(ProjectContractFailure) as stale_snapshot:
+        contract.parse_snapshot(encoded(snapshot))
+    assert stale_snapshot.value.code == "project.contract.snapshot_digest_mismatch"
+
+    exported = load("evidence-export.json")
+    exported["export"]["artifact_files"][0]["byte_count"] = 2049  # type: ignore[index]
+    with pytest.raises(ProjectContractFailure) as stale_export:
+        contract.parse_evidence_export(encoded(exported))
+    assert stale_export.value.code == "project.contract.export_digest_mismatch"
+
+
+@pytest.mark.parametrize(
+    ("path", "value", "code"),
+    [
+        (["artifacts", 0, "logical_path"], "../../secret", "project.contract.schema_invalid"),
+        (["artifacts", 1, "inspection_mode"], "plain_text", "project.contract.unsafe_inspection_mode"),
+        (["artifacts", 2, "result_classification"], "predicted", None),
+    ],
+)
+def test_workspace_artifact_boundaries(
+    path: list[str | int],
+    value: object,
+    code: str | None,
+) -> None:
+    contract = adapter()
+    document = load("workspace.json")
+    current: object = document
+    for part in path[:-1]:
+        current = current[part]  # type: ignore[index]
+    current[path[-1]] = value  # type: ignore[index]
+    if code is None:
+        workspace = contract.parse_workspace(encoded(document))
+        assert workspace.artifacts[2].result_classification is EvidenceClassification.PREDICTED
+    else:
+        with pytest.raises(ProjectContractFailure) as captured:
+            contract.parse_workspace(encoded(document))
+        assert captured.value.code == code
+
+
+def test_canonical_digest_preserves_direct_non_ascii_utf8() -> None:
+    vector = json.loads(
+        (
+            REPOSITORY
+            / "contracts/compatibility/project-workspace/v1/vectors/non-ascii-snapshot-digest.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert contract_digest(adapter(), vector["record"]) == vector["record_digest"]
+
+
+def contract_digest(
+    contract: ContractProjectAdapter,
+    value: dict[str, object],
+) -> str:
+    return contract.canonical_digest(value)

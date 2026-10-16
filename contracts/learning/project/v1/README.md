@@ -3,7 +3,8 @@
 This additive contract family separates immutable learning source meaning from
 one learner-owned Project shell. Content owns the approved learning-project
 brief. Project owns the create intent, accepted origin, Project identity,
-charter, lifecycle, and revision.
+charter, lifecycle, revision, bounded mutable workspace, inert-artifact
+manifest, typed domain references, and immutable snapshots.
 
 `brief.schema.json` fixes one immutable brief with stable identity and version,
 plain-language title and purpose, one through twenty ordered milestones, and
@@ -33,6 +34,43 @@ The schemas and compatibility runner are transport-neutral. Browser,
 command-line, service, and future headless AI clients can use the same future
 public API; this family grants no client authority over identity,
 authorization, time, revision, persistence, or durable state changes.
+
+`workspace.schema.json` closes one learner-owned live workspace at a positive
+revision. It bounds notes, HTTPS reference metadata, inert artifact manifests,
+and validated typed domain-resource references. Artifact paths are logical,
+relative, traversal-free names; they are never host paths. Each artifact has a
+closed kind, media type, inspection mode, byte count, lowercase SHA-256 digest,
+source history, assumptions, and optional environment declaration. Results
+must say whether they are observed, calculated, simulated, predicted,
+generated, or narrative. Plain-text inspection is permitted only for `text/*`;
+all other content is metadata-only in this contract.
+
+`workspace-mutation-intent.schema.json` binds one add or replace operation to
+an idempotency key and expected live revision. The client never supplies
+learner identity, accepted record IDs, versions, times, storage locations, or
+owner-validation results. Artifact bytes travel through a later bounded API;
+the intent declares the exact byte count and digest that must be correlated.
+
+`snapshot-close-intent.schema.json` binds closure to exact Project and
+workspace revisions. `snapshot.schema.json` records server-owned snapshot
+identity and time plus canonical material containing the exact Project shell
+digest, live revision, and immutable note, reference, artifact, and link
+version references. `snapshot_digest` is lowercase SHA-256 over that nested
+`snapshot` object serialized as compact sorted-key JSON with direct UTF-8.
+Later live changes cannot alter it.
+
+`evidence-export.schema.json` is a deterministic manifest, not an execution or
+restore package. It names one exact snapshot, lists only authorized inert files
+by logical path and digest, and records excluded files with a bounded reason.
+`export_digest` uses the same canonical rule over the nested `export` object.
+The shape cannot carry credentials, authorization state, object-store keys,
+host paths, callbacks, runtime controls, or copied domain-resource state.
+
+No schema authorizes a kernel, interpreter, subprocess, package installation,
+network, secret, active renderer, archive expansion, provider job, Portfolio
+calculation, Assessment submission, completion evidence, or mastery effect.
+Typed links record public references only and require a later owning-module
+gateway to produce the accepted `available` record.
 
 Run the compatibility evidence from the repository root:
 

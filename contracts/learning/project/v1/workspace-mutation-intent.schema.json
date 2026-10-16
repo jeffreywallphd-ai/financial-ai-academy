@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/project/v1/workspace-mutation-intent.schema.json",
+  "title": "Project Workspace Mutation Intent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "idempotency_key", "expected_workspace_revision", "mutation"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "idempotency_key": { "$ref": "#/$defs/identifier" },
+    "expected_workspace_revision": { "type": "integer", "minimum": 1 },
+    "mutation": {
+      "oneOf": [
+        { "$ref": "#/$defs/add_note" },
+        { "$ref": "#/$defs/replace_note" },
+        { "$ref": "#/$defs/add_reference" },
+        { "$ref": "#/$defs/replace_reference" },
+        { "$ref": "#/$defs/add_artifact" },
+        { "$ref": "#/$defs/add_domain_link" },
+        { "$ref": "#/$defs/remove_domain_link" }
+      ]
+    }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "text120": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^<>\\u0000]*$" },
+    "text160": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000]*$" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_type", "source_title"],
+      "properties": {
+        "source_type": { "enum": ["learner_created", "supplied", "external"] },
+        "source_title": { "$ref": "#/$defs/text160" },
+        "source_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "source_url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://" },
+        "source_digest": { "$ref": "#/$defs/digest" },
+        "license": { "$ref": "#/$defs/text160" },
+        "use_constraints": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^<>\\u0000]*$" }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "$ref": "#/$defs/text120" },
+        "version": { "$ref": "#/$defs/text120" },
+        "dependency_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "add_note": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "title", "body"],
+      "properties": {
+        "operation": { "const": "add_note" },
+        "title": { "$ref": "#/$defs/text120" },
+        "body": { "type": "string", "minLength": 1, "maxLength": 20000, "pattern": "^[^\\u0000]*$" }
+      }
+    },
+    "replace_note": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "note_id", "expected_note_version", "title", "body"],
+      "properties": {
+        "operation": { "const": "replace_note" },
+        "note_id": { "$ref": "#/$defs/identifier" },
+        "expected_note_version": { "type": "integer", "minimum": 1 },
+        "title": { "$ref": "#/$defs/text120" },
+        "body": { "type": "string", "minLength": 1, "maxLength": 20000, "pattern": "^[^\\u0000]*$" }
+      }
+    },
+    "add_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "title", "url", "source_name"],
+      "properties": {
+        "operation": { "const": "add_reference" },
+        "title": { "$ref": "#/$defs/text160" },
+        "url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://" },
+        "source_name": { "$ref": "#/$defs/text160" },
+        "source_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "source_digest": { "$ref": "#/$defs/digest" },
+        "license": { "$ref": "#/$defs/text160" },
+        "use_constraints": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^<>\\u0000]*$" }
+      }
+    },
+    "replace_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "reference_id", "expected_reference_version", "title", "url", "source_name"],
+      "properties": {
+        "operation": { "const": "replace_reference" },
+        "reference_id": { "$ref": "#/$defs/identifier" },
+        "expected_reference_version": { "type": "integer", "minimum": 1 },
+        "title": { "$ref": "#/$defs/text160" },
+        "url": { "type": "string", "format": "uri", "maxLength": 2048, "pattern": "^https://" },
+        "source_name": { "$ref": "#/$defs/text160" },
+        "source_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "source_digest": { "$ref": "#/$defs/digest" },
+        "license": { "$ref": "#/$defs/text160" },
+        "use_constraints": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^<>\\u0000]*$" }
+      }
+    },
+    "artifact_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_kind", "logical_path", "media_type", "inspection_mode", "byte_count", "content_digest", "provenance", "assumptions"],
+      "properties": {
+        "artifact_kind": { "enum": ["dataset", "notebook", "code", "environment", "result", "reflection", "supporting_file"] },
+        "logical_path": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000)[A-Za-z0-9._ -]+(?:/[A-Za-z0-9._ -]+)*$" },
+        "media_type": { "enum": ["application/octet-stream", "application/json", "application/pdf", "application/x-ipynb+json", "text/csv", "text/markdown", "text/plain", "text/x-python"] },
+        "inspection_mode": { "enum": ["metadata_only", "plain_text"] },
+        "byte_count": { "type": "integer", "minimum": 0, "maximum": 10485760 },
+        "content_digest": { "$ref": "#/$defs/digest" },
+        "result_classification": { "enum": ["observed", "calculated", "simulated", "predicted", "generated", "narrative"] },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "environment": { "$ref": "#/$defs/environment" },
+        "assumptions": { "type": "array", "maxItems": 20, "items": { "type": "string", "minLength": 1, "maxLength": 4000, "pattern": "^[^<>\\u0000]*$" } }
+      }
+    },
+    "add_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "artifact"],
+      "properties": {
+        "operation": { "const": "add_artifact" },
+        "artifact": { "$ref": "#/$defs/artifact_input" }
+      }
+    },
+    "domain_link_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["link_type", "owner_module", "resource_type", "resource_id", "provenance"],
+      "properties": {
+        "link_type": { "enum": ["context", "input", "comparison", "output"] },
+        "owner_module": { "$ref": "#/$defs/identifier" },
+        "resource_type": { "$ref": "#/$defs/identifier" },
+        "resource_id": { "$ref": "#/$defs/identifier" },
+        "resource_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "resource_as_of": { "$ref": "#/$defs/utc_time" },
+        "provenance": { "type": "string", "minLength": 1, "maxLength": 1000, "pattern": "^[^<>\\u0000]*$" }
+      },
+      "anyOf": [{ "required": ["resource_version"] }, { "required": ["resource_as_of"] }]
+    },
+    "add_domain_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "link"],
+      "properties": {
+        "operation": { "const": "add_domain_link" },
+        "link": { "$ref": "#/$defs/domain_link_input" }
+      }
+    },
+    "remove_domain_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "link_id"],
+      "properties": {
+        "operation": { "const": "remove_domain_link" },
+        "link_id": { "$ref": "#/$defs/identifier" }
+      }
+    }
+  }
+}

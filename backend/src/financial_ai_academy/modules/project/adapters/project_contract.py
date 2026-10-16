@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, is_dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -21,6 +21,40 @@ from ..domain.project import (
     ProjectShell,
     ProjectSourceReference,
 )
+from ..domain.workspace import (
+    AddArtifactMutation,
+    AddDomainLinkMutation,
+    AddNoteMutation,
+    AddReferenceMutation,
+    ArtifactKind,
+    ArtifactProvenance,
+    DomainLinkType,
+    EvidenceArtifactFile,
+    EvidenceClassification,
+    ExcludedEvidenceArtifact,
+    InspectionMode,
+    ProjectArtifact,
+    ProjectArtifactInput,
+    ProjectArtifactReference,
+    ProjectDomainLink,
+    ProjectDomainLinkInput,
+    ProjectDomainLinkReference,
+    ProjectEnvironment,
+    ProjectEvidenceExport,
+    ProjectEvidenceExportMaterial,
+    ProjectNote,
+    ProjectReference,
+    ProjectSnapshot,
+    ProjectSnapshotCloseIntent,
+    ProjectSnapshotMaterial,
+    ProjectVersionReference,
+    ProjectWorkspace,
+    ProvenanceSourceType,
+    RemoveDomainLinkMutation,
+    ReplaceNoteMutation,
+    ReplaceReferenceMutation,
+    WorkspaceMutationIntent,
+)
 from ..ports.project_contract import ProjectContractFailure
 
 
@@ -32,7 +66,16 @@ class ContractProjectAdapter:
 
     def __init__(self, schema_dir: Path) -> None:
         self._validators: dict[str, Draft202012Validator] = {}
-        for name in ("brief", "create-intent", "shell"):
+        for name in (
+            "brief",
+            "create-intent",
+            "shell",
+            "workspace",
+            "workspace-mutation-intent",
+            "snapshot-close-intent",
+            "snapshot",
+            "evidence-export",
+        ):
             schema = json.loads(
                 (schema_dir / f"{name}.schema.json").read_text(encoding="utf-8")
             )
@@ -118,6 +161,150 @@ class ContractProjectAdapter:
             updated_at=updated_at,
         )
 
+    def parse_workspace(self, value: bytes) -> ProjectWorkspace:
+        document = self._document(value, "workspace")
+        self._version(document)
+        self._validate_workspace_document(document)
+        return ProjectWorkspace(
+            schema_version=document["schema_version"],
+            project_id=document["project_id"],
+            learner_id=document["learner_id"],
+            workspace_revision=document["workspace_revision"],
+            notes=tuple(self._note(item) for item in document["notes"]),
+            references=tuple(
+                self._reference(item) for item in document["references"]
+            ),
+            artifacts=tuple(
+                self._artifact(item) for item in document["artifacts"]
+            ),
+            domain_links=tuple(
+                self._domain_link(item) for item in document["domain_links"]
+            ),
+            created_at=self._timestamp(document["created_at"]),
+            updated_at=self._timestamp(document["updated_at"]),
+        )
+
+    def parse_workspace_mutation_intent(
+        self,
+        value: bytes,
+    ) -> WorkspaceMutationIntent:
+        document = self._document(value, "workspace-mutation-intent")
+        self._version(document)
+        self._shape("workspace-mutation-intent", document)
+        mutation = document["mutation"]
+        operation = mutation["operation"]
+        if operation == "add_note":
+            parsed = AddNoteMutation(
+                title=mutation["title"],
+                body=mutation["body"],
+            )
+        elif operation == "replace_note":
+            parsed = ReplaceNoteMutation(
+                note_id=mutation["note_id"],
+                expected_note_version=mutation["expected_note_version"],
+                title=mutation["title"],
+                body=mutation["body"],
+            )
+        elif operation == "add_reference":
+            parsed = self._reference_mutation(mutation, replacement=False)
+        elif operation == "replace_reference":
+            parsed = self._reference_mutation(mutation, replacement=True)
+        elif operation == "add_artifact":
+            artifact = self._artifact_input(mutation["artifact"])
+            self._validate_artifact_semantics(mutation["artifact"])
+            parsed = AddArtifactMutation(artifact=artifact)
+        elif operation == "add_domain_link":
+            parsed = AddDomainLinkMutation(
+                link=self._domain_link_input(mutation["link"])
+            )
+        else:
+            parsed = RemoveDomainLinkMutation(link_id=mutation["link_id"])
+        return WorkspaceMutationIntent(
+            schema_version=document["schema_version"],
+            idempotency_key=document["idempotency_key"],
+            expected_workspace_revision=document["expected_workspace_revision"],
+            mutation=parsed,
+        )
+
+    def parse_snapshot_close_intent(
+        self,
+        value: bytes,
+    ) -> ProjectSnapshotCloseIntent:
+        document = self._document(value, "snapshot-close-intent")
+        self._version(document)
+        self._shape("snapshot-close-intent", document)
+        return ProjectSnapshotCloseIntent(
+            schema_version=document["schema_version"],
+            idempotency_key=document["idempotency_key"],
+            expected_project_revision=document["expected_project_revision"],
+            expected_workspace_revision=document["expected_workspace_revision"],
+        )
+
+    def parse_snapshot(self, value: bytes) -> ProjectSnapshot:
+        document = self._document(value, "snapshot")
+        self._version(document)
+        self._validate_snapshot_document(document)
+        snapshot = document["snapshot"]
+        return ProjectSnapshot(
+            schema_version=document["schema_version"],
+            snapshot_id=document["snapshot_id"],
+            snapshot_digest=document["snapshot_digest"],
+            snapshot=ProjectSnapshotMaterial(
+                project_id=snapshot["project_id"],
+                learner_id=snapshot["learner_id"],
+                project_revision=snapshot["project_revision"],
+                project_shell_digest=snapshot["project_shell_digest"],
+                workspace_revision=snapshot["workspace_revision"],
+                workspace_created_at=self._timestamp(
+                    snapshot["workspace_created_at"]
+                ),
+                workspace_updated_at=self._timestamp(
+                    snapshot["workspace_updated_at"]
+                ),
+                notes=tuple(
+                    ProjectVersionReference(**item) for item in snapshot["notes"]
+                ),
+                references=tuple(
+                    ProjectVersionReference(**item)
+                    for item in snapshot["references"]
+                ),
+                artifacts=tuple(
+                    ProjectArtifactReference(**item)
+                    for item in snapshot["artifacts"]
+                ),
+                domain_links=tuple(
+                    ProjectDomainLinkReference(**item)
+                    for item in snapshot["domain_links"]
+                ),
+            ),
+            closed_at=self._timestamp(document["closed_at"]),
+        )
+
+    def parse_evidence_export(self, value: bytes) -> ProjectEvidenceExport:
+        document = self._document(value, "evidence-export")
+        self._version(document)
+        self._validate_evidence_export_document(document)
+        exported = document["export"]
+        return ProjectEvidenceExport(
+            schema_version=document["schema_version"],
+            export_id=document["export_id"],
+            export_digest=document["export_digest"],
+            export=ProjectEvidenceExportMaterial(
+                project_id=exported["project_id"],
+                snapshot_id=exported["snapshot_id"],
+                snapshot_digest=exported["snapshot_digest"],
+                artifact_files=tuple(
+                    EvidenceArtifactFile(**item)
+                    for item in exported["artifact_files"]
+                ),
+                excluded_artifacts=tuple(
+                    ExcludedEvidenceArtifact(**item)
+                    for item in exported["excluded_artifacts"]
+                ),
+            ),
+            generated_at=self._timestamp(document["generated_at"]),
+        )
+
     def brief_document(self, value: LearningProjectBrief) -> dict[str, object]:
         brief = {
             "brief_id": value.brief_id,
@@ -167,6 +354,371 @@ class ContractProjectAdapter:
         }
         self._shape("shell", document)
         return document
+
+    def workspace_document(self, value: ProjectWorkspace) -> dict[str, object]:
+        document = self._portable(value)
+        self._validate_workspace_document(document)
+        return document
+
+    def workspace_mutation_intent_document(
+        self,
+        value: WorkspaceMutationIntent,
+    ) -> dict[str, object]:
+        document = self._portable(value)
+        self._shape("workspace-mutation-intent", document)
+        mutation = document["mutation"]
+        if mutation["operation"] == "add_artifact":
+            self._validate_artifact_semantics(mutation["artifact"])
+        return document
+
+    def snapshot_close_intent_document(
+        self,
+        value: ProjectSnapshotCloseIntent,
+    ) -> dict[str, object]:
+        document = self._portable(value)
+        self._shape("snapshot-close-intent", document)
+        return document
+
+    def snapshot_document(self, value: ProjectSnapshot) -> dict[str, object]:
+        document = self._portable(value)
+        self._validate_snapshot_document(document)
+        return document
+
+    def evidence_export_document(
+        self,
+        value: ProjectEvidenceExport,
+    ) -> dict[str, object]:
+        document = self._portable(value)
+        self._validate_evidence_export_document(document)
+        return document
+
+    def canonical_digest(self, value: Mapping[str, object]) -> str:
+        return hashlib.sha256(self._canonical_bytes(value)).hexdigest()
+
+    def _validate_workspace_document(self, document: Mapping[str, Any]) -> None:
+        self._shape("workspace", document)
+        created_at = self._timestamp(document["created_at"])
+        updated_at = self._timestamp(document["updated_at"])
+        if updated_at < created_at:
+            self._reject("project.contract.invalid_workspace", "updated_at")
+        self._unique(
+            [item["note_id"] for item in document["notes"]],
+            "notes",
+            code="project.contract.duplicate_workspace_record",
+        )
+        self._unique(
+            [item["reference_id"] for item in document["references"]],
+            "references",
+            code="project.contract.duplicate_workspace_record",
+        )
+        self._unique(
+            [item["artifact_id"] for item in document["artifacts"]],
+            "artifacts",
+            code="project.contract.duplicate_workspace_record",
+        )
+        self._unique(
+            [item["logical_path"] for item in document["artifacts"]],
+            "artifacts.logical_path",
+            code="project.contract.duplicate_workspace_record",
+        )
+        self._unique(
+            [item["link_id"] for item in document["domain_links"]],
+            "domain_links",
+            code="project.contract.duplicate_workspace_record",
+        )
+        for note in document["notes"]:
+            if self._timestamp(note["updated_at"]) < self._timestamp(
+                note["created_at"]
+            ):
+                self._reject(
+                    "project.contract.invalid_workspace",
+                    f"notes.{note['note_id']}.updated_at",
+                )
+        for reference in document["references"]:
+            if self._timestamp(reference["updated_at"]) < self._timestamp(
+                reference["created_at"]
+            ):
+                self._reject(
+                    "project.contract.invalid_workspace",
+                    f"references.{reference['reference_id']}.updated_at",
+                )
+        for artifact in document["artifacts"]:
+            self._validate_artifact_semantics(artifact)
+
+    def _validate_artifact_semantics(self, artifact: Mapping[str, Any]) -> None:
+        kind = artifact["artifact_kind"]
+        classification = artifact.get("result_classification")
+        if kind == "result" and classification is None:
+            self._reject(
+                "project.contract.result_classification_required",
+                "result_classification",
+            )
+        if kind != "result" and classification not in (None, "narrative"):
+            self._reject(
+                "project.contract.invalid_artifact_classification",
+                "result_classification",
+            )
+        if artifact["inspection_mode"] == "plain_text" and not str(
+            artifact["media_type"]
+        ).startswith("text/"):
+            self._reject(
+                "project.contract.unsafe_inspection_mode",
+                "inspection_mode",
+            )
+        provenance = artifact["provenance"]
+        if provenance["source_type"] in {"supplied", "external"} and not (
+            provenance.get("source_version")
+            or provenance.get("source_digest")
+        ):
+            self._reject(
+                "project.contract.incomplete_provenance",
+                "provenance",
+            )
+
+    def _validate_snapshot_document(self, document: Mapping[str, Any]) -> None:
+        self._shape("snapshot", document)
+        snapshot = document["snapshot"]
+        measured = self.canonical_digest(snapshot)
+        if measured != document["snapshot_digest"]:
+            self._reject(
+                "project.contract.snapshot_digest_mismatch",
+                "snapshot_digest",
+            )
+        if self._timestamp(snapshot["workspace_updated_at"]) < self._timestamp(
+            snapshot["workspace_created_at"]
+        ):
+            self._reject(
+                "project.contract.invalid_snapshot",
+                "snapshot.workspace_updated_at",
+            )
+        if self._timestamp(document["closed_at"]) < self._timestamp(
+            snapshot["workspace_updated_at"]
+        ):
+            self._reject(
+                "project.contract.invalid_snapshot",
+                "closed_at",
+            )
+        self._unique(
+            [item["record_id"] for item in snapshot["notes"]],
+            "snapshot.notes",
+            code="project.contract.duplicate_snapshot_reference",
+        )
+        self._unique(
+            [item["record_id"] for item in snapshot["references"]],
+            "snapshot.references",
+            code="project.contract.duplicate_snapshot_reference",
+        )
+        self._unique(
+            [item["artifact_id"] for item in snapshot["artifacts"]],
+            "snapshot.artifacts",
+            code="project.contract.duplicate_snapshot_reference",
+        )
+        self._unique(
+            [item["link_id"] for item in snapshot["domain_links"]],
+            "snapshot.domain_links",
+            code="project.contract.duplicate_snapshot_reference",
+        )
+
+    def _validate_evidence_export_document(
+        self,
+        document: Mapping[str, Any],
+    ) -> None:
+        self._shape("evidence-export", document)
+        exported = document["export"]
+        measured = self.canonical_digest(exported)
+        if measured != document["export_digest"]:
+            self._reject(
+                "project.contract.export_digest_mismatch",
+                "export_digest",
+            )
+        included = {
+            (item["artifact_id"], item["artifact_version"])
+            for item in exported["artifact_files"]
+        }
+        excluded = {
+            (item["artifact_id"], item["artifact_version"])
+            for item in exported["excluded_artifacts"]
+        }
+        if len(included) != len(exported["artifact_files"]):
+            self._reject(
+                "project.contract.duplicate_export_artifact",
+                "export.artifact_files",
+            )
+        if len(excluded) != len(exported["excluded_artifacts"]):
+            self._reject(
+                "project.contract.duplicate_export_artifact",
+                "export.excluded_artifacts",
+            )
+        if included & excluded:
+            self._reject(
+                "project.contract.contradictory_export_artifact",
+                "export",
+            )
+
+    def _note(self, value: Mapping[str, Any]) -> ProjectNote:
+        return ProjectNote(
+            note_id=value["note_id"],
+            note_version=value["note_version"],
+            title=value["title"],
+            body=value["body"],
+            created_at=self._timestamp(value["created_at"]),
+            updated_at=self._timestamp(value["updated_at"]),
+        )
+
+    def _reference(self, value: Mapping[str, Any]) -> ProjectReference:
+        return ProjectReference(
+            reference_id=value["reference_id"],
+            reference_version=value["reference_version"],
+            title=value["title"],
+            url=value["url"],
+            source_name=value["source_name"],
+            source_version=value.get("source_version"),
+            source_digest=value.get("source_digest"),
+            license=value.get("license"),
+            use_constraints=value.get("use_constraints"),
+            created_at=self._timestamp(value["created_at"]),
+            updated_at=self._timestamp(value["updated_at"]),
+        )
+
+    def _provenance(self, value: Mapping[str, Any]) -> ArtifactProvenance:
+        return ArtifactProvenance(
+            source_type=ProvenanceSourceType(value["source_type"]),
+            source_title=value["source_title"],
+            source_version=value.get("source_version"),
+            source_url=value.get("source_url"),
+            source_digest=value.get("source_digest"),
+            license=value.get("license"),
+            use_constraints=value.get("use_constraints"),
+        )
+
+    def _environment(
+        self,
+        value: Mapping[str, Any] | None,
+    ) -> ProjectEnvironment | None:
+        if value is None:
+            return None
+        return ProjectEnvironment(
+            name=value["name"],
+            version=value["version"],
+            dependency_digest=value.get("dependency_digest"),
+        )
+
+    def _artifact_input(self, value: Mapping[str, Any]) -> ProjectArtifactInput:
+        return ProjectArtifactInput(
+            artifact_kind=ArtifactKind(value["artifact_kind"]),
+            logical_path=value["logical_path"],
+            media_type=value["media_type"],
+            inspection_mode=InspectionMode(value["inspection_mode"]),
+            byte_count=value["byte_count"],
+            content_digest=value["content_digest"],
+            result_classification=(
+                EvidenceClassification(value["result_classification"])
+                if value.get("result_classification") is not None
+                else None
+            ),
+            provenance=self._provenance(value["provenance"]),
+            environment=self._environment(value.get("environment")),
+            assumptions=tuple(value["assumptions"]),
+        )
+
+    def _artifact(self, value: Mapping[str, Any]) -> ProjectArtifact:
+        artifact = self._artifact_input(value)
+        return ProjectArtifact(
+            artifact_kind=artifact.artifact_kind,
+            logical_path=artifact.logical_path,
+            media_type=artifact.media_type,
+            inspection_mode=artifact.inspection_mode,
+            byte_count=artifact.byte_count,
+            content_digest=artifact.content_digest,
+            result_classification=artifact.result_classification,
+            provenance=artifact.provenance,
+            environment=artifact.environment,
+            assumptions=artifact.assumptions,
+            artifact_id=value["artifact_id"],
+            artifact_version=value["artifact_version"],
+            created_at=self._timestamp(value["created_at"]),
+        )
+
+    def _domain_link_input(
+        self,
+        value: Mapping[str, Any],
+    ) -> ProjectDomainLinkInput:
+        return ProjectDomainLinkInput(
+            link_type=DomainLinkType(value["link_type"]),
+            owner_module=value["owner_module"],
+            resource_type=value["resource_type"],
+            resource_id=value["resource_id"],
+            resource_version=value.get("resource_version"),
+            resource_as_of=(
+                self._timestamp(value["resource_as_of"])
+                if value.get("resource_as_of") is not None
+                else None
+            ),
+            provenance=value["provenance"],
+        )
+
+    def _domain_link(self, value: Mapping[str, Any]) -> ProjectDomainLink:
+        link = self._domain_link_input(value)
+        return ProjectDomainLink(
+            link_type=link.link_type,
+            owner_module=link.owner_module,
+            resource_type=link.resource_type,
+            resource_id=link.resource_id,
+            resource_version=link.resource_version,
+            resource_as_of=link.resource_as_of,
+            provenance=link.provenance,
+            link_id=value["link_id"],
+            owner_reference_digest=value["owner_reference_digest"],
+            target_status=value["target_status"],
+            validated_at=self._timestamp(value["validated_at"]),
+            created_at=self._timestamp(value["created_at"]),
+        )
+
+    def _reference_mutation(
+        self,
+        value: Mapping[str, Any],
+        *,
+        replacement: bool,
+    ) -> AddReferenceMutation | ReplaceReferenceMutation:
+        common = {
+            "title": value["title"],
+            "url": value["url"],
+            "source_name": value["source_name"],
+            "source_version": value.get("source_version"),
+            "source_digest": value.get("source_digest"),
+            "license": value.get("license"),
+            "use_constraints": value.get("use_constraints"),
+        }
+        if replacement:
+            return ReplaceReferenceMutation(
+                reference_id=value["reference_id"],
+                expected_reference_version=value["expected_reference_version"],
+                **common,
+            )
+        return AddReferenceMutation(**common)
+
+    @classmethod
+    def _portable(cls, value: object) -> dict[str, Any]:
+        if not is_dataclass(value):
+            raise TypeError("Project contract projection requires a dataclass.")
+        projected = cls._portable_value(asdict(value))
+        if not isinstance(projected, dict):
+            raise TypeError("Project contract projection requires an object.")
+        return projected
+
+    @classmethod
+    def _portable_value(cls, value: object) -> object:
+        if isinstance(value, datetime):
+            return cls._format_timestamp(cls._aware_timestamp(value, "time"))
+        if isinstance(value, Mapping):
+            return {
+                key: cls._portable_value(nested)
+                for key, nested in value.items()
+                if nested is not None
+            }
+        if isinstance(value, (list, tuple)):
+            return [cls._portable_value(nested) for nested in value]
+        return value
 
     @staticmethod
     def _canonical_bytes(value: Mapping[str, Any]) -> bytes:
@@ -227,9 +779,15 @@ class ContractProjectAdapter:
             "brief.source_references",
         )
 
-    def _unique(self, values: list[str], reference: str) -> None:
+    def _unique(
+        self,
+        values: list[str],
+        reference: str,
+        *,
+        code: str = "project.contract.invalid_brief",
+    ) -> None:
         if len(values) != len(set(values)):
-            self._reject("project.contract.invalid_brief", reference)
+            self._reject(code, reference)
 
     @staticmethod
     def _origin(value: Mapping[str, Any]) -> ProjectOrigin:

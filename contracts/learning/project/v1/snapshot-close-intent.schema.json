@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/project/v1/snapshot-close-intent.schema.json",
+  "title": "Project Snapshot Close Intent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "idempotency_key", "expected_project_revision", "expected_workspace_revision"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "idempotency_key": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "expected_project_revision": { "type": "integer", "minimum": 1 },
+    "expected_workspace_revision": { "type": "integer", "minimum": 1 }
+  }
+}

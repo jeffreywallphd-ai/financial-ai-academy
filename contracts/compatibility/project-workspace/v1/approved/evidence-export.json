@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "export_id": "export-001",
+  "export_digest": "6a3de80c7952616695b383fd78a70b330f8f5388290fcf57a471648d28da63b2",
+  "export": {
+    "format": "project-evidence-manifest-v1",
+    "project_id": "project-independent",
+    "snapshot_id": "snapshot-001",
+    "snapshot_digest": "51441b58ef5b075de9d7fb4807d7fc02cec7ad1e7076da8b9bd5065065aee75a",
+    "artifact_files": [
+      {
+        "artifact_id": "artifact-notebook",
+        "artifact_version": 1,
+        "logical_path": "analysis/review.ipynb",
+        "media_type": "application/x-ipynb+json",
+        "byte_count": 2048,
+        "content_digest": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      {
+        "artifact_id": "artifact-result",
+        "artifact_version": 1,
+        "logical_path": "results/simulation.json",
+        "media_type": "application/json",
+        "byte_count": 256,
+        "content_digest": "6666666666666666666666666666666666666666666666666666666666666666"
+      }
+    ],
+    "excluded_artifacts": [
+      {
+        "artifact_id": "artifact-data",
+        "artifact_version": 1,
+        "reason": "source_use_restricted"
+      }
+    ]
+  },
+  "generated_at": "2026-10-16T20:32:00Z"
+}

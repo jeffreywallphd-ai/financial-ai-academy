@@ -87,6 +87,47 @@ review. Harmless valid text, identities, milestone/source counts within bounds,
 and generated time or ID values must not depend on one fixture.
 
 Artifact manifests, workspace resources, snapshots, typed domain links,
-Assessment submissions, and Project workspace-resource behavior are separate
-bounded delivery seams. ADR-0011 continues to require inert data if artifact
-contracts are introduced later.
+Assessment submissions, and Project workspace-resource behavior remain
+separate bounded delivery seams. The first workspace contract seam is now
+defined below; persistence, API, browser, and submission behavior remain
+separately bounded.
+
+## Version 1 Workspace and Snapshot Meaning
+
+The additive Project v1 workspace shapes retain the shell's ownership and
+authorization semantics. A live workspace has one positive revision and
+bounded ordered notes, safe HTTPS reference metadata, inert-artifact manifests,
+and typed public domain-resource references. Mutations carry an idempotency key
+and exact expected revision; accepted record identity, version, time, learner,
+digest verification, owner validation, and persistence facts remain server
+authority.
+
+Artifact manifests admit only dataset, notebook, code, environment, result,
+reflection, and supporting-file evidence. They use traversal-free relative
+logical paths, closed media and passive-inspection values, a maximum declared
+size of 10 MiB, lowercase SHA-256 content integrity, source/license/use
+provenance, assumptions, and optional external-environment evidence. Result
+records distinguish observed, calculated, simulated, predicted, generated,
+and narrative meaning. Validation is not code-safety, truth, suitability, or
+independent-reproduction evidence.
+
+Typed links retain owning module, resource type and identity, link meaning,
+version and/or as-of evidence, public owner-reference digest, validation time,
+and provenance. Only an owning public operation may produce an accepted
+`available` link. The contract carries no target business state or permission
+and supplies no production Portfolio adapter.
+
+A snapshot close intent binds one exact Project and workspace revision. The
+immutable snapshot material records the exact Project shell digest and record
+version/digest references. Its digest is SHA-256 over compact sorted-key JSON
+with direct UTF-8. A later live revision or removed live association cannot
+rewrite that material. The evidence-export manifest binds one exact snapshot,
+includes only authorized inert files by logical path and digest, and records
+bounded exclusions. It is neither an archive-import nor an execution format.
+
+These portable shapes contain no storage coordinates, host paths, credentials,
+provider payloads, callbacks, archive controls, executable controls, active
+renderer instructions, Assessment result, Learner-model state, copied
+Portfolio aggregate, or financial advice. Browser, command-line, service, and
+future headless clients will consume the same later Project API; the contracts
+grant no client durable-state authority.

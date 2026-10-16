@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/project/v1/snapshot.schema.json",
+  "title": "Project Snapshot v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "snapshot_id", "snapshot_digest", "snapshot", "closed_at"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "snapshot_id": { "$ref": "#/$defs/identifier" },
+    "snapshot_digest": { "$ref": "#/$defs/digest" },
+    "snapshot": { "$ref": "#/$defs/snapshot_material" },
+    "closed_at": { "$ref": "#/$defs/utc_time" }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "version_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_id", "record_version", "record_digest"],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/identifier" },
+        "record_version": { "type": "integer", "minimum": 1 },
+        "record_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "artifact_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "artifact_version", "manifest_digest", "content_digest", "byte_count"],
+      "properties": {
+        "artifact_id": { "$ref": "#/$defs/identifier" },
+        "artifact_version": { "type": "integer", "minimum": 1 },
+        "manifest_digest": { "$ref": "#/$defs/digest" },
+        "content_digest": { "$ref": "#/$defs/digest" },
+        "byte_count": { "type": "integer", "minimum": 0, "maximum": 10485760 }
+      }
+    },
+    "link_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["link_id", "record_digest", "owner_reference_digest"],
+      "properties": {
+        "link_id": { "$ref": "#/$defs/identifier" },
+        "record_digest": { "$ref": "#/$defs/digest" },
+        "owner_reference_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "snapshot_material": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project_id",
+        "learner_id",
+        "project_revision",
+        "project_shell_digest",
+        "workspace_revision",
+        "workspace_created_at",
+        "workspace_updated_at",
+        "notes",
+        "references",
+        "artifacts",
+        "domain_links"
+      ],
+      "properties": {
+        "project_id": { "$ref": "#/$defs/identifier" },
+        "learner_id": { "$ref": "#/$defs/identifier" },
+        "project_revision": { "type": "integer", "minimum": 1 },
+        "project_shell_digest": { "$ref": "#/$defs/digest" },
+        "workspace_revision": { "type": "integer", "minimum": 1 },
+        "workspace_created_at": { "$ref": "#/$defs/utc_time" },
+        "workspace_updated_at": { "$ref": "#/$defs/utc_time" },
+        "notes": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/version_ref" } },
+        "references": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/version_ref" } },
+        "artifacts": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/artifact_ref" } },
+        "domain_links": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/link_ref" } }
+      }
+    }
+  }
+}

@@ -1,0 +1,94 @@
+[
+  {
+    "case": "workspace version is unsupported",
+    "kind": "workspace",
+    "path": ["schema_version"],
+    "value": "2.0.0",
+    "code": "project.contract.unsupported_version"
+  },
+  {
+    "case": "workspace time moves backward",
+    "kind": "workspace",
+    "path": ["updated_at"],
+    "value": "2026-10-16T19:59:59Z",
+    "code": "project.contract.invalid_workspace"
+  },
+  {
+    "case": "artifact path traverses parent",
+    "kind": "workspace",
+    "path": ["artifacts", 0, "logical_path"],
+    "value": "../private.txt",
+    "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "artifact requests execution",
+    "kind": "workspace",
+    "path": ["artifacts", 1, "execution"],
+    "value": "python",
+    "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "result lacks classification",
+    "kind": "workspace",
+    "path": ["artifacts", 2, "result_classification"],
+    "delete": true,
+    "code": "project.contract.result_classification_required"
+  },
+  {
+    "case": "binary artifact requests plain text inspection",
+    "kind": "workspace",
+    "path": ["artifacts", 1, "inspection_mode"],
+    "value": "plain_text",
+    "code": "project.contract.unsafe_inspection_mode"
+  },
+  {
+    "case": "external artifact omits source version and digest",
+    "kind": "workspace",
+    "path": ["artifacts", 0, "provenance", "source_version"],
+    "delete": true,
+    "also_delete": ["artifacts", 0, "provenance", "source_digest"],
+    "code": "project.contract.incomplete_provenance"
+  },
+  {
+    "case": "domain link claims stale accepted state",
+    "kind": "workspace",
+    "path": ["domain_links", 0, "target_status"],
+    "value": "stale",
+    "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "mutation carries a host path",
+    "kind": "workspace-mutation-intent",
+    "path": ["mutation", "artifact", "host_path"],
+    "value": "C:/private/result.json",
+    "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "snapshot digest does not match material",
+    "kind": "snapshot",
+    "path": ["snapshot_digest"],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "code": "project.contract.snapshot_digest_mismatch"
+  },
+  {
+    "case": "snapshot closes before the workspace update",
+    "kind": "snapshot",
+    "path": ["closed_at"],
+    "value": "2026-10-16T20:29:59Z",
+    "code": "project.contract.invalid_snapshot"
+  },
+  {
+    "case": "export digest does not match material",
+    "kind": "evidence-export",
+    "path": ["export_digest"],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "code": "project.contract.export_digest_mismatch"
+  },
+  {
+    "case": "export contains a storage key",
+    "kind": "evidence-export",
+    "path": ["export", "artifact_files", 0, "storage_key"],
+    "value": "private/object/key",
+    "code": "project.contract.schema_invalid"
+  }
+]

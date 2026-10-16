@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "close-snapshot-001",
+  "expected_project_revision": 1,
+  "expected_workspace_revision": 4
+}
