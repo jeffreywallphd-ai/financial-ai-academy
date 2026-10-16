@@ -1,7 +1,7 @@
 ---
 id: CAP-0005
 kind: capability
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -203,3 +203,8 @@ checks. No product behavior or public contract changed in the closure packet.
   API headless observation around an isolated test-only derived-state reset and
   seed-free restart; the capability is ready for governed slice and CAP closure
   without a separate AI-mode plan or production recovery API.
+- 2026-10-16: Closed CAP-0005 after SLI-0022 through SLI-0025 and every packet
+  completed, the final slice completion gate passed, the corrected exact
+  candidate received qualifying affected verification and independent review,
+  and all 29 aggregate readiness checks passed. Public APIs remain available
+  for UI and non-UI clients; separate AI-mode planning remains deferred.

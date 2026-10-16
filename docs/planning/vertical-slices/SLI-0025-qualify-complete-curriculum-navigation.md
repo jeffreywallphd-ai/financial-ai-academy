@@ -1,7 +1,7 @@
 ---
 id: SLI-0025
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -185,7 +185,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | complete |
-| WRK-0091 | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | verifying |
+| WRK-0091 | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | complete |
 
 ## Verification and Qualification
 
@@ -258,6 +258,22 @@ The API remains the authoritative interface for UI and non-UI clients. No
 separate AI mode, cloud adapter, model authority, or production recovery claim
 was planned or qualified.
 
+The delivered boundary is qualification and evidence only: WRK-0090 owns the
+live headless observation and isolated replay proof, and WRK-0091 owns the
+cumulative matrix and closure evidence. Required repository startup and
+current canonical authority were revalidated. Contracts and schemas remain
+compatible and unchanged; documentation, planning state, and derived context
+checks pass. No migration, backup, or production recovery procedure was
+required because the only reset occurs in an ephemeral isolated database and
+removes rebuildable rows.
+
+Managed-cloud behavior, organization tenancy, a distinct AI runtime, headless
+completion submission, model authority, and production recovery were not
+qualified. The result assumes the accepted single-profile session model and
+exact approved fixture. Those bounded omissions are approved CAP non-goals,
+not hidden completion gaps. CAP-0005's package and four-slice manifest remain
+current with no material drift, and no lower-level completion approval exists.
+
 ## Planning History
 
 - 2026-10-16: Refined the final CAP-0005 manifest increment after SLI-0022
@@ -305,3 +321,11 @@ was planned or qualified.
   bounded correction now distinguishes the browser completion/return journey
   from the headless session/graph/state/launch observation and distinguishes
   public API observation from the isolated test-only derived-row reset.
+- 2026-10-16: Completed WRK-0091 at corrected exact candidate `1af570d` after
+  fresh affected verification passed all three selected checks. Receipt digest
+  `sha256:0c445b5be2aa34ce23613b170fde7c796542d0432baee1ab201dba901af0bb65`
+  is qualifying; independent R02 closed R01-F001 and R01-F002 with no new
+  findings. SLI-0025 is now verifying.
+- 2026-10-16: Completion structure and the cumulative CAP acceptance mapping
+  passed. SLI-0025 is complete with all required packets, evidence, boundaries,
+  compatibility, documentation, assumptions, and unqualified areas recorded.
