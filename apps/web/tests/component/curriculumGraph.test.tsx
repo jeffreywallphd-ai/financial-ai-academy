@@ -1,11 +1,16 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router";
+import {
+  createMemoryRouter,
+  MemoryRouter,
+  RouterProvider,
+} from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { CurriculumGraphPage } from "../../src/features/curriculum-graph/CurriculumGraphPage";
 import {
   CurriculumGraphLoadingState,
+  CurriculumGraphRoute,
   CurriculumGraphRouteView,
 } from "../../src/features/curriculum-graph/CurriculumGraphRoute";
 import {
@@ -318,5 +323,63 @@ describe("CurriculumGraphRouteView", () => {
       screen.getByRole("button", { name: "Return to learning library" }),
     );
     expect(onCatalog).toHaveBeenCalledOnce();
+  });
+});
+
+describe("CurriculumGraphRoute", () => {
+  it("bounds an interrupted launch when a second activity supersedes it", async () => {
+    const user = userEvent.setup();
+    const launchActivity = vi
+      .fn()
+      .mockImplementationOnce(
+        (
+          _graph: unknown,
+          _navigationState: unknown,
+          _activityId: string,
+          signal: AbortSignal,
+        ) =>
+          new Promise((_resolve, reject) => {
+            signal.addEventListener(
+              "abort",
+              () => reject(new DOMException("Aborted", "AbortError")),
+              { once: true },
+            );
+          }),
+      )
+      .mockResolvedValueOnce({
+        status: "blocked",
+        activityId: "activity-terms-glossary",
+      });
+    const router = createMemoryRouter(
+      [
+        {
+          path: "/learn/curricula/:curriculumId/versions/:curriculumVersion",
+          loader: () => ({
+            status: "ready",
+            graph: curriculumGraphFixture,
+            navigationState: navigationStateFixture,
+          }),
+          element: <CurriculumGraphRoute launchActivity={launchActivity} />,
+        },
+      ],
+      {
+        initialEntries: [
+          "/learn/curricula/investing-foundations/versions/1.0.0",
+        ],
+      },
+    );
+    render(<RouterProvider router={router} />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Review lesson" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Start lesson" }));
+
+    expect(launchActivity).toHaveBeenCalledTimes(2);
+    const firstSignal = launchActivity.mock.calls[0]?.[3] as AbortSignal;
+    expect(firstSignal.aborted).toBe(true);
+    expect(
+      await screen.findByText(/not ready to open/i),
+    ).toBeVisible();
   });
 });
