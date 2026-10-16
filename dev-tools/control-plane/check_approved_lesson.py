@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run repository-owned web checks through the prepared Node/npm runtime."""
+"""Run repository-owned web checks through prepared Node/npm/Python runtimes."""
 
 from __future__ import annotations
 
@@ -31,9 +31,40 @@ MOCKED_BROWSER_SUITES = (
 class WebRuntime:
     node: str
     npm: tuple[str, ...]
+    python: str = sys.executable
 
 
-def resolve_runtime(environment: Mapping[str, str]) -> WebRuntime:
+def resolve_python(environment: Mapping[str, str], *, root: Path) -> str:
+    explicit = environment.get("FINANCIAL_AI_ACADEMY_PYTHON_EXECUTABLE")
+    if explicit:
+        discovered = shutil.which(explicit)
+        if discovered:
+            return str(Path(discovered).resolve())
+        explicit_path = Path(explicit)
+        if explicit_path.is_file():
+            return str(explicit_path.resolve())
+        raise RuntimeError(
+            "FINANCIAL_AI_ACADEMY_PYTHON_EXECUTABLE does not identify an "
+            "available executable."
+        )
+
+    virtual_environment = root / "backend" / ".venv"
+    candidate = (
+        virtual_environment / "Scripts" / "python.exe"
+        if os.name == "nt"
+        else virtual_environment / "bin" / "python"
+    )
+    if candidate.is_file():
+        return str(candidate.resolve())
+    return sys.executable
+
+
+def resolve_runtime(
+    environment: Mapping[str, str],
+    *,
+    root: Path = REPOSITORY,
+) -> WebRuntime:
+    python = resolve_python(environment, root=root)
     node = environment.get("FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE")
     npm_cli = environment.get("FINANCIAL_AI_ACADEMY_NPM_CLI")
     if bool(node) != bool(npm_cli):
@@ -42,14 +73,14 @@ def resolve_runtime(environment: Mapping[str, str]) -> WebRuntime:
             "FINANCIAL_AI_ACADEMY_NPM_CLI, or neither."
         )
     if node and npm_cli:
-        return WebRuntime(node=node, npm=(node, npm_cli))
+        return WebRuntime(node=node, npm=(node, npm_cli), python=python)
     discovered_node = shutil.which("node")
     discovered_npm = shutil.which("npm")
     if not discovered_node or not discovered_npm:
         raise RuntimeError(
             "Node and npm are unavailable; run the repository development setup first."
         )
-    return WebRuntime(node=discovered_node, npm=(discovered_npm,))
+    return WebRuntime(node=discovered_node, npm=(discovered_npm,), python=python)
 
 
 def capture(command: Sequence[str], *, root: Path) -> str:
@@ -124,7 +155,7 @@ def child_environment(
     child[path_name] = str(resolved_node.parent) + (
         os.pathsep + existing_path if existing_path else ""
     )
-    child["PYTHON"] = sys.executable
+    child["PYTHON"] = runtime.python
     return child
 
 
@@ -267,7 +298,7 @@ def run_live_in_snapshot(
             raise RuntimeError("The isolated web build did not produce dist/index.html.")
         command_runner(
             (
-                sys.executable,
+                runtime.python,
                 str(snapshot / "tests" / "e2e" / "approved-lesson" / "run.py"),
             ),
             root=snapshot,
@@ -284,7 +315,7 @@ def execute(
     snapshot_preparer: Callable[[Path, Path], None] = prepare_candidate_snapshot,
     port_selector: Callable[[], int] = select_loopback_port,
 ) -> None:
-    runtime = resolve_runtime(environment)
+    runtime = resolve_runtime(environment, root=root)
     require_versions(runtime, root=root, version_reader=version_reader)
     execution_environment = child_environment(runtime, environment)
 

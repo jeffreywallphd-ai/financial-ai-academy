@@ -182,9 +182,13 @@ behavior; server/static-shell changes select the server and Chromium checks;
 test-only changes select their owning suite; and the roadmap README remains a
 documentation-only impact. When the web wrapper is given explicit
 `FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE` and `FINANCIAL_AI_ACADEMY_NPM_CLI`
-values, it prepends that Node directory and exports the current Python
-executable to child processes. Nested compilation and test servers therefore
-use the prepared runtime without requiring a global Node or Python command.
+values, it prepends that Node directory for child processes. Python selection
+uses `FINANCIAL_AI_ACADEMY_PYTHON_EXECUTABLE` when explicitly provided, then
+the platform-specific executable under `backend/.venv` when present, and only
+then the interpreter that invoked the wrapper. The selected Python is exported
+to nested processes and directly runs isolated approved-lesson qualification,
+so prepared backend dependencies do not depend on an ambient `PYTHONPATH` or
+an unrelated system interpreter.
 
 The production-build and live wrappers copy the exact tracked candidate into an
 isolated temporary snapshot, omit any tracked `apps/web/dist` output, and link

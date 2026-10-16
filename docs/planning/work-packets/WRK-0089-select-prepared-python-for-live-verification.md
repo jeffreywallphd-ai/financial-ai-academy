@@ -127,7 +127,7 @@ python dev-tools/control-plane/test_verification.py
 python dev-tools/control-plane/check_approved_lesson.py --mode live
 python docs/planning/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0089-select-prepared-python-for-live-verification.md
 python dev-tools/planning/check_planning.py
-python dev-tools/docs/check_docs.py
+python dev-tools/documentation/check_docs.py
 git diff --check
 python dev-tools/agent/check_ready.py
 ```
@@ -164,6 +164,28 @@ affected receipt, independent review, documentation impact, assumptions, and
 residual risks. Confirm that no product API, generated client, learning
 behavior, durable state, model authority, provider, or separate AI-mode plan
 changed, then leave SLI-0024 ready for deterministic closure.
+
+## Implementation Evidence
+
+- The affected-check runtime now resolves one Python command in explicit
+  override, repository `backend/.venv`, and invoking-interpreter order. It
+  exports that command to child processes and uses the same command for the
+  isolated approved-lesson runner; Node/npm resolution is unchanged.
+- The focused verification suite passed 27 tests with two platform-bounded
+  skips. New coverage proves explicit override priority, prepared-environment
+  preference, portable fallback, child propagation, and exact live-runner
+  invocation.
+- Live qualification ran with no `PYTHONPATH` and passed all eight isolated
+  PostgreSQL 18.4/Python/public-API/generated-client/Chromium scenarios. This
+  directly reproduces the clean-fork path that previously selected the wrong
+  interpreter.
+- Python compilation, packet validation, planning integrity, documentation
+  integrity, and Git whitespace checks passed. The aggregate readiness gate
+  passed all 29 checks.
+- No product source, API/OpenAPI/generated client, fixture, database, UI,
+  learning behavior, dependency, durable state, model authority, provider, or
+  separate AI-mode plan changed. The existing public API remains available to
+  UI and non-UI clients.
 
 ## Planning History
 

@@ -26,6 +26,7 @@ from check_approved_lesson import (  # noqa: E402
     child_environment,
     copy_tracked_candidate,
     execute as execute_web_check,
+    resolve_runtime,
 )
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
@@ -591,13 +592,85 @@ class RepositoryWebCheckTests(unittest.TestCase):
         runtime = WebRuntime(
             node=r"C:\prepared-node\node.exe",
             npm=(r"C:\prepared-node\node.exe", r"C:\prepared-npm\npm-cli.js"),
+            python=r"C:\prepared-python\python.exe",
         )
         source = {"Path": r"C:\Windows\System32", "UNCHANGED": "true"}
         child = child_environment(runtime, source)
         self.assertEqual(source, {"Path": r"C:\Windows\System32", "UNCHANGED": "true"})
-        self.assertEqual(sys.executable, child["PYTHON"])
+        self.assertEqual(r"C:\prepared-python\python.exe", child["PYTHON"])
         self.assertTrue(child["Path"].startswith(r"C:\prepared-node" + os.pathsep))
         self.assertEqual("true", child["UNCHANGED"])
+
+    def test_runtime_prefers_explicit_python_over_prepared_environment(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="prepared-python-") as directory:
+            root = Path(directory)
+            prepared = root / "backend" / ".venv" / (
+                "Scripts/python.exe" if os.name == "nt" else "bin/python"
+            )
+            prepared.parent.mkdir(parents=True)
+            prepared.write_bytes(b"prepared")
+            explicit = root / "explicit-python"
+            explicit.write_bytes(b"explicit")
+            runtime = resolve_runtime(
+                {
+                    "FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE": "node",
+                    "FINANCIAL_AI_ACADEMY_NPM_CLI": "npm-cli.js",
+                    "FINANCIAL_AI_ACADEMY_PYTHON_EXECUTABLE": str(explicit),
+                },
+                root=root,
+            )
+            self.assertEqual(str(explicit.resolve()), runtime.python)
+
+    def test_runtime_prefers_prepared_backend_python_then_falls_back(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="prepared-python-") as directory:
+            root = Path(directory)
+            prepared = root / "backend" / ".venv" / (
+                "Scripts/python.exe" if os.name == "nt" else "bin/python"
+            )
+            prepared.parent.mkdir(parents=True)
+            prepared.write_bytes(b"prepared")
+            environment = {
+                "FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE": "node",
+                "FINANCIAL_AI_ACADEMY_NPM_CLI": "npm-cli.js",
+            }
+            self.assertEqual(
+                str(prepared.resolve()),
+                resolve_runtime(environment, root=root).python,
+            )
+            prepared.unlink()
+            self.assertEqual(
+                sys.executable,
+                resolve_runtime(environment, root=root).python,
+            )
+
+    def test_live_check_invokes_runner_with_resolved_python(self) -> None:
+        commands: list[tuple[str, ...]] = []
+
+        def runner(command: tuple[str, ...], *, root: Path) -> None:
+            commands.append(command)
+            if len(commands) == 1:
+                dist = root / "apps" / "web" / "dist"
+                dist.mkdir(parents=True)
+                (dist / "index.html").write_text("isolated", encoding="utf-8")
+
+        runtime = WebRuntime(
+            node="node",
+            npm=("npm",),
+            python="prepared-python",
+        )
+        with tempfile.TemporaryDirectory(prefix="web-check-python-") as directory:
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=runtime
+            ):
+                execute_web_check(
+                    "live",
+                    root=Path(directory),
+                    command_runner=runner,
+                    version_reader=self.versions,
+                    snapshot_preparer=self.prepare_snapshot,
+                )
+        self.assertEqual(2, len(commands))
+        self.assertEqual("prepared-python", commands[1][0])
 
     def test_candidate_snapshot_exports_commit_bytes_and_omits_tracked_build(self) -> None:
         with tempfile.TemporaryDirectory(prefix="candidate-export-") as directory:
