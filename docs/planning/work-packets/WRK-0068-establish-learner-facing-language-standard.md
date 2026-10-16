@@ -1,7 +1,7 @@
 ---
 id: WRK-0068
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["AGENTS.md", "docs/README.md", "docs/standards/README.md", "docs/standards/user-facing-language-standards.md", "docs/standards/interface-design-standards.md", "docs/standards/change-impact-matrix.md", "docs/design/README.md", "docs/design/content-style-guide.md", "docs/context/prompt-routing.md", "docs/context/pack-catalog.json", "docs/context/packs/index.pack.md", "docs/context/packs/interface-design.pack.md", "docs/external-sources/source-register.md", "docs/planning/README.md", "docs/planning/work-packets/WRK-0068-establish-learner-facing-language-standard.md", "docs/planning/vertical-slices/SLI-0122-choose-learning-opportunities-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d3d737bca0680e4f766fa771bf33860bab044a73
+claim_id: WRK-0068:1a63b064-d44f-4867-85d6-926143dc406e
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T08:57:42Z
 ---
 
 # Agent Work Packet: Establish the Learner-Facing Language Standard

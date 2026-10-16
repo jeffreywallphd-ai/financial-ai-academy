@@ -1,7 +1,7 @@
 ---
 id: SLI-0122
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -141,7 +141,7 @@ each packet starts. The planned dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0068 | Establish the normative language standard, content style guide, initial term map, and workflow routing | none | none | ready |
+| WRK-0068 | Establish the normative language standard, content style guide, initial term map, and workflow routing | none | none | active |
 | JIT-B | Apply the standard to catalog list/filter/card presentation and focused component evidence | JIT-A | none | captured |
 | JIT-C | Apply the standard to detail/comparison/loading/error presentation and focused component evidence | JIT-B | none | captured |
 | JIT-D | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | JIT-C | none | captured |
@@ -199,3 +199,6 @@ copying approval or reviewer records into tracked files.
   language standard, design content guide, initial preferred-term map,
   informative external-source posture, and minimum routing needed for future
   interface work.
+- 2026-10-16: Activated WRK-0068 after validating the current CAP binding,
+  slice membership, resolved decision posture, exact write scope, packet-start
+  acceptance set, and collision-free file lease.
