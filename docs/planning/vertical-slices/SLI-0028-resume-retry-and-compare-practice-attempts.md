@@ -225,8 +225,8 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | complete |
 | WRK-0104 | Implement an Assessment-safe history source, Curriculum review-target resolution, and Learner-model history rebuild/persistence | WRK-0103 | none | complete |
 | WRK-0105 | Expose the composed progress, review, and history operations through protected API, OpenAPI, and generated clients | WRK-0104 | none | complete |
-| WRK-0106 | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | WRK-0105 | none | ready |
-| JIT-F | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-E | none | captured |
+| WRK-0106 | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | WRK-0105 | none | complete |
+| WRK-0107 | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | WRK-0106 | none | ready |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. This preserves incremental planning and avoids freezing later file
@@ -342,4 +342,9 @@ mode, autonomous authority, provider, cloud, or external execution was added.
   server-owned retry and targeted-review state, and compares immutable
   answer-free attempt history through the same public API available to
   headless clients. JIT-F remains for cumulative live qualification.
+- 2026-10-16: Refined JIT-F as WRK-0107 for one qualification-only extension
+  of the existing approved-lesson harness. It combines browser save/resume and
+  submission evidence, fresh-session headless parity, normal restart, and the
+  established PostgreSQL concurrency/rollback/migration/rebuild suites without
+  changing product contracts or implementation.
 
