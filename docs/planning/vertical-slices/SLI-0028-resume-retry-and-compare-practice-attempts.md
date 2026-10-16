@@ -221,7 +221,7 @@ each packet starts. The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0102 | Freeze draft/retry/history/review-target contracts, deterministic policy and projection rules, and anti-rigidity corpora | SLI-0027 | none | ready |
+| WRK-0102 | Freeze draft/retry/history/review-target contracts, deterministic policy and projection rules, and anti-rigidity corpora | SLI-0027 | none | complete |
 | JIT-B | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | JIT-A | none | captured |
 | JIT-C | Implement Curriculum review-target resolution, Learner-model history rebuild/persistence, protected composed API, OpenAPI, and generated client | JIT-B | none | captured |
 | JIT-D | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-C | none | captured |
@@ -310,4 +310,8 @@ mode, autonomous authority, provider, cloud, or external execution was added.
   Curriculum review-target, and Learner-model history contracts plus
   dependency-light anti-rigidity evidence. Persistence, APIs, clients, and UI
   remain dependent seams.
+- 2026-10-16: Completed WRK-0102 at exact candidate
+  `5d869b8df0896dd1ddb248559bde5d233ee0ddba`; additive contracts and
+  dependency-light evidence now make the Assessment persistence/retry seam
+  eligible for just-in-time packet authoring.
 

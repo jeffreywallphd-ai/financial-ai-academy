@@ -1,7 +1,7 @@
 ---
 id: WRK-0102
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -200,7 +200,44 @@ gaps. Confirm that no persistence, migration, public API, client, browser,
 mastery, adaptation, separate AI mode, provider, cloud, or external execution
 was implemented. Leave the next SLI-0028 persistence packet dependency-ready.
 
+## Completion Evidence
+
+- Exact completed candidate:
+  `5d869b8df0896dd1ddb248559bde5d233ee0ddba`.
+- Qualifying governed receipt:
+  `.local-codex/control-plane/receipts/WRK-0102/5d869b8df0896dd1ddb248559bde5d233ee0ddba/20261016T172236Z-f67d3851-8141-49e1-b612-d61f9a1dc1a9.json`,
+  digest
+  `sha256:04115aebb380cf30b99c9e1290cae6de883b95a669c4c3f758046bf350ca5ce8`.
+- Added three closed Assessment schemas and synthetic corpora for partial
+  conditional draft save, server-owned draft, and retry state. The pure
+  evidence distinguishes create, exact replay, current-revision replacement,
+  and stale conflict; retry limits 1 through 10 remain valid.
+- Added a closed Curriculum review-target schema and corpus. Selection binds
+  the complete practice-placement/resource-ID/version/digest tuple,
+  deduplicates in declaration order, rejects conflicting exact mappings, and
+  carries no URL, route, HTML-like title, provider payload, or credential.
+- Added a closed Learner-model practice-history schema and corpus. It preserves
+  stable attempt and item order, exact source identities, score/correctness,
+  review references, canonical time, and source digest while rejecting every
+  provenance collision, item/policy mismatch, private response, feedback,
+  learner identity, mastery, and inconsistent duplicate.
+- The exact candidate passed 198 focused Assessment, Curriculum, Learner-model,
+  existing curriculum-graph, lesson-package, and completion regressions;
+  architecture fitness; whitespace integrity; all selected affected checks;
+  and the fixed aggregate readiness gate with 29 of 29 checks passing.
+- Existing accepted definition, presentation, submission, result, and
+  completion-event fixture files were not modified. The changes are additive
+  and transport-neutral.
+- No production persistence, migration, public API, OpenAPI, generated client,
+  browser behavior, mastery, adaptation, separate AI mode, provider, cloud, or
+  external execution was implemented. Those remain dependent SLI-0028 seams.
+
 ## Planning History
+
+- 2026-10-16: Completed the contract seam at exact candidate
+  `5d869b8df0896dd1ddb248559bde5d233ee0ddba` after fresh focused, affected,
+  architecture, aggregate-readiness, confidentiality, exact-mapping, and
+  anti-rigidity evidence closed all observed functional defects.
 
 - 2026-10-16: Submitted exact candidate
   `297e8a51d29f5fdf07ea27ddbc1cbc8ad256aef6` for affected verification and
