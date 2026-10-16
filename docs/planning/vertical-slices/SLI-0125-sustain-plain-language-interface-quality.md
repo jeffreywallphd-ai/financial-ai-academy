@@ -1,7 +1,7 @@
 ---
 id: SLI-0125
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -162,7 +162,7 @@ each packet starts. The planned dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0079 | Implement the deterministic diff-aware checker, owned configuration, narrow exceptions, corpus, and direct unit/CLI evidence | SLI-0122, SLI-0123, SLI-0124 | none | ready |
+| WRK-0079 | Implement the deterministic diff-aware checker, owned configuration, narrow exceptions, corpus, and direct unit/CLI evidence | SLI-0122, SLI-0123, SLI-0124 | none | active |
 | JIT-B | Integrate the checker with aggregate readiness, add anti-rigidity and forwarding evidence, reconcile documentation, and qualify the slice | JIT-A | none | planned |
 
 ## Verification and Qualification
@@ -222,3 +222,7 @@ runtime or public contract changed.
   reasoned exceptions, stable human/JSON results, and direct anti-rigidity
   tests. Aggregate readiness integration remains the dependency-ordered JIT-B
   seam.
+- 2026-10-16: Activated WRK-0079 after validating the current CAP package,
+  completed slice dependencies, exact checker/test/documentation scope,
+  deterministic acceptance set, and collision-free file lease. No decision or
+  lower-level approval gate applies.

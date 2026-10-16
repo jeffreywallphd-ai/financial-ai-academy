@@ -1,7 +1,7 @@
 ---
 id: WRK-0079
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/learner-language/README.md", "dev-tools/learner-language/rules.json", "dev-tools/learner-language/check_learner_language.py", "dev-tools/learner-language/test_learner_language.py", "dev-tools/README.md", "docs/planning/work-packets/WRK-0079-build-diff-aware-learner-language-checker.md", "docs/planning/vertical-slices/SLI-0125-sustain-plain-language-interface-quality.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 021b76d84e8d84c6df6175f6947d30d784ac7270
+claim_id: WRK-0079:b25d5369-fcdf-456c-b408-5fe29d281332
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T11:07:14Z
 ---
 
 # Agent Work Packet: Build the Diff-Aware Learner-Language Checker
@@ -220,3 +220,9 @@ ready or return one bounded blocker.
   reusable deterministic checker and direct anti-rigidity evidence from later
   aggregate-readiness integration. Its exact scope conforms to CAP-0030 and
   introduces no decision or lower-level approval gate.
+- 2026-10-16: Activated from base
+  `021b76d84e8d84c6df6175f6947d30d784ac7270` after the implementation gate
+  confirmed current CAP authority, satisfied dependencies, bounded scope, and
+  no unresolved decision. Exact-file lease
+  `file-lease:e224c94c-da82-45aa-9354-06d0e5a797d5` protects the packet's
+  eight writable paths.
