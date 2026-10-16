@@ -34,8 +34,10 @@ def repository_root() -> Path:
 def checks(root: Path, profile: str, base_ref: str | None) -> list[Check]:
     python = sys.executable
     planning = [python, "dev-tools/planning/check_planning.py"]
+    learner_language = [python, "dev-tools/learner-language/check_learner_language.py"]
     if base_ref:
         planning.extend(["--base-ref", base_ref])
+        learner_language.extend(["--base-ref", base_ref])
     selected = [
         Check("planning integrity", tuple(planning)),
         Check("planning tool behavior", (python, "dev-tools/planning/test_planning_tools.py")),
@@ -52,6 +54,8 @@ def checks(root: Path, profile: str, base_ref: str | None) -> list[Check]:
             ),
         ),
         Check("agent-readiness CI workflow", (python, "dev-tools/agent/check_ci_workflow.py")),
+        Check("agent-readiness behavior", (python, "dev-tools/agent/test_check_ready.py")),
+        Check("learner-language quality", tuple(learner_language)),
         Check("control-plane policy", (python, "dev-tools/control-plane/control_plane.py", "--json", "policy-check", "--profile", profile)),
         Check("control-plane lifecycle", (python, "dev-tools/control-plane/test_control_plane.py")),
         Check("control-plane verification", (python, "dev-tools/control-plane/test_verification.py")),

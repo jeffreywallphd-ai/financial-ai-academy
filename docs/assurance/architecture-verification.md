@@ -7,6 +7,13 @@ The current invariant-to-evidence map is maintained in `docs/architecture/assura
 
 At this foundation stage, application architecture checks are gaps because no application code, generated contracts, or deployment manifests exist. Documentation/context structure, design-system assets, planning integrity, planning-tool behavior, skill compatibility, and prompt-level planning routing have direct evidence through `python dev-tools/agent/check_ready.py`. New implementation must add or update the owning verification row and focused boundary evidence in the same change.
 
+Changed learner-facing copy has direct, bounded evidence through the
+diff-aware learner-language checker, its anti-rigidity corpus, fixed readiness
+integration, and tracked affected-check selection. Advisory wording, whitespace,
+CSS, generated clients, fixtures, documentation, and unrelated code do not
+become learner-language blockers or trigger aggregate readiness through that
+selection rule.
+
 Planned verification categories:
 
 - module dependency direction,

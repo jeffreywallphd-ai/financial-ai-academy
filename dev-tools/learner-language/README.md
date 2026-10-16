@@ -20,6 +20,12 @@ only diffs. `--base-ref` selects lines changed from one exact Git revision.
 `--all` is an explicit controlled qualification of all owned learner-facing
 TSX source; it is not the everyday mode.
 
+Agent readiness invokes the ordinary changed-copy mode and forwards its exact
+`--base-ref` when present. The affected-check catalog selects this command for
+owned application TSX and checker/configuration changes only. CSS, generated
+clients, tests/fixtures, documentation, and unrelated code do not select the
+learner-language check.
+
 Exit codes are:
 
 - `0`: no blocking finding, including advisory-only results;

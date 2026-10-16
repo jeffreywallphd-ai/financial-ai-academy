@@ -163,7 +163,7 @@ each packet starts. The planned dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0079 | Implement the deterministic diff-aware checker, owned configuration, narrow exceptions, corpus, and direct unit/CLI evidence | SLI-0122, SLI-0123, SLI-0124 | none | complete |
-| JIT-B | Integrate the checker with aggregate readiness, add anti-rigidity and forwarding evidence, reconcile documentation, and qualify the slice | JIT-A | none | planned |
+| WRK-0082 | Integrate the checker with aggregate readiness, add anti-rigidity and forwarding evidence, reconcile documentation, and qualify the slice | WRK-0079 | none | active |
 
 ## Verification and Qualification
 
@@ -239,3 +239,14 @@ runtime or public contract changed.
   all required checks and the bounded extraction and reporting defects were
   closed. JIT-B is now dependency-ready for readiness integration and final
   slice qualification.
+- 2026-10-16: Refined JIT-B as WRK-0082 around fixed readiness integration,
+  exact base-ref forwarding, narrow affected-check selection, and explicit
+  anti-rigidity evidence. The packet remains inside CAP-0030 and adds no
+  decision or lower-level approval gate.
+- 2026-10-16: Activated WRK-0082 from the current branch base after validating
+  its completed dependency, current CAP package, bounded scope, executable
+  checks, and absence of a decision or ownership collision.
+- 2026-10-16: WRK-0082 implementation passed readiness base-ref forwarding,
+  narrow affected selection, excluded-path behavior, controlled full-scope
+  qualification, and the 29-check aggregate readiness suite. Exact-candidate
+  submission is next.

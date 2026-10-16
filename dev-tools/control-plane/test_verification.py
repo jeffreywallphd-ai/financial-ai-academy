@@ -165,6 +165,41 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(["dev-tools/agent/check_ready.py"], selected["agent:readiness"]["matched_paths"])
         self.assertEqual("affected path matched tracked rule", selected["agent:readiness"]["reason"])
 
+    def test_learner_language_selection_is_owned_and_does_not_escalate(self) -> None:
+        plan = select_checks(
+            repository_catalog(),
+            "a" * 40,
+            ["apps/web/src/features/lesson-reading/LessonBody.tsx"],
+        )
+        selected = {item["check_id"] for item in plan["selected"]}
+        self.assertIn("learner-language:changed", selected)
+        self.assertNotIn("agent:readiness", selected)
+
+        checker = select_checks(
+            repository_catalog(),
+            "a" * 40,
+            ["dev-tools/learner-language/rules.json"],
+        )
+        self.assertEqual(
+            ["learner-language:changed"],
+            [item["check_id"] for item in checker["selected"]],
+        )
+
+    def test_non_copy_paths_do_not_select_learner_language(self) -> None:
+        paths = (
+            "apps/web/src/styles/lesson.css",
+            "apps/web/src/generated/api-client/Page.tsx",
+            "apps/web/tests/component/lesson.test.tsx",
+            "docs/design/style-guide.md",
+            "dev-tools/control-plane/engine.py",
+        )
+        for path in paths:
+            with self.subTest(path=path):
+                plan = select_checks(repository_catalog(), "a" * 40, [path])
+                selected = {item["check_id"] for item in plan["selected"]}
+                self.assertNotIn("learner-language:changed", selected)
+                self.assertNotIn("agent:readiness", selected)
+
     def test_repository_path_classes_select_precise_behavior_checks(self) -> None:
         cases = {
             "apps/web/index.html": ["web:build"],
