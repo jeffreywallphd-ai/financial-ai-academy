@@ -4,7 +4,7 @@
 
 # Local environments and generated state
 /.venv/
-/node_modules/
+node_modules/
 __pycache__/
 *.py[cod]
 
