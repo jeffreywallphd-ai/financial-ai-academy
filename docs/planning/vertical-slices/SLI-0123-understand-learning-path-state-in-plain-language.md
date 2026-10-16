@@ -1,7 +1,7 @@
 ---
 id: SLI-0123
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -136,7 +136,7 @@ each packet starts. The planned dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0073 | Clarify the learning-path page, connections, activity-state presentation, and technical records | none | none | ready |
+| WRK-0073 | Clarify the learning-path page, connections, activity-state presentation, and technical records | none | none | active |
 | JIT-B | Clarify loading and bounded recovery states while preserving fail-closed behavior | JIT-A | none | captured |
 | JIT-C | Qualify the complete learning-path experience in Chromium, reconcile documentation, and close the slice | JIT-B | none | captured |
 
@@ -189,3 +189,6 @@ contracts/semantics, assumptions, residual gaps, and any decision gate.
 - 2026-10-16: Refined JIT-A as WRK-0073 around the ready learning-path
   presentation, separate activity-state meaning, accessible complete technical
   records, focused component evidence, and presentation-only documentation.
+- 2026-10-16: Activated WRK-0073 after validating the current CAP binding,
+  completed predecessor slice, exact write scope, semantic acceptance set, and
+  absence of a decision gate or overlapping active packet.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0073
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/curriculum-graph/CurriculumGraphPage.tsx", "apps/web/tests/component/curriculumGraph.test.tsx", "apps/web/README.md", "docs/planning/work-packets/WRK-0073-clarify-learning-path-and-activity-state.md", "docs/planning/vertical-slices/SLI-0123-understand-learning-path-state-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 13491dcb293bee5cb6b611c605e9cb3131e9c13f
+claim_id: WRK-0073:f4512c22-b67f-452f-bfe9-b3d282e45b9c
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T10:01:14Z
 ---
 
 # Agent Work Packet: Clarify Learning Path and Activity State
