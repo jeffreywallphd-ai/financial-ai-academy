@@ -1,7 +1,7 @@
 ---
 id: SLI-0005
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -111,7 +111,7 @@ SLI-0004 verification must run fresh before another review.
 | WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | complete |
 | WRK-0070 | Correct review proportionality so mechanically proven terminal-blank-line descendants receive fresh verification without redundant re-review | WRK-0013 | none | complete |
 | WRK-0112 | Allow a strict corrected descendant after the latest exact-candidate verification fails or times out, without fabricating a review | WRK-0013, WRK-0070 | none | complete |
-| WRK-0113 | Preserve failed-verification correction across an unrelated catalog revision only when the affected route remains semantically identical | WRK-0112 | none | ready |
+| WRK-0113 | Preserve failed-verification correction across an unrelated catalog revision only when the affected route remains semantically identical | WRK-0112 | none | complete |
 
 ## Verification and Qualification
 
@@ -159,6 +159,15 @@ suites, planning and documentation integrity, aggregate readiness, whitespace,
 and exact affected verification passed. The change adds no approval stage,
 external action, migration, or stored personal data.
 
+WRK-0113 keeps that correction route usable when an unrelated catalog revision
+occurs. The reusable predicate recomputes current selection and requires exact
+check IDs, matched paths, and command arguments while all ordinary receipt,
+submission, candidate, and provenance validation stays authoritative. Focused
+review, verification, lifecycle, planning, documentation, aggregate readiness,
+exact affected verification, and whitespace checks passed. The change adds no
+approval stage, product behavior, migration, external action, or stored personal
+data.
+
 ## Planning History
 
 - 2026-10-15: Refined just in time after SLI-0004 completed; Candidate A scored
@@ -177,3 +186,6 @@ external action, migration, or stored personal data.
   unrelated global catalog revision blocked a product packet whose selected
   checks and commands were unchanged. WRK-0113 adds exact route-equivalence
   proof rather than weakening stale-evidence protection.
+- 2026-10-16: WRK-0113 completed the bounded correction and SLI-0005 returned
+  to complete with the failed-verification route and all fail-closed invariants
+  intact.

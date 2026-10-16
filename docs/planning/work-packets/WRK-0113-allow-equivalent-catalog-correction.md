@@ -1,7 +1,7 @@
 ---
 id: WRK-0113
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -111,6 +111,26 @@ recorded correction scope.
 Report the equivalence predicate, retained refusal cases, focused and aggregate
 results, exact candidate and receipt, documentation impact, assumptions, and
 remaining gaps. Keep technical-review records only in ignored local storage.
+
+## Completion Evidence
+
+Delivered a reusable pure route-equivalence predicate that permits a failed
+exact-candidate receipt to authorize correction after catalog evolution only
+when selected check IDs, matched paths, and materialized command arguments are
+unchanged. Direct and service-level tests retain denial for newly affected or
+removed checks, command drift, path rematching, missing command evidence,
+tampered or incomplete receipts, passing receipts, and previously reviewed
+candidates.
+
+Focused review tests passed 16/16; verification tests passed 25 with three
+environment-independent skips; lifecycle tests passed 11/11. Planning integrity
+validated 196 artifacts, documentation validation covered 340 Markdown files,
+aggregate readiness passed 29/29 checks, and the exact candidate's five affected
+checks passed. Whitespace validation was clean. The operator guide now explains
+both semantic catalog equivalence and governed recovery of a missing
+claim-bound packet-start manifest. No product contract, migration, external
+action, personal data, or deployment behavior changed. Local receipt, manifest,
+and technical-review evidence remains ignored and is not copied here.
 
 ## Planning History
 
