@@ -1,7 +1,7 @@
 ---
 id: WRK-0100
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -225,3 +225,6 @@ external execution was added. Leave SLI-0027 ready for deterministic closure.
   ten scenarios and demonstrated all three response types, browser/headless
   public-API parity, atomic evidence, exact replay, confidential refusals, and
   restart durability without reseeding.
+- 2026-10-16: Submitted exact candidate `7869614` for fresh affected
+  verification and independent technical review. Lifecycle-only planning
+  changes after this point do not alter that candidate.
