@@ -1,10 +1,10 @@
 ---
 id: WRK-0062
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
-updated: 2026-10-15
+updated: 2026-10-16
 parent: SLI-0023
 capability: CAP-0005
 depends_on: []
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["contracts/learning/adaptation/v1/", "contracts/compatibility/adaptation-navigation/v1/", "backend/src/financial_ai_academy/modules/adaptation/", "backend/tests/contract/adaptation_navigation/", "backend/tests/unit/adaptation/", "backend/tests/architecture/test_module_boundaries.py", "docs/architecture/modules/module-map.md", "docs/architecture/modules/module-dependency-rules.md", "docs/architecture/contracts/", "contracts/learning/README.md", "backend/src/financial_ai_academy/modules/README.md", "docs/planning/work-packets/WRK-0062-establish-deterministic-navigation-state-core.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: a36d2c7dab157f6a4e58fae931a4a561ec6269e1
+claim_id: WRK-0062:af305e36-dae8-4ebc-a9b4-1ee036b3aa10
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T00:02:56Z
 ---
 
 # Agent Work Packet: Establish the Deterministic Navigation-State Core

@@ -1,10 +1,10 @@
 ---
 id: SLI-0023
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
-updated: 2026-10-15
+updated: 2026-10-16
 parent: CAP-0005
 depends_on: ["SLI-0022"]
 decision_gates: []
@@ -243,3 +243,6 @@ was introduced.
 - 2026-10-15: Refined the first packet seam as WRK-0062 around the executable
   navigation-state v1 contract, Adaptation pure rule baseline, public types,
   compatibility corpus, architecture boundary, and direct anti-rigidity tests.
+- 2026-10-16: Activated WRK-0062 after the current CAP package, completed
+  dependencies, accepted decision posture, exact scope, and implementation gate
+  were revalidated and the control plane issued its durable claim.
