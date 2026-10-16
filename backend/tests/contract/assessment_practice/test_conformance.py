@@ -430,3 +430,14 @@ def test_result_and_event_recursively_exclude_private_answers() -> None:
         '"feedback"',
     ):
         assert retained_only_name not in event_serialized
+
+
+def test_result_and_event_require_canonical_utc_timestamps() -> None:
+    chain = list(map(copy.deepcopy, approved_chain()))
+    chain[3]["submitted_at"] = "2026-10-16T11:00:00-04:00"
+    chain[4]["occurred_at"] = "2026-10-16T11:00:00-04:00"
+    chain[4]["payload"]["completed_at"] = "2026-10-16T11:00:00-04:00"
+    with pytest.raises(PracticeConformanceFailure) as captured:
+        PracticeContractValidator().validate_submission_chain(*chain)
+    assert captured.value.code == "assessment.practice.schema_invalid"
+    assert captured.value.reference == "submitted_at"

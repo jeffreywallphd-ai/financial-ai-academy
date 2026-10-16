@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 
@@ -266,6 +266,20 @@ def test_server_metadata_requires_utc_and_valid_opaque_ids() -> None:
     with pytest.raises(PracticeSubmissionFailure) as captured:
         score(submitted_at=datetime(2026, 10, 16, 15, 0))
     assert captured.value.code == "assessment.practice.invalid_server_metadata"
+
+    non_utc = datetime(
+        2026,
+        10,
+        16,
+        11,
+        0,
+        tzinfo=timezone(-timedelta(hours=4)),
+    )
+    with pytest.raises(PracticeSubmissionFailure) as non_utc_error:
+        score(submitted_at=non_utc)
+    assert non_utc_error.value.code == (
+        "assessment.practice.invalid_server_metadata"
+    )
 
     adapter, definition, context, submission = setup()
     with pytest.raises(PracticeSubmissionFailure) as invalid_id:

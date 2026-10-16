@@ -109,7 +109,8 @@ placement, definition, and time metadata to one bounded score/provenance
 summary. Submitted values and feedback stay in Assessment's result boundary
 instead of being broadcast to consumers. The pure mapper validates this
 correlation but does not persist, dispatch, publish, or make the event a
-mastery signal.
+mastery signal. Result and event timestamps use canonical UTC RFC 3339 text
+ending in `Z`; equivalent non-zero offsets are not accepted contract forms.
 
 ## Compatibility and Diagnostics
 

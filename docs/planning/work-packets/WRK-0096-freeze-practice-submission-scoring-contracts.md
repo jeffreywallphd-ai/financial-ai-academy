@@ -255,7 +255,7 @@ execution changed, then leave JIT-B dependency-ready.
 - The production adapter accepts supplied server identity/time metadata but
   performs no lookup, clock read, persistence, transaction, publication,
   network, API, UI, provider, model, or learner-state action.
-- Focused practice contract/domain evidence passes 94 tests. Existing
+- Focused practice contract/domain evidence passes 95 tests. Existing
   knowledge-check and practice-opening regression evidence passes 38 tests.
   Architecture fitness passes all 15 tests; packet, planning, documentation,
   and whitespace validation pass; aggregate readiness passes all 29 checks.
@@ -279,3 +279,7 @@ execution changed, then leave JIT-B dependency-ready.
   decimal, confidentiality, legacy-regression, architecture, documentation,
   planning, whitespace, and aggregate-readiness checks pass; exact-candidate
   submission and independent review remain.
+- 2026-10-16: Corrected review finding R01-F001 inside the frozen boundary.
+  Result and event schemas now require canonical UTC RFC 3339 timestamps ending
+  in `Z`, matching the production adapter, and both independent conformance and
+  production tests reject a correlated non-zero-offset chain.

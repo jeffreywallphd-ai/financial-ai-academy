@@ -275,3 +275,7 @@ or autonomous authority was planned or implemented.
   identity, learner-safe result, and bounded confidential completion event.
   Persistence, the public POST, generated client, and browser result flow remain
   the next packet boundaries.
+- 2026-10-16: WRK-0096 corrected its first independent-review finding by
+  aligning result/event schemas and conformance evidence with the production
+  adapter's canonical UTC timestamp rule. The correction does not change the
+  slice or CAP boundary.

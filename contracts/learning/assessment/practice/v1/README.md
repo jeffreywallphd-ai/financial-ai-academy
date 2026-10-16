@@ -34,6 +34,8 @@ accepted numeric ranges, private evaluator objects, mastery, suitability, or
 advice. `assessment.practice.completed@1.0.0` carries a bounded score and
 provenance summary without submitted values or feedback, and correlates it to
 server-issued learner, attempt, evidence, submission, event, and time metadata.
+Result and event timestamps use one canonical UTC RFC 3339 form ending in
+`Z`; non-zero offsets are rejected even when they name the same instant.
 
 The definition digest is lowercase SHA-256 over the UTF-8 JSON bytes of the
 private `practice` object serialized with sorted keys and compact separators.
