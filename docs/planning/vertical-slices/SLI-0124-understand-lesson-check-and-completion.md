@@ -1,7 +1,7 @@
 ---
 id: SLI-0124
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -235,3 +235,6 @@ failures, assumptions, known gaps, and any residual decision gate.
   and independent R01 accepted all browser, live, accessibility, evidence,
   generated-output, scope, and responsive-wrapping results without a
   substantive finding. SLI-0124 is ready for deterministic closure.
+- 2026-10-16: Entered slice verification with WRK-0076 through WRK-0078
+  complete, exact receipts and independent dispositions retained, and no
+  unresolved decision, stale documentation, migration, or CAP drift.
