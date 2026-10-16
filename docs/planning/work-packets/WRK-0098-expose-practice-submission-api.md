@@ -1,7 +1,7 @@
 ---
 id: WRK-0098
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -253,3 +253,6 @@ leave WRK-0099 dependency-ready.
   composition, and direct non-browser result contract. The API remains the
   primary boundary; browser use is dependency-ready and separate AI-mode
   planning remains out of scope.
+- 2026-10-16: Submitted exact candidate
+  `66348e79ef60a9ca08817cf9fe9bbc6b810e57d8` for fresh affected verification
+  and independent technical review.
