@@ -257,7 +257,7 @@ test("opens the live exact graph with peer views, provenance, and flexible group
       const card = cards.nth(index);
       await expectNavigationFacts(card, state);
       await expect(
-        card.getByText(activity.activity_id, { exact: true }),
+        card.getByText(activity.activity_id, { exact: true }).first(),
       ).toBeVisible();
       const digest =
         activity.reference.reference_kind === "lesson_placement"
@@ -391,5 +391,5 @@ test("denies graph facts without context and never substitutes a missing version
     page.getByRole("heading", { name: "Learning path version not found" }),
   ).toBeVisible();
   await expect(page.getByText("Investing Foundations")).toHaveCount(0);
-  await expect(page.getByText(/latest version was substituted/i)).toBeVisible();
+  await expect(page.getByText(/did not substitute another version/i)).toBeVisible();
 });

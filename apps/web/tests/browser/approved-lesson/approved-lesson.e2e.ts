@@ -43,6 +43,13 @@ async function expectCurrentOpportunityFacts(
   await expect(
     container.getByText(opportunity.summary, { exact: true }),
   ).toBeVisible();
+  const technicalSummary = container
+    .getByText("Technical record", { exact: true })
+    .last();
+  const technicalRecord = technicalSummary.locator("..");
+  if ((await technicalRecord.getAttribute("open")) === null) {
+    await technicalSummary.click();
+  }
   await expect(
     container.getByText(opportunity.opportunity_id, { exact: true }),
   ).toBeVisible();
@@ -144,6 +151,7 @@ test("browses the live catalog and opens the approved exact lesson", async ({
       "The exact reviewed lesson is available in this local catalog.",
     ),
   ).toBeVisible();
+  await catalogCard.getByText("Technical record", { exact: true }).click();
   await expect(
     catalogCard.getByText("intro-risk-return@1.1.0", { exact: true }),
   ).toBeVisible();
@@ -202,7 +210,7 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   ]);
 
   const lessonAction = catalogCard.getByRole("link", {
-    name: "Open exact lesson",
+    name: "Open lesson",
   });
   await expect(lessonAction).toHaveAttribute("href", LESSON_PATH);
 
@@ -386,17 +394,24 @@ test("browses the live catalog and opens the approved exact lesson", async ({
     page.getByRole("heading", { level: 1, name: "Investing Foundations" }),
   ).toBeVisible();
   const lessonStateCard = page.getByRole("article").filter({
-    has: page.getByText(LESSON_ACTIVITY_ID, { exact: true }),
+    has: page.getByRole("heading", {
+      level: 4,
+      name: "Read about risk and return",
+    }),
   });
   await expect(lessonStateCard).toHaveCount(1);
   await expect(
-    lessonStateCard.getByText("Completed", { exact: true }),
+    lessonStateCard.getByText("Finished", { exact: true }),
   ).toBeVisible();
   await expect(
     lessonStateCard.getByText(
-      "Accepted completion evidence exists for this exact activity.",
+      "This activity is recorded as finished.",
       { exact: true },
     ),
+  ).toBeVisible();
+  await lessonStateCard.getByText("Technical record", { exact: true }).click();
+  await expect(
+    lessonStateCard.getByText(LESSON_ACTIVITY_ID, { exact: true }).first(),
   ).toBeVisible();
   const listStateFacts = await lessonStateCard.innerText();
   await page.getByRole("button", { name: "Map view" }).click();
@@ -457,7 +472,7 @@ test("inspects and compares live current opportunities before exact continuation
   await expectCurrentOpportunityFacts(page.locator("main"), currentAvailable);
   await expect(
     page
-      .getByText("Projection generation", { exact: true })
+      .getByText("Library record generation", { exact: true })
       .locator("..")
       .locator("code"),
   ).toHaveText(currentCatalog.projection_generation);
@@ -471,15 +486,15 @@ test("inspects and compares live current opportunities before exact continuation
     page.locator(`time[datetime="${currentCatalog.projected_at}"]`),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Open exact lesson" }),
+    page.getByRole("link", { name: "Open lesson" }),
   ).toHaveAttribute("href", LESSON_PATH);
   await expect(
-    page.getByRole("link", { name: "Return to catalog" }),
+    page.getByRole("link", { name: "Return to learning library" }),
   ).toHaveAttribute("href", CATALOG_PATH);
   const detailAccessibility = await new AxeBuilder({ page }).analyze();
   expect(detailAccessibility.violations).toEqual([]);
 
-  await page.getByRole("link", { name: "Return to catalog" }).click();
+  await page.getByRole("link", { name: "Return to learning library" }).click();
   const plannedCard = page.getByRole("article").filter({
     hasText: "This synthetic guided practice remains planned in qualification.",
   });
@@ -503,10 +518,18 @@ test("inspects and compares live current opportunities before exact continuation
     PLACEMENT_ID,
   ]);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Compare educational facts" }),
+    page.getByRole("heading", { level: 1, name: "Compare learning opportunities" }),
   ).toBeVisible();
   const comparisonCards = page.getByRole("article");
   await expect(comparisonCards).toHaveCount(2);
+  await expectCurrentOpportunityFacts(
+    comparisonCards.nth(0),
+    currentPlanned,
+  );
+  await expectCurrentOpportunityFacts(
+    comparisonCards.nth(1),
+    currentAvailable,
+  );
   await expect(
     comparisonCards.nth(0).getByText(GUIDED_PRACTICE_ID, { exact: true }),
   ).toBeVisible();
@@ -525,19 +548,11 @@ test("inspects and compares live current opportunities before exact continuation
   await expect(
     comparisonCards.nth(1).getByText("20 minutes", { exact: true }),
   ).toBeVisible();
-  await expectCurrentOpportunityFacts(
-    comparisonCards.nth(0),
-    currentPlanned,
-  );
-  await expectCurrentOpportunityFacts(
-    comparisonCards.nth(1),
-    currentAvailable,
-  );
   await expect(
-    comparisonCards.nth(0).getByRole("link", { name: "Open exact lesson" }),
+    comparisonCards.nth(0).getByRole("link", { name: "Open lesson" }),
   ).toHaveCount(0);
   await expect(
-    comparisonCards.nth(1).getByRole("link", { name: "Open exact lesson" }),
+    comparisonCards.nth(1).getByRole("link", { name: "Open lesson" }),
   ).toHaveAttribute("href", LESSON_PATH);
   await expect(
     comparisonCards.nth(0).getByRole("link", { name: "View details" }),
@@ -551,7 +566,11 @@ test("inspects and compares live current opportunities before exact continuation
     "href",
     `/learn/opportunities/${PLACEMENT_ID}?return_to=%2Flearn`,
   );
-  const comparisonContext = page.locator(".opportunity-comparison__context");
+  const comparisonHeader = page.locator(".opportunity-comparison__header");
+  await comparisonHeader.getByText("Technical record", { exact: true }).click();
+  const comparisonContext = comparisonHeader.locator(
+    ".opportunity-comparison__technical",
+  );
   await expect(comparisonContext.locator("code").nth(0)).toHaveText(
     currentCatalog.projection_generation,
   );
@@ -559,7 +578,7 @@ test("inspects and compares live current opportunities before exact continuation
     currentCatalog.schema_version,
   );
   await expect(
-    comparisonContext.locator(
+    comparisonHeader.locator(
       `time[datetime="${currentCatalog.projected_at}"]`,
     ),
   ).toBeVisible();
@@ -572,7 +591,7 @@ test("inspects and compares live current opportunities before exact continuation
 
   await comparisonCards
     .nth(1)
-    .getByRole("link", { name: "Open exact lesson" })
+    .getByRole("link", { name: "Open lesson" })
     .click();
   await expect(page).toHaveURL(new RegExp(`${LESSON_PATH}$`));
   await expect(
@@ -589,7 +608,7 @@ test("fails closed for changed and malformed live opportunity selections", async
 }) => {
   await page.goto("/learn/opportunities/not-a-current-opportunity");
   await expect(
-    page.getByRole("heading", { name: "Opportunity changed" }),
+    page.getByRole("heading", { name: "This opportunity has changed" }),
   ).toBeVisible();
   await expect(page.getByText("Understanding Risk and Return")).toHaveCount(0);
 
@@ -598,7 +617,7 @@ test("fails closed for changed and malformed live opportunity selections", async
       "&opportunity=not-a-current-opportunity",
   );
   await expect(
-    page.getByRole("heading", { name: "Comparison changed" }),
+    page.getByRole("heading", { name: "Your comparison has changed" }),
   ).toBeVisible();
   await expect(page.getByText("Understanding Risk and Return")).toHaveCount(0);
 
@@ -606,7 +625,7 @@ test("fails closed for changed and malformed live opportunity selections", async
     `/learn/opportunities/compare?opportunity=${PLACEMENT_ID}`,
   );
   await expect(
-    page.getByRole("heading", { name: "Comparison link unavailable" }),
+    page.getByRole("heading", { name: "This comparison link isn't available" }),
   ).toBeVisible();
   await expect(page.getByText("Understanding Risk and Return")).toHaveCount(0);
 });
@@ -618,7 +637,7 @@ test("filters, pages, and rejects a mismatched live query cursor", async ({
   await page.goto(`${CATALOG_PATH}?sort=duration_ascending&page_size=1`);
   await expect(page.getByRole("article")).toHaveCount(1);
   await expect(page.getByRole("article").getByText("10 minutes")).toBeVisible();
-  await expect(page.getByText(/3 matches.*Showing 1 on this page/)).toBeVisible();
+  await expect(page.getByText(/3 results found.*Showing 1 on this page/)).toBeVisible();
 
   const firstNext = page.getByRole("link", { name: "Next page" });
   await expect(firstNext).toBeVisible();
@@ -641,7 +660,7 @@ test("filters, pages, and rejects a mismatched live query cursor", async ({
   await expect(filteredCard.getByText("35 minutes")).toBeVisible();
   await expect(filteredCard.getByText("Planned", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("spinbutton", { name: "Results per page" }),
+    page.getByRole("spinbutton", { name: "Results shown per page" }),
   ).toHaveValue("17");
 
   const observedIds: string[] = [];
