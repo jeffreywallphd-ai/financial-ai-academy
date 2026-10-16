@@ -53,8 +53,8 @@ const SEMANTIC_VERSION =
   /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const TIMESTAMP =
-  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
+const UTC_TIMESTAMP =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?Z$/;
 const UNSAFE_TEXT = /[<>&]/u;
 
 const ROOT_KEYS = [
@@ -173,6 +173,48 @@ function identifier(value: unknown): value is string {
 
 function semanticVersion(value: unknown): value is string {
   return typeof value === "string" && SEMANTIC_VERSION.test(value);
+}
+
+function canonicalUtcTimestamp(value: unknown): value is string {
+  if (typeof value !== "string") {
+    return false;
+  }
+  const match = UTC_TIMESTAMP.exec(value);
+  if (match === null) {
+    return false;
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  if (
+    month < 1 ||
+    month > 12 ||
+    hour > 23 ||
+    minute > 59 ||
+    second > 59
+  ) {
+    return false;
+  }
+  const leapYear =
+    year % 400 === 0 || (year % 4 === 0 && year % 100 !== 0);
+  const daysByMonth = [
+    31,
+    leapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  return day >= 1 && day <= (daysByMonth[month - 1] ?? 0);
 }
 
 function boundedArray(
@@ -535,9 +577,7 @@ export function practiceSubmissionResultIsSafe(
     (result.outcome !== "all_correct" && result.outcome !== "review_needed") ||
     result.outcome !==
       (result.score === result.max_score ? "all_correct" : "review_needed") ||
-    typeof result.submitted_at !== "string" ||
-    !TIMESTAMP.test(result.submitted_at) ||
-    Number.isNaN(Date.parse(result.submitted_at)) ||
+    !canonicalUtcTimestamp(result.submitted_at) ||
     !Array.isArray(result.item_results) ||
     result.item_results.length !== practice.items.length
   ) {

@@ -196,6 +196,55 @@ describe("practice presentation validation", () => {
     ).toBe(true);
   });
 
+  it.each([
+    "2026-02-31T12:00:00Z",
+    "2026-10-16T12:00:00+01:00",
+    "2026-10-16T12:00:00.1234567Z",
+  ])("rejects noncanonical result time %s", (submittedAt) => {
+    const prepared = preparePracticeSubmission(
+      practiceFixture,
+      completeFormData(),
+      practiceResultFixture.submission_id,
+    );
+    expect(prepared.status).toBe("ready");
+    if (prepared.status !== "ready") {
+      return;
+    }
+    const result = structuredClone(practiceResultFixture);
+    result.submitted_at = submittedAt;
+    expect(
+      practiceSubmissionResultIsSafe(
+        result,
+        practiceFixture,
+        prepared.submission,
+      ),
+    ).toBe(false);
+  });
+
+  it.each([
+    "2026-10-16T12:00:00Z",
+    "2024-02-29T23:59:59.123456Z",
+  ])("accepts canonical UTC result time %s", (submittedAt) => {
+    const prepared = preparePracticeSubmission(
+      practiceFixture,
+      completeFormData(),
+      practiceResultFixture.submission_id,
+    );
+    expect(prepared.status).toBe("ready");
+    if (prepared.status !== "ready") {
+      return;
+    }
+    const result = structuredClone(practiceResultFixture);
+    result.submitted_at = submittedAt;
+    expect(
+      practiceSubmissionResultIsSafe(
+        result,
+        practiceFixture,
+        prepared.submission,
+      ),
+    ).toBe(true);
+  });
+
   it("accepts a valid one-question activity without fixture-count assumptions", () => {
     const practice = structuredClone(practiceFixture);
     practice.items = [practice.items[0]!];
