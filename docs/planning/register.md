@@ -120,6 +120,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0059 | Work packet | [Persist and Expose the Curriculum Graph](work-packets/WRK-0059-persist-and-expose-curriculum-graph.md) | complete | SLI-0022 | WRK-0058 | none | codex-cap-0005 | 2026-10-15 |
 | WRK-0060 | Work packet | [Deliver the Curriculum Graph Map and List](work-packets/WRK-0060-deliver-curriculum-graph-map-list.md) | complete | SLI-0022 | WRK-0059 | none | codex-cap-0005 | 2026-10-15 |
 | WRK-0061 | Work packet | [Qualify the Live Curriculum Graph](work-packets/WRK-0061-qualify-live-curriculum-graph.md) | complete | SLI-0022 | WRK-0060 | none | codex-cap-0005 | 2026-10-15 |
+| WRK-0062 | Work packet | [Establish the Deterministic Navigation-State Core](work-packets/WRK-0062-establish-deterministic-navigation-state-core.md) | ready | SLI-0023 | none | none | codex-cap-0005 | 2026-10-15 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |
