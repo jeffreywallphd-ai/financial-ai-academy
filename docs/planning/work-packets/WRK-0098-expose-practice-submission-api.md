@@ -1,7 +1,7 @@
 ---
 id: WRK-0098
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "backend/README.md", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/integration/api/test_single_profile_assessment_api.py", "backend/tests/integration/api/test_single_profile_practice_submission_api.py", "contracts/api/openapi.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/assessment-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0027-submit-and-score-practice-attempt.md", "docs/planning/work-packets/WRK-0098-expose-practice-submission-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 34ef4a92d196d3270d4009cd26efa2c335a07f34
+claim_id: WRK-0098:989c719d-adfa-420e-9721-70e66fe58719
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T16:08:14Z
 ---
 
 # Agent Work Packet: Expose the Practice Submission API
@@ -216,3 +216,6 @@ Not started.
   deliberately proves the public API and generated-client boundary before
   browser integration so browser and future headless clients share one stable
   interface without creating a separate AI mode.
+- 2026-10-16: Claimed from base revision `34ef4a9` after the implementation
+  gate confirmed current CAP authority, completed dependencies, decision
+  readiness, exact generated-artifact scope, and no active ownership collision.
