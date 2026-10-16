@@ -84,16 +84,12 @@ function OpportunityCard({
           <dd>{opportunity.prerequisite_summary}</dd>
         </div>
         <div>
-          <dt>Exact package</dt>
-          <dd>
-            <code>
-              {opportunity.package_id}@{opportunity.package_version}
-            </code>
-          </dd>
+          <dt>Lesson version</dt>
+          <dd>{opportunity.package_version}</dd>
         </div>
       </dl>
       <section className="catalog-card__objectives">
-        <h3>Learning objectives</h3>
+        <h3>What you will learn</h3>
         <ul>
           {opportunity.objectives.map((objective) => (
             <li key={objective}>{objective}</li>
@@ -101,7 +97,7 @@ function OpportunityCard({
         </ul>
       </section>
       <section className="catalog-card__publication">
-        <h3>Publication context</h3>
+        <h3>Publication details</h3>
         <p>
           Published by {opportunity.provenance.published_by} on{" "}
           <time dateTime={opportunity.provenance.published_at}>
@@ -115,8 +111,16 @@ function OpportunityCard({
         </p>
         <p>{opportunity.provenance.educational_use_notice}</p>
         <details>
-          <summary>Technical provenance</summary>
+          <summary>Technical record</summary>
           <dl>
+            <div>
+              <dt>Lesson package</dt>
+              <dd>
+                <code>
+                  {opportunity.package_id}@{opportunity.package_version}
+                </code>
+              </dd>
+            </div>
             <div>
               <dt>Package digest</dt>
               <dd>
@@ -150,7 +154,7 @@ function OpportunityCard({
             to={opportunity.destination}
           >
             <Icon name="learn" />
-            Open exact lesson
+            Open lesson
           </Link>
         ) : null}
       </div>
@@ -185,7 +189,7 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
         </label>
         {topicValues.map((topic, index) => (
           <label key={`${topic}-${index}`}>
-            {index === 0 ? "Topic slug" : `Additional topic ${index + 1}`}
+            {index === 0 ? "Topic" : `Additional topic ${index + 1}`}
             <input
               defaultValue={topic}
               maxLength={50}
@@ -205,7 +209,7 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
           </select>
         </label>
         <label>
-          Kind
+          Activity type
           <select defaultValue={query.kinds} multiple name="kind" size={4}>
             <option value="course">Course</option>
             <option value="lesson">Lesson</option>
@@ -227,7 +231,7 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
           </select>
         </label>
         <label>
-          Minimum minutes
+          Minimum time (minutes)
           <input
             defaultValue={query.minimum_minutes ?? ""}
             max={1440}
@@ -237,7 +241,7 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
           />
         </label>
         <label>
-          Maximum minutes
+          Maximum time (minutes)
           <input
             defaultValue={query.maximum_minutes ?? ""}
             max={1440}
@@ -247,7 +251,7 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
           />
         </label>
         <label>
-          Sort
+          Sort by
           <select defaultValue={query.sort} name="sort">
             <option value="catalog">Catalog order</option>
             <option value="title">Title</option>
@@ -256,7 +260,7 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
           </select>
         </label>
         <label>
-          Results per page
+          Results shown per page
           <input
             defaultValue={query.page_size}
             max={50}
@@ -267,12 +271,13 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
         </label>
       </div>
       <p className="catalog-query__help">
-        Use Ctrl or Command to select multiple list values. All filters are
+        To choose more than one level, activity type, or availability, hold
+        Ctrl on Windows or Command on Mac while selecting. All filters are
         optional.
       </p>
       <div className="catalog-query__actions">
         <button className="button" type="submit">
-          Apply query
+          Show results
         </button>
         <Link className="button button--secondary" to="/learn">
           Clear filters
@@ -314,16 +319,16 @@ export function LearningCatalogPage({
   return (
     <section className="learning-catalog">
       <header className="catalog-header">
-        <p className="eyebrow">Approved learning catalog</p>
+        <p className="eyebrow">Learning library</p>
         <h1>Build financial understanding step by step</h1>
         <p>
-          Search and filter reviewed educational opportunities. Results use
-          deterministic catalog facts, not personalized recommendations.
+          Browse reviewed learning activities and use the filters to narrow the
+          list. The order does not use personalized recommendations.
         </p>
         <p className="catalog-header__meta">
-          {page.total_matches} {page.total_matches === 1 ? "match" : "matches"}
-          {" · "}Showing {page.records.length} on this page
-          {" · "}Catalog updated{" "}
+          {page.total_matches} {page.total_matches === 1 ? "result" : "results"}
+          {" found. Showing "}
+          {page.records.length} on this page. Learning library updated{" "}
           <time dateTime={page.projected_at}>
             {readableDate(page.projected_at)}
           </time>
@@ -334,10 +339,9 @@ export function LearningCatalogPage({
         <section className="catalog-empty" role="status">
           <Icon className="faa-icon--lg" name="info-circle" />
           <div>
-            <h2>No opportunities match this query</h2>
+            <h2>No learning activities match these filters</h2>
             <p>
-              Adjust or clear the optional filters. No recommendation or
-              alternate ranking was invented.
+              Clear a filter or change the search words to see more results.
             </p>
           </div>
         </section>
@@ -350,8 +354,8 @@ export function LearningCatalogPage({
           <fieldset>
             <legend>Compare learning opportunities</legend>
             <p className="catalog-comparison__help">
-              Select two through four opportunities from this page. Selection
-              order is preserved and does not rank or recommend a winner.
+              Select two to four activities from this page. Your selection
+              order is kept, and we do not rank or recommend a winner.
             </p>
             <p aria-live="polite" className="catalog-comparison__status">
               {comparisonIds.length} of 4 selected
@@ -369,7 +373,7 @@ export function LearningCatalogPage({
               />
             ))}
             <ul
-              aria-label="Approved learning opportunities"
+              aria-label="Learning opportunities"
               className="catalog-grid"
             >
               {page.records.map((opportunity) => {

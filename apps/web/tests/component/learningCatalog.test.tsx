@@ -20,7 +20,7 @@ function renderCatalog(page = learningQueryPageFixture) {
 }
 
 describe("LearningCatalogPage", () => {
-  it("preserves the supplied order and presents exact facts and provenance", () => {
+  it("preserves the supplied order and presents learner-focused facts", () => {
     renderCatalog();
 
     const cards = screen.getAllByRole("article");
@@ -36,7 +36,9 @@ describe("LearningCatalogPage", () => {
     expect(
       within(secondCard).getByRole("heading", { level: 2 }),
     ).toHaveTextContent("Portfolio Project");
-    expect(screen.getByText("cash-flow-basics@1.2.0")).toBeVisible();
+    expect(within(firstCard).getByText("Lesson version")).toBeVisible();
+    expect(within(firstCard).getByText("1.2.0")).toBeVisible();
+    expect(within(firstCard).getByText("Publication details")).toBeVisible();
     expect(screen.getAllByText(/Financial AI Academy/)).not.toHaveLength(0);
     expect(
       screen.getByText("The exact reviewed lesson is available."),
@@ -47,7 +49,7 @@ describe("LearningCatalogPage", () => {
     renderCatalog();
 
     expect(
-      screen.getByRole("link", { name: "Open exact lesson" }),
+      screen.getByRole("link", { name: "Open lesson" }),
     ).toHaveAttribute("href", "/learn/placements/cash-flow-basics-primary");
     const plannedCard = screen
       .getByRole("heading", { name: plannedOpportunity.title })
@@ -55,7 +57,7 @@ describe("LearningCatalogPage", () => {
     expect(plannedCard).not.toBeNull();
     expect(
       within(plannedCard as HTMLElement).queryByRole("link", {
-        name: "Open exact lesson",
+        name: "Open lesson",
       }),
     ).toBeNull();
     expect(
@@ -82,7 +84,7 @@ describe("LearningCatalogPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "No opportunities match this query",
+        name: "No learning activities match these filters",
       }),
     ).toBeVisible();
     expect(screen.queryByRole("article")).not.toBeInTheDocument();
@@ -104,9 +106,16 @@ describe("LearningCatalogPage", () => {
     expect(
       screen.getByRole("searchbox", { name: "Search opportunities" }),
     ).toHaveValue("cash flow");
-    expect(screen.getByRole("button", { name: "Apply query" })).toBeVisible();
+    expect(screen.getByRole("textbox", { name: "Topic" })).toHaveAttribute(
+      "name",
+      "topic",
+    );
     expect(
-      screen.getByRole("spinbutton", { name: "Results per page" }),
+      screen.getByRole("listbox", { name: "Activity type" }),
+    ).toHaveAttribute("name", "kind");
+    expect(screen.getByRole("button", { name: "Show results" })).toBeVisible();
+    expect(
+      screen.getByRole("spinbutton", { name: "Results shown per page" }),
     ).toHaveValue(17);
     expect(screen.getByRole("link", { name: "Clear filters" })).toHaveAttribute(
       "href",
@@ -121,6 +130,33 @@ describe("LearningCatalogPage", () => {
     ).toHaveAttribute(
       "href",
       "/learn/opportunities/cash-flow-basics-primary?return_to=%2Flearn%3Fquery%3Dcash%2Bflow%26level%3Dintroductory%26page_size%3D17",
+    );
+  });
+
+  it("keeps exact package and source facts in an accessible technical record", async () => {
+    const user = userEvent.setup();
+    renderCatalog();
+
+    const records = screen.getAllByText("Technical record");
+    expect(records).toHaveLength(2);
+    await user.click(records[0]!);
+
+    const firstCard = screen.getAllByRole("article")[0];
+    if (!firstCard) {
+      throw new Error("Expected a catalog card.");
+    }
+    expect(
+      within(firstCard).getByText("cash-flow-basics@1.2.0"),
+    ).toBeVisible();
+    expect(within(firstCard).getByText("Package digest")).toBeVisible();
+    expect(within(firstCard).getByText("Source fingerprint")).toBeVisible();
+  });
+
+  it("does not expose known implementation terms in the primary list flow", () => {
+    renderCatalog();
+
+    expect(document.body.textContent).not.toMatch(
+      /Topic slug|Apply query|Exact package|Open exact lesson|Technical provenance/,
     );
   });
 

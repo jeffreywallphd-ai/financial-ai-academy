@@ -72,10 +72,13 @@ record sets and shared placements without a hard-coded opportunity. Curriculum
 owns and validates Unicode `casefold()` ordering; the browser deliberately does
 not duplicate that Python-specific policy. It instead preserves the response
 order and recomputes each UTC-normalized owner-fact fingerprint plus the ordered
-generation digest before rendering. Cards show exact classification,
-objectives, duration, prerequisite summary, package version/digest, publication
-context, and availability reason.
-Only an `available` `lesson` exposes its exact same-origin placement link;
+generation digest before rendering. The page uses learner-focused labels for
+the library, filters, activities, versions, and actions. Cards keep
+classification, objectives, duration, prerequisite summary, availability
+reason, publisher, review date, and the educational-use notice in the normal
+flow; exact package identity, digest, and source fingerprint remain reachable
+under each accessible `Technical record` disclosure. Only an `available`
+`lesson` exposes its exact same-origin placement link;
 planned, unavailable, and non-lesson kinds remain non-navigable. Missing
 authority, unavailable projection, network failure, or malformed success
 responses produce bounded states without stale or partial records.
@@ -265,7 +268,9 @@ All interface work must follow:
 
 - [Interface Design System](../../docs/design/README.md)
 - [Interface Style Guide](../../docs/design/style-guide.md)
+- [Content Style Guide](../../docs/design/content-style-guide.md)
 - [Interface Design Standards](../../docs/standards/interface-design-standards.md)
+- [Learner-Facing Language Standards](../../docs/standards/user-facing-language-standards.md)
 - [Executable tokens](src/design-system/tokens.css)
 - [Production iconography](src/design-system/icons/README.md)
 
