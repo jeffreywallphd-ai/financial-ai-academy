@@ -143,7 +143,7 @@ each packet starts. The planned dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0068 | Establish the normative language standard, content style guide, initial term map, and workflow routing | none | none | complete |
 | WRK-0069 | Apply the standard to catalog list/filter/card presentation and focused component evidence | WRK-0068 | none | complete |
-| WRK-0071 | Apply the standard to detail/comparison/loading/error presentation and focused component evidence | WRK-0069 | none | verifying |
+| WRK-0071 | Apply the standard to detail/comparison/loading/error presentation and focused component evidence | WRK-0069 | none | complete |
 | JIT-D | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | JIT-C | none | captured |
 
 ## Verification and Qualification
@@ -219,3 +219,7 @@ copying approval or reviewer records into tracked files.
 - 2026-10-16: Refined and activated JIT-C as WRK-0071 after validating the
   current CAP binding, dependency, exact presentation/test/documentation
   scope, packet-start acceptance set, and absence of a decision gate.
+- 2026-10-16: Completed WRK-0071 with plain detail, comparison, loading, and
+  bounded-error presentation; accessible complete technical records; flexible
+  kind labels; and exact-candidate component, build, readiness, and affected-
+  verification evidence. JIT-D is ready for just-in-time refinement.

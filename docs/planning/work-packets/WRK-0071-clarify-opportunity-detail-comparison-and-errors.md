@@ -1,7 +1,7 @@
 ---
 id: WRK-0071
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -180,9 +180,34 @@ readiness and affected-verification results, assumptions, residual browser
 qualification left to JIT-D, and any non-functional styling item deferred to
 CAP-0031.
 
+## Completion Evidence
+
+- Delivered task-focused detail, comparison, loading, bounded-error, and safe-
+  action language while preserving the existing routes and fail-closed state
+  selection.
+- Retained kind-sensitive versions, publication and educational-use facts, and
+  complete opportunity/package identifiers, digests, source fingerprint,
+  generation, and schema values in native keyboard-operable `Technical record`
+  disclosures.
+- Verified 24 focused component scenarios, TypeScript type checking, lint, the
+  design-system, planning and documentation integrity, production build, Git
+  whitespace, and all 27 aggregate readiness checks. Fresh affected
+  verification passed every selected planning, documentation, type, lint,
+  unit, and build check for the exact corrected candidate.
+- Closed the comprehension defect found during review by removing session-
+  establishment wording from loading states and testing only those status
+  regions. The distinct unauthorized state retains its canonical learner-
+  session explanation.
+- No public contract, generated client, query, ordering, selection,
+  authorization, availability, provenance, persistence, or migration changed.
+  Full learning-library Chromium qualification remains assigned to JIT-D.
+
 ## Planning History
 
 - 2026-10-16: Refined JIT-C after WRK-0069 completed. The packet applies the
   accepted language and technical-record pattern to detail, comparison,
   loading, and bounded failure presentation without changing discovery or
   selection behavior.
+- 2026-10-16: Completed WRK-0071 after exact-candidate affected verification,
+  focused and aggregate checks, and correction of loading copy that still used
+  session-establishment language. JIT-D is now dependency-ready.
