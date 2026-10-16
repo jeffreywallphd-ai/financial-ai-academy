@@ -1,7 +1,7 @@
 ---
 id: WRK-0092
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/practice_contract.py", "backend/src/financial_ai_academy/modules/assessment/domain/practice.py", "backend/src/financial_ai_academy/modules/assessment/ports/practice_definition.py", "backend/tests/contract/assessment_practice", "backend/tests/unit/assessment/test_practice_contract.py", "contracts/compatibility/assessment-practice/v1", "contracts/learning/README.md", "contracts/learning/assessment/practice/v1", "docs/architecture/contracts/assessment-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0026-open-versioned-practice-activity.md", "docs/planning/work-packets/WRK-0092-freeze-versioned-practice-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 4aeec17b8e32947dcfc7277abd57eebbe5f4dbe3
+claim_id: WRK-0092:351cabf6-0a5d-4e66-ad20-101fac593e2c
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T14:07:40Z
 ---
 
 # Agent Work Packet: Freeze Versioned Practice Contracts
@@ -225,3 +225,6 @@ external execution changed, then leave JIT-B dependency-ready.
   separate additive practice family, freezes three closed deterministic
   response types and answer-safe presentation semantics, and preserves the
   existing knowledge-check v1 contract without adding a lower-level approval.
+- 2026-10-16: Claimed from base revision `4aeec17` after packet validation,
+  current CAP conformance, dependency, decision, and exact-file collision
+  checks passed. Packet-start selected the affected contract/domain route.
