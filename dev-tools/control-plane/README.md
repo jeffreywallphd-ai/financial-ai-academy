@@ -190,6 +190,15 @@ Project suite or the broader live approved-lesson qualification. The Project
 stylesheet is part of that behavioral boundary, and changes to the check
 catalog or its web executor self-qualify the focused command.
 
+Repository web checks use the current catalog's trusted wrapper implementation
+and pass the submitted candidate root explicitly. The wrapper prepares runtimes
+and command semantics from the current control plane while reading source,
+tests, dependencies, and build inputs only from that exact candidate. This
+keeps a newly added or corrected check executable for an older product
+candidate without copying control-plane files into the product packet. The
+fully materialized wrapper path and candidate-root argument remain in the plan
+and receipt.
+
 Roadmap-review implementation paths are also divided by their owning boundary:
 TypeScript source selects qualification, typecheck, DOM unit, and Chromium
 behavior; server/static-shell changes select the server and Chromium checks;

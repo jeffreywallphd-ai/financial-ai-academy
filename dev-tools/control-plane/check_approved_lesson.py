@@ -414,6 +414,11 @@ def execute(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--root",
+        default=str(REPOSITORY),
+        help="Exact candidate repository root; defaults to this checkout.",
+    )
+    parser.add_argument(
         "--mode",
         choices=(
             "typecheck",
@@ -433,7 +438,7 @@ def main() -> int:
         required=True,
     )
     args = parser.parse_args()
-    execute(args.mode)
+    execute(args.mode, root=Path(args.root).resolve())
     return 0
 
 

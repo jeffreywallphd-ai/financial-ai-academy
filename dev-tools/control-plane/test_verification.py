@@ -482,12 +482,23 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(
             (
                 sys.executable,
-                "dev-tools/control-plane/check_approved_lesson.py",
+                str((HERE / "check_approved_lesson.py").resolve()),
+                "--root",
+                ".",
                 "--mode",
                 "roadmap-server",
             ),
             definition.argv,
         )
+
+    def test_repository_catalog_runs_current_wrapper_against_candidate_root(self) -> None:
+        command = repository_catalog().by_id("project:browser").argv
+
+        self.assertEqual(sys.executable, command[0])
+        self.assertEqual(
+            (HERE / "check_approved_lesson.py").resolve(), Path(command[1]).resolve()
+        )
+        self.assertEqual(("--root", ".", "--mode", "project-browser"), command[2:])
 
     def test_unclassified_path_refuses_instead_of_arbitrary_or_full_fallback(self) -> None:
         with self.assertRaises(ControlError) as refused:

@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 from verification import CheckCatalog, CheckDefinition
 
 
 def catalog() -> CheckCatalog:
     python = sys.executable
-    web_check = (python, "dev-tools/control-plane/check_approved_lesson.py")
+    web_check = (
+        python,
+        str(Path(__file__).resolve().with_name("check_approved_lesson.py")),
+        "--root",
+        ".",
+    )
     web_source_paths = (
         "apps/web/src/**",
         "apps/web/tests/unit/**",
@@ -120,7 +126,7 @@ def catalog() -> CheckCatalog:
         *roadmap_document_paths,
     )
     return CheckCatalog(
-        "financial-ai-academy-v6",
+        "financial-ai-academy-v7",
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
             CheckDefinition("control-plane:review", (python, "dev-tools/control-plane/test_review.py"), ("dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py"), "medium", 11, description="Technical review, corrected-descendant, and review-ledger behavior"),
