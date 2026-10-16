@@ -24,6 +24,7 @@ persistence, publication, network, API, or UI action.
 
 - `open_placed_knowledge_check(OpenPlacedKnowledgeCheckRequest) -> KnowledgeCheckPresentation`
 - `open_placed_practice(OpenPlacedPracticeRequest) -> PracticePresentation`
+- `submit_placed_practice(SubmitPlacedPracticeRequest) -> PracticeResult`
 - `submit_placed_knowledge_check(SubmitPlacedKnowledgeCheckRequest) -> KnowledgeCheckResult`
 - `read_completed_knowledge_checks(ReadCompletedKnowledgeChecksRequest) -> tuple[KnowledgeCheckCompletionEvent, ...]`
 
@@ -37,9 +38,13 @@ The practice-open operation resolves one immutable multi-item definition and
 returns exact package/practice provenance, public prompts and choices, numeric
 response constraints, attempt-policy metadata, and resource references. It
 never returns correct option IDs, accepted numeric values/ranges, or feedback.
-Practice submission/scoring contracts and pure scoring are implemented;
-application submission, evidence persistence, and the public POST are not yet
-implemented.
+Practice submission/scoring contracts, the transport-neutral application
+operation, and atomic evidence persistence are implemented. The operation
+accepts server-resolved learner context, a route-bound placement ID, and the
+exact versioned submission bytes; it supplies time and durable IDs itself. The
+public HTTP POST, generated client, and browser result flow are not yet
+implemented. Browser, command-line, and future headless clients must map this
+same operation rather than create another scoring or persistence path.
 The isolated local qualification admits the exact three-shape package through
 Content, creates its placement through Curriculum, and reads this same operation
 from non-browser and generated-browser clients. Repeated reads leave attempt,
@@ -55,6 +60,17 @@ learner/submission idempotency and one completion for the exact placed
 assessment. Exact replay returns the original result; conflicting reuse and a
 new post-completion submission fail distinctly. Update/delete triggers protect
 accepted rows from ordinary mutation.
+
+The additive `assessment_0002_practice_evidence` stream owns separate
+`practice_attempts`, `practice_responses`, `practice_scores`,
+`practice_completion_evidence`, and `practice_outbox` tables. One transaction
+appends a complete definition-ordered aggregate and its confidential bounded
+completion event. Unique constraints enforce learner/submission idempotency and
+one completion for the exact placed practice version until the retry slice
+adds policy. Exact canonical replay returns the original server IDs, time, and
+result; conflicting reuse and a distinct post-completion submission fail
+without partial rows. The tables use the same append-only trigger as existing
+Assessment evidence and do not change knowledge-check storage.
 
 The outbox row is durable event evidence only. No dispatcher, worker, broker,
 consumer, or delivery guarantee is implemented.

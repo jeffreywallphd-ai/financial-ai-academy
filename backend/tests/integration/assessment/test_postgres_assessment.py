@@ -116,19 +116,31 @@ def migrated_database() -> object:
     assert "curriculum_0001_assessment_placements" in curriculum_ids
     assessment_ids = {item.migration_id for item in assessment.apply_all()}
     assert "assessment_0001_knowledge_check_evidence" in assessment_ids
+    assert "assessment_0002_practice_evidence" in assessment_ids
     assert {item.migration_id for item in assessment.apply_all()} == {
         "0001_content_lesson_package_versions",
         "0002_curriculum_lesson_placements",
         "curriculum_0001_assessment_placements",
         "curriculum_0002_discovery_projection",
         "curriculum_0003_curriculum_graphs",
+        "curriculum_0004_practice_placements",
         "assessment_0001_knowledge_check_evidence",
+        "assessment_0002_practice_evidence",
     }
     yield
+    _remove_stream(
+        "assessment_0002_practice_evidence",
+        MIGRATIONS / "assessment/assessment_0002_practice_evidence.down.sql",
+    )
     _remove_stream(
         "assessment_0001_knowledge_check_evidence",
         MIGRATIONS
         / "assessment/assessment_0001_knowledge_check_evidence.down.sql",
+    )
+    _remove_stream(
+        "curriculum_0004_practice_placements",
+        MIGRATIONS
+        / "curriculum/curriculum_0004_practice_placements.down.sql",
     )
     _remove_stream(
         "curriculum_0003_curriculum_graphs",
@@ -155,6 +167,11 @@ def empty_tables(migrated_database: object) -> None:
         connection.execute(
             """
             TRUNCATE TABLE
+                assessment.practice_outbox,
+                assessment.practice_completion_evidence,
+                assessment.practice_scores,
+                assessment.practice_responses,
+                assessment.practice_attempts,
                 assessment.outbox,
                 assessment.completion_evidence,
                 assessment.scores,

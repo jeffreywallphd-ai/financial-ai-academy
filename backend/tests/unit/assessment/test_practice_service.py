@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, replace
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
 from financial_ai_academy.modules.assessment.adapters.practice_contract import (
     ContractPracticeDefinitionAdapter,
+)
+from financial_ai_academy.modules.assessment.adapters.practice_submission_contract import (
+    ContractPracticeSubmissionAdapter,
 )
 from financial_ai_academy.modules.assessment.application.service import (
     AssessmentService,
@@ -16,10 +20,15 @@ from financial_ai_academy.modules.assessment.ports.gateways import (
     PlacedPracticeReference,
     PracticeDefinitionDocument,
 )
+from financial_ai_academy.modules.assessment.ports.repositories import (
+    PracticeAlreadyCompleted,
+    PracticeSubmissionConflict,
+)
 from financial_ai_academy.modules.assessment.public import (
     AssessmentError,
     AssessmentErrorCode,
     OpenPlacedPracticeRequest,
+    SubmitPlacedPracticeRequest,
 )
 
 
@@ -28,6 +37,10 @@ SCHEMAS = REPOSITORY / "contracts/learning/assessment/practice/v1"
 DEFINITION = (
     REPOSITORY
     / "contracts/compatibility/assessment-practice/v1/approved/definition.json"
+)
+SUBMISSION = (
+    REPOSITORY
+    / "contracts/compatibility/assessment-practice/v1/approved/submission.json"
 )
 DEFINITION_DIGEST = (
     "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527"
@@ -78,6 +91,38 @@ class NoEvidenceRepository:
         self.calls += 1
         raise AssertionError("Opening practice must not write evidence.")
 
+    def record_practice_submission(
+        self, *_args: object, **_kwargs: object
+    ) -> None:
+        self.calls += 1
+        raise AssertionError("Opening practice must not write evidence.")
+
+
+class PracticeRepository:
+    def __init__(self, failure: Exception | None = None) -> None:
+        self.failure = failure
+        self.candidates: list[object] = []
+
+    def record_practice_submission(self, candidate: object) -> tuple[object, bool]:
+        self.candidates.append(candidate)
+        if self.failure is not None:
+            raise self.failure
+        return candidate.result, True  # type: ignore[attr-defined]
+
+
+class FixedClock:
+    def now(self) -> datetime:
+        return datetime(2026, 10, 16, 15, 0, tzinfo=timezone.utc)
+
+
+class SequentialIds:
+    def __init__(self) -> None:
+        self.value = 100
+
+    def new(self) -> str:
+        self.value += 1
+        return f"00000000-0000-4000-8000-{self.value:012d}"
+
 
 def build_service(
     *,
@@ -102,6 +147,31 @@ def build_service(
         ),
     )
     return service, evidence
+
+
+def build_submission_service(
+    repository: PracticeRepository | None = None,
+) -> tuple[AssessmentService, PracticeRepository]:
+    evidence = repository or PracticeRepository()
+    service = AssessmentService(
+        CurriculumGateway(),
+        ContentGateway(),
+        object(),
+        object(),
+        evidence,  # type: ignore[arg-type]
+        FixedClock(),
+        SequentialIds(),
+        ContractPracticeDefinitionAdapter(SCHEMAS),
+        ContractPracticeSubmissionAdapter(SCHEMAS),
+    )
+    return service, evidence
+
+
+def submission_bytes(**changes: object) -> bytes:
+    document = json.loads(SUBMISSION.read_text(encoding="utf-8"))
+    document["placement_id"] = "intro-risk-return-primary"
+    document.update(changes)
+    return json.dumps(document).encode("utf-8")
 
 
 def test_open_practice_returns_all_closed_item_types_without_answers() -> None:
@@ -166,3 +236,94 @@ def test_open_practice_requires_configured_contract_parser() -> None:
 
     assert captured.value.code is AssessmentErrorCode.UNAVAILABLE
     assert repository.calls == 0
+
+
+def test_submit_practice_uses_server_metadata_and_public_application_seam() -> None:
+    service, repository = build_submission_service()
+
+    result = service.submit_placed_practice(
+        SubmitPlacedPracticeRequest(
+            learner_id="11111111-1111-4111-8111-111111111111",
+            placement_id="intro-risk-return-primary",
+            submission=submission_bytes(),
+        )
+    )
+
+    assert result.score == 2
+    assert result.max_score == 3
+    assert result.outcome == "review_needed"
+    assert result.attempt_id.endswith("000000000101")
+    assert result.evidence_id.endswith("000000000102")
+    assert result.submitted_at == FixedClock().now()
+    assert [item.response.item_id for item in result.item_results] == [
+        "risk-meaning",
+        "diversification-actions",
+        "simple-growth",
+    ]
+    assert len(repository.candidates) == 1
+
+
+@pytest.mark.parametrize(
+    ("failure", "expected"),
+    [
+        (
+            PracticeSubmissionConflict("sentinel-secret-response"),
+            AssessmentErrorCode.CONFLICT,
+        ),
+        (
+            PracticeAlreadyCompleted("sentinel-secret-history"),
+            AssessmentErrorCode.ALREADY_COMPLETED,
+        ),
+    ],
+)
+def test_submit_practice_maps_repository_denials_without_leaking_details(
+    failure: Exception, expected: AssessmentErrorCode
+) -> None:
+    service, repository = build_submission_service(
+        PracticeRepository(failure)
+    )
+
+    with pytest.raises(AssessmentError) as captured:
+        service.submit_placed_practice(
+            SubmitPlacedPracticeRequest(
+                learner_id="11111111-1111-4111-8111-111111111111",
+                placement_id="intro-risk-return-primary",
+                submission=submission_bytes(),
+            )
+        )
+
+    assert captured.value.code is expected
+    assert "sentinel-secret" not in str(captured.value.as_dict())
+    assert len(repository.candidates) == 1
+
+
+def test_submit_practice_rejects_stale_body_before_persistence() -> None:
+    service, repository = build_submission_service()
+
+    with pytest.raises(AssessmentError) as captured:
+        service.submit_placed_practice(
+            SubmitPlacedPracticeRequest(
+                learner_id="11111111-1111-4111-8111-111111111111",
+                placement_id="intro-risk-return-primary",
+                submission=submission_bytes(definition_digest="c" * 64),
+            )
+        )
+
+    assert captured.value.code is AssessmentErrorCode.STALE_REFERENCE
+    assert repository.candidates == []
+
+
+def test_submit_practice_rejects_untrusted_learner_before_resolution() -> None:
+    service, repository = build_submission_service()
+
+    with pytest.raises(AssessmentError) as captured:
+        service.submit_placed_practice(
+            SubmitPlacedPracticeRequest(
+                learner_id="caller-selected",
+                placement_id="intro-risk-return-primary",
+                submission=submission_bytes(),
+            )
+        )
+
+    assert captured.value.code is AssessmentErrorCode.UNAUTHORIZED_CONTEXT
+    assert repository.candidates == []

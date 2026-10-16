@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol
 
-from .domain.practice import PracticePresentation
+from .domain.practice import PracticePresentation, PracticeResult
 
 
 class AssessmentErrorCode(StrEnum):
@@ -86,6 +86,13 @@ class OpenPlacedKnowledgeCheckRequest:
 @dataclass(frozen=True, slots=True)
 class OpenPlacedPracticeRequest:
     placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class SubmitPlacedPracticeRequest:
+    learner_id: str
+    placement_id: str
+    submission: bytes
 
 
 @dataclass(frozen=True, slots=True)
@@ -179,6 +186,10 @@ class AssessmentOperations(Protocol):
     def open_placed_practice(
         self, request: OpenPlacedPracticeRequest
     ) -> PracticePresentation: ...
+
+    def submit_placed_practice(
+        self, request: SubmitPlacedPracticeRequest
+    ) -> PracticeResult: ...
 
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest

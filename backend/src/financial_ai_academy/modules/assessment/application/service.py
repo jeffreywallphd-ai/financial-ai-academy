@@ -13,7 +13,12 @@ from ..domain.models import (
     AssessmentSubmissionCandidate,
     score_single_select,
 )
-from ..domain.practice import PracticePresentation, PracticePresentationContext
+from ..domain.practice import (
+    PracticeDefinition,
+    PracticePresentation,
+    PracticePresentationContext,
+    PracticeResult,
+)
 from ..ports.definition_parser import (
     AssessmentDefinitionParserPort,
     DefinitionParsingFailure,
@@ -22,6 +27,7 @@ from ..ports.gateways import (
     ContentDefinitionGatewayPort,
     CurriculumAssessmentGatewayPort,
     PlacedAssessmentReference,
+    PlacedPracticeReference,
 )
 from ..ports.event_parser import (
     AssessmentEventParserPort,
@@ -30,11 +36,17 @@ from ..ports.event_parser import (
 from ..ports.repositories import (
     AssessmentRepositoryPort,
     KnowledgeCheckAlreadyCompleted,
+    PracticeAlreadyCompleted,
+    PracticeSubmissionConflict,
     SubmissionConflict,
 )
 from ..ports.practice_definition import (
     PracticeDefinitionFailure,
     PracticeDefinitionPort,
+)
+from ..ports.practice_submission import (
+    PracticeSubmissionFailure,
+    PracticeSubmissionPort,
 )
 from ..ports.system import ClockPort, IdGeneratorPort
 from ..public import (
@@ -48,6 +60,7 @@ from ..public import (
     OpenPlacedPracticeRequest,
     ReadCompletedKnowledgeChecksRequest,
     SubmitPlacedKnowledgeCheckRequest,
+    SubmitPlacedPracticeRequest,
 )
 
 
@@ -62,6 +75,7 @@ class AssessmentService:
         clock: ClockPort,
         ids: IdGeneratorPort,
         practice_parser: PracticeDefinitionPort | None = None,
+        practice_submission_parser: PracticeSubmissionPort | None = None,
     ) -> None:
         self._curriculum = curriculum
         self._content = content
@@ -71,6 +85,7 @@ class AssessmentService:
         self._clock = clock
         self._ids = ids
         self._practice_parser = practice_parser
+        self._practice_submission_parser = practice_submission_parser
 
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest
@@ -81,64 +96,10 @@ class AssessmentService:
     def open_placed_practice(
         self, request: OpenPlacedPracticeRequest
     ) -> PracticePresentation:
-        parser = self._practice_parser
-        if parser is None:
-            raise AssessmentError(
-                AssessmentErrorCode.UNAVAILABLE,
-                "Practice activities are unavailable.",
-                reference=request.placement_id,
-            )
+        reference, definition = self._resolve_practice(request.placement_id)
         try:
-            reference = self._curriculum.resolve_practice(
-                request.placement_id
-            )
-            document = self._content.get_practice_exact(reference)
-        except AssessmentError:
-            raise
-        except Exception as error:
-            raise AssessmentError(
-                AssessmentErrorCode.UNAVAILABLE,
-                "The exact practice definition is unavailable.",
-                reference=request.placement_id,
-            ) from error
-        if (
-            document.package_id,
-            document.package_version,
-            document.package_digest,
-            document.practice_id,
-        ) != (
-            reference.package_id,
-            reference.package_version,
-            reference.package_digest,
-            reference.practice_id,
-        ):
-            raise self._stale_practice("definition")
-        try:
-            definition = parser.parse(document.value)
-        except PracticeDefinitionFailure as error:
-            public_code = (
-                AssessmentErrorCode.UNSUPPORTED_VERSION
-                if "unsupported" in error.code
-                else AssessmentErrorCode.INVALID_DEFINITION
-            )
-            raise AssessmentError(
-                public_code,
-                "The practice definition was rejected.",
-                reference=error.reference,
-                diagnostic_code=error.code,
-            ) from error
-        if (
-            definition.practice_id,
-            definition.practice_version,
-            definition.definition_digest,
-        ) != (
-            reference.practice_id,
-            reference.practice_version,
-            reference.definition_digest,
-        ):
-            raise self._stale_practice("practice")
-        try:
-            return parser.project(
+            assert self._practice_parser is not None
+            return self._practice_parser.project(
                 definition,
                 PracticePresentationContext(
                     placement_id=reference.placement_id,
@@ -154,6 +115,78 @@ class AssessmentService:
                 reference=error.reference,
                 diagnostic_code=error.code,
             ) from error
+
+    def submit_placed_practice(
+        self, request: SubmitPlacedPracticeRequest
+    ) -> PracticeResult:
+        self._validate_uuid(request.learner_id, learner=True)
+        submission_parser = self._practice_submission_parser
+        if submission_parser is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice submission is unavailable.",
+                reference=request.placement_id,
+            )
+        reference, definition = self._resolve_practice(request.placement_id)
+        submitted_at = self._server_time()
+        try:
+            candidate = submission_parser.parse_and_score(
+                request.submission,
+                definition,
+                PracticePresentationContext(
+                    placement_id=reference.placement_id,
+                    package_id=reference.package_id,
+                    package_version=reference.package_version,
+                    package_digest=reference.package_digest,
+                ),
+                learner_id=request.learner_id,
+                attempt_id=self._ids.new(),
+                evidence_id=self._ids.new(),
+                event_id=self._ids.new(),
+                submitted_at=submitted_at,
+            )
+        except PracticeSubmissionFailure as error:
+            if error.code == "assessment.practice.unsupported_version":
+                code = AssessmentErrorCode.UNSUPPORTED_VERSION
+            elif error.code == "assessment.practice.stale_reference":
+                code = AssessmentErrorCode.STALE_REFERENCE
+            elif error.code == "assessment.practice.invalid_server_metadata":
+                code = AssessmentErrorCode.UNAVAILABLE
+            else:
+                code = AssessmentErrorCode.INVALID_SUBMISSION
+            raise AssessmentError(
+                code,
+                "The practice submission was rejected.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        try:
+            stored, _created = self._repository.record_practice_submission(
+                candidate
+            )
+        except PracticeSubmissionConflict as error:
+            raise AssessmentError(
+                AssessmentErrorCode.CONFLICT,
+                "The submission identity was already used for different input.",
+                reference="submission_id",
+                diagnostic_code="assessment.practice.conflicting_submission",
+            ) from error
+        except PracticeAlreadyCompleted as error:
+            raise AssessmentError(
+                AssessmentErrorCode.ALREADY_COMPLETED,
+                "This practice activity has already been completed.",
+                reference=request.placement_id,
+                diagnostic_code="assessment.practice.already_completed",
+            ) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice evidence storage is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        return stored
 
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest
@@ -344,6 +377,65 @@ class AssessmentService:
         )
         if actual != expected:
             raise self._stale("assessment")
+        return reference, definition
+
+    def _resolve_practice(
+        self, placement_id: str
+    ) -> tuple[PlacedPracticeReference, PracticeDefinition]:
+        parser = self._practice_parser
+        if parser is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice activities are unavailable.",
+                reference=placement_id,
+            )
+        try:
+            reference = self._curriculum.resolve_practice(placement_id)
+            document = self._content.get_practice_exact(reference)
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "The exact practice definition is unavailable.",
+                reference=placement_id,
+            ) from error
+        if (
+            document.package_id,
+            document.package_version,
+            document.package_digest,
+            document.practice_id,
+        ) != (
+            reference.package_id,
+            reference.package_version,
+            reference.package_digest,
+            reference.practice_id,
+        ):
+            raise self._stale_practice("definition")
+        try:
+            definition = parser.parse(document.value)
+        except PracticeDefinitionFailure as error:
+            public_code = (
+                AssessmentErrorCode.UNSUPPORTED_VERSION
+                if "unsupported" in error.code
+                else AssessmentErrorCode.INVALID_DEFINITION
+            )
+            raise AssessmentError(
+                public_code,
+                "The practice definition was rejected.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        if (
+            definition.practice_id,
+            definition.practice_version,
+            definition.definition_digest,
+        ) != (
+            reference.practice_id,
+            reference.practice_version,
+            reference.definition_digest,
+        ):
+            raise self._stale_practice("practice")
         return reference, definition
 
     @staticmethod

@@ -19,6 +19,14 @@ after the root stream. The Assessment evidence/outbox stream under
 in `platform.schema_migrations`; controlled teardown removes module streams in
 reverse dependency order before rolling back the root stream.
 
+`assessment_0002_practice_evidence` adds Assessment-owned practice attempts,
+definition-ordered response and score rows, completion results, and a bounded
+practice outbox. It depends on the `assessment_0001` schema and append-only
+trigger function but uses separate additive tables so existing knowledge-check
+evidence is not reinterpreted. Development/test teardown removes practice
+tables before the knowledge-check stream; retained evidence is never described
+as safely down-migratable.
+
 The same Curriculum stream owns
 `curriculum_0002_discovery_projection`. It stores immutable catalog
 classifications separately from the replaceable singleton discovery generation

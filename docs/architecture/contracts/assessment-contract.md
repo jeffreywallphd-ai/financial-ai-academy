@@ -91,6 +91,24 @@ applicable reviewed feedback and references are returned. Correct answer
 values, numeric ranges, private evaluator objects, mastery, suitability, and
 advice remain absent.
 
+The transport-neutral `submit_placed_practice` application operation accepts
+server-resolved learner context, one route-bound placement ID, and the exact
+versioned submission document. It resolves Curriculum and Content only through
+their public facades, re-parses the exact private definition, supplies server
+IDs and canonical UTC time, and invokes the accepted parser/scorer. A later
+HTTP host, generated client, command-line caller, and future headless consumer
+must all use this operation instead of owning scoring, replay, or persistence.
+
+Assessment retains each accepted practice aggregate in separate additive
+attempt, ordered-response, item-score, completion-result, and practice-outbox
+tables in one PostgreSQL transaction. `(learner_id, submission_id)` plus the
+canonical request fingerprint provides idempotent replay. A matching replay
+returns the original complete result; conflicting reuse fails, and a distinct
+submission after the same placed practice version completes is denied until
+the retry slice supplies explicit policy. Every accepted row rejects ordinary
+update/delete. No Content, Curriculum, host, client, or future AI consumer may
+read or write these private tables.
+
 ## Completion Event
 
 `assessment.knowledge-check.completed@1.0.0` is owned by Assessment. Its event
@@ -176,14 +194,19 @@ public open operation; protected HTTP/OpenAPI; a generated TypeScript client;
 browser opening; and real-PostgreSQL composition evidence. Its pure submission
 adapter now validates closed responses, canonicalizes request identity, scores
 all three item types, selects reviewed feedback, and maps a safe correlated
-event without side effects. Repeated opening is read-only and returns no answer
-or feedback branch. Application submission, authorization composition,
-practice evidence persistence, transactional outbox storage, the public POST
-and generated client, browser result flow, retry enforcement, history/replay
-consumers, and live submission remain unqualified until their owning packets
-deliver them. No separate AI/headless mode is defined; the shared public API
-remains the supported non-browser seam and keeps a future consumer possible
-without creating another domain core.
+event without side effects. The transport-neutral application operation now
+resolves the exact definition, supplies server authority, and commits a
+complete append-only aggregate plus practice outbox atomically. Real-
+PostgreSQL evidence covers migration/reapply/teardown, exact and reordered
+replay, conflict, one-attempt enforcement, concurrency, rollback, restart,
+confidentiality, and mutation denial without changing knowledge-check storage.
+Repeated opening remains read-only and returns no answer or feedback branch.
+Authorization host composition, the public POST and generated client, browser
+result flow, retry enforcement, history/replay consumers, and live submission
+remain unqualified until their owning packets deliver them. No separate AI/
+headless mode is defined; the shared public API remains the supported non-
+browser seam and keeps a future consumer possible without creating another
+domain core.
 
 Assessment now also exposes a typed, read-only completion-event replay query
 for one server-supplied learner and exact placement. It validates retained

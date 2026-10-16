@@ -1,7 +1,7 @@
 ---
 id: WRK-0097
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -217,6 +217,33 @@ HTTP/OpenAPI/generated client, browser UI, retry/history, projection/replay
 consumer, separate AI mode, model authority, dependency, or external execution
 changed, then leave JIT-C dependency-ready.
 
+## Implementation Evidence
+
+- Added `SubmitPlacedPracticeRequest` and one transport-neutral Assessment
+  operation that resolves exact Curriculum and Content public seams, supplies
+  server-owned learner/time/IDs, reuses the accepted practice parser/scorer,
+  and returns the immutable result. It has no FastAPI, browser, generated-
+  client, command-line UI, or AI-mode dependency.
+- Added separate `practice_attempts`, definition-ordered `practice_responses`
+  and `practice_scores`, `practice_completion_evidence`, and
+  `practice_outbox` tables in checksum-protected migration
+  `assessment_0002_practice_evidence`. One repository transaction writes the
+  complete aggregate and bounded confidential event; ordinary update/delete is
+  rejected.
+- Exact learner/submission replay uses the WRK-0096 canonical fingerprint and
+  returns the original IDs, time, ordered result, and feedback after restart.
+  Changed input conflicts, and a distinct post-completion submission is denied
+  until SLI-0028 owns retry policy.
+- Focused Assessment domain, contract, and application evidence passes 142
+  tests. The isolated PostgreSQL 18.4 suite passes 14 tests over migration,
+  reapply/teardown, all three response types, exact/reordered replay, conflict,
+  attempt limit, concurrency, rollback, restart, event confidentiality,
+  append-only enforcement, and unchanged knowledge-check behavior.
+- Architecture fitness passes all 15 tests. HTTP/OpenAPI, generated clients,
+  browser behavior, authorization host composition, retry/history, projections,
+  event consumers, dependencies, lockfiles, and separate AI-mode planning did
+  not change.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0096 completed. The packet adds
@@ -225,3 +252,6 @@ changed, then leave JIT-C dependency-ready.
 - 2026-10-16: Claimed from base revision `33d2e74` after the implementation
   gate confirmed current CAP authority, dependency completion, decision
   readiness, bounded scope, and no active ownership collision.
+- 2026-10-16: Implemented and moved to verification after focused application,
+  contract, real-database, legacy-regression, confidentiality, atomicity,
+  idempotency, concurrency, rollback, restart, and architecture checks passed.
