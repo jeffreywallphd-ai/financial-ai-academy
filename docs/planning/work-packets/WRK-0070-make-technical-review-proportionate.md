@@ -1,7 +1,7 @@
 ---
 id: WRK-0070
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane", "docs/standards/testing-and-verification-standards.md", "docs/planning/work-packets/WRK-0070-make-technical-review-proportionate.md", "docs/planning/vertical-slices/SLI-0005-record-review-findings-and-corrected-descendants.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 903f3f6cee75281372da8a899da936f25629ff1c
+claim_id: WRK-0070:af5e26cf-023c-4cfa-9def-1b043fc65ac7
+claimed_by: codex-control-plane-correction
+claimed_at: 2026-10-16T09:20:05Z
 ---
 
 # Agent Work Packet: Make Technical Review Proportionate
@@ -34,9 +34,10 @@ review for substantive change, and all existing blocking controls.
 
 ## Required Context
 
-Read the repository startup sources, CAP-0002, SLI-0005, WRK-0013, the recorded
-bounded correction route, concurrent-work and testing guidance, the complete
-review/state/receipt/status implementation, its tests, and the nearest README.
+Read `AGENTS.md`, `docs/README.md`, the routed repository startup sources,
+CAP-0002, SLI-0005, WRK-0013, the recorded bounded correction route,
+concurrent-work and testing guidance, the complete review/state/receipt/status
+implementation, its tests, and the nearest README.
 
 ## Decisions and Assumptions
 
