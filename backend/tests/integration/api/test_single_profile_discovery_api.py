@@ -508,4 +508,5 @@ def test_openapi_catalog_contract_is_stable_queryless_and_cookie_secured() -> No
         "page_size",
     }
     assert "next_cursor" in query_page["required"]
-    assert "learner_id" not in first.decode("utf-8")
+    assert "learner_id" not in record["properties"]
+    assert "learner_id" not in model["properties"]

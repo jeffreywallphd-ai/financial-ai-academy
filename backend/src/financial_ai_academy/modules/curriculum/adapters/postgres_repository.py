@@ -27,6 +27,7 @@ from ..public import (
     OpportunityKind,
     OpportunityLevel,
     PracticePlacement,
+    ProjectBriefPlacement,
     PracticeReviewDestination,
     PracticeReviewState,
     PracticeReviewTarget,
@@ -303,6 +304,90 @@ class PostgresCurriculumRepository:
         ):
             raise PlacementConflict(
                 "Placement identity already maps to another practice."
+            )
+        return existing, False
+
+    def get_project_brief(
+        self, placement_id: str
+    ) -> ProjectBriefPlacement | None:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT * FROM curriculum.project_brief_placements
+                WHERE placement_id = %s
+                """,
+                (placement_id,),
+            ).fetchone()
+        return self._project_brief_from_row(row) if row else None
+
+    def save_project_brief_if_absent(
+        self, placement: ProjectBriefPlacement
+    ) -> tuple[ProjectBriefPlacement, bool]:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                INSERT INTO curriculum.project_brief_placements (
+                    placement_id, placement_version, placement_digest,
+                    curriculum_id, curriculum_version, curriculum_digest,
+                    package_id, package_version, package_digest,
+                    brief_id, brief_version, brief_digest,
+                    project_brief_schema_version, created_at
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s, %s
+                )
+                ON CONFLICT (placement_id) DO NOTHING
+                RETURNING *
+                """,
+                (
+                    placement.placement_id,
+                    placement.placement_version,
+                    placement.placement_digest,
+                    placement.curriculum_id,
+                    placement.curriculum_version,
+                    placement.curriculum_digest,
+                    placement.package_id,
+                    placement.package_version,
+                    placement.package_digest,
+                    placement.brief_id,
+                    placement.brief_version,
+                    placement.brief_digest,
+                    placement.project_brief_schema_version,
+                    placement.created_at,
+                ),
+            ).fetchone()
+            if row is not None:
+                return self._project_brief_from_row(row), True
+            row = connection.execute(
+                """
+                SELECT * FROM curriculum.project_brief_placements
+                WHERE placement_id = %s
+                """,
+                (placement.placement_id,),
+            ).fetchone()
+        if row is None:
+            raise RuntimeError("Project brief placement insert did not become visible.")
+        existing = self._project_brief_from_row(row)
+        comparable = (
+            "placement_version",
+            "placement_digest",
+            "curriculum_id",
+            "curriculum_version",
+            "curriculum_digest",
+            "package_id",
+            "package_version",
+            "package_digest",
+            "brief_id",
+            "brief_version",
+            "brief_digest",
+            "project_brief_schema_version",
+        )
+        if any(
+            getattr(existing, field) != getattr(placement, field)
+            for field in comparable
+        ):
+            raise PlacementConflict(
+                "Placement identity already maps to another Project brief."
             )
         return existing, False
 
@@ -803,6 +888,32 @@ class PostgresCurriculumRepository:
             practice_id=str(row["practice_id"]),
             practice_version=str(row["practice_version"]),
             definition_digest=str(row["definition_digest"]),
+            created_at=created_at,
+        )
+
+    @staticmethod
+    def _project_brief_from_row(
+        row: dict[str, Any],
+    ) -> ProjectBriefPlacement:
+        created_at = row["created_at"]
+        if not isinstance(created_at, datetime):
+            raise ValueError("Project brief placement timestamp is invalid.")
+        return ProjectBriefPlacement(
+            placement_id=str(row["placement_id"]),
+            placement_version=str(row["placement_version"]),
+            placement_digest=str(row["placement_digest"]),
+            curriculum_id=str(row["curriculum_id"]),
+            curriculum_version=str(row["curriculum_version"]),
+            curriculum_digest=str(row["curriculum_digest"]),
+            package_id=str(row["package_id"]),
+            package_version=str(row["package_version"]),
+            package_digest=str(row["package_digest"]),
+            brief_id=str(row["brief_id"]),
+            brief_version=str(row["brief_version"]),
+            brief_digest=str(row["brief_digest"]),
+            project_brief_schema_version=str(
+                row["project_brief_schema_version"]
+            ),
             created_at=created_at,
         )
 

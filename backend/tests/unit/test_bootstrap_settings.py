@@ -17,8 +17,16 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     assessment = contracts / "learning" / "assessment" / "v1"
     practice = contracts / "learning" / "assessment" / "practice" / "v1"
     events = contracts / "events" / "assessment" / "v1"
+    project = contracts / "learning" / "project" / "v1"
     migrations = tmp_path / "migrations"
-    for directory in (lesson, assessment, practice, events, migrations):
+    for directory in (
+        lesson,
+        assessment,
+        practice,
+        events,
+        project,
+        migrations,
+    ):
         directory.mkdir(parents=True, exist_ok=True)
 
     settings = SingleProfileApplicationSettings(
@@ -38,4 +46,5 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     assert settings.assessment_schema_dir == assessment
     assert settings.practice_schema_dir == practice
     assert settings.assessment_event_schema_dir == events
+    assert settings.project_schema_dir == project
     assert isinstance(settings.validate(), SingleProfileRequestPolicy)

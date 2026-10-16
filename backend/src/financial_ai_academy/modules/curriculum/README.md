@@ -11,6 +11,8 @@ package ID, semantic version, and digest.
 - `CurriculumService.resolve_placed_assessment(ResolvePlacedAssessmentRequest) -> AssessmentPlacement`
 - `CurriculumService.create_practice_placement(CreatePracticePlacementRequest) -> PracticePlacement`
 - `CurriculumService.resolve_placed_practice(ResolvePlacedPracticeRequest) -> PracticePlacement`
+- `CurriculumService.create_project_brief_placement(CreateProjectBriefPlacementRequest) -> ProjectBriefPlacement`
+- `CurriculumService.resolve_project_brief_placement(ResolveProjectBriefPlacementRequest) -> ProjectBriefPlacement`
 - `CurriculumService.register_practice_review_target(RegisterPracticeReviewTargetRequest) -> PracticeReviewTarget`
 - `CurriculumService.resolve_practice_review_targets(...) -> tuple[PracticeReviewTarget, ...]`
 - `CurriculumService.register_lesson_opportunity(RegisterLessonOpportunityRequest) -> LessonOpportunityClassification`
@@ -53,6 +55,12 @@ cookie-backed non-browser progress read. Focused contract and PostgreSQL suites
 also cover available destinations, declaration-order preservation,
 idempotency, changed-meaning refusal, and restart durability. Review routing
 does not rank, personalize, or generate a recommendation.
+
+`curriculum_0006_project_brief_placements` stores an append-only exact
+Curriculum/package/brief placement and its canonical placement digest. It has
+no Content or Project foreign key, creates no learner Project, and retains no
+brief bytes. Creation verifies the exact brief through Content's public facade;
+replay is idempotent and changed placement meaning is rejected.
 
 ## Discovery projection core
 

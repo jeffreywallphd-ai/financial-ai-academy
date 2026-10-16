@@ -16,6 +16,8 @@ type PracticeSubmission =
   components["schemas"]["PracticeSubmissionRequestModel"];
 type PracticeSubmissionResult =
   components["schemas"]["PracticeSubmissionResultResponseModel"];
+type ProjectCreateRequest =
+  components["schemas"]["ProjectCreateRequestModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -52,6 +54,20 @@ void client.GET(
     },
   },
 );
+
+const independentProject: ProjectCreateRequest = {
+  schema_version: "1.0.0",
+  idempotency_key: "compare-evidence-1",
+  title: "Compare evidence",
+  charter: "Compare educational sources without making a recommendation.",
+  origin: { origin_type: "independent" },
+};
+
+void client.POST("/api/v1/projects", { body: independentProject });
+void client.GET("/api/v1/projects");
+void client.GET("/api/v1/projects/{project_id}", {
+  params: { path: { project_id: "project-1" } },
+});
 
 const practiceSubmission: PracticeSubmission = {
   schema_version: "1.0.0",

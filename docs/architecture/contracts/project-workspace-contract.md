@@ -42,16 +42,25 @@ provider payload, executable control, artifact bytes, Assessment response,
 score, completion, mastery, recommendation, market observation, copied
 Portfolio aggregate, or financial advice.
 
-## Boundary and Headless Access
+## Persisted Shell and Headless Access
 
-The parser and projector are transport-neutral, framework-free, and side-
-effect free. They do not resolve identity, authorize, read another module's
-storage, issue IDs or times, persist, publish, call a provider, or execute
-learner material. A later protected public API must use the same Project
-application operations for generated browser clients, command-line clients,
-services, and future headless AI clients. Headless access does not create a
-second domain core or grant AI authority over eligibility, authorization,
-grading, financial calculations, or durable state changes.
+The parser and projector remain transport-neutral, framework-free, and side-
+effect free. The Project application service now composes them with owned
+clock, identifier, repository, Content-brief, and Curriculum-placement ports.
+Independent creation performs no learning lookup. Learning creation must match
+every exact placement and brief reference before the Project transaction.
+
+`project.project_shells` retains one learner-owned active shell, immutable
+origin, canonical request fingerprint, and server-issued identity/times.
+Exact learner/idempotency replay returns the original shell; changed reuse
+conflicts. Repository reads revalidate the shell contract, list by creation
+time then Project ID, and do not query another module's schema.
+
+The protected POST/list/read API uses the same Project operations for generated
+browser clients, command-line clients, services, and future headless AI
+clients. Headless access does not create a second domain core or grant AI
+authority over eligibility, authorization, grading, financial calculations,
+or durable state changes.
 
 ## Compatibility
 
@@ -62,6 +71,6 @@ review. Harmless valid text, identities, milestone/source counts within bounds,
 and generated time or ID values must not depend on one fixture.
 
 Artifact manifests, workspace resources, snapshots, typed domain links,
-Assessment submissions, persistence, HTTP, and browser behavior are separate
-bounded delivery seams. ADR-0011 continues to require inert data if artifact
-contracts are introduced later.
+Assessment submissions, and browser Project behavior are separate bounded
+delivery seams. ADR-0011 continues to require inert data if artifact contracts
+are introduced later.

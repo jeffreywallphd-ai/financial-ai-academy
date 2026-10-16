@@ -52,6 +52,7 @@ SUPPORTED_CAPABILITIES = {
     "asset.raster.v1",
     "assessment.reference.v1",
     "assessment.practice.v1",
+    "project.brief.v1",
 }
 SHA256_RE = re.compile(r"^[a-f0-9]{64}$")
 PRACTICE_DECIMAL_RE = re.compile(
@@ -259,7 +260,7 @@ def _declarations(manifest: Mapping[str, object]) -> list[dict[str, object]]:
     lesson = manifest.get("lesson")
     if isinstance(lesson, dict):
         result.append(dict(lesson))
-    for field in ("assessments", "practices", "assets"):
+    for field in ("assessments", "practices", "projects", "assets"):
         records = manifest.get(field)
         if isinstance(records, list):
             result.extend(
@@ -345,6 +346,78 @@ def _validate_assessment_file(
             "options",
             "Assessment option membership is invalid.",
         )
+
+
+def _validate_project_brief_file(
+    value: bytes,
+    declaration: Mapping[str, object],
+    validator: Draft202012Validator,
+) -> None:
+    try:
+        document = json.loads(value.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        _reject(
+            "project.brief.schema_invalid",
+            declaration.get("brief_id", "project-brief"),
+            "Project brief is not valid UTF-8 JSON.",
+        )
+    if not isinstance(document, dict) or _json_depth(document) > 16:
+        _reject(
+            "project.brief.schema_invalid",
+            declaration.get("brief_id", "project-brief"),
+            "Project brief structure is invalid.",
+        )
+    errors = sorted(
+        validator.iter_errors(document),
+        key=lambda error: tuple(str(item) for item in error.absolute_path),
+    )
+    if errors:
+        reference = (
+            ".".join(str(item) for item in errors[0].absolute_path)
+            or "project-brief"
+        )
+        _reject(
+            "project.brief.schema_invalid",
+            reference,
+            "Project brief does not satisfy project brief v1.",
+        )
+    brief = document["brief"]
+    canonical = json.dumps(
+        brief,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    measured_digest = _sha256(canonical)
+    expected = (
+        declaration["schema_version"],
+        declaration["brief_id"],
+        declaration["brief_version"],
+        declaration["brief_digest"],
+    )
+    actual = (
+        document["schema_version"],
+        brief["brief_id"],
+        brief["brief_version"],
+        document["brief_digest"],
+    )
+    if actual != expected or measured_digest != document["brief_digest"]:
+        _reject(
+            "project.brief.identity_mismatch",
+            declaration["brief_id"],
+            "Declared and measured Project brief identity differ.",
+        )
+    for field, identity in (
+        ("milestones", "milestone_id"),
+        ("source_references", "resource_id"),
+    ):
+        values = [item[identity] for item in brief[field]]
+        if len(values) != len(set(values)):
+            _reject(
+                "project.brief.invalid_definition",
+                f"brief.{field}",
+                "Project brief identities must be unique.",
+            )
 
 
 def _validate_practice_decimal(value: str, scale: int, reference: str) -> Decimal:
@@ -498,6 +571,7 @@ class ContractLessonPackageValidator:
         limits: PackageLimits | None = None,
         assessment_schema_dir: Path | None = None,
         practice_schema_dir: Path | None = None,
+        project_schema_dir: Path | None = None,
     ) -> None:
         self._schema_dir = schema_dir
         self._limits = limits or PackageLimits()
@@ -526,6 +600,19 @@ class ContractLessonPackageValidator:
         )
         Draft202012Validator.check_schema(practice_schema)
         self._practice_validator = Draft202012Validator(practice_schema)
+        project_dir = (
+            project_schema_dir
+            if project_schema_dir is not None
+            else schema_dir.parents[1] / "project/v1"
+        )
+        project_schema = json.loads(
+            (project_dir / "brief.schema.json").read_text(encoding="utf-8")
+        )
+        Draft202012Validator.check_schema(project_schema)
+        self._project_brief_validator = Draft202012Validator(
+            project_schema,
+            format_checker=FormatChecker(),
+        )
 
     def validate_directory(self, root: Path) -> ValidatedLessonPackage:
         if root.is_symlink():
@@ -736,6 +823,21 @@ class ContractLessonPackageValidator:
                 measured[str(declaration["path"])],
                 declaration,
                 self._practice_validator,
+            )
+        project_ids: set[str] = set()
+        for declaration in manifest.get("projects", []):
+            brief_id = str(declaration["brief_id"])
+            if brief_id in project_ids:
+                _reject(
+                    "project.brief.invalid_definition",
+                    brief_id,
+                    "Project brief identity is declared more than once.",
+                )
+            project_ids.add(brief_id)
+            _validate_project_brief_file(
+                measured[str(declaration["path"])],
+                declaration,
+                self._project_brief_validator,
             )
 
         try:

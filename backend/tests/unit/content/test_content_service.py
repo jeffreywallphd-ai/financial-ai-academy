@@ -20,6 +20,7 @@ from financial_ai_academy.modules.content.public import (
     AdmitLessonPackageRequest,
     GetPublishedAssessmentDefinitionRequest,
     GetPublishedPracticeDefinitionRequest,
+    GetPublishedProjectBriefRequest,
     GetPublishedLessonVersionRequest,
     LessonErrorCode,
     LessonReadError,
@@ -43,6 +44,10 @@ SUCCESSOR = (
 PRACTICE = (
     REPOSITORY
     / "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice"
+)
+PROJECT = (
+    REPOSITORY
+    / "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-project"
 )
 
 
@@ -404,3 +409,28 @@ def test_practice_definition_query_fails_closed_for_stale_digest(
             )
         )
     assert captured.value.code is LessonErrorCode.NOT_FOUND
+
+
+def test_project_brief_query_returns_exact_validated_bytes_without_storage_details(
+    tmp_path: Path,
+) -> None:
+    service, _repository, _storage = build_service(tmp_path)
+    accepted = service.admit_lesson_package(AdmitLessonPackageRequest(PROJECT))
+
+    brief = service.get_published_project_brief(
+        GetPublishedProjectBriefRequest(
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+            brief_id="risk-return-project",
+        )
+    )
+
+    expected = (PROJECT / "projects/project-1.json").read_bytes()
+    assert brief.value == expected
+    assert brief.file_digest == hashlib.sha256(expected).hexdigest()
+    assert brief.brief_digest == (
+        "1f234681a4b9262dd49e01c82c8c6a12f6a64d13845bea6140708a7d16f061ff"
+    )
+    assert not hasattr(brief, "path")
+    assert not hasattr(brief, "object_key")

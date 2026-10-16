@@ -432,6 +432,7 @@ def build_local_app(
             learner_model=services.learner_model,
             adaptation=services.adaptation,
             audit=services.audit,
+            project=services.project,
         )
     )
 

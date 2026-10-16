@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import hashlib
+import json
 from collections.abc import Callable
 from datetime import date, datetime, timezone
 
@@ -28,6 +30,7 @@ from ..public import (
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
     CreatePracticePlacementRequest,
+    CreateProjectBriefPlacementRequest,
     CurriculumGraph,
     CurriculumGraphError,
     CurriculumGraphErrorCode,
@@ -47,6 +50,7 @@ from ..public import (
     OpportunityKind,
     OpportunityLevel,
     PracticePlacement,
+    ProjectBriefPlacement,
     PracticeReviewDestination,
     PracticeReviewError,
     PracticeReviewErrorCode,
@@ -61,6 +65,7 @@ from ..public import (
     RegisterPracticeReviewTargetRequest,
     ResolvePlacedAssessmentRequest,
     ResolvePlacedPracticeRequest,
+    ResolveProjectBriefPlacementRequest,
     ResolvePracticeReviewTargetsRequest,
     validate_curriculum_graph,
 )
@@ -311,6 +316,140 @@ class CurriculumService:
                 reference=request.placement_id,
             )
         return placement
+
+    def create_project_brief_placement(
+        self, request: CreateProjectBriefPlacementRequest
+    ) -> ProjectBriefPlacement:
+        values = (
+            request.placement_id,
+            request.curriculum_id,
+            request.package_id,
+            request.brief_id,
+        )
+        versions = (
+            request.placement_version,
+            request.curriculum_version,
+            request.package_version,
+            request.brief_version,
+            request.project_brief_schema_version,
+        )
+        digests = (
+            request.curriculum_digest,
+            request.package_digest,
+            request.brief_digest,
+        )
+        if (
+            any(not _PLACEMENT_ID.fullmatch(value) for value in values)
+            or any(not _SEMVER.fullmatch(value) for value in versions)
+            or any(not _DIGEST.fullmatch(value) for value in digests)
+            or request.project_brief_schema_version != "1.0.0"
+        ):
+            raise LessonReadError(
+                LessonErrorCode.INVALID_PACKAGE,
+                "Project brief placement is invalid.",
+                reference=request.placement_id,
+            )
+        brief = self._content.get_project_brief_exact(
+            request.package_id,
+            request.package_version,
+            request.package_digest,
+            request.brief_id,
+        )
+        if (
+            brief.brief_version,
+            brief.brief_digest,
+            brief.schema_version,
+        ) != (
+            request.brief_version,
+            request.brief_digest,
+            request.project_brief_schema_version,
+        ):
+            raise LessonReadError(
+                LessonErrorCode.INVALID_PACKAGE,
+                "Project brief placement does not match the exact brief.",
+                reference=request.placement_id,
+            )
+        placement_digest = self._project_brief_placement_digest(request)
+        candidate = ProjectBriefPlacement(
+            placement_id=request.placement_id,
+            placement_version=request.placement_version,
+            placement_digest=placement_digest,
+            curriculum_id=request.curriculum_id,
+            curriculum_version=request.curriculum_version,
+            curriculum_digest=request.curriculum_digest,
+            package_id=request.package_id,
+            package_version=request.package_version,
+            package_digest=request.package_digest,
+            brief_id=request.brief_id,
+            brief_version=request.brief_version,
+            brief_digest=request.brief_digest,
+            project_brief_schema_version=request.project_brief_schema_version,
+            created_at=self._clock(),
+        )
+        try:
+            stored, _created = self._repository.save_project_brief_if_absent(
+                candidate
+            )
+        except PlacementConflict as error:
+            raise LessonReadError(
+                LessonErrorCode.IMMUTABLE_CONFLICT,
+                "The placement already maps to another Project brief.",
+                reference=request.placement_id,
+            ) from error
+        except LessonReadError:
+            raise
+        except Exception as error:
+            raise LessonReadError(
+                LessonErrorCode.UNAVAILABLE,
+                "Project brief placement storage is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        return stored
+
+    def resolve_project_brief_placement(
+        self, request: ResolveProjectBriefPlacementRequest
+    ) -> ProjectBriefPlacement:
+        try:
+            placement = self._repository.get_project_brief(request.placement_id)
+        except Exception as error:
+            raise LessonReadError(
+                LessonErrorCode.UNAVAILABLE,
+                "Project brief placement storage is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        if placement is None:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "Project brief placement was not found.",
+                reference=request.placement_id,
+            )
+        return placement
+
+    @staticmethod
+    def _project_brief_placement_digest(
+        request: CreateProjectBriefPlacementRequest,
+    ) -> str:
+        value = {
+            "placement_id": request.placement_id,
+            "placement_version": request.placement_version,
+            "curriculum_id": request.curriculum_id,
+            "curriculum_version": request.curriculum_version,
+            "curriculum_digest": request.curriculum_digest,
+            "package_id": request.package_id,
+            "package_version": request.package_version,
+            "package_digest": request.package_digest,
+            "brief_id": request.brief_id,
+            "brief_version": request.brief_version,
+            "brief_digest": request.brief_digest,
+            "project_brief_schema_version": request.project_brief_schema_version,
+        }
+        canonical = json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+        return hashlib.sha256(canonical).hexdigest()
 
     def register_practice_review_target(
         self, request: RegisterPracticeReviewTargetRequest

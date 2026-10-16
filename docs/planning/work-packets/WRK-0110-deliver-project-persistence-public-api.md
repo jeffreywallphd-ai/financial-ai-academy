@@ -10,12 +10,12 @@ capability: CAP-0007
 depends_on: [WRK-0109]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client", "apps/web/tests/contract/client-usage.ts", "backend/migrations/curriculum", "backend/migrations/project", "backend/migrations/README.md", "backend/src/financial_ai_academy/bootstrap", "backend/src/financial_ai_academy/hosts", "backend/src/financial_ai_academy/modules/content", "backend/src/financial_ai_academy/modules/curriculum", "backend/src/financial_ai_academy/modules/identity", "backend/src/financial_ai_academy/modules/project", "backend/tests/architecture", "backend/tests/contract/lesson_package", "backend/tests/integration/api", "backend/tests/integration/curriculum", "backend/tests/integration/project", "backend/tests/unit/content", "backend/tests/unit/curriculum", "backend/tests/unit/project", "contracts/api", "contracts/compatibility/lesson-package/v1", "contracts/learning/lesson-package/v1", "deployments/local", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0110-deliver-project-persistence-public-api.md"]
+write_scope: ["apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client", "apps/web/tests/contract/client-usage.ts", "backend/migrations/curriculum", "backend/migrations/project", "backend/migrations/README.md", "backend/src/financial_ai_academy/bootstrap", "backend/src/financial_ai_academy/hosts", "backend/src/financial_ai_academy/modules/content", "backend/src/financial_ai_academy/modules/curriculum", "backend/src/financial_ai_academy/modules/identity", "backend/src/financial_ai_academy/modules/project", "backend/tests/architecture", "backend/tests/contract/lesson_package", "backend/tests/integration/api", "backend/tests/integration/assessment", "backend/tests/integration/curriculum", "backend/tests/integration/project", "backend/tests/unit/content", "backend/tests/unit/curriculum", "backend/tests/unit/identity", "backend/tests/unit/project", "backend/tests/unit/test_bootstrap_settings.py", "contracts/api", "contracts/compatibility/lesson-package/v1", "contracts/learning/lesson-package/v1", "deployments/local", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0110-deliver-project-persistence-public-api.md", "tests/architecture"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
-base_revision: 8996f2b8b4e83cef98df5ae1f7faadececc409f8
-claim_id: WRK-0110:ff17f873-984c-4a2f-a53d-dd80db350663
+base_revision: 908f15d5f7fe99181c3bdbd49c80077369b805ba
+claim_id: WRK-0110:3404de80-d341-4b3a-ac21-75ed6c49c02d
 claimed_by: codex-cap-0007
-claimed_at: 2026-10-16T19:48:39Z
+claimed_at: 2026-10-16T20:06:34Z
 ---
 
 # Agent Work Packet: Deliver Project Persistence and Public API
@@ -231,3 +231,11 @@ autonomous authority was added, then leave the UI packet dependency-ready.
   and public API seam, keeping the browser interface, workspace resources,
   snapshots, submissions, domain links, and execution separate. No lower-level
   approval is required.
+- 2026-10-16: Incrementally included directly affected legacy migration,
+  Identity-permission, schema-inventory, settings, and OpenAPI-isolation tests
+  discovered by the complete backend suite. This is compatibility maintenance
+  for the same approved boundary, not a new feature or authority surface.
+- 2026-10-16: Incrementally included the top-level architecture harness after
+  the architecture gate showed its minimal composition fixture must supply the
+  newly required Project service. This is direct compatibility maintenance for
+  the same composition boundary and does not expand product scope.

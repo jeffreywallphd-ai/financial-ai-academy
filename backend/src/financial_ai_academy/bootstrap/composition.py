@@ -89,6 +89,21 @@ from financial_ai_academy.modules.learner_model.adapters.system import (
 from financial_ai_academy.modules.learner_model.application.service import (
     LearnerModelService,
 )
+from financial_ai_academy.modules.project.adapters.learning_origin import (
+    PublicContentProjectBriefGateway,
+    PublicCurriculumProjectPlacementGateway,
+)
+from financial_ai_academy.modules.project.adapters.postgres_repository import (
+    PostgresProjectRepository,
+)
+from financial_ai_academy.modules.project.adapters.project_contract import (
+    ContractProjectAdapter,
+)
+from financial_ai_academy.modules.project.adapters.system import (
+    UtcClock as ProjectUtcClock,
+    UuidGenerator as ProjectUuidGenerator,
+)
+from financial_ai_academy.modules.project.application.service import ProjectService
 from financial_ai_academy.platform.database.migrations import (
     PostgresMigrationRunner,
 )
@@ -111,6 +126,7 @@ class ApplicationServices:
     adaptation: AdaptationService
     audit: AuditService
     identity: IdentityService
+    project: ProjectService
     request_policy: SingleProfileRequestPolicy
 
 
@@ -139,10 +155,17 @@ def build_application_services(
         PostgresMigrationRunner(
             settings.postgres_dsn, settings.migrations_dir / "identity"
         ).apply_all()
+        PostgresMigrationRunner(
+            settings.postgres_dsn, settings.migrations_dir / "project"
+        ).apply_all()
+    project_contract = ContractProjectAdapter(settings.project_schema_dir)
     content = ContentService(
         PostgresContentRepository(settings.postgres_dsn),
         FilesystemObjectStorage(settings.object_storage_root),
-        ContractLessonPackageValidator(settings.lesson_schema_dir),
+        ContractLessonPackageValidator(
+            settings.lesson_schema_dir,
+            project_schema_dir=settings.project_schema_dir,
+        ),
     )
     curriculum = CurriculumService(
         PostgresCurriculumRepository(settings.postgres_dsn),
@@ -181,6 +204,14 @@ def build_application_services(
         PostgresIdentityRepository(settings.postgres_dsn),
         configured_mode=settings.security.identity_mode,
     )
+    project = ProjectService(
+        PostgresProjectRepository(settings.postgres_dsn, project_contract),
+        project_contract,
+        PublicContentProjectBriefGateway(content, project_contract),
+        PublicCurriculumProjectPlacementGateway(curriculum),
+        ProjectUtcClock(),
+        ProjectUuidGenerator(),
+    )
     return ApplicationServices(
         content=content,
         curriculum=curriculum,
@@ -189,5 +220,6 @@ def build_application_services(
         adaptation=adaptation,
         audit=audit,
         identity=identity,
+        project=project,
         request_policy=request_policy,
     )

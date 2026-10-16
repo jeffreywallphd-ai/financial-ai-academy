@@ -8,6 +8,15 @@ Hosts are thin executable entry points:
 
 Hosts establish configuration, lifecycle, authentication/request/job context, and composition. They invoke public application operations and do not contain feature policy.
 
+The API host exposes Project shell creation, list, and exact read at
+`POST /api/v1/projects`, `GET /api/v1/projects`, and
+`GET /api/v1/projects/{project_id}`. It derives learner identity from the
+opaque session, requires `project.create` or `project.read`, and delegates to
+the Project public operations. The POST accepts no Project ID, learner,
+lifecycle, revision, time, permission, storage, Assessment, Portfolio, provider,
+or execution authority. These routes are the shared browser and headless HTTP
+boundary; the host contains no alternate AI policy.
+
 The API host exposes the queryless discovery catalog at
 `GET /api/v1/curriculum/opportunities` and the additive bounded query at
 `GET /api/v1/curriculum/opportunities/query`. It resolves the opaque session on

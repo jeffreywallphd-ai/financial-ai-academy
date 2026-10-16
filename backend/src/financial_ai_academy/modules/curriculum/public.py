@@ -123,6 +123,45 @@ class ResolvePlacedPracticeRequest:
     placement_id: str
 
 
+@dataclass(frozen=True, slots=True)
+class ProjectBriefPlacement:
+    placement_id: str
+    placement_version: str
+    placement_digest: str
+    curriculum_id: str
+    curriculum_version: str
+    curriculum_digest: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    brief_id: str
+    brief_version: str
+    brief_digest: str
+    project_brief_schema_version: str
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class CreateProjectBriefPlacementRequest:
+    placement_id: str
+    placement_version: str
+    curriculum_id: str
+    curriculum_version: str
+    curriculum_digest: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    brief_id: str
+    brief_version: str
+    brief_digest: str
+    project_brief_schema_version: str
+
+
+@dataclass(frozen=True, slots=True)
+class ResolveProjectBriefPlacementRequest:
+    placement_id: str
+
+
 class PracticeReviewState(StrEnum):
     AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
@@ -438,6 +477,14 @@ class CurriculumOperations(Protocol):
     def resolve_placed_practice(
         self, request: ResolvePlacedPracticeRequest
     ) -> PracticePlacement: ...
+
+    def create_project_brief_placement(
+        self, request: CreateProjectBriefPlacementRequest
+    ) -> ProjectBriefPlacement: ...
+
+    def resolve_project_brief_placement(
+        self, request: ResolveProjectBriefPlacementRequest
+    ) -> ProjectBriefPlacement: ...
 
     def register_practice_review_target(
         self, request: RegisterPracticeReviewTargetRequest

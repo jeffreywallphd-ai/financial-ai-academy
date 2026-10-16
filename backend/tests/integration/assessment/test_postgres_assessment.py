@@ -126,6 +126,7 @@ def migrated_database() -> object:
         "curriculum_0003_curriculum_graphs",
         "curriculum_0004_practice_placements",
         "curriculum_0005_practice_review_targets",
+        "curriculum_0006_project_brief_placements",
         "assessment_0001_knowledge_check_evidence",
         "assessment_0002_practice_evidence",
         "assessment_0003_practice_progress",
@@ -143,6 +144,11 @@ def migrated_database() -> object:
         "assessment_0001_knowledge_check_evidence",
         MIGRATIONS
         / "assessment/assessment_0001_knowledge_check_evidence.down.sql",
+    )
+    _remove_stream(
+        "curriculum_0006_project_brief_placements",
+        MIGRATIONS
+        / "curriculum/curriculum_0006_project_brief_placements.down.sql",
     )
     _remove_stream(
         "curriculum_0005_practice_review_targets",

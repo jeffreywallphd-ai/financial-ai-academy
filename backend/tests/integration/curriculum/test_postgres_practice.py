@@ -108,6 +108,7 @@ def migrated_database() -> object:
     assert "curriculum_0005_practice_review_targets" in identifiers
     yield
     for migration_id in (
+        "curriculum_0006_project_brief_placements",
         "curriculum_0005_practice_review_targets",
         "curriculum_0004_practice_placements",
         "curriculum_0003_curriculum_graphs",

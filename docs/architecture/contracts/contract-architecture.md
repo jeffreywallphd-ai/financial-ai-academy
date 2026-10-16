@@ -86,6 +86,11 @@ and simulated values and cannot expose provider payloads as platform meaning.
   origin, Project identity, charter, lifecycle, and revision. Curriculum owns
   exact placement and Assessment owns only a later exact submitted snapshot;
   shared provenance transfers no persistence or policy authority.
+- The implemented Project shell seam resolves learning references through
+  public Content and Curriculum operations, persists only Project-owned state,
+  and exposes one protected API to browser and headless clients. Independent
+  creation bypasses those learning lookups; neither path creates Assessment,
+  Learner-model, Portfolio, provider, execution, or AI authority.
 
 ## Generation
 

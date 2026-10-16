@@ -245,6 +245,27 @@ class PublishedPracticeDefinition:
     value: bytes
 
 
+@dataclass(frozen=True, slots=True)
+class GetPublishedProjectBriefRequest:
+    package_id: str
+    package_version: str
+    package_digest: str
+    brief_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class PublishedProjectBrief:
+    package_id: str
+    package_version: str
+    package_digest: str
+    brief_id: str
+    brief_version: str
+    brief_digest: str
+    schema_version: str
+    file_digest: str
+    value: bytes
+
+
 @runtime_checkable
 class ContentOperations(Protocol):
     def admit_lesson_package(
@@ -262,3 +283,7 @@ class ContentOperations(Protocol):
     def get_published_practice_definition(
         self, request: GetPublishedPracticeDefinitionRequest
     ) -> PublishedPracticeDefinition: ...
+
+    def get_published_project_brief(
+        self, request: GetPublishedProjectBriefRequest
+    ) -> PublishedProjectBrief: ...

@@ -12,6 +12,7 @@ from ..public import (
     LessonOpportunityClassification,
     LessonPlacement,
     PracticePlacement,
+    ProjectBriefPlacement,
     PracticeReviewTarget,
 )
 
@@ -52,6 +53,14 @@ class CurriculumRepositoryPort(Protocol):
     def save_practice_if_absent(
         self, placement: PracticePlacement
     ) -> tuple[PracticePlacement, bool]: ...
+
+    def get_project_brief(
+        self, placement_id: str
+    ) -> ProjectBriefPlacement | None: ...
+
+    def save_project_brief_if_absent(
+        self, placement: ProjectBriefPlacement
+    ) -> tuple[ProjectBriefPlacement, bool]: ...
 
     def get_practice_review_target(
         self,

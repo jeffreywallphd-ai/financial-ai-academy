@@ -12,7 +12,9 @@ token digest, provider subject, or client-selected identity headers.
 
 The current single-profile context issues separate
 `adaptation.navigation.read`, `curriculum.discovery.read`,
-`curriculum.graph.read`, and `curriculum.lesson.read` permissions. Hosts
+`curriculum.graph.read`, `curriculum.lesson.read`, `project.create`, and
+`project.read` permissions. Project operations derive the learner from this
+server context and accept no client-selected learner or permission. Hosts
 enforce the permission for each protected operation. Both discovery operations
 use `curriculum.discovery.read`; the exact-version graph GET uses
 `curriculum.graph.read`; and the exact-version navigation-state GET uses

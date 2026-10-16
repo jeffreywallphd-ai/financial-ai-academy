@@ -42,6 +42,7 @@ def test_cross_module_imports_use_only_public_surfaces() -> None:
         "curriculum",
         "identity",
         "learner_model",
+        "project",
     }
     prefix = "financial_ai_academy.modules."
     for owner in module_names:
@@ -80,6 +81,7 @@ def test_domain_layers_are_framework_and_adapter_free() -> None:
         "curriculum",
         "identity",
         "learner_model",
+        "project",
     ):
         for path in (MODULES / module_name / "domain").rglob("*.py"):
             for imported in imported_modules(path):
@@ -129,6 +131,17 @@ def test_repositories_query_only_their_own_module_schema() -> None:
     assert "curriculum." not in audit_repository
     assert "identity." not in audit_repository
     assert "learner_model." not in audit_repository
+    project_repository = (
+        MODULES / "project/adapters/postgres_repository.py"
+    ).read_text(encoding="utf-8")
+    for foreign_schema in (
+        "assessment.",
+        "content.",
+        "curriculum.",
+        "identity.",
+        "learner_model.",
+    ):
+        assert foreign_schema not in project_repository
 
 
 def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
@@ -184,6 +197,27 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
     assert "references identity." not in audit_records
     assert "references learner_model." not in audit_records
 
+    project_placement = (
+        REPOSITORY
+        / "backend/migrations/curriculum"
+        / "curriculum_0006_project_brief_placements.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    assert "references content." not in project_placement
+    assert "references project." not in project_placement
+
+    project_shells = (
+        REPOSITORY
+        / "backend/migrations/project/project_0001_project_shells.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    for foreign_schema in (
+        "references assessment.",
+        "references content.",
+        "references curriculum.",
+        "references identity.",
+        "references learner_model.",
+    ):
+        assert foreign_schema not in project_shells
+
 
 def test_modules_have_public_application_and_port_seams() -> None:
     for module_name in (
@@ -194,6 +228,7 @@ def test_modules_have_public_application_and_port_seams() -> None:
         "curriculum",
         "identity",
         "learner_model",
+        "project",
     ):
         root = MODULES / module_name
         assert (root / "public.py").is_file()

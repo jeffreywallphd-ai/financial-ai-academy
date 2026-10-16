@@ -21,6 +21,7 @@ REPOSITORY = Path(__file__).resolve().parents[4]
 CORPUS = REPOSITORY / "contracts/compatibility/lesson-package/v1"
 APPROVED = CORPUS / "approved/intro-risk-return"
 PRACTICE = CORPUS / "approved/intro-risk-return-practice"
+PROJECT = CORPUS / "approved/intro-risk-return-project"
 SCHEMAS = REPOSITORY / "contracts/learning/lesson-package/v1"
 DENIALS = json.loads(
     (CORPUS / "cases/denials.json").read_text(encoding="utf-8")
@@ -36,6 +37,42 @@ def test_production_validator_accepts_additive_practice_package() -> None:
     )
     assert validated.lesson.package_version == "2.0.0"
     assert definition["practice"]["practice_id"] == "risk-return-practice"
+
+
+def test_production_validator_accepts_additive_project_brief_package() -> None:
+    validated = ContractLessonPackageValidator(SCHEMAS).validate_directory(
+        PROJECT
+    )
+    definition = json.loads(
+        validated.files["projects/project-1.json"].decode("utf-8")
+    )
+    assert validated.lesson.package_id == "intro-risk-return-project"
+    assert definition["brief"]["brief_id"] == "risk-return-project"
+
+
+def test_project_brief_changed_meaning_fails_before_publication(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "project-package"
+    shutil.copytree(PROJECT, root)
+    path = root / "projects/project-1.json"
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["brief"]["title"] = "Changed without refreshing meaning digest"
+    path.write_text(
+        json.dumps(document, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+    value = path.read_bytes()
+    manifest["projects"][0]["size_bytes"] = len(value)
+    manifest["projects"][0]["sha256"] = hashlib.sha256(value).hexdigest()
+    write_manifest(root, manifest)
+
+    with pytest.raises(PackageValidationFailure) as captured:
+        ContractLessonPackageValidator(SCHEMAS).validate_directory(root)
+
+    assert captured.value.code == "project.brief.identity_mismatch"
 
 
 def test_production_validator_rejects_duplicate_practice_identity(

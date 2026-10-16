@@ -17,11 +17,13 @@ from ..public import (
     GetPublishedLessonVersionRequest,
     GetPublishedAssessmentDefinitionRequest,
     GetPublishedPracticeDefinitionRequest,
+    GetPublishedProjectBriefRequest,
     LessonErrorCode,
     LessonReadError,
     PublishedLesson,
     PublishedAssessmentDefinition,
     PublishedPracticeDefinition,
+    PublishedProjectBrief,
 )
 
 
@@ -186,6 +188,49 @@ class ContentService:
             package_version=stored.lesson.package_version,
             package_digest=stored.lesson.package_digest,
             practice_id=str(declaration["practice_id"]),
+            schema_version=str(declaration["schema_version"]),
+            file_digest=str(declaration["sha256"]),
+            value=value,
+        )
+
+    def get_published_project_brief(
+        self, request: GetPublishedProjectBriefRequest
+    ) -> PublishedProjectBrief:
+        stored = self._get_existing(request.package_id, request.package_version)
+        if stored is None or stored.lesson.package_digest != request.package_digest:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "The exact published Project brief was not found.",
+                reference=f"{request.package_id}@{request.package_version}",
+            )
+        validated = self._validate_stored(stored)
+        try:
+            manifest = json.loads(validated.files["manifest.json"].decode("utf-8"))
+            declaration = next(
+                item
+                for item in manifest.get("projects", [])
+                if item["brief_id"] == request.brief_id
+            )
+            value = validated.files[declaration["path"]]
+        except (
+            KeyError,
+            StopIteration,
+            TypeError,
+            UnicodeDecodeError,
+            json.JSONDecodeError,
+        ) as error:
+            raise LessonReadError(
+                LessonErrorCode.NOT_FOUND,
+                "The exact published Project brief was not found.",
+                reference=request.brief_id,
+            ) from error
+        return PublishedProjectBrief(
+            package_id=stored.lesson.package_id,
+            package_version=stored.lesson.package_version,
+            package_digest=stored.lesson.package_digest,
+            brief_id=str(declaration["brief_id"]),
+            brief_version=str(declaration["brief_version"]),
+            brief_digest=str(declaration["brief_digest"]),
             schema_version=str(declaration["schema_version"]),
             file_digest=str(declaration["sha256"]),
             value=value,

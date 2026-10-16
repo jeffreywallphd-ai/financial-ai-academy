@@ -8,6 +8,9 @@ The corpus fixes the cross-language behavior of the version 1 logical package.
 - `approved/intro-risk-return-practice/` is the additive practice-bearing
   positive package. Its exact private practice definition is validated at
   admission and projected by Assessment, never returned directly to learners.
+- `approved/intro-risk-return-project/` is the additive Project-brief package.
+  It fixes exact brief identity/digest validation while leaving learner
+  Project creation and ownership to the Project module.
 - `cases/denials.json` defines stable hostile mutations and expected bounded
   diagnostic codes.
 - `vectors/package-index.json` records the exact canonical UTF-8 index bytes,

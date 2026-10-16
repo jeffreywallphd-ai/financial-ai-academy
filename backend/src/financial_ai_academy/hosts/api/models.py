@@ -37,6 +37,12 @@ from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
     PracticeHistoryView,
 )
+from financial_ai_academy.modules.project.public import (
+    IndependentProjectOrigin,
+    LearningProjectOrigin,
+    ProjectCreateIntent,
+    ProjectShell,
+)
 
 
 class ApiModel(BaseModel):
@@ -58,6 +64,60 @@ class SessionBootstrapResponseModel(ApiModel):
     status: Literal["ready"] = "ready"
     authentication_method: Literal["single_profile"] = "single_profile"
     expires_at: datetime
+
+
+class IndependentProjectOriginModel(ApiModel):
+    origin_type: Literal["independent"] = "independent"
+
+
+class LearningProjectOriginModel(ApiModel):
+    origin_type: Literal["learning"] = "learning"
+    project_brief_schema_version: Literal["1.0.0"]
+    package_id: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9._-]*$")
+    package_version: str = Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    brief_id: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9._-]*$")
+    brief_version: str = Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+    brief_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    curriculum_id: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9._-]*$")
+    curriculum_version: str = Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+    curriculum_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    placement_id: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9._-]*$")
+    placement_version: str = Field(pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+    placement_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    brief_title: str = Field(min_length=1, max_length=120)
+    brief_purpose: str = Field(min_length=1, max_length=2000)
+
+
+ProjectOriginModel = Annotated[
+    Union[IndependentProjectOriginModel, LearningProjectOriginModel],
+    Field(discriminator="origin_type"),
+]
+
+
+class ProjectCreateRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: str = Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9._-]*$")
+    title: str = Field(min_length=1, max_length=120)
+    charter: str = Field(min_length=1, max_length=4000)
+    origin: ProjectOriginModel
+
+
+class ProjectShellResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    project_id: str
+    learner_id: str
+    title: str
+    charter: str
+    origin: ProjectOriginModel
+    lifecycle: Literal["active"]
+    revision: int = Field(ge=1)
+    created_at: datetime
+    updated_at: datetime
+
+
+class ProjectListResponseModel(ApiModel):
+    records: list[ProjectShellResponseModel]
 
 
 class InlineTextModel(ApiModel):
@@ -1674,6 +1734,35 @@ def _inline_node(node: content_public.InlineNode) -> InlineNodeModel:
             asset_id=node.asset_id, alt_text=node.alt_text
         )
     raise TypeError("Unsupported public inline node.")
+
+
+def project_create_intent(
+    request: ProjectCreateRequestModel,
+) -> ProjectCreateIntent:
+    origin = request.origin
+    if isinstance(origin, IndependentProjectOriginModel):
+        domain_origin = IndependentProjectOrigin()
+    else:
+        domain_origin = LearningProjectOrigin(**origin.model_dump())
+    return ProjectCreateIntent(
+        schema_version=request.schema_version,
+        idempotency_key=request.idempotency_key,
+        title=request.title,
+        charter=request.charter,
+        origin=domain_origin,
+    )
+
+
+def project_shell_response(shell: ProjectShell) -> ProjectShellResponseModel:
+    return ProjectShellResponseModel.model_validate(asdict(shell))
+
+
+def project_list_response(
+    shells: tuple[ProjectShell, ...],
+) -> ProjectListResponseModel:
+    return ProjectListResponseModel(
+        records=[project_shell_response(shell) for shell in shells]
+    )
 
 
 def _body_node(node: content_public.BodyNode) -> BodyNodeModel:

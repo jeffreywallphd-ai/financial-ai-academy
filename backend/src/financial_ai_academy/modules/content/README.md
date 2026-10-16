@@ -9,6 +9,7 @@ provenance, safe typed lesson bodies, and private object-storage references.
 - `ContentService.get_published_lesson_version(GetPublishedLessonVersionRequest) -> PublishedLesson`
 - `ContentService.get_published_assessment_definition(GetPublishedAssessmentDefinitionRequest) -> PublishedAssessmentDefinition`
 - `ContentService.get_published_practice_definition(GetPublishedPracticeDefinitionRequest) -> PublishedPracticeDefinition`
+- `ContentService.get_published_project_brief(GetPublishedProjectBriefRequest) -> PublishedProjectBrief`
 
 The read operation resolves one exact package ID, semantic version, and optional
 digest. It never substitutes `latest`. Public results contain closed body-node
@@ -27,6 +28,12 @@ practice file through the same public module seam. Admission validates its
 closed schema, canonical meaning digest, reference membership, fixed-decimal
 rules, and package declaration before publication. Learner transports never
 receive these private bytes directly.
+
+The Project-brief query follows the same exact-version rule. Admission checks
+the closed Project brief schema, canonical meaning digest, unique milestone and
+source identities, and package declaration. The public result contains safe
+identity/digest metadata and validated bytes, never a logical path or object
+key. Project consumes it through an owned gateway before learner state exists.
 
 ## Persistence and storage
 

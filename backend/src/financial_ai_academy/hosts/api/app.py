@@ -87,6 +87,14 @@ from financial_ai_academy.modules.learner_model.public import (
     OpenPracticeHistoryRequest,
     PracticeHistoryView,
 )
+from financial_ai_academy.modules.project.public import (
+    CreateProjectRequest,
+    ListProjectsRequest,
+    OpenProjectRequest,
+    ProjectError,
+    ProjectErrorCode,
+    ProjectOperations,
+)
 from financial_ai_academy.platform.security.single_profile_policy import (
     RequestPolicyViolation,
     SingleProfileRequestPolicy,
@@ -112,6 +120,9 @@ from .models import (
     PracticeProgressResponseModel,
     PracticeSubmissionRequestModel,
     PracticeSubmissionResultResponseModel,
+    ProjectCreateRequestModel,
+    ProjectListResponseModel,
+    ProjectShellResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     activity_launch_response,
@@ -127,6 +138,9 @@ from .models import (
     practice_draft_response,
     practice_progress_response,
     practice_submission_result_response,
+    project_create_intent,
+    project_list_response,
+    project_shell_response,
 )
 
 
@@ -139,6 +153,7 @@ class ApiServices:
     learner_model: LearnerModelOperations | None = None
     adaptation: AdaptationOperations | None = None
     audit: AuditOperations | None = None
+    project: ProjectOperations | None = None
 
 
 _ERROR_RESPONSES = {
@@ -264,6 +279,23 @@ def create_app(services: ApiServices) -> FastAPI:
             DiscoveryErrorCode.UNAVAILABLE: (
                 status.HTTP_503_SERVICE_UNAVAILABLE
             ),
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.message,
+            request.state.correlation_id,
+        )
+
+    @app.exception_handler(ProjectError)
+    async def project_error_handler(
+        request: Request, error: ProjectError
+    ) -> JSONResponse:
+        http_status = {
+            ProjectErrorCode.INVALID_REQUEST: status.HTTP_400_BAD_REQUEST,
+            ProjectErrorCode.IMMUTABLE_CONFLICT: status.HTTP_409_CONFLICT,
+            ProjectErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
+            ProjectErrorCode.UNAVAILABLE: status.HTTP_503_SERVICE_UNAVAILABLE,
         }[error.code]
         return _error_response(
             http_status,
@@ -543,6 +575,34 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         return context
 
+    def project_create_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "project.create" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot create Projects.",
+            )
+        return context
+
+    def project_read_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "project.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read Projects.",
+            )
+        return context
+
+    def project_operations() -> ProjectOperations:
+        if services.project is None:
+            raise ProjectError(
+                ProjectErrorCode.UNAVAILABLE,
+                "Project operations are unavailable.",
+            )
+        return services.project
+
     @app.get(
         "/health",
         response_model=HealthResponseModel,
@@ -601,6 +661,63 @@ def create_app(services: ApiServices) -> FastAPI:
         return SessionBootstrapResponseModel(
             expires_at=issued.context.expires_at
         )
+
+    @app.post(
+        "/api/v1/projects",
+        response_model=ProjectShellResponseModel,
+        operation_id="createProject",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def create_project(
+        request_model: ProjectCreateRequestModel,
+        context: LearnerContext = Depends(project_create_context),
+    ) -> ProjectShellResponseModel:
+        shell = project_operations().create_project(
+            CreateProjectRequest(
+                learner_id=context.learner_id,
+                intent=project_create_intent(request_model),
+            )
+        )
+        return project_shell_response(shell)
+
+    @app.get(
+        "/api/v1/projects",
+        response_model=ProjectListResponseModel,
+        operation_id="listProjects",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def list_projects(
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectListResponseModel:
+        shells = project_operations().list_projects(
+            ListProjectsRequest(learner_id=context.learner_id)
+        )
+        return project_list_response(shells)
+
+    @app.get(
+        "/api/v1/projects/{project_id}",
+        response_model=ProjectShellResponseModel,
+        operation_id="getProject",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def get_project(
+        project_id: str = Path(
+            min_length=1,
+            max_length=128,
+            pattern=r"^[a-z0-9][a-z0-9._-]*$",
+        ),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectShellResponseModel:
+        shell = project_operations().open_project(
+            OpenProjectRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+            )
+        )
+        return project_shell_response(shell)
 
     @app.get(
         "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",

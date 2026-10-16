@@ -10,6 +10,9 @@ read-only lesson-package boundary introduced by SLI-0001.
   package without assigning scoring meaning to Content.
 - `practice-file.schema.json` additively declares one exact private practice-v1
   JSON file without assigning answer, scoring, or evidence meaning to Content.
+- `project-brief-file.schema.json` additively declares one exact approved
+  Project brief and binds its schema, identity, meaning digest, file digest,
+  and portable package path without creating learner Project state.
 - `image-asset.schema.json` permits only declared passive PNG, JPEG, and WebP
   assets with accessibility text.
 - `package-index.schema.json` fixes the language-neutral logical-index shape.
@@ -22,3 +25,7 @@ compatibility corpus and Python conformance runner.
 The optional manifest `practices` collection and
 `assessment.practice.v1` capability preserve the accepted shape and bytes of
 packages that do not declare a practice.
+
+The optional manifest `projects` collection and `project.brief.v1` capability
+likewise preserve existing packages. Content validates the closed brief before
+publication and exposes exact bytes only through its public module facade.

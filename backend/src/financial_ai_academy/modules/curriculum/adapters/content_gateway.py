@@ -5,7 +5,9 @@ from __future__ import annotations
 from financial_ai_academy.modules.content.public import (
     ContentOperations,
     GetPublishedLessonVersionRequest,
+    GetPublishedProjectBriefRequest,
     PublishedLesson,
+    PublishedProjectBrief,
 )
 
 
@@ -24,5 +26,21 @@ class PublicContentGateway:
                 package_id=package_id,
                 package_version=package_version,
                 package_digest=package_digest,
+            )
+        )
+
+    def get_project_brief_exact(
+        self,
+        package_id: str,
+        package_version: str,
+        package_digest: str,
+        brief_id: str,
+    ) -> PublishedProjectBrief:
+        return self._content.get_published_project_brief(
+            GetPublishedProjectBriefRequest(
+                package_id=package_id,
+                package_version=package_version,
+                package_digest=package_digest,
+                brief_id=brief_id,
             )
         )

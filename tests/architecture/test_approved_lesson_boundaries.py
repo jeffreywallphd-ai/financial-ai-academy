@@ -59,6 +59,7 @@ def local_services() -> SimpleNamespace:
         curriculum=curriculum,
         identity=object(),
         learner_model=object(),
+        project=object(),
         request_policy=object(),
     )
 

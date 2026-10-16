@@ -4,6 +4,16 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`POST /api/v1/projects`, `GET /api/v1/projects`, and
+`GET /api/v1/projects/{project_id}` are the protected Project shell boundary.
+The POST accepts only the reviewed create intent and derives learner, Project
+identity, active lifecycle, revision, and UTC times on the server. Exact
+learner/idempotency replay returns the original shell; changed reuse conflicts.
+List and read are learner-scoped and guessed cross-learner IDs are ordinary
+not-found results. All three operations use the same transport-neutral Project
+service for generated browser clients and authenticated headless HTTP clients;
+there is no separate AI authority path.
+
 `GET /api/v1/curriculum/placements/{placement_id}/practice` is the protected
 answer-safe practice opening. It requires the opaque session and server-issued
 lesson-read permission and accepts only the placement path identifier: no body,

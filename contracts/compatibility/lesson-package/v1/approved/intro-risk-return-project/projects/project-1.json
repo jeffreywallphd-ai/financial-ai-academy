@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "brief_digest": "1f234681a4b9262dd49e01c82c8c6a12f6a64d13845bea6140708a7d16f061ff",
+  "brief": {
+    "brief_id": "risk-return-project",
+    "brief_version": "1.0.0",
+    "title": "Compare investment choices",
+    "purpose": "Practice a structured, educational comparison without making a recommendation.",
+    "milestones": [
+      {
+        "milestone_id": "define-comparison",
+        "description": "Describe the purpose and limits of the comparison."
+      },
+      {
+        "milestone_id": "compare-evidence",
+        "description": "Compare risk, return, costs, liquidity, and source quality."
+      }
+    ],
+    "source_references": [
+      {
+        "resource_id": "sec-investor-introduction",
+        "resource_version": "1.0.0",
+        "resource_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "title": "Introduction to Investing"
+      }
+    ]
+  }
+}

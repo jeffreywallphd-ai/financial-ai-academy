@@ -127,6 +127,7 @@ def test_all_json_schemas_are_valid_draft_2020_12() -> None:
         "manifest.schema.json",
         "package-index.schema.json",
         "practice-file.schema.json",
+        "project-brief-file.schema.json",
         "source.schema.json",
     }
     for path in schemas:

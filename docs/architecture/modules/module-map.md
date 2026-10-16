@@ -15,7 +15,7 @@
 | Adaptation | accepted; deterministic navigation-state core implemented | Eligibility, ranking orchestration, deterministic policy, recommendations | Deterministic navigation-state projections; durable recommendation decisions and outcomes remain future work |
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
-| Project | accepted; shell/origin contract core implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project lifecycle and snapshot records remain future work |
+| Project | accepted; shell/origin persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell records implemented; lifecycle changes and snapshots remain future work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; Assessment completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -68,10 +68,11 @@ and typed source facts. Gateway composition, durable recommendation records,
 model influence, and experiments remain separately governed work.
 
 ADR-0012 accepts Project ownership for both learning-started and independent
-Projects. The implemented deterministic baseline parses and projects the
-closed origin union plus a learner-safe active shell. It has no persistence,
-public application operation, API, artifact, snapshot, Assessment submission,
-Portfolio link, execution, provider, or AI-authoritative behavior.
+Projects. The implemented seam parses, validates, persists, lists, and reads
+the closed origin union plus a learner-safe active shell through one protected
+API and generated client. It has no browser Project UI, mutable resource,
+artifact, snapshot, Assessment submission, Portfolio link, execution, provider,
+or AI-authoritative behavior.
 
 ## Implemented Adaptation Deterministic Baseline
 
