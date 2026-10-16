@@ -1,9 +1,9 @@
 ---
 id: WRK-0063
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0005
+owner: unassigned
 updated: 2026-10-16
 parent: SLI-0023
 capability: CAP-0005
@@ -243,3 +243,6 @@ consume one exact generated operation, or return a bounded blocker.
 - 2026-10-16: Activated after the current CAP package binding, completed
   WRK-0062 dependency, implementation gate, exact generated artifacts, and
   bounded write scope were revalidated.
+- 2026-10-16: Released to ready before implementation because an expired grouped
+  file lease required a bounded correction to the reusable file-coordination
+  control. No WRK-0063 implementation file was changed and its scope is stable.
