@@ -5,12 +5,14 @@ import json
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator, FormatChecker
 
 from .runner import (
     ProjectConformanceFailure,
     ProjectContractValidator,
     brief_digest,
     canonical_digest,
+    load_json,
 )
 
 
@@ -116,6 +118,21 @@ def test_snapshot_and_export_digests_are_canonical() -> None:
     assert canonical_digest(exported["export"]) == exported["export_digest"]
 
 
+@pytest.mark.parametrize("record", ["snapshot_record", "workspace_record"])
+def test_export_schema_closes_embedded_records(record: str) -> None:
+    schema = load_json(REPOSITORY / "contracts/learning/project/v1/evidence-export.schema.json")
+    Draft202012Validator.check_schema(schema)
+    document = copy.deepcopy(load("evidence-export.json"))
+    document["export"][record] = {}  # type: ignore[index]
+    errors = list(
+        Draft202012Validator(
+            schema,
+            format_checker=FormatChecker(),
+        ).iter_errors(document)
+    )
+    assert errors
+
+
 def test_export_requires_exact_snapshot_artifact_coverage() -> None:
     exported = copy.deepcopy(load("evidence-export.json"))
     exported["export"]["excluded_artifacts"] = []  # type: ignore[index]
@@ -134,9 +151,28 @@ def test_export_binds_workspace_records_to_snapshot_references() -> None:
     assert captured.value.code == "project.contract.export_record_mismatch"
 
 
+def test_export_binds_workspace_record_order() -> None:
+    exported = copy.deepcopy(load("evidence-export.json"))
+    artifacts = exported["export"]["workspace_record"]["artifacts"]  # type: ignore[index]
+    artifacts.reverse()
+    exported["export_digest"] = canonical_digest(exported["export"])  # type: ignore[arg-type]
+    with pytest.raises(ProjectConformanceFailure) as captured:
+        ProjectContractValidator().validate_evidence_export(exported)
+    assert captured.value.code == "project.contract.export_record_mismatch"
+
+
 def test_workspace_records_are_unique() -> None:
     document = copy.deepcopy(load("workspace.json"))
     document["notes"].append(copy.deepcopy(document["notes"][0]))  # type: ignore[index,union-attr]
+    with pytest.raises(ProjectConformanceFailure) as captured:
+        ProjectContractValidator().validate_workspace(document)
+    assert captured.value.code == "project.contract.duplicate_workspace_record"
+
+
+def test_workspace_cross_platform_paths_are_unique() -> None:
+    document = copy.deepcopy(load("workspace.json"))
+    document["artifacts"][0]["logical_path"] = "Data/Foo.csv"  # type: ignore[index]
+    document["artifacts"][1]["logical_path"] = "data/foo.csv"  # type: ignore[index]
     with pytest.raises(ProjectConformanceFailure) as captured:
         ProjectContractValidator().validate_workspace(document)
     assert captured.value.code == "project.contract.duplicate_workspace_record"

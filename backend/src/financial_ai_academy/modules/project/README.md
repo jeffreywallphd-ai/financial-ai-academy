@@ -41,12 +41,14 @@ The additive workspace contract seam now defines framework-free immutable
 values and parser/projector behavior for bounded notes, HTTPS references,
 inert-artifact manifests, typed domain-resource references, snapshot closure,
 and evidence-export manifests. It fixes conservative counts and a 10 MiB
-per-artifact declaration limit, NFC-normalized cross-platform logical paths,
+per-artifact declaration limit, NFC-normalized logical paths with case-folded
+cross-platform collision checks,
 credential-free HTTPS references, closed media and classification vocabularies,
 canonical direct-UTF-8 digests, exact live
 revision preconditions, and server-owned accepted identity/version/time.
 Evidence exports bind the complete validated snapshot and workspace records and
-account for every snapshot artifact as included or explicitly excluded.
+their ordered correspondence, use closed embedded schemas, and account for
+every snapshot artifact as included or explicitly excluded.
 
 This contract seam does not yet persist workspace metadata or bytes, expose a
 workspace API, validate a production domain owner, or render workspace UI.

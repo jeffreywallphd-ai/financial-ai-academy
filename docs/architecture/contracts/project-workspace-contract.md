@@ -104,7 +104,7 @@ authority.
 
 Artifact manifests admit only dataset, notebook, code, environment, result,
 reflection, and supporting-file evidence. They use NFC-normalized relative
-logical paths with one cross-platform representation, closed media and passive-
+logical paths with one case-folded cross-platform comparison key, closed media and passive-
 inspection values, a maximum declared
 size of 10 MiB, lowercase SHA-256 content integrity, source/license/use
 provenance, assumptions, and optional external-environment evidence. Result
@@ -124,7 +124,8 @@ version/digest references. Its digest is SHA-256 over compact sorted-key JSON
 with direct UTF-8. A later live revision or removed live association cannot
 rewrite that material. The evidence-export manifest embeds and validates the
 exact snapshot and workspace records, binds each referenced record by digest,
-accounts for every snapshot artifact as included or excluded, and repeats exact
+preserves their ordered correspondence, accounts for every snapshot artifact as
+included or excluded, and repeats exact
 file and artifact-manifest integrity for included bytes. It is neither an
 archive-import nor an execution format.
 

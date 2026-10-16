@@ -374,6 +374,15 @@ def test_workspace_accepts_normalized_unicode_logical_path() -> None:
     assert parsed.artifacts[0].logical_path == "données/échantillon.csv"
 
 
+def test_workspace_rejects_casefolded_cross_platform_path_collision() -> None:
+    document = load("workspace.json")
+    document["artifacts"][0]["logical_path"] = "Data/Foo.csv"  # type: ignore[index]
+    document["artifacts"][1]["logical_path"] = "data/foo.csv"  # type: ignore[index]
+    with pytest.raises(ProjectContractFailure) as captured:
+        adapter().parse_workspace(encoded(document))
+    assert captured.value.code == "project.contract.duplicate_workspace_record"
+
+
 @pytest.mark.parametrize("target", ["reference", "provenance"])
 def test_workspace_rejects_credential_bearing_urls(target: str) -> None:
     document = load("workspace.json")
@@ -398,6 +407,16 @@ def test_export_requires_exact_snapshot_artifact_coverage() -> None:
 def test_export_binds_workspace_record_meaning_to_snapshot() -> None:
     document = load("evidence-export.json")
     document["export"]["workspace_record"]["artifacts"][0]["provenance"]["source_title"] = "Changed source"  # type: ignore[index]
+    refresh_export_digest(document)
+    with pytest.raises(ProjectContractFailure) as captured:
+        adapter().parse_evidence_export(encoded(document))
+    assert captured.value.code == "project.contract.export_record_mismatch"
+
+
+def test_export_binds_workspace_record_order_to_snapshot() -> None:
+    document = load("evidence-export.json")
+    artifacts = document["export"]["workspace_record"]["artifacts"]  # type: ignore[index]
+    artifacts.reverse()
     refresh_export_digest(document)
     with pytest.raises(ProjectContractFailure) as captured:
         adapter().parse_evidence_export(encoded(document))

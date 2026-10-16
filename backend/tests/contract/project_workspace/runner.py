@@ -359,24 +359,25 @@ class ProjectContractValidator:
             ref_version,
             digest_key,
         ) in bindings:
-            records = {
-                (item[record_id], item[record_version] if record_version else None): item
-                for item in workspace[key]
-            }
+            records = workspace[key]
             references = snapshot[key]
             if len(records) != len(references):
                 self._reject(
                     "project.contract.export_record_mismatch",
                     f"export.{key}",
                 )
-            for reference in references:
-                identity = (
+            for reference, record in zip(references, records, strict=True):
+                reference_identity = (
                     reference[ref_id],
                     reference[ref_version] if ref_version else None,
                 )
-                record = records.get(identity)
-                if record is None or reference[digest_key] != canonical_digest(
-                    record
+                record_identity = (
+                    record[record_id],
+                    record[record_version] if record_version else None,
+                )
+                if (
+                    reference_identity != record_identity
+                    or reference[digest_key] != canonical_digest(record)
                 ):
                     self._reject(
                         "project.contract.export_record_mismatch",
@@ -420,6 +421,14 @@ class ProjectContractValidator:
             )
         self._unique(
             [item["logical_path"] for item in document["artifacts"]],
+            "artifacts.logical_path",
+            "project.contract.duplicate_workspace_record",
+        )
+        self._unique(
+            [
+                self._logical_path_key(item["logical_path"])
+                for item in document["artifacts"]
+            ],
             "artifacts.logical_path",
             "project.contract.duplicate_workspace_record",
         )
@@ -486,6 +495,10 @@ class ProjectContractValidator:
                 "project.contract.noncanonical_logical_path",
                 "logical_path",
             )
+
+    @staticmethod
+    def _logical_path_key(value: str) -> str:
+        return unicodedata.normalize("NFC", value).casefold()
 
     def _validate_url(self, value: str, reference: str) -> None:
         parsed = urlsplit(value)
