@@ -6,6 +6,7 @@ import type {
   LearningCatalog,
   LearningOpportunity,
 } from "../../../src/features/learning-catalog/model";
+import type { NavigationState } from "../../../src/features/curriculum-graph/model";
 
 const PLACEMENT_ID = "intro-risk-return-primary";
 const GUIDED_PRACTICE_ID = "intro-risk-return-guided-practice";
@@ -15,6 +16,14 @@ const QUERY_API = "/api/v1/curriculum/opportunities/query";
 const LESSON_PATH = `/learn/placements/${PLACEMENT_ID}`;
 const LESSON_API =
   `/api/v1/curriculum/placements/${PLACEMENT_ID}/lesson`;
+const CURRICULUM_ID = "investing-foundations";
+const CURRICULUM_VERSION = "1.0.0";
+const GRAPH_PATH =
+  `/learn/curricula/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}`;
+const NAVIGATION_API =
+  `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}/navigation-state`;
+const LESSON_ACTIVITY_ID = "activity-risk-return-lesson";
+const ASSESSMENT_ACTIVITY_ID = "activity-risk-return-check";
 const DIGEST =
   "7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc";
 const DEFINITION_DIGEST =
@@ -169,6 +178,29 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   const catalogAccessibility = await new AxeBuilder({ page }).analyze();
   expect(catalogAccessibility.violations).toEqual([]);
 
+  const beforeNavigationResponse = await context.request.get(NAVIGATION_API);
+  expect(beforeNavigationResponse.status()).toBe(200);
+  const beforeNavigation =
+    (await beforeNavigationResponse.json()) as NavigationState;
+  const beforeLessonState = beforeNavigation.activity_states.find(
+    (state) => state.activity_id === LESSON_ACTIVITY_ID,
+  );
+  expect(
+    new Set(beforeNavigation.activity_states.map((state) => state.activity_id))
+      .size,
+  ).toBe(beforeNavigation.activity_states.length);
+  expect(beforeLessonState).toMatchObject({
+    activity_id: LESSON_ACTIVITY_ID,
+    availability: "available",
+    completion: "incomplete",
+    eligibility: "eligible",
+    requirement: "required",
+  });
+  expect(beforeLessonState?.reasons.map((reason) => reason.code)).toEqual([
+    "required_activity",
+    "entry_activity",
+  ]);
+
   const lessonAction = catalogCard.getByRole("link", {
     name: "Open exact lesson",
   });
@@ -298,6 +330,80 @@ test("browses the live catalog and opens the approved exact lesson", async ({
       .locator("code"),
   ).toHaveText(retainedSourceDigest ?? "");
   await expect(page.getByRole("radio")).toHaveCount(0);
+
+  const afterNavigationResponse = await context.request.get(NAVIGATION_API);
+  expect(afterNavigationResponse.status()).toBe(200);
+  const afterNavigation =
+    (await afterNavigationResponse.json()) as NavigationState;
+  expect(afterNavigation).toMatchObject({
+    curriculum_id: beforeNavigation.curriculum_id,
+    curriculum_version: beforeNavigation.curriculum_version,
+    graph_digest: beforeNavigation.graph_digest,
+    policy_id: beforeNavigation.policy_id,
+    policy_version: beforeNavigation.policy_version,
+    schema_version: beforeNavigation.schema_version,
+  });
+  expect(afterNavigation.source_set_digest).not.toBe(
+    beforeNavigation.source_set_digest,
+  );
+  expect(afterNavigation.projection_digest).not.toBe(
+    beforeNavigation.projection_digest,
+  );
+  const afterLessonState = afterNavigation.activity_states.find(
+    (state) => state.activity_id === LESSON_ACTIVITY_ID,
+  );
+  expect(afterLessonState).toMatchObject({
+    activity_id: LESSON_ACTIVITY_ID,
+    availability: "available",
+    completion: "completed",
+    eligibility: "eligible",
+    requirement: "required",
+  });
+  expect(afterLessonState?.reasons.map((reason) => reason.code)).toEqual([
+    "activity_completed",
+    "required_activity",
+    "entry_activity",
+  ]);
+  expect(afterLessonState?.reasons[0]?.references).toContain(
+    LESSON_ACTIVITY_ID,
+  );
+  const assessmentState = afterNavigation.activity_states.find(
+    (state) => state.activity_id === ASSESSMENT_ACTIVITY_ID,
+  );
+  expect(assessmentState).toMatchObject({
+    activity_id: ASSESSMENT_ACTIVITY_ID,
+    availability: "available",
+    completion: "unavailable",
+    eligibility: "unavailable",
+    requirement: "required",
+  });
+  expect(assessmentState?.reasons.map((reason) => reason.code)).toContain(
+    "completion_source_unavailable",
+  );
+
+  await page.goto(GRAPH_PATH);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Investing Foundations" }),
+  ).toBeVisible();
+  const lessonStateCard = page.getByRole("article").filter({
+    has: page.getByText(LESSON_ACTIVITY_ID, { exact: true }),
+  });
+  await expect(lessonStateCard).toHaveCount(1);
+  await expect(
+    lessonStateCard.getByText("Completed", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    lessonStateCard.getByText(
+      "Accepted completion evidence exists for this exact activity.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  const listStateFacts = await lessonStateCard.innerText();
+  await page.getByRole("button", { name: "Map view" }).click();
+  expect(await lessonStateCard.innerText()).toBe(listStateFacts);
+  await expect(
+    page.getByRole("link", { name: /open|start|launch/i }),
+  ).toHaveCount(0);
 
   const cookies = await context.cookies();
   const session = cookies.find(

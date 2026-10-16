@@ -3,8 +3,8 @@
 The intended complete local profile includes the static web application,
 Python API and worker, PostgreSQL, filesystem object storage, and DuckDB/Parquet
 analytics. Only the bounded approved-lesson, curriculum-graph, discovery-query,
-deterministic assessment, and retained-completion `single_profile` path is
-qualified today.
+deterministic-navigation-state, deterministic assessment, and
+retained-completion `single_profile` path is qualified today.
 This is a development/CI qualification topology, not a production
 publication, backup, restore, availability, or remote-hosting claim.
 
@@ -99,13 +99,18 @@ The runner chooses unused loopback ports, creates a uniquely named
 `postgres:18.4` container with an ephemeral data mount, creates an isolated
 filesystem root below ignored `artifacts/tmp/`, waits for readiness, starts the
 Python host, opts into three deterministic discovery classifications, and runs
-the live browser checks for the exact curriculum graph API, list/map fact
-parity, provenance, flexible shared and unbranched activity grouping, missing
-version denial, responsive and adaptive display behavior, combined filters,
+the live browser checks for the exact curriculum graph and protected
+navigation-state APIs, complete graph-ordered activity closure, same-context
+before/after lesson completion, API/list/map state and reason parity, bounded
+assessment-source unavailability, provenance, unbranched activity grouping,
+selector and missing-version denial, responsive and adaptive display behavior,
+combined filters,
 three-page ordering, cursor-query mismatch denial, exact current-opportunity
 detail, ordered two-record comparison, changed and malformed selection, exact
 lesson continuation, retained completion, context denial, security headers,
-and axe accessibility.
+and axe accessibility. The companion isolated browser fixture, rather than the
+live approved graph, qualifies same-kind shared branches and variable reference
+counts without changing production fixture meaning.
 It removes only those exact resources in `finally` cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.
@@ -141,9 +146,11 @@ graph and opt-in three-classification query corpus, real PostgreSQL migrations
 and repositories, restrictive local filesystem storage, loopback request
 policy, opaque HttpOnly session cookie, public-operation graph publication,
 discovery registration and one atomic projection rebuild, reviewed
-OpenAPI/generated client, static same-origin Python serving, exact graph
-API/list/map/provenance/denial paths, filter/pagination/cursor-denial, exact
-detail, ordered comparison, changed/malformed selection, and
+OpenAPI/generated client, static same-origin Python serving, exact graph and
+navigation-state API/list/map/provenance/denial paths, same-context retained
+completion transition, complete ordered activity closure, bounded assessment
+unavailability, filter/pagination/cursor-denial, exact detail, ordered
+comparison, changed/malformed selection, and
 catalog-to-exact-lesson Chromium paths, architecture and security scans, axe
 accessibility, and safe teardown.
 

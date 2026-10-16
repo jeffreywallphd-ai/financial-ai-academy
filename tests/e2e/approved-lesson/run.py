@@ -285,6 +285,13 @@ def main() -> int:
                 "Curriculum operations and qualified through exact API, "
                 "list, map, provenance, denial, and missing-version paths"
             ),
+            "navigation_state": (
+                "deterministic-prerequisite-baseline@1.0.0 qualified "
+                "through the protected exact-version API, same-context "
+                "lesson-completion transition, complete graph-ordered "
+                "activity closure, list/map parity, bounded assessment "
+                "unavailability, selector denial, and provenance digests"
+            ),
             "http_origin": origin,
             "production_application_process": Path(sys.executable).name,
             "query_corpus": (
