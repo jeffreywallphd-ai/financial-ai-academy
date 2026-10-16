@@ -207,7 +207,7 @@ their work begins. The dependency-ordered seams are:
 | WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | complete |
 | WRK-0087 | Add learner actions, validated return context, and equivalent list/map current-position presentation | WRK-0086 | none | complete |
 | WRK-0088 | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | WRK-0087 | none | complete |
-| WRK-0089 | Select the prepared backend Python for portable exact-candidate live verification | WRK-0088 | none | active |
+| WRK-0089 | Select the prepared backend Python for portable exact-candidate live verification | WRK-0088 | none | complete |
 
 ## Verification and Qualification
 
@@ -345,3 +345,9 @@ and durable-state authority did not change.
 - 2026-10-16: Activated WRK-0089 after confirming completed WRK-0088,
   current CAP authority, the bounded control-plane-only scope, executable
   focused/live checks, and absence of a decision or edit collision.
+- 2026-10-16: Completed WRK-0089 at corrected exact candidate
+  `b5cb3034cd64d35237f9fc1565df9b27c69cf036`. Prepared Python selection now
+  preserves POSIX virtual-environment symlinks and Windows paths, 28 focused
+  tests and eight no-`PYTHONPATH` live scenarios passed, aggregate readiness
+  passed 29 checks, and independent R02 accepted the candidate after closing
+  R01-F001. No product or public API boundary changed.

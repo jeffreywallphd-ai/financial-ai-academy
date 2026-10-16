@@ -1,7 +1,7 @@
 ---
 id: WRK-0089
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -200,3 +200,11 @@ changed, then leave SLI-0024 ready for deterministic closure.
   `pyvenv.cfg` discovery. The bounded correction now makes the selected path
   absolute without dereferencing its final symlink and adds POSIX regression
   coverage for resolution, child export, and live-runner invocation.
+- 2026-10-16: Completed at corrected exact candidate
+  `b5cb3034cd64d35237f9fc1565df9b27c69cf036`. Fresh affected verification
+  selected and passed control-plane unit and verification, planning,
+  documentation, and isolated live qualification. Independent R02 closed
+  R01-F001 and accepted the candidate with no new findings. Focused tests,
+  eight live scenarios without `PYTHONPATH`, and all 29 aggregate readiness
+  checks passed; the public API remains unchanged and available to UI and
+  non-UI clients.
