@@ -99,7 +99,7 @@ outcomes, not ignored authority data or personal identifiers.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0027 | Add proportionate fixed and affected-scope qualification, reconcile documentation/gaps, and close CAP-0008 | WRK-0026 | none | complete |
-| WRK-0084 | Qualify the integrated executable-order projection, active-descendant promotion, and roadmap-card rendering as one exact candidate | WRK-0080, WRK-0081, WRK-0083 | none | verifying |
+| WRK-0084 | Qualify the integrated executable-order projection, active-descendant promotion, and roadmap-card rendering as one exact candidate | WRK-0080, WRK-0081, WRK-0083 | none | complete |
 
 ## Verification and Qualification
 
@@ -178,3 +178,8 @@ drift occurred.
 - 2026-10-16: Bounded qualification correction made the current in-progress
   state explicit on the order card and added fail-closed projection and client
   checks for contradictory parallel-group evidence.
+- 2026-10-16: Completed WRK-0084 after the corrected exact candidate passed
+  the eight selected affected checks, including isolated Chromium, with stable
+  candidate binding and no open technical findings. The projected current
+  order is CAP-0030 in progress, followed by CAP-0005 and CAP-0006 proposed;
+  CAP-0007 remains outside the executable lanes while dependency-blocked.

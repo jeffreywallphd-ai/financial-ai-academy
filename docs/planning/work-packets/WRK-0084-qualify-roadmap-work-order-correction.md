@@ -1,7 +1,7 @@
 ---
 id: WRK-0084
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-roadmap-order-qualification
 updated: 2026-10-16
@@ -173,3 +173,9 @@ the operator-owned-server condition without overstating evidence.
 - 2026-10-16: Bounded correction now presents allocation state separately from
   lifecycle state and rejects any parallel group containing an explicitly
   unknown or incompatible pair in both projection and client validation.
+- 2026-10-16: Completed against exact candidate
+  `9fb2fd76703a83bc189f6bc7ec091e2eaa8752a9`. The fresh qualifying receipt
+  selected and passed all eight affected checks: control-plane unit, planning
+  tools and integrity, documentation integrity, roadmap qualification,
+  TypeScript typecheck, unit tests, and isolated Chromium. Candidate stability
+  passed and the bounded findings had no remaining open technical issue.
