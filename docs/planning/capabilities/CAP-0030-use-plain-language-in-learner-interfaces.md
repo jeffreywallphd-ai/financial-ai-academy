@@ -1,7 +1,7 @@
 ---
 id: CAP-0030
 kind: capability
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -208,6 +208,8 @@ complete.
   architecture review of current learner interfaces. The package separates
   discovery, curriculum, and lesson/completion outcomes, then qualifies the
   reusable guidance and deliberately non-rigid checks.
+- 2026-10-16: Entered capability verification after every approved manifest
+  slice and packet completed with retained focused and cumulative evidence.
 - 2026-10-16: Completed all four approved slices with cumulative learner-route,
   accessibility, browser, failure, provenance, theme, responsive, checker,
   anti-rigidity, and aggregate-readiness evidence. The capability moved to
