@@ -69,7 +69,61 @@ class LessonCompletionView:
     history: tuple[LessonCompletionHistoryEntry, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class OpenPracticeHistoryRequest:
+    learner_id: str
+    placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeHistoryItemSummary:
+    item_id: str
+    item_version: str
+    item_type: str
+    scoring_policy_id: str
+    scoring_policy_version: str
+    score: int
+    max_score: int
+    correct: bool
+    review_reference_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeHistoryAttempt:
+    attempt_order: int
+    event_id: str
+    attempt_id: str
+    evidence_id: str
+    submission_id: str
+    score: int
+    max_score: int
+    outcome: str
+    item_summaries: tuple[PracticeHistoryItemSummary, ...]
+    completed_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeHistoryView:
+    schema_version: str
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    definition_digest: str
+    practice_id: str
+    practice_version: str
+    attempt_policy_id: str
+    attempt_policy_version: str
+    source_digest: str
+    rebuilt_at: datetime
+    attempts: tuple[PracticeHistoryAttempt, ...]
+
+
 class LearnerModelOperations(Protocol):
     def open_lesson_completion(
         self, request: OpenLessonCompletionRequest
     ) -> LessonCompletionView: ...
+
+    def open_practice_history(
+        self, request: OpenPracticeHistoryRequest
+    ) -> PracticeHistoryView: ...

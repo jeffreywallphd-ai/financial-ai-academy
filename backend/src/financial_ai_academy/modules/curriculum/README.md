@@ -11,8 +11,10 @@ package ID, semantic version, and digest.
 - `CurriculumService.resolve_placed_assessment(ResolvePlacedAssessmentRequest) -> AssessmentPlacement`
 - `CurriculumService.create_practice_placement(CreatePracticePlacementRequest) -> PracticePlacement`
 - `CurriculumService.resolve_placed_practice(ResolvePlacedPracticeRequest) -> PracticePlacement`
+- `CurriculumService.register_practice_review_target(RegisterPracticeReviewTargetRequest) -> PracticeReviewTarget`
+- `CurriculumService.resolve_practice_review_targets(...) -> tuple[PracticeReviewTarget, ...]`
 - `CurriculumService.register_lesson_opportunity(RegisterLessonOpportunityRequest) -> LessonOpportunityClassification`
-- `CurriculumService.rebuild_learning_opportunity_projection(RebuildLearningOpportunityProjectionRequest) -> LearningOpportunityBrowse`
+- `CurriculumService.rebuild_learning_opportunity_projection(...) -> LearningOpportunityBrowse`
 - `CurriculumService.browse_learning_opportunities(BrowseLearningOpportunitiesRequest) -> LearningOpportunityBrowse`
 - `CurriculumService.query_learning_opportunities(QueryLearningOpportunitiesRequest) -> LearningOpportunityQueryPage`
 - `CurriculumService.publish_curriculum_graph(PublishCurriculumGraphRequest) -> CurriculumGraph`
@@ -36,6 +38,14 @@ The additive `curriculum_0004_practice_placements` stream stores a separate
 immutable package/practice/version/digest reference for an existing lesson
 placement. It does not reuse the singular knowledge-check item/policy fields,
 interpret private answers, or read Content/Assessment persistence.
+
+`curriculum_0005_practice_review_targets` stores append-only mappings from an
+exact practice placement and full review-resource identity/version/digest to
+an available exact lesson destination or an explicit unavailable reason.
+Registration is idempotent and conflicting reuse fails. Resolution preserves
+declaration order, removes only exact duplicates, and represents a missing
+mapping as `mapping_not_found`; it never falls forward, ranks resources, reads
+Assessment evidence, or stores Content bytes.
 
 ## Discovery projection core
 

@@ -335,6 +335,12 @@ def test_retry_state_and_typed_replay_survive_restart_without_answers() -> None:
             placement_id="risk-return-practice-placement",
         )
     )
+    source = restarted.read_practice_history_source(
+        ReadCompletedPracticesRequest(
+            learner_id=LEARNER_ID,
+            placement_id="risk-return-practice-placement",
+        )
+    )
 
     assert (retry.attempts_used, retry.attempts_remaining, retry.can_retry) == (
         2,
@@ -342,8 +348,18 @@ def test_retry_state_and_typed_replay_survive_restart_without_answers() -> None:
         True,
     )
     assert [item.attempt_order for item in replay] == [1, 2]
+    assert [item.attempt_order for item in source.attempts] == [1, 2]
+    assert source.attempts[0].item_summaries[1].correct is False
+    assert source.attempts[0].item_summaries[1].review_reference_ids == (
+        "risk-return-review",
+    )
     serialized = json.dumps(
-        [item.event.item_scores[0].item_id for item in replay]
+        {
+            "events": [item.event.item_scores[0].item_id for item in replay],
+            "history": [
+                item.item_summaries[0].item_id for item in source.attempts
+            ],
+        }
     )
     assert "selected_option" not in serialized
     assert "entered_value" not in serialized

@@ -29,6 +29,7 @@ persistence, publication, network, API, or UI action.
 - `save_placed_practice_draft(SavePlacedPracticeDraftRequest) -> PracticeDraft`
 - `read_placed_practice_retry_state(ReadPlacedPracticeProgressRequest) -> PracticeRetryState`
 - `read_completed_practices(ReadCompletedPracticesRequest) -> tuple[OrderedPracticeCompletionEvent, ...]`
+- `read_practice_history_source(ReadCompletedPracticesRequest) -> PracticeHistorySource`
 - `submit_placed_knowledge_check(SubmitPlacedKnowledgeCheckRequest) -> KnowledgeCheckResult`
 - `read_completed_knowledge_checks(ReadCompletedKnowledgeChecksRequest) -> tuple[KnowledgeCheckCompletionEvent, ...]`
 
@@ -110,4 +111,12 @@ Practice completion replay follows the same rule through a separate typed
 operation. It filters by learner and exact practice scope, validates each
 retained v1 envelope, returns stable attempt order, and exposes score/provenance
 facts without submitted values, feedback, answer keys, or raw database rows.
+
+The history-source operation additionally correlates each validated envelope
+with its retained result and exact immutable definition, deterministically
+re-scores the private responses inside Assessment, and exposes only item
+identity/policy, score, correctness, and incorrect-item review-reference IDs.
+It supplies the facts the Learner model contract requires without adding them
+to the immutable event, copying result documents across modules, or leaking
+responses, feedback text, answer material, evaluator rules, or storage rows.
 

@@ -564,6 +564,7 @@ class PostgresAssessmentRepository:
                     e.evidence_id,
                     a.submission_id,
                     a.attempt_order,
+                    e.result,
                     o.event_payload
                 FROM assessment.practice_outbox AS o
                 JOIN assessment.practice_completion_evidence AS e
@@ -591,6 +592,7 @@ class PostgresAssessmentRepository:
                 evidence_id=str(row["evidence_id"]),
                 submission_id=str(row["submission_id"]),
                 attempt_order=int(row["attempt_order"]),
+                result=self._practice_result_from_dict(row["result"]),
                 document=row["event_payload"],
             )
             for row in rows

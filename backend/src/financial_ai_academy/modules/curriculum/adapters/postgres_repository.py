@@ -14,6 +14,7 @@ from ..ports.repositories import (
     CurriculumGraphConflict,
     OpportunityConflict,
     PlacementConflict,
+    PracticeReviewConflict,
 )
 from ..public import (
     AssessmentPlacement,
@@ -26,6 +27,10 @@ from ..public import (
     OpportunityKind,
     OpportunityLevel,
     PracticePlacement,
+    PracticeReviewDestination,
+    PracticeReviewState,
+    PracticeReviewTarget,
+    PracticeReviewUnavailableReason,
     curriculum_graph_from_mapping,
     curriculum_graph_payload,
 )
@@ -298,6 +303,110 @@ class PostgresCurriculumRepository:
         ):
             raise PlacementConflict(
                 "Placement identity already maps to another practice."
+            )
+        return existing, False
+
+    def get_practice_review_target(
+        self,
+        practice_placement_id: str,
+        resource_id: str,
+        resource_version: str,
+        resource_digest: str,
+    ) -> PracticeReviewTarget | None:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT *
+                FROM curriculum.practice_review_targets
+                WHERE practice_placement_id = %s
+                  AND resource_id = %s
+                  AND resource_version = %s
+                  AND resource_digest = %s
+                """,
+                (
+                    practice_placement_id,
+                    resource_id,
+                    resource_version,
+                    resource_digest,
+                ),
+            ).fetchone()
+        return self._practice_review_target_from_row(row) if row else None
+
+    def save_practice_review_target_if_absent(
+        self, target: PracticeReviewTarget
+    ) -> tuple[PracticeReviewTarget, bool]:
+        destination = target.destination
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                INSERT INTO curriculum.practice_review_targets (
+                    practice_placement_id,
+                    resource_id,
+                    resource_version,
+                    resource_digest,
+                    resource_title,
+                    state,
+                    destination_placement_id,
+                    destination_package_id,
+                    destination_package_version,
+                    destination_package_digest,
+                    destination_section_id,
+                    unavailable_reason
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s, %s
+                )
+                ON CONFLICT (
+                    practice_placement_id,
+                    resource_id,
+                    resource_version,
+                    resource_digest
+                ) DO NOTHING
+                RETURNING *
+                """,
+                (
+                    target.practice_placement_id,
+                    target.resource_id,
+                    target.resource_version,
+                    target.resource_digest,
+                    target.resource_title,
+                    target.state.value,
+                    destination.placement_id if destination else None,
+                    destination.package_id if destination else None,
+                    destination.package_version if destination else None,
+                    destination.package_digest if destination else None,
+                    destination.section_id if destination else None,
+                    (
+                        target.unavailable_reason.value
+                        if target.unavailable_reason
+                        else None
+                    ),
+                ),
+            ).fetchone()
+            if row is not None:
+                return self._practice_review_target_from_row(row), True
+            row = connection.execute(
+                """
+                SELECT *
+                FROM curriculum.practice_review_targets
+                WHERE practice_placement_id = %s
+                  AND resource_id = %s
+                  AND resource_version = %s
+                  AND resource_digest = %s
+                """,
+                (
+                    target.practice_placement_id,
+                    target.resource_id,
+                    target.resource_version,
+                    target.resource_digest,
+                ),
+            ).fetchone()
+        if row is None:
+            raise RuntimeError("Review target insert did not become visible.")
+        existing = self._practice_review_target_from_row(row)
+        if existing != target:
+            raise PracticeReviewConflict(
+                "Review resource identity already maps to different meaning."
             )
         return existing, False
 
@@ -695,6 +804,41 @@ class PostgresCurriculumRepository:
             practice_version=str(row["practice_version"]),
             definition_digest=str(row["definition_digest"]),
             created_at=created_at,
+        )
+
+    @staticmethod
+    def _practice_review_target_from_row(
+        row: dict[str, Any],
+    ) -> PracticeReviewTarget:
+        state = PracticeReviewState(str(row["state"]))
+        destination = None
+        if state is PracticeReviewState.AVAILABLE:
+            destination = PracticeReviewDestination(
+                placement_id=str(row["destination_placement_id"]),
+                package_id=str(row["destination_package_id"]),
+                package_version=str(row["destination_package_version"]),
+                package_digest=str(row["destination_package_digest"]),
+                section_id=(
+                    str(row["destination_section_id"])
+                    if row["destination_section_id"] is not None
+                    else None
+                ),
+            )
+        reason = (
+            PracticeReviewUnavailableReason(str(row["unavailable_reason"]))
+            if row["unavailable_reason"] is not None
+            else None
+        )
+        return PracticeReviewTarget(
+            schema_version="1.0.0",
+            practice_placement_id=str(row["practice_placement_id"]),
+            resource_id=str(row["resource_id"]),
+            resource_version=str(row["resource_version"]),
+            resource_digest=str(row["resource_digest"]),
+            resource_title=str(row["resource_title"]),
+            state=state,
+            destination=destination,
+            unavailable_reason=reason,
         )
 
     @staticmethod

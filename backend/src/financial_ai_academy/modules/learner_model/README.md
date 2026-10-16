@@ -8,6 +8,7 @@ investment performance.
 ## Public operation
 
 - `open_lesson_completion(OpenLessonCompletionRequest) -> LessonCompletionView`
+- `open_practice_history(OpenPracticeHistoryRequest) -> PracticeHistoryView`
 
 The operation obtains validated completion events through the Assessment
 public facade, derives a stable source-set digest and ordered history, and
@@ -26,3 +27,13 @@ derived set; an interrupted transaction preserves the prior complete set.
 These tables are rebuildable and intentionally contain no cross-schema foreign
 keys. The synchronous replay query does not establish a queue, worker,
 checkpoint, delivery guarantee, backup service, or managed-cloud posture.
+
+`learner_model_0002_practice_history` adds exact-scope projection roots and
+ordered attempt summaries. The application consumes only Assessment's public
+safe-history operation, validates zero through ten contiguous attempts,
+deduplicates exact event replay, rejects identity collisions or changed item
+signatures, and computes the contract's canonical source digest before one
+transaction replaces the complete projection. Incorrect-item review IDs are
+retained; responses, feedback text, answers, and raw Assessment documents are
+not. Retry history remains evidence-only and never becomes mastery,
+competency, eligibility, certification, recommendation, or advice.

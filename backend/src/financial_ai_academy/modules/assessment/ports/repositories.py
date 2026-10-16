@@ -49,6 +49,7 @@ class StoredPracticeCompletionEvent:
     submission_id: str
     attempt_order: int
     document: Mapping[str, Any]
+    result: PracticeResult | None = None
 
 
 class AssessmentRepositoryPort(Protocol):

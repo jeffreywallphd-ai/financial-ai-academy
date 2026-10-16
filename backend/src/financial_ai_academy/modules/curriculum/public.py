@@ -123,6 +123,92 @@ class ResolvePlacedPracticeRequest:
     placement_id: str
 
 
+class PracticeReviewState(StrEnum):
+    AVAILABLE = "available"
+    UNAVAILABLE = "unavailable"
+
+
+class PracticeReviewUnavailableReason(StrEnum):
+    MAPPING_NOT_FOUND = "mapping_not_found"
+    DESTINATION_NOT_AVAILABLE = "destination_not_available"
+    VERSION_MISMATCH = "version_mismatch"
+
+
+class PracticeReviewErrorCode(StrEnum):
+    INVALID_RECORD = "invalid_record"
+    IMMUTABLE_CONFLICT = "immutable_conflict"
+    UNAVAILABLE = "unavailable"
+
+
+class PracticeReviewError(RuntimeError):
+    """Bounded review-target error without storage details."""
+
+    def __init__(
+        self,
+        code: PracticeReviewErrorCode,
+        message: str,
+        *,
+        reference: str = "practice-review",
+    ) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+        self.reference = (
+            str(reference)
+            .replace(chr(0), "")
+            .replace("\r", " ")
+            .replace("\n", " ")[:120]
+        )
+
+    def as_dict(self) -> dict[str, str]:
+        return {
+            "code": self.code.value,
+            "message": self.message,
+            "reference": self.reference,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeReviewResource:
+    resource_id: str
+    resource_version: str
+    resource_digest: str
+    resource_title: str
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeReviewDestination:
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    section_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeReviewTarget:
+    schema_version: str
+    practice_placement_id: str
+    resource_id: str
+    resource_version: str
+    resource_digest: str
+    resource_title: str
+    state: PracticeReviewState
+    destination: PracticeReviewDestination | None = None
+    unavailable_reason: PracticeReviewUnavailableReason | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class RegisterPracticeReviewTargetRequest:
+    target: PracticeReviewTarget
+
+
+@dataclass(frozen=True, slots=True)
+class ResolvePracticeReviewTargetsRequest:
+    practice_placement_id: str
+    resources: tuple[PracticeReviewResource, ...]
+
+
 @dataclass(frozen=True, slots=True)
 class PublishCurriculumGraphRequest:
     graph: CurriculumGraph
@@ -352,6 +438,14 @@ class CurriculumOperations(Protocol):
     def resolve_placed_practice(
         self, request: ResolvePlacedPracticeRequest
     ) -> PracticePlacement: ...
+
+    def register_practice_review_target(
+        self, request: RegisterPracticeReviewTargetRequest
+    ) -> PracticeReviewTarget: ...
+
+    def resolve_practice_review_targets(
+        self, request: ResolvePracticeReviewTargetsRequest
+    ) -> tuple[PracticeReviewTarget, ...]: ...
 
     def publish_curriculum_graph(
         self, request: PublishCurriculumGraphRequest

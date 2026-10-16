@@ -70,5 +70,8 @@ items, deduplicates them in definition declaration order, and resolves only an
 exact registered mapping. A missing or stale mapping returns a bounded
 unavailable record. It does not substitute a different resource, hide the
 Assessment result, rank learning material, or infer mastery. The contract and
-dependency-light runner do not yet implement mapping persistence, a public
-gateway, browser navigation, or Content retrieval.
+dependency-light runner are now backed by a public application operation and
+the append-only `curriculum_0005_practice_review_targets` table. Registration
+is idempotent, conflicting exact reuse fails, and resolution preserves declared
+order while removing only exact duplicates. Protected HTTP/generated-client
+composition, browser navigation, and Content retrieval remain later seams.

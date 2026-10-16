@@ -12,6 +12,7 @@ from ..public import (
     LessonOpportunityClassification,
     LessonPlacement,
     PracticePlacement,
+    PracticeReviewTarget,
 )
 
 
@@ -24,6 +25,10 @@ class OpportunityConflict(RuntimeError):
 
 
 class CurriculumGraphConflict(RuntimeError):
+    pass
+
+
+class PracticeReviewConflict(RuntimeError):
     pass
 
 
@@ -47,6 +52,18 @@ class CurriculumRepositoryPort(Protocol):
     def save_practice_if_absent(
         self, placement: PracticePlacement
     ) -> tuple[PracticePlacement, bool]: ...
+
+    def get_practice_review_target(
+        self,
+        practice_placement_id: str,
+        resource_id: str,
+        resource_version: str,
+        resource_digest: str,
+    ) -> PracticeReviewTarget | None: ...
+
+    def save_practice_review_target_if_absent(
+        self, target: PracticeReviewTarget
+    ) -> tuple[PracticeReviewTarget, bool]: ...
 
     def get_graph_exact(
         self,

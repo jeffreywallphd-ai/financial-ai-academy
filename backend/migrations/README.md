@@ -51,11 +51,23 @@ The table has no Content or Assessment foreign key; graph admission proves the
 exact Curriculum-owned placement references before insert, and the adapter
 revalidates the whole portable graph on read.
 
+`curriculum_0005_practice_review_targets` adds append-only exact mappings from
+one Curriculum-owned practice placement and complete review-resource identity
+to an available exact lesson destination or explicit unavailable reason. The
+mapping has no Assessment or Content persistence dependency and never stores
+feedback, learner evidence, or content bytes.
+
 The Learner-model stream under `learner_model/` owns only rebuildable completion
 projection/history tables. It retains Assessment identifiers as source
 references without a cross-schema foreign key or direct Assessment-table read.
 Dropping that stream removes derived state only; rebuilding still requires the
 authoritative Assessment evidence set to remain available.
+
+`learner_model_0002_practice_history` adds rebuildable exact-scope roots and
+ordered safe item-summary rows for zero through ten practice attempts. One
+transaction replaces a complete history and its source digest; interrupted
+replacement rolls back to the prior complete projection. The tables contain no
+Assessment foreign key and are not mastery or eligibility evidence.
 
 The Audit stream under `audit/` owns append-only Assessment-event integrity and
 provenance references. It has no cross-schema foreign keys. Unlike the

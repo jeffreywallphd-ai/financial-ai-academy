@@ -17,6 +17,7 @@ from ..ports.repositories import (
     CurriculumGraphConflict,
     CurriculumRepositoryPort,
     PlacementConflict,
+    PracticeReviewConflict,
 )
 from ..domain.models import discovery_digest, projection_generation
 from ..ports.repositories import OpportunityConflict
@@ -46,12 +47,21 @@ from ..public import (
     OpportunityKind,
     OpportunityLevel,
     PracticePlacement,
+    PracticeReviewDestination,
+    PracticeReviewError,
+    PracticeReviewErrorCode,
+    PracticeReviewResource,
+    PracticeReviewState,
+    PracticeReviewTarget,
+    PracticeReviewUnavailableReason,
     QueryLearningOpportunitiesRequest,
     PublishCurriculumGraphRequest,
     RebuildLearningOpportunityProjectionRequest,
     RegisterLessonOpportunityRequest,
+    RegisterPracticeReviewTargetRequest,
     ResolvePlacedAssessmentRequest,
     ResolvePlacedPracticeRequest,
+    ResolvePracticeReviewTargetsRequest,
     validate_curriculum_graph,
 )
 from .query import (
@@ -301,6 +311,142 @@ class CurriculumService:
                 reference=request.placement_id,
             )
         return placement
+
+    def register_practice_review_target(
+        self, request: RegisterPracticeReviewTargetRequest
+    ) -> PracticeReviewTarget:
+        if not isinstance(request, RegisterPracticeReviewTargetRequest):
+            raise self._practice_review_error(
+                PracticeReviewErrorCode.INVALID_RECORD,
+                "Practice review target is invalid.",
+            )
+        target = request.target
+        self._validate_practice_review_target(target)
+        try:
+            practice = self._repository.get_practice(
+                target.practice_placement_id
+            )
+            if practice is None:
+                raise self._practice_review_error(
+                    PracticeReviewErrorCode.INVALID_RECORD,
+                    "The exact practice placement is unavailable.",
+                    reference=target.practice_placement_id,
+                )
+            if target.destination is not None:
+                lesson = self._repository.get(target.destination.placement_id)
+                if lesson is None or (
+                    lesson.package_id,
+                    lesson.package_version,
+                    lesson.package_digest,
+                ) != (
+                    target.destination.package_id,
+                    target.destination.package_version,
+                    target.destination.package_digest,
+                ):
+                    raise self._practice_review_error(
+                        PracticeReviewErrorCode.INVALID_RECORD,
+                        "The exact review destination is unavailable.",
+                        reference=target.resource_id,
+                    )
+            stored, _created = (
+                self._repository.save_practice_review_target_if_absent(target)
+            )
+            self._validate_practice_review_target(stored)
+            return stored
+        except PracticeReviewError:
+            raise
+        except PracticeReviewConflict as error:
+            raise self._practice_review_error(
+                PracticeReviewErrorCode.IMMUTABLE_CONFLICT,
+                "The review resource already maps to different meaning.",
+                reference=target.resource_id,
+            ) from error
+        except Exception as error:
+            raise self._practice_review_error(
+                PracticeReviewErrorCode.UNAVAILABLE,
+                "Practice review mapping is temporarily unavailable.",
+                reference=target.resource_id,
+            ) from error
+
+    def resolve_practice_review_targets(
+        self, request: ResolvePracticeReviewTargetsRequest
+    ) -> tuple[PracticeReviewTarget, ...]:
+        if (
+            not isinstance(request, ResolvePracticeReviewTargetsRequest)
+            or not _PLACEMENT_ID.fullmatch(request.practice_placement_id)
+            or not 1 <= len(request.resources) <= 8
+        ):
+            raise self._practice_review_error(
+                PracticeReviewErrorCode.INVALID_RECORD,
+                "Practice review request is invalid.",
+            )
+        unique: list[PracticeReviewResource] = []
+        identities: dict[str, tuple[str, str, str]] = {}
+        for resource in request.resources:
+            self._validate_practice_review_resource(resource)
+            identity = (
+                resource.resource_version,
+                resource.resource_digest,
+                resource.resource_title,
+            )
+            prior = identities.get(resource.resource_id)
+            if prior is not None:
+                if prior != identity:
+                    raise self._practice_review_error(
+                        PracticeReviewErrorCode.INVALID_RECORD,
+                        "A review resource has conflicting exact identities.",
+                        reference=resource.resource_id,
+                    )
+                continue
+            identities[resource.resource_id] = identity
+            unique.append(resource)
+        try:
+            if self._repository.get_practice(
+                request.practice_placement_id
+            ) is None:
+                raise self._practice_review_error(
+                    PracticeReviewErrorCode.INVALID_RECORD,
+                    "The exact practice placement is unavailable.",
+                    reference=request.practice_placement_id,
+                )
+            resolved: list[PracticeReviewTarget] = []
+            for resource in unique:
+                target = self._repository.get_practice_review_target(
+                    request.practice_placement_id,
+                    resource.resource_id,
+                    resource.resource_version,
+                    resource.resource_digest,
+                )
+                if target is None:
+                    target = PracticeReviewTarget(
+                        schema_version="1.0.0",
+                        practice_placement_id=request.practice_placement_id,
+                        resource_id=resource.resource_id,
+                        resource_version=resource.resource_version,
+                        resource_digest=resource.resource_digest,
+                        resource_title=resource.resource_title,
+                        state=PracticeReviewState.UNAVAILABLE,
+                        unavailable_reason=(
+                            PracticeReviewUnavailableReason.MAPPING_NOT_FOUND
+                        ),
+                    )
+                self._validate_practice_review_target(target)
+                if target.resource_title != resource.resource_title:
+                    raise self._practice_review_error(
+                        PracticeReviewErrorCode.UNAVAILABLE,
+                        "Stored review mapping is inconsistent.",
+                        reference=resource.resource_id,
+                    )
+                resolved.append(target)
+            return tuple(resolved)
+        except PracticeReviewError:
+            raise
+        except Exception as error:
+            raise self._practice_review_error(
+                PracticeReviewErrorCode.UNAVAILABLE,
+                "Practice review mapping is temporarily unavailable.",
+                reference=request.practice_placement_id,
+            ) from error
 
     def publish_curriculum_graph(
         self,
@@ -1129,3 +1275,96 @@ class CurriculumService:
                 "Practice placement reference is invalid.",
                 reference=request.placement_id,
             )
+
+    @classmethod
+    def _validate_practice_review_target(
+        cls, target: PracticeReviewTarget
+    ) -> None:
+        if not isinstance(target, PracticeReviewTarget):
+            raise cls._practice_review_error(
+                PracticeReviewErrorCode.INVALID_RECORD,
+                "Practice review target is invalid.",
+            )
+        cls._validate_practice_review_resource(
+            PracticeReviewResource(
+                resource_id=target.resource_id,
+                resource_version=target.resource_version,
+                resource_digest=target.resource_digest,
+                resource_title=target.resource_title,
+            )
+        )
+        if (
+            target.schema_version != "1.0.0"
+            or not _PLACEMENT_ID.fullmatch(target.practice_placement_id)
+            or (
+                target.state is PracticeReviewState.AVAILABLE
+                and (
+                    target.destination is None
+                    or target.unavailable_reason is not None
+                    or not cls._valid_practice_review_destination(
+                        target.destination
+                    )
+                )
+            )
+            or (
+                target.state is PracticeReviewState.UNAVAILABLE
+                and (
+                    target.destination is not None
+                    or target.unavailable_reason is None
+                )
+            )
+        ):
+            raise cls._practice_review_error(
+                PracticeReviewErrorCode.INVALID_RECORD,
+                "Practice review target is invalid.",
+                reference=target.resource_id,
+            )
+
+    @staticmethod
+    def _validate_practice_review_resource(
+        resource: PracticeReviewResource,
+    ) -> None:
+        if (
+            not isinstance(resource, PracticeReviewResource)
+            or not _PLACEMENT_ID.fullmatch(resource.resource_id)
+            or not _SEMVER.fullmatch(resource.resource_version)
+            or not _DIGEST.fullmatch(resource.resource_digest)
+            or not 1 <= len(resource.resource_title) <= 240
+            or any(
+                character in "<>&"
+                or ord(character) < 32
+                or ord(character) == 127
+                for character in resource.resource_title
+            )
+        ):
+            reference = getattr(resource, "resource_id", "practice-review")
+            raise CurriculumService._practice_review_error(
+                PracticeReviewErrorCode.INVALID_RECORD,
+                "Practice review resource is invalid.",
+                reference=reference,
+            )
+
+    @staticmethod
+    def _valid_practice_review_destination(
+        destination: PracticeReviewDestination,
+    ) -> bool:
+        return (
+            isinstance(destination, PracticeReviewDestination)
+            and _PLACEMENT_ID.fullmatch(destination.placement_id) is not None
+            and _PLACEMENT_ID.fullmatch(destination.package_id) is not None
+            and _SEMVER.fullmatch(destination.package_version) is not None
+            and _DIGEST.fullmatch(destination.package_digest) is not None
+            and (
+                destination.section_id is None
+                or _PLACEMENT_ID.fullmatch(destination.section_id) is not None
+            )
+        )
+
+    @staticmethod
+    def _practice_review_error(
+        code: PracticeReviewErrorCode,
+        message: str,
+        *,
+        reference: str = "practice-review",
+    ) -> PracticeReviewError:
+        return PracticeReviewError(code, message, reference=reference)

@@ -122,6 +122,58 @@ class ReadCompletedPracticesRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class PracticeHistorySourceItem:
+    item_id: str
+    item_version: str
+    item_type: str
+    scoring_policy_id: str
+    scoring_policy_version: str
+    score: int
+    max_score: int
+    correct: bool
+    review_reference_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeHistorySourceAttempt:
+    attempt_order: int
+    event_id: str
+    attempt_id: str
+    evidence_id: str
+    learner_id: str
+    submission_id: str
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    definition_digest: str
+    practice_id: str
+    practice_version: str
+    attempt_policy_id: str
+    attempt_policy_version: str
+    score: int
+    max_score: int
+    outcome: str
+    item_summaries: tuple[PracticeHistorySourceItem, ...]
+    completed_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeHistorySource:
+    learner_id: str
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    definition_digest: str
+    practice_id: str
+    practice_version: str
+    attempt_policy_id: str
+    attempt_policy_version: str
+    attempts: tuple[PracticeHistorySourceAttempt, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class SubmitPlacedKnowledgeCheckRequest:
     learner_id: str
     submission_id: str
@@ -232,6 +284,10 @@ class AssessmentOperations(Protocol):
     def read_completed_practices(
         self, request: ReadCompletedPracticesRequest
     ) -> tuple[OrderedPracticeCompletionEvent, ...]: ...
+
+    def read_practice_history_source(
+        self, request: ReadCompletedPracticesRequest
+    ) -> PracticeHistorySource: ...
 
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest

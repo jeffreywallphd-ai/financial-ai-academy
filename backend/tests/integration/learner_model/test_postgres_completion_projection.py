@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import psycopg
@@ -14,12 +14,16 @@ from financial_ai_academy.modules.learner_model.application.service import (
     LearnerModelService,
 )
 from financial_ai_academy.modules.learner_model.domain.models import (
+    SourcePracticeAttempt,
+    SourcePracticeHistory,
+    SourcePracticeItemSummary,
     SourceCompletionEvidence,
 )
 from financial_ai_academy.modules.learner_model.public import (
     LearnerModelError,
     LearnerModelErrorCode,
     OpenLessonCompletionRequest,
+    OpenPracticeHistoryRequest,
 )
 from financial_ai_academy.platform.database.migrations import (
     PostgresMigrationRunner,
@@ -54,13 +58,25 @@ def migrated_database() -> object:
     root.apply_all()
     applied = {item.migration_id for item in learner.apply_all()}
     assert "learner_model_0001_completion_projection" in applied
+    assert "learner_model_0002_practice_history" in applied
     assert {item.migration_id for item in learner.apply_all()} == {
         "0001_content_lesson_package_versions",
         "0002_curriculum_lesson_placements",
         "learner_model_0001_completion_projection",
+        "learner_model_0002_practice_history",
     }
     yield
     with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            (
+                MIGRATIONS
+                / "learner_model/learner_model_0002_practice_history.down.sql"
+            ).read_text(encoding="utf-8")
+        )
+        connection.execute(
+            "DELETE FROM platform.schema_migrations WHERE migration_id = %s",
+            ("learner_model_0002_practice_history",),
+        )
         connection.execute(
             (
                 MIGRATIONS
@@ -79,7 +95,9 @@ def empty_tables(migrated_database: object) -> None:
     assert POSTGRES_DSN is not None
     with psycopg.connect(POSTGRES_DSN) as connection:
         connection.execute(
-            "TRUNCATE learner_model.lesson_completion_history, "
+            "TRUNCATE learner_model.practice_history_attempts, "
+            "learner_model.practice_history_projections, "
+            "learner_model.lesson_completion_history, "
             "learner_model.lesson_completion_projections"
         )
 
@@ -192,3 +210,157 @@ def test_interrupted_replace_preserves_the_complete_prior_projection() -> None:
             """
         ).fetchone()
     assert row == (True, 1, accepted.source_digest)
+
+
+class PracticeSource:
+    def __init__(self, value: SourcePracticeHistory) -> None:
+        self.value = value
+
+    def read_practice_history(
+        self, *, learner_id: str, placement_id: str
+    ) -> SourcePracticeHistory:
+        assert learner_id == self.value.learner_id
+        assert placement_id == self.value.placement_id
+        return self.value
+
+
+def practice_source(attempt_count: int) -> SourcePracticeHistory:
+    attempts = tuple(
+        SourcePracticeAttempt(
+            attempt_order=order,
+            event_id=f"00000000-0000-4000-8001-{order:012d}",
+            attempt_id=f"00000000-0000-4000-8002-{order:012d}",
+            evidence_id=f"00000000-0000-4000-8003-{order:012d}",
+            learner_id=LEARNER_ID,
+            submission_id=f"00000000-0000-4000-8004-{order:012d}",
+            placement_id="risk-return-practice-placement",
+            package_id="intro-risk-return",
+            package_version="2.0.0",
+            package_digest="a" * 64,
+            definition_digest="b" * 64,
+            practice_id="risk-return-practice",
+            practice_version="1.0.0",
+            attempt_policy_id="formative-retry",
+            attempt_policy_version="1.0.0",
+            score=0,
+            max_score=1,
+            outcome="review_needed",
+            item_summaries=(
+                SourcePracticeItemSummary(
+                    item_id="risk-meaning",
+                    item_version="1.0.0",
+                    item_type="single_select",
+                    scoring_policy_id="single-select-exact-match",
+                    scoring_policy_version="1.0.0",
+                    score=0,
+                    max_score=1,
+                    correct=False,
+                    review_reference_ids=("risk-return-review",),
+                ),
+            ),
+            completed_at=NOW + timedelta(minutes=order),
+        )
+        for order in range(1, attempt_count + 1)
+    )
+    return SourcePracticeHistory(
+        learner_id=LEARNER_ID,
+        placement_id="risk-return-practice-placement",
+        package_id="intro-risk-return",
+        package_version="2.0.0",
+        package_digest="a" * 64,
+        definition_digest="b" * 64,
+        practice_id="risk-return-practice",
+        practice_version="1.0.0",
+        attempt_policy_id="formative-retry",
+        attempt_policy_version="1.0.0",
+        attempts=attempts,
+    )
+
+
+def practice_service(
+    attempt_count: int, *, before_projection: object | None = None
+) -> LearnerModelService:
+    assert POSTGRES_DSN is not None
+    return LearnerModelService(
+        PracticeSource(practice_source(attempt_count)),  # type: ignore[arg-type]
+        PostgresCompletionProjectionRepository(
+            POSTGRES_DSN,
+            before_practice_projection=before_projection,  # type: ignore[arg-type]
+        ),
+        Clock(),
+    )
+
+
+def practice_request() -> OpenPracticeHistoryRequest:
+    return OpenPracticeHistoryRequest(
+        learner_id=LEARNER_ID,
+        placement_id="risk-return-practice-placement",
+    )
+
+
+@pytest.mark.parametrize("attempt_count", (0, 1, 4, 10))
+def test_practice_history_rebuilds_all_supported_shapes_after_restart(
+    attempt_count: int,
+) -> None:
+    first = practice_service(attempt_count).open_practice_history(
+        practice_request()
+    )
+    reopened = practice_service(attempt_count).open_practice_history(
+        practice_request()
+    )
+
+    assert first == reopened
+    assert len(first.attempts) == attempt_count
+    assert POSTGRES_DSN is not None
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        projection = connection.execute(
+            """
+            SELECT attempt_count, source_digest
+            FROM learner_model.practice_history_projections
+            WHERE learner_id = %s
+            """,
+            (LEARNER_ID,),
+        ).fetchone()
+        history_count = connection.execute(
+            """
+            SELECT count(*)
+            FROM learner_model.practice_history_attempts
+            WHERE learner_id = %s
+            """,
+            (LEARNER_ID,),
+        ).fetchone()[0]
+    assert projection == (attempt_count, first.source_digest)
+    assert history_count == attempt_count
+
+
+def test_interrupted_practice_replacement_preserves_prior_complete_history() -> None:
+    accepted = practice_service(4).open_practice_history(practice_request())
+
+    def fail() -> None:
+        raise psycopg.OperationalError("private transaction details")
+
+    with pytest.raises(LearnerModelError) as captured:
+        practice_service(1, before_projection=fail).open_practice_history(
+            practice_request()
+        )
+    assert captured.value.code is LearnerModelErrorCode.UNAVAILABLE
+    assert POSTGRES_DSN is not None
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        projection = connection.execute(
+            """
+            SELECT attempt_count, source_digest
+            FROM learner_model.practice_history_projections
+            WHERE learner_id = %s
+            """,
+            (LEARNER_ID,),
+        ).fetchone()
+        history_count = connection.execute(
+            """
+            SELECT count(*)
+            FROM learner_model.practice_history_attempts
+            WHERE learner_id = %s
+            """,
+            (LEARNER_ID,),
+        ).fetchone()[0]
+    assert projection == (4, accepted.source_digest)
+    assert history_count == 4

@@ -174,6 +174,16 @@ stable order without answers or feedback. Protected HTTP, OpenAPI/generated
 client, and browser exposure remain a later packet; the application seam is
 already transport-neutral for those and future headless consumers.
 
+Assessment also exposes a transport-neutral `PracticeHistorySource` for one
+server-bound learner and exact practice placement. It validates the immutable
+completion envelope, correlates every persisted event/result/root identity,
+re-scores the retained private responses against the exact definition, and
+returns only ordered identities, scope, aggregate/item score, correctness, and
+incorrect-item review-reference IDs. It does not change event bytes or expose
+responses, feedback text, answer material, evaluator rules, result documents,
+or database rows. Learner model consumes this public operation; it never reads
+Assessment persistence.
+
 ## Compatibility and Diagnostics
 
 The compatibility corpus fixes correct and incorrect chains, canonical
@@ -250,8 +260,11 @@ Repeated opening remains read-only and returns no answer or feedback branch.
 Authorization host composition, the public POST, reviewed OpenAPI, generated
 client, bounded denials, and direct non-browser result confidentiality are now
 covered. Browser result flow, composed public progress APIs, history consumers,
-and review-target resolution remain unqualified until their owning packets
-deliver them. No separate AI/headless mode is defined; the shared public
+and review-target HTTP composition remain unqualified until their owning
+packets deliver them. The safe history source, exact Curriculum mapping, and
+Learner-model history projection are directly qualified at their application
+and persistence boundaries. No separate AI/headless mode is defined; the
+shared public
 application surface and existing public API remain the supported non-browser
 seams and keep a future consumer possible without creating another domain core.
 

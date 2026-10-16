@@ -20,8 +20,10 @@ from ..domain.practice import (
     PracticePresentation,
     PracticePresentationContext,
     PracticeResult,
+    PracticeScoringError,
     PracticeRetryState,
     PracticeScope,
+    score_practice,
 )
 from ..ports.definition_parser import (
     AssessmentDefinitionParserPort,
@@ -72,6 +74,9 @@ from ..public import (
     ReadCompletedKnowledgeChecksRequest,
     ReadPlacedPracticeProgressRequest,
     SavePlacedPracticeDraftRequest,
+    PracticeHistorySource,
+    PracticeHistorySourceAttempt,
+    PracticeHistorySourceItem,
     SubmitPlacedKnowledgeCheckRequest,
     SubmitPlacedPracticeRequest,
 )
@@ -407,6 +412,168 @@ class AssessmentService:
             seen_events.add(event.event_id)
         return ordered
 
+    def read_practice_history_source(
+        self, request: ReadCompletedPracticesRequest
+    ) -> PracticeHistorySource:
+        self._validate_uuid(request.learner_id, learner=True)
+        progress = self._practice_progress_contract
+        if progress is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice history is unavailable.",
+                reference=request.placement_id,
+            )
+        _reference, definition, scope = self._resolve_practice_progress(
+            request.placement_id
+        )
+        try:
+            stored = self._repository.list_practice_completion_event_documents(
+                learner_id=request.learner_id,
+                scope=scope,
+            )
+            values: list[PracticeHistorySourceAttempt] = []
+            seen_events: set[str] = set()
+            for expected_order, item in enumerate(stored, start=1):
+                event = progress.parse_completion_event(item.document)
+                result = item.result
+                if result is None:
+                    raise PracticeProgressFailure(
+                        "assessment.practice.inconsistent_event", "result"
+                    )
+                try:
+                    rescored = score_practice(
+                        definition,
+                        tuple(outcome.response for outcome in result.item_results),
+                    )
+                except PracticeScoringError as error:
+                    raise PracticeProgressFailure(
+                        "assessment.practice.inconsistent_event", error.reference
+                    ) from error
+                if (
+                    item.attempt_order != expected_order
+                    or event.event_id != item.event_id
+                    or not (
+                        event.attempt_id == item.attempt_id == result.attempt_id
+                    )
+                    or not (
+                        event.evidence_id == item.evidence_id == result.evidence_id
+                    )
+                    or not (
+                        event.submission_id
+                        == item.submission_id
+                        == result.submission_id
+                    )
+                    or event.event_id in seen_events
+                    or event.learner_id != request.learner_id
+                    or result.learner_id != request.learner_id
+                    or event.scope != scope
+                    or self._result_scope(result) != scope
+                    or event.score != result.score
+                    or event.max_score != result.max_score
+                    or event.outcome != result.outcome
+                    or event.completed_at != result.submitted_at
+                    or len(event.item_scores) != len(result.item_results)
+                    or result.score != rescored.score
+                    or result.max_score != rescored.max_score
+                    or result.outcome != rescored.outcome
+                    or result.review_reference_ids
+                    != rescored.review_reference_ids
+                    or result.item_results != rescored.item_results
+                ):
+                    raise PracticeProgressFailure(
+                        "assessment.practice.inconsistent_event", "event"
+                    )
+                summaries: list[PracticeHistorySourceItem] = []
+                for score, outcome in zip(
+                    event.item_scores, result.item_results, strict=True
+                ):
+                    response = outcome.response
+                    if (
+                        score.item_id != response.item_id
+                        or score.item_version != response.item_version
+                        or score.item_type != response.item_type
+                        or score.scoring_policy_id != response.scoring_policy_id
+                        or score.scoring_policy_version
+                        != response.scoring_policy_version
+                        or score.score != outcome.score
+                        or score.max_score != outcome.max_score
+                        or outcome.correct
+                        != (outcome.score == outcome.max_score)
+                    ):
+                        raise PracticeProgressFailure(
+                            "assessment.practice.inconsistent_event", "item"
+                        )
+                    summaries.append(
+                        PracticeHistorySourceItem(
+                            item_id=score.item_id,
+                            item_version=score.item_version,
+                            item_type=score.item_type,
+                            scoring_policy_id=score.scoring_policy_id,
+                            scoring_policy_version=score.scoring_policy_version,
+                            score=score.score,
+                            max_score=score.max_score,
+                            correct=outcome.correct,
+                            review_reference_ids=(
+                                ()
+                                if outcome.correct
+                                else outcome.feedback.review_reference_ids
+                            ),
+                        )
+                    )
+                seen_events.add(event.event_id)
+                values.append(
+                    PracticeHistorySourceAttempt(
+                        attempt_order=item.attempt_order,
+                        event_id=event.event_id,
+                        attempt_id=event.attempt_id,
+                        evidence_id=event.evidence_id,
+                        learner_id=event.learner_id,
+                        submission_id=event.submission_id,
+                        placement_id=scope.placement_id,
+                        package_id=scope.package_id,
+                        package_version=scope.package_version,
+                        package_digest=scope.package_digest,
+                        definition_digest=scope.definition_digest,
+                        practice_id=scope.practice_id,
+                        practice_version=scope.practice_version,
+                        attempt_policy_id=scope.attempt_policy_id,
+                        attempt_policy_version=scope.attempt_policy_version,
+                        score=event.score,
+                        max_score=event.max_score,
+                        outcome=event.outcome,
+                        item_summaries=tuple(summaries),
+                        completed_at=event.completed_at,
+                    )
+                )
+            return PracticeHistorySource(
+                learner_id=request.learner_id,
+                placement_id=scope.placement_id,
+                package_id=scope.package_id,
+                package_version=scope.package_version,
+                package_digest=scope.package_digest,
+                definition_digest=scope.definition_digest,
+                practice_id=scope.practice_id,
+                practice_version=scope.practice_version,
+                attempt_policy_id=scope.attempt_policy_id,
+                attempt_policy_version=scope.attempt_policy_version,
+                attempts=tuple(values),
+            )
+        except PracticeProgressFailure as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice history is unavailable.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Practice history is unavailable.",
+                reference=request.placement_id,
+            ) from error
+
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest
     ) -> KnowledgeCheckResult:
@@ -689,6 +856,20 @@ class AssessmentService:
             practice_version=definition.practice_version,
             attempt_policy_id=definition.attempt_policy.policy_id,
             attempt_policy_version=definition.attempt_policy.policy_version,
+        )
+
+    @staticmethod
+    def _result_scope(result: PracticeResult) -> PracticeScope:
+        return PracticeScope(
+            placement_id=result.placement_id,
+            package_id=result.package_id,
+            package_version=result.package_version,
+            package_digest=result.package_digest,
+            definition_digest=result.definition_digest,
+            practice_id=result.practice_id,
+            practice_version=result.practice_version,
+            attempt_policy_id=result.attempt_policy_id,
+            attempt_policy_version=result.attempt_policy_version,
         )
 
     @staticmethod

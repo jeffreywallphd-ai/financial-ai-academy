@@ -9,9 +9,9 @@
 | --- | --- | --- | --- |
 | Identity | accepted for first learner context | Provider-neutral actors and learners, provider bindings, authentication context, sessions, and application permission inputs | Identity, binding, and session changes |
 | Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
-| Curriculum | accepted; lesson, initial Assessment placement/read, protected discovery, and immutable exact graph read implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and rebuildable discovery views | Curriculum-version events remain future work |
-| Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
-| Learner model | accepted; bounded completion projection implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
+| Curriculum | accepted; lesson, exact Assessment/practice placement, review-target mapping, protected discovery, and immutable graph read implemented | Competencies, prerequisites, pathways, course structure, exact activity placement, review routing, and rebuildable discovery views | Curriculum-version events remain future work |
+| Assessment | accepted; deterministic knowledge-check/practice core, retry evidence, and safe history source implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check and practice completion evidence |
+| Learner model | accepted; bounded lesson completion and practice-history projections implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | accepted; deterministic navigation-state core implemented | Eligibility, ranking orchestration, deterministic policy, recommendations | Deterministic navigation-state projections; durable recommendation decisions and outcomes remain future work |
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
@@ -171,6 +171,13 @@ completion-history API behavior remain outside the lesson-read seam.
   draft, derive retry state, and replay validated ordered practice completion
   events. These operations contain no HTTP, browser, AI-specific, or cross-
   module persistence behavior and are ready for later protected composition.
+- Assessment's safe practice-history source correlates immutable events with
+  retained results and the exact definition inside Assessment, then exposes
+  only provenance, scores, correctness, and incorrect-item review references.
+  Event bytes remain unchanged and private responses/feedback are not copied.
+- Curriculum owns append-only exact review-target mappings and resolves them in
+  declaration order. Missing mappings remain explicit; Curriculum does not
+  inspect Assessment evidence or rank destinations.
 - `assessment.knowledge-check.completed@1.0.0` refers to its durable evidence
   and excludes private answers, selected responses, and feedback. A synchronous
   validated replay source now feeds the implemented Learner-model and Audit
@@ -200,6 +207,12 @@ scoring types remain outside this implemented core.
   Audit-first HTTP/client/browser delivery and private-host close/reopen are
   directly covered. Recovery and background event transport remain outside
   this seam.
+- The same public-only dependency direction now supports rebuildable practice
+  history. Learner model validates zero through ten contiguous attempts,
+  deduplicates only exact event replay, retains stable item signatures and
+  exact source identities, and atomically replaces its own exact-scope rows.
+  Its canonical digest matches the accepted history contract; the projection
+  carries no response, feedback text, answer, mastery, or recommendation.
 
 ## Implemented Audit Completion Seam
 

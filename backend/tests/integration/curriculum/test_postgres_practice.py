@@ -45,6 +45,13 @@ from financial_ai_academy.modules.curriculum.application.service import (
 from financial_ai_academy.modules.curriculum.public import (
     CreateLessonPlacementRequest,
     CreatePracticePlacementRequest,
+    PracticeReviewDestination,
+    PracticeReviewResource,
+    PracticeReviewState,
+    PracticeReviewTarget,
+    PracticeReviewUnavailableReason,
+    RegisterPracticeReviewTargetRequest,
+    ResolvePracticeReviewTargetsRequest,
 )
 from financial_ai_academy.platform.database.migrations import (
     PostgresMigrationRunner,
@@ -64,7 +71,7 @@ PRACTICE_SCHEMAS = REPOSITORY / "contracts/learning/assessment/practice/v1"
 MIGRATIONS = REPOSITORY / "backend/migrations"
 POSTGRES_DSN = os.environ.get("FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN")
 DEFINITION_DIGEST = (
-    "d08e8f645941494bef7cc83c5987f36861023f4fba0b97653b91e5d774b202ca"
+    "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527"
 )
 
 pytestmark = [
@@ -98,8 +105,10 @@ def migrated_database() -> object:
     root.apply_all()
     identifiers = {item.migration_id for item in curriculum.apply_all()}
     assert "curriculum_0004_practice_placements" in identifiers
+    assert "curriculum_0005_practice_review_targets" in identifiers
     yield
     for migration_id in (
+        "curriculum_0005_practice_review_targets",
         "curriculum_0004_practice_placements",
         "curriculum_0003_curriculum_graphs",
         "curriculum_0002_discovery_projection",
@@ -119,6 +128,7 @@ def empty_tables(migrated_database: object) -> None:
         connection.execute(
             """
             TRUNCATE TABLE
+                curriculum.practice_review_targets,
                 curriculum.practice_placements,
                 curriculum.lesson_placements,
                 content.lesson_package_versions
@@ -217,8 +227,109 @@ def test_exact_practice_opens_through_public_module_boundaries(
     assert reused.definition_digest == first.definition_digest
     assert reused.placement_id == second_lesson.placement_id
     assert first.definition_digest == DEFINITION_DIGEST
-    assert [item.item_type for item in first.items] == ["single_select"]
+    assert [item.item_type for item in first.items] == [
+        "single_select",
+        "multiple_select",
+        "numeric_entry",
+    ]
     with psycopg.connect(POSTGRES_DSN) as connection:
         assert connection.execute(
             "SELECT count(*) FROM curriculum.practice_placements"
         ).fetchone()[0] == 2
+
+
+def test_exact_review_targets_survive_restart_and_remain_append_only(
+    tmp_path: Path,
+) -> None:
+    assert POSTGRES_DSN is not None
+    content = ContentService(
+        PostgresContentRepository(POSTGRES_DSN),
+        FilesystemObjectStorage(tmp_path / "objects"),
+        ContractLessonPackageValidator(LESSON_SCHEMAS),
+    )
+    repository = PostgresCurriculumRepository(POSTGRES_DSN)
+    curriculum = CurriculumService(repository, PublicContentGateway(content))
+    accepted = content.admit_lesson_package(AdmitLessonPackageRequest(PACKAGE))
+    practice_lesson = curriculum.create_lesson_placement(
+        CreateLessonPlacementRequest(
+            placement_id="risk-return-practice-placement",
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+        )
+    )
+    review_lesson = curriculum.create_lesson_placement(
+        CreateLessonPlacementRequest(
+            placement_id="risk-return-reading-placement",
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+        )
+    )
+    curriculum.create_practice_placement(
+        CreatePracticePlacementRequest(
+            placement_id=practice_lesson.placement_id,
+            package_id=practice_lesson.package_id,
+            package_version=practice_lesson.package_version,
+            package_digest=practice_lesson.package_digest,
+            practice_id="risk-return-practice",
+            practice_version="1.0.0",
+            definition_digest=DEFINITION_DIGEST,
+        )
+    )
+    target = PracticeReviewTarget(
+        schema_version="1.0.0",
+        practice_placement_id=practice_lesson.placement_id,
+        resource_id="risk-return-review",
+        resource_version="1.0.0",
+        resource_digest="c" * 64,
+        resource_title="Review risk and return",
+        state=PracticeReviewState.AVAILABLE,
+        destination=PracticeReviewDestination(
+            placement_id=review_lesson.placement_id,
+            package_id=review_lesson.package_id,
+            package_version=review_lesson.package_version,
+            package_digest=review_lesson.package_digest,
+            section_id="risk-return-review-section",
+        ),
+    )
+    assert curriculum.register_practice_review_target(
+        RegisterPracticeReviewTargetRequest(target)
+    ) == target
+    restarted = CurriculumService(
+        PostgresCurriculumRepository(POSTGRES_DSN),
+        PublicContentGateway(content),
+    )
+    resolved = restarted.resolve_practice_review_targets(
+        ResolvePracticeReviewTargetsRequest(
+            practice_placement_id=practice_lesson.placement_id,
+            resources=(
+                PracticeReviewResource(
+                    resource_id="risk-return-review",
+                    resource_version="1.0.0",
+                    resource_digest="c" * 64,
+                    resource_title="Review risk and return",
+                ),
+                PracticeReviewResource(
+                    resource_id="additional-review",
+                    resource_version="1.1.0",
+                    resource_digest="d" * 64,
+                    resource_title="Additional review",
+                ),
+            ),
+        )
+    )
+    assert resolved[0] == target
+    assert resolved[1].state is PracticeReviewState.UNAVAILABLE
+    assert (
+        resolved[1].unavailable_reason
+        is PracticeReviewUnavailableReason.MAPPING_NOT_FOUND
+    )
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        with pytest.raises(psycopg.DatabaseError):
+            connection.execute(
+                """
+                UPDATE curriculum.practice_review_targets
+                SET resource_title = 'Changed'
+                """
+            )
