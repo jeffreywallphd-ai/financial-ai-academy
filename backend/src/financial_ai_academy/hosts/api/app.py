@@ -88,14 +88,22 @@ from financial_ai_academy.modules.learner_model.public import (
     PracticeHistoryView,
 )
 from financial_ai_academy.modules.project.public import (
+    CloseProjectSnapshotRequest,
     CreateProjectRequest,
+    DownloadProjectArtifactRequest,
+    ExportProjectSnapshotRequest,
     ListLearningProjectStartOptionsRequest,
+    ListProjectSnapshotsRequest,
     ListProjectsRequest,
+    MutateProjectWorkspaceRequest,
     OpenProjectRequest,
+    OpenProjectSnapshotRequest,
+    OpenProjectWorkspaceRequest,
     ProjectError,
     ProjectErrorCode,
     ProjectOperations,
     ResolveLearningProjectStartOptionRequest,
+    UploadProjectArtifactRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     RequestPolicyViolation,
@@ -125,8 +133,15 @@ from .models import (
     PracticeSubmissionRequestModel,
     PracticeSubmissionResultResponseModel,
     ProjectCreateRequestModel,
+    ProjectArtifactUploadRequestModel,
+    ProjectEvidenceExportBundleResponseModel,
     ProjectListResponseModel,
+    ProjectSnapshotCloseRequestModel,
+    ProjectSnapshotListResponseModel,
+    ProjectSnapshotResponseModel,
     ProjectShellResponseModel,
+    ProjectWorkspaceMutationRequestModel,
+    ProjectWorkspaceResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     activity_launch_response,
@@ -145,8 +160,15 @@ from .models import (
     practice_progress_response,
     practice_submission_result_response,
     project_create_intent,
+    project_artifact_content,
+    project_evidence_export_response,
     project_list_response,
+    project_snapshot_close_intent,
+    project_snapshot_list_response,
+    project_snapshot_response,
     project_shell_response,
+    project_workspace_mutation_intent,
+    project_workspace_response,
 )
 
 
@@ -300,6 +322,10 @@ def create_app(services: ApiServices) -> FastAPI:
         http_status = {
             ProjectErrorCode.INVALID_REQUEST: status.HTTP_400_BAD_REQUEST,
             ProjectErrorCode.IMMUTABLE_CONFLICT: status.HTTP_409_CONFLICT,
+            ProjectErrorCode.STALE_REVISION: status.HTTP_409_CONFLICT,
+            ProjectErrorCode.INTEGRITY_FAILURE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
             ProjectErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
             ProjectErrorCode.UNAVAILABLE: status.HTTP_503_SERVICE_UNAVAILABLE,
         }[error.code]
@@ -601,6 +627,16 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         return context
 
+    def project_write_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "project.write" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot change Project work.",
+            )
+        return context
+
     def project_operations() -> ProjectOperations:
         if services.project is None:
             raise ProjectError(
@@ -761,6 +797,193 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         )
         return project_shell_response(shell)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/workspace",
+        response_model=ProjectWorkspaceResponseModel,
+        operation_id="getProjectWorkspace",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def get_project_workspace(
+        project_id: str = Path(
+            min_length=1,
+            max_length=128,
+            pattern=r"^[a-z0-9][a-z0-9._-]*$",
+        ),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectWorkspaceResponseModel:
+        workspace = project_operations().open_workspace(
+            OpenProjectWorkspaceRequest(context.learner_id, project_id)
+        )
+        return project_workspace_response(workspace)
+
+    @app.post(
+        "/api/v1/projects/{project_id}/workspace/mutations",
+        response_model=ProjectWorkspaceResponseModel,
+        operation_id="mutateProjectWorkspace",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def mutate_project_workspace(
+        request_model: ProjectWorkspaceMutationRequestModel,
+        project_id: str = Path(
+            min_length=1,
+            max_length=128,
+            pattern=r"^[a-z0-9][a-z0-9._-]*$",
+        ),
+        context: LearnerContext = Depends(project_write_context),
+    ) -> ProjectWorkspaceResponseModel:
+        workspace = project_operations().mutate_workspace(
+            MutateProjectWorkspaceRequest(
+                context.learner_id,
+                project_id,
+                project_workspace_mutation_intent(request_model),
+            )
+        )
+        return project_workspace_response(workspace)
+
+    @app.post(
+        "/api/v1/projects/{project_id}/artifacts",
+        response_model=ProjectWorkspaceResponseModel,
+        operation_id="uploadProjectArtifact",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def upload_project_artifact(
+        request_model: ProjectArtifactUploadRequestModel,
+        project_id: str = Path(
+            min_length=1,
+            max_length=128,
+            pattern=r"^[a-z0-9][a-z0-9._-]*$",
+        ),
+        context: LearnerContext = Depends(project_write_context),
+    ) -> ProjectWorkspaceResponseModel:
+        workspace = project_operations().upload_artifact(
+            UploadProjectArtifactRequest(
+                context.learner_id,
+                project_id,
+                project_workspace_mutation_intent(request_model.intent),
+                project_artifact_content(request_model),
+            )
+        )
+        return project_workspace_response(workspace)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/artifacts/{artifact_id}/versions/{artifact_version}",
+        operation_id="downloadProjectArtifact",
+        responses={
+            **_ERROR_RESPONSES,
+            200: {
+                "description": "Exact inert Project artifact bytes",
+                "content": {
+                    "application/octet-stream": {
+                        "schema": {"type": "string", "format": "binary"}
+                    }
+                },
+            },
+        },
+        tags=["projects"],
+    )
+    def download_project_artifact(
+        project_id: str = Path(min_length=1, max_length=128),
+        artifact_id: str = Path(min_length=1, max_length=128),
+        artifact_version: int = Path(ge=1),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> Response:
+        downloaded = project_operations().download_artifact(
+            DownloadProjectArtifactRequest(
+                context.learner_id,
+                project_id,
+                artifact_id,
+                artifact_version,
+            )
+        )
+        return Response(
+            content=downloaded.content,
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": "attachment; filename=project-artifact",
+                "X-Content-Type-Options": "nosniff",
+                "X-Content-SHA256": downloaded.artifact.content_digest,
+                "X-Artifact-Media-Type": downloaded.artifact.media_type,
+            },
+        )
+
+    @app.post(
+        "/api/v1/projects/{project_id}/snapshots",
+        response_model=ProjectSnapshotResponseModel,
+        operation_id="closeProjectSnapshot",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def close_project_snapshot(
+        request_model: ProjectSnapshotCloseRequestModel,
+        project_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_write_context),
+    ) -> ProjectSnapshotResponseModel:
+        snapshot = project_operations().close_snapshot(
+            CloseProjectSnapshotRequest(
+                context.learner_id,
+                project_id,
+                project_snapshot_close_intent(request_model),
+            )
+        )
+        return project_snapshot_response(snapshot)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/snapshots",
+        response_model=ProjectSnapshotListResponseModel,
+        operation_id="listProjectSnapshots",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def list_project_snapshots(
+        project_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectSnapshotListResponseModel:
+        snapshots = project_operations().list_snapshots(
+            ListProjectSnapshotsRequest(context.learner_id, project_id)
+        )
+        return project_snapshot_list_response(snapshots)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/snapshots/{snapshot_id}",
+        response_model=ProjectSnapshotResponseModel,
+        operation_id="getProjectSnapshot",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def get_project_snapshot(
+        project_id: str = Path(min_length=1, max_length=128),
+        snapshot_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectSnapshotResponseModel:
+        snapshot = project_operations().open_snapshot(
+            OpenProjectSnapshotRequest(
+                context.learner_id, project_id, snapshot_id
+            )
+        )
+        return project_snapshot_response(snapshot)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/export",
+        response_model=ProjectEvidenceExportBundleResponseModel,
+        operation_id="exportProjectSnapshot",
+        responses=_ERROR_RESPONSES,
+        tags=["projects"],
+    )
+    def export_project_snapshot(
+        project_id: str = Path(min_length=1, max_length=128),
+        snapshot_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectEvidenceExportBundleResponseModel:
+        exported = project_operations().export_snapshot(
+            ExportProjectSnapshotRequest(
+                context.learner_id, project_id, snapshot_id
+            )
+        )
+        return project_evidence_export_response(exported)
 
     @app.get(
         "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",

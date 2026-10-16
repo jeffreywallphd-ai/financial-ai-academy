@@ -17,6 +17,18 @@ lifecycle, revision, time, permission, storage, Assessment, Portfolio, provider,
 or execution authority. These routes are the shared browser and headless HTTP
 boundary; the host contains no alternate AI policy.
 
+Project workspace operations extend that same boundary under
+`/api/v1/projects/{project_id}`. `GET /workspace` opens the learner's bounded
+workspace; `POST /workspace/mutations` applies one revision-bound note,
+reference, or admitted link mutation; and `POST /artifacts` validates an inert
+artifact manifest plus bounded canonical-base64 content. Exact artifact reads
+use `/artifacts/{artifact_id}/versions/{artifact_version}` and always return an
+attachment with `nosniff`, integrity, and declared-media metadata rather than
+active inline content. Snapshot close/list/read and export operations live
+under `/snapshots`. Writes require `project.write`; reads require
+`project.read`. Every operation derives the learner from the opaque session and
+is directly available to generated and non-browser/headless clients.
+
 The API host exposes the queryless discovery catalog at
 `GET /api/v1/curriculum/opportunities` and the additive bounded query at
 `GET /api/v1/curriculum/opportunities/query`. It resolves the opaque session on

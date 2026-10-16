@@ -96,6 +96,9 @@ from financial_ai_academy.modules.project.adapters.learning_origin import (
 from financial_ai_academy.modules.project.adapters.postgres_repository import (
     PostgresProjectRepository,
 )
+from financial_ai_academy.modules.project.adapters.object_storage import (
+    ProjectFilesystemObjectStorage,
+)
 from financial_ai_academy.modules.project.adapters.project_contract import (
     ContractProjectAdapter,
 )
@@ -159,9 +162,10 @@ def build_application_services(
             settings.postgres_dsn, settings.migrations_dir / "project"
         ).apply_all()
     project_contract = ContractProjectAdapter(settings.project_schema_dir)
+    object_storage = FilesystemObjectStorage(settings.object_storage_root)
     content = ContentService(
         PostgresContentRepository(settings.postgres_dsn),
-        FilesystemObjectStorage(settings.object_storage_root),
+        object_storage,
         ContractLessonPackageValidator(
             settings.lesson_schema_dir,
             project_schema_dir=settings.project_schema_dir,
@@ -211,6 +215,7 @@ def build_application_services(
         PublicCurriculumProjectPlacementGateway(curriculum),
         ProjectUtcClock(),
         ProjectUuidGenerator(),
+        ProjectFilesystemObjectStorage(object_storage),
     )
     return ApplicationServices(
         content=content,

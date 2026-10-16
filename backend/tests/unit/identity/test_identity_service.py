@@ -151,6 +151,7 @@ def test_bootstrap_persists_stable_binding_and_rotates_sessions() -> None:
         "curriculum.lesson.read",
         "project.create",
         "project.read",
+        "project.write",
     )
     assert all(
         TOKEN_ONE not in session.token_hash

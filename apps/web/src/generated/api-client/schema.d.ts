@@ -139,6 +139,70 @@ export interface paths {
       };
       readonly get: operations["getProject"];
     };
+  readonly "/api/v1/projects/{project_id}/artifacts": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["uploadProjectArtifact"];
+    };
+  readonly "/api/v1/projects/{project_id}/artifacts/{artifact_id}/versions/{artifact_version}": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["downloadProjectArtifact"];
+    };
+  readonly "/api/v1/projects/{project_id}/snapshots": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["listProjectSnapshots"];
+      readonly post: operations["closeProjectSnapshot"];
+    };
+  readonly "/api/v1/projects/{project_id}/snapshots/{snapshot_id}": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getProjectSnapshot"];
+    };
+  readonly "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/export": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["exportProjectSnapshot"];
+    };
+  readonly "/api/v1/projects/{project_id}/workspace": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getProjectWorkspace"];
+    };
+  readonly "/api/v1/projects/{project_id}/workspace/mutations": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["mutateProjectWorkspace"];
+    };
   readonly "/api/v1/projects/start-options": {
       readonly parameters: {
         readonly query?: never;
@@ -212,6 +276,29 @@ export interface components {
       readonly "reasons": ReadonlyArray<components["schemas"]["NavigationReasonResponseModel"]>;
       readonly "requirement": "required" | "optional" | "unassigned";
     };
+    readonly "AddProjectArtifactModel": {
+      readonly "artifact": components["schemas"]["ProjectArtifactInputModel"];
+      readonly "operation": "add_artifact";
+    };
+    readonly "AddProjectDomainLinkModel": {
+      readonly "link": components["schemas"]["ProjectDomainLinkInputModel"];
+      readonly "operation": "add_domain_link";
+    };
+    readonly "AddProjectNoteModel": {
+      readonly "body": string;
+      readonly "operation": "add_note";
+      readonly "title": string;
+    };
+    readonly "AddProjectReferenceModel": {
+      readonly "license"?: string | null;
+      readonly "operation": "add_reference";
+      readonly "source_digest"?: string | null;
+      readonly "source_name": string;
+      readonly "source_version"?: string | null;
+      readonly "title": string;
+      readonly "url": string;
+      readonly "use_constraints"?: string | null;
+    };
     readonly "ApiErrorEnvelope": {
       readonly "code": string;
       readonly "correlation_id": string;
@@ -229,6 +316,15 @@ export interface components {
       readonly "query": string | null;
       readonly "sort": "catalog" | "title" | "duration_ascending" | "duration_descending";
       readonly "topics": ReadonlyArray<string>;
+    };
+    readonly "ArtifactProvenanceModel": {
+      readonly "license"?: string | null;
+      readonly "source_digest"?: string | null;
+      readonly "source_title": string;
+      readonly "source_type": "learner_created" | "supplied" | "external";
+      readonly "source_url"?: string | null;
+      readonly "source_version"?: string | null;
+      readonly "use_constraints"?: string | null;
     };
     readonly "AssessmentActivityReferenceResponseModel": {
       readonly "assessment_id": string;
@@ -329,6 +425,20 @@ export interface components {
     readonly "EmphasisModel": {
       readonly "children": ReadonlyArray<components["schemas"]["InlineTextModel"] | components["schemas"]["InlineCodeModel"] | components["schemas"]["SoftBreakModel"] | components["schemas"]["HardBreakModel"] | components["schemas"]["EmphasisModel"] | components["schemas"]["StrongModel"] | components["schemas"]["SourceLinkModel"] | components["schemas"]["AssetImageModel"]>;
       readonly "kind"?: "emphasis";
+    };
+    readonly "EvidenceArtifactFileModel": {
+      readonly "artifact_id": string;
+      readonly "artifact_version": number;
+      readonly "byte_count": number;
+      readonly "content_digest": string;
+      readonly "logical_path": string;
+      readonly "manifest_digest": string;
+      readonly "media_type": string;
+    };
+    readonly "ExcludedEvidenceArtifactModel": {
+      readonly "artifact_id": string;
+      readonly "artifact_version": number;
+      readonly "reason": "source_use_restricted" | "not_authorized" | "content_unavailable";
     };
     readonly "HardBreakModel": {
       readonly "kind"?: "hard_break";
@@ -813,6 +923,44 @@ export interface components {
       readonly "submission_id": string;
       readonly "submitted_at": string;
     };
+    readonly "ProjectArtifactInputModel": {
+      readonly "artifact_kind": "dataset" | "notebook" | "code" | "environment" | "result" | "reflection" | "supporting_file";
+      readonly "assumptions": ReadonlyArray<string>;
+      readonly "byte_count": number;
+      readonly "content_digest": string;
+      readonly "environment"?: components["schemas"]["ProjectEnvironmentModel"] | null;
+      readonly "inspection_mode": "metadata_only" | "plain_text";
+      readonly "logical_path": string;
+      readonly "media_type": "application/octet-stream" | "application/json" | "application/pdf" | "application/x-ipynb+json" | "text/csv" | "text/markdown" | "text/plain" | "text/x-python";
+      readonly "provenance": components["schemas"]["ArtifactProvenanceModel"];
+      readonly "result_classification"?: "observed" | "calculated" | "simulated" | "predicted" | "generated" | "narrative" | null;
+    };
+    readonly "ProjectArtifactReferenceModel": {
+      readonly "artifact_id": string;
+      readonly "artifact_version": number;
+      readonly "byte_count": number;
+      readonly "content_digest": string;
+      readonly "manifest_digest": string;
+    };
+    readonly "ProjectArtifactResponseModel": {
+      readonly "artifact_id": string;
+      readonly "artifact_kind": "dataset" | "notebook" | "code" | "environment" | "result" | "reflection" | "supporting_file";
+      readonly "artifact_version": number;
+      readonly "assumptions": ReadonlyArray<string>;
+      readonly "byte_count": number;
+      readonly "content_digest": string;
+      readonly "created_at": string;
+      readonly "environment"?: components["schemas"]["ProjectEnvironmentModel"] | null;
+      readonly "inspection_mode": "metadata_only" | "plain_text";
+      readonly "logical_path": string;
+      readonly "media_type": "application/octet-stream" | "application/json" | "application/pdf" | "application/x-ipynb+json" | "text/csv" | "text/markdown" | "text/plain" | "text/x-python";
+      readonly "provenance": components["schemas"]["ArtifactProvenanceModel"];
+      readonly "result_classification"?: "observed" | "calculated" | "simulated" | "predicted" | "generated" | "narrative" | null;
+    };
+    readonly "ProjectArtifactUploadRequestModel": {
+      readonly "content_base64": string;
+      readonly "intent": components["schemas"]["ProjectWorkspaceMutationRequestModel"];
+    };
     readonly "ProjectCreateRequestModel": {
       readonly "charter": string;
       readonly "idempotency_key": string;
@@ -820,8 +968,89 @@ export interface components {
       readonly "schema_version": "1.0.0";
       readonly "title": string;
     };
+    readonly "ProjectDomainLinkInputModel": {
+      readonly "link_type": "context" | "input" | "comparison" | "output";
+      readonly "owner_module": string;
+      readonly "provenance": string;
+      readonly "resource_as_of"?: string | null;
+      readonly "resource_id": string;
+      readonly "resource_type": string;
+      readonly "resource_version"?: string | null;
+    };
+    readonly "ProjectDomainLinkReferenceModel": {
+      readonly "link_id": string;
+      readonly "owner_reference_digest": string;
+      readonly "record_digest": string;
+    };
+    readonly "ProjectDomainLinkResponseModel": {
+      readonly "created_at": string;
+      readonly "link_id": string;
+      readonly "link_type": "context" | "input" | "comparison" | "output";
+      readonly "owner_module": string;
+      readonly "owner_reference_digest": string;
+      readonly "provenance": string;
+      readonly "resource_as_of"?: string | null;
+      readonly "resource_id": string;
+      readonly "resource_type": string;
+      readonly "resource_version"?: string | null;
+      readonly "target_status": "available";
+      readonly "validated_at": string;
+    };
+    readonly "ProjectEnvironmentModel": {
+      readonly "dependency_digest"?: string | null;
+      readonly "name": string;
+      readonly "version": string;
+    };
+    readonly "ProjectEvidenceExportBundleResponseModel": {
+      readonly "files": ReadonlyArray<components["schemas"]["ProjectEvidenceFileContentModel"]>;
+      readonly "manifest": components["schemas"]["ProjectEvidenceExportResponseModel"];
+    };
+    readonly "ProjectEvidenceExportMaterialModel": {
+      readonly "artifact_files": ReadonlyArray<components["schemas"]["EvidenceArtifactFileModel"]>;
+      readonly "excluded_artifacts": ReadonlyArray<components["schemas"]["ExcludedEvidenceArtifactModel"]>;
+      readonly "format": "project-evidence-manifest-v1";
+      readonly "project_id": string;
+      readonly "snapshot_digest": string;
+      readonly "snapshot_id": string;
+      readonly "snapshot_record": components["schemas"]["ProjectSnapshotResponseModel"];
+      readonly "workspace_record": components["schemas"]["ProjectWorkspaceResponseModel"];
+    };
+    readonly "ProjectEvidenceExportResponseModel": {
+      readonly "export": components["schemas"]["ProjectEvidenceExportMaterialModel"];
+      readonly "export_digest": string;
+      readonly "export_id": string;
+      readonly "generated_at": string;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "ProjectEvidenceFileContentModel": {
+      readonly "artifact_id": string;
+      readonly "artifact_version": number;
+      readonly "content_base64": string;
+      readonly "logical_path": string;
+    };
     readonly "ProjectListResponseModel": {
       readonly "records": ReadonlyArray<components["schemas"]["ProjectShellResponseModel"]>;
+    };
+    readonly "ProjectNoteResponseModel": {
+      readonly "body": string;
+      readonly "created_at": string;
+      readonly "note_id": string;
+      readonly "note_version": number;
+      readonly "title": string;
+      readonly "updated_at": string;
+    };
+    readonly "ProjectReferenceResponseModel": {
+      readonly "created_at": string;
+      readonly "license"?: string | null;
+      readonly "reference_id": string;
+      readonly "reference_version": number;
+      readonly "source_digest"?: string | null;
+      readonly "source_name": string;
+      readonly "source_version"?: string | null;
+      readonly "title": string;
+      readonly "updated_at": string;
+      readonly "url": string;
+      readonly "use_constraints"?: string | null;
     };
     readonly "ProjectShellResponseModel": {
       readonly "charter": string;
@@ -835,11 +1064,86 @@ export interface components {
       readonly "title": string;
       readonly "updated_at": string;
     };
+    readonly "ProjectSnapshotCloseRequestModel": {
+      readonly "expected_project_revision": number;
+      readonly "expected_workspace_revision": number;
+      readonly "idempotency_key": string;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "ProjectSnapshotListResponseModel": {
+      readonly "records": ReadonlyArray<components["schemas"]["ProjectSnapshotResponseModel"]>;
+    };
+    readonly "ProjectSnapshotMaterialModel": {
+      readonly "artifacts": ReadonlyArray<components["schemas"]["ProjectArtifactReferenceModel"]>;
+      readonly "domain_links": ReadonlyArray<components["schemas"]["ProjectDomainLinkReferenceModel"]>;
+      readonly "learner_id": string;
+      readonly "notes": ReadonlyArray<components["schemas"]["ProjectVersionReferenceModel"]>;
+      readonly "project_id": string;
+      readonly "project_revision": number;
+      readonly "project_shell_digest": string;
+      readonly "references": ReadonlyArray<components["schemas"]["ProjectVersionReferenceModel"]>;
+      readonly "workspace_created_at": string;
+      readonly "workspace_revision": number;
+      readonly "workspace_updated_at": string;
+    };
+    readonly "ProjectSnapshotResponseModel": {
+      readonly "closed_at": string;
+      readonly "schema_version": "1.0.0";
+      readonly "snapshot": components["schemas"]["ProjectSnapshotMaterialModel"];
+      readonly "snapshot_digest": string;
+      readonly "snapshot_id": string;
+    };
+    readonly "ProjectVersionReferenceModel": {
+      readonly "record_digest": string;
+      readonly "record_id": string;
+      readonly "record_version": number;
+    };
+    readonly "ProjectWorkspaceMutationRequestModel": {
+      readonly "expected_workspace_revision": number;
+      readonly "idempotency_key": string;
+      readonly "mutation": components["schemas"]["AddProjectNoteModel"] | components["schemas"]["ReplaceProjectNoteModel"] | components["schemas"]["AddProjectReferenceModel"] | components["schemas"]["ReplaceProjectReferenceModel"] | components["schemas"]["AddProjectArtifactModel"] | components["schemas"]["AddProjectDomainLinkModel"] | components["schemas"]["RemoveProjectDomainLinkModel"];
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "ProjectWorkspaceResponseModel": {
+      readonly "artifacts": ReadonlyArray<components["schemas"]["ProjectArtifactResponseModel"]>;
+      readonly "created_at": string;
+      readonly "domain_links": ReadonlyArray<components["schemas"]["ProjectDomainLinkResponseModel"]>;
+      readonly "learner_id": string;
+      readonly "notes": ReadonlyArray<components["schemas"]["ProjectNoteResponseModel"]>;
+      readonly "project_id": string;
+      readonly "references": ReadonlyArray<components["schemas"]["ProjectReferenceResponseModel"]>;
+      readonly "schema_version": "1.0.0";
+      readonly "updated_at": string;
+      readonly "workspace_revision": number;
+    };
     readonly "PublicationProvenanceModel": {
       readonly "content_reviewed_on": string;
       readonly "educational_use_notice": string;
       readonly "published_at": string;
       readonly "published_by": string;
+    };
+    readonly "RemoveProjectDomainLinkModel": {
+      readonly "link_id": string;
+      readonly "operation": "remove_domain_link";
+    };
+    readonly "ReplaceProjectNoteModel": {
+      readonly "body": string;
+      readonly "expected_note_version": number;
+      readonly "note_id": string;
+      readonly "operation": "replace_note";
+      readonly "title": string;
+    };
+    readonly "ReplaceProjectReferenceModel": {
+      readonly "expected_reference_version": number;
+      readonly "license"?: string | null;
+      readonly "operation": "replace_reference";
+      readonly "reference_id": string;
+      readonly "source_digest"?: string | null;
+      readonly "source_name": string;
+      readonly "source_version"?: string | null;
+      readonly "title": string;
+      readonly "url": string;
+      readonly "use_constraints"?: string | null;
     };
     readonly "SessionBootstrapRequestModel": {
       readonly "limitation_acknowledged": true;
@@ -1832,6 +2136,511 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["ProjectShellResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly uploadProjectArtifact: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["ProjectArtifactUploadRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectWorkspaceResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly downloadProjectArtifact: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "artifact_id": string;
+          readonly "artifact_version": number;
+          readonly "project_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": unknown;
+            readonly "application/octet-stream": string;
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly listProjectSnapshots: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectSnapshotListResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly closeProjectSnapshot: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["ProjectSnapshotCloseRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectSnapshotResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getProjectSnapshot: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+          readonly "snapshot_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectSnapshotResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly exportProjectSnapshot: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+          readonly "snapshot_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectEvidenceExportBundleResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getProjectWorkspace: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectWorkspaceResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly mutateProjectWorkspace: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["ProjectWorkspaceMutationRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectWorkspaceResponseModel"];
           };
         };
         readonly 400: {

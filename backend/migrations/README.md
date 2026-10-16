@@ -19,6 +19,15 @@ fingerprint, immutable accepted origin, lifecycle, revision, and UTC times
 without a cross-schema foreign key. The empty development down migration is
 reversible, but it fails closed when retained Project rows exist.
 
+`project_0002_workspace_snapshots` adds the mutable revision-guarded Project
+workspace aggregate, accepted mutation replays, opaque content-addressed
+artifact references, and immutable snapshot rows with the exact closed
+workspace record. Artifact bytes remain outside PostgreSQL behind the Project
+object port. Snapshot rows reject ordinary update/delete. Controlled
+development rollback applies the workspace down migration before the shell
+down migration and refuses to discard any retained workspace, artifact,
+mutation, or snapshot record.
+
 The Curriculum Assessment-reference stream under `curriculum/` is applied
 after the root stream. The Assessment evidence/outbox stream under
 `assessment/` is applied after Curriculum. Migration IDs are globally unique

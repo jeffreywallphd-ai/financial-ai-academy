@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import hashlib
 import os
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
@@ -152,7 +154,7 @@ class Identity:
         permissions = (
             ("project.read",)
             if cookie_value == "read-only"
-            else ("project.create", "project.read")
+            else ("project.create", "project.read", "project.write")
         )
         learner = "learner-b" if cookie_value == "session-b" else "learner-a"
         return LearnerContext(
@@ -485,6 +487,77 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
             headers=headers(),
             json=independent_payload(),
         )
+        project_id = independent.json()["project_id"]
+        workspace = subject.get(
+            f"/api/v1/projects/{project_id}/workspace"
+        )
+        note = subject.post(
+            f"/api/v1/projects/{project_id}/workspace/mutations",
+            headers=headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "api-note-1",
+                "expected_workspace_revision": 1,
+                "mutation": {
+                    "operation": "add_note",
+                    "title": "Question",
+                    "body": "Compare the educational evidence.",
+                },
+            },
+        )
+        artifact_content = b"scenario,value\nbase,1\n"
+        artifact = subject.post(
+            f"/api/v1/projects/{project_id}/artifacts",
+            headers=headers(),
+            json={
+                "intent": {
+                    "schema_version": "1.0.0",
+                    "idempotency_key": "api-artifact-1",
+                    "expected_workspace_revision": 2,
+                    "mutation": {
+                        "operation": "add_artifact",
+                        "artifact": {
+                            "artifact_kind": "dataset",
+                            "logical_path": "data/scenario.csv",
+                            "media_type": "text/csv",
+                            "inspection_mode": "plain_text",
+                            "byte_count": len(artifact_content),
+                            "content_digest": hashlib.sha256(
+                                artifact_content
+                            ).hexdigest(),
+                            "provenance": {
+                                "source_type": "learner_created",
+                                "source_title": "API scenario",
+                            },
+                            "assumptions": [],
+                        },
+                    },
+                },
+                "content_base64": base64.b64encode(
+                    artifact_content
+                ).decode("ascii"),
+            },
+        )
+        artifact_record = artifact.json()["artifacts"][0]
+        download = subject.get(
+            f"/api/v1/projects/{project_id}/artifacts/"
+            f"{artifact_record['artifact_id']}/versions/1"
+        )
+        snapshot = subject.post(
+            f"/api/v1/projects/{project_id}/snapshots",
+            headers=headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "api-snapshot-1",
+                "expected_project_revision": 1,
+                "expected_workspace_revision": 3,
+            },
+        )
+        assert snapshot.status_code == 200, snapshot.text
+        export = subject.get(
+            f"/api/v1/projects/{project_id}/snapshots/"
+            f"{snapshot.json()['snapshot_id']}/export"
+        )
         start_option = subject.get(
             "/api/v1/projects/start-options/risk-return-project-primary"
         )
@@ -505,6 +578,15 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
     assert start_options.status_code == 200
     assert start_options.json()["records"] == [start_option.json()]
     assert independent.status_code == learning.status_code == 200
+    assert workspace.status_code == note.status_code == artifact.status_code == 200
+    assert download.status_code == snapshot.status_code == export.status_code == 200
+    assert download.content == artifact_content
+    assert download.headers["content-disposition"].startswith("attachment")
+    assert download.headers["x-content-type-options"] == "nosniff"
+    assert download.headers["x-artifact-media-type"] == "text/csv"
+    assert export.json()["files"][0]["content_base64"] == base64.b64encode(
+        artifact_content
+    ).decode("ascii")
     assert [record["title"] for record in listed.json()["records"]] == [
         "Compare evidence",
         "My learning Project",

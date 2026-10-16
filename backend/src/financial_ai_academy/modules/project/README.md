@@ -1,8 +1,8 @@
 # Project Module
 
 Project owns learner Project identity, charter, immutable accepted origin,
-lifecycle, revision, and—when later slices deliver them—the mutable workspace,
-snapshots, and typed domain-resource links. Content owns approved learning-
+lifecycle, revision, mutable workspace, inert artifact manifests and bytes,
+and immutable snapshots. Content owns approved learning-
 project brief meaning. Curriculum owns exact placement in a learning path.
 Assessment owns only an exact submitted snapshot and its evidence.
 
@@ -23,8 +23,13 @@ The Project seam remains transport-neutral:
   learning lookup; learning creation resolves the exact public Curriculum
   placement and Content brief before persistence.
 - `PostgresProjectRepository` owns learner-scoped shell persistence,
-  canonical-request idempotency, deterministic list order, and contract
-  revalidation on read. It imports no other module repository or schema.
+  revision-guarded workspace state, canonical-request idempotency, opaque
+  artifact references, immutable snapshot records, deterministic list order,
+  and contract revalidation on read. It imports no other module repository or
+  schema.
+- `ProjectFilesystemObjectStorage` maps Project's owned inert-byte port onto
+  the restrictive local content-addressed store with a domain-separated opaque
+  key. Application and domain code receive no host path or storage coordinate.
 - the protected public API derives learner identity and permissions from the
   server session. Browser and authenticated headless clients use the same
   operations and reviewed OpenAPI contract.
@@ -50,8 +55,16 @@ Evidence exports bind the complete validated snapshot and workspace records and
 their ordered correspondence, use closed embedded schemas, and account for
 every snapshot artifact as included or explicitly excluded.
 
-This contract seam does not yet persist workspace metadata or bytes, expose a
-workspace API, validate a production domain owner, or render workspace UI.
+The protected API now exposes workspace read/mutation, inert artifact upload
+and safe attachment download, snapshot close/list/read, and evidence export.
+All state changes bind an expected live revision and idempotency fingerprint;
+exact retries return their accepted record and stale or changed requests do not
+overwrite work. Snapshots store the exact closed workspace record and remain
+unchanged while later live work continues. OpenAPI and the generated client
+give browser and headless consumers the same operations.
+
+This seam does not yet render workspace UI or validate a production domain
+owner.
 The synthetic Portfolio-named fixture proves only that the provider-neutral
 reference shape can represent another owner; no live Portfolio contract,
 calculation, authorization, or copied state exists. Project still has no

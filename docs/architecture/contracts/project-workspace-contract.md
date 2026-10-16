@@ -33,8 +33,8 @@ the contract performs no implicit Unicode normalization.
 
 A create intent contains only an idempotency key, learner-visible title and
 charter, and one origin. Learner identity, Project identity, lifecycle,
-revision, time, and authorization are server-owned. A future application
-operation must resolve a learning origin through public Content and Curriculum
+revision, time, and authorization are server-owned. The application operation
+resolves a learning origin through public Content and Curriculum
 operations and correlate the complete retained brief summary before creating
 durable state.
 
@@ -86,11 +86,10 @@ behavior, or changed ownership require normal additive versioning and decision
 review. Harmless valid text, identities, milestone/source counts within bounds,
 and generated time or ID values must not depend on one fixture.
 
-Artifact manifests, workspace resources, snapshots, typed domain links,
-Assessment submissions, and Project workspace-resource behavior remain
-separate bounded delivery seams. The first workspace contract seam is now
-defined below; persistence, API, browser, and submission behavior remain
-separately bounded.
+Assessment submissions and the browser workspace remain separate bounded
+delivery seams. The workspace contracts, persistence, and public API behavior
+are defined below; browser presentation and submission behavior remain later
+work.
 
 ## Version 1 Workspace and Snapshot Meaning
 
@@ -135,5 +134,38 @@ or credential-bearing URLs,
 provider payloads, callbacks, archive controls, executable controls, active
 renderer instructions, Assessment result, Learner-model state, copied
 Portfolio aggregate, or financial advice. Browser, command-line, service, and
-future headless clients will consume the same later Project API; the contracts
-grant no client durable-state authority.
+headless clients consume the same Project API; the contracts grant no client
+durable-state authority.
+
+## Persisted Workspace, Artifact, Snapshot, and API Seam
+
+`project.project_workspaces` stores one revalidated JSON workspace aggregate
+and positive optimistic revision per learner-owned Project. Accepted mutation
+replays store the canonical request fingerprint and exact accepted workspace.
+The repository locks the live workspace row, checks the expected revision, and
+commits the next aggregate plus any opaque artifact reference in one
+transaction. Exact retry returns the original accepted workspace; changed key
+reuse and stale revision fail without overwrite.
+
+Artifact bytes are staged, verified by exact byte count and SHA-256, finalized
+under a domain-separated content-addressed object key, and only then referenced
+by Project metadata. A metadata failure may leave an unreferenced immutable
+object for bounded reconciliation but cannot expose a partial live manifest.
+Downloads recheck stored metadata and bytes and use attachment, `nosniff`, and
+integrity headers. No download path invokes an interpreter, active renderer,
+network client, package manager, secret source, or provider.
+
+`project.project_snapshots` stores the immutable snapshot document and the exact
+workspace document it closes. A transaction lock confirms the expected live
+workspace revision before insert; ordinary update/delete is rejected. Later
+mutations advance only the live workspace. Evidence export revalidates the
+closed records, includes only authorized available inert bytes, and explicitly
+records restricted or unavailable content. Export is JSON-compatible evidence,
+not an import, restore, archive-expansion, or execution contract.
+
+The protected API exposes open/mutate/upload/download/close/list/read/export
+operations beneath `/api/v1/projects/{project_id}`. Identity and permissions
+come only from the server session. OpenAPI and the generated TypeScript client
+are the common browser, command-line, service, and headless boundary. No live
+domain owner is admitted yet, so a link to Portfolio or another unavailable
+owner fails rather than creating a dangling association.

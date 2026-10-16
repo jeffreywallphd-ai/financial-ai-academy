@@ -148,6 +148,157 @@
         "title": "ActivityNavigationStateResponseModel",
         "type": "object"
       },
+      "AddProjectArtifactModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact": {
+            "$ref": "#/components/schemas/ProjectArtifactInputModel"
+          },
+          "operation": {
+            "const": "add_artifact",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "artifact"
+        ],
+        "title": "AddProjectArtifactModel",
+        "type": "object"
+      },
+      "AddProjectDomainLinkModel": {
+        "additionalProperties": false,
+        "properties": {
+          "link": {
+            "$ref": "#/components/schemas/ProjectDomainLinkInputModel"
+          },
+          "operation": {
+            "const": "add_domain_link",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "link"
+        ],
+        "title": "AddProjectDomainLinkModel",
+        "type": "object"
+      },
+      "AddProjectNoteModel": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "operation": {
+            "const": "add_note",
+            "title": "Operation",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "title",
+          "body"
+        ],
+        "title": "AddProjectNoteModel",
+        "type": "object"
+      },
+      "AddProjectReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License"
+          },
+          "operation": {
+            "const": "add_reference",
+            "title": "Operation",
+            "type": "string"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Digest"
+          },
+          "source_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Source Name",
+            "type": "string"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "maxLength": 2048,
+            "pattern": "^https://",
+            "title": "Url",
+            "type": "string"
+          },
+          "use_constraints": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Use Constraints"
+          }
+        },
+        "required": [
+          "operation",
+          "title",
+          "url",
+          "source_name"
+        ],
+        "title": "AddProjectReferenceModel",
+        "type": "object"
+      },
       "ApiErrorEnvelope": {
         "additionalProperties": false,
         "properties": {
@@ -322,6 +473,93 @@
           "page_size"
         ],
         "title": "AppliedLearningOpportunityQueryResponseModel",
+        "type": "object"
+      },
+      "ArtifactProvenanceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Digest"
+          },
+          "source_title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Source Title",
+            "type": "string"
+          },
+          "source_type": {
+            "enum": [
+              "learner_created",
+              "supplied",
+              "external"
+            ],
+            "title": "Source Type",
+            "type": "string"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "maxLength": 2048,
+                "pattern": "^https://",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "use_constraints": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Use Constraints"
+          }
+        },
+        "required": [
+          "source_type",
+          "source_title"
+        ],
+        "title": "ArtifactProvenanceModel",
         "type": "object"
       },
       "AssessmentActivityReferenceResponseModel": {
@@ -1040,6 +1278,93 @@
           "children"
         ],
         "title": "EmphasisModel",
+        "type": "object"
+      },
+      "EvidenceArtifactFileModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_version": {
+            "minimum": 1.0,
+            "title": "Artifact Version",
+            "type": "integer"
+          },
+          "byte_count": {
+            "maximum": 10485760.0,
+            "minimum": 0.0,
+            "title": "Byte Count",
+            "type": "integer"
+          },
+          "content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "logical_path": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Logical Path",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Manifest Digest",
+            "type": "string"
+          },
+          "media_type": {
+            "title": "Media Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "artifact_version",
+          "manifest_digest",
+          "logical_path",
+          "media_type",
+          "byte_count",
+          "content_digest"
+        ],
+        "title": "EvidenceArtifactFileModel",
+        "type": "object"
+      },
+      "ExcludedEvidenceArtifactModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_version": {
+            "minimum": 1.0,
+            "title": "Artifact Version",
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "source_use_restricted",
+              "not_authorized",
+              "content_unavailable"
+            ],
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "artifact_version",
+          "reason"
+        ],
+        "title": "ExcludedEvidenceArtifactModel",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -4365,6 +4690,305 @@
         "title": "PracticeSubmissionResultResponseModel",
         "type": "object"
       },
+      "ProjectArtifactInputModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_kind": {
+            "enum": [
+              "dataset",
+              "notebook",
+              "code",
+              "environment",
+              "result",
+              "reflection",
+              "supporting_file"
+            ],
+            "title": "Artifact Kind",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "byte_count": {
+            "maximum": 10485760.0,
+            "minimum": 0.0,
+            "title": "Byte Count",
+            "type": "integer"
+          },
+          "content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectEnvironmentModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inspection_mode": {
+            "enum": [
+              "metadata_only",
+              "plain_text"
+            ],
+            "title": "Inspection Mode",
+            "type": "string"
+          },
+          "logical_path": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Logical Path",
+            "type": "string"
+          },
+          "media_type": {
+            "enum": [
+              "application/octet-stream",
+              "application/json",
+              "application/pdf",
+              "application/x-ipynb+json",
+              "text/csv",
+              "text/markdown",
+              "text/plain",
+              "text/x-python"
+            ],
+            "title": "Media Type",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ArtifactProvenanceModel"
+          },
+          "result_classification": {
+            "anyOf": [
+              {
+                "enum": [
+                  "observed",
+                  "calculated",
+                  "simulated",
+                  "predicted",
+                  "generated",
+                  "narrative"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Classification"
+          }
+        },
+        "required": [
+          "artifact_kind",
+          "logical_path",
+          "media_type",
+          "inspection_mode",
+          "byte_count",
+          "content_digest",
+          "provenance",
+          "assumptions"
+        ],
+        "title": "ProjectArtifactInputModel",
+        "type": "object"
+      },
+      "ProjectArtifactReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_version": {
+            "minimum": 1.0,
+            "title": "Artifact Version",
+            "type": "integer"
+          },
+          "byte_count": {
+            "maximum": 10485760.0,
+            "minimum": 0.0,
+            "title": "Byte Count",
+            "type": "integer"
+          },
+          "content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "manifest_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Manifest Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "artifact_version",
+          "manifest_digest",
+          "content_digest",
+          "byte_count"
+        ],
+        "title": "ProjectArtifactReferenceModel",
+        "type": "object"
+      },
+      "ProjectArtifactResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_kind": {
+            "enum": [
+              "dataset",
+              "notebook",
+              "code",
+              "environment",
+              "result",
+              "reflection",
+              "supporting_file"
+            ],
+            "title": "Artifact Kind",
+            "type": "string"
+          },
+          "artifact_version": {
+            "minimum": 1.0,
+            "title": "Artifact Version",
+            "type": "integer"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "byte_count": {
+            "maximum": 10485760.0,
+            "minimum": 0.0,
+            "title": "Byte Count",
+            "type": "integer"
+          },
+          "content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "environment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProjectEnvironmentModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inspection_mode": {
+            "enum": [
+              "metadata_only",
+              "plain_text"
+            ],
+            "title": "Inspection Mode",
+            "type": "string"
+          },
+          "logical_path": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Logical Path",
+            "type": "string"
+          },
+          "media_type": {
+            "enum": [
+              "application/octet-stream",
+              "application/json",
+              "application/pdf",
+              "application/x-ipynb+json",
+              "text/csv",
+              "text/markdown",
+              "text/plain",
+              "text/x-python"
+            ],
+            "title": "Media Type",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ArtifactProvenanceModel"
+          },
+          "result_classification": {
+            "anyOf": [
+              {
+                "enum": [
+                  "observed",
+                  "calculated",
+                  "simulated",
+                  "predicted",
+                  "generated",
+                  "narrative"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Classification"
+          }
+        },
+        "required": [
+          "artifact_kind",
+          "logical_path",
+          "media_type",
+          "inspection_mode",
+          "byte_count",
+          "content_digest",
+          "provenance",
+          "assumptions",
+          "artifact_id",
+          "artifact_version",
+          "created_at"
+        ],
+        "title": "ProjectArtifactResponseModel",
+        "type": "object"
+      },
+      "ProjectArtifactUploadRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "content_base64": {
+            "maxLength": 13981016,
+            "title": "Content Base64",
+            "type": "string"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/ProjectWorkspaceMutationRequestModel"
+          }
+        },
+        "required": [
+          "intent",
+          "content_base64"
+        ],
+        "title": "ProjectArtifactUploadRequestModel",
+        "type": "object"
+      },
       "ProjectCreateRequestModel": {
         "additionalProperties": false,
         "properties": {
@@ -4421,6 +5045,411 @@
         "title": "ProjectCreateRequestModel",
         "type": "object"
       },
+      "ProjectDomainLinkInputModel": {
+        "additionalProperties": false,
+        "properties": {
+          "link_type": {
+            "enum": [
+              "context",
+              "input",
+              "comparison",
+              "output"
+            ],
+            "title": "Link Type",
+            "type": "string"
+          },
+          "owner_module": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "provenance": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Provenance",
+            "type": "string"
+          },
+          "resource_as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource As Of"
+          },
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_type": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Resource Type",
+            "type": "string"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          }
+        },
+        "required": [
+          "link_type",
+          "owner_module",
+          "resource_type",
+          "resource_id",
+          "provenance"
+        ],
+        "title": "ProjectDomainLinkInputModel",
+        "type": "object"
+      },
+      "ProjectDomainLinkReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "link_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "owner_reference_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Owner Reference Digest",
+            "type": "string"
+          },
+          "record_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Record Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "link_id",
+          "record_digest",
+          "owner_reference_digest"
+        ],
+        "title": "ProjectDomainLinkReferenceModel",
+        "type": "object"
+      },
+      "ProjectDomainLinkResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "link_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "link_type": {
+            "enum": [
+              "context",
+              "input",
+              "comparison",
+              "output"
+            ],
+            "title": "Link Type",
+            "type": "string"
+          },
+          "owner_module": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "owner_reference_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Owner Reference Digest",
+            "type": "string"
+          },
+          "provenance": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Provenance",
+            "type": "string"
+          },
+          "resource_as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource As Of"
+          },
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_type": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Resource Type",
+            "type": "string"
+          },
+          "resource_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Version"
+          },
+          "target_status": {
+            "const": "available",
+            "title": "Target Status",
+            "type": "string"
+          },
+          "validated_at": {
+            "format": "date-time",
+            "title": "Validated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "link_type",
+          "owner_module",
+          "resource_type",
+          "resource_id",
+          "provenance",
+          "link_id",
+          "owner_reference_digest",
+          "target_status",
+          "validated_at",
+          "created_at"
+        ],
+        "title": "ProjectDomainLinkResponseModel",
+        "type": "object"
+      },
+      "ProjectEnvironmentModel": {
+        "additionalProperties": false,
+        "properties": {
+          "dependency_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dependency Digest"
+          },
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version"
+        ],
+        "title": "ProjectEnvironmentModel",
+        "type": "object"
+      },
+      "ProjectEvidenceExportBundleResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectEvidenceFileContentModel"
+            },
+            "maxItems": 100,
+            "title": "Files",
+            "type": "array"
+          },
+          "manifest": {
+            "$ref": "#/components/schemas/ProjectEvidenceExportResponseModel"
+          }
+        },
+        "required": [
+          "manifest",
+          "files"
+        ],
+        "title": "ProjectEvidenceExportBundleResponseModel",
+        "type": "object"
+      },
+      "ProjectEvidenceExportMaterialModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_files": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceArtifactFileModel"
+            },
+            "maxItems": 100,
+            "title": "Artifact Files",
+            "type": "array"
+          },
+          "excluded_artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ExcludedEvidenceArtifactModel"
+            },
+            "maxItems": 100,
+            "title": "Excluded Artifacts",
+            "type": "array"
+          },
+          "format": {
+            "const": "project-evidence-manifest-v1",
+            "title": "Format",
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "snapshot_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Digest",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "snapshot_record": {
+            "$ref": "#/components/schemas/ProjectSnapshotResponseModel"
+          },
+          "workspace_record": {
+            "$ref": "#/components/schemas/ProjectWorkspaceResponseModel"
+          }
+        },
+        "required": [
+          "format",
+          "project_id",
+          "snapshot_id",
+          "snapshot_digest",
+          "snapshot_record",
+          "workspace_record",
+          "artifact_files",
+          "excluded_artifacts"
+        ],
+        "title": "ProjectEvidenceExportMaterialModel",
+        "type": "object"
+      },
+      "ProjectEvidenceExportResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "export": {
+            "$ref": "#/components/schemas/ProjectEvidenceExportMaterialModel"
+          },
+          "export_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Export Digest",
+            "type": "string"
+          },
+          "export_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Export Id",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "export_id",
+          "export_digest",
+          "export",
+          "generated_at"
+        ],
+        "title": "ProjectEvidenceExportResponseModel",
+        "type": "object"
+      },
+      "ProjectEvidenceFileContentModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_version": {
+            "minimum": 1.0,
+            "title": "Artifact Version",
+            "type": "integer"
+          },
+          "content_base64": {
+            "title": "Content Base64",
+            "type": "string"
+          },
+          "logical_path": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Logical Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "artifact_version",
+          "logical_path",
+          "content_base64"
+        ],
+        "title": "ProjectEvidenceFileContentModel",
+        "type": "object"
+      },
       "ProjectListResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -4436,6 +5465,159 @@
           "records"
         ],
         "title": "ProjectListResponseModel",
+        "type": "object"
+      },
+      "ProjectNoteResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "note_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Note Id",
+            "type": "string"
+          },
+          "note_version": {
+            "minimum": 1.0,
+            "title": "Note Version",
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "note_id",
+          "note_version",
+          "title",
+          "body",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectNoteResponseModel",
+        "type": "object"
+      },
+      "ProjectReferenceResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "license": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License"
+          },
+          "reference_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "reference_version": {
+            "minimum": 1.0,
+            "title": "Reference Version",
+            "type": "integer"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Digest"
+          },
+          "source_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Source Name",
+            "type": "string"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "url": {
+            "maxLength": 2048,
+            "pattern": "^https://",
+            "title": "Url",
+            "type": "string"
+          },
+          "use_constraints": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Use Constraints"
+          }
+        },
+        "required": [
+          "reference_id",
+          "reference_version",
+          "title",
+          "url",
+          "source_name",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectReferenceResponseModel",
         "type": "object"
       },
       "ProjectShellResponseModel": {
@@ -4516,6 +5698,370 @@
         "title": "ProjectShellResponseModel",
         "type": "object"
       },
+      "ProjectSnapshotCloseRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_project_revision": {
+            "minimum": 1.0,
+            "title": "Expected Project Revision",
+            "type": "integer"
+          },
+          "expected_workspace_revision": {
+            "minimum": 1.0,
+            "title": "Expected Workspace Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "idempotency_key",
+          "expected_project_revision",
+          "expected_workspace_revision"
+        ],
+        "title": "ProjectSnapshotCloseRequestModel",
+        "type": "object"
+      },
+      "ProjectSnapshotListResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectSnapshotResponseModel"
+            },
+            "title": "Records",
+            "type": "array"
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "title": "ProjectSnapshotListResponseModel",
+        "type": "object"
+      },
+      "ProjectSnapshotMaterialModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectArtifactReferenceModel"
+            },
+            "maxItems": 100,
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "domain_links": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectDomainLinkReferenceModel"
+            },
+            "maxItems": 50,
+            "title": "Domain Links",
+            "type": "array"
+          },
+          "learner_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Learner Id",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectVersionReferenceModel"
+            },
+            "maxItems": 50,
+            "title": "Notes",
+            "type": "array"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_revision": {
+            "minimum": 1.0,
+            "title": "Project Revision",
+            "type": "integer"
+          },
+          "project_shell_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Project Shell Digest",
+            "type": "string"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectVersionReferenceModel"
+            },
+            "maxItems": 50,
+            "title": "References",
+            "type": "array"
+          },
+          "workspace_created_at": {
+            "format": "date-time",
+            "title": "Workspace Created At",
+            "type": "string"
+          },
+          "workspace_revision": {
+            "minimum": 1.0,
+            "title": "Workspace Revision",
+            "type": "integer"
+          },
+          "workspace_updated_at": {
+            "format": "date-time",
+            "title": "Workspace Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "learner_id",
+          "project_revision",
+          "project_shell_digest",
+          "workspace_revision",
+          "workspace_created_at",
+          "workspace_updated_at",
+          "notes",
+          "references",
+          "artifacts",
+          "domain_links"
+        ],
+        "title": "ProjectSnapshotMaterialModel",
+        "type": "object"
+      },
+      "ProjectSnapshotResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "closed_at": {
+            "format": "date-time",
+            "title": "Closed At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/ProjectSnapshotMaterialModel"
+          },
+          "snapshot_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Digest",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "snapshot_id",
+          "snapshot_digest",
+          "snapshot",
+          "closed_at"
+        ],
+        "title": "ProjectSnapshotResponseModel",
+        "type": "object"
+      },
+      "ProjectVersionReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "record_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Record Digest",
+            "type": "string"
+          },
+          "record_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Record Id",
+            "type": "string"
+          },
+          "record_version": {
+            "minimum": 1.0,
+            "title": "Record Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "record_id",
+          "record_version",
+          "record_digest"
+        ],
+        "title": "ProjectVersionReferenceModel",
+        "type": "object"
+      },
+      "ProjectWorkspaceMutationRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_workspace_revision": {
+            "minimum": 1.0,
+            "title": "Expected Workspace Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "mutation": {
+            "discriminator": {
+              "mapping": {
+                "add_artifact": "#/components/schemas/AddProjectArtifactModel",
+                "add_domain_link": "#/components/schemas/AddProjectDomainLinkModel",
+                "add_note": "#/components/schemas/AddProjectNoteModel",
+                "add_reference": "#/components/schemas/AddProjectReferenceModel",
+                "remove_domain_link": "#/components/schemas/RemoveProjectDomainLinkModel",
+                "replace_note": "#/components/schemas/ReplaceProjectNoteModel",
+                "replace_reference": "#/components/schemas/ReplaceProjectReferenceModel"
+              },
+              "propertyName": "operation"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AddProjectNoteModel"
+              },
+              {
+                "$ref": "#/components/schemas/ReplaceProjectNoteModel"
+              },
+              {
+                "$ref": "#/components/schemas/AddProjectReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/ReplaceProjectReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/AddProjectArtifactModel"
+              },
+              {
+                "$ref": "#/components/schemas/AddProjectDomainLinkModel"
+              },
+              {
+                "$ref": "#/components/schemas/RemoveProjectDomainLinkModel"
+              }
+            ],
+            "title": "Mutation"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "idempotency_key",
+          "expected_workspace_revision",
+          "mutation"
+        ],
+        "title": "ProjectWorkspaceMutationRequestModel",
+        "type": "object"
+      },
+      "ProjectWorkspaceResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectArtifactResponseModel"
+            },
+            "maxItems": 100,
+            "title": "Artifacts",
+            "type": "array"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "domain_links": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectDomainLinkResponseModel"
+            },
+            "maxItems": 50,
+            "title": "Domain Links",
+            "type": "array"
+          },
+          "learner_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Learner Id",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectNoteResponseModel"
+            },
+            "maxItems": 50,
+            "title": "Notes",
+            "type": "array"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectReferenceResponseModel"
+            },
+            "maxItems": 50,
+            "title": "References",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_revision": {
+            "minimum": 1.0,
+            "title": "Workspace Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "project_id",
+          "learner_id",
+          "workspace_revision",
+          "notes",
+          "references",
+          "artifacts",
+          "domain_links",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ProjectWorkspaceResponseModel",
+        "type": "object"
+      },
       "PublicationProvenanceModel": {
         "additionalProperties": false,
         "properties": {
@@ -4545,6 +6091,170 @@
           "educational_use_notice"
         ],
         "title": "PublicationProvenanceModel",
+        "type": "object"
+      },
+      "RemoveProjectDomainLinkModel": {
+        "additionalProperties": false,
+        "properties": {
+          "link_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Link Id",
+            "type": "string"
+          },
+          "operation": {
+            "const": "remove_domain_link",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "link_id"
+        ],
+        "title": "RemoveProjectDomainLinkModel",
+        "type": "object"
+      },
+      "ReplaceProjectNoteModel": {
+        "additionalProperties": false,
+        "properties": {
+          "body": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "expected_note_version": {
+            "minimum": 1.0,
+            "title": "Expected Note Version",
+            "type": "integer"
+          },
+          "note_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Note Id",
+            "type": "string"
+          },
+          "operation": {
+            "const": "replace_note",
+            "title": "Operation",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "note_id",
+          "expected_note_version",
+          "title",
+          "body"
+        ],
+        "title": "ReplaceProjectNoteModel",
+        "type": "object"
+      },
+      "ReplaceProjectReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_reference_version": {
+            "minimum": 1.0,
+            "title": "Expected Reference Version",
+            "type": "integer"
+          },
+          "license": {
+            "anyOf": [
+              {
+                "maxLength": 160,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "License"
+          },
+          "operation": {
+            "const": "replace_reference",
+            "title": "Operation",
+            "type": "string"
+          },
+          "reference_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Reference Id",
+            "type": "string"
+          },
+          "source_digest": {
+            "anyOf": [
+              {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Digest"
+          },
+          "source_name": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Source Name",
+            "type": "string"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "maxLength": 2048,
+            "pattern": "^https://",
+            "title": "Url",
+            "type": "string"
+          },
+          "use_constraints": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Use Constraints"
+          }
+        },
+        "required": [
+          "operation",
+          "title",
+          "url",
+          "source_name",
+          "reference_id",
+          "expected_reference_version"
+        ],
+        "title": "ReplaceProjectReferenceModel",
         "type": "object"
       },
       "SessionBootstrapRequestModel": {
@@ -7184,6 +8894,956 @@
           }
         ],
         "summary": "Get Project",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/artifacts": {
+      "post": {
+        "operationId": "uploadProjectArtifact",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectArtifactUploadRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectWorkspaceResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Upload Project Artifact",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/artifacts/{artifact_id}/versions/{artifact_version}": {
+      "get": {
+        "operationId": "downloadProjectArtifact",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_version",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Artifact Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Exact inert Project artifact bytes"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Download Project Artifact",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/snapshots": {
+      "get": {
+        "operationId": "listProjectSnapshots",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectSnapshotListResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "List Project Snapshots",
+        "tags": [
+          "projects"
+        ]
+      },
+      "post": {
+        "operationId": "closeProjectSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectSnapshotCloseRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectSnapshotResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Close Project Snapshot",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/snapshots/{snapshot_id}": {
+      "get": {
+        "operationId": "getProjectSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectSnapshotResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Project Snapshot",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/export": {
+      "get": {
+        "operationId": "exportProjectSnapshot",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectEvidenceExportBundleResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Export Project Snapshot",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/workspace": {
+      "get": {
+        "operationId": "getProjectWorkspace",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectWorkspaceResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Project Workspace",
+        "tags": [
+          "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/workspace/mutations": {
+      "post": {
+        "operationId": "mutateProjectWorkspace",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectWorkspaceMutationRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectWorkspaceResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Mutate Project Workspace",
         "tags": [
           "projects"
         ]

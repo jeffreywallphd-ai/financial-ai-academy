@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+import base64
+import binascii
 from datetime import date, datetime
 from typing import Annotated, Literal, Union
 from uuid import UUID
@@ -43,6 +45,30 @@ from financial_ai_academy.modules.project.public import (
     LearningProjectStartOption,
     ProjectCreateIntent,
     ProjectShell,
+    ProjectEvidenceExportBundle,
+)
+from financial_ai_academy.modules.project.domain.workspace import (
+    AddArtifactMutation,
+    AddDomainLinkMutation,
+    AddNoteMutation,
+    AddReferenceMutation,
+    ArtifactKind,
+    ArtifactProvenance,
+    DomainLinkType,
+    EvidenceClassification,
+    InspectionMode,
+    ProjectArtifactInput,
+    ProjectDomainLinkInput,
+    ProjectEnvironment,
+    ProjectEvidenceExport,
+    ProjectSnapshot,
+    ProjectSnapshotCloseIntent,
+    ProjectWorkspace,
+    ProvenanceSourceType,
+    RemoveDomainLinkMutation,
+    ReplaceNoteMutation,
+    ReplaceReferenceMutation,
+    WorkspaceMutationIntent,
 )
 
 
@@ -131,6 +157,299 @@ class LearningProjectStartOptionListResponseModel(ApiModel):
     records: list[LearningProjectStartOptionResponseModel] = Field(
         max_length=500
     )
+
+
+Identifier = Annotated[
+    str,
+    Field(min_length=1, max_length=128, pattern=r"^[a-z0-9][a-z0-9._-]*$"),
+]
+Digest = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
+
+
+class ProjectNoteResponseModel(ApiModel):
+    note_id: Identifier
+    note_version: int = Field(ge=1)
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=20000)
+    created_at: datetime
+    updated_at: datetime
+
+
+class ProjectReferenceResponseModel(ApiModel):
+    reference_id: Identifier
+    reference_version: int = Field(ge=1)
+    title: str = Field(min_length=1, max_length=160)
+    url: str = Field(max_length=2048, pattern=r"^https://")
+    source_name: str = Field(min_length=1, max_length=160)
+    source_version: str | None = Field(default=None, max_length=128)
+    source_digest: Digest | None = None
+    license: str | None = Field(default=None, max_length=160)
+    use_constraints: str | None = Field(default=None, max_length=1000)
+    created_at: datetime
+    updated_at: datetime
+
+
+class ArtifactProvenanceModel(ApiModel):
+    source_type: Literal["learner_created", "supplied", "external"]
+    source_title: str = Field(min_length=1, max_length=160)
+    source_version: str | None = Field(default=None, max_length=128)
+    source_url: str | None = Field(default=None, max_length=2048, pattern=r"^https://")
+    source_digest: Digest | None = None
+    license: str | None = Field(default=None, max_length=160)
+    use_constraints: str | None = Field(default=None, max_length=1000)
+
+
+class ProjectEnvironmentModel(ApiModel):
+    name: str = Field(min_length=1, max_length=120)
+    version: str = Field(min_length=1, max_length=120)
+    dependency_digest: Digest | None = None
+
+
+class ProjectArtifactInputModel(ApiModel):
+    artifact_kind: Literal[
+        "dataset", "notebook", "code", "environment", "result",
+        "reflection", "supporting_file",
+    ]
+    logical_path: str = Field(min_length=1, max_length=240)
+    media_type: Literal[
+        "application/octet-stream", "application/json", "application/pdf",
+        "application/x-ipynb+json", "text/csv", "text/markdown",
+        "text/plain", "text/x-python",
+    ]
+    inspection_mode: Literal["metadata_only", "plain_text"]
+    byte_count: int = Field(ge=0, le=10485760)
+    content_digest: Digest
+    result_classification: Literal[
+        "observed", "calculated", "simulated", "predicted", "generated",
+        "narrative",
+    ] | None = None
+    provenance: ArtifactProvenanceModel
+    environment: ProjectEnvironmentModel | None = None
+    assumptions: list[str] = Field(max_length=20)
+
+
+class ProjectArtifactResponseModel(ProjectArtifactInputModel):
+    artifact_id: Identifier
+    artifact_version: int = Field(ge=1)
+    created_at: datetime
+
+
+class ProjectDomainLinkInputModel(ApiModel):
+    link_type: Literal["context", "input", "comparison", "output"]
+    owner_module: Identifier
+    resource_type: Identifier
+    resource_id: Identifier
+    resource_version: str | None = Field(default=None, max_length=128)
+    resource_as_of: datetime | None = None
+    provenance: str = Field(min_length=1, max_length=1000)
+
+
+class ProjectDomainLinkResponseModel(ProjectDomainLinkInputModel):
+    link_id: Identifier
+    owner_reference_digest: Digest
+    target_status: Literal["available"]
+    validated_at: datetime
+    created_at: datetime
+
+
+class AddProjectNoteModel(ApiModel):
+    operation: Literal["add_note"]
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=20000)
+
+
+class ReplaceProjectNoteModel(ApiModel):
+    operation: Literal["replace_note"]
+    note_id: Identifier
+    expected_note_version: int = Field(ge=1)
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=20000)
+
+
+class AddProjectReferenceModel(ApiModel):
+    operation: Literal["add_reference"]
+    title: str = Field(min_length=1, max_length=160)
+    url: str = Field(max_length=2048, pattern=r"^https://")
+    source_name: str = Field(min_length=1, max_length=160)
+    source_version: str | None = Field(default=None, max_length=128)
+    source_digest: Digest | None = None
+    license: str | None = Field(default=None, max_length=160)
+    use_constraints: str | None = Field(default=None, max_length=1000)
+
+
+class ReplaceProjectReferenceModel(AddProjectReferenceModel):
+    operation: Literal["replace_reference"]
+    reference_id: Identifier
+    expected_reference_version: int = Field(ge=1)
+
+
+class AddProjectArtifactModel(ApiModel):
+    operation: Literal["add_artifact"]
+    artifact: ProjectArtifactInputModel
+
+
+class AddProjectDomainLinkModel(ApiModel):
+    operation: Literal["add_domain_link"]
+    link: ProjectDomainLinkInputModel
+
+
+class RemoveProjectDomainLinkModel(ApiModel):
+    operation: Literal["remove_domain_link"]
+    link_id: Identifier
+
+
+ProjectWorkspaceMutationModel = Annotated[
+    Union[
+        AddProjectNoteModel,
+        ReplaceProjectNoteModel,
+        AddProjectReferenceModel,
+        ReplaceProjectReferenceModel,
+        AddProjectArtifactModel,
+        AddProjectDomainLinkModel,
+        RemoveProjectDomainLinkModel,
+    ],
+    Field(discriminator="operation"),
+]
+
+
+class ProjectWorkspaceMutationRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: Identifier
+    expected_workspace_revision: int = Field(ge=1)
+    mutation: ProjectWorkspaceMutationModel
+
+
+class ProjectArtifactUploadRequestModel(ApiModel):
+    intent: ProjectWorkspaceMutationRequestModel
+    content_base64: str = Field(max_length=13981016)
+
+    @field_validator("content_base64")
+    @classmethod
+    def bounded_base64(cls, value: str) -> str:
+        try:
+            decoded = base64.b64decode(value, validate=True)
+        except (binascii.Error, ValueError) as error:
+            raise ValueError("Artifact content must use canonical base64.") from error
+        if len(decoded) > 10485760:
+            raise ValueError("Artifact content exceeds the size limit.")
+        if base64.b64encode(decoded).decode("ascii") != value:
+            raise ValueError("Artifact content must use canonical base64.")
+        return value
+
+
+class ProjectWorkspaceResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    project_id: Identifier
+    learner_id: Identifier
+    workspace_revision: int = Field(ge=1)
+    notes: list[ProjectNoteResponseModel] = Field(max_length=50)
+    references: list[ProjectReferenceResponseModel] = Field(max_length=50)
+    artifacts: list[ProjectArtifactResponseModel] = Field(max_length=100)
+    domain_links: list[ProjectDomainLinkResponseModel] = Field(max_length=50)
+    created_at: datetime
+    updated_at: datetime
+
+
+class ProjectSnapshotCloseRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: Identifier
+    expected_project_revision: int = Field(ge=1)
+    expected_workspace_revision: int = Field(ge=1)
+
+
+class ProjectVersionReferenceModel(ApiModel):
+    record_id: Identifier
+    record_version: int = Field(ge=1)
+    record_digest: Digest
+
+
+class ProjectArtifactReferenceModel(ApiModel):
+    artifact_id: Identifier
+    artifact_version: int = Field(ge=1)
+    manifest_digest: Digest
+    content_digest: Digest
+    byte_count: int = Field(ge=0, le=10485760)
+
+
+class ProjectDomainLinkReferenceModel(ApiModel):
+    link_id: Identifier
+    record_digest: Digest
+    owner_reference_digest: Digest
+
+
+class ProjectSnapshotMaterialModel(ApiModel):
+    project_id: Identifier
+    learner_id: Identifier
+    project_revision: int = Field(ge=1)
+    project_shell_digest: Digest
+    workspace_revision: int = Field(ge=1)
+    workspace_created_at: datetime
+    workspace_updated_at: datetime
+    notes: list[ProjectVersionReferenceModel] = Field(max_length=50)
+    references: list[ProjectVersionReferenceModel] = Field(max_length=50)
+    artifacts: list[ProjectArtifactReferenceModel] = Field(max_length=100)
+    domain_links: list[ProjectDomainLinkReferenceModel] = Field(max_length=50)
+
+
+class ProjectSnapshotResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    snapshot_id: Identifier
+    snapshot_digest: Digest
+    snapshot: ProjectSnapshotMaterialModel
+    closed_at: datetime
+
+
+class ProjectSnapshotListResponseModel(ApiModel):
+    records: list[ProjectSnapshotResponseModel]
+
+
+class EvidenceArtifactFileModel(ApiModel):
+    artifact_id: Identifier
+    artifact_version: int = Field(ge=1)
+    manifest_digest: Digest
+    logical_path: str = Field(min_length=1, max_length=240)
+    media_type: str
+    byte_count: int = Field(ge=0, le=10485760)
+    content_digest: Digest
+
+
+class ExcludedEvidenceArtifactModel(ApiModel):
+    artifact_id: Identifier
+    artifact_version: int = Field(ge=1)
+    reason: Literal[
+        "source_use_restricted", "not_authorized", "content_unavailable"
+    ]
+
+
+class ProjectEvidenceExportMaterialModel(ApiModel):
+    format: Literal["project-evidence-manifest-v1"]
+    project_id: Identifier
+    snapshot_id: Identifier
+    snapshot_digest: Digest
+    snapshot_record: ProjectSnapshotResponseModel
+    workspace_record: ProjectWorkspaceResponseModel
+    artifact_files: list[EvidenceArtifactFileModel] = Field(max_length=100)
+    excluded_artifacts: list[ExcludedEvidenceArtifactModel] = Field(max_length=100)
+
+
+class ProjectEvidenceExportResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    export_id: Identifier
+    export_digest: Digest
+    export: ProjectEvidenceExportMaterialModel
+    generated_at: datetime
+
+
+class ProjectEvidenceFileContentModel(ApiModel):
+    artifact_id: Identifier
+    artifact_version: int = Field(ge=1)
+    logical_path: str = Field(min_length=1, max_length=240)
+    content_base64: str
+
+
+class ProjectEvidenceExportBundleResponseModel(ApiModel):
+    manifest: ProjectEvidenceExportResponseModel
+    files: list[ProjectEvidenceFileContentModel] = Field(max_length=100)
 
 
 class InlineTextModel(ApiModel):
@@ -1775,6 +2094,152 @@ def project_list_response(
 ) -> ProjectListResponseModel:
     return ProjectListResponseModel(
         records=[project_shell_response(shell) for shell in shells]
+    )
+
+
+def project_workspace_mutation_intent(
+    value: ProjectWorkspaceMutationRequestModel,
+) -> WorkspaceMutationIntent:
+    mutation = value.mutation
+    if isinstance(mutation, AddProjectNoteModel):
+        parsed = AddNoteMutation(mutation.title, mutation.body)
+    elif isinstance(mutation, ReplaceProjectNoteModel):
+        parsed = ReplaceNoteMutation(
+            mutation.note_id,
+            mutation.expected_note_version,
+            mutation.title,
+            mutation.body,
+        )
+    elif isinstance(mutation, ReplaceProjectReferenceModel):
+        parsed = ReplaceReferenceMutation(
+            mutation.reference_id,
+            mutation.expected_reference_version,
+            mutation.title,
+            mutation.url,
+            mutation.source_name,
+            mutation.source_version,
+            mutation.source_digest,
+            mutation.license,
+            mutation.use_constraints,
+        )
+    elif isinstance(mutation, AddProjectReferenceModel):
+        parsed = AddReferenceMutation(
+            mutation.title,
+            mutation.url,
+            mutation.source_name,
+            mutation.source_version,
+            mutation.source_digest,
+            mutation.license,
+            mutation.use_constraints,
+        )
+    elif isinstance(mutation, AddProjectArtifactModel):
+        artifact = mutation.artifact
+        parsed = AddArtifactMutation(
+            ProjectArtifactInput(
+                ArtifactKind(artifact.artifact_kind),
+                artifact.logical_path,
+                artifact.media_type,
+                InspectionMode(artifact.inspection_mode),
+                artifact.byte_count,
+                artifact.content_digest,
+                EvidenceClassification(artifact.result_classification)
+                if artifact.result_classification is not None
+                else None,
+                ArtifactProvenance(
+                    ProvenanceSourceType(artifact.provenance.source_type),
+                    artifact.provenance.source_title,
+                    artifact.provenance.source_version,
+                    artifact.provenance.source_url,
+                    artifact.provenance.source_digest,
+                    artifact.provenance.license,
+                    artifact.provenance.use_constraints,
+                ),
+                ProjectEnvironment(
+                    artifact.environment.name,
+                    artifact.environment.version,
+                    artifact.environment.dependency_digest,
+                )
+                if artifact.environment is not None
+                else None,
+                tuple(artifact.assumptions),
+            )
+        )
+    elif isinstance(mutation, AddProjectDomainLinkModel):
+        link = mutation.link
+        parsed = AddDomainLinkMutation(
+            ProjectDomainLinkInput(
+                DomainLinkType(link.link_type),
+                link.owner_module,
+                link.resource_type,
+                link.resource_id,
+                link.resource_version,
+                link.resource_as_of,
+                link.provenance,
+            )
+        )
+    elif isinstance(mutation, RemoveProjectDomainLinkModel):
+        parsed = RemoveDomainLinkMutation(mutation.link_id)
+    else:
+        raise TypeError("Unsupported Project workspace mutation.")
+    return WorkspaceMutationIntent(
+        value.schema_version,
+        value.idempotency_key,
+        value.expected_workspace_revision,
+        parsed,
+    )
+
+
+def project_artifact_content(value: ProjectArtifactUploadRequestModel) -> bytes:
+    return base64.b64decode(value.content_base64, validate=True)
+
+
+def project_snapshot_close_intent(
+    value: ProjectSnapshotCloseRequestModel,
+) -> ProjectSnapshotCloseIntent:
+    return ProjectSnapshotCloseIntent(
+        value.schema_version,
+        value.idempotency_key,
+        value.expected_project_revision,
+        value.expected_workspace_revision,
+    )
+
+
+def project_workspace_response(
+    workspace: ProjectWorkspace,
+) -> ProjectWorkspaceResponseModel:
+    return ProjectWorkspaceResponseModel.model_validate(asdict(workspace))
+
+
+def project_snapshot_response(
+    snapshot: ProjectSnapshot,
+) -> ProjectSnapshotResponseModel:
+    return ProjectSnapshotResponseModel.model_validate(asdict(snapshot))
+
+
+def project_snapshot_list_response(
+    snapshots: tuple[ProjectSnapshot, ...],
+) -> ProjectSnapshotListResponseModel:
+    return ProjectSnapshotListResponseModel(
+        records=[project_snapshot_response(snapshot) for snapshot in snapshots]
+    )
+
+
+def project_evidence_export_response(
+    bundle: ProjectEvidenceExportBundle,
+) -> ProjectEvidenceExportBundleResponseModel:
+    return ProjectEvidenceExportBundleResponseModel(
+        manifest=ProjectEvidenceExportResponseModel.model_validate(
+            asdict(bundle.manifest)
+        ),
+        files=[
+            ProjectEvidenceFileContentModel(
+                artifact_id=item.artifact_id,
+                artifact_version=item.artifact_version,
+                logical_path=item.logical_path,
+                content_base64=base64.b64encode(item.content).decode("ascii"),
+            )
+            for item in bundle.files
+        ],
     )
 
 

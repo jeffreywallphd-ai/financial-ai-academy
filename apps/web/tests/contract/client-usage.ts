@@ -20,6 +20,12 @@ type ProjectCreateRequest =
   components["schemas"]["ProjectCreateRequestModel"];
 type LearningProjectStartOption =
   components["schemas"]["LearningProjectStartOptionResponseModel"];
+type ProjectWorkspaceMutation =
+  components["schemas"]["ProjectWorkspaceMutationRequestModel"];
+type ProjectArtifactUpload =
+  components["schemas"]["ProjectArtifactUploadRequestModel"];
+type ProjectSnapshotClose =
+  components["schemas"]["ProjectSnapshotCloseRequestModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -79,6 +85,92 @@ void learningStart.then((result) => {
 void client.GET("/api/v1/projects/{project_id}", {
   params: { path: { project_id: "project-1" } },
 });
+
+const noteMutation: ProjectWorkspaceMutation = {
+  schema_version: "1.0.0",
+  idempotency_key: "note-1",
+  expected_workspace_revision: 1,
+  mutation: {
+    operation: "add_note",
+    title: "Question",
+    body: "Compare the evidence without making a recommendation.",
+  },
+};
+void client.GET("/api/v1/projects/{project_id}/workspace", {
+  params: { path: { project_id: "project-1" } },
+});
+void client.POST("/api/v1/projects/{project_id}/workspace/mutations", {
+  params: { path: { project_id: "project-1" } },
+  body: noteMutation,
+});
+
+const artifactUpload: ProjectArtifactUpload = {
+  intent: {
+    schema_version: "1.0.0",
+    idempotency_key: "artifact-1",
+    expected_workspace_revision: 2,
+    mutation: {
+      operation: "add_artifact",
+      artifact: {
+        artifact_kind: "dataset",
+        logical_path: "data/scenario.csv",
+        media_type: "text/csv",
+        inspection_mode: "plain_text",
+        byte_count: 0,
+        content_digest: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        provenance: {
+          source_type: "learner_created",
+          source_title: "Empty scenario fixture",
+        },
+        assumptions: [],
+      },
+    },
+  },
+  content_base64: "",
+};
+void client.POST("/api/v1/projects/{project_id}/artifacts", {
+  params: { path: { project_id: "project-1" } },
+  body: artifactUpload,
+});
+void client.GET(
+  "/api/v1/projects/{project_id}/artifacts/{artifact_id}/versions/{artifact_version}",
+  {
+    params: {
+      path: {
+        project_id: "project-1",
+        artifact_id: "artifact-1",
+        artifact_version: 1,
+      },
+    },
+  },
+);
+
+const snapshotClose: ProjectSnapshotClose = {
+  schema_version: "1.0.0",
+  idempotency_key: "snapshot-1",
+  expected_project_revision: 1,
+  expected_workspace_revision: 3,
+};
+void client.POST("/api/v1/projects/{project_id}/snapshots", {
+  params: { path: { project_id: "project-1" } },
+  body: snapshotClose,
+});
+void client.GET("/api/v1/projects/{project_id}/snapshots", {
+  params: { path: { project_id: "project-1" } },
+});
+void client.GET("/api/v1/projects/{project_id}/snapshots/{snapshot_id}", {
+  params: {
+    path: { project_id: "project-1", snapshot_id: "snapshot-1" },
+  },
+});
+void client.GET(
+  "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/export",
+  {
+    params: {
+      path: { project_id: "project-1", snapshot_id: "snapshot-1" },
+    },
+  },
+);
 
 const practiceSubmission: PracticeSubmission = {
   schema_version: "1.0.0",

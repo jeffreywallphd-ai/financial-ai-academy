@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import psycopg
@@ -15,9 +15,22 @@ from financial_ai_academy.modules.project.adapters.postgres_repository import (
 from financial_ai_academy.modules.project.adapters.project_contract import (
     ContractProjectAdapter,
 )
+from financial_ai_academy.modules.project.application.service import ProjectService
 from financial_ai_academy.modules.project.domain.project import (
     IndependentProjectOrigin,
+    ProjectCreateIntent,
     ProjectShell,
+)
+from financial_ai_academy.modules.project.domain.workspace import (
+    AddNoteMutation,
+    ProjectSnapshotCloseIntent,
+    WorkspaceMutationIntent,
+)
+from financial_ai_academy.modules.project.public import (
+    CloseProjectSnapshotRequest,
+    CreateProjectRequest,
+    MutateProjectWorkspaceRequest,
+    OpenProjectWorkspaceRequest,
 )
 from financial_ai_academy.modules.project.ports.repositories import (
     ProjectIdempotencyConflict,
@@ -52,7 +65,7 @@ def migrated_database() -> object:
     statuses = PostgresMigrationRunner(
         POSTGRES_DSN, MIGRATIONS / "project"
     ).apply_all()
-    assert statuses[-1].migration_id == "project_0001_project_shells"
+    assert statuses[-1].migration_id == "project_0002_workspace_snapshots"
     yield
     with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
         for schema in ("project", "curriculum", "content", "platform"):
@@ -63,7 +76,7 @@ def migrated_database() -> object:
 def empty_projects(migrated_database: object) -> None:
     assert POSTGRES_DSN is not None
     with psycopg.connect(POSTGRES_DSN) as connection:
-        connection.execute("TRUNCATE TABLE project.project_shells")
+        connection.execute("TRUNCATE TABLE project.project_shells CASCADE")
 
 
 def repository(dsn: str | None = None) -> PostgresProjectRepository:
@@ -87,6 +100,32 @@ def shell(project_id: str, learner_id: str = "learner-1") -> ProjectShell:
         NOW,
         NOW,
     )
+
+
+class Clock:
+    def __init__(self) -> None:
+        self.tick = 0
+
+    def now(self) -> datetime:
+        self.tick += 1
+        return NOW + timedelta(minutes=self.tick)
+
+
+class Identifiers:
+    def __init__(self) -> None:
+        self.value = 0
+
+    def new(self) -> str:
+        self.value += 1
+        return f"postgres-record-{self.value}"
+
+
+class UnusedGateway:
+    def resolve(self, _value):
+        raise AssertionError("Independent Project must not resolve learning.")
+
+    def list(self):
+        return ()
 
 
 def test_project_survives_repository_restart_and_is_learner_scoped() -> None:
@@ -161,6 +200,81 @@ def test_changed_idempotency_meaning_conflicts_without_overwrite() -> None:
     )
 
 
+def test_workspace_and_snapshot_survive_repository_restart() -> None:
+    selected = repository()
+    service = ProjectService(
+        selected,
+        ContractProjectAdapter(SCHEMAS),
+        UnusedGateway(),
+        UnusedGateway(),
+        Clock(),
+        Identifiers(),
+    )
+    created = service.create_project(
+        CreateProjectRequest(
+            "learner-1",
+            ProjectCreateIntent(
+                "1.0.0",
+                "workspace-create",
+                "Persistent Project",
+                "Retain exact educational evidence.",
+                IndependentProjectOrigin(),
+            ),
+        )
+    )
+    opened = service.open_workspace(
+        OpenProjectWorkspaceRequest("learner-1", created.project_id)
+    )
+    changed = service.mutate_workspace(
+        MutateProjectWorkspaceRequest(
+            "learner-1",
+            created.project_id,
+            WorkspaceMutationIntent(
+                "1.0.0",
+                "workspace-note",
+                opened.workspace_revision,
+                AddNoteMutation("Persistent note", "Reopen this exact note."),
+            ),
+        )
+    )
+    snapshot = service.close_snapshot(
+        CloseProjectSnapshotRequest(
+            "learner-1",
+            created.project_id,
+            ProjectSnapshotCloseIntent(
+                "1.0.0",
+                "workspace-snapshot",
+                created.revision,
+                changed.workspace_revision,
+            ),
+        )
+    )
+    restarted = ProjectService(
+        repository(),
+        ContractProjectAdapter(SCHEMAS),
+        UnusedGateway(),
+        UnusedGateway(),
+        Clock(),
+        Identifiers(),
+    )
+
+    assert restarted.open_workspace(
+        OpenProjectWorkspaceRequest("learner-1", created.project_id)
+    ) == changed
+    assert restarted.close_snapshot(
+        CloseProjectSnapshotRequest(
+            "learner-1",
+            created.project_id,
+            ProjectSnapshotCloseIntent(
+                "1.0.0",
+                "workspace-snapshot",
+                created.revision,
+                changed.workspace_revision,
+            ),
+        )
+    ) == snapshot
+
+
 def test_down_migration_refuses_retained_project_rows() -> None:
     assert POSTGRES_DSN is not None
     repository().create_if_absent(
@@ -183,18 +297,26 @@ def test_down_migration_refuses_retained_project_rows() -> None:
 
 def test_empty_development_down_and_up_are_reversible() -> None:
     assert POSTGRES_DSN is not None
-    down = (
+    shell_down = (
         MIGRATIONS / "project/project_0001_project_shells.down.sql"
     ).read_text(encoding="utf-8")
-    up = (
+    shell_up = (
         MIGRATIONS / "project/project_0001_project_shells.up.sql"
+    ).read_text(encoding="utf-8")
+    workspace_down = (
+        MIGRATIONS / "project/project_0002_workspace_snapshots.down.sql"
+    ).read_text(encoding="utf-8")
+    workspace_up = (
+        MIGRATIONS / "project/project_0002_workspace_snapshots.up.sql"
     ).read_text(encoding="utf-8")
 
     with psycopg.connect(POSTGRES_DSN) as connection:
-        connection.execute(down)
+        connection.execute(workspace_down)
+        connection.execute(shell_down)
         assert connection.execute(
             "SELECT to_regnamespace('project')"
         ).fetchone() == (None,)
-        connection.execute(up)
+        connection.execute(shell_up)
+        connection.execute(workspace_up)
 
     assert repository().list_for_learner("learner-1") == ()
