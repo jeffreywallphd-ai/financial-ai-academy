@@ -142,9 +142,9 @@ npm --prefix apps/web test
 npm --prefix apps/web run typecheck
 npm --prefix apps/web run lint
 npm --prefix apps/web run build
-python dev-tools/contracts/check_openapi.py
+python dev-tools/control-plane/check_approved_lesson.py --mode generated
 python dev-tools/architecture/check_architecture.py
-python dev-tools/security/check_security.py
+python dev-tools/security/check_slice_security.py
 python dev-tools/design/check_design_system.py
 python dev-tools/planning/check_planning.py
 python dev-tools/documentation/check_docs.py
@@ -191,6 +191,40 @@ review disposition; assumptions; residual risks; and deliberately deferred AI,
 cloud, and styling scope. Confirm whether SLI-0025 and CAP-0005 meet their
 acceptance sets and are ready for deterministic closure and main fast-forward.
 
+## Implementation Evidence
+
+- The complete backend suite passes 426 tests with 34 environment-dependent
+  PostgreSQL tests skipped in that non-live run. The isolated live qualifier
+  supplies the required PostgreSQL 18.4 evidence.
+- The focused replay qualifier passes 14 tests covering API routing, semantic
+  comparison, exact reset scope, source preservation, process lifecycle,
+  cleanup continuation, and anti-rigidity behavior.
+- The web suite passes 151 unit, component, and contract tests across 13 files;
+  TypeScript typecheck and zero-warning lint pass; the production build
+  transforms 112 modules; and the reviewed OpenAPI-generated client reproduces
+  without drift.
+- Mocked Chromium qualification passes 27 curriculum, catalog, comparison,
+  lesson, denial, accessibility, responsive, forced-color, reduced-motion, and
+  theme scenarios.
+- The isolated PostgreSQL/Python/public-API/generated-client/Chromium
+  qualification passes all eight live scenarios. Its API-only phase reports a
+  supported headless session and exact graph, Navigation-state, and launch
+  path; a normal seed-free restart; unchanged Assessment source evidence;
+  stable semantic navigation state; and reconstruction of three Learner-model
+  projection rows plus one history row.
+- Architecture passes 15 tests; the approved-lesson security checker passes 10
+  control groups; design-system validation passes with 125 light/global tokens
+  and 56 reviewed icons; documentation validates 312 Markdown files plus the
+  context and capability catalogs; and planning validates 169 artifacts.
+- The fixed aggregate readiness gate passes all 29 checks. Environment-only
+  Windows sandbox failures were rerun with the repository's prepared Node 24,
+  pinned npm, and bounded workspace temp directory; no product or plan change
+  was needed.
+- No product source, public API, OpenAPI, generated client, UI, schema,
+  migration, dependency, provider, cloud adapter, model authority, or separate
+  AI-mode plan changed. The public API remains available to browser and
+  non-browser clients.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0090 completed. The packet makes
@@ -199,3 +233,7 @@ acceptance sets and are ready for deterministic closure and main fast-forward.
 - 2026-10-16: Claimed from base revision `383d8e5` after packet validation,
   dependency completion, current CAP conformance, and exact-scope collision
   checks passed. Packet-start selected the bounded cumulative evidence route.
+- 2026-10-16: Cumulative qualification passed across backend, web, generated-
+  client, mocked and live browser, headless API replay, architecture, security,
+  design, documentation, planning, and all 29 aggregate readiness checks. The
+  documentation-only result is ready for exact-candidate submission.

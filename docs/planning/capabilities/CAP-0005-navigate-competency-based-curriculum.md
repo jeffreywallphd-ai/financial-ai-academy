@@ -162,6 +162,32 @@ eligibility contracts, Curriculum and Learner-model public seams, event and
 projection behavior, API/generated-client contracts, accessible navigation
 patterns, module READMEs, architecture verification, and known gaps.
 
+## Completion Evidence
+
+| Capability acceptance | Direct evidence |
+| --- | --- |
+| Invalid references, duplicate identities, unsupported versions, forbidden cycles, and ambiguous rules fail before visibility | Curriculum graph contract, domain, application, and API coverage in the 426-test backend suite |
+| Learner-visible facts retain stable identity and exact approved versions | Reviewed OpenAPI/generated-client reproduction plus exact-version backend, 27 mocked Chromium, and eight live Chromium scenarios |
+| Complete, eligible, locked, optional, and unavailable states are deterministic and explained | Navigation policy/contract/application tests plus live graph-ordered state and reason qualification |
+| Missing, stale, tampered, cross-context, and unauthorized requests fail closed | Backend denial and confidentiality coverage, mocked browser denial paths, approved-lesson security's 10 control groups, and live denial scenarios |
+| Learners choose eligible branches and the application rechecks exact launch authority | Protected launch API tests and the live exact lesson launch/return journey |
+| Version changes preserve evidence meaning and do not silently substitute completion | Coexisting `investing-foundations@1.0.0` and `@1.1.0` live evidence plus exact-source completion reuse without changed-placement inheritance |
+| Projection rebuild reproduces current navigation state without source mutation | Public-API-only restart/replay: Assessment sources preserved, semantic state stable, three projections and one history row rebuilt after seed-free restart |
+| Local and future cloud profiles share core semantics without a deployment fork | Fifteen architecture/import-boundary tests and deployment-neutral domain, application, contract, and provider-port checks |
+| Map/list, keyboard, focus, labels, non-color state, reflow, reduced motion, forced colors, and themes remain equivalent | 151 web tests, 27 mocked Chromium scenarios, eight live scenarios, and design validation of 125 tokens and 56 icons |
+
+The supported public session, graph, Navigation-state, and activity-launch APIs
+remain available to browser, command-line, service, and future headless AI
+clients. The live qualifier proves the non-browser path without importing
+backend internals or relying on UI state. CAP-0005 does not plan or qualify a
+separate AI mode, agent protocol, model provider, adaptive ranking, managed-
+cloud adapter, organization tenancy, or production recovery profile.
+
+The cumulative matrix also passes TypeScript typecheck, zero-warning lint,
+production build, generated-client drift detection, 14 focused replay tests,
+documentation and planning integrity, and all 29 fixed aggregate readiness
+checks. No product behavior or public contract changed in the closure packet.
+
 ## Planning History
 
 - 2026-10-15: Shaped from the catalog candidate “Navigate a competency-based
@@ -172,3 +198,7 @@ patterns, module READMEs, architecture verification, and known gaps.
 - 2026-10-16: Resumed approved delivery at SLI-0024 after SLI-0022 and SLI-0023
   completed. The first exact launch-contract packet is active with no material
   package drift or unresolved decision.
+- 2026-10-16: Completed the CAP-0005 cumulative qualification matrix through
+  WRK-0091. Every acceptance statement has direct evidence, including a public-
+  API-only headless restart/replay path; the capability is ready for governed
+  slice and CAP closure without a separate AI-mode plan.

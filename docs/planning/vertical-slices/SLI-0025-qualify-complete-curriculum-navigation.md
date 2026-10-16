@@ -233,6 +233,26 @@ assumptions, and known gaps. It must explicitly state that headless API access
 remains available while a separate AI mode, cloud adapter, and adaptive model
 plan remain out of scope.
 
+### Qualification Result
+
+All SLI-0025 scenarios have direct passing evidence. Fourteen focused tests
+qualify semantic replay, source preservation, exact derived-row reset,
+restart/cleanup behavior, and anti-rigidity. The isolated PostgreSQL 18.4 live
+run passes eight Chromium scenarios and a distinct public-API-only phase that
+establishes a supported session, reads the exact graph and Navigation state,
+opens an eligible exact activity, restarts without reseeding, preserves
+Assessment evidence, reproduces stable navigation semantics, and rebuilds
+three completion projections plus one history row.
+
+The broader matrix passes 426 backend tests with 34 non-live PostgreSQL skips,
+151 web tests, 27 mocked Chromium scenarios, TypeScript typecheck, zero-warning
+lint, production build, reviewed generated-client reproduction, 15
+architecture tests, 10 security control groups, design-system validation,
+documentation and planning integrity, and all 29 aggregate readiness checks.
+The API remains the authoritative interface for UI and non-UI clients. No
+separate AI mode, cloud adapter, model authority, or production recovery claim
+was planned or qualified.
+
 ## Planning History
 
 - 2026-10-16: Refined the final CAP-0005 manifest increment after SLI-0022
@@ -269,3 +289,7 @@ plan remain out of scope.
 - 2026-10-16: Activated WRK-0091 after validating its dependency, exact
   documentation-only write scope, current CAP package, and collision-free
   claim. Packet-start froze the cumulative acceptance and evidence route.
+- 2026-10-16: WRK-0091 completed the cumulative qualification matrix. Every
+  SLI scenario now has passing focused, live, contract, browser, architecture,
+  security, accessibility, documentation, planning, or readiness evidence;
+  the documentation-only closure candidate is ready for submission.
