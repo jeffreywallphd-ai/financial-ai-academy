@@ -1,9 +1,9 @@
 ---
 id: WRK-0063
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0005
 updated: 2026-10-16
 parent: SLI-0023
 capability: CAP-0005
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/adaptation/application/", "backend/src/financial_ai_academy/modules/adaptation/ports/", "backend/src/financial_ai_academy/modules/adaptation/adapters/", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/identity/README.md", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/adaptation/", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/integration/api/", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/src/generated/api-client/", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/README.md", "deployments/local/serve.py", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/architecture/contracts/identity-provider-contract.md", "docs/planning/work-packets/WRK-0063-compose-protected-navigation-state-api.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
-base_revision: 18a0dbbde8b24286c94466b9159c27b1ce7c2411
-claim_id: WRK-0063:07bb0454-e6df-4519-a5bc-52aead258fac
+base_revision: 2698d088ca18e3af7dd5832a9b3e4553d6b13217
+claim_id: WRK-0063:c391a755-a007-4ea1-a600-c03c37d756b2
 claimed_by: codex-cap-0005
-claimed_at: 2026-10-16T00:20:59Z
+claimed_at: 2026-10-16T00:34:38Z
 ---
 
 # Agent Work Packet: Compose the Protected Navigation-State API
