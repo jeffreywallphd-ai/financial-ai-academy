@@ -11,9 +11,15 @@ from uuid import UUID
 from financial_ai_academy.modules.curriculum.public import (
     AssessmentActivityReference,
     CurriculumActivityKind,
+    CurriculumGraph,
     LessonActivityReference,
 )
 
+from ..domain.activity_launch import (
+    ActivityLaunchResolution,
+    ResolveActivityLaunchRequest,
+    resolve_activity_launch,
+)
 from ..domain.models import (
     ActivitySourceFact,
     ActivitySourceState,
@@ -66,6 +72,14 @@ class OpenNavigationStateRequest:
     curriculum_version: str
 
 
+@dataclass(frozen=True, slots=True)
+class OpenActivityLaunchRequest:
+    learner_id: str
+    curriculum_id: str
+    curriculum_version: str
+    activity_id: str
+
+
 class AdaptationService:
     def __init__(
         self,
@@ -87,6 +101,32 @@ class AdaptationService:
         self,
         request: OpenNavigationStateRequest,
     ) -> NavigationStateProjection:
+        _graph, projection = self._open_navigation_context(request)
+        return projection
+
+    def open_activity_launch(
+        self,
+        request: OpenActivityLaunchRequest,
+    ) -> ActivityLaunchResolution:
+        graph, projection = self._open_navigation_context(
+            OpenNavigationStateRequest(
+                learner_id=request.learner_id,
+                curriculum_id=request.curriculum_id,
+                curriculum_version=request.curriculum_version,
+            )
+        )
+        return resolve_activity_launch(
+            ResolveActivityLaunchRequest(
+                graph=graph,
+                navigation_state=projection,
+                activity_id=request.activity_id,
+            )
+        )
+
+    def _open_navigation_context(
+        self,
+        request: OpenNavigationStateRequest,
+    ) -> tuple[CurriculumGraph, NavigationStateProjection]:
         self._validate_request(request)
         try:
             graph = self._curriculum.open_graph(
@@ -172,13 +212,14 @@ class AdaptationService:
                 or evaluated_at.utcoffset() is None
             ):
                 raise self._unavailable()
-            return evaluate_navigation_state(
+            projection = evaluate_navigation_state(
                 EvaluateNavigationStateRequest(
                     graph=graph,
                     activity_facts=tuple(facts),
                     evaluated_at=evaluated_at.astimezone(timezone.utc),
                 )
             )
+            return graph, projection
         except NavigationStateOperationError:
             raise
         except Exception as error:

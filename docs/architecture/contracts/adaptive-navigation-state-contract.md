@@ -101,6 +101,10 @@ repository access crosses this seam.
 
 The executable schema lives beside the Navigation-state schemas under
 `contracts/learning/adaptation/v1/`; its independent compatibility corpus is
-under `contracts/compatibility/adaptation-activity-launch/v1/`. Application
-gateway composition, protected HTTP exposure, generated clients, and browser
+under `contracts/compatibility/adaptation-activity-launch/v1/`. The public
+application operation opens one fresh exact graph, observes current completion,
+evaluates Navigation state once, and resolves the launch against that matching
+pair. The protected bodyless GET requires both existing navigation-read and
+lesson-read permissions and is published as `getCurriculumActivityLaunch` in
+the reviewed OpenAPI and generated TypeScript client. Browser actions and
 return behavior remain later SLI-0024 seams.

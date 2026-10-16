@@ -38,6 +38,12 @@ failed completion read does not rewrite activity availability. Because no
 accepted assessment-activity completion projection exists, assessment
 completion remains explicitly `unavailable` rather than inferred.
 
+The same application service can resolve one activity launch from that fresh
+graph/projection pair. It opens and evaluates the current sources once, then
+passes the matching exact values to the pure launch decision. The public
+operation accepts only server-resolved learner context plus curriculum ID,
+version, and activity ID; it creates no durable launch state.
+
 The module has no repository, random source, provider, model, host, web
 framework, or database dependency. It stores nothing and makes no mastery,
 competency, recommendation, ranking, credential, suitability, or advice claim.
@@ -50,5 +56,7 @@ authorization responses, accessible peer views, and isolated
 PostgreSQL/Python/static-browser execution. Durable recommendations, model
 ranking, experiments, managed-cloud adapters, and assessment completion remain
 outside this implemented boundary. Application composition, HTTP,
-authorization, generated clients, browser navigation, and return context also
-remain separate from the current pure launch seam.
+The protected launch GET and generated client now expose this application seam
+behind both existing navigation-read and lesson-read permissions. Browser
+actions, return navigation, and current-position presentation remain separate
+SLI-0024 work.

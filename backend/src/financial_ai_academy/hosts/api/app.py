@@ -22,9 +22,12 @@ from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyCookie
 
 from financial_ai_academy.modules.adaptation.public import (
+    ActivityLaunchError,
+    ActivityLaunchErrorCode,
     AdaptationOperations,
     NavigationStateOperationError,
     NavigationStateOperationErrorCode,
+    OpenActivityLaunchRequest,
     OpenNavigationStateRequest,
 )
 from financial_ai_academy.modules.assessment.public import (
@@ -78,6 +81,7 @@ from financial_ai_academy.platform.security.single_profile_policy import (
 )
 
 from .models import (
+    ActivityLaunchResponseModel,
     ApiErrorEnvelope,
     CurriculumGraphResponseModel,
     DiscoveryTopic,
@@ -92,6 +96,7 @@ from .models import (
     NavigationStateResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
+    activity_launch_response,
     curriculum_graph_response,
     knowledge_check_presentation_response,
     knowledge_check_result_response,
@@ -396,6 +401,32 @@ def create_app(services: ApiServices) -> FastAPI:
             request.state.correlation_id,
         )
 
+    @app.exception_handler(ActivityLaunchError)
+    async def activity_launch_error_handler(
+        request: Request, error: ActivityLaunchError
+    ) -> JSONResponse:
+        http_status = {
+            ActivityLaunchErrorCode.INVALID_CONTEXT: (
+                status.HTTP_400_BAD_REQUEST
+            ),
+            ActivityLaunchErrorCode.ACTIVITY_NOT_FOUND: (
+                status.HTTP_404_NOT_FOUND
+            ),
+            ActivityLaunchErrorCode.ACTIVITY_LOCKED: status.HTTP_409_CONFLICT,
+            ActivityLaunchErrorCode.ACTIVITY_UNAVAILABLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            ActivityLaunchErrorCode.UNSUPPORTED_ACTIVITY: (
+                status.HTTP_409_CONFLICT
+            ),
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.message,
+            request.state.correlation_id,
+        )
+
     @app.exception_handler(RequestValidationError)
     async def request_validation_handler(
         request: Request, _error: RequestValidationError
@@ -449,6 +480,19 @@ def create_app(services: ApiServices) -> FastAPI:
             raise IdentityError(
                 IdentityErrorCode.FORBIDDEN,
                 "The learner session cannot read navigation state.",
+            )
+        return context
+
+    def activity_launch_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if not {
+            "adaptation.navigation.read",
+            "curriculum.lesson.read",
+        }.issubset(context.permissions):
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot open this activity.",
             )
         return context
 
@@ -573,6 +617,46 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         )
         return navigation_state_response(projection)
+
+    @app.get(
+        "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/activities/{activity_id}/launch",
+        response_model=ActivityLaunchResponseModel,
+        operation_id="getCurriculumActivityLaunch",
+        responses=_ERROR_RESPONSES,
+        tags=["adaptation"],
+    )
+    async def get_curriculum_activity_launch(
+        request: Request,
+        curriculum_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        curriculum_version: str = Path(
+            pattern=(
+                r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+                r"(0|[1-9][0-9]*)$"
+            ),
+        ),
+        activity_id: str = Path(
+            min_length=1,
+            max_length=128,
+            pattern=r"^[a-z0-9][a-z0-9._:-]{0,127}$",
+        ),
+        context: LearnerContext = Depends(activity_launch_context),
+    ) -> ActivityLaunchResponseModel:
+        if request.query_params or await request.body():
+            raise RequestValidationError([])
+        adaptation = _adaptation_service(services.adaptation)
+        resolution = adaptation.open_activity_launch(
+            OpenActivityLaunchRequest(
+                learner_id=context.learner_id,
+                curriculum_id=curriculum_id,
+                curriculum_version=curriculum_version,
+                activity_id=activity_id,
+            )
+        )
+        return activity_launch_response(resolution)
 
     @app.get(
         "/api/v1/curriculum/opportunities",
@@ -795,6 +879,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state"
             ]["get"]
             navigation_operation["responses"].pop("422", None)
+            launch_operation = schema["paths"][
+                "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/activities/{activity_id}/launch"
+            ]["get"]
+            launch_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 

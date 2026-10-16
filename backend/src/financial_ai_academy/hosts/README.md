@@ -33,3 +33,11 @@ provider, or latest-version selector. The host maps the closed Adaptation
 projection without recomputing state; exact graph absence maps to 404 and
 unavailable source composition maps to 503 without a partial result.
 
+The API host also exposes the current activity-launch decision at
+`GET /api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/activities/{activity_id}/launch`.
+It requires both `adaptation.navigation.read` and `curriculum.lesson.read`,
+accepts no request body or authority query, and delegates the exact learner,
+curriculum version, and activity to Adaptation. Missing activities map to 404,
+locked or unsupported activities to 409, and unavailable current sources to
+503. Every refusal omits a destination.
+

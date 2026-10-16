@@ -7,6 +7,7 @@ from typing import Protocol
 from financial_ai_academy.modules.adaptation.application.service import (
     NavigationStateOperationError,
     NavigationStateOperationErrorCode,
+    OpenActivityLaunchRequest,
     OpenNavigationStateRequest,
 )
 from financial_ai_academy.modules.adaptation.domain.activity_launch import (
@@ -54,6 +55,11 @@ class AdaptationOperations(Protocol):
         request: OpenNavigationStateRequest,
     ) -> NavigationStateProjection: ...
 
+    def open_activity_launch(
+        self,
+        request: OpenActivityLaunchRequest,
+    ) -> ActivityLaunchResolution: ...
+
 __all__ = [
     "ActivityNavigationState",
     "ActivityLaunchError",
@@ -74,6 +80,7 @@ __all__ = [
     "NavigationStateError",
     "NavigationStateErrorCode",
     "NavigationStateProjection",
+    "OpenActivityLaunchRequest",
     "OpenNavigationStateRequest",
     "RequirementState",
     "ResolveActivityLaunchRequest",

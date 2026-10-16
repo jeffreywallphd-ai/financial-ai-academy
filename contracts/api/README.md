@@ -14,6 +14,16 @@ availability, bounded reasons, and exact graph/policy/source/result
 provenance. Unknown exact graphs map to 404; unavailable composition maps to
 503 without partial or alternate-version data.
 
+`GET /api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/activities/{activity_id}/launch`
+is the protected current activity-launch read. It requires the opaque session
+and both existing navigation-read and lesson-read permissions. Its only inputs
+are the three exact path identifiers; it accepts no body, query authority,
+learner, destination, placement, package, state, policy, or fallback version.
+The closed v1 response carries exact graph/projection/package provenance and a
+server-derived same-origin lesson destination. Invalid, missing, locked,
+unavailable, and unsupported activities return bounded standard errors with no
+destination.
+
 `GET /api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}`
 is the protected exact-version Curriculum graph read. It uses the opaque
 session and server-issued `curriculum.graph.read` permission, accepts no

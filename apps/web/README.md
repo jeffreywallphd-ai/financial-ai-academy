@@ -46,6 +46,13 @@ and presents the server's separate completion, eligibility, requirement,
 availability, reasons, and references. It does not reproduce Adaptation policy,
 infer mastery, or calculate a path in the browser.
 
+The generated client additionally includes `getCurriculumActivityLaunch` for
+the protected bodyless activity-launch GET. It accepts only curriculum ID,
+version, and activity ID. Learner identity, permissions, current state,
+eligibility, placement, package, and destination remain server-owned. The
+learner-facing controls and return context that will consume this operation are
+deliberately deferred to the next SLI-0024 packet.
+
 The learning-catalog client also defines the reusable selection seam for
 detail and comparison routes. One detail ID or two through four distinct
 comparison IDs are accepted as navigation state; the protected queryless

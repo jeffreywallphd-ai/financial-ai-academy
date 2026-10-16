@@ -1,7 +1,7 @@
 ---
 id: WRK-0086
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -175,6 +175,35 @@ composition, generated artifacts, focused and aggregate checks,
 anti-rigidity evidence, assumptions, known gaps, and migration
 non-applicability. Tracked files must not contain approval or reviewer data.
 
+## Implementation Evidence
+
+- `AdaptationService.open_activity_launch` now composes one exact graph and
+  current Navigation-state projection through the same private application
+  path, then invokes the accepted WRK-0085 resolver with that matching pair.
+  Instrumented tests prove one graph open and one source-evaluation pass.
+- The public protocol exposes the composed operation without moving policy to
+  the host. The protected bodyless GET resolves learner context from the opaque
+  session, requires both existing navigation-read and lesson-read permissions,
+  rejects every query and request body before Adaptation, and accepts only the
+  three exact path identifiers.
+- The host maps invalid context to 400, missing activity or graph to 404,
+  locked/unsupported activity to 409, and unavailable current sources to 503.
+  Every error uses the standard bounded envelope and returns no destination.
+- The reviewed OpenAPI snapshot and deterministic TypeScript client publish
+  `getCurriculumActivityLaunch` with the closed activity-launch response and no
+  request body or caller-selected authority fields.
+- Focused application/API/architecture verification passed 49 tests. Adjacent
+  launch/navigation contract and navigation API regression passed 42 tests.
+  Compilation, architecture fitness functions (15 tests), OpenAPI/client
+  determinism, generated-client contract use, TypeScript typecheck, planning,
+  documentation, whitespace, and all 29 aggregate readiness checks passed.
+- Flexible optional and newly prerequisite-constrained lesson shapes, direct
+  locked/unavailable/missing/assessment requests, absent permissions, selected
+  query authority, and body input are covered without graph-shape branches or
+  a lower-level approval loop. No migration, persistence, event, UI policy,
+  new permission, identity/tenancy behavior, model/ranking/mastery authority,
+  provider coupling, queue, cloud choice, or external action was added.
+
 ## Stop Conditions
 
 Stop for a need to change activity-launch or Navigation-state v1 meaning;
@@ -212,3 +241,8 @@ consume one generated launch operation or return one bounded blocker.
   prerequisites confirmed current CAP authority, completed dependency, exact
   bounded scope, reproducible generated artifacts, and no unresolved decision
   or active ownership collision.
+- 2026-10-16: Implemented the single-context application composition,
+  dual-permission bodyless endpoint, bounded denials, reviewed OpenAPI, and
+  generated client. Focused, adjacent, architecture, generation, TypeScript,
+  planning, documentation, whitespace, and aggregate-readiness evidence passed;
+  the exact candidate entered verification and independent review.

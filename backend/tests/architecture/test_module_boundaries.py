@@ -291,6 +291,7 @@ def test_adaptation_public_exposes_transport_neutral_activity_launch() -> None:
     protocol = public.split("class AdaptationOperations", 1)[1].split(
         "__all__", 1
     )[0]
+    assert "open_activity_launch" in protocol
     assert "resolve_activity_launch" not in protocol
     for prohibited in ("fastapi", "pydantic", "repository", "http://", "https://"):
         assert prohibited not in launch.casefold()

@@ -9,7 +9,9 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from financial_ai_academy.modules.adaptation.public import (
+    ActivityLaunchResolution,
     NavigationStateProjection,
+    activity_launch_payload,
     navigation_state_payload,
 )
 from financial_ai_academy.modules.assessment.public import (
@@ -432,6 +434,32 @@ class NavigationStateResponseModel(ApiModel):
         return value
 
 
+class ActivityLaunchResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    curriculum_id: NavigationIdentifier
+    curriculum_version: NavigationVersion
+    graph_digest: GraphDigest
+    activity_id: NavigationIdentifier
+    navigation_projection_digest: GraphDigest
+    evaluated_at: datetime = Field(
+        json_schema_extra={"pattern": NAVIGATION_TIMESTAMP_PATTERN}
+    )
+    placement_id: NavigationIdentifier
+    package_id: NavigationIdentifier
+    package_version: GraphVersion
+    package_digest: GraphDigest
+    destination: str = Field(
+        pattern=r"^/learn/placements/[a-z0-9][a-z0-9._:-]{0,127}$",
+        max_length=146,
+    )
+
+    @field_validator("evaluated_at")
+    @classmethod
+    def evaluated_at_has_offset(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Activity launch evaluation time requires an offset.")
+        return value
+
 class DiscoveryProvenanceResponseModel(ApiModel):
     published_by: str = Field(min_length=1, max_length=160)
     published_at: datetime
@@ -763,6 +791,14 @@ def navigation_state_response(
 ) -> NavigationStateResponseModel:
     return NavigationStateResponseModel.model_validate(
         navigation_state_payload(projection)
+    )
+
+
+def activity_launch_response(
+    resolution: ActivityLaunchResolution,
+) -> ActivityLaunchResponseModel:
+    return ActivityLaunchResponseModel.model_validate(
+        activity_launch_payload(resolution)
     )
 
 
