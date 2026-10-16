@@ -1,7 +1,7 @@
 ---
 id: WRK-0065
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/features/curriculum-graph/api.ts", "apps/web/src/features/curriculum-graph/model.ts", "apps/web/src/features/curriculum-graph/CurriculumGraphPage.tsx", "apps/web/src/features/curriculum-graph/CurriculumGraphRoute.tsx", "apps/web/src/styles/curriculum-graph.css", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/component/curriculumGraphFixture.ts", "apps/web/tests/component/curriculumGraph.test.tsx", "apps/web/tests/unit/curriculumGraphModel.test.ts", "apps/web/tests/browser/curriculum-graph/curriculum-graph.spec.ts", "docs/planning/work-packets/WRK-0065-annotate-curriculum-navigation-state.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 7bfc1f5309a6849e5e9144052817d74d2de9f269
+claim_id: WRK-0065:95fa1506-cd73-4029-a75e-43f441434c58
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T00:57:44Z
 ---
 
 # Agent Work Packet: Annotate Curriculum Navigation State
@@ -194,3 +194,6 @@ SLI-0023 qualification packet dependency-ready or return a bounded blocker.
   annotates the existing peer views through the current design system, and
   retains live cross-system qualification for the final SLI packet without
   changing the approved CAP-0005 package or opening a decision gate.
+- 2026-10-16: Activated after revalidating the current CAP binding, completed
+  WRK-0063 dependency, exact browser-only scope, decision posture, and absence
+  of active scope conflicts.

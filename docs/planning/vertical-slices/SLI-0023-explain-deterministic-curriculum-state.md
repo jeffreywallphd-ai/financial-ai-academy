@@ -176,7 +176,7 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0062 | Freeze the navigation-state contract, pure Adaptation policy, public operation, reason semantics, and focused anti-rigidity corpus | none | none | complete |
 | WRK-0063 | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | complete |
-| WRK-0065 | Annotate the existing accessible map/list through the generated client without client-side policy | WRK-0063 | none | ready |
+| WRK-0065 | Annotate the existing accessible map/list through the generated client without client-side policy | WRK-0063 | none | active |
 | JIT-D | Qualify the live projection, failure paths, accessibility, provenance, module ownership, and documentation | JIT-C | none | refine after JIT-C completes |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
@@ -281,3 +281,5 @@ was introduced.
   of the exact graph and navigation projection, equivalent list/map state and
   reason annotations, current design-system reuse, and direct anti-rigidity
   coverage. Activity launch and live cross-system qualification remain later.
+- 2026-10-16: Activated WRK-0065 after the current CAP package, completed API
+  dependency, decision posture, exact write scope, and claim were revalidated.
