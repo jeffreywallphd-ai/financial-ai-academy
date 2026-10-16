@@ -1,7 +1,7 @@
 ---
 id: WRK-0075
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/curriculum-graph/curriculum-graph.spec.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/README.md", "docs/planning/work-packets/WRK-0075-qualify-plain-language-learning-path.md", "docs/planning/vertical-slices/SLI-0123-understand-learning-path-state-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: 43e4d6f4591809efd34ce44d174acea719afe3c3
-claim_id: WRK-0075:d8b211db-2360-48cd-ba2d-b381ccb5fb7b
+base_revision: caf57abd0978e76e010eed38af7f2d8929695175
+claim_id: WRK-0075:3ee0c435-d769-4c9e-a2cc-1ef8cab31eb8
 claimed_by: codex-plain-language-ui
-claimed_at: 2026-10-16T10:15:20Z
+claimed_at: 2026-10-16T10:21:50Z
 ---
 
 # Agent Work Packet: Qualify the Plain-Language Learning Path
