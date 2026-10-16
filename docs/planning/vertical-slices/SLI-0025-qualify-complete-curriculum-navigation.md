@@ -183,7 +183,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | complete |
-| WRK-0091 | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | ready |
+| WRK-0091 | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | active |
 
 ## Verification and Qualification
 
@@ -266,3 +266,6 @@ plan remain out of scope.
   deterministic closure. Public API availability for browser and non-browser
   consumers is a first-class acceptance condition; a separate AI mode remains
   explicitly deferred.
+- 2026-10-16: Activated WRK-0091 after validating its dependency, exact
+  documentation-only write scope, current CAP package, and collision-free
+  claim. Packet-start froze the cumulative acceptance and evidence route.

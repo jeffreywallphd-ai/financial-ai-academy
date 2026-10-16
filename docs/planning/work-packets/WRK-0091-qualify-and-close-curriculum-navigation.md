@@ -1,7 +1,7 @@
 ---
 id: WRK-0091
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["docs/planning/capabilities/CAP-0005-navigate-competency-based-curriculum.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0025-qualify-complete-curriculum-navigation.md", "docs/planning/work-packets/WRK-0091-qualify-and-close-curriculum-navigation.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 383d8e5b4bb2aaeb95584fd472b0c1170528daa3
+claim_id: WRK-0091:c66c264e-79b0-4a82-be1e-fd596f5f566d
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T13:52:45Z
 ---
 
 # Agent Work Packet: Qualify and Close Curriculum Navigation
@@ -196,3 +196,6 @@ acceptance sets and are ready for deterministic closure and main fast-forward.
 - 2026-10-16: Authored just in time after WRK-0090 completed. The packet makes
   public API availability and a non-browser headless path explicit in CAP
   closure while leaving a distinct AI mode and its planning deferred.
+- 2026-10-16: Claimed from base revision `383d8e5` after packet validation,
+  dependency completion, current CAP conformance, and exact-scope collision
+  checks passed. Packet-start selected the bounded cumulative evidence route.
