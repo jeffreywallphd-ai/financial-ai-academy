@@ -225,7 +225,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | complete |
 | WRK-0104 | Implement an Assessment-safe history source, Curriculum review-target resolution, and Learner-model history rebuild/persistence | WRK-0103 | none | complete |
 | WRK-0105 | Expose the composed progress, review, and history operations through protected API, OpenAPI, and generated clients | WRK-0104 | none | complete |
-| JIT-E | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-D | none | captured |
+| WRK-0106 | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | WRK-0105 | none | ready |
 | JIT-F | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-E | none | captured |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
