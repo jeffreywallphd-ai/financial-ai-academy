@@ -200,6 +200,17 @@ test("renders equivalent light, dark, and system content accessibly", async ({
 
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
+
+  await page
+    .getByRole("complementary", { name: "Publication details" })
+    .getByText("Technical record", { exact: true })
+    .click();
+  await expect(
+    page.getByText(lessonFixture.package_version, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(lessonFixture.package_digest, { exact: true }),
+  ).toBeVisible();
 });
 
 test("preserves keyboard focus and safe external-source meaning", async ({
@@ -261,10 +272,49 @@ test("submits the exact knowledge check without client learner authority", async
   ).toBeVisible();
   expect(requestBody).not.toBeNull();
   expect(requestBody).not.toHaveProperty("learner_id");
-  await expect(page.getByText(/not mastery or certification/i)).toBeVisible();
+  const submittedId = String(
+    (requestBody as unknown as Record<string, unknown>).submission_id,
+  );
+  await expect(
+    page.getByText(/does not show mastery or certification/i),
+  ).toBeVisible();
+
+  const checkedAnswerRecord = page.getByLabel(
+    "Technical record for checked answer",
+  );
+  await checkedAnswerRecord.click();
+  const checkedAnswerDetails = checkedAnswerRecord.locator("..");
+  for (const exactFact of [
+    KNOWLEDGE_CHECK.schema_version,
+    KNOWLEDGE_CHECK.placement_id,
+    KNOWLEDGE_CHECK.package_digest,
+    KNOWLEDGE_CHECK.definition_digest,
+    "55555555-5555-4555-8555-555555555555",
+    "66666666-6666-4666-8666-666666666666",
+    submittedId,
+    "2026-10-15T12:00:00Z",
+    "risk-return-correct",
+  ]) {
+    await expect(
+      checkedAnswerDetails.getByText(exactFact, { exact: true }),
+    ).toBeVisible();
+  }
+  for (const versionedFact of [
+    `${KNOWLEDGE_CHECK.package_id} version ${KNOWLEDGE_CHECK.package_version}`,
+    `${KNOWLEDGE_CHECK.assessment_id} version ${KNOWLEDGE_CHECK.assessment_version}`,
+    `${KNOWLEDGE_CHECK.item_id} version ${KNOWLEDGE_CHECK.item_version}`,
+    `${KNOWLEDGE_CHECK.scoring_policy_id} version ${KNOWLEDGE_CHECK.scoring_policy_version}`,
+  ]) {
+    await expect(
+      checkedAnswerDetails.getByText(versionedFact, { exact: true }),
+    ).toBeVisible();
+  }
+  await expect(
+    page.getByText(KNOWLEDGE_CHECK.options[0]!.option_id),
+  ).toHaveCount(0);
 });
 
-test("reopens exact retained completion accessibly without another assessment request", async ({
+test("reopens exact saved completion accessibly without another assessment request", async ({
   page,
 }) => {
   let knowledgeCheckRequests = 0;
@@ -276,9 +326,11 @@ test("reopens exact retained completion accessibly without another assessment re
 
   await page.goto(LESSON_PATH);
   await expect(
-    page.getByRole("heading", { name: "Retained lesson completion" }),
+    page.getByRole("heading", { name: "Saved lesson completion" }),
   ).toBeVisible();
   await expect(page.getByText("1 of 1", { exact: true })).toBeVisible();
+  await page.getByLabel("Technical record for saved completion").click();
+  await page.getByLabel("Technical record for saved result 1").click();
   await expect(
     page.getByText(COMPLETION_ENTRY.package_digest, { exact: true }),
   ).toBeVisible();
@@ -394,7 +446,7 @@ test("shows loading then a bounded denied state without lesson details", async (
     page.getByRole("heading", { name: "Opening your lesson" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Lesson access unavailable" }),
+    page.getByRole("heading", { name: "You don't have access to this lesson" }),
   ).toBeVisible();
   await expect(page.getByText(lessonFixture.title)).toHaveCount(0);
   expect(lessonRequested).toBe(false);
@@ -413,7 +465,7 @@ test("fails closed on an unknown content discriminator", async ({ page }) => {
   await page.goto(LESSON_PATH);
 
   await expect(
-    page.getByRole("heading", { name: "Lesson content unavailable" }),
+    page.getByRole("heading", { name: "We couldn't show this lesson safely" }),
   ).toBeVisible();
   await expect(page.getByText(lessonFixture.title)).toHaveCount(0);
   await expect(

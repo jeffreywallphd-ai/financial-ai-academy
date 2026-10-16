@@ -265,6 +265,10 @@ test("browses the live catalog and opens the approved exact lesson", async ({
     "href",
     "https://www.investor.gov/introduction-investing",
   );
+  await page
+    .getByRole("complementary", { name: "Publication details" })
+    .getByText("Technical record", { exact: true })
+    .click();
   await expect(page.getByText("1.1.0", { exact: true })).toBeVisible();
   await expect(page.getByText(DIGEST, { exact: true })).toBeVisible();
   await expect(
@@ -286,17 +290,30 @@ test("browses the live catalog and opens the approved exact lesson", async ({
     page.getByRole("heading", { name: "Knowledge check complete" }),
   ).toBeVisible();
   await expect(
-    page.getByText(/not mastery or certification/i),
+    page.getByText(/does not show mastery or certification/i),
+  ).toBeVisible();
+  const checkedAnswerRecord = page.getByLabel(
+    "Technical record for checked answer",
+  );
+  await checkedAnswerRecord.click();
+  const checkedAnswerDetails = checkedAnswerRecord.locator("..");
+  await expect(
+    checkedAnswerDetails.getByText(DIGEST, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    checkedAnswerDetails.getByText(DEFINITION_DIGEST, { exact: true }),
   ).toBeVisible();
 
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Retained lesson completion" }),
+    page.getByRole("heading", { name: "Saved lesson completion" }),
   ).toBeVisible();
   const completionEvent = page.getByRole("article", {
-    name: /Completion event/i,
+    name: "Saved result 1",
   });
   await expect(page.getByText("1 of 1", { exact: true })).toBeVisible();
+  await page.getByLabel("Technical record for saved completion").click();
+  await page.getByLabel("Technical record for saved result 1").click();
   await expect(
     completionEvent.getByText(DIGEST, { exact: true }),
   ).toBeVisible();
@@ -321,7 +338,7 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   ).toBeVisible();
 
   const sourceDigest = page
-    .getByText("Source-set digest", { exact: true })
+    .getByText("Evidence-source integrity code", { exact: true })
     .locator("..")
     .locator("code");
   await expect(sourceDigest).toHaveText(/^[a-f0-9]{64}$/);
@@ -329,11 +346,12 @@ test("browses the live catalog and opens the approved exact lesson", async ({
 
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Retained lesson completion" }),
+    page.getByRole("heading", { name: "Saved lesson completion" }),
   ).toBeVisible();
+  await page.getByLabel("Technical record for saved completion").click();
   await expect(
     page
-      .getByText("Source-set digest", { exact: true })
+      .getByText("Evidence-source integrity code", { exact: true })
       .locator("..")
       .locator("code"),
   ).toHaveText(retainedSourceDigest ?? "");
@@ -743,7 +761,7 @@ test("fails closed without context and never substitutes a missing version", asy
     page.getByRole("heading", { name: "Lesson not found" }),
   ).toBeVisible();
   await expect(
-    page.getByText(/A different or newer lesson was not substituted/i),
+    page.getByText(/did not substitute a different or newer lesson/i),
   ).toBeVisible();
   await expect(page.getByText("Understanding Risk and Return")).toHaveCount(0);
   await expect(page.getByText(DIGEST)).toHaveCount(0);

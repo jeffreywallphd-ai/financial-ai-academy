@@ -10,7 +10,7 @@ capability: CAP-0030
 depends_on: ["WRK-0076", "WRK-0077"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts-snapshots/lesson-light-chromium-win32.png", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts-snapshots/lesson-dark-chromium-win32.png", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/README.md", "docs/planning/work-packets/WRK-0078-qualify-plain-language-lesson-completion.md", "docs/planning/vertical-slices/SLI-0124-understand-lesson-check-and-completion.md", "docs/planning/register.md"]
+write_scope: ["apps/web/src/styles/lesson-reading.css", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts-snapshots/lesson-light-chromium-win32.png", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts-snapshots/lesson-dark-chromium-win32.png", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/README.md", "docs/planning/work-packets/WRK-0078-qualify-plain-language-lesson-completion.md", "docs/planning/vertical-slices/SLI-0124-understand-lesson-check-and-completion.md", "docs/planning/register.md"]
 generated_artifacts: ["apps/web/dist", "artifacts/playwright/wrk0004/**", "artifacts/playwright/wrk0005/**"]
 base_revision: 5612ab9c085d08633899e0b412a3115ce7a866d2
 claim_id: WRK-0078:9506ffa8-1648-4028-84bd-272495b07aa9
@@ -69,6 +69,8 @@ isolated approved-lesson runner, affected browser/live specifications, and
   narrow-layout, and 200-percent-equivalent evidence.
 - Refresh only the two tracked lesson light/dark baselines when the semantic
   browser state is correct.
+- Correct only responsive wrapping that prevents an open required technical
+  record from fitting the supported narrow viewport.
 - Run focused mocked Chromium, isolated live approved-lesson, component,
   typecheck, lint, build, design, planning, documentation, affected-
   verification, readiness, whitespace, and deterministic slice-completion
@@ -77,10 +79,10 @@ isolated approved-lesson runner, affected browser/live specifications, and
 
 ## Out of Scope
 
-- Product runtime, backend, contract, generated-client, fixture, grading,
+- Product behavior, backend, contract, generated-client, fixture, grading,
   feedback, answer, completion, navigation, persistence, session,
   authorization, retry, browser configuration, runner, container, token, icon,
-  CSS, layout, or shared visual-system changes.
+  nonfunctional styling, layout redesign, or shared visual-system changes.
 - New actions, browser engines, formal readability conformance, localization,
   external services, or unrelated test cleanup.
 - Re-review or CAP interruption for blank lines, snapshot noise, copy fit, or
@@ -90,7 +92,7 @@ isolated approved-lesson runner, affected browser/live specifications, and
 
 | Area | Inspect | Allowed to change | Reason |
 | --- | --- | --- | --- |
-| Runtime and contracts | lesson route/page, knowledge check, generated types, session and exact-version APIs | none | Confirm delivered semantics without changing them |
+| Runtime and contracts | lesson route/page, knowledge check, generated types, session and exact-version APIs | narrow lesson technical-record wrapping only | Keep required evidence usable at supported narrow widths without changing behavior |
 | Mocked browser evidence | lesson fixture, Chromium spec/config/support | named specification and two tracked baselines | Align accessible names and qualify browser modes |
 | Live journey evidence | approved-lesson spec and isolated runner | named specification only | Preserve API/UI evidence and saved completion through the shared live flow |
 | Documentation and planning | web README, completed packets, parent slice, register | named README and planning files | Record exact qualification and close the slice |
@@ -178,3 +180,7 @@ gaps, and the next CAP-manifest action. Do not request slice approval.
   WRK-0076 and WRK-0077 completed, with semantic browser/live evidence,
   bounded baseline refresh, explicit anti-rigidity rules, and no runtime or
   contract change.
+- 2026-10-16: Browser qualification found that an open saved-result technical
+  record expanded the 375-pixel viewport to 669 pixels. Refined the packet to
+  allow one functional wrapping correction while leaving cosmetic styling and
+  layout redesign out of scope.

@@ -269,6 +269,33 @@
   gap: var(--faa-space-3);
 }
 
+.knowledge-check-card details,
+.knowledge-check-card details dl,
+.knowledge-check-card details dl > div,
+.knowledge-check-card details dd,
+.completion-summary,
+.completion-summary > div,
+.completion-history,
+.completion-history > li,
+.completion-history article,
+.completion-history dl,
+.completion-history dl > div,
+.completion-summary dd,
+.completion-history dd {
+  min-width: var(--faa-space-0);
+}
+
+.knowledge-check-card details dd {
+  overflow-wrap: anywhere;
+}
+
+.knowledge-check-card details code {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
 .completion-summary {
   margin: var(--faa-space-5) var(--faa-space-0) var(--faa-space-6);
 }
@@ -291,6 +318,7 @@
 .completion-summary dd,
 .completion-history dd {
   margin: var(--faa-space-1) var(--faa-space-0) var(--faa-space-0);
+  overflow-wrap: anywhere;
   color: var(--faa-color-text-primary);
   font-variant-numeric: tabular-nums;
 }
