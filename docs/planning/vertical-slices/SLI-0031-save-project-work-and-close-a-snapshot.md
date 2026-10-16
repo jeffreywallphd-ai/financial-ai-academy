@@ -235,8 +235,8 @@ refined just in time.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
-| WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | active |
-| JIT-C | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | JIT-B | none | captured |
+| WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
+| JIT-C | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | captured |
 | JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | JIT-C | none | captured |
 
 ## Verification and Qualification
@@ -345,3 +345,11 @@ created, and no managed-cloud or production-recovery profile was qualified.
 - 2026-10-16: Activated WRK-0119 after revalidating its completed contract
   dependency, CAP/SLI conformance, decision readiness, API-first boundary, and
   collision-free exact scope. Packet-start froze its semantic acceptance set.
+- 2026-10-16: Completed WRK-0119 at candidate
+  `bfcdc1409e3281fe64f976bfa22fc286ec9ea19d`. The protected Project API now
+  provides side-effect-free workspace reads, authorized revision/idempotency-
+  guarded writes, verified inert artifact transfer, immutable snapshots, and
+  evidence export through the reviewed generated-client boundary. All 879
+  backend tests passed with PostgreSQL enabled, alongside the focused API,
+  generated-client, architecture, security, documentation, planning,
+  whitespace, exact-candidate, and 29-check readiness evidence.

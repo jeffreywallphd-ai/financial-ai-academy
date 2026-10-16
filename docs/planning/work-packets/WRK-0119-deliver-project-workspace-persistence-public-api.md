@@ -1,7 +1,7 @@
 ---
 id: WRK-0119
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -273,3 +273,13 @@ separate AI mode, or autonomous authority was added.
   after independent review found its Project-contract status stale. This is
   documentation reconciliation inside the accepted API and contract boundary,
   not a change to product scope.
+- 2026-10-16: Completed at exact implementation candidate
+  `bfcdc1409e3281fe64f976bfa22fc286ec9ea19d` with a qualifying nine-check
+  affected receipt. Corrections moved artifact integrity ahead of replay,
+  separated ordinary and upload request types, made workspace reads side-
+  effect free, reconciled canonical contract status, and added direct failure,
+  concurrency, authorization, privacy, and retained-data rollback evidence.
+  The complete PostgreSQL-enabled backend suite passed 879 tests; OpenAPI,
+  generated-client reproduction, TypeScript, architecture, security,
+  documentation, planning, whitespace, and all 29 readiness checks also
+  passed.
