@@ -173,3 +173,7 @@ CAP-0031.
   suite showed that the existing approved-lesson journey also consumes the
   revised plain-language disclosures. This remains within SLI-0123 and changes
   assertions only; it adds no product, contract, fixture, or harness behavior.
+- 2026-10-16: Re-claimed the refined packet and recorded a new semantic start
+  manifest before updating the shared live-suite assertions. Five focused
+  mocked scenarios and all eight isolated live scenarios now pass; final
+  affected verification and independent review remain.

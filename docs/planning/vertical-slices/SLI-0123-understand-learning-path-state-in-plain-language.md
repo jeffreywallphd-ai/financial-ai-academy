@@ -213,3 +213,7 @@ contracts/semantics, assumptions, residual gaps, and any decision gate.
 - 2026-10-16: Activated WRK-0075 after validating completed dependencies,
   browser-evidence-only scope, current CAP authority, exact acceptance set, and
   absence of a decision gate or overlapping file lease.
+- 2026-10-16: Refined and reactivated WRK-0075 without another approval after
+  the shared live suite exposed one additional in-slice assertion consumer.
+  The scope remains browser evidence and documentation only; five mocked and
+  eight isolated live Chromium scenarios pass.

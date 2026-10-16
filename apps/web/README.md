@@ -237,7 +237,10 @@ the same learner context before and after retained lesson completion, bounded
 assessment-source unavailability, ordered reasons and references, list/map
 parity, policy/source/projection provenance, an unbranched activity,
 unsupported-selector and missing-version denial, themes, adaptive display
-conditions, and accessibility. The separate pinned browser fixture preserves
+conditions, and accessibility. Browser assertions use learner-facing labels
+first and open `Technical record` disclosures before comparing exact IDs,
+state values, reason evidence, schema, policy, time, sources, and digests. The
+separate pinned browser fixture preserves
 the wider same-kind shared-branch and variable-reference anti-rigidity cases;
 the live approved graph does not invent those shapes for qualification.
 See
