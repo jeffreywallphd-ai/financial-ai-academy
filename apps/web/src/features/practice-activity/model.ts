@@ -597,7 +597,7 @@ function responsesAreSafe(
   if (!boundedArray(value, 0, practice.items.length)) {
     return false;
   }
-  let priorIndex = -1;
+  const seen = new Set<string>();
   for (const response of value) {
     const candidate = record(response);
     if (candidate === null || typeof candidate.item_id !== "string") {
@@ -607,13 +607,13 @@ function responsesAreSafe(
       (item) => item.item_id === candidate.item_id,
     );
     if (
-      index <= priorIndex ||
       index < 0 ||
+      seen.has(candidate.item_id) ||
       !responseIsSafe(response, practice.items[index]!)
     ) {
       return false;
     }
-    priorIndex = index;
+    seen.add(candidate.item_id);
   }
   return true;
 }
@@ -681,18 +681,17 @@ export function practiceDraftSaveResultIsSafe(
     !practiceDraftIsSafe(value, practice) ||
     prepared.placementId !== practice.placement_id ||
     value.responses.length !== prepared.body.responses.length ||
-    value.responses.some((response, index) => {
-      const expected = prepared.body.responses[index];
+    value.responses.some((response) => {
+      const expected = prepared.body.responses.find(
+        (candidate) => candidate.item_id === response.item_id,
+      );
       return expected === undefined || !responseMatches(response, expected);
     })
   ) {
     return false;
   }
   const expectedRevision = prepared.body.expected_revision;
-  return (
-    value.revision === expectedRevision ||
-    value.revision === expectedRevision + 1
-  );
+  return value.revision >= Math.max(1, expectedRevision);
 }
 
 function retryStateIsSafe(

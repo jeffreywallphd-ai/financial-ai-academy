@@ -10,10 +10,12 @@ import {
 } from "../../src/features/practice-activity/model";
 import type {
   PracticeDraftSaver,
+  PracticeDraft,
   PracticeProgress,
   PracticeProgressReader,
   PracticeSubmissionResult,
   PracticeSubmitter,
+  PreparedPracticeDraftSave,
 } from "../../src/features/practice-activity/model";
 import {
   practiceFixture,
@@ -355,23 +357,53 @@ describe("practice activity page", () => {
         attempt_policy_id: practiceFixture.attempt_policy.policy_id,
         attempt_policy_version: practiceFixture.attempt_policy.policy_version,
         expected_revision: 1,
-        responses: structuredClone(practiceProgressFixture.draft!.responses),
+        responses: [
+          ...structuredClone(
+            practiceProgressFixture.draft!.responses,
+          ).reverse(),
+          {
+            item_id: "risk-factors",
+            item_type: "multiple_select" as const,
+            item_version: "1.0.0" as const,
+            scoring_policy_id: "multiple-select-exact-set" as const,
+            scoring_policy_version: "1.0.0" as const,
+            selected_option_ids: ["time", "fees"],
+          },
+        ],
       },
-    };
+    } satisfies PreparedPracticeDraftSave;
     const saved = {
       ...structuredClone(practiceProgressFixture.draft!),
-      revision: 2,
-    };
+      responses: [
+        ...structuredClone(practiceProgressFixture.draft!.responses),
+        {
+          item_id: "risk-factors",
+          item_type: "multiple_select" as const,
+          item_version: "1.0.0" as const,
+          scoring_policy_id: "multiple-select-exact-set" as const,
+          scoring_policy_version: "1.0.0" as const,
+          selected_option_ids: ["fees", "time"],
+        },
+      ],
+      revision: 3,
+    } satisfies PracticeDraft;
     const wrongResponse = structuredClone(saved);
-    wrongResponse.responses[0]!.selected_option_id = "certainty";
-    const wrongRevision = { ...structuredClone(saved), revision: 5 };
+    const wrongSingle = wrongResponse.responses[0]!;
+    if (wrongSingle.item_type !== "single_select") {
+      throw new Error("Expected the single-select fixture response first.");
+    }
+    wrongSingle.selected_option_id = "certainty";
+    const stalePrepared = {
+      ...structuredClone(prepared),
+      body: { ...structuredClone(prepared.body), expected_revision: 4 },
+    };
 
     expect(practiceDraftSaveResultIsSafe(saved, practiceFixture, prepared)).toBe(true);
     expect(
       practiceDraftSaveResultIsSafe(wrongResponse, practiceFixture, prepared),
     ).toBe(false);
     expect(
-      practiceDraftSaveResultIsSafe(wrongRevision, practiceFixture, prepared),
+      practiceDraftSaveResultIsSafe(saved, practiceFixture, stalePrepared),
     ).toBe(false);
   });
 
@@ -395,6 +427,8 @@ describe("practice activity page", () => {
       unknown
     >;
     delete optional.schema_version;
+    const reorderedDraft = structuredClone(practiceProgressFixture);
+    reorderedDraft.draft!.responses.reverse();
     const destination = (
       structuredClone(practiceProgressFixture).review_targets[0] as {
         destination: { section_id?: string | null };
@@ -412,6 +446,7 @@ describe("practice activity page", () => {
     };
 
     expect(practiceProgressIsSafe(optional, practiceFixture)).toBe(true);
+    expect(practiceProgressIsSafe(reorderedDraft, practiceFixture)).toBe(true);
     expect(practiceProgressIsSafe(nullableSection, practiceFixture)).toBe(true);
   });
 
