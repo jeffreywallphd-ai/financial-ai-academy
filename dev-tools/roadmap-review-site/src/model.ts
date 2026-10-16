@@ -180,6 +180,7 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
   const invalidDecision = decisions.some((value) => {
     if (!value || typeof value !== "object" || Array.isArray(value)) return true;
     const decision = value as Partial<RoadmapDecision>;
+    const hasDecisionRecord = typeof decision.decision_record === "string" && decision.decision_record.trim().length > 0;
     return (
       typeof decision.id !== "string" ||
       !decision.id ||
@@ -190,9 +191,9 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
       typeof decision.source !== "string" ||
       !decision.source ||
       !Array.isArray(decision.dependencies) ||
-      (decision.decision_record !== null && typeof decision.decision_record !== "string") ||
+      (decision.decision_record !== null && !hasDecisionRecord) ||
       typeof decision.decision_made !== "boolean" ||
-      decision.decision_made !== (decision.status === "complete" && decision.decision_record !== null)
+      decision.decision_made !== (decision.status === "complete" && hasDecisionRecord)
     );
   });
   const allocation = review?.current_allocation;

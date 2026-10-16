@@ -132,4 +132,12 @@ describe("roadmap overview model", () => {
     const malformed = { ...review(), decisions: [null] };
     expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: malformed } })).toThrow("Roadmap response is missing or incompatible.");
   });
+
+  it("rejects empty and whitespace-only canonical decision records", () => {
+    for (const decisionRecord of ["", "   "]) {
+      const malformed = review();
+      malformed.decisions[0]!.decision_record = decisionRecord;
+      expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: malformed } })).toThrow("Roadmap response is missing or incompatible.");
+    }
+  });
 });

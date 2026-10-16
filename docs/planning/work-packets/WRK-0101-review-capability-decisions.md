@@ -202,3 +202,6 @@ conformance, commit, branch, worktree, and integration instructions.
 - 2026-10-16: Independent review round R01 requested two bounded substantive
   corrections: enforce the canonical decision-record invariant and keep null
   decision entries inside the client's bounded incompatible-envelope error.
+- 2026-10-16: Review round R02 closed both R01 findings and identified one
+  remaining bounded edge case: empty or whitespace-only decision-record values
+  must not support decision-made state.
