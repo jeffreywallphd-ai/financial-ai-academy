@@ -22,7 +22,7 @@ export function LearningOpportunityComparisonLoadingState() {
     >
       <p className="eyebrow">Learning opportunities</p>
       <h1>Loading your comparison</h1>
-      <p>Starting your learner session and checking the current details.</p>
+      <p>Checking the current details for your comparison.</p>
       <div aria-hidden="true" className="loading-placeholder" />
       <span className="visually-hidden">Comparison loading in progress.</span>
     </section>

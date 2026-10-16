@@ -22,7 +22,7 @@ export function LearningOpportunityDetailLoadingState() {
     >
       <p className="eyebrow">Learning opportunity</p>
       <h1>Loading this opportunity</h1>
-      <p>Starting your learner session and checking the current details.</p>
+      <p>Checking the current details for this opportunity.</p>
       <div aria-hidden="true" className="loading-placeholder" />
       <span className="visually-hidden">Opportunity loading in progress.</span>
     </section>

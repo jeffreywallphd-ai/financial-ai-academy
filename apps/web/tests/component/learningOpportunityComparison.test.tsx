@@ -197,8 +197,8 @@ describe("LearningOpportunityComparisonRouteView", () => {
     expect(
       screen.getByRole("heading", { name: "Loading your comparison" }),
     ).toBeVisible();
-    expect(document.body.textContent).not.toMatch(
-      /establishing|catalog generation|projection|schema/i,
+    expect(screen.getByRole("status").textContent).not.toMatch(
+      /session|establishing|catalog generation|projection|schema/i,
     );
   });
 });

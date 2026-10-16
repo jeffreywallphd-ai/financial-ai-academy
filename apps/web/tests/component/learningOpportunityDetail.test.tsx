@@ -186,8 +186,8 @@ describe("LearningOpportunityDetailRouteView", () => {
     expect(
       screen.getByRole("heading", { name: "Loading this opportunity" }),
     ).toBeVisible();
-    expect(document.body.textContent).not.toMatch(
-      /establishing|catalog generation|projection|schema/i,
+    expect(screen.getByRole("status").textContent).not.toMatch(
+      /session|establishing|catalog generation|projection|schema/i,
     );
   });
 });
