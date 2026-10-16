@@ -1,7 +1,7 @@
 ---
 id: SLI-0004
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -107,7 +107,7 @@ returns one qualifying or actionable non-qualifying disposition to the CLI.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0012 | Deliver deterministic affected-check selection, exact verification receipts, adapters, commands, docs, and anti-rigidity tests | WRK-0011 | none | ready |
-| WRK-0067 | Correct web/live affected coverage with precise path classes and isolated exact-candidate build execution | WRK-0012 | none | verifying |
+| WRK-0067 | Correct web/live affected coverage with precise path classes and isolated exact-candidate build execution | WRK-0012 | none | complete |
 
 ## Verification and Qualification
 
@@ -151,11 +151,25 @@ artifact validators, documentation validation, and aggregate readiness all
 passed. Cross-host execution and result reuse remain unqualified; reuse is
 therefore disabled rather than inferred.
 
+The completed WRK-0067 descendant correction extends that evidence to every
+first-class web and local-runtime path class, exact tracked-candidate build and
+live execution, current roadmap hierarchy behavior on an ephemeral port, and
+explicit runtime propagation to nested processes. Its final exact candidate
+recorded 10 passing affected checks with post-run Git stability; focused
+verification passed 20 tests with one platform-dependent skip, roadmap DOM and
+server suites passed 33 and 8 tests respectively, Chromium passed 3 scenarios,
+and aggregate readiness passed all 27 checks. Narrow documentation and
+test-only changes remain free of unrelated live and aggregate requirements.
+
 ## Planning History
 
 - 2026-10-15: Refined just in time after SLI-0003 completed; Candidate A scored
   14/14 and remains within the approved CAP-0002 manifest and risk posture.
 - 2026-10-16: Reopened through the bounded completed-work correction route for
-  WRK-0067 after independent review of a product packet showed web and live
+  WRK-0067 after product-packet verification showed web and live
   test paths were not selecting behavior-exercising checks. Completed WRK-0012
   history remains unchanged while the descendant correction is active.
+- 2026-10-16: Closed the bounded descendant correction after exact-candidate
+  verification covered precise web/live/roadmap selection, isolated build
+  outputs, explicit nested runtimes, current dynamic hierarchy behavior, and
+  anti-rigidity regressions without changing generic verification contracts.

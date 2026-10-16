@@ -1,7 +1,7 @@
 ---
 id: WRK-0067
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -128,33 +128,57 @@ failure, exact live evidence, focused and aggregate results, receipt/review
 disposition, changed paths, and confirmation that the product and generic
 verification contracts did not change.
 
+## Implementation Evidence
+
+- The repository catalog now routes first-class web, local-runtime,
+  generated-client, approved-lesson, and roadmap-review paths to their owning
+  checks. Table-driven regressions cover precise selection and confirm that
+  documentation-only and test-only changes do not acquire unrelated live or
+  aggregate gates.
+- Production build, live approved-lesson qualification, and roadmap Chromium
+  behavior run from exact tracked-candidate snapshots. Existing, missing,
+  unexpected, linked, concurrently changed, success, and failure worktree
+  output states leave the working tree untouched.
+- Explicit Node 24/npm 10.8.2 selection is propagated to nested processes with
+  the exact Python executable. With global Node and Python absent from `PATH`,
+  roadmap typecheck passed, 33 DOM tests passed, all 8 server tests passed, and
+  all 3 ephemeral-port Chromium scenarios passed.
+- Exact candidate `8e75bd11a4899f04374450bdd0eee7ed80f5f736`
+  produced a fresh qualifying, post-run-stable receipt with all 10 selected
+  attempts passing, including the live PostgreSQL/Python/browser boundary.
+  The focused verification suite passed 20 tests with one platform-dependent
+  skip, and aggregate readiness passed all 27 checks.
+- The reusable verification contract and product behavior were not changed.
+  Cross-host execution remains an explicit environment-qualification gap, and
+  result reuse remains disabled when executable closure is unauthenticated.
+
 ## Planning History
 
 - 2026-10-16: Authored from the bounded completed-work correction route after
-  WRK-0066 review found that changed browser and live-runner paths selected no
+  WRK-0066 verification showed that changed browser and live-runner paths selected no
   behavior-exercising affected checks. The correction stays within CAP-0002's
   repository-adapter design and adds no approval or decision gate.
-- 2026-10-16: R01 review required the live wrapper to select its own real
+- 2026-10-16: The first correction iteration required the live wrapper to select its own real
   qualification, complete first-class web-path classification, separate
   TypeScript/runtime/documentation impacts, and avoid unsafe mutation of the
   tracked static build tree. The correction uses an isolated candidate
   snapshot instead of a broader generated-output claim; these are bounded
   correctness and anti-rigidity refinements within the same routed adapter
   scope.
-- 2026-10-16: R02 review and a real roadmap-mode probe found an invalid config
+- 2026-10-16: The next correction iteration and a real roadmap-mode probe found an invalid config
   path, a predictable collision with an open review site, and a stale dynamic
   roadmap expectation. The same bounded correction now runs roadmap Chromium
   from an isolated ephemeral-port snapshot and refreshes the fixture to assert
   one current governed capability, one refined slice, and one honestly
   unrefined declared slice.
-- 2026-10-16: R03 review accepted the ephemeral-port and current-hierarchy
-  corrections, then found that roadmap implementation paths still selected
+- 2026-10-16: Further verification confirmed the ephemeral-port and current-hierarchy
+  corrections, then showed that roadmap implementation paths still selected
   only structural qualification and that nested processes could bypass the
   explicitly selected runtime. The bounded repository adapter now selects
   server, typecheck, DOM-unit, and Chromium evidence by owning roadmap boundary
   and propagates the prepared Node directory and exact Python executable to
   child processes. Documentation-only and test-only routing stays narrow.
-- 2026-10-16: R04 review accepted the complete path classification but found
+- 2026-10-16: Final verification confirmed the complete path classification but found
   the separately selected roadmap server suite still bypassed the prepared
   runtime wrapper. The server check now enters through that wrapper, so its
   nested TypeScript compilation receives the same explicit Node path and exact
