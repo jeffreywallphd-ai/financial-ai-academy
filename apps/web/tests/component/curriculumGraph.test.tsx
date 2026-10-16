@@ -45,6 +45,7 @@ describe("CurriculumGraphPage", () => {
     expect(screen.getAllByText("Finished").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Optional").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Blocked").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Not in a group").length).toBeGreaterThan(0);
     expect(
       screen.getAllByText(
         "This activity is an optional part of the learning path.",
@@ -63,6 +64,37 @@ describe("CurriculumGraphPage", () => {
     expect(pageRecord.getByText("f".repeat(64))).toBeVisible();
     expect(
       pageRecord.getByText("content:intro-risk-return@1.0.0"),
+    ).toBeVisible();
+    const graphSchema = pageRecord.getByText(
+      "Graph schema version",
+    ).parentElement;
+    const navigationSchema = pageRecord.getByText(
+      "Navigation schema version",
+    ).parentElement;
+    expect(graphSchema).not.toBeNull();
+    expect(navigationSchema).not.toBeNull();
+    if (!graphSchema || !navigationSchema) {
+      throw new Error("Expected graph and navigation schema records.");
+    }
+    expect(
+      within(graphSchema).getByText(curriculumGraphFixture.schema_version),
+    ).toBeVisible();
+    expect(
+      within(navigationSchema).getByText(navigationStateFixture.schema_version),
+    ).toBeVisible();
+    expect(
+      pageRecord.getByText(navigationStateFixture.evaluated_at),
+    ).toBeVisible();
+    expect(
+      pageRecord.getByText(
+        `${navigationStateFixture.policy_id}@${navigationStateFixture.policy_version}`,
+      ),
+    ).toBeVisible();
+    expect(
+      pageRecord.getByText(navigationStateFixture.source_set_digest),
+    ).toBeVisible();
+    expect(
+      pageRecord.getByText(navigationStateFixture.projection_digest),
     ).toBeVisible();
 
     const [firstActivity] = screen.getAllByRole("article");

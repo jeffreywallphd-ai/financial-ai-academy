@@ -35,7 +35,7 @@ function readinessLabel(value: ActivityNavigationState["eligibility"]): string {
 function requirementLabel(value: ActivityNavigationState["requirement"]): string {
   if (value === "required") return "Required";
   if (value === "optional") return "Optional";
-  return "Status unavailable";
+  return "Not in a group";
 }
 
 function availabilityLabel(value: ActivityNavigationState["availability"]): string {
@@ -48,14 +48,6 @@ function readableDate(value: string): string {
     month: "short",
     timeZone: "UTC",
     year: "numeric",
-  }).format(new Date(value));
-}
-
-function readableDateTime(value: string): string {
-  return new Intl.DateTimeFormat("en", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "UTC",
   }).format(new Date(value));
 }
 
@@ -539,9 +531,15 @@ export function CurriculumGraphPage({
               </dd>
             </div>
             <div>
-              <dt>Schema version</dt>
+              <dt>Graph schema version</dt>
               <dd>
                 <code>{graph.schema_version}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Navigation schema version</dt>
+              <dd>
+                <code>{navigationState.schema_version}</code>
               </dd>
             </div>
             <div>
@@ -551,10 +549,10 @@ export function CurriculumGraphPage({
               </dd>
             </div>
             <div>
-              <dt>Navigation evaluated</dt>
+              <dt>Navigation evaluated at</dt>
               <dd>
                 <time dateTime={navigationState.evaluated_at}>
-                  {readableDateTime(navigationState.evaluated_at)} UTC
+                  <code>{navigationState.evaluated_at}</code>
                 </time>
               </dd>
             </div>
