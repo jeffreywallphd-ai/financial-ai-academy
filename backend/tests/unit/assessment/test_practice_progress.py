@@ -90,6 +90,10 @@ class ProgressRepository:
         self.attempts = 1
         self.events = (
             StoredPracticeCompletionEvent(
+                event_id="55555555-5555-4555-8555-555555555555",
+                attempt_id="33333333-3333-4333-8333-333333333333",
+                evidence_id="44444444-4444-4444-8444-444444444444",
+                submission_id="22222222-2222-4222-8222-222222222222",
                 attempt_order=1,
                 document=load("completion-event.json"),
             ),
@@ -243,6 +247,71 @@ def test_completion_event_parser_rejects_inconsistent_evidence_identity() -> Non
         adapter.parse_completion_event(event)
 
     assert captured.value.code == "assessment.practice.inconsistent_event"
+
+
+def test_completion_event_parser_rejects_mismatched_item_policy() -> None:
+    adapter = ContractPracticeProgressAdapter(SCHEMAS)
+    event = copy.deepcopy(load("completion-event.json"))
+    event["payload"]["item_scores"][0]["scoring_policy_id"] = (  # type: ignore[index]
+        "numeric-exact-or-inclusive-range"
+    )
+
+    with pytest.raises(PracticeProgressFailure) as captured:
+        adapter.parse_completion_event(event)
+
+    assert captured.value.code == "assessment.practice.inconsistent_event"
+
+
+@pytest.mark.parametrize(
+    ("field", "changed"),
+    (
+        ("event_id", "99999999-9999-4999-8999-999999999991"),
+        ("attempt_id", "99999999-9999-4999-8999-999999999992"),
+        ("evidence_id", "99999999-9999-4999-8999-999999999993"),
+        ("submission_id", "99999999-9999-4999-8999-999999999994"),
+    ),
+)
+def test_application_replay_rejects_payload_identity_drift(
+    field: str, changed: str
+) -> None:
+    service, repository = build_service()
+    stored = repository.events[0]
+    document = copy.deepcopy(stored.document)
+    if field == "event_id":
+        document["event_id"] = changed
+    elif field == "attempt_id":
+        document["aggregate"]["aggregate_id"] = changed  # type: ignore[index]
+    elif field == "evidence_id":
+        document["source"]["evidence_id"] = changed  # type: ignore[index]
+        document["idempotency_key"] = changed
+    else:
+        document["payload"]["submission_id"] = changed  # type: ignore[index]
+    repository.events = (
+        StoredPracticeCompletionEvent(
+            event_id=stored.event_id,
+            attempt_id=stored.attempt_id,
+            evidence_id=stored.evidence_id,
+            submission_id=stored.submission_id,
+            attempt_order=stored.attempt_order,
+            document=document,
+        ),
+    )
+
+    from financial_ai_academy.modules.assessment.public import (
+        AssessmentError,
+        AssessmentErrorCode,
+    )
+
+    with pytest.raises(AssessmentError) as captured:
+        service.read_completed_practices(
+            ReadCompletedPracticesRequest(
+                learner_id=LEARNER_ID,
+                placement_id="risk-return-practice-placement",
+            )
+        )
+
+    assert captured.value.code is AssessmentErrorCode.UNAVAILABLE
+    assert changed not in str(captured.value.as_dict())
 
 
 def adapter_context(reference: PlacedPracticeReference):

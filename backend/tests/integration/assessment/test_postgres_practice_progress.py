@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -109,6 +110,9 @@ def empty_tables(migrated_database: object) -> None:
 
 
 class CurriculumGateway:
+    def __init__(self, max_attempts: int = 3) -> None:
+        self.max_attempts = max_attempts
+
     def resolve_practice(self, placement_id: str) -> PlacedPracticeReference:
         assert placement_id == "risk-return-practice-placement"
         return PlacedPracticeReference(
@@ -118,16 +122,18 @@ class CurriculumGateway:
             package_digest="a" * 64,
             practice_id="risk-return-practice",
             practice_version="1.0.0",
-            definition_digest=(
-                "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527"
-            ),
+            definition_digest=definition_document(self.max_attempts)[0],
         )
 
 
 class ContentGateway:
+    def __init__(self, max_attempts: int = 3) -> None:
+        self.max_attempts = max_attempts
+
     def get_practice_exact(
         self, _reference: PlacedPracticeReference
     ) -> PracticeDefinitionDocument:
+        _digest, value = definition_document(self.max_attempts)
         return PracticeDefinitionDocument(
             package_id="intro-risk-return",
             package_version="2.0.0",
@@ -135,7 +141,7 @@ class ContentGateway:
             practice_id="risk-return-practice",
             schema_version="1.0.0",
             file_digest="b" * 64,
-            value=(CORPUS / "definition.json").read_bytes(),
+            value=value,
         )
 
 
@@ -154,12 +160,15 @@ class SequentialIds:
 
 
 def build_service(
-    *, start: int = 100, before_outbox: object | None = None
+    *,
+    start: int = 100,
+    before_outbox: object | None = None,
+    max_attempts: int = 3,
 ) -> AssessmentService:
     assert POSTGRES_DSN is not None
     return AssessmentService(
-        CurriculumGateway(),  # type: ignore[arg-type]
-        ContentGateway(),  # type: ignore[arg-type]
+        CurriculumGateway(max_attempts),  # type: ignore[arg-type]
+        ContentGateway(max_attempts),  # type: ignore[arg-type]
         object(),
         object(),
         PostgresAssessmentRepository(
@@ -175,9 +184,14 @@ def build_service(
 
 
 def draft_bytes(
-    *, expected_revision: int = 0, changed: bool = False, reorder: bool = False
+    *,
+    expected_revision: int = 0,
+    changed: bool = False,
+    reorder: bool = False,
+    max_attempts: int = 3,
 ) -> bytes:
     document = json.loads((CORPUS / "draft-save.json").read_text(encoding="utf-8"))
+    document["definition_digest"] = definition_document(max_attempts)[0]
     document["expected_revision"] = expected_revision
     if changed:
         document["responses"] = document["responses"][:1]
@@ -194,11 +208,14 @@ def save_request(**changes: object) -> SavePlacedPracticeDraftRequest:
     )
 
 
-def submit_request(submission_id: str) -> SubmitPlacedPracticeRequest:
+def submit_request(
+    submission_id: str, *, max_attempts: int = 3
+) -> SubmitPlacedPracticeRequest:
     document = json.loads(
         (CORPUS / "submission.json").read_text(encoding="utf-8")
     )
     document["submission_id"] = submission_id
+    document["definition_digest"] = definition_document(max_attempts)[0]
     return SubmitPlacedPracticeRequest(
         learner_id=LEARNER_ID,
         placement_id="risk-return-practice-placement",
@@ -211,6 +228,22 @@ def progress_request() -> ReadPlacedPracticeProgressRequest:
         learner_id=LEARNER_ID,
         placement_id="risk-return-practice-placement",
     )
+
+
+def definition_document(max_attempts: int) -> tuple[str, bytes]:
+    document = json.loads(
+        (CORPUS / "definition.json").read_text(encoding="utf-8")
+    )
+    document["practice"]["attempt_policy"]["max_attempts"] = max_attempts
+    canonical = json.dumps(
+        document["practice"],
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    digest = hashlib.sha256(canonical).hexdigest()
+    document["definition_digest"] = digest
+    return digest, json.dumps(document).encode("utf-8")
 
 
 def test_conditional_draft_save_replay_replace_conflict_and_restart() -> None:
@@ -315,6 +348,46 @@ def test_retry_state_and_typed_replay_survive_restart_without_answers() -> None:
     assert "selected_option" not in serialized
     assert "entered_value" not in serialized
     assert "feedback" not in serialized
+
+
+@pytest.mark.parametrize("max_attempts", range(1, 11))
+def test_every_supported_retry_maximum_replays_and_preserves_denied_draft(
+    max_attempts: int,
+) -> None:
+    service = build_service(max_attempts=max_attempts)
+    first_submission_id = "22222222-2222-4222-8222-000000000001"
+    first = service.submit_placed_practice(
+        submit_request(first_submission_id, max_attempts=max_attempts)
+    )
+    for attempt in range(2, max_attempts + 1):
+        service.submit_placed_practice(
+            submit_request(
+                f"22222222-2222-4222-8222-{attempt:012d}",
+                max_attempts=max_attempts,
+            )
+        )
+
+    service.save_placed_practice_draft(
+        save_request(max_attempts=max_attempts)
+    )
+    with pytest.raises(AssessmentError) as denied:
+        service.submit_placed_practice(
+            submit_request(
+                "22222222-2222-4222-8222-999999999999",
+                max_attempts=max_attempts,
+            )
+        )
+
+    assert denied.value.code is AssessmentErrorCode.ATTEMPT_LIMIT_REACHED
+    assert service.read_placed_practice_draft(progress_request()) is not None
+    assert service.submit_placed_practice(
+        submit_request(first_submission_id, max_attempts=max_attempts)
+    ) == first
+    assert POSTGRES_DSN is not None
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT attempt_order FROM assessment.practice_attempts ORDER BY attempt_order"
+        ).fetchall() == [(attempt,) for attempt in range(1, max_attempts + 1)]
 
 
 def test_concurrent_final_slot_accepts_at_most_one_distinct_submission() -> None:

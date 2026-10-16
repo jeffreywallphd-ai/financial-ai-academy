@@ -558,7 +558,13 @@ class PostgresAssessmentRepository:
         with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
             rows = connection.execute(
                 """
-                SELECT a.attempt_order, o.event_payload
+                SELECT
+                    o.event_id,
+                    a.attempt_id,
+                    e.evidence_id,
+                    a.submission_id,
+                    a.attempt_order,
+                    o.event_payload
                 FROM assessment.practice_outbox AS o
                 JOIN assessment.practice_completion_evidence AS e
                   ON e.evidence_id = o.evidence_id
@@ -580,6 +586,10 @@ class PostgresAssessmentRepository:
             ).fetchall()
         return tuple(
             StoredPracticeCompletionEvent(
+                event_id=str(row["event_id"]),
+                attempt_id=str(row["attempt_id"]),
+                evidence_id=str(row["evidence_id"]),
+                submission_id=str(row["submission_id"]),
                 attempt_order=int(row["attempt_order"]),
                 document=row["event_payload"],
             )

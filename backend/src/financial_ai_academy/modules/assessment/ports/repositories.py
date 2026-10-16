@@ -43,6 +43,10 @@ class PracticeDraftConflict(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class StoredPracticeCompletionEvent:
+    event_id: str
+    attempt_id: str
+    evidence_id: str
+    submission_id: str
     attempt_order: int
     document: Mapping[str, Any]
 

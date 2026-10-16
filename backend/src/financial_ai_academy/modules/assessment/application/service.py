@@ -355,13 +355,25 @@ class AssessmentService:
                 learner_id=request.learner_id,
                 scope=scope,
             )
-            ordered = tuple(
-                OrderedPracticeCompletionEvent(
-                    attempt_order=item.attempt_order,
-                    event=progress.parse_completion_event(item.document),
+            ordered_items: list[OrderedPracticeCompletionEvent] = []
+            for item in stored:
+                event = progress.parse_completion_event(item.document)
+                if (
+                    event.event_id != item.event_id
+                    or event.attempt_id != item.attempt_id
+                    or event.evidence_id != item.evidence_id
+                    or event.submission_id != item.submission_id
+                ):
+                    raise PracticeProgressFailure(
+                        "assessment.practice.inconsistent_event", "event"
+                    )
+                ordered_items.append(
+                    OrderedPracticeCompletionEvent(
+                        attempt_order=item.attempt_order,
+                        event=event,
+                    )
                 )
-                for item in stored
-            )
+            ordered = tuple(ordered_items)
         except PracticeProgressFailure as error:
             raise AssessmentError(
                 AssessmentErrorCode.UNAVAILABLE,

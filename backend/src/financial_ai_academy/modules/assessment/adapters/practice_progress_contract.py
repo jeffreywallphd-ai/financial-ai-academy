@@ -32,6 +32,11 @@ from ..ports.practice_progress import PracticeProgressFailure
 
 
 VERSION = "1.0.0"
+POLICIES = {
+    "single_select": "single-select-exact-match",
+    "multiple_select": "multiple-select-exact-set",
+    "numeric_entry": "numeric-exact-or-inclusive-range",
+}
 
 
 class ContractPracticeProgressAdapter:
@@ -101,6 +106,10 @@ class ContractPracticeProgressAdapter:
         total_maximum = sum(int(item["max_score"]) for item in item_scores)
         if (
             len(item_ids) != len(set(item_ids))
+            or any(
+                item["scoring_policy_id"] != POLICIES[item["item_type"]]
+                for item in item_scores
+            )
             or total_score != payload["score"]
             or total_maximum != payload["max_score"]
             or (payload["outcome"] == "all_correct")
