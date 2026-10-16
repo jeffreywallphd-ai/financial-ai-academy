@@ -637,6 +637,64 @@ export function practiceDraftIsSafe(
   );
 }
 
+function responseMatches(
+  actual: PracticeResponse,
+  expected: PracticeResponse,
+): boolean {
+  if (
+    actual.item_id !== expected.item_id ||
+    actual.item_type !== expected.item_type ||
+    actual.item_version !== expected.item_version ||
+    actual.scoring_policy_id !== expected.scoring_policy_id ||
+    actual.scoring_policy_version !== expected.scoring_policy_version
+  ) {
+    return false;
+  }
+  if (
+    actual.item_type === "single_select" &&
+    expected.item_type === "single_select"
+  ) {
+    return actual.selected_option_id === expected.selected_option_id;
+  }
+  if (
+    actual.item_type === "multiple_select" &&
+    expected.item_type === "multiple_select"
+  ) {
+    return sameStringSet(
+      actual.selected_option_ids,
+      expected.selected_option_ids,
+    );
+  }
+  return (
+    actual.item_type === "numeric_entry" &&
+    expected.item_type === "numeric_entry" &&
+    actual.entered_value === expected.entered_value
+  );
+}
+
+export function practiceDraftSaveResultIsSafe(
+  value: unknown,
+  practice: PracticePresentation,
+  prepared: PreparedPracticeDraftSave,
+): value is PracticeDraft {
+  if (
+    !practiceDraftIsSafe(value, practice) ||
+    prepared.placementId !== practice.placement_id ||
+    value.responses.length !== prepared.body.responses.length ||
+    value.responses.some((response, index) => {
+      const expected = prepared.body.responses[index];
+      return expected === undefined || !responseMatches(response, expected);
+    })
+  ) {
+    return false;
+  }
+  const expectedRevision = prepared.body.expected_revision;
+  return (
+    value.revision === expectedRevision ||
+    value.revision === expectedRevision + 1
+  );
+}
+
 function retryStateIsSafe(
   value: unknown,
   practice: PracticePresentation,
@@ -750,6 +808,21 @@ function historyIsSafe(
     ) {
       return false;
     }
+    const summaries = attempt.item_summaries.map((summary) => record(summary)!);
+    const summaryScore = summaries.reduce(
+      (total, summary) => total + Number(summary.score),
+      0,
+    );
+    const summaryMaximum = summaries.reduce(
+      (total, summary) => total + Number(summary.max_score),
+      0,
+    );
+    if (
+      summaryScore !== attempt.score ||
+      summaryMaximum !== attempt.max_score
+    ) {
+      return false;
+    }
     const identities = [
       [eventIds, attempt.event_id],
       [attemptIds, attempt.attempt_id],
@@ -815,7 +888,9 @@ function reviewTargetIsSafe(
       semanticVersion(destination.package_version) &&
       typeof destination.package_digest === "string" &&
       DIGEST.test(destination.package_digest) &&
-      (!hasSection || identifier(destination.section_id))
+      (!hasSection ||
+        destination.section_id === null ||
+        identifier(destination.section_id))
     );
   }
   return (
@@ -832,10 +907,17 @@ export function practiceProgressIsSafe(
   practice: PracticePresentation,
 ): value is PracticeProgress {
   const progress = record(value);
+  const hasSchemaVersion =
+    progress !== null && Object.hasOwn(progress, "schema_version");
   if (
     progress === null ||
-    !exactKeys(progress, PROGRESS_KEYS) ||
-    progress.schema_version !== "1.0.0" ||
+    !exactKeys(
+      progress,
+      hasSchemaVersion
+        ? PROGRESS_KEYS
+        : PROGRESS_KEYS.filter((key) => key !== "schema_version"),
+    ) ||
+    (hasSchemaVersion && progress.schema_version !== "1.0.0") ||
     progress.placement_id !== practice.placement_id ||
     (progress.draft !== null &&
       !practiceDraftIsSafe(progress.draft, practice)) ||
@@ -845,7 +927,14 @@ export function practiceProgressIsSafe(
   ) {
     return false;
   }
+  const retry = record(progress.retry_state)!;
+  const history = record(progress.history)!;
+  const attempts = history.attempts as unknown[];
+  if (Number(retry.attempts_used) !== attempts.length) {
+    return false;
+  }
   const ids = new Set<string>();
+  const actualReviewIds: string[] = [];
   for (const target of progress.review_targets) {
     if (!reviewTargetIsSafe(target, practice)) {
       return false;
@@ -855,8 +944,31 @@ export function practiceProgressIsSafe(
       return false;
     }
     ids.add(resourceId);
+    actualReviewIds.push(resourceId);
   }
-  return true;
+  const expectedReviewIds: string[] = [];
+  const expectedReviewIdSet = new Set<string>();
+  const latestAttempt = record(attempts.at(-1));
+  if (latestAttempt !== null) {
+    for (const summaryValue of latestAttempt.item_summaries as unknown[]) {
+      const summary = record(summaryValue)!;
+      if (summary.correct) {
+        continue;
+      }
+      for (const reviewId of summary.review_reference_ids as string[]) {
+        if (!expectedReviewIdSet.has(reviewId)) {
+          expectedReviewIdSet.add(reviewId);
+          expectedReviewIds.push(reviewId);
+        }
+      }
+    }
+  }
+  return (
+    actualReviewIds.length === expectedReviewIds.length &&
+    actualReviewIds.every(
+      (resourceId, index) => resourceId === expectedReviewIds[index],
+    )
+  );
 }
 
 export function preparePracticeSubmission(

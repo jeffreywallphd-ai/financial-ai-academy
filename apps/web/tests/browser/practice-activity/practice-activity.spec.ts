@@ -206,6 +206,9 @@ test("resumes, saves, reviews, and compares through the public progress API", as
 test("shows retained history without mutation controls when attempts are exhausted", async ({
   page,
 }) => {
+  const firstAttempt = structuredClone(
+    practiceProgressFixture.history.attempts[0]!,
+  );
   const exhausted: PracticeProgress = {
     ...structuredClone(practiceProgressFixture),
     draft: null,
@@ -215,6 +218,30 @@ test("shows retained history without mutation controls when attempts are exhaust
       attempts_remaining: 0,
       can_retry: false,
       state: "exhausted",
+    },
+    history: {
+      ...structuredClone(practiceProgressFixture.history),
+      attempts: [
+        firstAttempt,
+        {
+          ...structuredClone(firstAttempt),
+          attempt_order: 2,
+          event_id: "44444444-4444-4444-8444-444444444445",
+          attempt_id: "55555555-5555-4555-8555-555555555556",
+          evidence_id: "66666666-6666-4666-8666-666666666667",
+          submission_id: "77777777-7777-4777-8777-777777777778",
+          completed_at: "2026-10-16T15:10:00Z",
+        },
+        {
+          ...structuredClone(firstAttempt),
+          attempt_order: 3,
+          event_id: "44444444-4444-4444-8444-444444444446",
+          attempt_id: "55555555-5555-4555-8555-555555555557",
+          evidence_id: "66666666-6666-4666-8666-666666666668",
+          submission_id: "77777777-7777-4777-8777-777777777779",
+          completed_at: "2026-10-16T15:20:00Z",
+        },
+      ],
     },
   };
   await mockReadyPractice(page, practiceFixture, exhausted);

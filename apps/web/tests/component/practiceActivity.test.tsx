@@ -4,7 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { PracticeActivityPage } from "../../src/features/practice-activity/PracticeActivityPage";
 import { PracticeActivityRouteView } from "../../src/features/practice-activity/PracticeActivityRoute";
-import { practiceProgressIsSafe } from "../../src/features/practice-activity/model";
+import {
+  practiceDraftSaveResultIsSafe,
+  practiceProgressIsSafe,
+} from "../../src/features/practice-activity/model";
 import type {
   PracticeDraftSaver,
   PracticeProgress,
@@ -270,6 +273,9 @@ describe("practice activity page", () => {
   });
 
   it("removes mutation controls when the server says attempts are exhausted", () => {
+    const firstAttempt = structuredClone(
+      practiceProgressFixture.history.attempts[0]!,
+    );
     const progress: PracticeProgress = {
       ...structuredClone(practiceProgressFixture),
       draft: null,
@@ -279,6 +285,30 @@ describe("practice activity page", () => {
         attempts_remaining: 0,
         can_retry: false,
         state: "exhausted",
+      },
+      history: {
+        ...structuredClone(practiceProgressFixture.history),
+        attempts: [
+          firstAttempt,
+          {
+            ...structuredClone(firstAttempt),
+            attempt_order: 2,
+            event_id: "44444444-4444-4444-8444-444444444445",
+            attempt_id: "55555555-5555-4555-8555-555555555556",
+            evidence_id: "66666666-6666-4666-8666-666666666667",
+            submission_id: "77777777-7777-4777-8777-777777777778",
+            completed_at: "2026-10-16T15:10:00Z",
+          },
+          {
+            ...structuredClone(firstAttempt),
+            attempt_order: 3,
+            event_id: "44444444-4444-4444-8444-444444444446",
+            attempt_id: "55555555-5555-4555-8555-555555555557",
+            evidence_id: "66666666-6666-4666-8666-666666666668",
+            submission_id: "77777777-7777-4777-8777-777777777779",
+            completed_at: "2026-10-16T15:20:00Z",
+          },
+        ],
       },
     };
     render(
@@ -308,6 +338,81 @@ describe("practice activity page", () => {
     expect(practiceProgressIsSafe(extra, practiceFixture)).toBe(false);
     expect(practiceProgressIsSafe(mismatched, practiceFixture)).toBe(false);
     expect(practiceProgressIsSafe(practiceProgressFixture, practiceFixture)).toBe(true);
+  });
+
+  it("correlates a saved draft with the exact conditional write", () => {
+    const prepared = {
+      placementId: practiceFixture.placement_id,
+      body: {
+        schema_version: "1.0.0" as const,
+        placement_id: practiceFixture.placement_id,
+        package_id: practiceFixture.package_id,
+        package_version: practiceFixture.package_version,
+        package_digest: practiceFixture.package_digest,
+        definition_digest: practiceFixture.definition_digest,
+        practice_id: practiceFixture.practice_id,
+        practice_version: practiceFixture.practice_version,
+        attempt_policy_id: practiceFixture.attempt_policy.policy_id,
+        attempt_policy_version: practiceFixture.attempt_policy.policy_version,
+        expected_revision: 1,
+        responses: structuredClone(practiceProgressFixture.draft!.responses),
+      },
+    };
+    const saved = {
+      ...structuredClone(practiceProgressFixture.draft!),
+      revision: 2,
+    };
+    const wrongResponse = structuredClone(saved);
+    wrongResponse.responses[0]!.selected_option_id = "certainty";
+    const wrongRevision = { ...structuredClone(saved), revision: 5 };
+
+    expect(practiceDraftSaveResultIsSafe(saved, practiceFixture, prepared)).toBe(true);
+    expect(
+      practiceDraftSaveResultIsSafe(wrongResponse, practiceFixture, prepared),
+    ).toBe(false);
+    expect(
+      practiceDraftSaveResultIsSafe(wrongRevision, practiceFixture, prepared),
+    ).toBe(false);
+  });
+
+  it("rejects progress whose summary, retry, or review evidence conflicts", () => {
+    const wrongScore = structuredClone(practiceProgressFixture);
+    wrongScore.history.attempts[0]!.score = 1;
+    const wrongAttemptCount = structuredClone(practiceProgressFixture);
+    wrongAttemptCount.retry_state.attempts_used = 2;
+    wrongAttemptCount.retry_state.attempts_remaining = 1;
+    const wrongTargets = structuredClone(practiceProgressFixture);
+    wrongTargets.review_targets = [];
+
+    expect(practiceProgressIsSafe(wrongScore, practiceFixture)).toBe(false);
+    expect(practiceProgressIsSafe(wrongAttemptCount, practiceFixture)).toBe(false);
+    expect(practiceProgressIsSafe(wrongTargets, practiceFixture)).toBe(false);
+  });
+
+  it("accepts optional generated fields without opening the payload", () => {
+    const optional = structuredClone(practiceProgressFixture) as Record<
+      string,
+      unknown
+    >;
+    delete optional.schema_version;
+    const destination = (
+      structuredClone(practiceProgressFixture).review_targets[0] as {
+        destination: { section_id?: string | null };
+      }
+    ).destination;
+    destination.section_id = null;
+    const nullableSection = {
+      ...structuredClone(practiceProgressFixture),
+      review_targets: [
+        {
+          ...structuredClone(practiceProgressFixture.review_targets[0]),
+          destination,
+        },
+      ],
+    };
+
+    expect(practiceProgressIsSafe(optional, practiceFixture)).toBe(true);
+    expect(practiceProgressIsSafe(nullableSection, practiceFixture)).toBe(true);
   });
 
   it("renders variable item and reference counts without a fixed fixture assumption", () => {

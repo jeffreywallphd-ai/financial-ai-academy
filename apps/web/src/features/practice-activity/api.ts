@@ -15,7 +15,7 @@ import type {
   PreparedPracticeSubmission,
 } from "./model";
 import {
-  practiceDraftIsSafe,
+  practiceDraftSaveResultIsSafe,
   practicePresentationIsSafe,
   practiceProgressIsSafe,
   practiceSubmissionResultIsSafe,
@@ -365,7 +365,7 @@ async function saveDraft(
       options,
     );
     if (response.response.status === 200 && response.data) {
-      return practiceDraftIsSafe(response.data, practice)
+      return practiceDraftSaveResultIsSafe(response.data, practice, save)
         ? { status: "saved", draft: response.data }
         : { status: "invalid-result" };
     }
