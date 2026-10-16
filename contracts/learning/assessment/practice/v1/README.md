@@ -19,6 +19,11 @@ identities, and feedback.
 
 The definition digest is lowercase SHA-256 over the UTF-8 JSON bytes of the
 private `practice` object serialized with sorted keys and compact separators.
+JSON string content is encoded directly as UTF-8 (`ensure_ascii=false`):
+non-ASCII characters are not replaced with JSON `\u` escapes. Producers must
+normalize authoring text before contract creation if their source system can
+represent canonically equivalent Unicode with different code-point sequences;
+the contract does not perform implicit Unicode normalization.
 The paired compatibility corpus is in
 [`contracts/compatibility/assessment-practice/v1`](../../../../compatibility/assessment-practice/v1/README.md).
 

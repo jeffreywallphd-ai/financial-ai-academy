@@ -1,0 +1,14 @@
+{
+  "canonicalization": "sorted-keys-compact-utf8-unescaped-unicode",
+  "mutations": [
+    {
+      "path": ["practice", "title"],
+      "value": "Practice café and 東京"
+    },
+    {
+      "path": ["practice", "source_references", 0, "title"],
+      "value": "Résumé of risk and return"
+    }
+  ],
+  "definition_digest": "d21bbc98167f5bf98591a03e9bc2b4f7f25da818e6215943ff403148cbb4c726"
+}

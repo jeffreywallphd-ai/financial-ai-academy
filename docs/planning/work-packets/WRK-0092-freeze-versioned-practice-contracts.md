@@ -237,8 +237,8 @@ external execution changed, then leave JIT-B dependency-ready.
   identity, API, scoring, attempt, evidence, event, or learner-state action.
   Its JSON-compatible output is suitable for the later protected API shared by
   browser and non-browser clients.
-- The new focused contract and unit suites pass 25 tests. The combined new and
-  existing Assessment suites pass 59 tests, preserving the accepted
+- The new focused contract and unit suites pass 57 tests. The combined new and
+  existing Assessment suites pass 91 tests, preserving the accepted
   knowledge-check family. Architecture passes 15 tests; work-packet,
   documentation, and planning validation pass; whitespace integrity is clean;
   and aggregate readiness passes all 29 checks.
@@ -246,6 +246,14 @@ external execution changed, then leave JIT-B dependency-ready.
   `82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527`.
   Numeric meaning rejects exponent syntax, noncanonical scale, negative zero,
   disallowed negatives, and inverted ranges without echoing private values.
+- Shape-safe discriminator handling routes non-string item types through
+  schema diagnostics rather than raw language exceptions. The independently
+  fixed non-ASCII vector proves compact sorted JSON uses direct UTF-8 without
+  `\u` escaping or implicit Unicode normalization.
+- Accepted and rejected item, single-select option, multiple-select option,
+  source-reference, and review-reference count edges are exercised directly.
+  Numeric evidence covers scales 0 and 6, permitted and disallowed negatives,
+  inverted bounds, exponent text, JSON numbers, and locale separators.
 - No package admission, Content/Curriculum placement, public operation, HTTP,
   OpenAPI, generated client, browser UI, persistence, migration, scoring,
   feedback selection, retry enforcement, evidence, event, AI mode, model
@@ -265,3 +273,9 @@ external execution changed, then leave JIT-B dependency-ready.
   legacy-regression, architecture, documentation, planning, whitespace, and
   aggregate-readiness checks pass; the result is ready for exact-candidate
   submission and independent technical review.
+- 2026-10-16: Corrected three substantive candidate-audit findings inside the
+  packet boundary: non-string discriminators now fail with a bounded schema
+  diagnostic, Unicode digest encoding is explicit and fixed by a non-ASCII
+  vector in both implementations, and decimal plus resource-count boundary
+  evidence now covers the packet's stated acceptance set. Focused and legacy
+  suites pass 91 tests on the corrected descendant.

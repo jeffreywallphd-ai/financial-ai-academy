@@ -155,6 +155,8 @@ class PracticeContractValidator:
             if not isinstance(item, Mapping):
                 continue
             item_type = item.get("item_type")
+            if not isinstance(item_type, str):
+                continue
             if item_type not in POLICIES:
                 reject(
                     "assessment.practice.unsupported_item_type",

@@ -160,6 +160,8 @@ class ContractPracticeDefinitionAdapter:
             if not isinstance(item, Mapping):
                 continue
             item_type = item.get("item_type")
+            if not isinstance(item_type, str):
+                continue
             if item_type not in POLICIES:
                 self._reject(
                     "assessment.practice.unsupported_item_type",
@@ -172,7 +174,7 @@ class ContractPracticeDefinitionAdapter:
                 )
             policy = item.get("scoring_policy")
             if isinstance(policy, Mapping) and (
-                policy.get("policy_id") != POLICIES[str(item_type)]
+                policy.get("policy_id") != POLICIES[item_type]
                 or policy.get("policy_version") != VERSION
             ):
                 self._reject(

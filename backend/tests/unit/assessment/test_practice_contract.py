@@ -59,6 +59,25 @@ def test_parse_retains_all_private_item_types() -> None:
     assert definition.items[2].answer.value is not None
 
 
+def test_production_parser_matches_non_ascii_digest_vector() -> None:
+    document = copy.deepcopy(load("definition.json"))
+    vector = json.loads(
+        (
+            REPOSITORY
+            / "contracts/compatibility/assessment-practice/v1/vectors/non-ascii-definition-digest.json"
+        ).read_text(encoding="utf-8")
+    )
+    for mutation in vector["mutations"]:
+        current: object = document
+        for part in mutation["path"][:-1]:
+            current = current[part]  # type: ignore[index]
+        current[mutation["path"][-1]] = mutation["value"]  # type: ignore[index]
+    document["definition_digest"] = vector["definition_digest"]
+    definition = adapter().parse(encoded(document))
+    assert definition.title == "Practice café and 東京"
+    assert definition.definition_digest == vector["definition_digest"]
+
+
 def test_projection_matches_reviewed_transport_neutral_document() -> None:
     contract = adapter()
     definition = contract.parse((APPROVED / "definition.json").read_bytes())
@@ -96,6 +115,7 @@ def test_projection_recursively_omits_answers_and_feedback() -> None:
     [
         (("practice", "practice_version"), "2.0.0", "assessment.practice.unsupported_version"),
         (("practice", "items", 0, "item_type"), "essay", "assessment.practice.unsupported_item_type"),
+        (("practice", "items", 0, "item_type"), [], "assessment.practice.schema_invalid"),
         (("practice", "items", 2, "answer", "value"), "105.0", "assessment.practice.invalid_decimal"),
     ],
 )

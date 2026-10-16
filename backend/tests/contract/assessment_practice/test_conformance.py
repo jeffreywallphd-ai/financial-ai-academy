@@ -83,6 +83,23 @@ def test_definition_digest_vector_fixes_private_meaning() -> None:
     )
 
 
+def test_non_ascii_digest_vector_fixes_raw_utf8_serialization() -> None:
+    definition, _ = map(copy.deepcopy, approved_pair())
+    vector = json.loads(
+        (CORPUS / "vectors/non-ascii-definition-digest.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    for mutation in vector["mutations"]:
+        _set_at(definition, mutation["path"], mutation["value"])
+    canonical = canonical_practice_bytes(definition["practice"])
+    assert "café".encode() in canonical
+    assert b"\\u00e9" not in canonical
+    assert definition_digest(definition) == vector["definition_digest"]
+    definition["definition_digest"] = vector["definition_digest"]
+    PracticeContractValidator().validate_definition(definition)
+
+
 def test_presentation_recursively_excludes_private_fields() -> None:
     _, presentation = approved_pair()
     serialized = json.dumps(presentation, sort_keys=True)
@@ -141,6 +158,140 @@ def test_compatible_counts_order_and_range_rule_are_not_fixture_locked() -> None
     validator.validate_presentation(definition, projection)
     assert len(projection["source_references"]) == 2
     assert projection["items"][0]["item_type"] == "numeric_entry"
+
+
+@pytest.mark.parametrize(
+    ("scale", "value", "allow_negative"),
+    [
+        (0, "105", False),
+        (6, "105.000000", False),
+        (2, "-105.00", True),
+    ],
+)
+def test_numeric_scale_edges_and_permitted_negative_are_accepted(
+    scale: int, value: str, allow_negative: bool
+) -> None:
+    definition, presentation = map(copy.deepcopy, approved_pair())
+    numeric = definition["practice"]["items"][2]
+    numeric["response"]["scale"] = scale
+    numeric["response"]["allow_negative"] = allow_negative
+    numeric["answer"] = {"mode": "exact", "value": value}
+    definition["definition_digest"] = definition_digest(definition)
+    validator = PracticeContractValidator()
+    projected = validator.project(
+        definition,
+        placement_id=presentation["placement_id"],
+        package_id=presentation["package_id"],
+        package_version=presentation["package_version"],
+        package_digest=presentation["package_digest"],
+    )
+    validator.validate_presentation(definition, projected)
+
+
+def _options(count: int) -> list[dict[str, str]]:
+    return [
+        {"option_id": f"option-{index:02d}", "label": f"Option {index + 1}"}
+        for index in range(count)
+    ]
+
+
+def _references(count: int) -> list[dict[str, str]]:
+    return [
+        {
+            "resource_id": f"resource-{index:02d}",
+            "resource_version": "1.0.0",
+            "resource_digest": f"{index + 1:x}" * 64,
+            "title": f"Resource {index + 1}",
+        }
+        for index in range(count)
+    ]
+
+
+@pytest.mark.parametrize("count", [1, 20])
+def test_item_count_edges_are_accepted(count: int) -> None:
+    definition, _ = map(copy.deepcopy, approved_pair())
+    template = definition["practice"]["items"][0]
+    definition["practice"]["items"] = []
+    for index in range(count):
+        item = copy.deepcopy(template)
+        item["item_id"] = f"item-{index:02d}"
+        definition["practice"]["items"].append(item)
+    definition["definition_digest"] = definition_digest(definition)
+    PracticeContractValidator().validate_definition(definition)
+
+
+@pytest.mark.parametrize(
+    ("item_index", "count"),
+    [(0, 2), (0, 8), (1, 3), (1, 12)],
+)
+def test_select_option_count_edges_are_accepted(
+    item_index: int, count: int
+) -> None:
+    definition, _ = map(copy.deepcopy, approved_pair())
+    item = definition["practice"]["items"][item_index]
+    item["options"] = _options(count)
+    if item["item_type"] == "single_select":
+        item["correct_option_id"] = "option-00"
+    else:
+        item["correct_option_ids"] = ["option-00", f"option-{count - 1:02d}"]
+    definition["definition_digest"] = definition_digest(definition)
+    PracticeContractValidator().validate_definition(definition)
+
+
+@pytest.mark.parametrize(("reference_name", "count"), [("source_references", 1), ("source_references", 8), ("review_references", 1), ("review_references", 8)])
+def test_reference_count_edges_are_accepted(
+    reference_name: str, count: int
+) -> None:
+    definition, _ = map(copy.deepcopy, approved_pair())
+    references = _references(count)
+    definition["practice"][reference_name] = references
+    if reference_name == "review_references":
+        for item in definition["practice"]["items"]:
+            for feedback in item["feedback"].values():
+                feedback["review_reference_ids"] = [references[0]["resource_id"]]
+    definition["definition_digest"] = definition_digest(definition)
+    PracticeContractValidator().validate_definition(definition)
+
+
+@pytest.mark.parametrize(
+    ("boundary", "count"),
+    [
+        ("items", 0),
+        ("items", 21),
+        ("single_options", 1),
+        ("single_options", 9),
+        ("multiple_options", 2),
+        ("multiple_options", 13),
+        ("source_references", 0),
+        ("source_references", 9),
+        ("review_references", 0),
+        ("review_references", 9),
+    ],
+)
+def test_resource_count_overflow_and_underflow_fail_closed(
+    boundary: str, count: int
+) -> None:
+    definition, _ = map(copy.deepcopy, approved_pair())
+    practice = definition["practice"]
+    if boundary == "items":
+        template = practice["items"][0]
+        practice["items"] = []
+        for index in range(count):
+            item = copy.deepcopy(template)
+            item["item_id"] = f"item-{index:02d}"
+            practice["items"].append(item)
+    elif boundary == "single_options":
+        practice["items"][0]["options"] = _options(count)
+        practice["items"][0]["correct_option_id"] = "option-00"
+    elif boundary == "multiple_options":
+        practice["items"][1]["options"] = _options(count)
+        practice["items"][1]["correct_option_ids"] = ["option-00"]
+    else:
+        practice[boundary] = _references(count)
+    definition["definition_digest"] = definition_digest(definition)
+    with pytest.raises(PracticeConformanceFailure) as captured:
+        PracticeContractValidator().validate_definition(definition)
+    assert captured.value.code == "assessment.practice.schema_invalid"
 
 
 def test_cli_emits_bounded_output_without_private_answers() -> None:
