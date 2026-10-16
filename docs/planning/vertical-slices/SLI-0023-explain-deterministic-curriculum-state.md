@@ -1,7 +1,7 @@
 ---
 id: SLI-0023
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -177,7 +177,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0062 | Freeze the navigation-state contract, pure Adaptation policy, public operation, reason semantics, and focused anti-rigidity corpus | none | none | complete |
 | WRK-0063 | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | complete |
 | WRK-0065 | Annotate the existing accessible map/list through the generated client without client-side policy | WRK-0063 | none | complete |
-| WRK-0066 | Qualify the live projection, failure paths, accessibility, provenance, module ownership, and documentation | WRK-0065 | none | ready |
+| WRK-0066 | Qualify the live projection, failure paths, accessibility, provenance, module ownership, and documentation | WRK-0065 | none | complete |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. This preserves just-in-time planning and prevents later packets from
@@ -231,6 +231,29 @@ failure paths, live-browser qualification, accessibility and theme results,
 anti-rigidity coverage, assumptions, known gaps, and confirmation that no
 model, ranking, mastery, recommendation, provider, or durable state authority
 was introduced.
+
+All four dependency-ordered packets are complete. The slice delivered the
+closed navigation-state contract and pure deterministic policy, composed only
+public Curriculum and Learner-model operations behind an authenticated exact-
+version API, generated the public TypeScript client, and presented equivalent
+non-color state and explanations in the list and map without browser policy.
+
+The final live qualification ran the exact implementation candidate through
+isolated PostgreSQL 18.4, the Python host, same-origin production browser
+assets, and pinned Chromium. Eight scenarios proved retained lesson completion
+transition, complete API/UI parity, graph and projection provenance, flexible
+branch and reason shapes, bounded assessment-source limitations, protected and
+missing-version failures without state leakage, accessibility and responsive
+behavior, and exact cleanup. Focused contract, application, API, web,
+architecture, security, design, documentation, planning, whitespace, and all
+27 aggregate readiness checks also passed.
+
+The slice introduced no model inference, ranking, recommendation, mastery or
+competency claim, activity launch, durable Adaptation table, migration,
+provider-specific state, or managed-cloud dependency. Supported assessment
+completion, non-Chromium and real assistive-technology qualification,
+production recovery, and later activity-opening behavior remain explicit
+boundaries for later work.
 
 ## Planning History
 
@@ -296,3 +319,7 @@ was introduced.
   before/after completion evidence, navigation API/UI parity, bounded failures,
   accessibility, provenance, anti-rigidity, and exact teardown. No product
   runtime or decision boundary changes.
+- 2026-10-16: Closed WRK-0066 and SLI-0023 after exact-candidate affected and
+  live composed-system verification passed, the public architecture guidance
+  matched the delivered boundary, and the slice retained every approved
+  exclusion.
