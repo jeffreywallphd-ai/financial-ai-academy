@@ -182,8 +182,8 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | SLI-0024 | none | captured |
-| JIT-B | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | JIT-A | none | captured |
+| WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | ready |
+| JIT-B | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | captured |
 
 ## Verification and Qualification
 
@@ -242,3 +242,6 @@ plan remain out of scope.
 - 2026-10-16: Confirmed that public APIs remain the authoritative interface for
   browser and future headless consumers. Planning a separate AI mode remains
   explicitly deferred.
+- 2026-10-16: Refined JIT-A as WRK-0090 around a headless public-API client,
+  bounded application restart, isolated derived-projection reset, normal
+  Learner-model replay, source preservation, and focused orchestration tests.
