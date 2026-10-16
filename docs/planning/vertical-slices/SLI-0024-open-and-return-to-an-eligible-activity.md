@@ -205,7 +205,7 @@ their work begins. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | complete |
 | WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | complete |
-| WRK-0087 | Add learner actions, validated return context, and equivalent list/map current-position presentation | WRK-0086 | none | active |
+| WRK-0087 | Add learner actions, validated return context, and equivalent list/map current-position presentation | WRK-0086 | none | complete |
 | JIT-D | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | JIT-C | none | planned |
 
 ## Verification and Qualification
@@ -310,3 +310,12 @@ and durable-state authority did not change.
 - 2026-10-16: Activated WRK-0087 after confirming its completed WRK-0086
   dependency, current CAP package, bounded browser-only scope, executable
   checks, and absence of an unresolved decision or edit collision.
+- 2026-10-16: Completed WRK-0087 at exact candidate
+  `6348d93631a695919b49eca1d0211f12dfb97ac1`. Learner-controlled start and
+  review actions, closed launch-response validation, exact return context, and
+  equivalent list/map current-position presentation passed 151 web tests,
+  focused verification, typecheck, lint, build, documentation, design,
+  affected verification, aggregate readiness, and independent review. The
+  cancellation correction was independently accepted, and the generated
+  public API boundary remains available to UI and non-UI clients. Live-stack
+  qualification remains JIT-D.
