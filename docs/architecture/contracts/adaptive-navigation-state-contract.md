@@ -72,7 +72,11 @@ explicitly unavailable until a separate accepted public projection exists.
 The protected exact-version GET requires the server-issued
 `adaptation.navigation.read` capability, derives the learner only from the
 opaque session, and is published as `getCurriculumNavigationState` in the
-reviewed OpenAPI and generated TypeScript client. Browser presentation,
-composed live qualification, durable recommendation records, model ranking,
-experiments, and managed-cloud adapters remain outside the current
-qualification.
+reviewed OpenAPI and generated TypeScript client. The browser presents only the
+returned state, reason, reference, policy, and provenance facts across its peer
+list and map views; it does not recompute eligibility or projection digests.
+The composed live qualification proves exact retained-completion transition,
+API/UI parity, missing-version and authorization confidentiality, accessible
+presentation, and isolated PostgreSQL/Python/static-browser execution. Durable
+recommendation records, model ranking, experiments, and managed-cloud adapters
+remain outside the current qualification.
