@@ -1,7 +1,7 @@
 ---
 id: WRK-0106
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -206,3 +206,35 @@ qualification remains the dependent SLI-0028 seam.
   the public API authoritative, chooses one explicit conditional save action,
   and bounds browser resume, retry, review, and comparison into one observable
   learner flow before final live qualification.
+- 2026-10-16: Completed the generated-client browser flow after three exact-
+  candidate review rounds. The accepted correction reconciles saved drafts,
+  attempt aggregates, retry counts, review targets, contract-order-insensitive
+  responses, and idempotent replay revisions without adding browser authority.
+
+## Completion Evidence
+
+- Exact candidate `067e04b6088891b43d215f81c822ee5758de4308` delivers
+  generated-client progress reads and conditional draft saves, restores all
+  supported response shapes, refreshes server-owned retry/history state, links
+  only reviewed internal destinations, and preserves an answer-free technical
+  record. The same public API remains available to browser, non-browser, and
+  future headless clients.
+- Closed validation rejects private/extra fields, mismatched exact chains,
+  contradictory score totals, retry/history counts, and review targets. Draft
+  correlation follows contract semantics: response and multiple-selection
+  order are nonsemantic, exact replays may return a later authoritative
+  revision, and lower-than-expected revisions remain invalid.
+- Affected evidence passed 210 web unit/component tests, generated-client
+  reproduction, TypeScript typecheck, lint, production build, the focused
+  Chromium practice suite with all 11 scenarios, learner-language checks,
+  design-system integrity, planning/documentation/whitespace checks, and all
+  29 aggregate readiness checks.
+- Qualifying exact-candidate receipt
+  `20261016T184258Z-b58ea518-0d28-4ed1-ad4c-ecbc576b9f07.json` has digest
+  `sha256:c680019ec9398e9348bab7bc4d64eed0b51a7eb10fc5ab1763dcd7a49ad6e5c4`.
+  Independent R03 accepted the result with no open findings after substantive
+  anti-rigidity corrections from R01 and R02.
+- No API, OpenAPI, generated-client, backend, persistence, schema, event,
+  migration, design-token, icon, ADR, or decision-readiness change was made.
+  Real PostgreSQL concurrency/rollback/rebuild, restart durability, direct
+  headless composition, and cumulative live qualification remain JIT-F work.

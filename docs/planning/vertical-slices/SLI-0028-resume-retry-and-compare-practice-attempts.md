@@ -336,4 +336,10 @@ mode, autonomous authority, provider, cloud, or external execution was added.
 - 2026-10-16: Refined JIT-D as WRK-0105 for one protected practice-progress
   read, conditional draft save, reviewed OpenAPI snapshot, and generated client
   seam. Browser behavior and live qualification remain dependent packets.
+- 2026-10-16: Completed WRK-0106 at exact candidate
+  `067e04b6088891b43d215f81c822ee5758de4308`. The accessible browser now
+  resumes and conditionally saves contract-order-insensitive drafts, follows
+  server-owned retry and targeted-review state, and compares immutable
+  answer-free attempt history through the same public API available to
+  headless clients. JIT-F remains for cumulative live qualification.
 
