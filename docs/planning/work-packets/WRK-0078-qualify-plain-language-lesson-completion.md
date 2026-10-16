@@ -1,7 +1,7 @@
 ---
 id: WRK-0078
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -174,6 +174,36 @@ snapshot disposition, containment cleanup, focused/affected/aggregate checks,
 review, deterministic completion result, unchanged boundaries, assumptions,
 gaps, and the next CAP-manifest action. Do not request slice approval.
 
+## Completion Evidence
+
+- Eight mocked Chromium scenarios passed for lesson content, checked-answer
+  submission/evidence, saved completion without another presentation request,
+  keyboard focus, light/dark/system parity, axe, reduced motion, forced colors,
+  narrow and scaled layouts, and bounded failures.
+- All eight isolated approved-lesson scenarios passed through disposable
+  PostgreSQL, the production Python host, the reviewed static build, and pinned
+  Chromium. The complete live lesson flow preserved exact lesson and result
+  digests, saved evidence across reload, authorization and missing-version
+  denial, and the downstream navigation-state completion transition. The
+  harness removed its container and temporary data root.
+- Opening the saved technical record initially expanded a 375-pixel viewport
+  to 669 pixels. A narrow `min-width` and wrapping correction keeps exact
+  result/completion facts readable without changing content, behavior, tokens,
+  or layout structure; the open-disclosure narrow scenario now passes.
+- The 27 focused component scenarios, typecheck, lint, production build,
+  design-system, planning, documentation, whitespace, and aggregate readiness
+  (27/27 checks) passed. The two tracked light/dark baselines were reviewed and
+  refreshed only for the delivered copy and hierarchy.
+- The exact reviewed candidate is
+  `d430205fdd4b41c3dbcb817769b8593b3649f783`; its fresh qualifying affected-
+  verification receipt is `.local-codex/control-plane/receipts/WRK-0078/d430205fdd4b41c3dbcb817769b8593b3649f783/20261016T110025Z-9d693353-0748-4901-ba6a-2903c596b6cc.json`.
+- Independent R01 accepted the write scope, functional overflow correction,
+  mocked/live behavior, accessibility, privacy, evidence reachability,
+  baselines, and generated static output with no substantive finding.
+- No public contract, generated client, grading, completion, persistence,
+  session, authorization, or migration changed. Qualification remains bounded
+  to the accepted single-profile fixture and pinned Chromium environment.
+
 ## Planning History
 
 - 2026-10-16: Refined SLI-0124 JIT-C as the serial qualification seam after
@@ -189,3 +219,6 @@ gaps, and the next CAP-manifest action. Do not request slice approval.
   isolated-live, 27 focused component, typecheck, lint, build, design,
   planning, documentation, whitespace, and 27/27 aggregate-readiness checks
   passed. The live harness removed its disposable database and data root.
+- 2026-10-16: Completed after fresh affected verification selected and passed
+  planning, documentation, typecheck, lint, unit, mocked Chromium, build, and
+  isolated-live checks; independent R01 found no substantive issue.
