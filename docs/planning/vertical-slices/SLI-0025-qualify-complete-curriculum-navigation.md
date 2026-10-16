@@ -182,7 +182,7 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | verifying |
+| WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | complete |
 | JIT-B | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | captured |
 
 ## Verification and Qualification
@@ -259,3 +259,6 @@ plan remain out of scope.
   multi-stage harness teardown. WRK-0090 now attempts all exact cleanup stages
   and preserves primary plus aggregated cleanup diagnostics; CAP scope and
   public API behavior remain unchanged.
+- 2026-10-16: Completed WRK-0090 at corrected exact candidate `bb6285e` after
+  fresh affected verification passed all six selected checks and independent
+  R02 closed R01-F001 with no new findings. JIT-B is dependency-ready.

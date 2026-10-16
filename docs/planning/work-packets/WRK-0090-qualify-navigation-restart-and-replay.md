@@ -1,7 +1,7 @@
 ---
 id: WRK-0090
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -251,3 +251,11 @@ dependency-ready.
   bounded correction now attempts every teardown stage, preserves the primary
   failure with aggregated safe cleanup notes, and injects failure at each stage
   in focused tests. No product or API boundary changed.
+- 2026-10-16: Completed at corrected exact candidate
+  `bb6285e6cf2a29ca072b360c3ece75c594160dec`. Fresh affected verification
+  passed all six selected checks, including isolated live replay, and produced
+  qualifying receipt digest
+  `sha256:4401053bc12e601b361f938f524843c543c39af9a9dc53825011dfbce1351f89`.
+  Independent R02 closed R01-F001 and accepted the strict descendant with no
+  new findings. Public API availability and all product boundaries remain
+  unchanged.
