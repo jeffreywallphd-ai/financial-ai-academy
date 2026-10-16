@@ -1,7 +1,7 @@
 ---
 id: WRK-0066
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -185,6 +185,37 @@ ranking, recommendation, mastery, persistence, migration, or new authority was
 added. Leave SLI-0023 ready for deterministic closure or return a bounded
 blocker.
 
+## Completion Evidence
+
+- Exact implementation candidate `f9e4e68` passed the affected verification
+  selected for its planning, documentation, and architecture boundaries. Its
+  retained qualifying receipt records a stable post-run tree and no failed
+  command.
+- The same exact candidate passed the isolated PostgreSQL 18.4, Python,
+  same-origin static-client, and pinned-Chromium runner. All eight live
+  scenarios passed, including the retained-completion transition, protected
+  navigation API and list/map parity, accessibility and responsive variants,
+  denial paths, and exact cleanup.
+- The missing exact-version response was checked directly for absence of the
+  curriculum title, learner or activity state, completion and eligibility
+  fields, reason references, and graph, source-set, or projection digests.
+  Unsupported queries and missing sessions remained bounded failures.
+- Canonical Adaptation and navigation-contract guidance now describes the
+  delivered server-evaluated projection and browser presentation boundary.
+  Architecture verification records deterministic eligibility before ranking
+  while retaining unavailable assessment completion as an explicit gap.
+- TypeScript typecheck and lint, the focused web and browser checks, 15
+  architecture checks, documentation and planning integrity, Git whitespace,
+  and the aggregate readiness gate passed. The aggregate gate reported all 27
+  checks ready when its temporary fixtures were confined to the ignored local
+  workspace.
+- No product runtime, transport contract, generated client, policy, fixture,
+  persistence schema, migration, dependency, activity-launch authority,
+  model, ranking, recommendation, or mastery behavior changed. Non-Chromium
+  browsers, real assistive-technology sessions, managed-cloud composition,
+  production recovery, and supported assessment completion remain outside the
+  qualified boundary.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0065 completion. The packet
@@ -197,3 +228,7 @@ blocker.
   response confidentiality, and rerun exact-candidate affected verification
   after the repository selector correction. No product or contract meaning
   changes.
+- 2026-10-16: Completed the packet after exact-candidate affected and live
+  composed-system verification passed, objective documentation matched the
+  delivered boundary, cleanup remained exact, and no open technical finding
+  remained.
