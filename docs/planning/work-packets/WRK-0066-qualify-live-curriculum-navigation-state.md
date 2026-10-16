@@ -1,7 +1,7 @@
 ---
 id: WRK-0066
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -10,7 +10,7 @@ capability: CAP-0005
 depends_on: ["WRK-0065"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "docs/planning/work-packets/WRK-0066-qualify-live-curriculum-navigation-state.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
+write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "backend/src/financial_ai_academy/modules/adaptation/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "tests/e2e/approved-lesson/run.py", "docs/planning/work-packets/WRK-0066-qualify-live-curriculum-navigation-state.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
 generated_artifacts: []
 base_revision: ef4ca5aed16b68af76a11a1f7cb1b02182a99c46
 claim_id: WRK-0066:cddf5dc3-73b8-43a6-9818-ce10ef67cca5
@@ -192,3 +192,8 @@ blocker.
   lesson evidence, protected navigation API facts, and the accepted peer
   browser views. It adds no product behavior or decision gate and remains
   within the approved CAP-0005 package.
+- 2026-10-16: Resumed the same bounded packet to reconcile three stale
+  architecture/module qualification statements, assert missing-version
+  response confidentiality, and rerun exact-candidate affected verification
+  after the repository selector correction. No product or contract meaning
+  changes.

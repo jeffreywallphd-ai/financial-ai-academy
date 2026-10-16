@@ -321,6 +321,11 @@ test("denies graph facts without context and never substitutes a missing version
     `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/9.9.9/navigation-state`,
   );
   expect(missingNavigation.status()).toBe(404);
+  const missingNavigationBody = await missingNavigation.text();
+  expect(missingNavigationBody).not.toContain("Investing Foundations");
+  expect(missingNavigationBody).not.toMatch(
+    /graph_digest|source_set_digest|projection_digest|activity_states|activity_id|completion|eligibility|requirement|learner_id/i,
+  );
 
   await page.goto(`/learn/curricula/${CURRICULUM_ID}/versions/9.9.9`);
   await expect(

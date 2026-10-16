@@ -31,5 +31,12 @@ completion remains explicitly `unavailable` rather than inferred.
 The module has no repository, random source, provider, model, host, web
 framework, or database dependency. It stores nothing and makes no mastery,
 competency, recommendation, ranking, credential, suitability, or advice claim.
-The API host exposes only the public application operation; browser
-presentation and composed qualification remain later SLI-0023 packets.
+The API host exposes only the public application operation. The reviewed
+generated client and browser present the returned state, ordered reasons,
+references, policy identity, and provenance without recomputing policy or
+digests. Composed live qualification covers the exact retained-completion
+transition, complete graph/API/UI parity, bounded missing-version and
+authorization responses, accessible peer views, and isolated
+PostgreSQL/Python/static-browser execution. Durable recommendations, model
+ranking, experiments, managed-cloud adapters, and assessment completion remain
+outside this implemented boundary.
