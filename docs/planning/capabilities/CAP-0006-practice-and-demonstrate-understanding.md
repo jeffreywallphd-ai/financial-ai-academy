@@ -169,7 +169,7 @@ known gaps.
 
 ## Completion Evidence
 
-| Capability acceptance | Direct evidence |
+| Capability acceptance | Evidence classification and result |
 | --- | --- |
 | Supported items and responses have versioned contracts, deterministic scoring, compatibility, and denials | 130 executable contract/compatibility checks plus 58 deterministic domain/application checks cover the closed response families and malformed or unsupported cases |
 | Learners see exact purpose, policy, response requirements, versions, and approved sources before submission | Generated-client/component coverage, 11 focused Chromium journeys, and the unchanged isolated ten-scenario live qualification |
@@ -177,8 +177,8 @@ known gaps.
 | Interruption and retry preserve prior attempts, state, idempotency, and exact versions | Draft/retry/history application and PostgreSQL coverage plus focused save/resume, retry, session-renewal, and retained-history Chromium scenarios |
 | Targeted review is deterministic and does not claim recommendation, mastery, or advice authority | Review-selection contract/application/browser coverage and learner-language qualification |
 | Learner-model history rebuilds from Assessment evidence without mutating the source; Audit stays integrity-only | Real-PostgreSQL replay, source-preservation, interrupted-rebuild, rollback, and module-ownership checks |
-| Local and future cloud adapters can share API/core semantics without a deployment fork | Sixteen architecture checks, reviewed OpenAPI/generated-client reproduction, and the live browser plus ordinary authenticated non-browser HTTP observation |
-| Practice, feedback, review, retry, and history preserve accessible equivalent meaning | 210 web tests, 11 focused Chromium journeys, live Chromium qualification, and design validation of 125 tokens and 56 reviewed icons |
+| Local and future cloud adapters can share API/core semantics without a deployment fork | Direct for the deployment-neutral shared core and local API: 16 architecture checks, reviewed OpenAPI/generated-client reproduction, and live browser plus ordinary authenticated non-browser HTTP observation. Representative only for future-cloud portability; no managed-cloud composition or parity was qualified. |
+| Practice, feedback, review, retry, and history preserve accessible equivalent meaning | Direct automated evidence: 210 web tests, axe-backed component coverage, 11 focused Chromium journeys, live Chromium qualification, keyboard/focus and reflow-equivalent checks, reduced-motion, forced-color and theme checks, and design validation of 125 tokens and 56 reviewed icons. Manual screen-reader operation, actual browser 200% zoom, non-Chromium browsers, and non-Windows visual baselines were not performed and remain known gaps. |
 
 The cumulative matrix also passes 39 approved-lesson harness tests plus four
 parameterized subtests, TypeScript typecheck, zero-warning lint, a 117-module
@@ -203,6 +203,14 @@ compatible and unchanged. Windows sandbox temp and symlink restrictions were
 rerun with the bounded workspace temp directory and prepared runtime; no
 product defect was found.
 
+Accessibility acceptance is therefore bounded to the directly automated
+Chromium, axe, keyboard/focus, reflow-equivalent, reduced-motion, forced-color,
+theme, and design-system evidence above. Manual screen-reader operation, actual
+browser 200% zoom, non-Chromium behavior, and non-Windows visual baselines were
+not performed. Those residual environment gaps remain explicit rather than
+being converted into an unsupported assistive-technology or cross-browser
+claim.
+
 ## Planning History
 
 - 2026-10-15: Shaped from the catalog candidate “Practice and demonstrate
@@ -210,7 +218,8 @@ product defect was found.
   CAP-0001 and may proceed in parallel with CAP-0004 and CAP-0005 after that
   foundation is complete, subject to just-in-time file-scope compatibility.
 - 2026-10-16: Completed the cumulative CAP-0006 qualification matrix through
-  WRK-0108. Every acceptance statement has direct focused, database, API,
-  browser, headless, architecture, security, accessibility, or recovery-bound
-  evidence; the documentation-only candidate is ready for exact-revision
-  submission before deterministic slice and capability closure.
+  WRK-0108. Every acceptance statement has direct or explicitly representative
+  focused, database, API, browser, headless, architecture, security,
+  accessibility, or recovery-bound evidence; the documentation-only candidate
+  is ready for exact-revision submission before deterministic slice and
+  capability closure.

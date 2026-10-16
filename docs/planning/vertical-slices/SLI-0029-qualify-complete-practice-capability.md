@@ -240,12 +240,13 @@ authority, provider, cloud profile, or external execution was planned or added.
 
 ### Qualification Result
 
-Every SLI-0029 acceptance scenario has direct passing evidence. The cumulative
-focused backend matrix passes 218 contract, deterministic-core, and protected-
-API checks. The unchanged WRK-0107 real-PostgreSQL matrix passes 220 checks, and
-its isolated live PostgreSQL/Python/public-API/headless/Chromium qualification
-passes ten scenarios at exact candidate `5706f9a94df400e2858bd524a1557062d9e01d41`.
-The approved-lesson harness passes 39 tests plus four parameterized subtests.
+Every SLI-0029 acceptance scenario has direct or explicitly representative
+passing evidence. The cumulative focused backend matrix passes 218 contract,
+deterministic-core, and protected-API checks. The unchanged WRK-0107 real-
+PostgreSQL matrix passes 220 checks, and its isolated live PostgreSQL/Python/
+public-API/headless/Chromium qualification passes ten scenarios at exact
+candidate `5706f9a94df400e2858bd524a1557062d9e01d41`. The approved-lesson harness
+passes 39 tests plus four parameterized subtests.
 
 The web matrix passes 210 tests across 15 files; TypeScript typecheck, lint,
 reviewed generated-client reproduction, production build, and 11 focused
@@ -254,6 +255,15 @@ Chromium practice journeys pass. Architecture passes 16 tests, security passes
 whitespace, and all 29 aggregate readiness checks pass. The exact supported
 practice API remains authoritative for both generated browser traffic and
 ordinary authenticated non-browser HTTP; no duplicate headless core exists.
+Architecture evidence is direct for the deployment-neutral shared core and
+local API and representative for future-cloud portability. No managed-cloud
+composition, adapter parity, protection, or recovery profile was run.
+
+Direct accessibility evidence is limited to automated Chromium and axe-backed
+component checks, keyboard/focus behavior, reflow-equivalent narrow viewports,
+reduced motion, forced colors, themes, and design-system validation. Manual
+screen-reader operation, actual browser 200% zoom, non-Chromium browsers, and
+non-Windows visual baselines were not performed and remain residual gaps.
 
 No product source, contract, API, schema, migration, generated client, UI,
 provider, deployment composition, or harness changed in this qualification
@@ -275,3 +285,7 @@ mode, and autonomous action remain explicitly unqualified.
 - 2026-10-16: The cumulative SLI-0029 matrix passed with no product or harness
   defect. The slice has one documentation-only exact candidate ready for
   submission before deterministic completion.
+- 2026-10-16: Independent R01 found no product defect but required the evidence
+  map to distinguish direct shared-core/local proof from representative future-
+  cloud portability and to state the unperformed manual, browser, zoom, and
+  platform accessibility checks explicitly.

@@ -232,6 +232,16 @@ integration when every deterministic closure condition passes.
   checks. A Windows sandbox temporary-directory denial and missing symlink
   privilege were rerun with the bounded workspace temp directory and the
   prepared runtime outside the sandbox; neither exposed a product defect.
+- Architecture evidence is direct for the deployment-neutral shared core and
+  local public API and representative for future-cloud adapter portability.
+  Managed-cloud composition, adapter parity, protection, and recovery were not
+  performed and remain unqualified.
+- Direct accessibility evidence covers automated Chromium and axe-backed
+  component checks, keyboard/focus behavior, reflow-equivalent narrow
+  viewports, reduced motion, forced colors, themes, and design-system
+  validation. Manual screen-reader operation, actual browser 200% zoom,
+  non-Chromium browsers, and non-Windows visual baselines were not performed
+  and remain known residual gaps.
 - Public presentation, submission, progress, draft, and session operations
   remain the single authority for browser and supported non-browser clients.
   The browser uses the generated client; the live non-browser observer uses
@@ -261,3 +271,8 @@ integration when every deterministic closure condition passes.
   accessibility, build, documentation, planning, whitespace, and all 29
   readiness checks. The documentation-only candidate is ready for exact-
   revision submission and independent review.
+- 2026-10-16: Independent R01 found no product defect and accepted the counts,
+  ancestry, receipt, API/headless assertions, and unchanged assurance maps. It
+  requested two bounded evidence corrections: classify future-cloud portability
+  as representative rather than direct and list the unperformed manual,
+  browser, zoom, and platform accessibility qualifications.
