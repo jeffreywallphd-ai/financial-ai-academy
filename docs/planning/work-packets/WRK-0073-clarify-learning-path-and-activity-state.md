@@ -1,7 +1,7 @@
 ---
 id: WRK-0073
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -173,3 +173,7 @@ any cosmetic item deferred to CAP-0031.
 - 2026-10-16: Refined SLI-0123 JIT-A around the ready learning-path page,
   separate activity-state meaning, complete technical records, focused
   component evidence, and presentation-only documentation boundaries.
+- 2026-10-16: Submitted implementation candidate
+  `6fd652ba0e7029550568416a9c8058558bbb8d7a` after focused component,
+  typecheck, lint, planning, documentation, design-system, whitespace, and
+  aggregate-readiness checks passed.
