@@ -80,3 +80,27 @@ API/UI parity, missing-version and authorization confidentiality, accessible
 presentation, and isolated PostgreSQL/Python/static-browser execution. Durable
 recommendation records, model ranking, experiments, and managed-cloud adapters
 remain outside the current qualification.
+
+## Activity-Launch Boundary
+
+The transport-neutral `activity-launch-v1` seam consumes one validated exact
+Curriculum graph, its complete matching Navigation-state v1 projection, and
+one activity ID. Adaptation rechecks graph/projection identity, graph-ordered
+state closure, bounded state types, timestamp, and projection digest before it
+trusts the selected state. It then requires the activity to be available and
+eligible. Completed lessons remain reopenable because completion and
+eligibility are independent dimensions.
+
+Version 1 resolves lesson references only. It derives the destination as
+`/learn/placements/{placement_id}` from the exact graph reference and returns
+the exact graph, projection, placement, and package provenance. Unknown,
+locked, unavailable, malformed, or assessment activities fail with bounded
+errors and no destination. No learner identity, durable grant, completion
+evidence, recommendation, model output, provider payload, arbitrary URL, or
+repository access crosses this seam.
+
+The executable schema lives beside the Navigation-state schemas under
+`contracts/learning/adaptation/v1/`; its independent compatibility corpus is
+under `contracts/compatibility/adaptation-activity-launch/v1/`. Application
+gateway composition, protected HTTP exposure, generated clients, and browser
+return behavior remain later SLI-0024 seams.

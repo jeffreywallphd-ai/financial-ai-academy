@@ -203,7 +203,7 @@ their work begins. The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | ready |
+| WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | active |
 | JIT-B | Compose the protected application/API operation through current public gateways and regenerate the client | JIT-A | none | planned |
 | JIT-C | Add learner actions, validated return context, and equivalent list/map current-position presentation | JIT-B | none | planned |
 | JIT-D | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | JIT-C | none | planned |

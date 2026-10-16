@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "cases": [
+    {
+      "case_id": "unknown-activity",
+      "expected_code": "activity_not_found",
+      "expected_destination": false
+    },
+    {
+      "case_id": "locked-activity",
+      "expected_code": "activity_locked",
+      "expected_destination": false
+    },
+    {
+      "case_id": "unavailable-activity",
+      "expected_code": "activity_unavailable",
+      "expected_destination": false
+    },
+    {
+      "case_id": "unsupported-assessment",
+      "expected_code": "unsupported_activity",
+      "expected_destination": false
+    },
+    {
+      "case_id": "mismatched-navigation-context",
+      "expected_code": "invalid_context",
+      "expected_destination": false
+    },
+    {
+      "case_id": "tampered-projection-digest",
+      "expected_code": "invalid_context",
+      "expected_destination": false
+    },
+    {
+      "case_id": "unsafe-activity-identity",
+      "expected_code": "invalid_context",
+      "expected_destination": false
+    }
+  ]
+}

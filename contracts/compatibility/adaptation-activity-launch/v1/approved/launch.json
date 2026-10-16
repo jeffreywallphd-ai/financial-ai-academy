@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "curriculum_id": "investing-foundations",
+  "curriculum_version": "1.0.0",
+  "graph_digest": "9b044b324c9d4dcd95a394d55d595fe3d7c7c4ba0a3cb32b961480eead8b2f57",
+  "activity_id": "activity-risk-return-lesson",
+  "navigation_projection_digest": "2804565cf538b0a2418a6ed9364be862c3999c75cfc02141d3119994beb4dd57",
+  "evaluated_at": "2026-10-16T00:00:00Z",
+  "placement_id": "intro-risk-return-primary",
+  "package_id": "intro-risk-return",
+  "package_version": "1.0.0",
+  "package_digest": "576d543b404a7f70f2e5bebee55c32a3f945d8e8da73654c43ef92e656aee008",
+  "destination": "/learn/placements/intro-risk-return-primary"
+}

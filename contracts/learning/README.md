@@ -98,3 +98,20 @@ uv run --project backend pytest backend/tests/contract/adaptation_navigation
 The contract and pure policy do not qualify public gateways, authentication,
 API/generated clients, browser rendering, persistence, ranking, models, or
 experiments.
+
+## Adaptation Activity Launch v1
+
+[`adaptation/v1/activity-launch.schema.json`](adaptation/v1/activity-launch.schema.json)
+defines the closed transport-neutral result for resolving one exact eligible
+lesson from a matching Curriculum graph and Navigation-state projection. Its
+compatibility corpus lives in
+[`../compatibility/adaptation-activity-launch/v1/`](../compatibility/adaptation-activity-launch/v1/README.md).
+
+```powershell
+uv run --project backend pytest backend/tests/contract/adaptation_activity_launch
+```
+
+The contract derives a same-origin lesson destination and carries exact graph,
+projection, placement, and package provenance. It does not qualify an API,
+permission check, generated client, browser transition, persistence, or
+assessment launch.

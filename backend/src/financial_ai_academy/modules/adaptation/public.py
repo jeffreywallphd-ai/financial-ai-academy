@@ -9,6 +9,14 @@ from financial_ai_academy.modules.adaptation.application.service import (
     NavigationStateOperationErrorCode,
     OpenNavigationStateRequest,
 )
+from financial_ai_academy.modules.adaptation.domain.activity_launch import (
+    ActivityLaunchError,
+    ActivityLaunchErrorCode,
+    ActivityLaunchResolution,
+    ResolveActivityLaunchRequest,
+    activity_launch_payload,
+    resolve_activity_launch,
+)
 
 from financial_ai_academy.modules.adaptation.domain.models import (
     ActivityNavigationState,
@@ -46,9 +54,17 @@ class AdaptationOperations(Protocol):
         request: OpenNavigationStateRequest,
     ) -> NavigationStateProjection: ...
 
+    def resolve_activity_launch(
+        self,
+        request: ResolveActivityLaunchRequest,
+    ) -> ActivityLaunchResolution: ...
+
 
 __all__ = [
     "ActivityNavigationState",
+    "ActivityLaunchError",
+    "ActivityLaunchErrorCode",
+    "ActivityLaunchResolution",
     "ActivitySourceFact",
     "ActivitySourceState",
     "AdaptationOperations",
@@ -66,11 +82,14 @@ __all__ = [
     "NavigationStateProjection",
     "OpenNavigationStateRequest",
     "RequirementState",
+    "ResolveActivityLaunchRequest",
+    "activity_launch_payload",
     "canonical_projection_bytes",
     "canonical_source_set_bytes",
     "evaluate_navigation_state",
     "navigation_projection_digest",
     "navigation_state_payload",
+    "resolve_activity_launch",
     "source_facts_payload",
     "source_set_digest",
 ]

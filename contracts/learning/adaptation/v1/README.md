@@ -36,10 +36,26 @@ This contract contains no learner identity, answer, score interpretation,
 mastery or competency label, recommendation, rank, model, provider payload,
 engagement signal, approval record, or durable-state mutation.
 
+## Activity Launch
+
+`activity-launch.schema.json` closes the successful resolution of one exact
+eligible lesson. It binds the exact curriculum and navigation projection,
+evaluation time, activity, lesson placement, package identity/version/digest,
+and the platform-owned same-origin destination. The destination is always
+derived as `/learn/placements/{placement_id}`; callers cannot supply it.
+
+Launch resolution accepts only complete matching graph and Navigation-state
+v1 values. Unknown, locked, unavailable, malformed, and unsupported
+assessment activities return bounded denials with no destination. A completed
+lesson remains eligible for review when the deterministic navigation policy
+marks it eligible. The response contains no learner identity and is neither a
+durable grant nor completion evidence.
+
 Run the direct evidence from the repository root:
 
 ```powershell
 uv run --project backend pytest backend/tests/contract/adaptation_navigation
+uv run --project backend pytest backend/tests/contract/adaptation_activity_launch
 ```
 
 Application gateways, protected API behavior, generated clients, browser

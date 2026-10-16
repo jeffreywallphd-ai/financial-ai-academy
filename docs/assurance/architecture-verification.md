@@ -15,6 +15,15 @@ wording, whitespace, CSS, generated clients, fixtures, documentation, and
 unrelated code do not become learner-language blockers or trigger aggregate
 readiness through those selection rules.
 
+The Adaptation activity-launch boundary has direct evidence through the closed
+Draft 2020-12 schema, independent compatibility runner, approved and denial
+corpus, pure-policy unit tests, existing Navigation-state conformance suite,
+and module-boundary tests. These checks prove exact graph/projection closure,
+server-owned lesson destinations, bounded refusal without destination leakage,
+flexible graph shapes, and the absence of provider, model, persistence, or
+framework authority. API and browser qualification remain intentionally
+unclaimed until the later SLI-0024 packets.
+
 Planned verification categories:
 
 - module dependency direction,

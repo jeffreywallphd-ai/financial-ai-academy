@@ -280,6 +280,18 @@ def test_adaptation_core_has_no_model_provider_or_persistence_authority() -> Non
         assert prohibited not in source
 
 
+def test_adaptation_public_exposes_transport_neutral_activity_launch() -> None:
+    public = (MODULES / "adaptation/public.py").read_text(encoding="utf-8")
+    launch = (
+        MODULES / "adaptation/domain/activity_launch.py"
+    ).read_text(encoding="utf-8")
+    assert "ResolveActivityLaunchRequest" in public
+    assert "ActivityLaunchResolution" in public
+    assert "resolve_activity_launch" in public
+    for prohibited in ("fastapi", "pydantic", "repository", "http://", "https://"):
+        assert prohibited not in launch.casefold()
+
+
 def test_audit_consumes_only_the_assessment_public_surface() -> None:
     path = MODULES / "audit/adapters/assessment_gateway.py"
     imported = imported_modules(path)

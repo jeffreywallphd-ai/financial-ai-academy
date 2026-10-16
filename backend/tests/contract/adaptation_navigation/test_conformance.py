@@ -78,6 +78,7 @@ def _domain_request(
 def test_navigation_schemas_are_valid_draft_2020_12() -> None:
     schemas = list(default_schema_dir().glob("*.schema.json"))
     assert {path.name for path in schemas} == {
+        "activity-launch.schema.json",
         "navigation-state.schema.json",
         "source-facts.schema.json",
     }
