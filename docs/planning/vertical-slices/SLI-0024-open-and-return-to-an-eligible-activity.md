@@ -1,7 +1,7 @@
 ---
 id: SLI-0024
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -351,3 +351,6 @@ and durable-state authority did not change.
   tests and eight no-`PYTHONPATH` live scenarios passed, aggregate readiness
   passed 29 checks, and independent R02 accepted the candidate after closing
   R01-F001. No product or public API boundary changed.
+- 2026-10-16: Entered deterministic slice verification after all five packets
+  completed with qualifying exact-candidate receipts and accepted independent
+  reviews. No completion approval is required.
