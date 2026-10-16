@@ -1,7 +1,7 @@
 ---
 id: WRK-0068
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
