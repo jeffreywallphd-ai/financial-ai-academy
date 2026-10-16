@@ -194,7 +194,7 @@ each packet starts.
 | WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | complete |
 | WRK-0098 | Expose the protected public POST, reviewed OpenAPI, generated client, and direct non-browser/headless parity before UI integration | WRK-0097 | none | complete |
 | WRK-0099 | Add the accessible browser submit/result flow through the generated client without browser-owned scoring | WRK-0098 | none | complete |
-| JIT-E | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-D | none | candidate |
+| WRK-0100 | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | WRK-0099 | none | ready |
 
 ## Verification and Qualification
 
@@ -349,3 +349,8 @@ or autonomous authority was planned or implemented.
   and R02 accepted with no open findings. The public POST and generated client
   remain the shared browser/headless boundary, leaving live end-to-end
   qualification as the final slice packet.
+- 2026-10-16: Refined JIT-E as WRK-0100. It reuses the existing isolated live
+  topology, lets the generated browser client create one exact attempt, and
+  replays the same captured public document through a non-browser client before
+  and after restart. This preserves one API-first browser/headless boundary and
+  adds no separate AI mode, policy, product seed, or architecture decision.

@@ -168,6 +168,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0097 | Work packet | [Compose Practice Submission and Persistence](work-packets/WRK-0097-compose-practice-submission-persistence.md) | complete | SLI-0027 | WRK-0096 | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0098 | Work packet | [Expose the Practice Submission API](work-packets/WRK-0098-expose-practice-submission-api.md) | complete | SLI-0027 | WRK-0097 | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0099 | Work packet | [Deliver the Practice Submission Browser Flow](work-packets/WRK-0099-deliver-practice-submission-browser-flow.md) | complete | SLI-0027 | WRK-0098 | none | codex-cap-0006 | 2026-10-16 |
+| WRK-0100 | Work packet | [Qualify Live Practice Submission](work-packets/WRK-0100-qualify-live-practice-submission.md) | ready | SLI-0027 | WRK-0099 | none | codex-cap-0006 | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |
