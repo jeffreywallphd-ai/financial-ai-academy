@@ -1,7 +1,7 @@
 ---
 id: WRK-0102
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/tests/contract/assessment_practice/", "backend/tests/contract/curriculum_practice_review/", "backend/tests/contract/learner_model_practice_history/", "contracts/compatibility/README.md", "contracts/compatibility/assessment-practice/v1/", "contracts/compatibility/curriculum-practice-review/v1/", "contracts/compatibility/learner-model-practice-history/v1/", "contracts/learning/README.md", "contracts/learning/assessment/practice/v1/", "contracts/learning/curriculum/v1/", "contracts/learning/learner-model/practice/v1/", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/curriculum-graph-contract.md", "docs/contracts/README.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0028-resume-retry-and-compare-practice-attempts.md", "docs/planning/work-packets/WRK-0102-freeze-practice-resume-retry-history-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 9eb7ea6c1d383df298102778611790d706ccad3a
+claim_id: WRK-0102:7e8ea83b-c464-4eaa-8293-9397b588829e
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T17:09:15Z
 ---
 
 # Agent Work Packet: Freeze Practice Resume, Retry, and History Contracts
@@ -202,6 +202,9 @@ was implemented. Leave the next SLI-0028 persistence packet dependency-ready.
 
 ## Planning History
 
+- 2026-10-16: Claimed from base revision `9eb7ea6c1d383df298102778611790d706ccad3a`
+  and activated for bounded contract implementation under the repository control
+  plane. No lower-level approval was required by the current CAP authorization.
 - 2026-10-16: Authored just in time as the first SLI-0028 seam after SLI-0027
   completed. The packet freezes additive, transport-neutral contracts and
   anti-rigidity evidence before persistence or API work, preserving Assessment,
