@@ -18,7 +18,35 @@
     "kind": "workspace",
     "path": ["artifacts", 0, "logical_path"],
     "value": "../private.txt",
-    "code": "project.contract.schema_invalid"
+    "code": "project.contract.noncanonical_logical_path"
+  },
+  {
+    "case": "artifact path contains current-directory alias",
+    "kind": "workspace",
+    "path": ["artifacts", 0, "logical_path"],
+    "value": "data/./sample.csv",
+    "code": "project.contract.noncanonical_logical_path"
+  },
+  {
+    "case": "artifact path ends with a platform-ambiguous dot",
+    "kind": "workspace",
+    "path": ["artifacts", 0, "logical_path"],
+    "value": "data/sample.csv.",
+    "code": "project.contract.noncanonical_logical_path"
+  },
+  {
+    "case": "reference URL contains credentials",
+    "kind": "workspace",
+    "path": ["references", 0, "url"],
+    "value": "https://user:password@example.test/source",
+    "code": "project.contract.unsafe_url"
+  },
+  {
+    "case": "artifact source URL contains credentials",
+    "kind": "workspace",
+    "path": ["artifacts", 0, "provenance", "source_url"],
+    "value": "https://token:secret@example.test/data",
+    "code": "project.contract.unsafe_url"
   },
   {
     "case": "artifact requests execution",
@@ -62,6 +90,20 @@
     "path": ["mutation", "artifact", "host_path"],
     "value": "C:/private/result.json",
     "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "mutation artifact path uses a current-directory alias",
+    "kind": "workspace-mutation-intent",
+    "path": ["mutation", "artifact", "logical_path"],
+    "value": "results/./simulation.json",
+    "code": "project.contract.noncanonical_logical_path"
+  },
+  {
+    "case": "mutation artifact source URL contains credentials",
+    "kind": "workspace-mutation-intent",
+    "path": ["mutation", "artifact", "provenance", "source_url"],
+    "value": "https://token:secret@example.test/data",
+    "code": "project.contract.unsafe_url"
   },
   {
     "case": "snapshot digest does not match material",

@@ -7,7 +7,10 @@ from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Any, Mapping
+import unicodedata
+from urllib.parse import urlsplit
 
 from jsonschema import Draft202012Validator, FormatChecker
 
@@ -206,8 +209,10 @@ class ContractProjectAdapter:
                 body=mutation["body"],
             )
         elif operation == "add_reference":
+            self._validate_url(mutation["url"], "mutation.url")
             parsed = self._reference_mutation(mutation, replacement=False)
         elif operation == "replace_reference":
+            self._validate_url(mutation["url"], "mutation.url")
             parsed = self._reference_mutation(mutation, replacement=True)
         elif operation == "add_artifact":
             artifact = self._artifact_input(mutation["artifact"])
@@ -293,6 +298,12 @@ class ContractProjectAdapter:
                 project_id=exported["project_id"],
                 snapshot_id=exported["snapshot_id"],
                 snapshot_digest=exported["snapshot_digest"],
+                snapshot_record=self.parse_snapshot(
+                    self._canonical_bytes(exported["snapshot_record"])
+                ),
+                workspace_record=self.parse_workspace(
+                    self._canonical_bytes(exported["workspace_record"])
+                ),
                 artifact_files=tuple(
                     EvidenceArtifactFile(**item)
                     for item in exported["artifact_files"]
@@ -367,6 +378,8 @@ class ContractProjectAdapter:
         document = self._portable(value)
         self._shape("workspace-mutation-intent", document)
         mutation = document["mutation"]
+        if mutation["operation"] in {"add_reference", "replace_reference"}:
+            self._validate_url(mutation["url"], "mutation.url")
         if mutation["operation"] == "add_artifact":
             self._validate_artifact_semantics(mutation["artifact"])
         return document
@@ -435,6 +448,7 @@ class ContractProjectAdapter:
                     f"notes.{note['note_id']}.updated_at",
                 )
         for reference in document["references"]:
+            self._validate_url(reference["url"], "references.url")
             if self._timestamp(reference["updated_at"]) < self._timestamp(
                 reference["created_at"]
             ):
@@ -446,6 +460,7 @@ class ContractProjectAdapter:
             self._validate_artifact_semantics(artifact)
 
     def _validate_artifact_semantics(self, artifact: Mapping[str, Any]) -> None:
+        self._validate_logical_path(artifact["logical_path"])
         kind = artifact["artifact_kind"]
         classification = artifact.get("result_classification")
         if kind == "result" and classification is None:
@@ -466,6 +481,8 @@ class ContractProjectAdapter:
                 "inspection_mode",
             )
         provenance = artifact["provenance"]
+        if provenance.get("source_url") is not None:
+            self._validate_url(provenance["source_url"], "provenance.source_url")
         if provenance["source_type"] in {"supplied", "external"} and not (
             provenance.get("source_version")
             or provenance.get("source_digest")
@@ -525,6 +542,8 @@ class ContractProjectAdapter:
     ) -> None:
         self._shape("evidence-export", document)
         exported = document["export"]
+        self._validate_snapshot_document(exported["snapshot_record"])
+        self._validate_workspace_document(exported["workspace_record"])
         measured = self.canonical_digest(exported)
         if measured != document["export_digest"]:
             self._reject(
@@ -554,6 +573,153 @@ class ContractProjectAdapter:
                 "project.contract.contradictory_export_artifact",
                 "export",
             )
+        snapshot_record = exported["snapshot_record"]
+        snapshot = snapshot_record["snapshot"]
+        workspace = exported["workspace_record"]
+        if (
+            exported["project_id"] != snapshot["project_id"]
+            or exported["project_id"] != workspace["project_id"]
+            or exported["snapshot_id"] != snapshot_record["snapshot_id"]
+            or exported["snapshot_digest"] != snapshot_record["snapshot_digest"]
+            or snapshot["learner_id"] != workspace["learner_id"]
+            or snapshot["workspace_revision"] != workspace["workspace_revision"]
+            or snapshot["workspace_created_at"] != workspace["created_at"]
+            or snapshot["workspace_updated_at"] != workspace["updated_at"]
+        ):
+            self._reject(
+                "project.contract.export_snapshot_mismatch",
+                "export.snapshot_record",
+            )
+        self._validate_export_record_bindings(snapshot, workspace)
+        artifact_records = {
+            (item["artifact_id"], item["artifact_version"]): item
+            for item in workspace["artifacts"]
+        }
+        expected = {
+            (item["artifact_id"], item["artifact_version"])
+            for item in snapshot["artifacts"]
+        }
+        if included | excluded != expected:
+            self._reject(
+                "project.contract.incomplete_export_coverage",
+                "export",
+            )
+        for item in exported["artifact_files"]:
+            identity = (item["artifact_id"], item["artifact_version"])
+            artifact = artifact_records.get(identity)
+            if artifact is None or (
+                item["manifest_digest"] != self.canonical_digest(artifact)
+                or item["logical_path"] != artifact["logical_path"]
+                or item["media_type"] != artifact["media_type"]
+                or item["byte_count"] != artifact["byte_count"]
+                or item["content_digest"] != artifact["content_digest"]
+            ):
+                self._reject(
+                    "project.contract.export_artifact_mismatch",
+                    "export.artifact_files",
+                )
+
+    def _validate_export_record_bindings(
+        self,
+        snapshot: Mapping[str, Any],
+        workspace: Mapping[str, Any],
+    ) -> None:
+        bindings = (
+            (
+                "notes",
+                "note_id",
+                "note_version",
+                "record_id",
+                "record_version",
+                "record_digest",
+            ),
+            (
+                "references",
+                "reference_id",
+                "reference_version",
+                "record_id",
+                "record_version",
+                "record_digest",
+            ),
+            (
+                "artifacts",
+                "artifact_id",
+                "artifact_version",
+                "artifact_id",
+                "artifact_version",
+                "manifest_digest",
+            ),
+            ("domain_links", "link_id", None, "link_id", None, "record_digest"),
+        )
+        for (
+            key,
+            record_id,
+            record_version,
+            ref_id,
+            ref_version,
+            digest_key,
+        ) in bindings:
+            records = {
+                (item[record_id], item[record_version] if record_version else None): item
+                for item in workspace[key]
+            }
+            references = snapshot[key]
+            if len(records) != len(references):
+                self._reject(
+                    "project.contract.export_record_mismatch",
+                    f"export.{key}",
+                )
+            for reference in references:
+                identity = (
+                    reference[ref_id],
+                    reference[ref_version] if ref_version else None,
+                )
+                record = records.get(identity)
+                if record is None or reference[
+                    digest_key
+                ] != self.canonical_digest(record):
+                    self._reject(
+                        "project.contract.export_record_mismatch",
+                        f"export.{key}",
+                    )
+
+    def _validate_logical_path(self, value: str) -> None:
+        if unicodedata.normalize("NFC", value) != value:
+            self._reject(
+                "project.contract.noncanonical_logical_path",
+                "logical_path",
+            )
+        segments = value.split("/")
+        reserved = re.compile(
+            r"^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$",
+            re.IGNORECASE,
+        )
+        if any(
+            not segment
+            or segment in {".", ".."}
+            or segment != segment.strip()
+            or segment.endswith(".")
+            or any(
+                ord(character) < 32 or character in '<>:"|?*'
+                for character in segment
+            )
+            or reserved.fullmatch(segment)
+            for segment in segments
+        ):
+            self._reject(
+                "project.contract.noncanonical_logical_path",
+                "logical_path",
+            )
+
+    def _validate_url(self, value: str, reference: str) -> None:
+        parsed = urlsplit(value)
+        if (
+            parsed.scheme != "https"
+            or parsed.hostname is None
+            or parsed.username is not None
+            or parsed.password is not None
+        ):
+            self._reject("project.contract.unsafe_url", reference)
 
     def _note(self, value: Mapping[str, Any]) -> ProjectNote:
         return ProjectNote(

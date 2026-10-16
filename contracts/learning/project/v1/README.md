@@ -37,8 +37,9 @@ authorization, time, revision, persistence, or durable state changes.
 
 `workspace.schema.json` closes one learner-owned live workspace at a positive
 revision. It bounds notes, HTTPS reference metadata, inert artifact manifests,
-and validated typed domain-resource references. Artifact paths are logical,
-relative, traversal-free names; they are never host paths. Each artifact has a
+and validated typed domain-resource references. Artifact paths are NFC-
+normalized logical, relative names with canonical cross-platform segments;
+aliases, traversal, reserved device names, and host paths fail closed. Each artifact has a
 closed kind, media type, inspection mode, byte count, lowercase SHA-256 digest,
 source history, assumptions, and optional environment declaration. Results
 must say whether they are observed, calculated, simulated, predicted,
@@ -60,11 +61,15 @@ version references. `snapshot_digest` is lowercase SHA-256 over that nested
 Later live changes cannot alter it.
 
 `evidence-export.schema.json` is a deterministic manifest, not an execution or
-restore package. It names one exact snapshot, lists only authorized inert files
-by logical path and digest, and records excluded files with a bounded reason.
-`export_digest` uses the same canonical rule over the nested `export` object.
-The shape cannot carry credentials, authorization state, object-store keys,
-host paths, callbacks, runtime controls, or copied domain-resource state.
+restore package. It embeds the exact validated snapshot and workspace records,
+binds every note, reference, artifact, and domain link to the snapshot digest
+references, and requires every snapshot artifact to be included or excluded
+with a bounded reason. Included files repeat the exact logical path, media type,
+byte count, content digest, and artifact-manifest digest. `export_digest` uses
+the same canonical rule over the entire nested `export` object. HTTPS references
+and provenance URLs reject embedded user credentials. The shape cannot carry
+authorization state, object-store keys, host paths, callbacks, runtime controls,
+or copied private domain-resource state.
 
 No schema authorizes a kernel, interpreter, subprocess, package installation,
 network, secret, active renderer, archive expansion, provider job, Portfolio

@@ -19,13 +19,15 @@ This synthetic corpus fixes the first Project workspace contract family.
   revision closure and canonical immutable references while the live workspace
   remains separate.
 - `approved/evidence-export.json` fixes an authorized deterministic manifest
-  with included and use-restricted inert files.
+  that embeds the exact snapshot and workspace records, binds their record
+  digests, and accounts for every inert artifact as included or excluded.
 - `vectors/non-ascii-brief-digest.json` proves direct UTF-8 hashing without
   JSON ASCII escaping or implicit Unicode normalization.
 - `vectors/non-ascii-snapshot-digest.json` applies that canonical rule to a
   non-ASCII workspace record used by snapshot construction.
 - `cases/denials.json` and `cases/workspace-denials.json` fix bounded failures
-  for unsupported, contradictory, client-authoritative, unsafe path,
+  for unsupported, contradictory, client-authoritative, aliased path,
+  credential-bearing URL,
   active-effect, incomplete-provenance, digest, and invalid lifecycle/time
   meaning.
 

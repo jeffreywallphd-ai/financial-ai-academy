@@ -283,11 +283,12 @@ added.
   snapshot record versions, use-restricted export exclusions, and direct-UTF-8
   canonical digest vectors. It contains no personal or provider data and does
   not claim a live Portfolio adapter.
-- Focused Project contract and domain verification passed 86 tests. The broader
-  backend architecture, contract, and unit corpus passed 675 tests, including
+- Focused Project contract and domain verification passed 107 tests. The broader
+  backend architecture, contract, and unit corpus passed 696 tests, including
   flexible zero/single/multiple workspace shapes and fail-closed traversal,
-  active-effect, incomplete-provenance, unsafe-inspection, stale-digest,
-  contradictory-export, and private-field cases.
+  cross-platform path aliases, credential-bearing URLs, incomplete export
+  coverage, altered record meaning, active effects, incomplete provenance,
+  unsafe inspection, stale digests, contradictory exports, and private fields.
 - Repository evidence passed 16 architecture checks, ten security control
   groups, planning integrity for 202 artifacts, documentation integrity for 346
   Markdown files plus catalogs, Python compile checks, whitespace integrity,
@@ -313,3 +314,8 @@ added.
   immutable domain values, parser/projector behavior, compatibility corpus, and
   synchronized contract/module documentation passed the focused and repository
   gates. Later persistence and presentation layers remain deliberately absent.
+- 2026-10-16: Tightened the verifying candidate so logical paths have one NFC-
+  normalized cross-platform representation, HTTPS metadata rejects embedded
+  credentials, and each export embeds and digest-binds the exact snapshot and
+  workspace records while accounting for every snapshot artifact. Focused and
+  broad regression evidence passed without expanding packet scope.

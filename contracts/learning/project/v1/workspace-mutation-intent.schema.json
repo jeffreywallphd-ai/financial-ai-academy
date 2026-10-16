@@ -111,7 +111,7 @@
       "required": ["artifact_kind", "logical_path", "media_type", "inspection_mode", "byte_count", "content_digest", "provenance", "assumptions"],
       "properties": {
         "artifact_kind": { "enum": ["dataset", "notebook", "code", "environment", "result", "reflection", "supporting_file"] },
-        "logical_path": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*\\u0000)[A-Za-z0-9._ -]+(?:/[A-Za-z0-9._ -]+)*$" },
+        "logical_path": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\\\)(?!.*\\u0000).+$" },
         "media_type": { "enum": ["application/octet-stream", "application/json", "application/pdf", "application/x-ipynb+json", "text/csv", "text/markdown", "text/plain", "text/x-python"] },
         "inspection_mode": { "enum": ["metadata_only", "plain_text"] },
         "byte_count": { "type": "integer", "minimum": 0, "maximum": 10485760 },

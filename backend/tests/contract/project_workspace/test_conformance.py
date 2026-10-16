@@ -116,6 +116,24 @@ def test_snapshot_and_export_digests_are_canonical() -> None:
     assert canonical_digest(exported["export"]) == exported["export_digest"]
 
 
+def test_export_requires_exact_snapshot_artifact_coverage() -> None:
+    exported = copy.deepcopy(load("evidence-export.json"))
+    exported["export"]["excluded_artifacts"] = []  # type: ignore[index]
+    exported["export_digest"] = canonical_digest(exported["export"])  # type: ignore[arg-type]
+    with pytest.raises(ProjectConformanceFailure) as captured:
+        ProjectContractValidator().validate_evidence_export(exported)
+    assert captured.value.code == "project.contract.incomplete_export_coverage"
+
+
+def test_export_binds_workspace_records_to_snapshot_references() -> None:
+    exported = copy.deepcopy(load("evidence-export.json"))
+    exported["export"]["workspace_record"]["artifacts"][0]["provenance"]["source_title"] = "Changed source"  # type: ignore[index]
+    exported["export_digest"] = canonical_digest(exported["export"])  # type: ignore[arg-type]
+    with pytest.raises(ProjectConformanceFailure) as captured:
+        ProjectContractValidator().validate_evidence_export(exported)
+    assert captured.value.code == "project.contract.export_record_mismatch"
+
+
 def test_workspace_records_are_unique() -> None:
     document = copy.deepcopy(load("workspace.json"))
     document["notes"].append(copy.deepcopy(document["notes"][0]))  # type: ignore[index,union-attr]

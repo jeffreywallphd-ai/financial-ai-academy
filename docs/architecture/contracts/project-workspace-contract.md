@@ -103,8 +103,9 @@ digest verification, owner validation, and persistence facts remain server
 authority.
 
 Artifact manifests admit only dataset, notebook, code, environment, result,
-reflection, and supporting-file evidence. They use traversal-free relative
-logical paths, closed media and passive-inspection values, a maximum declared
+reflection, and supporting-file evidence. They use NFC-normalized relative
+logical paths with one cross-platform representation, closed media and passive-
+inspection values, a maximum declared
 size of 10 MiB, lowercase SHA-256 content integrity, source/license/use
 provenance, assumptions, and optional external-environment evidence. Result
 records distinguish observed, calculated, simulated, predicted, generated,
@@ -121,11 +122,14 @@ A snapshot close intent binds one exact Project and workspace revision. The
 immutable snapshot material records the exact Project shell digest and record
 version/digest references. Its digest is SHA-256 over compact sorted-key JSON
 with direct UTF-8. A later live revision or removed live association cannot
-rewrite that material. The evidence-export manifest binds one exact snapshot,
-includes only authorized inert files by logical path and digest, and records
-bounded exclusions. It is neither an archive-import nor an execution format.
+rewrite that material. The evidence-export manifest embeds and validates the
+exact snapshot and workspace records, binds each referenced record by digest,
+accounts for every snapshot artifact as included or excluded, and repeats exact
+file and artifact-manifest integrity for included bytes. It is neither an
+archive-import nor an execution format.
 
-These portable shapes contain no storage coordinates, host paths, credentials,
+These portable shapes contain no storage coordinates, host paths, credentials
+or credential-bearing URLs,
 provider payloads, callbacks, archive controls, executable controls, active
 renderer instructions, Assessment result, Learner-model state, copied
 Portfolio aggregate, or financial advice. Browser, command-line, service, and

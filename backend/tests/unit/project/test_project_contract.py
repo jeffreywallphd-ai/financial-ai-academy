@@ -45,6 +45,17 @@ def encoded(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False).encode("utf-8")
 
 
+def refresh_export_digest(document: dict[str, object]) -> None:
+    document["export_digest"] = hashlib.sha256(
+        json.dumps(
+            document["export"],
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+
+
 def refreshed_brief_digest(brief: LearningProjectBrief) -> str:
     value = {
         "brief_id": brief.brief_id,
@@ -311,7 +322,7 @@ def test_snapshot_and_export_digest_changes_fail_closed() -> None:
 @pytest.mark.parametrize(
     ("path", "value", "code"),
     [
-        (["artifacts", 0, "logical_path"], "../../secret", "project.contract.schema_invalid"),
+        (["artifacts", 0, "logical_path"], "../../secret", "project.contract.noncanonical_logical_path"),
         (["artifacts", 1, "inspection_mode"], "plain_text", "project.contract.unsafe_inspection_mode"),
         (["artifacts", 2, "result_classification"], "predicted", None),
     ],
@@ -334,6 +345,72 @@ def test_workspace_artifact_boundaries(
         with pytest.raises(ProjectContractFailure) as captured:
             contract.parse_workspace(encoded(document))
         assert captured.value.code == code
+
+
+@pytest.mark.parametrize(
+    "logical_path",
+    [
+        "./data.csv",
+        "data/./sample.csv",
+        "data/trailing.",
+        "data/trailing ",
+        "data//sample.csv",
+        "data/CON.csv",
+        "data/Cafe\u0301.csv",
+    ],
+)
+def test_workspace_rejects_noncanonical_logical_path(logical_path: str) -> None:
+    document = load("workspace.json")
+    document["artifacts"][0]["logical_path"] = logical_path  # type: ignore[index]
+    with pytest.raises(ProjectContractFailure) as captured:
+        adapter().parse_workspace(encoded(document))
+    assert captured.value.code == "project.contract.noncanonical_logical_path"
+
+
+def test_workspace_accepts_normalized_unicode_logical_path() -> None:
+    document = load("workspace.json")
+    document["artifacts"][0]["logical_path"] = "données/échantillon.csv"  # type: ignore[index]
+    parsed = adapter().parse_workspace(encoded(document))
+    assert parsed.artifacts[0].logical_path == "données/échantillon.csv"
+
+
+@pytest.mark.parametrize("target", ["reference", "provenance"])
+def test_workspace_rejects_credential_bearing_urls(target: str) -> None:
+    document = load("workspace.json")
+    if target == "reference":
+        document["references"][0]["url"] = "https://user:password@example.test/source"  # type: ignore[index]
+    else:
+        document["artifacts"][0]["provenance"]["source_url"] = "https://token:secret@example.test/data"  # type: ignore[index]
+    with pytest.raises(ProjectContractFailure) as captured:
+        adapter().parse_workspace(encoded(document))
+    assert captured.value.code == "project.contract.unsafe_url"
+
+
+def test_export_requires_exact_snapshot_artifact_coverage() -> None:
+    document = load("evidence-export.json")
+    document["export"]["excluded_artifacts"] = []  # type: ignore[index]
+    refresh_export_digest(document)
+    with pytest.raises(ProjectContractFailure) as captured:
+        adapter().parse_evidence_export(encoded(document))
+    assert captured.value.code == "project.contract.incomplete_export_coverage"
+
+
+def test_export_binds_workspace_record_meaning_to_snapshot() -> None:
+    document = load("evidence-export.json")
+    document["export"]["workspace_record"]["artifacts"][0]["provenance"]["source_title"] = "Changed source"  # type: ignore[index]
+    refresh_export_digest(document)
+    with pytest.raises(ProjectContractFailure) as captured:
+        adapter().parse_evidence_export(encoded(document))
+    assert captured.value.code == "project.contract.export_record_mismatch"
+
+
+def test_export_file_metadata_matches_bound_artifact_manifest() -> None:
+    document = load("evidence-export.json")
+    document["export"]["artifact_files"][0]["manifest_digest"] = "f" * 64  # type: ignore[index]
+    refresh_export_digest(document)
+    with pytest.raises(ProjectContractFailure) as captured:
+        adapter().parse_evidence_export(encoded(document))
+    assert captured.value.code == "project.contract.export_artifact_mismatch"
 
 
 def test_canonical_digest_preserves_direct_non_ascii_utf8() -> None:

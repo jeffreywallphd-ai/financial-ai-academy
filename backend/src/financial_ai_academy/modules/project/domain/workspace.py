@@ -281,6 +281,7 @@ class ProjectSnapshot:
 class EvidenceArtifactFile:
     artifact_id: str
     artifact_version: int
+    manifest_digest: str
     logical_path: str
     media_type: str
     byte_count: int
@@ -303,6 +304,8 @@ class ProjectEvidenceExportMaterial:
     project_id: str
     snapshot_id: str
     snapshot_digest: str
+    snapshot_record: ProjectSnapshot
+    workspace_record: ProjectWorkspace
     artifact_files: tuple[EvidenceArtifactFile, ...]
     excluded_artifacts: tuple[ExcludedEvidenceArtifact, ...]
     format: Literal["project-evidence-manifest-v1"] = (
