@@ -199,7 +199,8 @@ each packet starts.
 | WRK-0109 | Freeze learning-project-brief and Project-shell contracts, origin semantics, compatibility fixtures, and pure Project domain values | none | none | complete |
 | WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | complete |
 | WRK-0111 | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | WRK-0110 | none | complete |
-| WRK-0116 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | WRK-0111 | none | ready |
+| WRK-0117 | Refresh the tracked production bundle from the accepted Project browser source without changing authored behavior | WRK-0111 | none | ready |
+| WRK-0116 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | WRK-0111, WRK-0117 | none | ready |
 
 ## Verification and Qualification
 
@@ -291,3 +292,7 @@ not delivered or qualified.
   architecture, security, language, design, documentation, and aggregate
   readiness checks. Refined JIT-D as WRK-0116 to perform evidence-only
   cumulative qualification before closing the slice.
+- 2026-10-16: Cumulative qualification rebuilt a stale tracked production
+  bundle from the accepted Project browser source. Added WRK-0117 as a bounded
+  generated-artifact correction and returned WRK-0116 to ready until that
+  correction completes; no product source or decision changed.

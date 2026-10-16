@@ -3,19 +3,19 @@ id: WRK-0116
 kind: work-packet
 planning_status: ready
 authority: noncanonical
-owner: codex-cap-0007
+owner: unassigned
 updated: 2026-10-16
 parent: SLI-0030
 capability: CAP-0007
-depends_on: [WRK-0111]
+depends_on: [WRK-0111, WRK-0117]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0116-qualify-project-shell-origin-flow.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 7ec80cd92eea9f11caf448fb85c0a190ddd7f573
+claim_id: WRK-0116:241e03bb-c9cf-44f3-b29b-6c9cf7ca9391
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-16T22:18:50Z
 ---
 
 # Agent Work Packet: Qualify Project Shell and Origin Flow
@@ -88,10 +88,11 @@ artifact.
 
 ## Dependencies and Parallel Safety
 
-WRK-0109 through WRK-0111 are complete and supply the exact contracts,
-implementation, persistence, API, generated client, browser flow, and focused
-evidence. This packet owns shared slice/register closure sources and is not
-parallel-safe with another SLI-0030 or Project qualification packet.
+WRK-0109 through WRK-0111 supply the exact contracts, implementation,
+persistence, API, generated client, browser flow, and focused evidence.
+WRK-0117 must also complete so the tracked production bundle is generated from
+that accepted source. This packet owns shared slice/register closure sources
+and is not parallel-safe with another SLI-0030 or Project qualification packet.
 
 ## Acceptance Scenarios
 
@@ -154,3 +155,7 @@ added.
   evidence-only qualification packet for SLI-0030. It adds no runtime,
   contract, provider, execution, AI authority, or durable decision and remains
   inside the approved CAP-0007 package.
+- 2026-10-16: Returned to ready after the first cumulative run proved the
+  tracked production bundle was stale relative to the accepted browser source.
+  WRK-0117 owns only that generated-artifact correction; already-passed
+  product checks remain evidence for the unchanged source candidate.
