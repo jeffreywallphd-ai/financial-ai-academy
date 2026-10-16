@@ -235,7 +235,7 @@ refined just in time.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
-| JIT-B | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | JIT-A | none | captured |
+| WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | ready |
 | JIT-C | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | JIT-B | none | captured |
 | JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | JIT-C | none | captured |
 
@@ -338,3 +338,7 @@ created, and no managed-cloud or production-recovery profile was qualified.
   additive contract and pure-policy seam with no open findings. Persistence,
   public API, generated-client, and browser delivery remain in the next
   just-in-time packets.
+- 2026-10-16: Refined JIT-B as WRK-0119. The packet delivers the Project-owned
+  persistence and inert-object boundary through one protected public API and
+  generated client for browser and headless consumers; the browser workspace
+  remains the next packet.
