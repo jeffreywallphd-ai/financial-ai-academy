@@ -1,7 +1,7 @@
 ---
 id: WRK-0101
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-roadmap-decision-review
 updated: 2026-10-16
@@ -164,8 +164,8 @@ conformance, commit, branch, worktree, and integration instructions.
 - Dynamic DEC routes render complete, captured, missing-record, and inert
   document states. The API and UI omit private approval/reviewer ledger data;
   unknown and traversal routes stay bounded.
-- Focused projection tests passed 16 tests; loopback server tests passed 8;
-  DOM/model tests passed 14; source qualification passed 6; the TypeScript
+- Focused projection tests passed 17 tests; loopback server tests passed 8;
+  DOM/model tests passed 16; source qualification passed 6; the TypeScript
   compile check passed; Chromium/axe passed 3 browser scenarios on isolated
   port 8875 because the operator's port 8765 site remained in use.
 - Design-system, planning-integrity, documentation-integrity, Python compile,
@@ -176,8 +176,9 @@ conformance, commit, branch, worktree, and integration instructions.
 - The delivery remains inside approved CAP-0008 and refined SLI-0036. It adds
   the already-bounded public decision-posture view and does not expose approval
   display, mutate planning, or introduce the undescribed second change.
-- Independent technical review remains required before finalization because
-  packet start selected the shared/control high-risk route.
+- Exact-candidate affected verification passed all 11 selected checks. Three
+  substantive review findings across successive candidates were corrected and
+  closed; the final exact candidate has no open substantive or cleanup finding.
 
 ## Planning History
 
@@ -205,3 +206,6 @@ conformance, commit, branch, worktree, and integration instructions.
 - 2026-10-16: Review round R02 closed both R01 findings and identified one
   remaining bounded edge case: empty or whitespace-only decision-record values
   must not support decision-made state.
+- 2026-10-16: The final strict descendant rejects empty and whitespace-only
+  records, passed fresh affected and aggregate verification, closed the last
+  finding, and completed with no open review finding.

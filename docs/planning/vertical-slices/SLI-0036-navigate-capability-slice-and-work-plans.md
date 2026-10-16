@@ -4,7 +4,7 @@ kind: vertical-slice
 planning_status: complete
 authority: noncanonical
 owner: codex-roadmap-review
-updated: 2026-10-15
+updated: 2026-10-16
 parent: CAP-0008
 depends_on: ["SLI-0034", "SLI-0035"]
 decision_gates: []
@@ -99,7 +99,7 @@ with repository-relative source and the projection source fingerprint.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0026 | Enrich the generic hierarchy and deliver safe dynamic candidate/CAP/slice/work detail routes, renderers, tests, and guidance | WRK-0025 | none | complete |
-| WRK-0101 | Add dynamically projected decision status links to CAP/SLI/WRK views and safe DEC detail routes | WRK-0026, WRK-0084 | none | active |
+| WRK-0101 | Add dynamically projected decision status links to CAP/SLI/WRK views and safe DEC detail routes | WRK-0026, WRK-0084 | none | complete |
 
 ## Verification and Qualification
 
@@ -145,6 +145,19 @@ remains in SLI-0037. No migration, static detail generation, hosted exposure,
 or product integration exists. The additive projection remains compatible and
 the slice conforms to CAP-0008.
 
+The WRK-0101 extension now projects all 20 public decision requests without
+adding them to portfolio allocation. CAP, SLI, and WRK pages show deduplicated
+relevant-decision links with current status, and stable DEC routes render inert
+details plus truthful resolved/deferred posture. A decision is made only for a
+complete request with a confined, non-empty canonical record; inconsistent
+complete requests emit a blocking diagnostic. Missing references remain local
+and non-blocking, malformed client entries fail within the bounded envelope
+error, and private approval/reviewer ledger data is not projected. Focused,
+affected, aggregate, TypeScript, DOM, server, route, documentation, design, and
+isolated Chromium/axe checks passed. Independent review findings were corrected
+and closed with no open finding. The extension stays within CAP-0008 and does
+not reopen product scope, mutation, hosted access, or static page generation.
+
 ## Planning History
 
 - 2026-10-15: Refined just in time after SLI-0035. Candidate A scored 14/14 and
@@ -168,3 +181,7 @@ the slice conforms to CAP-0008.
   its original base revision so the control plane can bind the exact clean Git
   candidate before restoring the verifying state. Implementation scope and
   evidence did not change.
+- 2026-10-16: Closed the WRK-0101 extension after focused and aggregate checks,
+  exact-candidate affected verification, correction of every substantive
+  finding, final review with no open finding, and the two-packet SLI-0036
+  completion structure passing.
