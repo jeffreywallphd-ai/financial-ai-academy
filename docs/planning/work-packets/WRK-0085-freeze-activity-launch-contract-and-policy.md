@@ -1,7 +1,7 @@
 ---
 id: WRK-0085
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -226,3 +226,10 @@ Leave JIT-B dependency-ready or return one bounded blocker.
   unsupported-kind precedence needed to move in the independent compatibility
   runner. The runner and its direct locked-assessment case were corrected in
   the existing contract-test scope.
+- 2026-10-16: Completed at accepted candidate
+  `e5de843db38a67c00b5527129eaf03198c3c0d42` after all review findings
+  closed. Direct policy/contract and anti-rigidity checks, the full Adaptation
+  unit/contract regression, compilation, architecture, planning,
+  documentation, whitespace, affected verification, and all 29 readiness
+  checks passed. There is no migration; lesson-only v1 and deferred
+  application/API/UI composition remain explicit limitations for JIT-B.
