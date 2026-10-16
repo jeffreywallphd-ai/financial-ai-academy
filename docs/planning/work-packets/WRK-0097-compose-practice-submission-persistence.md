@@ -1,7 +1,7 @@
 ---
 id: WRK-0097
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -234,8 +234,9 @@ changed, then leave JIT-C dependency-ready.
   returns the original IDs, time, ordered result, and feedback after restart.
   Changed input conflicts, and a distinct post-completion submission is denied
   until SLI-0028 owns retry policy.
-- Focused Assessment domain, contract, and application evidence passes 142
-  tests. The isolated PostgreSQL 18.4 suite passes 14 tests over migration,
+- The packet-listed non-database domain, contract, and application groups pass
+  138 tests; the broader Assessment unit/contract consolidation also run passes
+  142. The isolated PostgreSQL 18.4 suite passes 14 tests over migration,
   reapply/teardown, all three response types, exact/reordered replay, conflict,
   attempt limit, concurrency, rollback, restart, event confidentiality,
   append-only enforcement, and unchanged knowledge-check behavior.
@@ -259,3 +260,8 @@ changed, then leave JIT-C dependency-ready.
 - 2026-10-16: Submitted exact candidate
   `f4ebf8f4745012afc9913a6c218e339431cda1e7` for fresh affected verification
   and independent technical review.
+- 2026-10-16: The fresh affected-verification receipt qualified with digest
+  `sha256:50e8571f4d50bff5d9edb715e35036c3e7a70db3d85f8934aa99f76ffd171d59`.
+  Independent review R01 accepted the exact candidate with no substantive
+  findings. Its one low evidence-label cleanup was applied without re-review by
+  distinguishing 138 packet-listed tests from the 142-test broader run.

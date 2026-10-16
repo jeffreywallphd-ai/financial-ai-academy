@@ -191,7 +191,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | complete |
-| WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | verifying |
+| WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | complete |
 | JIT-C | Add the protected public POST, reviewed OpenAPI/generated client, and accessible browser submit/result flow with headless parity | JIT-B | none | candidate |
 | JIT-D | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-C | none | candidate |
 
@@ -292,8 +292,15 @@ or autonomous authority was planned or implemented.
   posture, bounded write scope, and collision-free ownership.
 - 2026-10-16: WRK-0097 implemented the transport-neutral practice submission
   operation and separate atomic append-only PostgreSQL evidence aggregate.
-  Focused Assessment evidence passes 142 non-database and 14 real-PostgreSQL
-  tests, including replay, conflict, concurrency, rollback, restart,
-  confidentiality, mutation denial, and unchanged knowledge-check behavior.
+  The packet-listed non-database groups pass 138 tests, the broader Assessment
+  unit/contract consolidation passes 142, and 14 real-PostgreSQL tests cover
+  replay, conflict, concurrency, rollback, restart, confidentiality, mutation
+  denial, and unchanged knowledge-check behavior.
 - 2026-10-16: Submitted exact candidate `f4ebf8f` for affected verification
   and independent technical review after all packet checks passed.
+- 2026-10-16: Independent review R01 accepted the exact candidate with no
+  substantive findings. Its one low evidence-label cleanup was applied without
+  reopening review: the packet-listed groups total 138 and the broader run 142.
+- 2026-10-16: Completed WRK-0097. The shared public application operation and
+  atomic evidence core are dependency-ready for the protected HTTP/generated-
+  client/browser packet; no separate AI mode or browser-only core was added.
