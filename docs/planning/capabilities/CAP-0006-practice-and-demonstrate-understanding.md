@@ -1,7 +1,7 @@
 ---
 id: CAP-0006
 kind: capability
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -223,3 +223,8 @@ claim.
   accessibility, or recovery-bound evidence; the documentation-only candidate
   is ready for exact-revision submission before deterministic slice and
   capability closure.
+- 2026-10-16: Closed CAP-0006 after SLI-0026 through SLI-0029 and every packet
+  completed, the final slice completion structure passed, the corrected exact
+  candidate received qualifying affected verification, and all 29 aggregate
+  readiness checks passed. Public APIs remain available to UI and non-UI
+  clients; separate AI-mode planning and managed-cloud parity remain deferred.

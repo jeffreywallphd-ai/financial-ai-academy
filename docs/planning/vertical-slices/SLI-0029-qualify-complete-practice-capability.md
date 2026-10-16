@@ -1,7 +1,7 @@
 ---
 id: SLI-0029
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -176,7 +176,7 @@ keys, private evaluator declarations, storage details, or raw diagnostics.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0108 | Run the cumulative capability matrix, close only directly observed acceptance gaps, reconcile the evidence map and known gaps, and deterministically close SLI-0029 and CAP-0006 | SLI-0028 | none | active |
+| WRK-0108 | Run the cumulative capability matrix, close only directly observed acceptance gaps, reconcile the evidence map and known gaps, and deterministically close SLI-0029 and CAP-0006 | SLI-0028 | none | complete |
 
 The packet is authored immediately before activation. If qualification finds a
 material product defect, WRK-0108 stops and a new bounded correction packet is
@@ -288,3 +288,10 @@ mode, and autonomous action remain explicitly unqualified.
 - 2026-10-16: Qualification evidence now distinguishes direct shared-core and
   local proof from representative future-cloud portability and states the
   unperformed manual, browser, zoom, and platform accessibility checks.
+- 2026-10-16: WRK-0108 completed at exact candidate `ea6270e` with fresh
+  qualifying affected verification. SLI-0029 is verifying the completed packet
+  set against its deterministic completion structure.
+- 2026-10-16: Completion structure passed for the one-packet slice. SLI-0029 is
+  complete with cumulative evidence, compatibility, documentation impact,
+  assumptions, residual accessibility/platform gaps, and deliberately
+  unqualified cloud/provider/AI boundaries recorded.
