@@ -197,7 +197,7 @@ each packet starts.
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0109 | Freeze learning-project-brief and Project-shell contracts, origin semantics, compatibility fixtures, and pure Project domain values | none | none | complete |
-| JIT-B | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | JIT-A | none | pending just-in-time refinement |
+| WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | ready |
 | JIT-C | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | JIT-B | none | pending just-in-time refinement |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | JIT-C | none | pending just-in-time refinement |
 
