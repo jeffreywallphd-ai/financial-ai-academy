@@ -154,6 +154,23 @@ class FileLeaseCoreTests(unittest.TestCase):
             self.assertEqual(before, store.path.read_bytes())
             self.assertEqual(original["lease_id"], state["path_owners"]["src/a.py"])
 
+    def test_recovery_refuses_inconsistent_stored_path_key_pairs_without_mutation(self) -> None:
+        clock = Clock()
+        with tempfile.TemporaryDirectory(prefix="file-recovery-path-key-") as directory:
+            _root, store = self.fixture(directory, clock)
+            original = acquire(store, owner="one", path="src/a.py", minutes=1)["data"]["lease"]
+            clock.advance(2)
+            state = json.loads(store.path.read_text(encoding="utf-8"))
+            state["leases"][original["lease_id"]]["paths"] = ["src/b.py"]
+            store.path.write_text(json.dumps(state), encoding="utf-8")
+            before = store.path.read_bytes()
+
+            with self.assertRaises(ControlError) as malformed:
+                store.acquire(unit_id="GROUP-2", work_id="TASK-2", owner="two", claim_id="claim-two", paths=["src/a.py"], recovery=True)
+
+            self.assertEqual("edit.state-malformed", malformed.exception.code)
+            self.assertEqual(before, store.path.read_bytes())
+
     def test_full_set_recovery_retains_existing_result_shape(self) -> None:
         clock = Clock()
         with tempfile.TemporaryDirectory(prefix="file-recovery-full-") as directory:

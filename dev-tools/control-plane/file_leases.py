@@ -48,6 +48,11 @@ def canonical_files(root: Path, values: Iterable[str]) -> list[tuple[str, str]]:
     return sorted(paths, key=lambda item: item[1])
 
 
+def _stored_path_key_pair_is_canonical(path: str, key: str) -> bool:
+    parts = path.split("/")
+    return bool(path) and "\\" not in path and not path.startswith("/") and all(part not in {"", ".", ".."} for part in parts) and path.casefold() == key
+
+
 def _duration(minutes: int, *, maximum: int = MAX_FILE_LEASE_MINUTES) -> None:
     if not 1 <= minutes <= maximum:
         raise ControlError("edit.duration-invalid", f"Duration must be between 1 and {maximum} minutes.", {"minutes": minutes}, [f"Choose a duration from 1 through {maximum} minutes."])
@@ -160,6 +165,7 @@ class FileLeaseStore:
                     and all(isinstance(key, str) for key in prior_keys)
                     and len(set(prior_paths)) == len(prior_paths)
                     and len(set(prior_keys)) == len(prior_keys)
+                    and all(_stored_path_key_pair_is_canonical(path, key) for path, key in zip(prior_paths, prior_keys, strict=True))
                 )
                 if not valid_pairs:
                     raise ControlError("edit.state-malformed", "An expired lease has inconsistent path metadata.", {"lease_id": prior_id}, ["Use bounded local maintenance; preserve the malformed bytes."])
