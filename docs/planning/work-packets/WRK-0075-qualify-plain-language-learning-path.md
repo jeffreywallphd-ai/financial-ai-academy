@@ -1,7 +1,7 @@
 ---
 id: WRK-0075
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -10,7 +10,7 @@ capability: CAP-0030
 depends_on: ["WRK-0074"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/tests/browser/curriculum-graph/curriculum-graph.spec.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "apps/web/README.md", "docs/planning/work-packets/WRK-0075-qualify-plain-language-learning-path.md", "docs/planning/vertical-slices/SLI-0123-understand-learning-path-state-in-plain-language.md", "docs/planning/register.md"]
+write_scope: ["apps/web/tests/browser/curriculum-graph/curriculum-graph.spec.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/README.md", "docs/planning/work-packets/WRK-0075-qualify-plain-language-learning-path.md", "docs/planning/vertical-slices/SLI-0123-understand-learning-path-state-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: []
 base_revision: 43e4d6f4591809efd34ce44d174acea719afe3c3
 claim_id: WRK-0075:d8b211db-2360-48cd-ba2d-b381ccb5fb7b
@@ -87,7 +87,7 @@ live runner, and `apps/web/README.md` before editing.
 | Area | Inspect | Allowed to change | Reason |
 | --- | --- | --- | --- |
 | Mocked browser evidence | curriculum fixture, route, page, Playwright config | named mocked spec only | Qualify flexible plain-language behavior and safe states |
-| Live browser/API evidence | live graph specification, runner, generated types | named live spec only | Preserve API/UI fact parity with revised presentation |
+| Live browser/API evidence | live graph and existing cross-journey specifications, runner, generated types | named live specs only | Preserve API/UI fact parity with revised presentation across the shared live suite |
 | Documentation/planning | web README, packet, parent slice, register | named files | Record exact qualification and close the slice |
 
 ## Contracts and Interfaces
@@ -169,3 +169,7 @@ CAP-0031.
   reuses the mocked and live curriculum harnesses, updates changed accessible
   names, derives flexible expectations from data, and closes the slice without
   product, harness, or styling changes.
+- 2026-10-16: Expanded the bounded live-evidence scope after the shared live
+  suite showed that the existing approved-lesson journey also consumes the
+  revised plain-language disclosures. This remains within SLI-0123 and changes
+  assertions only; it adds no product, contract, fixture, or harness behavior.
