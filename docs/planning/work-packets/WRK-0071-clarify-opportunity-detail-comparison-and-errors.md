@@ -1,7 +1,7 @@
 ---
 id: WRK-0071
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/learning-catalog/LearningOpportunityDetailPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityDetailRoute.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityComparisonPage.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityComparisonRoute.tsx", "apps/web/src/styles/learning-catalog.css", "apps/web/tests/component/learningOpportunityDetail.test.tsx", "apps/web/tests/component/learningOpportunityComparison.test.tsx", "apps/web/README.md", "docs/planning/work-packets/WRK-0071-clarify-opportunity-detail-comparison-and-errors.md", "docs/planning/vertical-slices/SLI-0122-choose-learning-opportunities-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 5f43bce7a658ad45808b9cf72fc5e44a53a98d58
+claim_id: WRK-0071:45182ee8-5477-4948-ac42-77637b2c19dc
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T09:36:53Z
 ---
 
 # Agent Work Packet: Clarify Opportunity Detail, Comparison, and Errors
