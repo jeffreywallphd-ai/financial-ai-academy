@@ -1,9 +1,9 @@
 ---
 id: SLI-0030
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0007
 updated: 2026-10-16
 parent: CAP-0007
 depends_on: []
@@ -268,6 +268,9 @@ not delivered or qualified.
 
 ## Planning History
 
+- 2026-10-16: Activated the slice with WRK-0109 as its first bounded packet;
+  implementation remains inside the approved CAP-0007 manifest and the
+  resolved ADR-0011/ADR-0012 boundaries.
 - 2026-10-16: Refined the first approved CAP-0007 manifest increment after
   CAP-0005 and CAP-0006 completed and portfolio allocation selected CAP-0007 as
   the only dependency-ready capability lane. Candidate A scores 14/14 and

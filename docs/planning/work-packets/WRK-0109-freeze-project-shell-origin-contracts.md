@@ -1,9 +1,9 @@
 ---
 id: WRK-0109
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0007
 updated: 2026-10-16
 parent: SLI-0030
 capability: CAP-0007
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/project/README.md", "backend/src/financial_ai_academy/modules/project/__init__.py", "backend/src/financial_ai_academy/modules/project/adapters/project_contract.py", "backend/src/financial_ai_academy/modules/project/domain/project.py", "backend/src/financial_ai_academy/modules/project/ports/project_contract.py", "backend/tests/contract/project_workspace", "backend/tests/unit/project/test_project_contract.py", "contracts/compatibility/project-workspace/v1", "contracts/learning/README.md", "contracts/learning/project/v1", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0109-freeze-project-shell-origin-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: ecdcfa2839eb91926591e54d22885d262067488a
+claim_id: WRK-0109:4a0d78e8-8099-4198-a403-2033db07c29c
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-16T19:35:25Z
 ---
 
 # Agent Work Packet: Freeze Project Shell and Origin Contracts
