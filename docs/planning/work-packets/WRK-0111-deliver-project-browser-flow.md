@@ -1,7 +1,7 @@
 ---
 id: WRK-0111
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -218,3 +218,7 @@ separate AI mode, or autonomous authority was added.
 - 2026-10-16: Added the repository-tracked static browser build directory to
   generated scope after the build produced the expected hashed artifacts. No
   authored behavior or acceptance scope changed.
+- 2026-10-16: Returned the same claimed packet to active correction after exact
+  affected verification found a stale isolated-composition fixture and a 200%
+  zoom navigation overflow. Scope, acceptance, ownership, and CAP authority are
+  unchanged.

@@ -76,18 +76,21 @@
 
 .app-nav {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--faa-space-2);
   margin-inline-start: auto;
 }
 
 .app-nav a {
+  max-width: 100%;
   min-height: var(--faa-target-min);
   padding: var(--faa-space-2) var(--faa-space-3);
   color: var(--faa-color-nav-muted);
   border-radius: var(--faa-radius-control);
   font-size: var(--faa-font-size-ui);
   font-weight: var(--faa-font-weight-semibold);
+  overflow-wrap: anywhere;
   text-decoration: none;
 }
 

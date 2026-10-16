@@ -47,6 +47,7 @@ def local_services() -> SimpleNamespace:
         create_lesson_placement=MagicMock(),
         create_assessment_placement=MagicMock(),
         create_practice_placement=MagicMock(),
+        create_project_brief_placement=MagicMock(),
         publish_curriculum_graph=MagicMock(),
         register_lesson_opportunity=MagicMock(),
         rebuild_learning_opportunity_projection=MagicMock(),
@@ -97,6 +98,7 @@ def exercise_local_composition(
     namespace = {
         "APPROVED_FIXTURE": REPOSITORY / "contracts",
         "APPROVED_PRACTICE_FIXTURE": REPOSITORY / "contracts",
+        "APPROVED_PROJECT_FIXTURE": REPOSITORY / "contracts",
         "ASSESSMENT_ID": "risk-return-check-1",
         "AdmitLessonPackageRequest": Record,
         "ApiServices": Record,
@@ -104,6 +106,7 @@ def exercise_local_composition(
         "CreateAssessmentPlacementRequest": Record,
         "CreateLessonPlacementRequest": Record,
         "CreatePracticePlacementRequest": Record,
+        "CreateProjectBriefPlacementRequest": Record,
         "LOOPBACK_HOSTS": frozenset({"127.0.0.1", "::1", "localhost"}),
         "LessonActivityReference": LessonReference,
         "OpportunityAvailability": SimpleNamespace(AVAILABLE="available"),
@@ -113,6 +116,9 @@ def exercise_local_composition(
         "PRACTICE_ID": "risk-return-practice",
         "PRACTICE_PLACEMENT_ID": "intro-risk-return-practice",
         "PRACTICE_VERSION": "1.0.0",
+        "PROJECT_BRIEF_DIGEST": "e" * 64,
+        "PROJECT_PLACEMENT_ID": "risk-return-project-primary",
+        "PROJECT_SOURCE_PLACEMENT_ID": "risk-return-project-source",
         "PublishCurriculumGraphRequest": Record,
         "QUERY_OPPORTUNITY_FIXTURES": (
             {
@@ -235,6 +241,13 @@ def exercise_local_composition(
                 ),
             )
         ),
+        "qualification_project_graph": MagicMock(
+            return_value=SimpleNamespace(
+                curriculum_id="financial-foundations-projects",
+                curriculum_version="1.0.0",
+                graph_digest="f" * 64,
+            )
+        ),
     }
     exec(compile(isolated_module, LOCAL_SERVER, "exec"), namespace)
     with tempfile.TemporaryDirectory() as temporary_directory:
@@ -278,6 +291,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         services.curriculum.create_lesson_placement.assert_not_called()
         services.curriculum.create_assessment_placement.assert_not_called()
         services.curriculum.create_practice_placement.assert_not_called()
+        services.curriculum.create_project_brief_placement.assert_not_called()
         services.curriculum.publish_curriculum_graph.assert_not_called()
         services.curriculum.register_lesson_opportunity.assert_not_called()
         services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
@@ -354,7 +368,12 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             package_version="2.0.0",
             package_digest="d" * 64,
         )
-        accepted_packages = iter((accepted, accepted_practice))
+        accepted_project = SimpleNamespace(
+            package_id="intro-risk-return-project",
+            package_version="1.0.0",
+            package_digest="e" * 64,
+        )
+        accepted_packages = iter((accepted, accepted_practice, accepted_project))
         services.content.admit_lesson_package.side_effect = lambda request: (
             events.append("admit") or next(accepted_packages)
         )
@@ -371,6 +390,11 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         services.curriculum.create_practice_placement.side_effect = (
             lambda request: events.append(
                 f"practice-placement:{request.practice_id}"
+            )
+        )
+        services.curriculum.create_project_brief_placement.side_effect = (
+            lambda request: events.append(
+                f"project-placement:{request.brief_id}"
             )
         )
         services.curriculum.publish_curriculum_graph.side_effect = (
@@ -399,6 +423,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             [
                 "admit",
                 "admit",
+                "admit",
                 f"lesson-placement:{PLACEMENT_ID}",
                 "lesson-placement:diversification-reading",
                 "lesson-placement:diversification-check",
@@ -412,6 +437,9 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
                 "publish-graph",
                 "register-opportunity",
                 "rebuild-projection",
+                "lesson-placement:risk-return-project-source",
+                "publish-graph",
+                "project-placement:risk-return-project",
                 "create-app",
             ],
         )
