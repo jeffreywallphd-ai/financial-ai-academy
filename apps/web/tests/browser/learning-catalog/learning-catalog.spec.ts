@@ -6,6 +6,7 @@ import {
   availableOpportunity,
   learningCatalogFixture,
   learningQueryPageFixture,
+  plannedOpportunity,
 } from "../../component/learningCatalogFixture";
 
 const SESSION_PATTERN = "**/api/v1/session/single-profile";
@@ -253,12 +254,30 @@ test("keeps planned detail visible but non-executable", async ({ page }) => {
   await expect(
     page.getByText("This project is planned but cannot be opened yet."),
   ).toBeVisible();
+  await expect(page.getByText("Project version", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Open lesson" }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: "Return to learning library" }),
   ).toHaveAttribute("href", "/learn");
+
+  await page.getByText("Technical record", { exact: true }).click();
+  await expect(
+    page.getByText(plannedOpportunity.opportunity_id, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      `${plannedOpportunity.package_id}@${plannedOpportunity.package_version}`,
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(plannedOpportunity.package_digest, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(plannedOpportunity.source_fingerprint, { exact: true }),
+  ).toBeVisible();
 });
 
 test("supports detail keyboard focus, narrow reflow, reduced motion, and forced colors", async ({
@@ -383,6 +402,11 @@ test("selects and compares exact opportunities in learner order with theme parit
       name: "Compare learning opportunities",
     }),
   ).toBeVisible();
+  await expect(
+    page.getByText(
+      /does not rank opportunities, recommend a winner, or decide eligibility/i,
+    ),
+  ).toBeVisible();
   const cards = page.getByRole("article");
   await expect(cards).toHaveCount(2);
   await expect(cards.nth(0).getByRole("heading", { level: 2 })).toHaveText(
@@ -391,6 +415,12 @@ test("selects and compares exact opportunities in learner order with theme parit
   await expect(cards.nth(1).getByRole("heading", { level: 2 })).toHaveText(
     "Cash Flow Basics",
   );
+  await expect(
+    cards.nth(0).getByText("Project version", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    cards.nth(1).getByText("Lesson version", { exact: true }),
+  ).toBeVisible();
   await expect(
     cards.nth(0).getByRole("link", { name: "Open lesson" }),
   ).toHaveCount(0);
@@ -416,11 +446,17 @@ test("selects and compares exact opportunities in learner order with theme parit
   await expect(
     page.getByText(learningCatalogFixture.schema_version, { exact: true }),
   ).toBeVisible();
-  for (const opportunity of learningCatalogFixture.records) {
+  for (const opportunity of [plannedOpportunity, availableOpportunity]) {
+    await expect(
+      page.getByText(opportunity.opportunity_id, { exact: true }),
+    ).toBeVisible();
     await expect(
       page.getByText(`${opportunity.package_id}@${opportunity.package_version}`, {
         exact: true,
       }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(opportunity.package_digest, { exact: true }),
     ).toBeVisible();
     await expect(
       page.getByText(opportunity.source_fingerprint, { exact: true }),

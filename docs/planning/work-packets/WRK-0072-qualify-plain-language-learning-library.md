@@ -135,7 +135,7 @@ safe; an exact-file lease still allows unrelated CAP work outside this scope.
 - `python dev-tools/planning/check_planning.py`
 - `python dev-tools/documentation/check_docs.py`
 - affected verification through `python dev-tools/control-plane/control_plane.py verify WRK-0072`
-- `python scripts/check_completion_gate.py SLI-0122 WRK-0068 WRK-0069 WRK-0071 WRK-0072`
+- `python docs/planning/skills/verify-and-close-slice/scripts/check_completion_gate.py docs/planning/vertical-slices/SLI-0122-choose-learning-opportunities-in-plain-language.md docs/planning/work-packets/WRK-0068-establish-learner-facing-language-standard.md docs/planning/work-packets/WRK-0069-clarify-learning-library-list-and-filters.md docs/planning/work-packets/WRK-0071-clarify-opportunity-detail-comparison-and-errors.md docs/planning/work-packets/WRK-0072-qualify-plain-language-learning-library.md`
 - `python dev-tools/agent/check_ready.py`
 - `git diff --check`
 
