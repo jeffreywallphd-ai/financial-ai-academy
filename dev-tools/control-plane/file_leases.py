@@ -139,23 +139,25 @@ class FileLeaseStore:
                 raise ControlError("edit.recovery-required", "At least one requested file has an expired lease requiring explicit recovery; nothing was acquired.", {"expired_lease_ids": sorted(expired_ids)}, ["Use edit-recover to preserve recovery lineage."])
             if recovery and not expired_ids:
                 raise ControlError("edit.recovery-not-applicable", "Recovery requires at least one expired lease on the requested files.", {}, ["Use edit-acquire for currently unowned files."])
+            recovered_from = sorted(expired_ids)
             requested_keys = {key for _display, key in canonical}
             for prior_id in expired_ids:
-                prior_keys = set(state["leases"][prior_id].get("keys", []))
-                if prior_keys != requested_keys:
-                    raise ControlError(
-                        "edit.recovery-path-set-mismatch",
-                        "Recovery must name the complete exact-file set owned by every expired lease it replaces.",
-                        {"lease_id": prior_id, "requested_paths": [display for display, _key in canonical], "prior_paths": state["leases"][prior_id].get("paths", [])},
-                        ["Retry edit-recover with the expired lease's complete path set."],
-                    )
-            recovered_from = sorted(expired_ids)
-            for prior_id in expired_ids:
-                prior = state["leases"].pop(prior_id, None)
-                if prior:
-                    for key in prior["keys"]:
-                        if state["path_owners"].get(key) == prior_id:
-                            state["path_owners"].pop(key, None)
+                prior = state["leases"].get(prior_id)
+                if not isinstance(prior, dict):
+                    raise ControlError("edit.state-malformed", "An expired path owner references a missing lease.", {"lease_id": prior_id}, ["Use bounded local maintenance."])
+                prior_paths = prior.get("paths")
+                prior_keys = prior.get("keys")
+                if not isinstance(prior_paths, list) or not isinstance(prior_keys, list) or len(prior_paths) != len(prior_keys):
+                    raise ControlError("edit.state-malformed", "An expired lease has inconsistent path metadata.", {"lease_id": prior_id}, ["Use bounded local maintenance; preserve the malformed bytes."])
+                residual = [(path, key) for path, key in zip(prior_paths, prior_keys, strict=True) if key not in requested_keys]
+                for key in requested_keys.intersection(prior_keys):
+                    if state["path_owners"].get(key) == prior_id:
+                        state["path_owners"].pop(key, None)
+                if residual:
+                    prior["paths"] = [path for path, _key in residual]
+                    prior["keys"] = [key for _path, key in residual]
+                else:
+                    state["leases"].pop(prior_id, None)
             lease_id = f"file-lease:{uuid.uuid4()}"
             created_lease_id = lease_id
             record = {"schema_version": "file-edit-lease-v1", "lease_id": lease_id, "unit_id": unit_id, "work_id": work_id, "owner": owner, "claim_id": claim_id, "paths": [display for display, _key in canonical], "keys": [key for _display, key in canonical], "acquired_at": timestamp(now), "leased_until": timestamp(now + timedelta(minutes=lease_minutes)), "recovered_from": recovered_from}

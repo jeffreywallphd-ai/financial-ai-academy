@@ -39,9 +39,11 @@ python dev-tools/control-plane/control_plane.py edit-release <lease-id> --owner 
 Every logical CAP or SLI lane must be backed by one active descendant WRK claim,
 and every requested path must remain within that packet's `write_scope` or
 `generated_artifacts`. Multi-file acquisition is all-or-nothing. After expiry,
-`edit-recover` must name the expired lease's complete path set and records
-recovery lineage; it never displaces a live owner. State is local and ignored
-under `.local-codex/control-plane/`.
+`edit-recover` may take only the requested exact in-scope paths from a grouped
+lease, records recovery lineage, and leaves unrelated residual paths expired
+and independently recoverable. It never displaces a live owner or expands the
+successor packet's scope. State is local and ignored under
+`.local-codex/control-plane/`.
 
 ## Proposed Allocation and Replanning
 

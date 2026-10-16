@@ -45,6 +45,7 @@ class FileLeaseCoreTests(unittest.TestCase):
         (root / "src").mkdir(parents=True)
         (root / "src/a.py").write_text("a", encoding="utf-8")
         (root / "src/b.py").write_text("b", encoding="utf-8")
+        (root / "src/c.py").write_text("c", encoding="utf-8")
         return root, FileLeaseStore(root, clock=clock or Clock())
 
     def test_different_files_are_concurrent_and_reads_need_no_lease(self) -> None:
@@ -88,18 +89,49 @@ class FileLeaseCoreTests(unittest.TestCase):
             state = json.loads(store.path.read_text(encoding="utf-8"))
             self.assertEqual(["lease-acquired", "lease-recovered"], [item["type"] for item in state["history"]])
 
-    def test_recovery_requires_the_expired_lease_complete_path_set(self) -> None:
+    def test_recovery_can_take_a_bounded_subset_and_leave_the_residual_expired(self) -> None:
         clock = Clock()
         with tempfile.TemporaryDirectory(prefix="file-recovery-set-") as directory:
             _root, store = self.fixture(directory, clock)
             original = store.acquire(unit_id="GROUP-1", work_id="TASK-1", owner="one", claim_id="claim-one", paths=["src/a.py", "src/b.py"], lease_minutes=1)["data"]["lease"]
             clock.advance(2)
-            with self.assertRaises(ControlError) as partial:
-                store.acquire(unit_id="GROUP-2", work_id="TASK-2", owner="two", claim_id="claim-two", paths=["src/a.py"], recovery=True)
-            self.assertEqual("edit.recovery-path-set-mismatch", partial.exception.code)
-            self.assertEqual(original["lease_id"], store.status(path="src/b.py")["data"]["leases"][0]["lease_id"])
-            recovered = store.acquire(unit_id="GROUP-2", work_id="TASK-2", owner="two", claim_id="claim-two", paths=["src/a.py", "src/b.py"], recovery=True)
-            self.assertEqual([original["lease_id"]], recovered["data"]["lease"]["recovered_from"])
+            recovered_a = store.acquire(unit_id="GROUP-2", work_id="TASK-2", owner="two", claim_id="claim-two", paths=["src/a.py"], recovery=True)["data"]["lease"]
+            self.assertEqual([original["lease_id"]], recovered_a["recovered_from"])
+            self.assertEqual(["src/a.py"], recovered_a["paths"])
+            residual = store.status(path="src/b.py")["data"]["leases"]
+            self.assertEqual(1, len(residual))
+            self.assertEqual(original["lease_id"], residual[0]["lease_id"])
+            self.assertEqual(["src/b.py"], residual[0]["paths"])
+
+            recovered_b = store.acquire(unit_id="GROUP-3", work_id="TASK-3", owner="three", claim_id="claim-three", paths=["src/b.py"], recovery=True)["data"]["lease"]
+            self.assertEqual([original["lease_id"]], recovered_b["recovered_from"])
+            self.assertNotIn(original["lease_id"], json.loads(store.path.read_text(encoding="utf-8"))["leases"])
+
+    def test_recovery_can_atomically_take_paths_from_multiple_expired_leases(self) -> None:
+        clock = Clock()
+        with tempfile.TemporaryDirectory(prefix="file-recovery-multiple-") as directory:
+            _root, store = self.fixture(directory, clock)
+            first = acquire(store, owner="one", path="src/a.py", minutes=1)["data"]["lease"]
+            second = acquire(store, owner="two", path="src/b.py", work="TASK-2", unit="GROUP-2", minutes=1)["data"]["lease"]
+            untouched = acquire(store, owner="three", path="src/c.py", work="TASK-3", unit="GROUP-3", minutes=1)["data"]["lease"]
+            clock.advance(2)
+
+            recovered = store.acquire(unit_id="GROUP-4", work_id="TASK-4", owner="four", claim_id="claim-four", paths=["src/a.py", "src/b.py"], recovery=True)["data"]["lease"]
+
+            self.assertEqual(sorted([first["lease_id"], second["lease_id"]]), recovered["recovered_from"])
+            self.assertEqual([untouched["lease_id"]], [item["lease_id"] for item in store.status(path="src/c.py")["data"]["leases"]])
+
+    def test_full_set_recovery_retains_existing_result_shape(self) -> None:
+        clock = Clock()
+        with tempfile.TemporaryDirectory(prefix="file-recovery-full-") as directory:
+            _root, store = self.fixture(directory, clock)
+            original = store.acquire(unit_id="GROUP-1", work_id="TASK-1", owner="one", claim_id="claim-one", paths=["src/a.py", "src/b.py"], lease_minutes=1)["data"]["lease"]
+            clock.advance(2)
+
+            recovered = store.acquire(unit_id="GROUP-2", work_id="TASK-2", owner="two", claim_id="claim-two", paths=["src/a.py", "src/b.py"], recovery=True)["data"]["lease"]
+
+            self.assertEqual([original["lease_id"]], recovered["recovered_from"])
+            self.assertEqual(["src/a.py", "src/b.py"], recovered["paths"])
 
     def test_intent_is_visible_but_nonblocking_and_release_is_prompt(self) -> None:
         with tempfile.TemporaryDirectory(prefix="file-intent-") as directory:
