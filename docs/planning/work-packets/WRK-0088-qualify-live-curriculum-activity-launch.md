@@ -1,7 +1,7 @@
 ---
 id: WRK-0088
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -233,3 +233,14 @@ blocker.
   exact qualification version through public application boundaries, keeps the
   API available to UI and non-UI clients, and adds no decision or lower-level
   approval gate.
+- 2026-10-16: Completed at exact candidate
+  `df3d72d2288a116c26cefe11995fea27455b48bf`. All eight isolated live
+  PostgreSQL/Python/public-API/Chromium scenarios passed together with the
+  focused, full regression, architecture, security, accessibility, contract,
+  documentation, affected-verification, and aggregate-readiness checks. The
+  qualifying exact-candidate receipt and independent R01 review were accepted
+  with no findings. The fixture remains explicit-test-only, exact completion
+  reuse and changed-placement isolation are proven, bounded denials disclose
+  no destination or protected state, and the public API remains available to
+  UI and non-UI clients. A clean-host verifier-runtime portability repair is
+  intentionally isolated into a successor maintenance packet.

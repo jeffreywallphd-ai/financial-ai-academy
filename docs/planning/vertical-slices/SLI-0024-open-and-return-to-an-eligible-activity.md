@@ -206,7 +206,7 @@ their work begins. The dependency-ordered seams are:
 | WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | complete |
 | WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | complete |
 | WRK-0087 | Add learner actions, validated return context, and equivalent list/map current-position presentation | WRK-0086 | none | complete |
-| WRK-0088 | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | WRK-0087 | none | active |
+| WRK-0088 | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | WRK-0087 | none | complete |
 
 ## Verification and Qualification
 
@@ -328,3 +328,11 @@ and durable-state authority did not change.
 - 2026-10-16: Activated WRK-0088 after confirming completed WRK-0087,
   current CAP authority, exact qualification-only write scope, executable
   checks, and absence of a decision or edit collision.
+- 2026-10-16: Completed WRK-0088 at exact candidate
+  `df3d72d2288a116c26cefe11995fea27455b48bf`. Eight isolated live scenarios,
+  full backend and web regressions, architecture and security checks, exact
+  affected verification, and independent review passed. The explicit fixture
+  proves public API and generated-client launch, return, denial, current-state,
+  exact completion reuse, and changed-placement isolation without changing
+  ordinary startup or adding product authority. The clean-host verifier Python
+  selection is bounded successor maintenance before slice closure.
