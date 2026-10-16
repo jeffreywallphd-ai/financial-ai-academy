@@ -119,7 +119,8 @@ Open `http://127.0.0.1:8765`. The one command compiles its TypeScript client to
 ignored local output and serves a loopback-only, GET/HEAD-only view over the
 current `roadmap-review-v1` projection. See
 `dev-tools/roadmap-review-site/README.md` for the dynamic candidate/CAP/slice/
-work routes, missing-refinement behavior, inert plan rendering, safeguards,
+work/decision routes, inherited decision links and statuses,
+missing-refinement behavior, inert plan rendering, safeguards,
 focused checks, and the reuse seam.
 
 The projection's `current_allocation` is a privacy-minimized view of the same

@@ -1,9 +1,11 @@
 export type PlanningStatus =
   | "captured"
+  | "shaping"
   | "ready"
   | "active"
   | "verifying"
   | "complete"
+  | "decision-blocked"
   | "superseded"
   | "unknown";
 
@@ -38,6 +40,18 @@ export interface RoadmapSlice extends Partial<PlanningNode> {
 
 export interface RoadmapCapability extends PlanningNode {
   slices: RoadmapSlice[];
+}
+
+export interface RoadmapDecision {
+  id: string;
+  kind: "decision-request";
+  status: PlanningStatus | string;
+  title: string;
+  source: string;
+  dependencies: Array<{ target: string; type: string }>;
+  decision_record: string | null;
+  decision_made: boolean;
+  document?: RoadmapDocument | null;
 }
 
 export interface RoadmapCandidate {
@@ -100,6 +114,7 @@ export interface RoadmapReview {
   catalog_count: number;
   candidates: RoadmapCandidate[];
   internal_capabilities: RoadmapCapability[];
+  decisions: RoadmapDecision[];
   ordering: {
     ready: Array<{ id: string; reasons: string[] }>;
     blocked: BlockedCapability[];
@@ -149,12 +164,30 @@ export type RoadmapRoute =
   | { kind: "capability"; capability: RoadmapCapability; candidate: RoadmapCandidate | null }
   | { kind: "slice"; slice: RoadmapSlice; capability: RoadmapCapability; candidate: RoadmapCandidate | null }
   | { kind: "work"; work: PlanningNode; slice: RoadmapSlice; capability: RoadmapCapability; candidate: RoadmapCandidate | null }
+  | { kind: "decision"; decision: RoadmapDecision }
   | { kind: "not-found"; requestedPath: string };
 
 export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
   if (!value || typeof value !== "object") throw new Error("Roadmap response is not an object.");
   const envelope = value as Partial<RoadmapEnvelope>;
   const review = envelope.data?.review;
+  const decisions = Array.isArray(review?.decisions) ? review.decisions : [];
+  const decisionIds = decisions.map((decision) => decision.id);
+  const invalidDecision = decisions.some((decision) =>
+    !decision ||
+    typeof decision.id !== "string" ||
+    !decision.id ||
+    decision.kind !== "decision-request" ||
+    typeof decision.status !== "string" ||
+    typeof decision.title !== "string" ||
+    !decision.title ||
+    typeof decision.source !== "string" ||
+    !decision.source ||
+    !Array.isArray(decision.dependencies) ||
+    (decision.decision_record !== null && typeof decision.decision_record !== "string") ||
+    typeof decision.decision_made !== "boolean" ||
+    decision.decision_made !== (decision.status === "complete")
+  );
   const allocation = review?.current_allocation;
   const lanes = Array.isArray(allocation?.lanes) ? allocation.lanes : [];
   const groups = Array.isArray(allocation?.parallel_groups) ? allocation.parallel_groups : [];
@@ -178,6 +211,9 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
     review?.schema_version !== "roadmap-review-v1" ||
     !Array.isArray(review.candidates) ||
     review.candidates.length !== review.catalog_count ||
+    !Array.isArray(review.decisions) ||
+    decisionIds.length !== new Set(decisionIds).size ||
+    invalidDecision ||
     allocation?.schema_version !== "roadmap-current-allocation-v1" ||
     allocation?.source_schema_version !== "portfolio-allocation-v1" ||
     allocation?.level !== "capability" ||
@@ -258,7 +294,7 @@ function capabilities(review: RoadmapReview): Array<{ capability: RoadmapCapabil
 
 export function resolveRoadmapRoute(review: RoadmapReview, pathname: string): RoadmapRoute {
   if (pathname === "/" || pathname === "/index.html") return { kind: "overview" };
-  const match = /^\/(capability|cap|slice|work)\/([A-Za-z0-9-]+)$/.exec(pathname);
+  const match = /^\/(capability|cap|slice|work|decision)\/([A-Za-z0-9-]+)$/.exec(pathname);
   if (!match) return { kind: "not-found", requestedPath: pathname };
   const routeKind = match[1];
   const identifier = match[2];
@@ -266,6 +302,10 @@ export function resolveRoadmapRoute(review: RoadmapReview, pathname: string): Ro
   if (routeKind === "capability") {
     const candidate = review.candidates.find((item) => item.key === identifier);
     return candidate ? { kind: "candidate", candidate } : { kind: "not-found", requestedPath: pathname };
+  }
+  if (routeKind === "decision") {
+    const decision = review.decisions.find((item) => item.id === identifier);
+    return decision ? { kind: "decision", decision } : { kind: "not-found", requestedPath: pathname };
   }
   const allCapabilities = capabilities(review);
   if (routeKind === "cap") {

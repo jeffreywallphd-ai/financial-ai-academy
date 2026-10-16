@@ -1,7 +1,7 @@
 # Capability Roadmap Review Site
 
 This local, read-only site dynamically reviews the product capability catalog
-and governed CAP/SLI/WRK planning sources. It does not copy roadmap data into
+and governed CAP/SLI/WRK/DEC planning sources. It does not copy roadmap data into
 the site and does not use `docs/planning/register.md` as a database.
 
 From the repository root, run:
@@ -40,6 +40,17 @@ Stable detail routes are resolved only against the current projection:
   placeholder before just-in-time refinement.
 - `/work/<planning-id>` shows the current work plan and public completion
   evidence.
+- `/decision/<planning-id>` shows the current decision-request details, public
+  lifecycle state, and whether an outcome has been recorded.
+
+Capability, slice, and work pages link their relevant decision requests and
+show each request's current status. Slice pages inherit capability links, and
+work pages inherit capability and slice links, so decisions remain visible at
+the point of use without duplicating them in static site data. A missing
+decision reference stays visible as a non-blocking local diagnostic. A
+`complete` decision request means an outcome has been made even when no
+separate ADR or decision-record file is linked. Private approval-ledger and
+reviewer information is never projected.
 
 Plan headings, paragraphs, lists, tables, and code are constructed as inert DOM
 text from `roadmap-review-v1`. URL segments never become filesystem paths, and

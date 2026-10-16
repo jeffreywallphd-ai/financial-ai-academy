@@ -12,7 +12,7 @@ PLANNING_TOOLS = HERE.parent / "planning"
 if str(PLANNING_TOOLS) not in sys.path:
     sys.path.insert(0, str(PLANNING_TOOLS))
 
-from planning_model import load_artifacts  # noqa: E402
+from planning_model import as_list, as_text, load_artifacts  # noqa: E402
 
 from contracts import ControlError, success
 from financial_academy_portfolio import (
@@ -28,6 +28,55 @@ from roadmap_review import build_projection
 
 CATALOG_PATH = "docs/product/capability-catalog.json"
 EXPECTED_PRODUCT_CAPABILITIES = 26
+
+
+def _decision_title(text: str, fallback: str) -> str:
+    prefix = "# Decision Request:"
+    for line in text.splitlines():
+        if line.startswith(prefix):
+            title = line.removeprefix(prefix).strip()
+            return title or fallback
+    return fallback
+
+
+def _repository_reference(root: Path, source: Path, value: str | None) -> str | None:
+    if not value:
+        return None
+    path_value, marker, fragment = value.partition("#")
+    root_candidate = (root / path_value).resolve()
+    candidate = root_candidate if root_candidate.is_file() else (source.parent / path_value).resolve()
+    try:
+        confined = candidate.relative_to(root.resolve()).as_posix()
+        return f"{confined}{marker}{fragment}"
+    except ValueError:
+        # The project-neutral projector will reject this unconfined path.
+        return value
+
+
+def _decision_nodes(root: Path, artifacts: list[Any]) -> list[dict[str, Any]]:
+    decisions: list[dict[str, Any]] = []
+    for artifact in artifacts:
+        if artifact.kind != "decision-request":
+            continue
+        text = artifact.path.read_text(encoding="utf-8")
+        decisions.append(
+            {
+                "id": artifact.identifier,
+                "status": artifact.status,
+                "title": _decision_title(text, artifact.path.stem),
+                "source": artifact.relative_path,
+                "dependencies": [
+                    {"target": item, "type": "hard"}
+                    for item in as_list(artifact.metadata.get("depends_on"))
+                ],
+                "decision_record": _repository_reference(
+                    root,
+                    artifact.path,
+                    as_text(artifact.metadata.get("decision_record")),
+                ),
+            }
+        )
+    return decisions
 
 
 def _load_catalog(root: Path) -> dict[str, Any]:
@@ -54,6 +103,7 @@ def _load_catalog(root: Path) -> dict[str, Any]:
 def projection(root: Path) -> dict[str, Any]:
     graph = project(root)
     nodes = planning_nodes(root)
+    artifacts = load_artifacts(root)
     authority_current = current_capability_authority(root)
     ordering = plan(
         graph,
@@ -75,8 +125,8 @@ def projection(root: Path) -> dict[str, Any]:
             "source": artifact.relative_path,
             "text": artifact.path.read_text(encoding="utf-8"),
         }
-        for artifact in load_artifacts(root)
-        if artifact.kind in {"capability", "vertical-slice", "work-packet"}
+        for artifact in artifacts
+        if artifact.kind in {"capability", "vertical-slice", "work-packet", "decision-request"}
     }
     return build_projection(
         catalog=_load_catalog(root),
@@ -86,6 +136,7 @@ def projection(root: Path) -> dict[str, Any]:
         ordering=ordering,
         compatibility=compatibility,
         allocation=allocation,
+        decisions=_decision_nodes(root, artifacts),
         expected_catalog_count=EXPECTED_PRODUCT_CAPABILITIES,
     )
 

@@ -49,6 +49,10 @@ class RoadmapReviewServerTests(unittest.TestCase):
         self.assertEqual(headers["cache-control"], "no-store")
         self.assertEqual(payload["data"]["review"]["catalog_count"], 26)
         self.assertEqual(len(payload["data"]["review"]["candidates"]), 26)
+        self.assertEqual(len(payload["data"]["review"]["decisions"]), 20)
+        decisions = {item["id"]: item for item in payload["data"]["review"]["decisions"]}
+        self.assertTrue(decisions["DEC-0013"]["decision_made"])
+        self.assertFalse(decisions["DEC-0012"]["decision_made"])
         def keys(value: object) -> set[str]:
             if isinstance(value, dict):
                 return {str(key).lower() for key in value} | set().union(*(keys(item) for item in value.values()))
@@ -73,6 +77,7 @@ class RoadmapReviewServerTests(unittest.TestCase):
             "/cap/CAP-0008",
             "/slice/SLI-0036",
             "/work/WRK-0026",
+            "/decision/DEC-0013",
         ):
             status, _, body = self.request("GET", path)
             self.assertEqual(status, 200)

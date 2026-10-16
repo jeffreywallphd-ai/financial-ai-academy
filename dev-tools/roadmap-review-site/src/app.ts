@@ -11,6 +11,7 @@ import {
   type RoadmapCandidate,
   type RoadmapCapability,
   type RoadmapDocument,
+  type RoadmapDecision,
   type RoadmapReview,
   type RoadmapSlice,
 } from "./model.js";
@@ -303,13 +304,42 @@ function artifactFacts(node: PlanningNode): HTMLElement {
     ["Planning ID", node.id],
     ["Lifecycle", node.status],
     ["Dependencies", node.dependencies.map((item) => `${item.target} (${item.type})`).join(", ") || "None declared"],
-    ["Decision gates", node.decision_gates?.join(", ") || "None declared"],
     ["Source", node.source],
   ];
   for (const [term, description] of rows) {
     facts.append(element("dt", "", term), element("dd", "", description));
   }
   return facts;
+}
+
+function relevantDecisionIds(...groups: Array<string[] | undefined>): string[] {
+  return [...new Set(groups.flatMap((group) => group ?? []))];
+}
+
+function decisionLinks(review: RoadmapReview, decisionIds: string[]): HTMLElement {
+  const [section] = labelledSection("Relevant decisions", "relevant-decisions-heading");
+  if (!decisionIds.length) {
+    section.append(element("p", "empty-state", "No decision request is linked to this plan."));
+    return section;
+  }
+  const list = element("ul", "detail-list decision-list");
+  for (const decisionId of decisionIds) {
+    const item = element("li", "detail-list__item");
+    const decision = review.decisions.find((candidate) => candidate.id === decisionId);
+    if (!decision) {
+      item.append(
+        element("span", "card-link", `${decisionId}: decision request not found`),
+        statusBadge("missing", "Decision status"),
+      );
+    } else {
+      const link = element("a", "card-link", `${decision.id}: ${decision.title}`);
+      link.href = `/decision/${encodeURIComponent(decision.id)}`;
+      item.append(link, statusBadge(decision.status, "Decision status"));
+    }
+    list.append(item);
+  }
+  section.append(list);
+  return section;
 }
 
 function sliceList(capability: RoadmapCapability): HTMLElement {
@@ -359,6 +389,7 @@ function capabilityPage(
     breadcrumbs([{ label: "All capabilities", href: "/" }, { label: headingText }]),
     header,
     detailActions(root, review),
+    decisionLinks(review, relevantDecisionIds(capability.decision_gates)),
     sliceList(capability),
     planDocument(capability.document),
   );
@@ -407,6 +438,7 @@ function slicePage(
     breadcrumbs([{ label: "All capabilities", href: "/" }, { label: parentLabel, href: parentHref }, { label: slice.id }]),
     header,
     detailActions(root, review),
+    decisionLinks(review, relevantDecisionIds(capability.decision_gates, slice.decision_gates)),
   );
   if (!slice.refined) {
     root.append(element("p", "empty-state", "This declared slice has not been refined into a detailed SLI artifact yet. It remains navigable and does not block review of other work."));
@@ -452,7 +484,53 @@ function workPage(
     header,
     detailActions(root, review),
     artifactFacts(work),
+    decisionLinks(
+      review,
+      relevantDecisionIds(capability.decision_gates, slice.decision_gates, work.decision_gates),
+    ),
     planDocument(work.document),
+  );
+}
+
+function decisionPage(root: HTMLElement, review: RoadmapReview, decision: RoadmapDecision): void {
+  const header = element("header", "detail-header");
+  header.append(
+    element("p", "eyebrow", "Decision request"),
+    element("h1", "page-heading", `${decision.id}: ${decision.title}`),
+    statusBadge(decision.status, "Decision status"),
+  );
+  const facts = element("dl", "fact-grid");
+  const rows: Array<[string, string]> = [
+    ["Decision ID", decision.id],
+    ["Lifecycle", decision.status],
+    ["Decision recorded", decision.decision_made ? "Yes" : "No"],
+    ["Dependencies", decision.dependencies.map((item) => `${item.target} (${item.type})`).join(", ") || "None declared"],
+    ["Decision record", decision.decision_record ?? "No separate canonical record linked"],
+    ["Source", decision.source],
+  ];
+  for (const [term, description] of rows) {
+    facts.append(element("dt", "", term), element("dd", "", description));
+  }
+  const posture = element(
+    "p",
+    decision.decision_made ? "authority-note" : "empty-state",
+    decision.decision_made
+      ? "A decision outcome is recorded in the public planning lifecycle."
+      : "No decision outcome is recorded yet.",
+  );
+  const privacy = element(
+    "p",
+    "authority-note",
+    "This page does not display private approval or reviewer records.",
+  );
+  root.append(
+    breadcrumbs([{ label: "All capabilities", href: "/" }, { label: decision.id }]),
+    header,
+    detailActions(root, review),
+    facts,
+    posture,
+    privacy,
+    planDocument(decision.document),
   );
 }
 
@@ -468,6 +546,7 @@ export function mountRoadmapRoute(root: HTMLElement, review: RoadmapReview, path
   else if (route.kind === "capability") capabilityPage(root, review, route.capability, route.candidate);
   else if (route.kind === "slice") slicePage(root, review, route.slice, route.capability, route.candidate);
   else if (route.kind === "work") workPage(root, review, route.work, route.slice, route.capability, route.candidate);
+  else if (route.kind === "decision") decisionPage(root, review, route.decision);
   else {
     const panel = element("section", "error-panel");
     panel.setAttribute("role", "alert");

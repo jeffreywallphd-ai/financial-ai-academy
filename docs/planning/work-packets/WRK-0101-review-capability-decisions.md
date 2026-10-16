@@ -1,7 +1,7 @@
 ---
 id: WRK-0101
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-roadmap-decision-review
 updated: 2026-10-16
@@ -11,7 +11,7 @@ depends_on: ["WRK-0026", "WRK-0084"]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/financial_academy_roadmap_review.py", "dev-tools/control-plane/roadmap_review.py", "dev-tools/control-plane/test_roadmap_review.py", "dev-tools/control-plane/README.md", "dev-tools/roadmap-review-site/README.md", "dev-tools/roadmap-review-site/server.py", "dev-tools/roadmap-review-site/test_server.py", "dev-tools/roadmap-review-site/test_qualification.py", "dev-tools/roadmap-review-site/src/app.ts", "dev-tools/roadmap-review-site/src/model.ts", "dev-tools/roadmap-review-site/tests/app.test.ts", "dev-tools/roadmap-review-site/tests/model.test.ts", "apps/web/tests/browser/roadmap-review/roadmap-review.e2e.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md", "docs/planning/work-packets/WRK-0101-review-capability-decisions.md"]
-generated_artifacts: [".local-codex/roadmap-review-site/app.js", ".local-codex/roadmap-review-site/model.js", "artifacts/playwright/roadmap-review"]
+generated_artifacts: [".local-codex/roadmap-review-site/app.js", ".local-codex/roadmap-review-site/model.js", ".local-codex/roadmap-review-site/playwright-alt.config.cjs", "artifacts/playwright/roadmap-review"]
 base_revision: b530b6d9163067c15a88e6daf0706ce04bc3a538
 claim_id: WRK-0101:0a6dbc5c-9985-44df-803c-dbd931402515
 claimed_by: codex-roadmap-decision-review
@@ -149,6 +149,34 @@ resolved/deferred/missing evidence, checks and counts, documentation impact,
 privacy and confinement results, generated ignored output, residual gaps, CAP
 conformance, commit, branch, worktree, and integration instructions.
 
+## Verification Evidence
+
+- The generic projection publishes 20 public DEC entries from structured
+  decision-request sources without adding those artifacts to portfolio
+  execution or allocation. It derives `decision_made` from completed public
+  lifecycle, confines optional canonical-record paths, and reports missing
+  references without blocking unrelated review.
+- CAP pages show direct DEC links. SLI pages inherit CAP links and add direct
+  SLI links. WRK pages inherit the deduplicated CAP and SLI set and add direct
+  WRK links. Every resolved link carries its current lifecycle badge.
+- Dynamic DEC routes render complete, captured, missing-record, and inert
+  document states. The API and UI omit private approval/reviewer ledger data;
+  unknown and traversal routes stay bounded.
+- Focused projection tests passed 16 tests; loopback server tests passed 8;
+  DOM/model tests passed 14; source qualification passed 6; the TypeScript
+  compile check passed; Chromium/axe passed 3 browser scenarios on isolated
+  port 8875 because the operator's port 8765 site remained in use.
+- Design-system, planning-integrity, documentation-integrity, Python compile,
+  and whitespace checks passed. Aggregate readiness passed all 28 checks.
+- There are no schema removals, migrations, external actions, or hosted-service
+  changes. The `roadmap-review-v1` change is additive. Existing CAP, SLI, WRK,
+  and catalog routes retain their paths and behavior.
+- The delivery remains inside approved CAP-0008 and refined SLI-0036. It adds
+  the already-bounded public decision-posture view and does not expose approval
+  display, mutate planning, or introduce the undescribed second change.
+- Independent technical review remains required before finalization because
+  packet start selected the shared/control high-risk route.
+
 ## Planning History
 
 - 2026-10-16: Authored as one bounded SLI-0036 extension after the user
@@ -161,3 +189,7 @@ conformance, commit, branch, worktree, and integration instructions.
 - 2026-10-16: Activated on the isolated `codex/cap-0008-decision-pages`
   branch after the implementation gate passed and the packet received a
   current exact-scope claim.
+- 2026-10-16: Implemented and focused-qualified the additive decision
+  projection, inherited status links, decision detail route, privacy and
+  confinement boundaries, and operator guidance. Aggregate readiness passed;
+  the packet is ready to enter exact-candidate independent review.

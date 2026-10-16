@@ -16,14 +16,14 @@ function fixture(): RoadmapReview {
     planning_id: index === 0 ? "CAP-X" : null,
     planned: index === 0,
     capability: index === 0 ? {
-      id: "CAP-X", kind: "capability", status: "ready", title: "Plan X", source: "plan.md", dependencies: [], manifest: ["SLICE-X"],
+      id: "CAP-X", kind: "capability", status: "ready", title: "Plan X", source: "plan.md", dependencies: [], manifest: ["SLICE-X"], decision_gates: ["DECISION-A", "DECISION-MISSING"],
       document: { source: "plan.md", blocks: [{ type: "heading", level: 1, text: "Capability plan" }, { type: "paragraph", text: "Current capability detail." }] },
     } : null,
     slices: index === 0 ? [{
-      id: "SLICE-X", refined: true, kind: "slice", status: "active", title: "Slice X", source: "slice.md", dependencies: [], manifest: [],
+      id: "SLICE-X", refined: true, kind: "slice", status: "active", title: "Slice X", source: "slice.md", dependencies: [], manifest: [], decision_gates: ["DECISION-B"],
       document: { source: "slice.md", blocks: [{ type: "list-item", text: "Safe list item" }, { type: "table-row", cells: ["Header", "Value"] }, { type: "table-row", cells: ["State", "Active"] }] },
       work: [{
-        id: "WORK-X", kind: "work", status: "complete", title: "Work X", source: "work.md", dependencies: [], manifest: [],
+        id: "WORK-X", kind: "work", status: "complete", title: "Work X", source: "work.md", dependencies: [], manifest: [], decision_gates: ["DECISION-A"],
         document: { source: "work.md", blocks: [{ type: "code", text: "<script>window.attacked = true</script>" }] },
       }],
     }] : [],
@@ -37,6 +37,10 @@ function fixture(): RoadmapReview {
       slices: [{ id: "CONTROL-SLICE", refined: false, work: [] }],
       document: { source: "control.md", blocks: [{ type: "paragraph", text: "Internal capability detail." }] },
     }],
+    decisions: [
+      { id: "DECISION-A", kind: "decision-request", status: "complete", title: "Choose A", source: "decisions/a.md", dependencies: [], decision_record: "records/a.md", decision_made: true, document: { source: "decisions/a.md", blocks: [{ type: "paragraph", text: "<script>window.attacked = true</script>" }] } },
+      { id: "DECISION-B", kind: "decision-request", status: "captured", title: "Choose B", source: "decisions/b.md", dependencies: [{ target: "DECISION-A", type: "hard" }], decision_record: null, decision_made: false, document: { source: "decisions/b.md", blocks: [{ type: "paragraph", text: "Decision B detail." }] } },
+    ],
     ordering: {
       ready: [{ id: "CAP-X", reasons: ["ready"] }],
       blocked: [{ id: "CAP-FUTURE", reasons: ["dependencies.incomplete"], incomplete_dependencies: ["CAP-X"], remediation: "Complete CAP-X." }], completed: ["CONTROL-X"], in_progress: [], proposed_order: ["CAP-X", "CONTROL-X", "CAP-FUTURE"],
@@ -147,16 +151,39 @@ describe("roadmap overview DOM", () => {
     mountRoadmapRoute(root, value, "/capability/capability-1");
     expect(root.querySelector("h1")?.textContent).toBe("Structured lessons");
     expect(root.querySelector('a[href="/slice/SLICE-X"]')).toBeTruthy();
+    expect(root.querySelector('a[href="/decision/DECISION-A"]')).toBeTruthy();
+    expect(root.querySelector('[aria-label="Decision status: complete"]')).toBeTruthy();
+    expect(root.textContent).toContain("DECISION-MISSING: decision request not found");
     expect(root.textContent).toContain("Current capability detail.");
 
     mountRoadmapRoute(root, value, "/slice/SLICE-X");
     expect(root.querySelector('a[href="/work/WORK-X"]')).toBeTruthy();
+    expect(root.querySelector('a[href="/decision/DECISION-A"]')).toBeTruthy();
+    expect(root.querySelector('a[href="/decision/DECISION-B"]')).toBeTruthy();
     expect(root.textContent).toContain("Safe list item");
     expect(root.querySelector("table")).toBeTruthy();
 
     mountRoadmapRoute(root, value, "/work/WORK-X");
     expect(root.textContent).toContain("<script>window.attacked = true</script>");
     expect(root.querySelector("script")).toBeNull();
+  });
+
+  it("shows dynamic decision details for recorded and deferred outcomes", () => {
+    const root = document.createElement("main");
+    document.body.append(root);
+    const value = fixture();
+    mountRoadmapRoute(root, value, "/decision/DECISION-A");
+    expect(root.querySelector("h1")?.textContent).toBe("DECISION-A: Choose A");
+    expect(root.textContent).toContain("Decision recordedYes");
+    expect(root.textContent).toContain("A decision outcome is recorded");
+    expect(root.textContent).toContain("does not display private approval or reviewer records");
+    expect(root.textContent).toContain("<script>window.attacked = true</script>");
+    expect(root.querySelector("script")).toBeNull();
+
+    mountRoadmapRoute(root, value, "/decision/DECISION-B");
+    expect(root.textContent).toContain("Decision recordedNo");
+    expect(root.textContent).toContain("No decision outcome is recorded yet");
+    expect(root.textContent).toContain("No separate canonical record linked");
   });
 
   it("keeps unplanned and unrefined entries useful and bounds unknown routes", () => {

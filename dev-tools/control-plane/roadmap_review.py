@@ -195,6 +195,28 @@ def _public_node(node: Mapping[str, Any], document: dict[str, Any] | None) -> di
     }
 
 
+def _public_decision(
+    decision: Mapping[str, Any], document: dict[str, Any] | None
+) -> dict[str, Any]:
+    status = str(decision.get("status", "unknown"))
+    record = decision.get("decision_record")
+    return {
+        "id": str(decision.get("id", "")),
+        "kind": "decision-request",
+        "status": status,
+        "title": str(decision.get("title", decision.get("id", ""))),
+        "source": _safe_source(decision.get("source")),
+        "dependencies": [
+            {"target": str(item.get("target", "")), "type": str(item.get("type", "hard"))}
+            for item in decision.get("dependencies", [])
+            if isinstance(item, dict) and item.get("target")
+        ],
+        "decision_record": _safe_source(record) if record else None,
+        "decision_made": status == "complete",
+        "document": document,
+    }
+
+
 def _digest(value: object) -> str:
     encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return "sha256:" + hashlib.sha256(encoded).hexdigest()
@@ -360,6 +382,7 @@ def build_projection(
     ordering: Mapping[str, Any],
     compatibility: Mapping[str, Any],
     allocation: Mapping[str, Any],
+    decisions: Iterable[Mapping[str, Any]] = (),
     expected_catalog_count: int | None = None,
 ) -> dict[str, Any]:
     catalog_items = validate_catalog(catalog, expected_count=expected_catalog_count)
@@ -401,7 +424,33 @@ def build_projection(
         node_id: _public_node(node, parsed_documents.get(node_id))
         for node_id, node in sorted(by_id.items())
     }
+    raw_decisions = [dict(item) for item in decisions]
+    decisions_by_id = {str(item.get("id", "")): item for item in raw_decisions}
+    if "" in decisions_by_id or len(decisions_by_id) != len(raw_decisions):
+        raise _failure(
+            "roadmap.decision-duplicate",
+            "Decision request IDs must be present and unique.",
+            {},
+            "Resolve missing or duplicate decision-request IDs before projecting the roadmap.",
+        )
+    public_decisions = {
+        decision_id: _public_decision(decision, parsed_documents.get(decision_id))
+        for decision_id, decision in sorted(decisions_by_id.items())
+    }
     diagnostics: list[dict[str, Any]] = []
+
+    for node_id, node in public_nodes.items():
+        for decision_id in node["decision_gates"]:
+            if decision_id in public_decisions:
+                continue
+            diagnostics.append(
+                {
+                    "code": "roadmap.decision-not-found",
+                    "subject": decision_id,
+                    "parent": node_id,
+                    "blocking": False,
+                }
+            )
 
     def capability_slices(capability: Mapping[str, Any]) -> list[dict[str, Any]]:
         slices: list[dict[str, Any]] = []
@@ -447,6 +496,7 @@ def build_projection(
         "catalog_count": len(candidates),
         "candidates": candidates,
         "internal_capabilities": internal_capabilities,
+        "decisions": list(public_decisions.values()),
         "ordering": dict(ordering),
         "compatibility": dict(compatibility),
         "current_allocation": _public_current_allocation(
