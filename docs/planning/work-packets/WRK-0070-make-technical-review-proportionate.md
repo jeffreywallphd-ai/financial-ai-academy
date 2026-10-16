@@ -1,7 +1,7 @@
 ---
 id: WRK-0070
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -157,3 +157,24 @@ risk, and the deferred cleanup CAP reference.
 - 2026-10-16: Authored from the bounded WRK-0013 correction route after a
   whitespace-only review loop exposed avoidable workflow friction. The packet
   keeps substantive re-review intact and adds no approval stage.
+
+## Completion Evidence
+
+- Added an explicit non-blocking `cleanup` finding class while retaining
+  `substantive` as the backward-compatible default and requiring a blocking
+  substantive finding for an adverse disposition.
+- Added a deliberately narrow inherited-review route for strict descendants
+  whose Git blobs are approved UTF-8 source/document files and differ only by
+  terminal blank lines. Every descendant still requires fresh exact-candidate
+  affected verification.
+- Preserved the original accepted candidate and round across repeated cleanup
+  descendants; binary or invalid text, add/delete/rename, internal whitespace,
+  indentation, string content, styling, and all other changes are denied.
+- Documented that non-functional alpha/beta styling is deferred to the final
+  cleanup capability unless the user explicitly moves it earlier, while
+  functional, comprehension, accessibility, safety, contrast, hierarchy,
+  responsive, contract, data, policy, and evidence defects remain substantive.
+- Focused control-plane review, policy, and lifecycle suites passed. Planning
+  integrity and documentation validation passed. The aggregate readiness gate
+  passed all 27 checks, and the exact candidate produced a qualifying affected-
+  verification receipt.
