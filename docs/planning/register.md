@@ -137,6 +137,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0072 | Work packet | [Qualify the Plain-Language Learning Library](work-packets/WRK-0072-qualify-plain-language-learning-library.md) | complete | SLI-0122 | WRK-0071 | none | codex-plain-language-ui | 2026-10-16 |
 | WRK-0073 | Work packet | [Clarify Learning Path and Activity State](work-packets/WRK-0073-clarify-learning-path-and-activity-state.md) | complete | SLI-0123 | none | none | codex-plain-language-ui | 2026-10-16 |
 | WRK-0074 | Work packet | [Clarify Learning Path Recovery](work-packets/WRK-0074-clarify-learning-path-recovery.md) | complete | SLI-0123 | WRK-0073 | none | codex-plain-language-ui | 2026-10-16 |
+| WRK-0075 | Work packet | [Qualify the Plain-Language Learning Path](work-packets/WRK-0075-qualify-plain-language-learning-path.md) | ready | SLI-0123 | WRK-0074 | none | codex-plain-language-ui | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

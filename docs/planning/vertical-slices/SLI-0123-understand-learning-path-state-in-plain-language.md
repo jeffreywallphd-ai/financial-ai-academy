@@ -138,7 +138,7 @@ each packet starts. The planned dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0073 | Clarify the learning-path page, connections, activity-state presentation, and technical records | none | none | complete |
 | WRK-0074 | Clarify loading and bounded recovery states while preserving fail-closed behavior | WRK-0073 | none | complete |
-| JIT-C | Qualify the complete learning-path experience in Chromium, reconcile documentation, and close the slice | JIT-B | none | captured |
+| WRK-0075 | Qualify the complete learning-path experience in Chromium, reconcile documentation, and close the slice | WRK-0074 | none | ready |
 
 ## Verification and Qualification
 
@@ -207,3 +207,6 @@ contracts/semantics, assumptions, residual gaps, and any decision gate.
   bounded recovery states, unchanged state/action wiring and fail-closed
   behavior, a qualifying exact-candidate receipt, and accepted first-round
   independent review. JIT-C is dependency-ready.
+- 2026-10-16: Refined JIT-C as WRK-0075 around the existing mocked and live
+  Chromium harnesses, complete technical-record reachability, flexible data-
+  derived expectations, safe recovery, access/theme parity, and slice closure.
