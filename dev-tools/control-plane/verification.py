@@ -29,8 +29,9 @@ SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 BASE_REVISION_ARGUMENT = "{base_revision}"
 CURRENT_PYTHON_ARGUMENT = "{current_python}"
 CONTROL_PLANE_FILE = re.compile(
-    r"^\{control_plane_file:([A-Za-z0-9][A-Za-z0-9._-]*)\}$"
+    r"^\{control_plane_file:([A-Za-z0-9][A-Za-z0-9._-]*)@(sha256:[0-9a-f]{64})\}$"
 )
+CONTROL_PLANE_ROOT = Path(__file__).resolve().parent
 EXACT_REVISION = re.compile(r"^[0-9a-f]{40,64}$")
 
 
@@ -42,10 +43,54 @@ def digest(value: object) -> str:
     return "sha256:" + hashlib.sha256(canonical_bytes(value)).hexdigest()
 
 
-def control_plane_file_argument(filename: str) -> str:
+def control_plane_file_argument(filename: str, expected_digest: str) -> str:
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", filename):
         raise ValueError("control-plane command files must be safe basenames")
-    return f"{{control_plane_file:{filename}}}"
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", expected_digest):
+        raise ValueError("control-plane command files require an exact SHA-256 digest")
+    return f"{{control_plane_file:{filename}@{expected_digest}}}"
+
+
+def observe_control_plane_files(check: CheckDefinition) -> list[dict[str, Any]]:
+    observed: list[dict[str, Any]] = []
+    for index, value in enumerate(check.argv):
+        matched = CONTROL_PLANE_FILE.fullmatch(value)
+        if matched:
+            filename, expected_digest = matched.groups()
+            resolved = CONTROL_PLANE_ROOT / filename
+            if not resolved.is_file():
+                raise ControlError(
+                    "verification.control-file-missing",
+                    "A trusted logical control-plane command file is unavailable.",
+                    {"check_id": check.check_id, "logical_argument": value},
+                    ["Restore the tracked controller file before verification."],
+                )
+            observed_digest = "sha256:" + hashlib.sha256(resolved.read_bytes()).hexdigest()
+            if observed_digest != expected_digest:
+                raise ControlError(
+                    "verification.control-file-digest-mismatch",
+                    "A trusted logical control-plane command file changed after its catalog was created.",
+                    {"check_id": check.check_id, "logical_argument": value},
+                    ["Restore or recatalog the tracked controller file before verification."],
+                )
+            observed.append(
+                {
+                    "argument_index": index,
+                    "logical_argument": value,
+                    "resolved_path": str(resolved),
+                    "expected_digest": expected_digest,
+                    "observed_digest": observed_digest,
+                }
+            )
+            continue
+        if value.startswith("{control_plane_file:"):
+            raise ControlError(
+                "verification.control-file-invalid",
+                "A logical control-plane command file identity is malformed.",
+                {"check_id": check.check_id},
+                ["Use a safe tracked filename bound to an exact SHA-256 digest."],
+            )
+    return observed
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,11 +194,21 @@ def select_checks(
     return {**plan_core, "plan_digest": digest(plan_core)}
 
 
-def materialize_arguments(check: CheckDefinition, plan: dict[str, Any]) -> tuple[str, ...]:
+def materialize_arguments(
+    check: CheckDefinition,
+    plan: dict[str, Any],
+    *,
+    observed_control_files: list[dict[str, Any]] | None = None,
+) -> tuple[str, ...]:
     base_revision = plan.get("base_revision")
     materialized: list[str] = []
-    control_plane_root = Path(__file__).resolve().parent
-    for value in check.argv:
+    bindings = (
+        observe_control_plane_files(check)
+        if observed_control_files is None
+        else observed_control_files
+    )
+    binding_by_index = {int(item["argument_index"]): item for item in bindings}
+    for index, value in enumerate(check.argv):
         if value == BASE_REVISION_ARGUMENT:
             if not isinstance(base_revision, str) or not EXACT_REVISION.fullmatch(
                 base_revision
@@ -169,17 +224,8 @@ def materialize_arguments(check: CheckDefinition, plan: dict[str, Any]) -> tuple
         if value == CURRENT_PYTHON_ARGUMENT:
             materialized.append(sys.executable)
             continue
-        matched = CONTROL_PLANE_FILE.fullmatch(value)
-        if matched:
-            resolved = control_plane_root / matched.group(1)
-            if not resolved.is_file():
-                raise ControlError(
-                    "verification.control-file-missing",
-                    "A trusted logical control-plane command file is unavailable.",
-                    {"check_id": check.check_id, "logical_argument": value},
-                    ["Restore the tracked controller file before verification."],
-                )
-            materialized.append(str(resolved))
+        if index in binding_by_index:
+            materialized.append(str(binding_by_index[index]["resolved_path"]))
             continue
         if value.startswith("{control_plane_file:"):
             raise ControlError(
@@ -344,19 +390,27 @@ def execute_plan(root: Path, catalog: CheckCatalog, plan: dict[str, Any], grant:
     for selected in plan["selected"]:
         capability.authorize(command_id=str(selected["check_id"]), effect="subprocess", paths=[str(value) for value in selected["matched_paths"]])
         check = catalog.by_id(selected["check_id"])
-        arguments = materialize_arguments(check, plan)
+        control_files_before = observe_control_plane_files(check)
+        arguments = materialize_arguments(
+            check,
+            plan,
+            observed_control_files=control_files_before,
+        )
         started = time.perf_counter()
         try:
-            completed = subprocess.run(list(arguments), cwd=root, check=False, capture_output=True, timeout=check.timeout_seconds)
-            exit_code = completed.returncode
-            stdout = completed.stdout
-            stderr = completed.stderr
-            timed_out = False
-        except subprocess.TimeoutExpired as error:
-            exit_code = None
-            stdout = error.stdout or b""
-            stderr = error.stderr or b""
-            timed_out = True
+            try:
+                completed = subprocess.run(list(arguments), cwd=root, check=False, capture_output=True, timeout=check.timeout_seconds)
+                exit_code = completed.returncode
+                stdout = completed.stdout
+                stderr = completed.stderr
+                timed_out = False
+            except subprocess.TimeoutExpired as error:
+                exit_code = None
+                stdout = error.stdout or b""
+                stderr = error.stderr or b""
+                timed_out = True
+        finally:
+            control_files_after = observe_control_plane_files(check)
         duration_ms = round((time.perf_counter() - started) * 1000, 3)
         attempts.append(
             {
@@ -370,6 +424,20 @@ def execute_plan(root: Path, catalog: CheckCatalog, plan: dict[str, Any], grant:
                 "stderr_bytes": len(stderr),
                 "timed_out": timed_out,
                 "capability_digest": capability.grant_digest,
+                "control_file_bindings": [
+                    {
+                        "logical_argument": before["logical_argument"],
+                        "resolved_path": before["resolved_path"],
+                        "expected_digest": before["expected_digest"],
+                        "observed_before": before["observed_digest"],
+                        "observed_after": after["observed_digest"],
+                    }
+                    for before, after in zip(
+                        control_files_before,
+                        control_files_after,
+                        strict=True,
+                    )
+                ],
             }
         )
     return attempts
@@ -388,6 +456,40 @@ def validate_receipt(receipt: dict[str, Any], catalog: CheckCatalog, current_can
         errors.append("attempts do not exactly cover selected checks")
     elif any(item.get("exit_code") != 0 or item.get("timed_out") for item in attempts):
         errors.append("one or more selected checks failed or timed out")
+    if isinstance(attempts, list):
+        for attempt in attempts:
+            check_id = attempt.get("check_id")
+            try:
+                check = catalog.by_id(str(check_id))
+            except ControlError:
+                continue
+            expected_bindings = []
+            for index, value in enumerate(check.argv):
+                matched = CONTROL_PLANE_FILE.fullmatch(value)
+                if matched:
+                    _filename, expected_digest = matched.groups()
+                    expected_bindings.append((index, value, expected_digest))
+            recorded_bindings = attempt.get("control_file_bindings", [])
+            if not isinstance(recorded_bindings, list) or len(recorded_bindings) != len(expected_bindings):
+                errors.append("control-file binding evidence is incomplete")
+                continue
+            attempt_argv = attempt.get("argv")
+            for recorded, (index, logical_argument, expected_digest) in zip(
+                recorded_bindings, expected_bindings, strict=True
+            ):
+                valid = (
+                    isinstance(recorded, dict)
+                    and recorded.get("logical_argument") == logical_argument
+                    and recorded.get("expected_digest") == expected_digest
+                    and recorded.get("observed_before") == expected_digest
+                    and recorded.get("observed_after") == expected_digest
+                    and isinstance(attempt_argv, list)
+                    and index < len(attempt_argv)
+                    and recorded.get("resolved_path") == attempt_argv[index]
+                )
+                if not valid:
+                    errors.append("control-file binding evidence is invalid")
+                    break
     if receipt.get("candidate") != (plan or {}).get("candidate"):
         errors.append("receipt candidate does not match plan")
     if current_candidate is not None and receipt.get("candidate") != current_candidate:

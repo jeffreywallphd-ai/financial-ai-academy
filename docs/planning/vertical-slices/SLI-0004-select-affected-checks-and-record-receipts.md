@@ -189,3 +189,5 @@ test-only changes remain free of unrelated live and aggregate requirements.
 - 2026-10-16: Refined the corrective increment so current wrapper commands use
   a portable logical identity, bind tracked wrapper bytes, resolve only at
   execution time, and fail closed for incompatible candidate roots.
+- 2026-10-16: Moved pre-launch and post-run wrapper authentication into the
+  reusable executor and added receipt-level observed-identity evidence.

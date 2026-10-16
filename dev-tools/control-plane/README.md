@@ -199,10 +199,12 @@ candidate without copying control-plane files into the product packet. The
 catalog records a portable logical wrapper identity and its tracked content
 digest. The executor resolves that identity to the current control-plane file
 only when the check runs; the materialized path, expected digest, and explicit
-candidate-root argument remain in the receipt. The wrapper validates its bytes
-before and after execution and rejects roots that lack the repository's bounded
-web markers, so a historical candidate cannot substitute its older wrapper or
-redirect the current command into an unrelated directory.
+candidate-root argument remain in the receipt. The reusable executor validates
+the resolved bytes before launch and after success, failure, or timeout, and
+records both observations. The wrapper repeats that validation as defense in
+depth and rejects roots that lack the repository's bounded web markers, so a
+historical candidate cannot substitute its older wrapper or redirect the
+current command into an unrelated directory.
 Direct developer invocations may omit the digest for convenience, but those
 ad hoc runs are not catalog-bound and cannot produce qualifying receipts.
 

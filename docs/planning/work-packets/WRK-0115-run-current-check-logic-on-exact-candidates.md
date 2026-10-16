@@ -53,6 +53,8 @@ tests, and the nearest control-plane README before editing.
   and the exact candidate working root.
 - Materialize a portable logical wrapper identity only at execution time and
   bind the wrapper bytes into the tracked check contract.
+- Authenticate those bytes in the reusable executor before launch and after
+  completion, failure, or timeout, and retain the observations in the receipt.
 - Prove a wrapper outside a historical candidate invokes commands against that
   candidate, including a mode absent from the historical wrapper.
 - Preserve current runtime preparation, isolation, catalog digest, and narrow
@@ -95,6 +97,7 @@ must receive fresh verification after this correction completes.
 | --- | --- |
 | Current catalog checks a historical candidate | current wrapper logic runs against historical candidate inputs |
 | Historical wrapper lacks a new mode | current allowlisted mode still executes without product-scope expansion |
+| External wrapper changes | executor refuses before launch or after every exit path; the receipt cannot qualify |
 | Ordinary same-worktree run | behavior and candidate stability remain unchanged |
 | Invalid explicit root | command fails without falling back to another repository |
 | Unrelated narrow change | no additional broad suite is selected |
@@ -138,3 +141,6 @@ gaps.
   absolute wrapper path was not portable or content-bound. The replacement
   correction route adds the existing reusable verification seam without
   changing product scope or requiring a new approval stage.
+- 2026-10-16: Strengthened the reusable executor so wrapper authentication is
+  independent of wrapper-controlled code and remains enforced across every
+  subprocess outcome.

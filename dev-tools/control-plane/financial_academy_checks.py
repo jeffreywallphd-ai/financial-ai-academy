@@ -19,7 +19,7 @@ def catalog() -> CheckCatalog:
     wrapper_digest = "sha256:" + hashlib.sha256(wrapper.read_bytes()).hexdigest()
     web_check = (
         python,
-        control_plane_file_argument("check_approved_lesson.py"),
+        control_plane_file_argument("check_approved_lesson.py", wrapper_digest),
         "--self-sha256",
         wrapper_digest,
         "--root",

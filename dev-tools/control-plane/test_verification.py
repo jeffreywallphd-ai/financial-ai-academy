@@ -20,6 +20,7 @@ TEST_TEMP_ROOT = ROOT / ".local-codex" / "t"
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
+import verification as verification_module  # noqa: E402
 from contracts import ControlError  # noqa: E402
 from check_approved_lesson import (  # noqa: E402
     WebRuntime,
@@ -486,7 +487,10 @@ class SelectionTests(unittest.TestCase):
         )
         self.assertEqual(CURRENT_PYTHON_ARGUMENT, definition.argv[0])
         self.assertEqual(
-            control_plane_file_argument("check_approved_lesson.py"),
+            control_plane_file_argument(
+                "check_approved_lesson.py",
+                file_digest(HERE / "check_approved_lesson.py"),
+            ),
             definition.argv[1],
         )
         self.assertEqual("--self-sha256", definition.argv[2])
@@ -515,11 +519,16 @@ class SelectionTests(unittest.TestCase):
 
     def test_logical_control_file_refuses_path_escape(self) -> None:
         with self.assertRaises(ValueError):
-            control_plane_file_argument("../check_approved_lesson.py")
+            control_plane_file_argument(
+                "../check_approved_lesson.py", "sha256:" + "a" * 64
+            )
 
         malformed = CheckDefinition(
             "malformed:fixture",
-            (CURRENT_PYTHON_ARGUMENT, "{control_plane_file:../escape.py}"),
+            (
+                CURRENT_PYTHON_ARGUMENT,
+                "{control_plane_file:../escape.py@sha256:" + "a" * 64 + "}",
+            ),
             ("docs/**",),
             "low",
             1,
@@ -536,6 +545,94 @@ class SelectionTests(unittest.TestCase):
 
 
 class ExecutionAndReceiptTests(unittest.TestCase):
+    @staticmethod
+    def bound_fixture(wrapper: Path) -> tuple[CheckCatalog, dict[str, Any]]:
+        expected = file_digest(wrapper)
+        catalog = CheckCatalog(
+            "bound-control-file-v1",
+            (
+                CheckDefinition(
+                    "docs:fixture",
+                    (
+                        CURRENT_PYTHON_ARGUMENT,
+                        control_plane_file_argument(wrapper.name, expected),
+                    ),
+                    ("docs/**",),
+                    "low",
+                    1,
+                ),
+            ),
+        )
+        return catalog, select_checks(catalog, "a" * 40, ["docs/README.md"])
+
+    def test_executor_authenticates_control_file_before_launch(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="control-file-before-") as directory:
+            root = Path(directory)
+            wrapper = root / "wrapper.py"
+            wrapper.write_text("# expected\n", encoding="utf-8")
+            catalog, plan = self.bound_fixture(wrapper)
+            wrapper.write_text("# changed\n", encoding="utf-8")
+            with mock.patch.object(verification_module, "CONTROL_PLANE_ROOT", root):
+                with mock.patch("verification.subprocess.run") as process:
+                    with self.assertRaises(ControlError) as refused:
+                        execute_plan(root, catalog, plan)
+                    self.assertEqual(
+                        "verification.control-file-digest-mismatch",
+                        refused.exception.code,
+                    )
+                    process.assert_not_called()
+
+    def test_executor_reauthenticates_after_completion_failure_and_timeout(self) -> None:
+        for outcome in ("completed", "failed", "timeout"):
+            with self.subTest(outcome=outcome), tempfile.TemporaryDirectory(
+                prefix=f"control-file-{outcome}-"
+            ) as directory:
+                root = Path(directory)
+                wrapper = root / "wrapper.py"
+                wrapper.write_text("# expected\n", encoding="utf-8")
+                catalog, plan = self.bound_fixture(wrapper)
+
+                def run(*arguments: object, **options: object) -> subprocess.CompletedProcess[bytes]:
+                    del arguments, options
+                    wrapper.write_text("# changed\n", encoding="utf-8")
+                    if outcome == "timeout":
+                        raise subprocess.TimeoutExpired(("wrapper",), 1)
+                    return subprocess.CompletedProcess(
+                        ("wrapper",), 0 if outcome == "completed" else 7, b"", b""
+                    )
+
+                with mock.patch.object(verification_module, "CONTROL_PLANE_ROOT", root):
+                    with mock.patch("verification.subprocess.run", side_effect=run):
+                        with self.assertRaises(ControlError) as refused:
+                            execute_plan(root, catalog, plan)
+                        self.assertEqual(
+                            "verification.control-file-digest-mismatch",
+                            refused.exception.code,
+                        )
+
+    def test_executor_records_authenticated_control_file_identity(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="control-file-receipt-") as directory:
+            root = Path(directory)
+            wrapper = root / "wrapper.py"
+            wrapper.write_text("# expected\n", encoding="utf-8")
+            catalog, plan = self.bound_fixture(wrapper)
+            completed = subprocess.CompletedProcess(("wrapper",), 0, b"", b"")
+            with mock.patch.object(verification_module, "CONTROL_PLANE_ROOT", root):
+                with mock.patch("verification.subprocess.run", return_value=completed):
+                    attempt = execute_plan(root, catalog, plan)[0]
+            binding = attempt["control_file_bindings"][0]
+            self.assertEqual(file_digest(wrapper), binding["expected_digest"])
+            self.assertEqual(binding["expected_digest"], binding["observed_before"])
+            self.assertEqual(binding["expected_digest"], binding["observed_after"])
+            self.assertEqual(attempt["argv"][1], binding["resolved_path"])
+            receipt = {"candidate": "a" * 40, "plan": plan, "attempts": [attempt]}
+            self.assertEqual([], validate_receipt(receipt, catalog))
+            binding["observed_after"] = "sha256:" + "0" * 64
+            self.assertIn(
+                "control-file binding evidence is invalid",
+                validate_receipt(receipt, catalog),
+            )
+
     def test_executor_records_digests_not_raw_output(self) -> None:
         with tempfile.TemporaryDirectory(prefix="verification-exec-") as directory:
             catalog = fixture_catalog(failing=True)
