@@ -1,7 +1,7 @@
 ---
 id: WRK-0079
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -266,3 +266,8 @@ ready or return one bounded blocker.
   full-scope, planning, documentation, design, whitespace, compilation, and
   aggregate readiness checks pass; the candidate is ready for exact-candidate
   verification and one independent technical disposition.
+- 2026-10-16: Submitted exact candidate
+  `010a88ddd5b67937f6e4d5ec1d0f68941bda5e90` after all 11 focused tests,
+  controlled full-scope qualification, Python compilation, planning,
+  documentation, design, whitespace, and all 27 aggregate readiness checks
+  passed.
