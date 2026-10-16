@@ -23,7 +23,7 @@ function fixture(): RoadmapReview {
       id: "SLICE-X", refined: true, kind: "slice", status: "active", title: "Slice X", source: "slice.md", dependencies: [], manifest: [], decision_gates: ["DECISION-B"],
       document: { source: "slice.md", blocks: [{ type: "list-item", text: "Safe list item" }, { type: "table-row", cells: ["Header", "Value"] }, { type: "table-row", cells: ["State", "Active"] }] },
       work: [{
-        id: "WORK-X", kind: "work", status: "complete", title: "Work X", source: "work.md", dependencies: [], manifest: [], decision_gates: ["DECISION-A"],
+        id: "WORK-X", kind: "work", status: "complete", title: "Work X", source: "work.md", dependencies: [], manifest: [], decision_gates: ["DECISION-A", "DECISION-C"],
         document: { source: "work.md", blocks: [{ type: "code", text: "<script>window.attacked = true</script>" }] },
       }],
     }] : [],
@@ -40,6 +40,7 @@ function fixture(): RoadmapReview {
     decisions: [
       { id: "DECISION-A", kind: "decision-request", status: "complete", title: "Choose A", source: "decisions/a.md", dependencies: [], decision_record: "records/a.md", decision_made: true, document: { source: "decisions/a.md", blocks: [{ type: "paragraph", text: "<script>window.attacked = true</script>" }] } },
       { id: "DECISION-B", kind: "decision-request", status: "captured", title: "Choose B", source: "decisions/b.md", dependencies: [{ target: "DECISION-A", type: "hard" }], decision_record: null, decision_made: false, document: { source: "decisions/b.md", blocks: [{ type: "paragraph", text: "Decision B detail." }] } },
+      { id: "DECISION-C", kind: "decision-request", status: "complete", title: "Missing record", source: "decisions/c.md", dependencies: [], decision_record: null, decision_made: false, document: { source: "decisions/c.md", blocks: [{ type: "paragraph", text: "Incomplete decision detail." }] } },
     ],
     ordering: {
       ready: [{ id: "CAP-X", reasons: ["ready"] }],
@@ -181,6 +182,11 @@ describe("roadmap overview DOM", () => {
     expect(root.querySelector("script")).toBeNull();
 
     mountRoadmapRoute(root, value, "/decision/DECISION-B");
+    expect(root.textContent).toContain("Decision recordedNo");
+    expect(root.textContent).toContain("No decision outcome is recorded yet");
+    expect(root.textContent).toContain("No separate canonical record linked");
+
+    mountRoadmapRoute(root, value, "/decision/DECISION-C");
     expect(root.textContent).toContain("Decision recordedNo");
     expect(root.textContent).toContain("No decision outcome is recorded yet");
     expect(root.textContent).toContain("No separate canonical record linked");

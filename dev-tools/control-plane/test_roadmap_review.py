@@ -137,6 +137,21 @@ class RoadmapReviewTests(unittest.TestCase):
             )
         self.assertEqual(caught.exception.code, "roadmap.source-invalid")
 
+    def test_complete_decision_without_record_stays_unresolved_and_diagnostic(self) -> None:
+        inconsistent = decisions()
+        inconsistent[0]["decision_record"] = None
+        result = build_projection(
+            catalog=catalog(), planning_nodes=nodes(), documents={}, graph={"issues": []},
+            ordering={}, compatibility={}, allocation=allocation(), decisions=inconsistent,
+            expected_catalog_count=2,
+        )
+        projected = next(item for item in result["decisions"] if item["id"] == "CHOICE-1")
+        self.assertFalse(projected["decision_made"])
+        self.assertIn(
+            {"code": "roadmap.decision-record-missing", "subject": "CHOICE-1", "blocking": True},
+            result["diagnostics"],
+        )
+
     def test_catalog_rejects_duplicate_mapping_and_noncontiguous_order(self) -> None:
         duplicate = catalog()
         duplicate["capabilities"][1]["planning_id"] = "PROGRAM-1"

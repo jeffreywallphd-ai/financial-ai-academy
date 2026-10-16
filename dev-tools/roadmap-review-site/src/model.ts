@@ -171,23 +171,30 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
   if (!value || typeof value !== "object") throw new Error("Roadmap response is not an object.");
   const envelope = value as Partial<RoadmapEnvelope>;
   const review = envelope.data?.review;
-  const decisions = Array.isArray(review?.decisions) ? review.decisions : [];
-  const decisionIds = decisions.map((decision) => decision.id);
-  const invalidDecision = decisions.some((decision) =>
-    !decision ||
-    typeof decision.id !== "string" ||
-    !decision.id ||
-    decision.kind !== "decision-request" ||
-    typeof decision.status !== "string" ||
-    typeof decision.title !== "string" ||
-    !decision.title ||
-    typeof decision.source !== "string" ||
-    !decision.source ||
-    !Array.isArray(decision.dependencies) ||
-    (decision.decision_record !== null && typeof decision.decision_record !== "string") ||
-    typeof decision.decision_made !== "boolean" ||
-    decision.decision_made !== (decision.status === "complete")
-  );
+  const decisions: unknown[] = Array.isArray(review?.decisions) ? review.decisions : [];
+  const decisionIds = decisions.flatMap((value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    const id = (value as Partial<RoadmapDecision>).id;
+    return typeof id === "string" ? [id] : [];
+  });
+  const invalidDecision = decisions.some((value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return true;
+    const decision = value as Partial<RoadmapDecision>;
+    return (
+      typeof decision.id !== "string" ||
+      !decision.id ||
+      decision.kind !== "decision-request" ||
+      typeof decision.status !== "string" ||
+      typeof decision.title !== "string" ||
+      !decision.title ||
+      typeof decision.source !== "string" ||
+      !decision.source ||
+      !Array.isArray(decision.dependencies) ||
+      (decision.decision_record !== null && typeof decision.decision_record !== "string") ||
+      typeof decision.decision_made !== "boolean" ||
+      decision.decision_made !== (decision.status === "complete" && decision.decision_record !== null)
+    );
+  });
   const allocation = review?.current_allocation;
   const lanes = Array.isArray(allocation?.lanes) ? allocation.lanes : [];
   const groups = Array.isArray(allocation?.parallel_groups) ? allocation.parallel_groups : [];

@@ -47,10 +47,11 @@ Capability, slice, and work pages link their relevant decision requests and
 show each request's current status. Slice pages inherit capability links, and
 work pages inherit capability and slice links, so decisions remain visible at
 the point of use without duplicating them in static site data. A missing
-decision reference stays visible as a non-blocking local diagnostic. A
-`complete` decision request means an outcome has been made even when no
-separate ADR or decision-record file is linked. Private approval-ledger and
-reviewer information is never projected.
+decision reference stays visible as a non-blocking local diagnostic. A decision
+is shown as made only when its request is `complete` and links a confined
+canonical decision record. An inconsistent complete request without that record
+stays visible as not decided and emits a blocking projection diagnostic. Private
+approval-ledger and reviewer information is never projected.
 
 Plan headings, paragraphs, lists, tables, and code are constructed as inert DOM
 text from `roadmap-review-v1`. URL segments never become filesystem paths, and

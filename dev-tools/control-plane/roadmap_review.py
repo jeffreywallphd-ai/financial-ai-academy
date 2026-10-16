@@ -200,6 +200,7 @@ def _public_decision(
 ) -> dict[str, Any]:
     status = str(decision.get("status", "unknown"))
     record = decision.get("decision_record")
+    public_record = _safe_source(record) if record else None
     return {
         "id": str(decision.get("id", "")),
         "kind": "decision-request",
@@ -211,8 +212,8 @@ def _public_decision(
             for item in decision.get("dependencies", [])
             if isinstance(item, dict) and item.get("target")
         ],
-        "decision_record": _safe_source(record) if record else None,
-        "decision_made": status == "complete",
+        "decision_record": public_record,
+        "decision_made": status == "complete" and public_record is not None,
         "document": document,
     }
 
@@ -438,6 +439,16 @@ def build_projection(
         for decision_id, decision in sorted(decisions_by_id.items())
     }
     diagnostics: list[dict[str, Any]] = []
+
+    for decision_id, decision in public_decisions.items():
+        if decision["status"] == "complete" and decision["decision_record"] is None:
+            diagnostics.append(
+                {
+                    "code": "roadmap.decision-record-missing",
+                    "subject": decision_id,
+                    "blocking": True,
+                }
+            )
 
     for node_id, node in public_nodes.items():
         for decision_id in node["decision_gates"]:

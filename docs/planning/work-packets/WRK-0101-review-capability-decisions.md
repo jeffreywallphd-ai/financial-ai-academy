@@ -41,12 +41,14 @@ language standards, and the nearest READMEs before editing.
 - Decision requests remain non-authoritative planning artifacts. The site
   projects public DEC lifecycle and canonical-record metadata only; it never
   reads or exposes the ignored approval/reviewer ledger.
-- `decision_made` is true only when the public DEC artifact is `complete`.
-  A captured, shaping, active, verifying, decision-blocked, or superseded DEC
-  does not claim an approved outcome.
-- A `complete` DEC may have no separate `decision_record` when the DEC and
-  synchronized canonical planning guidance are themselves the durable record.
-  The page states that absence rather than inventing an ADR link.
+- `decision_made` is true only when the public DEC artifact is `complete` and
+  links a confined canonical decision record. A captured, shaping, active,
+  verifying, decision-blocked, superseded, or record-less DEC does not claim an
+  approved outcome.
+- A decision is made only when its DEC is `complete` and links a confined
+  canonical `decision_record`, matching the repository's decision-resolution
+  invariant. An inconsistent complete DEC without that record remains visibly
+  unresolved and emits a blocking projection diagnostic.
 - A slice inherits relevant decisions from its CAP; a work packet inherits the
   deduplicated CAP and SLI set in addition to any directly declared gates.
 - Missing referenced DEC artifacts produce a local, non-blocking missing state
@@ -103,8 +105,8 @@ not overlap the active product-delivery checkout.
 | --- | --- | --- |
 | CAP decisions | A CAP with direct decision gates renders DEC links with current statuses | Projection and DOM tests |
 | Inherited SLI/WRK decisions | Child pages show the deduplicated CAP, SLI, and WRK decision set with status | DOM and browser tests |
-| Resolved decision | A complete DEC page states that a decision is recorded and shows its canonical record when present | Projection/model/DOM tests |
-| Complete decision without separate record | The DEC page states that a decision is recorded and honestly reports no separate canonical record link | DOM test |
+| Resolved decision | A complete DEC page states that a decision is recorded and shows its required canonical record | Projection/model/DOM tests |
+| Complete decision without canonical record | The DEC page does not claim a decision and the projection emits a blocking inconsistency diagnostic | Projection/model/DOM tests |
 | Deferred decision | A captured DEC page shows its status and states that no decision is recorded | Projection/DOM/browser tests |
 | Missing reference | One unknown gate is shown as missing without a link; a diagnostic is emitted and unrelated routes remain usable | Projection/model/DOM tests |
 | Inert details | Script-like DEC prose remains text and cannot create active DOM or navigation | DOM/browser tests |
@@ -154,8 +156,8 @@ conformance, commit, branch, worktree, and integration instructions.
 - The generic projection publishes 20 public DEC entries from structured
   decision-request sources without adding those artifacts to portfolio
   execution or allocation. It derives `decision_made` from completed public
-  lifecycle, confines optional canonical-record paths, and reports missing
-  references without blocking unrelated review.
+  lifecycle plus a confined canonical record, and reports missing references
+  without blocking unrelated review.
 - CAP pages show direct DEC links. SLI pages inherit CAP links and add direct
   SLI links. WRK pages inherit the deduplicated CAP and SLI set and add direct
   WRK links. Every resolved link carries its current lifecycle badge.
@@ -197,3 +199,6 @@ conformance, commit, branch, worktree, and integration instructions.
   release/reclaim path after a verifying projection preceded exact-candidate
   capture. The new claim retains the original implementation base; no product
   scope or verification result changed.
+- 2026-10-16: Independent review round R01 requested two bounded substantive
+  corrections: enforce the canonical decision-record invariant and keep null
+  decision entries inside the client's bounded incompatible-envelope error.

@@ -116,13 +116,20 @@ describe("roadmap overview model", () => {
     expect(resolveRoadmapRoute(value, "/work/MISSING").kind).toBe("not-found");
   });
 
-  it("requires truthful decision status without requiring a separate decision record", () => {
+  it("requires truthful decision status and a canonical record", () => {
     const value = review();
     expect(assertRoadmapEnvelope({ outcome: "succeeded", data: { review: value } }).data.review.decisions).toHaveLength(2);
     value.decisions[0]!.decision_made = false;
     expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: value } })).toThrow(/missing or incompatible/);
     const noRecord = review();
     noRecord.decisions[0]!.decision_record = null;
-    expect(assertRoadmapEnvelope({ outcome: "succeeded", data: { review: noRecord } }).data.review.decisions[0]?.decision_made).toBe(true);
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: noRecord } })).toThrow(/missing or incompatible/);
+    noRecord.decisions[0]!.decision_made = false;
+    expect(assertRoadmapEnvelope({ outcome: "succeeded", data: { review: noRecord } }).data.review.decisions[0]?.decision_made).toBe(false);
+  });
+
+  it("rejects null decision entries with the bounded compatibility error", () => {
+    const malformed = { ...review(), decisions: [null] };
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: malformed } })).toThrow("Roadmap response is missing or incompatible.");
   });
 });
