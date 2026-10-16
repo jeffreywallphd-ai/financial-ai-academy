@@ -108,7 +108,8 @@ SLI-0004 verification must run fresh before another review.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | ready |
+| WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | complete |
+| WRK-0070 | Correct review proportionality so cleanup-only descendants receive fresh verification without redundant re-review | WRK-0013 | none | ready |
 
 ## Verification and Qualification
 
@@ -150,3 +151,6 @@ performed; stronger reviewer authentication remains a future adapter decision.
 
 - 2026-10-15: Refined just in time after SLI-0004 completed; Candidate A scored
   14/14 and remains within CAP-0002's review-lineage slice boundary.
+- 2026-10-16: Added bounded descendant WRK-0070 through the completed-work
+  correction route. It preserves substantive review controls while removing a
+  redundant review loop for verified cleanup-only descendants.
