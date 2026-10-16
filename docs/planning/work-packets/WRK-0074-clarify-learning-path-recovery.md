@@ -1,7 +1,7 @@
 ---
 id: WRK-0074
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -142,6 +142,31 @@ Report revised loading/recovery meaning, preserved state/action boundaries,
 focused and affected verification, aggregate readiness, assumptions, Chromium
 work left to JIT-C, and any cosmetic issue deferred to CAP-0031.
 
+## Completion Evidence
+
+- Delivered learner-focused loading and bounded messages for invalid links,
+  learner access, denied access, missing versions, temporary unavailability,
+  invalid complete responses, and unexpected failures.
+- Preserved the closed state switch and action wiring: invalid-selection and
+  not-found return to the learning library; unauthorized, unavailable, and
+  unexpected retry; forbidden and invalid-response remain non-actionable. No
+  alternate version, stale/partial result, protected fact, or new action exists.
+- Focused component qualification passed all 12 curriculum scenarios. Coverage
+  includes the loading status region, all seven state titles, hidden ready
+  content, prohibited internal jargon in route-owned messages, and retry/return
+  callbacks without freezing whole prose.
+- TypeScript typecheck, lint, design-system, planning, documentation, Git
+  whitespace, and all 27 aggregate readiness checks passed. Exact candidate
+  `457a23b22592e1602468a8ad09b721fd23fd29ed` received a qualifying affected-
+  verification receipt at `.local-codex/control-plane/receipts/WRK-0074/`
+  `457a23b22592e1602468a8ad09b721fd23fd29ed/`
+  `20261016T101316Z-920da86d-640e-4d27-bc04-8509732f4092.json`.
+- Independent R01 accepted the candidate with no substantive findings. Public
+  contracts, loaders, models, APIs, generated clients, sessions,
+  authorization, validation, route selection, persistence, and migrations are
+  unchanged. Chromium qualification remains assigned to JIT-C; no cosmetic
+  issue blocked delivery or required re-review.
+
 ## Planning History
 
 - 2026-10-16: Refined SLI-0123 JIT-B around route-owned loading and bounded
@@ -150,3 +175,6 @@ work left to JIT-C, and any cosmetic issue deferred to CAP-0031.
 - 2026-10-16: Prepared the completed route-language change for exact-candidate
   submission after focused component, typecheck, lint, design, planning,
   documentation, whitespace, and aggregate-readiness checks passed.
+- 2026-10-16: Completed WRK-0074 on exact candidate
+  `457a23b22592e1602468a8ad09b721fd23fd29ed` after affected verification
+  qualified and independent R01 accepted with no substantive findings.
