@@ -1,7 +1,7 @@
 ---
 id: WRK-0097
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/migrations/README.md", "backend/migrations/assessment/assessment_0002_practice_evidence.down.sql", "backend/migrations/assessment/assessment_0002_practice_evidence.up.sql", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/repositories.py", "backend/src/financial_ai_academy/modules/assessment/public.py", "backend/tests/integration/assessment/test_postgres_assessment.py", "backend/tests/integration/assessment/test_postgres_practice_submission.py", "backend/tests/unit/assessment/test_practice_service.py", "docs/architecture/contracts/assessment-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0027-submit-and-score-practice-attempt.md", "docs/planning/work-packets/WRK-0097-compose-practice-submission-persistence.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 33d2e740f6e04fd7d1371642fa2bc1a543949b00
+claim_id: WRK-0097:1eb4a6c5-42e1-4c43-b0b5-8259da535df3
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T15:56:57Z
 ---
 
 # Agent Work Packet: Compose Practice Submission and Persistence
@@ -222,3 +222,6 @@ changed, then leave JIT-C dependency-ready.
 - 2026-10-16: Authored just in time after WRK-0096 completed. The packet adds
   the shared transport-neutral application/persistence core required by both
   browser and future headless clients while deferring HTTP and interface work.
+- 2026-10-16: Claimed from base revision `33d2e74` after the implementation
+  gate confirmed current CAP authority, dependency completion, decision
+  readiness, bounded scope, and no active ownership collision.
