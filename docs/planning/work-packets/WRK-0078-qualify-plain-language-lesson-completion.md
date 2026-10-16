@@ -1,7 +1,7 @@
 ---
 id: WRK-0078
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts-snapshots/lesson-light-chromium-win32.png", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts-snapshots/lesson-dark-chromium-win32.png", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/README.md", "docs/planning/work-packets/WRK-0078-qualify-plain-language-lesson-completion.md", "docs/planning/vertical-slices/SLI-0124-understand-lesson-check-and-completion.md", "docs/planning/register.md"]
 generated_artifacts: ["apps/web/dist", "artifacts/playwright/wrk0004/**", "artifacts/playwright/wrk0005/**"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 5612ab9c085d08633899e0b412a3115ce7a866d2
+claim_id: WRK-0078:9506ffa8-1648-4028-84bd-272495b07aa9
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T10:50:10Z
 ---
 
 # Agent Work Packet: Qualify Plain-Language Lesson Completion
