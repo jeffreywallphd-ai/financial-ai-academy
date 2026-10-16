@@ -1,7 +1,7 @@
 ---
 id: SLI-0123
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -138,7 +138,7 @@ each packet starts. The planned dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0073 | Clarify the learning-path page, connections, activity-state presentation, and technical records | none | none | complete |
 | WRK-0074 | Clarify loading and bounded recovery states while preserving fail-closed behavior | WRK-0073 | none | complete |
-| WRK-0075 | Qualify the complete learning-path experience in Chromium, reconcile documentation, and close the slice | WRK-0074 | none | active |
+| WRK-0075 | Qualify the complete learning-path experience in Chromium, reconcile documentation, and close the slice | WRK-0074 | none | complete |
 
 ## Verification and Qualification
 
@@ -174,10 +174,55 @@ findings; fix them locally when trivial or defer them to CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Update the web feature README for the revised learner-facing terminology and
-progressive-disclosure boundary. On completion, record focused component and
-Chromium results, affected and aggregate readiness receipts, unchanged
-contracts/semantics, assumptions, residual gaps, and any decision gate.
+### Delivered outcome and boundaries
+
+- WRK-0073 delivered learner-focused learning-path, group, connection,
+  activity-status, and reason language while retaining complete accessible
+  technical records. WRK-0074 delivered task-focused loading and all seven
+  bounded recovery states without changing state selection or safe actions.
+  WRK-0075 qualified the complete journey and closed its evidence gaps.
+- All eight slice scenarios are covered across component, mocked Chromium, and
+  isolated live Chromium evidence: path and peer-view understanding, separate
+  activity-state meaning, connections, complete technical evidence, no false
+  mastery/recommendation authority, safe recovery, and access/theme parity.
+- Exact curriculum/resource identity, versions, schema, graph/navigation
+  policy, evaluation time, sources, digests, four state dimensions, reason
+  codes/explanations/references, and relationship facts remain reachable under
+  `Technical record`. Public contracts, generated clients, domain/state
+  semantics, authorization, persistence, and migrations did not change.
+
+### Verification and qualification
+
+- Focused component qualification passed 11 ready-page and 12 route/recovery
+  scenarios. Focused mocked Chromium passed five flexible learning-path
+  scenarios; the isolated live suite passed all eight end-to-end scenarios.
+- TypeScript type checking, lint, production build, design-system integrity,
+  planning integrity, documentation integrity, Git whitespace, and all 27
+  aggregate readiness checks passed.
+- Exact WRK-0075 candidate
+  `b80a05347977eb63a0d5bceca11e7ea4d6de0ff2` has a fresh qualifying affected-
+  verification receipt selecting planning, documentation, typecheck, lint,
+  mocked Chromium, and live PostgreSQL/Python/static Chromium checks.
+  Independent R02 closed R01-F001 with no open findings.
+- The deterministic completion structure passed for SLI-0123 and WRK-0073,
+  WRK-0074, and WRK-0075. Failure evidence includes invalid links, missing
+  versions, unavailable/mismatched state, denied access, malformed responses,
+  and protected-fact suppression.
+
+### Documentation, assumptions, and residual risk
+
+- The learner-facing standard, design guidance, web README, slice, packets,
+  and register describe the delivered terminology and progressive-disclosure
+  boundary. No ADR, public schema, migration, or derived context update was
+  required.
+- Qualification uses the accepted pinned-Chromium, single-profile local
+  profile. Cross-browser and manual screen-reader qualification remain outside
+  this slice. The live snapshot needs the prepared backend environment and a
+  short isolated temp path on Windows; this is an execution constraint, not a
+  product-behavior gap.
+- No unresolved decision gate or material CAP-0030 drift exists. Cosmetic and
+  nonfunctional visual polish remains nonblocking and is deferred to CAP-0031
+  unless the user explicitly pulls it forward.
 
 ## Planning History
 
@@ -220,3 +265,10 @@ contracts/semantics, assumptions, residual gaps, and any decision gate.
 - 2026-10-16: WRK-0075 R01 found one missing browser-evidence assertion for
   exact activity resource and relationship technical records. The bounded
   data-derived correction adds no product behavior or new approval gate.
+- 2026-10-16: Completed WRK-0075 after corrected mocked/live evidence received
+  a fresh qualifying receipt and independent R02 closed the only substantive
+  finding. SLI-0123 entered deterministic verification.
+- 2026-10-16: Closed SLI-0123 after all three packets completed, the structural
+  completion gate passed, focused and live qualifications passed, the exact
+  receipt remained qualifying, aggregate readiness passed, and no lower-level
+  completion approval was requested.

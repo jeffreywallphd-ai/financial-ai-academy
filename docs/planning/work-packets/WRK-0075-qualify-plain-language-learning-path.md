@@ -1,7 +1,7 @@
 ---
 id: WRK-0075
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -163,6 +163,39 @@ containment cleanup, focused/affected/aggregate checks, review, slice closure,
 unchanged boundaries, assumptions, gaps, and any cosmetic item deferred to
 CAP-0031.
 
+## Completion Evidence
+
+- Updated the existing mocked and live Chromium specifications to consume the
+  learner-facing names and open `Technical record` disclosures before
+  comparing exact technical facts. No product runtime, contract, fixture,
+  browser configuration, or harness behavior changed.
+- Five focused curriculum scenarios and all eight isolated live
+  catalog/detail/comparison/learning-path/lesson scenarios passed in pinned
+  Chromium. Evidence covers complete graph/state closure, exact page and
+  activity identity/provenance, full resource references, every relationship
+  ID/type, ordered reasons/references, list/map parity, bounded failures,
+  confidentiality, axe, keyboard, narrow layout, themes, forced colors,
+  reduced motion, and scaled text.
+- Assertions derive activity, branch, relationship, state, and reason
+  expectations from returned data; inspect selected technical records; and
+  avoid whole-prose, fixed-count, or pixel-style coupling.
+- Twelve focused curriculum component scenarios, TypeScript type checking,
+  lint, design-system, planning, documentation, Git whitespace, production
+  build, and all 27 aggregate readiness checks passed. Exact corrected
+  candidate `b80a05347977eb63a0d5bceca11e7ea4d6de0ff2` has a fresh qualifying
+  receipt at `.local-codex/control-plane/receipts/WRK-0075/`
+  `b80a05347977eb63a0d5bceca11e7ea4d6de0ff2/`
+  `20261016T103209Z-bac664a3-d7ac-4bdc-97f2-6ae97ebf6bf3.json`.
+- Independent R02 accepted the corrected candidate and closed R01-F001. The
+  live snapshot used the prepared backend environment and a short isolated
+  temp root to avoid Windows path-length truncation; Docker, the temporary
+  application/data root, and browser resources were contained and cleaned.
+- Public schemas, generated clients, graph/navigation policy, state meaning,
+  session and authorization behavior, persistence, and migrations are
+  unchanged. Remaining cross-browser and manual screen-reader qualification
+  stays outside the accepted pinned-Chromium profile; nonfunctional visual
+  polish remains deferred to CAP-0031.
+
 ## Planning History
 
 - 2026-10-16: Refined SLI-0123 JIT-C as a browser-evidence-only packet that
@@ -181,3 +214,7 @@ CAP-0031.
   complete activity resource reference and relationship ID/type disclosures in
   Chromium. Added data-derived mocked and live assertions without fixture-count,
   prose, runtime, contract, or styling changes; focused qualification passes.
+- 2026-10-16: Completed WRK-0075 on corrected exact candidate
+  `b80a05347977eb63a0d5bceca11e7ea4d6de0ff2` after fresh affected
+  verification qualified and independent R02 closed R01-F001 with no new
+  substantive findings.
