@@ -1,7 +1,7 @@
 ---
 id: WRK-0117
 kind: work-packet
-planning_status: ready
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0007-correction
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/dist", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0116-qualify-project-shell-origin-flow.md", "docs/planning/work-packets/WRK-0117-refresh-project-production-bundle.md"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 6f7c1abf5ccf570e45eceb7194f13564fa91df69
+claim_id: WRK-0117:3e95e7cf-09c1-49b3-a4f5-22fd7e15ebe6
+claimed_by: codex-cap-0007-correction
+claimed_at: 2026-10-16T22:23:51Z
 ---
 
 # Agent Work Packet: Refresh the Project Production Bundle
@@ -127,9 +127,38 @@ second-build result, static-host and Project-browser checks, changed files,
 documentation impact, assumptions, residual limits, and confirmation that no
 authored behavior or public interface changed.
 
+## Completion Evidence
+
+- The pinned Node 24/npm 10.8.2 Vite build replaced obsolete
+  `index-CSLAcjng.js` and its source map with `index-BiYcwksJ.js` and its
+  source map, and updated only the matching script reference in
+  `dist/index.html`. Both new references and the existing CSS reference resolve
+  inside the tracked bundle.
+- Two consecutive production builds produced identical output. The current
+  SHA-256 values are
+  `D85C71850D5DF9AD47DBA49A076352620738F46214AD9CE6EFA03AE9F657969C`
+  for `index.html`,
+  `B6D6D94C75EA0929220C9CF5E6286E4BE6BB41C69AFE0B0C122852A7DB80BEC3`
+  for the JavaScript chunk, and
+  `CBA9C7A6637AA43F8D0B847963CE79D6236378653128C12ED08A1FE771ED7792`
+  for its source map.
+- Focused Project Chromium qualification passed all six create, list, reopen,
+  unchanged-retry, conflict-recovery, in-flight-locking, stale-selection,
+  responsive, accessibility, and plain-language scenarios. Static-boundary
+  architecture passed 16 checks and aggregate agent readiness passed all 29
+  checks with the repository-local Windows temp root.
+- Planning validation covered 200 artifacts and documentation validation
+  covered 344 Markdown files plus catalogs. Git scope inspection confirms no
+  authored TypeScript, CSS, backend, contract, dependency, configuration, or
+  test source changed.
+
 ## Planning History
 
 - 2026-10-16: Authored as the bounded descendant correction after SLI-0030
   cumulative qualification proved the tracked production bundle was stale.
   The packet owns generated static output only and requires no new decision or
   lower-level approval.
+- 2026-10-16: Prepared the exact generated-artifact candidate after two
+  reproducible builds, static-reference validation, focused Project Chromium,
+  architecture, planning, documentation, whitespace, and aggregate readiness
+  checks passed.
