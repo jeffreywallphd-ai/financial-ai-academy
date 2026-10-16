@@ -204,7 +204,7 @@ their work begins. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | complete |
-| WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | active |
+| WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | complete |
 | JIT-C | Add learner actions, validated return context, and equivalent list/map current-position presentation | JIT-B | none | planned |
 | JIT-D | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | JIT-C | none | planned |
 
@@ -293,3 +293,12 @@ and durable-state authority did not change.
 - 2026-10-16: Activated WRK-0086 after revalidating its completed WRK-0085
   dependency, current CAP package, exact write/generated scope, accepted
   permissions and contracts, and absence of a decision or edit collision.
+- 2026-10-16: Completed WRK-0086 at exact candidate
+  `9d324b53d040ef6571897719b803d4eebd7692dd`. The single-context application
+  composition, dual-permission protected endpoint, bounded denials, OpenAPI
+  snapshot, and generated client passed focused and adjacent tests, generation
+  checks, TypeScript checks, architecture fitness, affected verification, and
+  aggregate readiness. Two nonblocking maintenance observations were deferred
+  to CAP-0031 without reopening this functional packet. No persistence,
+  migration, UI policy, new permission, model authority, provider, queue,
+  cloud, or external-action boundary changed; learner interaction remains JIT-C.

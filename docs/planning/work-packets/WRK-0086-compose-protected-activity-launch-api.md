@@ -1,7 +1,7 @@
 ---
 id: WRK-0086
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -246,3 +246,8 @@ consume one generated launch operation or return one bounded blocker.
   generated client. Focused, adjacent, architecture, generation, TypeScript,
   planning, documentation, whitespace, and aggregate-readiness evidence passed;
   the exact candidate entered verification and independent review.
+- 2026-10-16: Completed at exact candidate
+  `9d324b53d040ef6571897719b803d4eebd7692dd` after all required affected and
+  aggregate checks passed with no blocking finding. Two low-impact maintenance
+  observations were deferred to CAP-0031 without a correction or re-review
+  loop. JIT-C may now consume the generated launch operation.
