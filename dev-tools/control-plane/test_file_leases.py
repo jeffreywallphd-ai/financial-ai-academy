@@ -121,6 +121,39 @@ class FileLeaseCoreTests(unittest.TestCase):
             self.assertEqual(sorted([first["lease_id"], second["lease_id"]]), recovered["recovered_from"])
             self.assertEqual([untouched["lease_id"]], [item["lease_id"] for item in store.status(path="src/c.py")["data"]["leases"]])
 
+    def test_recovery_refuses_unowned_paths_without_mutation(self) -> None:
+        clock = Clock()
+        with tempfile.TemporaryDirectory(prefix="file-recovery-unowned-") as directory:
+            _root, store = self.fixture(directory, clock)
+            acquire(store, owner="one", path="src/a.py", minutes=1)
+            clock.advance(2)
+            before = store.path.read_bytes()
+
+            with self.assertRaises(ControlError) as mixed:
+                store.acquire(unit_id="GROUP-2", work_id="TASK-2", owner="two", claim_id="claim-two", paths=["src/a.py", "src/b.py"], recovery=True)
+
+            self.assertEqual("edit.recovery-path-unowned", mixed.exception.code)
+            self.assertEqual(before, store.path.read_bytes())
+            self.assertEqual([], store.status(path="src/b.py")["data"]["leases"])
+
+    def test_recovery_refuses_inconsistent_expired_lease_indexes_without_mutation(self) -> None:
+        clock = Clock()
+        with tempfile.TemporaryDirectory(prefix="file-recovery-malformed-") as directory:
+            _root, store = self.fixture(directory, clock)
+            original = store.acquire(unit_id="GROUP-1", work_id="TASK-1", owner="one", claim_id="claim-one", paths=["src/a.py", "src/b.py"], lease_minutes=1)["data"]["lease"]
+            clock.advance(2)
+            state = json.loads(store.path.read_text(encoding="utf-8"))
+            state["path_owners"]["src/b.py"] = "file-lease:missing"
+            store.path.write_text(json.dumps(state), encoding="utf-8")
+            before = store.path.read_bytes()
+
+            with self.assertRaises(ControlError) as malformed:
+                store.acquire(unit_id="GROUP-2", work_id="TASK-2", owner="two", claim_id="claim-two", paths=["src/a.py"], recovery=True)
+
+            self.assertEqual("edit.state-malformed", malformed.exception.code)
+            self.assertEqual(before, store.path.read_bytes())
+            self.assertEqual(original["lease_id"], state["path_owners"]["src/a.py"])
+
     def test_full_set_recovery_retains_existing_result_shape(self) -> None:
         clock = Clock()
         with tempfile.TemporaryDirectory(prefix="file-recovery-full-") as directory:
@@ -227,8 +260,21 @@ class FinancialAcademyEditingTests(unittest.TestCase):
                 shutil.copy2(ROOT / relative, target)
             packet_path = next(root / item for item in concrete if "/WRK-0022-" in item)
             lines = packet_path.read_text(encoding="utf-8").splitlines()
-            packet_path.write_text("\n".join("planning_status: active" if line.startswith("planning_status:") else line for line in lines) + "\n", encoding="utf-8")
-            service = FinancialAcademyEditingService(root)
+            packet_path.write_text(
+                "\n".join(
+                    "planning_status: active"
+                    if line.startswith("planning_status:")
+                    else 'write_scope: ["dev-tools/control-plane/portfolio_harness.py"]'
+                    if line.startswith("write_scope:")
+                    else line
+                    for line in lines
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            clock = Clock()
+            store = FileLeaseStore(root, clock=clock)
+            service = FinancialAcademyEditingService(root, store=store)
             artifacts = {item.identifier: item for item in load_artifacts(root)}
             packet = artifacts["WRK-0022"]
             owner = str(packet.metadata["claimed_by"])
@@ -239,6 +285,37 @@ class FinancialAcademyEditingTests(unittest.TestCase):
             with self.assertRaises(ControlError) as outside:
                 service._authorize(unit_id="CAP-0003", work_id="WRK-0022", owner=owner, claim_id=claim_id, paths=["docs/product/capability-catalog.md"])
             self.assertEqual("edit.path-outside-work-scope", outside.exception.code)
+            prior = store.acquire(
+                unit_id="SLI-0014",
+                work_id="WRK-0021",
+                owner="prior",
+                claim_id="prior-claim",
+                paths=["dev-tools/control-plane/portfolio_harness.py", "dev-tools/control-plane/test_file_leases.py"],
+                lease_minutes=1,
+            )["data"]["lease"]
+            clock.advance(2)
+            recovered = service.recover(
+                unit_id="WRK-0022",
+                work_id="WRK-0022",
+                owner=owner,
+                claim_id=claim_id,
+                paths=["dev-tools/control-plane/portfolio_harness.py"],
+            )["data"]["lease"]
+            self.assertEqual([prior["lease_id"]], recovered["recovered_from"])
+            residual = service.status(path="dev-tools/control-plane/test_file_leases.py")["data"]["leases"]
+            self.assertEqual(["dev-tools/control-plane/test_file_leases.py"], residual[0]["paths"])
+            before_scope_refusal = store.path.read_bytes()
+            with self.assertRaises(ControlError) as residual_outside:
+                service.recover(
+                    unit_id="WRK-0022",
+                    work_id="WRK-0022",
+                    owner=owner,
+                    claim_id=claim_id,
+                    paths=["dev-tools/control-plane/test_file_leases.py"],
+                )
+            self.assertEqual("edit.path-outside-work-scope", residual_outside.exception.code)
+            self.assertEqual(before_scope_refusal, store.path.read_bytes())
+            service.release(lease_id=recovered["lease_id"], owner=owner, claim_id=claim_id)
             lease = service.acquire(unit_id="WRK-0022", work_id="WRK-0022", owner=owner, claim_id=claim_id, paths=["dev-tools/control-plane/portfolio_harness.py"])["data"]["lease"]
             renewed = service.renew(lease_id=lease["lease_id"], owner=owner, claim_id=claim_id)
             self.assertEqual("edit.lease-renewed", renewed["code"])

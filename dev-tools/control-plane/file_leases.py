@@ -121,9 +121,11 @@ class FileLeaseStore:
             nonlocal created_lease_id
             conflicts: list[dict[str, Any]] = []
             expired_ids: set[str] = set()
+            unowned_paths: list[str] = []
             for display, key in canonical:
                 lease_id = state["path_owners"].get(key)
                 if not lease_id:
+                    unowned_paths.append(display)
                     continue
                 lease = state["leases"].get(lease_id)
                 if not isinstance(lease, dict):
@@ -137,20 +139,38 @@ class FileLeaseStore:
                 raise ControlError("edit.lease-contended", "At least one requested file has a live editing owner; nothing was acquired.", {"conflicts": conflicts}, ["Coordinate with the active lane or retry after explicit release or expiry."])
             if expired_ids and not recovery:
                 raise ControlError("edit.recovery-required", "At least one requested file has an expired lease requiring explicit recovery; nothing was acquired.", {"expired_lease_ids": sorted(expired_ids)}, ["Use edit-recover to preserve recovery lineage."])
+            if recovery and expired_ids and unowned_paths:
+                raise ControlError("edit.recovery-path-unowned", "Recovery cannot acquire paths that have no expired owner; nothing was acquired.", {"paths": unowned_paths}, ["Recover only expired paths, then use edit-acquire separately for currently unowned files."])
             if recovery and not expired_ids:
                 raise ControlError("edit.recovery-not-applicable", "Recovery requires at least one expired lease on the requested files.", {}, ["Use edit-acquire for currently unowned files."])
             recovered_from = sorted(expired_ids)
             requested_keys = {key for _display, key in canonical}
+            validated_prior: dict[str, tuple[dict[str, Any], list[tuple[str, str]]]] = {}
             for prior_id in expired_ids:
                 prior = state["leases"].get(prior_id)
                 if not isinstance(prior, dict):
                     raise ControlError("edit.state-malformed", "An expired path owner references a missing lease.", {"lease_id": prior_id}, ["Use bounded local maintenance."])
                 prior_paths = prior.get("paths")
                 prior_keys = prior.get("keys")
-                if not isinstance(prior_paths, list) or not isinstance(prior_keys, list) or len(prior_paths) != len(prior_keys):
+                valid_pairs = (
+                    isinstance(prior_paths, list)
+                    and isinstance(prior_keys, list)
+                    and len(prior_paths) == len(prior_keys)
+                    and all(isinstance(path, str) for path in prior_paths)
+                    and all(isinstance(key, str) for key in prior_keys)
+                    and len(set(prior_paths)) == len(prior_paths)
+                    and len(set(prior_keys)) == len(prior_keys)
+                )
+                if not valid_pairs:
                     raise ControlError("edit.state-malformed", "An expired lease has inconsistent path metadata.", {"lease_id": prior_id}, ["Use bounded local maintenance; preserve the malformed bytes."])
+                prior_key_set = set(prior_keys)
+                owned_keys = {key for key, owner_id in state["path_owners"].items() if owner_id == prior_id}
+                if owned_keys != prior_key_set:
+                    raise ControlError("edit.state-malformed", "An expired lease and its path-owner index disagree.", {"lease_id": prior_id}, ["Use bounded local maintenance; preserve the malformed bytes."])
                 residual = [(path, key) for path, key in zip(prior_paths, prior_keys, strict=True) if key not in requested_keys]
-                for key in requested_keys.intersection(prior_keys):
+                validated_prior[prior_id] = (prior, residual)
+            for prior_id, (prior, residual) in validated_prior.items():
+                for key in requested_keys.intersection(prior["keys"]):
                     if state["path_owners"].get(key) == prior_id:
                         state["path_owners"].pop(key, None)
                 if residual:
