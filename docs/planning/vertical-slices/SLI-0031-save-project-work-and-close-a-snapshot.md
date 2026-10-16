@@ -236,8 +236,8 @@ refined just in time.
 | --- | --- | --- | --- | --- |
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
-| JIT-C | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | captured |
-| JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | JIT-C | none | captured |
+| WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | ready |
+| JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0120 | none | captured |
 
 ## Verification and Qualification
 
@@ -353,3 +353,7 @@ created, and no managed-cloud or production-recovery profile was qualified.
   backend tests passed with PostgreSQL enabled, alongside the focused API,
   generated-client, architecture, security, documentation, planning,
   whitespace, exact-candidate, and 29-check readiness evidence.
+- 2026-10-16: Refined JIT-C as WRK-0120. The packet delivers the
+  generated-client learner workspace, inert file, snapshot, export, and
+  continue-working flow without changing the completed API or moving domain,
+  authorization, revision, or artifact policy into the browser.
