@@ -1,7 +1,7 @@
 ---
 id: WRK-0113
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0005-record-review-findings-and-corrected-descendants.md", "docs/planning/work-packets/WRK-0113-allow-equivalent-catalog-correction.md"]
 generated_artifacts: []
-base_revision: 80c15703a6d2b6fba50edc757c7ba204b082ec43
-claim_id: WRK-0113:c7fe7885-9605-4aa3-ac7c-a0bd62e18e61
+base_revision: 77dbe9190e09ec1b978c10b4018bff688d3f1596
+claim_id: WRK-0113:440b14a4-c89a-45a8-bc42-8e5bc7cb65ba
 claimed_by: codex-control-plane-correction
-claimed_at: 2026-10-16T21:11:48Z
+claimed_at: 2026-10-16T21:14:26Z
 ---
 
 # Agent Work Packet: Allow Equivalent-Catalog Correction
