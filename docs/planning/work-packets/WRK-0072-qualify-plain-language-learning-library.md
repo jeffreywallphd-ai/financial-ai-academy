@@ -1,7 +1,7 @@
 ---
 id: WRK-0072
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -166,6 +166,30 @@ theme/responsive evidence, preserved contracts and facts, environment limits,
 assumptions, residual risks, completion-gate result, slice closure decision,
 and the next CAP-manifest action. Do not request a slice-level approval.
 
+## Completion Evidence
+
+- Updated the existing learning-catalog Chromium specification to the delivered
+  task-focused accessible names without changing product implementation.
+- Qualified 14 catalog, detail, comparison, denial, malformed-data, theme,
+  axe, keyboard, forced-color, reduced-motion, narrow-layout, and 200-percent-
+  text scenarios in pinned Chromium.
+- Opened native `Technical record` disclosures and verified current generation
+  and schema plus the selected opportunities' IDs, kind-sensitive versions,
+  exact packages, digests, and source fingerprints. The planned project remains
+  non-executable and the comparison retains learner order and explicitly does
+  not rank or recommend a winner.
+- Kept assertions tied to selected records, roles, actions, and required facts
+  so unrelated catalog additions and harmless prose changes do not fail the
+  scenario.
+- Verified 40 focused component scenarios, TypeScript type checking, lint,
+  production build, design-system, planning, documentation, Git whitespace,
+  all 27 aggregate readiness checks, and fresh affected verification selecting
+  the Chromium boundary for the exact corrected candidate.
+- No runtime, route, API, generated-client, query, ordering, selection,
+  authorization, availability, provenance, persistence, or migration changed.
+  Qualification remains pinned-Chromium and mocked-boundary, consistent with
+  the accepted current browser test profile.
+
 ## Planning History
 
 - 2026-10-16: Refined JIT-D after WRK-0071 completed. The packet is limited to
@@ -174,3 +198,7 @@ and the next CAP-manifest action. Do not request a slice-level approval.
 - 2026-10-16: Activated after validating its dependency, current CAP authority,
   exact write and generated-artifact scope, completion scenarios, and absence
   of an unresolved decision gate.
+- 2026-10-16: Completed after exact-candidate Chromium and affected
+  verification, correction of the root-relative completion command and
+  anti-rigidity/evidence gaps, and confirmation that all review findings are
+  closed. SLI-0122 is ready for deterministic closure.

@@ -1,7 +1,7 @@
 ---
 id: SLI-0122
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -144,7 +144,7 @@ each packet starts. The planned dependency-ordered seams are:
 | WRK-0068 | Establish the normative language standard, content style guide, initial term map, and workflow routing | none | none | complete |
 | WRK-0069 | Apply the standard to catalog list/filter/card presentation and focused component evidence | WRK-0068 | none | complete |
 | WRK-0071 | Apply the standard to detail/comparison/loading/error presentation and focused component evidence | WRK-0069 | none | complete |
-| WRK-0072 | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | WRK-0071 | none | verifying |
+| WRK-0072 | Qualify the complete revised discovery flow in Chromium, reconcile documentation, and close the slice | WRK-0071 | none | complete |
 
 ## Verification and Qualification
 
@@ -229,3 +229,7 @@ copying approval or reviewer records into tracked files.
 - 2026-10-16: Activated WRK-0072 after confirming completed dependencies,
   bounded browser/planning scope, exact acceptance scenarios, and no decision
   gate or parallel file collision.
+- 2026-10-16: Completed WRK-0072 with pinned-Chromium evidence for the full
+  discovery flow, exact progressive-disclosure facts, task-focused actions,
+  fail-closed states, theme and access modes, and anti-rigid selected-record
+  assertions. The slice moved to deterministic verification.
