@@ -1,7 +1,7 @@
 ---
 id: WRK-0077
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -156,6 +156,31 @@ Report revised assessment/completion meaning, preserved grading/evidence/
 secrecy/retry boundaries, focused and affected verification, aggregate
 readiness, assumptions, JIT-C work, and any cosmetic issue deferred to CAP-0031.
 
+## Completion Evidence
+
+- The knowledge-check and saved-completion views now lead with the learner's
+  task, result, score, completion time, and bounded meaning. Exact package,
+  assessment, item, policy, attempt, evidence, event, submission, timestamp,
+  source, and rebuild facts remain available in accessible `Technical record`
+  disclosures.
+- Assessment grading and feedback, answer secrecy, completion load order, safe
+  response validation, and retry identity are unchanged. No public contract,
+  generated client, persistence model, or migration changed.
+- The focused component suite passed all 15 scenarios, including correct and
+  incorrect results, non-mastery meaning, denial/conflict/failure behavior,
+  flexible saved history, complete technical facts, load order, and retry
+  identity. Typecheck, lint, design-system, planning, documentation, whitespace,
+  affected verification, and aggregate readiness (27/27 checks) also passed.
+- The exact reviewed candidate is
+  `2ff2f5457d5cb93b0a7d3da25039e205487ab174`; its qualifying affected-verification
+  receipt is `.local-codex/control-plane/receipts/WRK-0077/2ff2f5457d5cb93b0a7d3da25039e205487ab174/20261016T104712Z-a6c674d8-235c-4114-b7f5-b6baa3c5bdd0.json`.
+- Independent R01 identified two missing evidence groups: exhaustive exact-
+  provenance assertions and incorrect/conflict/denial/failure scenarios. The
+  corrected R02 candidate added those tests, closed both findings, and produced
+  no new substantive finding.
+- Complete mocked Chromium and approved-lesson live qualification remain owned
+  by JIT-C. No cosmetic issue from this packet requires early cleanup.
+
 ## Planning History
 
 - 2026-10-16: Refined SLI-0124 JIT-B around knowledge-check result/recovery,
@@ -165,3 +190,10 @@ readiness, assumptions, JIT-C work, and any cosmetic issue deferred to CAP-0031.
   `9eedd397616dcc93ae3eedd821b14fb20e684cca` after focused component,
   typecheck, lint, design, planning, documentation, whitespace, and aggregate-
   readiness checks passed.
+- 2026-10-16: Independent R01 requested correction for missing exhaustive
+  technical-fact assertions and untested incorrect/conflict/denial/failure
+  states; both were functional evidence gaps rather than cosmetic findings.
+- 2026-10-16: Completed corrected candidate
+  `2ff2f5457d5cb93b0a7d3da25039e205487ab174` after independent R02 closed both
+  R01 findings, found no new issue, and all focused, affected, and aggregate
+  checks passed.
