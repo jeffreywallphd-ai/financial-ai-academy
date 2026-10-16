@@ -1,7 +1,7 @@
 ---
 id: SLI-0124
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -185,11 +185,33 @@ fix it locally when trivial or defer it to CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery updates the lesson feature documentation where necessary and records
-focused component, browser, live-seam, design, planning, documentation, affected-
-verification, and readiness results. Completion evidence must identify changed
-presentation boundaries, preserved contracts and evidence fields, tested safe
-failures, assumptions, known gaps, and any residual decision gate.
+WRK-0076 through WRK-0078 delivered the task-focused lesson, knowledge-check,
+recovery, and saved-completion experience. Exact publication, assessment,
+attempt, evidence, completion-event, source, version, and digest facts remain
+available in accessible `Technical record` disclosures. Assessment remains the
+sole grading authority; the browser still does not expose the correct answer,
+invent a learner identity, infer mastery, or change retry and completion
+semantics. No public contract, persistence model, migration, authorization,
+session, or provider boundary changed.
+
+Closure evidence passed 27 focused component tests, 8 mocked Chromium tests,
+and 8 isolated-live approved-lesson tests. Typecheck, lint, production build,
+design-system validation, planning integrity, documentation integrity, Git
+whitespace validation, and all 27 aggregate readiness checks also passed. The
+browser qualification covered light and dark themes, keyboard access, narrow
+layout, saved completion, exact technical evidence, answer privacy, reload
+persistence, and bounded failures. It exposed one functional narrow-layout
+overflow in the technical record; WRK-0078 corrected that behavior and
+requalified it without broadening the visual design scope.
+
+The exact WRK-0078 candidate was
+`d430205fdd4b41c3dbcb817769b8593b3649f783`; its fresh affected-verification
+receipt and independent R01 disposition were retained in the ignored local
+control-plane evidence store. The accepted single-profile development model
+and pinned Chromium browser remain explicit test assumptions. There is no
+known functional gap, unresolved decision, material CAP drift, or cleanup item
+that blocks completion. Nonfunctional visual polish remains eligible for
+CAP-0031 rather than reopening this slice.
 
 ## Planning History
 
@@ -238,3 +260,9 @@ failures, assumptions, known gaps, and any residual decision gate.
 - 2026-10-16: Entered slice verification with WRK-0076 through WRK-0078
   complete, exact receipts and independent dispositions retained, and no
   unresolved decision, stale documentation, migration, or CAP drift.
+- 2026-10-16: Closed the slice after its completion structure, 27 focused
+  component tests, 8 mocked Chromium tests, 8 isolated-live tests, typecheck,
+  lint, build, design, planning, documentation, whitespace, and all 27
+  aggregate readiness checks passed. No decision gate or functional gap
+  remains; cosmetic follow-up stays nonblocking and may be deferred to
+  CAP-0031.
