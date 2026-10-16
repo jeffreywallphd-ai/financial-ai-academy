@@ -140,6 +140,36 @@ class ReviewServiceTests(unittest.TestCase):
             },
         )
 
+    def failed_receipt(
+        self,
+        receipts: ReceiptStore,
+        candidate: str,
+        *,
+        timed_out: bool = False,
+        stable: bool = True,
+    ) -> Path:
+        plan = select_checks(catalog(), candidate, ["docs/README.md"])
+        return receipts.append(
+            "WORK-1",
+            {
+                "schema_version": "verification-receipt-v1",
+                "candidate": candidate,
+                "plan": plan,
+                "attempts": [
+                    {
+                        "check_id": "docs:fixture",
+                        "exit_code": None if timed_out else 1,
+                        "timed_out": timed_out,
+                    }
+                ],
+                "candidate_stability": {
+                    "post_run_stable": stable,
+                    "errors": [] if stable else ["candidate.dirty"],
+                },
+                "recorded_at": "2026-10-15T12:06:00Z",
+            },
+        )
+
     @staticmethod
     def blocking_finding(title: str = "Invariant violation") -> list[dict[str, Any]]:
         return [{"severity": "high", "blocking": True, "title": title, "criterion": "candidate preserves invariant", "evidence": ["synthetic reproduction"]}]
@@ -334,6 +364,96 @@ class ReviewServiceTests(unittest.TestCase):
             self.assertEqual(first_record, ledger.items[0])
             self.assertEqual({}, open_findings(ledger.items))
             self.assertEqual("b" * 40, state.load()["work_items"]["WORK-1"]["submission"]["candidate"])
+
+    def test_failed_verification_allows_a_strict_descendant_before_review(
+        self,
+    ) -> None:
+        for timed_out in (False, True):
+            with self.subTest(timed_out=timed_out), tempfile.TemporaryDirectory(
+                prefix="review-failed-verification-"
+            ) as directory:
+                root = Path(directory)
+                service, state, ledger, candidate, receipts = self.prepare(root)
+                self.failed_receipt(
+                    receipts,
+                    "a" * 40,
+                    timed_out=timed_out,
+                )
+
+                candidate.descendant = False
+                with self.assertRaises(ControlError) as forked:
+                    service.resubmit(
+                        "WORK-1",
+                        owner="owner",
+                        claim_id="claim-1",
+                    )
+                self.assertEqual(
+                    "review.not-strict-descendant",
+                    forked.exception.code,
+                )
+
+                candidate.descendant = True
+                result = service.resubmit(
+                    "WORK-1",
+                    owner="owner",
+                    claim_id="claim-1",
+                )
+
+                self.assertEqual(
+                    "review.corrected-descendant-submitted",
+                    result["code"],
+                )
+                self.assertTrue(result["data"]["fresh_verification_required"])
+                self.assertEqual([], ledger.items)
+                submission = state.load()["work_items"]["WORK-1"]["submission"]
+                self.assertEqual("a" * 40, submission["parent_candidate"])
+                self.assertEqual("b" * 40, submission["candidate"])
+
+    def test_failed_verification_route_rejects_untrusted_or_reviewed_evidence(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(prefix="review-no-receipt-") as directory:
+            service, _state, _ledger, _candidate, _receipts = self.prepare(
+                Path(directory)
+            )
+            with self.assertRaises(ControlError) as missing:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual("review.resubmit-not-authorized", missing.exception.code)
+
+        with tempfile.TemporaryDirectory(prefix="review-passing-receipt-") as directory:
+            service, _state, _ledger, _candidate, receipts = self.prepare(
+                Path(directory)
+            )
+            self.receipt(receipts, "a" * 40)
+            with self.assertRaises(ControlError) as passing:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual("review.resubmit-not-authorized", passing.exception.code)
+
+        with tempfile.TemporaryDirectory(prefix="review-drifted-receipt-") as directory:
+            service, _state, _ledger, _candidate, receipts = self.prepare(
+                Path(directory)
+            )
+            self.failed_receipt(receipts, "a" * 40, stable=False)
+            with self.assertRaises(ControlError) as drifted:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual("review.resubmit-not-authorized", drifted.exception.code)
+
+        with tempfile.TemporaryDirectory(prefix="reviewed-failed-receipt-") as directory:
+            root = Path(directory)
+            service, _state, ledger, _candidate, receipts = self.prepare(root)
+            service.record(
+                "WORK-1",
+                reviewer_label="independent",
+                status="accepted",
+                receipt_path=self.receipt(receipts, "a" * 40),
+                findings=[],
+                closures=[],
+            )
+            self.failed_receipt(receipts, "a" * 40)
+            with self.assertRaises(ControlError) as reviewed:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual("review.resubmit-not-authorized", reviewed.exception.code)
+            self.assertEqual(1, len(ledger.items))
 
     def test_third_candidate_requires_root_cause_after_two_adverse_rounds(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-root-cause-") as directory:

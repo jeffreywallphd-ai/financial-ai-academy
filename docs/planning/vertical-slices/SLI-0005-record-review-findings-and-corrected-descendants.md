@@ -1,10 +1,10 @@
 ---
 id: SLI-0005
 kind: vertical-slice
-planning_status: complete
+planning_status: active
 authority: noncanonical
-owner: codex-control-plane
-updated: 2026-10-15
+owner: codex-control-plane-correction
+updated: 2026-10-16
 parent: CAP-0002
 depends_on: ["SLI-0004"]
 decision_gates: []
@@ -110,6 +110,7 @@ SLI-0004 verification must run fresh before another review.
 | --- | --- | --- | --- | --- |
 | WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | complete |
 | WRK-0070 | Correct review proportionality so mechanically proven terminal-blank-line descendants receive fresh verification without redundant re-review | WRK-0013 | none | complete |
+| WRK-0112 | Allow a strict corrected descendant after the latest exact-candidate verification fails or times out, without fabricating a review | WRK-0013, WRK-0070 | none | ready |
 
 ## Verification and Qualification
 
@@ -154,3 +155,8 @@ performed; stronger reviewer authentication remains a future adapter decision.
 - 2026-10-16: Added bounded descendant WRK-0070 through the completed-work
   correction route. It preserves substantive review controls while removing a
   redundant review loop for verified cleanup-only descendants.
+- 2026-10-16: Reopened through a bounded WRK-0013 correction after a real
+  non-qualifying first verification exposed a lifecycle dead end. WRK-0112
+  permits only a strict descendant backed by the latest structurally valid
+  exact-candidate failed-execution receipt; fresh verification and ordinary
+  independent review remain required.

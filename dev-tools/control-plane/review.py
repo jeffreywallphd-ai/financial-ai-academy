@@ -135,6 +135,23 @@ class ReviewService:
             for path in reversed(self.receipts.paths(work_id, candidate))
         )
 
+    def _latest_receipt_is_failed_execution(
+        self,
+        work_id: str,
+        candidate: str,
+    ) -> bool:
+        """Return true only for an exact, intact receipt with failed execution."""
+
+        paths = self.receipts.paths(work_id, candidate)
+        if not candidate or not paths:
+            return False
+        errors = validate_receipt(
+            self.receipts.load(paths[-1]),
+            self.catalog,
+            current_candidate=candidate,
+        )
+        return errors == ["one or more selected checks failed or timed out"]
+
     def _valid_inheritance(
         self,
         rounds: list[dict[str, Any]],
@@ -321,8 +338,34 @@ class ReviewService:
     ) -> dict[str, Any]:
         authority = self.project.require_delivery_authority(work_id)
         rounds = self.ledger.rounds(work_id)
-        if not cleanup_only and (not rounds or rounds[-1].get("status") not in ADVERSE):
-            raise ControlError("review.resubmit-not-authorized", "Corrected resubmission requires the latest immutable review to be adverse.", {"latest_status": rounds[-1].get("status") if rounds else None}, ["Record the independent technical disposition first, or use --cleanup-only after accepted review when every open finding is cleanup."])
+        envelope, submitted_work, _recovered = self._submitted(work_id)
+        submitted_candidate = str(submitted_work["submission"]["candidate"])
+        exact_candidate_reviewed = any(
+            item.get("candidate") == submitted_candidate for item in rounds
+        )
+        failed_verification = (
+            not exact_candidate_reviewed
+            and self._latest_receipt_is_failed_execution(
+                work_id,
+                submitted_candidate,
+            )
+        )
+        latest_adverse = bool(
+            rounds and rounds[-1].get("status") in ADVERSE
+        )
+        if not cleanup_only and not latest_adverse and not failed_verification:
+            raise ControlError(
+                "review.resubmit-not-authorized",
+                "Corrected resubmission requires either a latest adverse review or the latest exact-candidate receipt to contain only failed or timed-out selected checks.",
+                {
+                    "latest_status": rounds[-1].get("status") if rounds else None,
+                    "exact_candidate_reviewed": exact_candidate_reviewed,
+                    "failed_verification": failed_verification,
+                },
+                [
+                    "Run affected verification for the exact candidate, record an independent disposition for a qualifying candidate, or use --cleanup-only after accepted review when every open finding is cleanup."
+                ],
+            )
         if not cleanup_only and consecutive_adverse(rounds) >= 2 and not (root_cause or "").strip():
             raise ControlError("review.root-cause-required", "A third candidate after two adverse rounds requires root-cause evidence.", {}, ["Pass concise root-cause evidence with the corrected resubmission."])
         projection = self.project.projection(work_id)
