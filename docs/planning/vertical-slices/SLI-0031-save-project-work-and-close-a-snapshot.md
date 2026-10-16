@@ -236,7 +236,7 @@ refined just in time.
 | --- | --- | --- | --- | --- |
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
-| WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | ready |
+| WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | active |
 | JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0120 | none | captured |
 
 ## Verification and Qualification
@@ -357,3 +357,6 @@ created, and no managed-cloud or production-recovery profile was qualified.
   generated-client learner workspace, inert file, snapshot, export, and
   continue-working flow without changing the completed API or moving domain,
   authorization, revision, or artifact policy into the browser.
+- 2026-10-16: Activated WRK-0120 after revalidating the completed public API
+  dependency, current CAP/SLI scope, decision readiness, generated-client-only
+  boundary, and collision-free browser write scope.
