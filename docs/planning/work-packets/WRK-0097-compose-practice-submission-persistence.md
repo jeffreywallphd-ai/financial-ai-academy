@@ -1,7 +1,7 @@
 ---
 id: WRK-0097
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -252,6 +252,7 @@ changed, then leave JIT-C dependency-ready.
 - 2026-10-16: Claimed from base revision `33d2e74` after the implementation
   gate confirmed current CAP authority, dependency completion, decision
   readiness, bounded scope, and no active ownership collision.
-- 2026-10-16: Implemented and moved to verification after focused application,
-  contract, real-database, legacy-regression, confidentiality, atomicity,
-  idempotency, concurrency, rollback, restart, and architecture checks passed.
+- 2026-10-16: Implemented and prepared the exact candidate submission after
+  focused application, contract, real-database, legacy-regression,
+  confidentiality, atomicity, idempotency, concurrency, rollback, restart, and
+  architecture checks passed.
