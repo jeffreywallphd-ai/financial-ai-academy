@@ -1,7 +1,7 @@
 ---
 id: WRK-0067
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0067-cover-web-and-live-affected-verification.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d98fb0697c879f9556963c0b62a3730a77eebc2f
+claim_id: WRK-0067:5df0e1ac-1024-4ab2-8dc4-c291a3d35b87
+claimed_by: codex-control-plane-correction
+claimed_at: 2026-10-16T01:29:01Z
 ---
 
 # Agent Work Packet: Cover Web and Live Affected Verification
