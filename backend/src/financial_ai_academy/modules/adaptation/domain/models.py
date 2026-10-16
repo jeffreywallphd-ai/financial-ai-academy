@@ -366,6 +366,15 @@ def _validated_inputs(
     _validate_version(request.policy_version, "policy_version")
     canonical_timestamp(request.evaluated_at)
     activity_ids = [activity.activity_id for activity in graph.activities]
+    if (
+        not isinstance(request.activity_facts, tuple)
+        or not 1 <= len(request.activity_facts) <= 500
+    ):
+        _reject(
+            NavigationStateErrorCode.INVALID_SOURCE_FACTS,
+            "activity_facts",
+            "Navigation-state source facts are invalid.",
+        )
     facts_by_id: dict[str, ActivitySourceFact] = {}
     for fact in request.activity_facts:
         if not isinstance(fact, ActivitySourceFact):

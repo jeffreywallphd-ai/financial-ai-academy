@@ -149,12 +149,37 @@ def test_optional_requirement_is_independent_of_other_state_dimensions() -> None
         ),
         activity_id,
     )
+    prerequisite = CurriculumRelationship(
+        relationship_id="relationship-risk-before-reading",
+        kind=CurriculumRelationshipKind.ACTIVITY_PREREQUISITE,
+        source_id="activity-risk-return-lesson",
+        target_id=activity_id,
+    )
+    graph = _redigest(
+        _graph(),
+        relationships=_graph().relationships + (prerequisite,),
+    )
+    locked = _state(
+        evaluate_navigation_state(
+            _request(
+                graph=graph,
+                facts=_with_fact(
+                    base,
+                    "activity-risk-return-lesson",
+                    completion_state=CompletionState.INCOMPLETE,
+                ),
+            )
+        ),
+        activity_id,
+    )
     assert eligible.requirement is RequirementState.OPTIONAL
     assert complete.requirement is RequirementState.OPTIONAL
     assert unavailable.requirement is RequirementState.OPTIONAL
+    assert locked.requirement is RequirementState.OPTIONAL
     assert eligible.eligibility is EligibilityState.ELIGIBLE
     assert complete.completion is CompletionState.COMPLETED
     assert unavailable.eligibility is EligibilityState.UNAVAILABLE
+    assert locked.eligibility is EligibilityState.LOCKED
 
 
 def test_flexible_graph_shapes_preserve_graph_order_without_hint_dependency() -> None:
@@ -198,19 +223,36 @@ def test_multiple_prerequisites_emit_one_reason_per_edge_in_graph_order() -> Non
     )
     graph = _redigest(graph, relationships=graph.relationships + (extra,))
     state = _state(
-        evaluate_navigation_state(_request(graph=graph)),
+        evaluate_navigation_state(
+            _request(
+                graph=graph,
+                facts=_with_fact(
+                    _facts(),
+                    "activity-risk-return-lesson",
+                    completion_state=CompletionState.INCOMPLETE,
+                ),
+            )
+        ),
         "activity-risk-return-check",
     )
     assert state.eligibility is EligibilityState.LOCKED
     assert [reason.code for reason in state.reasons] == [
         NavigationReasonCode.REQUIRED_ACTIVITY,
         NavigationReasonCode.PREREQUISITE_INCOMPLETE,
+        NavigationReasonCode.PREREQUISITE_INCOMPLETE,
     ]
-    assert state.reasons[-1].references == (
-        "activity-risk-return-check",
-        "activity-terms-glossary",
-        "relationship-glossary-before-check",
-    )
+    assert [reason.references for reason in state.reasons[1:]] == [
+        (
+            "activity-risk-return-check",
+            "activity-risk-return-lesson",
+            "relationship-lesson-before-check",
+        ),
+        (
+            "activity-risk-return-check",
+            "activity-terms-glossary",
+            "relationship-glossary-before-check",
+        ),
+    ]
 
 
 def test_unavailable_prerequisite_and_completion_sources_fail_closed() -> None:
@@ -253,6 +295,14 @@ def test_source_fact_closure_is_exact_and_bounded(mutation: str) -> None:
         evaluate_navigation_state(_request(facts=tuple(facts)))
     assert captured.value.code is NavigationStateErrorCode.INVALID_SOURCE_FACTS
     assert len(captured.value.reference) <= 120
+
+
+@pytest.mark.parametrize("malformed", [None, [], "not-a-collection"])
+def test_malformed_source_fact_collection_is_a_bounded_error(malformed) -> None:
+    with pytest.raises(NavigationStateError) as captured:
+        evaluate_navigation_state(replace(_request(), activity_facts=malformed))
+    assert captured.value.code is NavigationStateErrorCode.INVALID_SOURCE_FACTS
+    assert captured.value.reference == "activity_facts"
 
 
 def test_invalid_graph_and_time_are_adaptation_bounded_errors() -> None:

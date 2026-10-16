@@ -24,6 +24,11 @@ from financial_ai_academy.modules.curriculum.public import (
     curriculum_graph_from_mapping,
 )
 
+from curriculum_graph.runner import (
+    CurriculumGraphContractValidator,
+    graph_digest,
+)
+
 from .runner import (
     AdaptationNavigationContractValidator,
     ConformanceFailure,
@@ -41,8 +46,13 @@ REPOSITORY = Path(__file__).resolve().parents[4]
 CORPUS = default_corpus_dir()
 
 
-def _domain_request(source: dict[str, Any]) -> EvaluateNavigationStateRequest:
-    graph = curriculum_graph_from_mapping(load_json(default_graph_path()))
+def _domain_request(
+    source: dict[str, Any],
+    graph: dict[str, Any] | None = None,
+) -> EvaluateNavigationStateRequest:
+    domain_graph = curriculum_graph_from_mapping(
+        graph or load_json(default_graph_path())
+    )
     facts = tuple(
         ActivitySourceFact(
             activity_id=item["activity_id"],
@@ -55,7 +65,7 @@ def _domain_request(source: dict[str, Any]) -> EvaluateNavigationStateRequest:
         for item in source["activity_facts"]
     )
     return EvaluateNavigationStateRequest(
-        graph=graph,
+        graph=domain_graph,
         activity_facts=facts,
         evaluated_at=datetime.fromisoformat(
             source["evaluated_at"].replace("Z", "+00:00")
@@ -102,6 +112,61 @@ def test_source_fact_input_order_is_not_policy_authority() -> None:
     )
 
 
+def test_flexible_corpus_preserves_shape_and_state_independence() -> None:
+    case = load_json(CORPUS / "flexible/case.json")
+    graph = load_json(default_graph_path())
+    activities_by_id = {
+        item["activity_id"]: item for item in graph["activities"]
+    }
+    graph["activities"] = [
+        activities_by_id[activity_id]
+        for activity_id in case["activity_order"]
+    ]
+    if case["remove_presentation_order"]:
+        graph.pop("presentation_order", None)
+    graph["branches"].extend(case["additional_branches"])
+    graph["relationships"].extend(case["additional_relationships"])
+    graph["graph_digest"] = graph_digest(graph)
+    CurriculumGraphContractValidator().validate_graph(graph)
+
+    source, _ = approved_pair()
+    source["graph_digest"] = graph["graph_digest"]
+    source["activity_facts"] = case["activity_facts"]
+    projection = navigation_state_payload(
+        evaluate_navigation_state(_domain_request(source, graph))
+    )
+    AdaptationNavigationContractValidator().validate_pair(
+        source,
+        projection,
+        graph,
+    )
+
+    expected = case["expected"]
+    states = {
+        item["activity_id"]: item for item in projection["activity_states"]
+    }
+    assert [
+        item["activity_id"] for item in projection["activity_states"]
+    ] == expected["state_order"]
+    assert [
+        activity_id
+        for activity_id in expected["optional_locked_activity_ids"]
+        if states[activity_id]["requirement"] == "optional"
+        and states[activity_id]["eligibility"] == "locked"
+    ] == expected["optional_locked_activity_ids"]
+    multiple_unmet = states[expected["multiple_unmet_activity_id"]]
+    assert [
+        reason["references"]
+        for reason in multiple_unmet["reasons"]
+        if reason["code"] == "prerequisite_incomplete"
+    ] == expected["multiple_unmet_references"]
+    assert [
+        item["activity_id"]
+        for item in projection["activity_states"]
+        if item["reasons"][-1]["code"] == "entry_activity"
+    ] == expected["entry_activity_ids"]
+
+
 @pytest.mark.parametrize(
     "mutation,expected_code",
     [
@@ -139,7 +204,7 @@ def test_source_closure_denials_are_bounded(
     assert "private-payload" not in captured.value.diagnostic.message
 
 
-def test_tampered_projection_digest_and_reason_reference_fail_closed() -> None:
+def test_tampered_projection_digest_fails_closed() -> None:
     source, projection = copy.deepcopy(approved_pair())
     projection["activity_states"][0]["completion"] = "incomplete"
     with pytest.raises(ConformanceFailure) as digest_failure:
@@ -152,19 +217,40 @@ def test_tampered_projection_digest_and_reason_reference_fail_closed() -> None:
         "adaptation_navigation.projection_digest_mismatch"
     )
 
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["requirement", "eligibility", "reason_code", "direction", "reason_order"],
+)
+def test_recomputed_digest_cannot_hide_semantic_tampering(
+    mutation: str,
+) -> None:
     source, projection = copy.deepcopy(approved_pair())
-    projection["activity_states"][0]["reasons"][0]["references"] = [
-        "activity-private"
-    ]
+    if mutation == "requirement":
+        projection["activity_states"][2]["requirement"] = "required"
+    elif mutation == "eligibility":
+        projection["activity_states"][2]["eligibility"] = "locked"
+    elif mutation == "reason_code":
+        projection["activity_states"][2]["reasons"][0]["code"] = (
+            "required_activity"
+        )
+    elif mutation == "direction":
+        references = projection["activity_states"][1]["reasons"][1][
+            "references"
+        ]
+        references[0], references[1] = references[1], references[0]
+    else:
+        projection["activity_states"][0]["reasons"].reverse()
     projection["projection_digest"] = projection_digest(projection)
-    with pytest.raises(ConformanceFailure) as reference_failure:
+    with pytest.raises(ConformanceFailure) as semantic_failure:
         AdaptationNavigationContractValidator().validate_pair(
             source,
             projection,
             load_json(default_graph_path()),
         )
-    assert reference_failure.value.diagnostic.code == (
-        "adaptation_navigation.reason_reference_invalid"
+    assert semantic_failure.value.diagnostic.code == (
+        "adaptation_navigation.source_meaning_mismatch"
     )
 
 

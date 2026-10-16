@@ -139,6 +139,164 @@ def projection_digest(projection: Mapping[str, Any]) -> str:
     return hashlib.sha256(canonical_projection_bytes(projection)).hexdigest()
 
 
+def expected_activity_states(
+    source: Mapping[str, Any],
+    graph: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Independently derive the complete deterministic policy result."""
+    facts = {item["activity_id"]: item for item in source["activity_facts"]}
+    requirements = {
+        item["activity_id"]: "unassigned" for item in graph["activities"]
+    }
+    for branch in graph["branches"]:
+        requirement = "required" if branch["kind"] == "required" else "optional"
+        for activity_id in branch["activity_ids"]:
+            requirements[activity_id] = requirement
+    prerequisites: dict[str, list[Mapping[str, Any]]] = {
+        item["activity_id"]: [] for item in graph["activities"]
+    }
+    for relationship in graph["relationships"]:
+        if relationship["kind"] == "activity_prerequisite":
+            prerequisites[relationship["target_id"]].append(relationship)
+
+    requirement_reasons = {
+        "required": (
+            "required_activity",
+            "This activity belongs to a required curriculum branch.",
+        ),
+        "optional": (
+            "optional_activity",
+            "This activity belongs to an optional curriculum branch.",
+        ),
+        "unassigned": (
+            "unassigned_activity",
+            "This activity is not assigned to a required or optional branch.",
+        ),
+    }
+    states: list[dict[str, Any]] = []
+    for activity in graph["activities"]:
+        activity_id = activity["activity_id"]
+        fact = facts[activity_id]
+        requirement = requirements[activity_id]
+        reasons: list[dict[str, Any]] = []
+        if fact["completion_state"] == "completed":
+            reasons.append(
+                {
+                    "code": "activity_completed",
+                    "explanation": (
+                        "Accepted completion evidence exists for this exact activity."
+                    ),
+                    "references": [activity_id],
+                }
+            )
+        requirement_code, requirement_text = requirement_reasons[requirement]
+        reasons.append(
+            {
+                "code": requirement_code,
+                "explanation": requirement_text,
+                "references": [activity_id],
+            }
+        )
+
+        if fact["activity_source_state"] == "unavailable":
+            eligibility = "unavailable"
+            reasons.append(
+                {
+                    "code": "activity_source_unavailable",
+                    "explanation": (
+                        "The exact activity source is currently unavailable."
+                    ),
+                    "references": [activity_id],
+                }
+            )
+        elif fact["completion_state"] == "unavailable":
+            eligibility = "unavailable"
+            reasons.append(
+                {
+                    "code": "completion_source_unavailable",
+                    "explanation": (
+                        "Current completion evidence cannot be evaluated safely."
+                    ),
+                    "references": [activity_id],
+                }
+            )
+        else:
+            incoming = prerequisites[activity_id]
+            unmet = [
+                relationship
+                for relationship in incoming
+                if facts[relationship["source_id"]]["completion_state"]
+                != "completed"
+                or facts[relationship["source_id"]]["activity_source_state"]
+                != "available"
+            ]
+            if unmet:
+                eligibility = "locked"
+                for relationship in unmet:
+                    prerequisite = facts[relationship["source_id"]]
+                    unavailable = (
+                        prerequisite["completion_state"] == "unavailable"
+                        or prerequisite["activity_source_state"] == "unavailable"
+                    )
+                    reasons.append(
+                        {
+                            "code": (
+                                "prerequisite_unavailable"
+                                if unavailable
+                                else "prerequisite_incomplete"
+                            ),
+                            "explanation": (
+                                "A required prerequisite cannot be evaluated safely."
+                                if unavailable
+                                else "A required prerequisite is not complete."
+                            ),
+                            "references": [
+                                activity_id,
+                                relationship["source_id"],
+                                relationship["relationship_id"],
+                            ],
+                        }
+                    )
+            else:
+                eligibility = "eligible"
+                if incoming:
+                    for relationship in incoming:
+                        reasons.append(
+                            {
+                                "code": "prerequisite_satisfied",
+                                "explanation": (
+                                    "A required activity prerequisite is complete."
+                                ),
+                                "references": [
+                                    activity_id,
+                                    relationship["source_id"],
+                                    relationship["relationship_id"],
+                                ],
+                            }
+                        )
+                else:
+                    reasons.append(
+                        {
+                            "code": "entry_activity",
+                            "explanation": (
+                                "This activity has no activity prerequisite."
+                            ),
+                            "references": [activity_id],
+                        }
+                    )
+        states.append(
+            {
+                "activity_id": activity_id,
+                "completion": fact["completion_state"],
+                "eligibility": eligibility,
+                "requirement": requirement,
+                "availability": fact["activity_source_state"],
+                "reasons": reasons,
+            }
+        )
+    return states
+
+
 class AdaptationNavigationContractValidator:
     def __init__(self, schema_dir: Path | None = None) -> None:
         root = schema_dir or default_schema_dir()
@@ -257,27 +415,15 @@ class AdaptationNavigationContractValidator:
                 "projection_digest",
                 "Adaptation navigation projection digest does not match.",
             )
-        known_references = set(activity_ids) | {
-            item["relationship_id"] for item in graph["relationships"]
-        }
-        for state in projection["activity_states"]:
-            fact = facts_by_id[state["activity_id"]]
-            if (
-                state["completion"] != fact["completion_state"]
-                or state["availability"] != fact["activity_source_state"]
-            ):
-                reject(
-                    "adaptation_navigation.source_meaning_mismatch",
-                    state["activity_id"],
-                    "Adaptation navigation source meaning does not match.",
-                )
-            for reason in state["reasons"]:
-                if any(item not in known_references for item in reason["references"]):
-                    reject(
-                        "adaptation_navigation.reason_reference_invalid",
-                        state["activity_id"],
-                        "Adaptation navigation reason reference is invalid.",
-                    )
+        if projection["activity_states"] != expected_activity_states(
+            ordered_source,
+            graph,
+        ):
+            reject(
+                "adaptation_navigation.source_meaning_mismatch",
+                "activity_states",
+                "Adaptation navigation source meaning does not match.",
+            )
 
 
 def approved_pair(
