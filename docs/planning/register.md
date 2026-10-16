@@ -182,7 +182,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0108 | Work packet | [Qualify the Complete Practice Capability](work-packets/WRK-0108-qualify-complete-practice-capability.md) | complete | SLI-0029 | none | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0109 | Work packet | [Freeze Project Shell and Origin Contracts](work-packets/WRK-0109-freeze-project-shell-origin-contracts.md) | complete | SLI-0030 | none | none | codex-cap-0007 | 2026-10-16 |
 | WRK-0110 | Work packet | [Deliver Project Persistence and Public API](work-packets/WRK-0110-deliver-project-persistence-public-api.md) | complete | SLI-0030 | WRK-0109 | none | codex-cap-0007 | 2026-10-16 |
-| WRK-0111 | Work packet | [Deliver the Project Browser Flow](work-packets/WRK-0111-deliver-project-browser-flow.md) | active | SLI-0030 | WRK-0110 | none | codex-cap-0007 | 2026-10-16 |
+| WRK-0111 | Work packet | [Deliver the Project Browser Flow](work-packets/WRK-0111-deliver-project-browser-flow.md) | verifying | SLI-0030 | WRK-0110 | none | codex-cap-0007 | 2026-10-16 |
 | WRK-0112 | Work packet | [Allow Resubmission After Failed Verification](work-packets/WRK-0112-allow-resubmission-after-failed-verification.md) | complete | SLI-0005 | WRK-0013, WRK-0070 | none | codex-control-plane-correction | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
