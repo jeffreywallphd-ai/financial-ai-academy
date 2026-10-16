@@ -1,7 +1,7 @@
 ---
 id: WRK-0074
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/curriculum-graph/CurriculumGraphRoute.tsx", "apps/web/tests/component/curriculumGraph.test.tsx", "apps/web/README.md", "docs/planning/work-packets/WRK-0074-clarify-learning-path-recovery.md", "docs/planning/vertical-slices/SLI-0123-understand-learning-path-state-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: aabdff6111e3cfba467d91cceaa403f8a2922101
+claim_id: WRK-0074:7b4f1a96-7717-44d3-b548-e5f755474e8b
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T10:11:08Z
 ---
 
 # Agent Work Packet: Clarify Learning Path Recovery
