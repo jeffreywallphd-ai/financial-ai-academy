@@ -1,7 +1,7 @@
 ---
 id: WRK-0102
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -202,6 +202,11 @@ was implemented. Leave the next SLI-0028 persistence packet dependency-ready.
 
 ## Planning History
 
+- 2026-10-16: Submitted exact candidate
+  `297e8a51d29f5fdf07ea27ddbc1cbc8ad256aef6` for affected verification and
+  independent technical review. The candidate adds only the frozen contract,
+  compatibility, conformance, and documentation boundaries; production
+  persistence, APIs, clients, and UI remain deferred.
 - 2026-10-16: Claimed from base revision `9eb7ea6c1d383df298102778611790d706ccad3a`
   and activated for bounded contract implementation under the repository control
   plane. No lower-level approval was required by the current CAP authorization.
