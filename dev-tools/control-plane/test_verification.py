@@ -4,17 +4,20 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from contracts import ControlError  # noqa: E402
+from check_approved_lesson import WebRuntime, execute as execute_web_check  # noqa: E402
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
@@ -128,7 +131,16 @@ class SelectionTests(unittest.TestCase):
         first = select_checks(catalog, "a" * 40, paths)
         second = select_checks(catalog, "a" * 40, list(reversed(paths)))
         self.assertEqual(first, second)
-        self.assertEqual(["control-plane:unit", "planning:tools", "planning:integrity", "documentation:integrity"], [item["check_id"] for item in first["selected"]])
+        self.assertEqual(
+            [
+                "control-plane:unit",
+                "control-plane:verification",
+                "planning:tools",
+                "planning:integrity",
+                "documentation:integrity",
+            ],
+            [item["check_id"] for item in first["selected"]],
+        )
 
     def test_docs_and_control_changes_do_not_select_full_readiness(self) -> None:
         catalog = repository_catalog()
@@ -146,6 +158,36 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual("high", plan["risk"])
         self.assertEqual(["dev-tools/agent/check_ready.py"], selected["agent:readiness"]["matched_paths"])
         self.assertEqual("affected path matched tracked rule", selected["agent:readiness"]["reason"])
+
+    def test_web_selection_exercises_behavior_without_forcing_live_on_mocked_tests(self) -> None:
+        mocked_plan = select_checks(
+            repository_catalog(),
+            "a" * 40,
+            ["apps/web/tests/browser/lesson-reading/example.spec.ts"],
+        )
+        mocked_ids = [item["check_id"] for item in mocked_plan["selected"]]
+        self.assertEqual(
+            ["web:typecheck", "web:lint", "web:unit", "web:browser"],
+            mocked_ids,
+        )
+        self.assertNotIn("approved-lesson:live", mocked_ids)
+        self.assertNotIn("agent:readiness", mocked_ids)
+
+        live_plan = select_checks(
+            repository_catalog(),
+            "a" * 40,
+            ["apps/web/tests/browser/approved-lesson/example.e2e.ts"],
+        )
+        self.assertEqual(
+            [
+                "web:typecheck",
+                "web:lint",
+                "web:unit",
+                "approved-lesson:live",
+                "agent:readiness",
+            ],
+            [item["check_id"] for item in live_plan["selected"]],
+        )
 
     def test_unclassified_path_refuses_instead_of_arbitrary_or_full_fallback(self) -> None:
         with self.assertRaises(ControlError) as refused:
@@ -201,6 +243,74 @@ class ExecutionAndReceiptTests(unittest.TestCase):
         fingerprint = environment_fingerprint()
         self.assertFalse(fingerprint["reuse_eligible"])
         self.assertIn("not authenticated", fingerprint["reuse_reason"])
+
+
+class RepositoryWebCheckTests(unittest.TestCase):
+    runtime = WebRuntime(node="node", npm=("npm",))
+
+    @staticmethod
+    def versions(command: tuple[str, ...], *, root: Path) -> str:
+        del root
+        return "v24.14.0" if command[0] == "node" else "10.8.2"
+
+    def test_live_check_restores_existing_build_after_failure(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="web-check-existing-") as directory:
+            root = Path(directory)
+            dist = root / "apps" / "web" / "dist"
+            dist.mkdir(parents=True)
+            (dist / "index.html").write_text("old-index", encoding="utf-8")
+            (dist / "old.js").write_text("old-asset", encoding="utf-8")
+            calls = 0
+
+            def failing_runner(command: tuple[str, ...], *, root: Path) -> None:
+                nonlocal calls
+                calls += 1
+                if calls == 1:
+                    shutil.rmtree(root / "apps" / "web" / "dist")
+                    (root / "apps" / "web" / "dist").mkdir()
+                    (root / "apps" / "web" / "dist" / "index.html").write_text(
+                        "new-index", encoding="utf-8"
+                    )
+                    return
+                raise RuntimeError("synthetic live failure")
+
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+            ):
+                with self.assertRaisesRegex(RuntimeError, "synthetic live failure"):
+                    execute_web_check(
+                        "live",
+                        root=root,
+                        command_runner=failing_runner,
+                        version_reader=self.versions,
+                    )
+            self.assertEqual("old-index", (dist / "index.html").read_text(encoding="utf-8"))
+            self.assertEqual("old-asset", (dist / "old.js").read_text(encoding="utf-8"))
+            self.assertEqual(2, calls)
+
+    def test_live_check_removes_generated_build_when_none_existed(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="web-check-missing-") as directory:
+            root = Path(directory)
+            dist = root / "apps" / "web" / "dist"
+            commands: list[tuple[str, ...]] = []
+
+            def successful_runner(command: tuple[str, ...], *, root: Path) -> None:
+                commands.append(tuple(command))
+                if "build" in command:
+                    dist.mkdir(parents=True)
+                    (dist / "index.html").write_text("new-index", encoding="utf-8")
+
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+            ):
+                execute_web_check(
+                    "live",
+                    root=root,
+                    command_runner=successful_runner,
+                    version_reader=self.versions,
+                )
+            self.assertFalse(dist.exists())
+            self.assertEqual(2, len(commands))
 
 
 class VerificationServiceTests(unittest.TestCase):

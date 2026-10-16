@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0004-select-affected-checks-and-record-receipts.md", "docs/planning/work-packets/WRK-0067-cover-web-and-live-affected-verification.md"]
 generated_artifacts: []
-base_revision: d98fb0697c879f9556963c0b62a3730a77eebc2f
-claim_id: WRK-0067:5df0e1ac-1024-4ab2-8dc4-c291a3d35b87
+base_revision: d98fb06d5370358c02b0cc7840feb7cae5e3cf68
+claim_id: WRK-0067:47dd5928-895f-43cd-a3e2-1eb258efe3ff
 claimed_by: codex-control-plane-correction
-claimed_at: 2026-10-16T01:29:01Z
+claimed_at: 2026-10-16T01:33:39Z
 ---
 
 # Agent Work Packet: Cover Web and Live Affected Verification
