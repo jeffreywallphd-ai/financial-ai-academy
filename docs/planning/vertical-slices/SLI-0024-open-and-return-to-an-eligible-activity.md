@@ -1,7 +1,7 @@
 ---
 id: SLI-0024
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -264,6 +264,52 @@ compatibility; migration non-applicability; assumptions and known gaps; and
 confirmation that model, recommendation, mastery, provider, external service,
 and durable-state authority did not change.
 
+- Delivered outcome and boundaries: WRK-0085 through WRK-0089 add the closed
+  activity-launch contract and deterministic resolver, compose the protected
+  Adaptation/API operation, use the generated client for learner-controlled
+  launch and exact return, qualify two immutable graph versions in the live
+  stack, and make exact-candidate live verification portable. The public API is
+  the shared boundary for browser and non-UI clients; no separate AI mode was
+  planned or implemented.
+- Acceptance evidence: eligible and completed lessons expose server-resolved
+  start/review actions; locked, unavailable, assessment, unknown, unauthorized,
+  malformed, and missing-version selections fail closed without destination or
+  protected-state disclosure; return reloads fresh complete/current state;
+  reused exact sources retain completion while changed placements do not;
+  optional and flexible graph shapes remain visible and operable.
+- Verification: 110 focused backend contract/policy/application/API/
+  architecture tests, 57 focused web unit/component/generated-client tests, 13
+  mocked Chromium graph/lesson tests, and eight isolated PostgreSQL 18.4/
+  Python/public-API/generated-client/Chromium scenarios passed. Architecture
+  fitness passed 15 tests, security passed 10 control groups, the verifier
+  suite passed 28 tests with three platform-bounded skips, OpenAPI and the
+  generated client were current, TypeScript typecheck/lint/build passed, and
+  the fixed aggregate readiness gate passed all 29 checks. Packet-specific
+  exact candidates also hold qualifying affected-verification receipts and
+  accepted independent technical reviews.
+- Compatibility and provenance: activity-launch v1 is additive and closed;
+  exact graph, projection, placement, package, and evidence digests remain
+  correlated. Existing graph, navigation, lesson, assessment, and completion
+  meanings are unchanged. No persistence schema, migration, backfill, backup,
+  or recovery action applies; rollback is removal of the additive UI/API/
+  resolver seam in reverse dependency order.
+- Documentation: Adaptation, host, web, local-deployment, control-plane,
+  architecture-verification, and adaptive-navigation guidance are synchronized.
+  Planning and documentation integrity checks pass; no derived context became
+  canonical and no approval or reviewer identity is tracked.
+- Qualification not performed: managed-cloud deployment, production recovery,
+  concurrent multi-user load, non-Chromium engines, external providers, and a
+  headless AI agent were not exercised because they are outside CAP-0005. The
+  public API remains available for future headless use. POSIX venv-symlink
+  behavior has executable platform-gated regression coverage; Windows live
+  qualification passed on this host.
+- Assumptions and residual risk: current single-profile identity/permission
+  policy and exact immutable graph/package references remain authoritative.
+  Ranking, recommendation, mastery, model authority, automatic next-step
+  selection, durable launch history, and inferred cross-version equivalence
+  remain intentionally absent. No unresolved decision or material CAP drift
+  remains, and no lower-level completion approval is required.
+
 ## Planning History
 
 - 2026-10-16: Refined just in time after SLI-0023 completion. Candidate A
@@ -354,3 +400,8 @@ and durable-state authority did not change.
 - 2026-10-16: Entered deterministic slice verification after all five packets
   completed with qualifying exact-candidate receipts and accepted independent
   reviews. No completion approval is required.
+- 2026-10-16: Completed SLI-0024 after the cumulative completion gate and
+  focused backend, API, contract, generated-client, component, mocked-browser,
+  live-browser, architecture, security, documentation, planning, and aggregate
+  evidence passed. The slice conforms to CAP-0005 without adding browser-only
+  authority, durable navigation state, model behavior, or a separate AI mode.
