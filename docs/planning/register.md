@@ -128,6 +128,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0065 | Work packet | [Annotate Curriculum Navigation State](work-packets/WRK-0065-annotate-curriculum-navigation-state.md) | complete | SLI-0023 | WRK-0063 | none | codex-cap-0005 | 2026-10-16 |
 | WRK-0066 | Work packet | [Qualify Live Curriculum Navigation State](work-packets/WRK-0066-qualify-live-curriculum-navigation-state.md) | complete | SLI-0023 | WRK-0065 | none | codex-cap-0005 | 2026-10-16 |
 | WRK-0067 | Work packet | [Cover Web and Live Affected Verification](work-packets/WRK-0067-cover-web-and-live-affected-verification.md) | complete | SLI-0004 | WRK-0012 | none | codex-control-plane-correction | 2026-10-16 |
+| WRK-0068 | Work packet | [Establish the Learner-Facing Language Standard](work-packets/WRK-0068-establish-learner-facing-language-standard.md) | ready | SLI-0122 | none | none | codex-plain-language-ui | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |
