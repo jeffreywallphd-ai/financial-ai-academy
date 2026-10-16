@@ -203,7 +203,7 @@ their work begins. The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | planned |
+| WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | ready |
 | JIT-B | Compose the protected application/API operation through current public gateways and regenerate the client | JIT-A | none | planned |
 | JIT-C | Add learner actions, validated return context, and equivalent list/map current-position presentation | JIT-B | none | planned |
 | JIT-D | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | JIT-C | none | planned |
@@ -271,3 +271,6 @@ and durable-state authority did not change.
   version context without durable navigation state. The four packet seams
   conform to the approved CAP-0005 outcome, manifest, dependency order, scope,
   risk posture, and non-goals and add no decision or lower-level approval gate.
+- 2026-10-16: Refined JIT-A as WRK-0085 around the closed activity-launch v1
+  success contract, pure exact-input decision, stable bounded denials, public
+  Adaptation surface, and direct compatibility/anti-rigidity evidence.
