@@ -14,12 +14,9 @@ export function LessonLoadingState() {
       className="lesson-loading"
       role="status"
     >
-      <p className="eyebrow">Approved financial foundations lesson</p>
+      <p className="eyebrow">Financial foundations lesson</p>
       <h1>Opening your lesson</h1>
-      <p>
-        Establishing the private learner session and loading the exact
-        reviewed version.
-      </p>
+      <p>Starting your learner session and opening the reviewed lesson.</p>
       <div aria-hidden="true" className="loading-placeholder" />
       <span className="visually-hidden">Lesson loading in progress.</span>
     </section>
@@ -49,26 +46,26 @@ export function LessonRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="A private learner session could not be established. No lesson details were shown."
+          description="We couldn't start your learner session. No private learning details were shown."
           icon="lock"
           onAction={onRetry}
-          title="Learner session required"
+          title="We couldn't start your learner session"
           tone="warning"
         />
       );
     case "forbidden":
       return (
         <StatusPanel
-          description="This local learner profile is not permitted to open the requested lesson."
+          description="This learner profile does not have access to the requested lesson. No lesson details were shown."
           icon="lock"
-          title="Lesson access unavailable"
+          title="You don't have access to this lesson"
           tone="warning"
         />
       );
     case "not-found":
       return (
         <StatusPanel
-          description="The requested placement is not available. A different or newer lesson was not substituted."
+          description="We couldn't find this lesson version. We did not substitute a different or newer lesson."
           icon="info-circle"
           title="Lesson not found"
           tone="info"
@@ -78,7 +75,7 @@ export function LessonRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The exact lesson could not be opened right now. Your learning record was not changed."
+          description="We couldn't open this lesson right now. Your learning record was not changed."
           icon="warning-triangle"
           onAction={onRetry}
           title="Lesson temporarily unavailable"
@@ -88,9 +85,9 @@ export function LessonRouteView({
     case "invalid-content":
       return (
         <StatusPanel
-          description="This lesson did not pass the safe reading checks, so no partial content was displayed."
+          description="This lesson did not pass our safety checks, so we did not show partial content."
           icon="error-circle"
-          title="Lesson content unavailable"
+          title="We couldn't show this lesson safely"
           tone="danger"
         />
       );
@@ -98,10 +95,10 @@ export function LessonRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The lesson could not be completed safely. No technical or private details were displayed."
+          description="We couldn't open this lesson. No private learning details were shown."
           icon="error-circle"
           onAction={onRetry}
-          title="Something went wrong"
+          title="We couldn't open this lesson"
           tone="danger"
         />
       );

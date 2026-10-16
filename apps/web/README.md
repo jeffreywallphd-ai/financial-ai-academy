@@ -129,9 +129,13 @@ never substitute another version or reveal partial learning-path details.
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated
 OpenAPI client. It renders only the closed safe body-node union and presents
-objectives, reviewed sources, package version/digest, and publication
-provenance. Unknown nodes, unsafe locators, denial, missing exact placement,
-integrity failure, and unavailable responses fail to bounded page states.
+objectives, reviewed sources, publication details, and the educational-use
+limitation in the learner's main flow. Exact package identity, version, and
+digest remain complete under an accessible `Technical record` disclosure.
+Loading and bounded failures state the learner-visible result, protected-record
+meaning, and existing safe action without exposing internal checks. Unknown
+nodes, unsafe locators, denial, missing exact placement, integrity failure, and
+unavailable responses continue to fail to bounded page states.
 The same route reads the exact Assessment presentation and submits one
 single-choice response through the generated client. Scoring and learner
 identity remain server-authoritative; the browser never receives the answer

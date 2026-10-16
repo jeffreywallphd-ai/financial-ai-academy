@@ -30,12 +30,12 @@ export function LessonReadingPage({
         <header className="lesson-header">
           <p className="eyebrow">
             <Icon className="faa-icon--active" name="learn" />
-            Approved financial foundations lesson
+            Financial foundations lesson
           </p>
           <h1 id="lesson-title">{lesson.title}</h1>
           <p className="lesson-introduction">
-            Build a clear conceptual foundation with reviewed educational
-            material and source attribution.
+            Learn the key ideas with reviewed educational material and clear
+            source information.
           </p>
         </header>
 
@@ -103,17 +103,9 @@ export function LessonReadingPage({
         <section className="context-card">
           <h2 id="lesson-provenance">
             <Icon className="faa-icon--success" name="shield-check" />
-            Publication context
+            Publication details
           </h2>
           <dl>
-            <div>
-              <dt>Package</dt>
-              <dd>{lesson.package_id}</dd>
-            </div>
-            <div>
-              <dt>Version</dt>
-              <dd>{lesson.package_version}</dd>
-            </div>
             <div>
               <dt>Published by</dt>
               <dd>{lesson.provenance.published_by}</dd>
@@ -129,10 +121,25 @@ export function LessonReadingPage({
               </dd>
             </div>
           </dl>
-          <div className="package-digest">
-            <span>Package digest</span>
-            <code>{lesson.package_digest}</code>
-          </div>
+          <details>
+            <summary>Technical record</summary>
+            <dl>
+              <div>
+                <dt>Lesson package</dt>
+                <dd>{lesson.package_id}</dd>
+              </div>
+              <div>
+                <dt>Lesson version</dt>
+                <dd>{lesson.package_version}</dd>
+              </div>
+              <div>
+                <dt>Lesson integrity code</dt>
+                <dd>
+                  <code>{lesson.package_digest}</code>
+                </dd>
+              </div>
+            </dl>
+          </details>
         </section>
 
         <section
