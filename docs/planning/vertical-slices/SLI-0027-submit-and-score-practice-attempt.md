@@ -1,7 +1,7 @@
 ---
 id: SLI-0027
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -190,7 +190,7 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | ready |
+| WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | active |
 | JIT-B | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | JIT-A | none | candidate |
 | JIT-C | Add the protected public POST, reviewed OpenAPI/generated client, and accessible browser submit/result flow with headless parity | JIT-B | none | candidate |
 | JIT-D | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-C | none | candidate |
@@ -266,3 +266,7 @@ or autonomous authority was planned or implemented.
   completion-event contracts plus pure deterministic scoring and canonical
   request identity. Persistence and the public API remain the next packet's
   boundary.
+- 2026-10-16: Activated WRK-0096 after the implementation gate confirmed
+  current CAP authority, completed SLI-0026 dependency, decision readiness,
+  exact write scope, and collision-free ownership. No lower-level approval was
+  requested.

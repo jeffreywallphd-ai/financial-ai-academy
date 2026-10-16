@@ -1,7 +1,7 @@
 ---
 id: WRK-0096
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/practice_submission_contract.py", "backend/src/financial_ai_academy/modules/assessment/domain/practice.py", "backend/src/financial_ai_academy/modules/assessment/ports/practice_submission.py", "backend/tests/contract/assessment_practice", "backend/tests/unit/assessment/test_practice_scoring.py", "contracts/compatibility/assessment-practice/v1", "contracts/learning/README.md", "contracts/learning/assessment/practice/v1", "docs/architecture/contracts/assessment-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0027-submit-and-score-practice-attempt.md", "docs/planning/work-packets/WRK-0096-freeze-practice-submission-scoring-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: fa699366c86a1f6c3c6f3ff11cac0858e68c7b82
+claim_id: WRK-0096:5cad0928-5ca0-46c8-9444-19262ded9f6a
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T15:38:46Z
 ---
 
 # Agent Work Packet: Freeze Practice Submission and Scoring Contracts

@@ -65,7 +65,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0024 | Vertical slice | [Open and Return to an Eligible Activity](vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md) | complete | CAP-0005 | SLI-0023 | none | codex-cap-0005 | 2026-10-16 |
 | SLI-0025 | Vertical slice | [Qualify Complete Curriculum Navigation](vertical-slices/SLI-0025-qualify-complete-curriculum-navigation.md) | complete | CAP-0005 | SLI-0024 | none | codex-cap-0005 | 2026-10-16 |
 | SLI-0026 | Vertical slice | [Open a Versioned Practice Activity](vertical-slices/SLI-0026-open-versioned-practice-activity.md) | complete | CAP-0006 | none | none | codex-cap-0006 | 2026-10-16 |
-| SLI-0027 | Vertical slice | [Submit and Score a Practice Attempt](vertical-slices/SLI-0027-submit-and-score-practice-attempt.md) | ready | CAP-0006 | SLI-0026 | none | codex-cap-0006 | 2026-10-16 |
+| SLI-0027 | Vertical slice | [Submit and Score a Practice Attempt](vertical-slices/SLI-0027-submit-and-score-practice-attempt.md) | active | CAP-0006 | SLI-0026 | none | codex-cap-0006 | 2026-10-16 |
 | SLI-0034 | Vertical slice | [Project Dynamic Roadmap Review Data](vertical-slices/SLI-0034-project-dynamic-roadmap-review-data.md) | complete | CAP-0008 | none | none | codex-roadmap-order-correction | 2026-10-16 |
 | SLI-0035 | Vertical slice | [Review Capability Order and Parallelism](vertical-slices/SLI-0035-review-capability-order-and-parallelism.md) | complete | CAP-0008 | SLI-0034 | none | codex-roadmap-order-correction | 2026-10-16 |
 | SLI-0036 | Vertical slice | [Navigate Capability, Slice, and Work Plans](vertical-slices/SLI-0036-navigate-capability-slice-and-work-plans.md) | complete | CAP-0008 | SLI-0034, SLI-0035 | none | codex-roadmap-review | 2026-10-15 |
@@ -164,7 +164,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0093 | Work packet | [Compose Protected Practice Opening API](work-packets/WRK-0093-compose-protected-practice-opening-api.md) | complete | SLI-0026 | WRK-0092 | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0094 | Work packet | [Deliver Practice Opening Browser Route](work-packets/WRK-0094-deliver-practice-opening-browser-route.md) | complete | SLI-0026 | WRK-0093 | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0095 | Work packet | [Qualify Live Practice Opening](work-packets/WRK-0095-qualify-live-practice-opening.md) | complete | SLI-0026 | WRK-0094 | none | codex-cap-0006 | 2026-10-16 |
-| WRK-0096 | Work packet | [Freeze Practice Submission and Scoring Contracts](work-packets/WRK-0096-freeze-practice-submission-scoring-contracts.md) | ready | SLI-0027 | none | none | codex-cap-0006 | 2026-10-16 |
+| WRK-0096 | Work packet | [Freeze Practice Submission and Scoring Contracts](work-packets/WRK-0096-freeze-practice-submission-scoring-contracts.md) | active | SLI-0027 | none | none | codex-cap-0006 | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |
