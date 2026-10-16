@@ -1,7 +1,7 @@
 ---
 id: WRK-0086
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/adaptation/application/service.py", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/tests/unit/adaptation/test_activity_launch_application.py", "backend/tests/integration/api/test_single_profile_activity_launch_api.py", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/README.md", "contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/README.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/planning/work-packets/WRK-0086-compose-protected-activity-launch-api.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/register.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 6842d92c1c538f995bcce6345b4450bf63922311
+claim_id: WRK-0086:880f791c-f972-48f4-a37c-dfbb8706bf08
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T12:28:56Z
 ---
 
 # Agent Work Packet: Compose the Protected Activity-Launch API
@@ -207,3 +207,8 @@ consume one generated launch operation or return one bounded blocker.
   permissions, and publishes only the additive exact operation needed by
   JIT-C. It remains within the approved CAP-0005 package and introduces no
   decision or lower-level approval gate.
+- 2026-10-16: Activated from base
+  `6842d92c1c538f995bcce6345b4450bf63922311` after the implementation gate
+  prerequisites confirmed current CAP authority, completed dependency, exact
+  bounded scope, reproducible generated artifacts, and no unresolved decision
+  or active ownership collision.
