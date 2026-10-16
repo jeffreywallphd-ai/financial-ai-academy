@@ -2,11 +2,18 @@ import { defineConfig, devices } from "@playwright/test";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  browserTestOrigin,
+  selectBrowserTestPort,
+} from "./support/loopbackPort";
+
 
 const configDirectory = dirname(fileURLToPath(import.meta.url));
 const webRoot = resolve(configDirectory, "..", "..");
 const repositoryRoot = resolve(webRoot, "..", "..");
 const nodeExecutable = '"' + process.execPath + '"';
+const browserTestPort = await selectBrowserTestPort();
+const browserTestOriginUrl = browserTestOrigin(browserTestPort);
 
 export default defineConfig({
   testDir: ".",
@@ -16,7 +23,7 @@ export default defineConfig({
   reporter: [["list"]],
   outputDir: resolve(repositoryRoot, "artifacts/playwright/wrk0004"),
   use: {
-    baseURL: "http://127.0.0.1:4174",
+    baseURL: browserTestOriginUrl,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
@@ -38,9 +45,10 @@ export default defineConfig({
   webServer: {
     command:
       nodeExecutable +
-      " node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4174",
+      " node_modules/vite/bin/vite.js --host 127.0.0.1 --strictPort --port " +
+      browserTestPort,
     cwd: webRoot,
-    url: "http://127.0.0.1:4174",
+    url: browserTestOriginUrl,
     reuseExistingServer: false,
     timeout: 30_000,
   },
