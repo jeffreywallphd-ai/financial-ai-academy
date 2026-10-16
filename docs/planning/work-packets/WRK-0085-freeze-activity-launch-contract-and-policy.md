@@ -1,16 +1,16 @@
 ---
 id: WRK-0085
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0005
+owner: unassigned
 updated: 2026-10-16
 parent: SLI-0024
 capability: CAP-0005
 depends_on: []
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/adaptation/domain/activity_launch.py", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/contract/adaptation_activity_launch/__init__.py", "backend/tests/contract/adaptation_activity_launch/runner.py", "backend/tests/contract/adaptation_activity_launch/test_conformance.py", "backend/tests/unit/adaptation/test_activity_launch_policy.py", "contracts/learning/README.md", "contracts/learning/adaptation/v1/README.md", "contracts/learning/adaptation/v1/activity-launch.schema.json", "contracts/compatibility/adaptation-activity-launch/v1/README.md", "contracts/compatibility/adaptation-activity-launch/v1/approved/launch.json", "contracts/compatibility/adaptation-activity-launch/v1/cases/denials.json", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/assurance/architecture-verification.md", "docs/planning/work-packets/WRK-0085-freeze-activity-launch-contract-and-policy.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/register.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/adaptation/README.md", "backend/src/financial_ai_academy/modules/adaptation/domain/activity_launch.py", "backend/src/financial_ai_academy/modules/adaptation/public.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/contract/adaptation_activity_launch/__init__.py", "backend/tests/contract/adaptation_activity_launch/runner.py", "backend/tests/contract/adaptation_activity_launch/test_conformance.py", "backend/tests/contract/adaptation_navigation/test_conformance.py", "backend/tests/unit/adaptation/test_activity_launch_policy.py", "contracts/learning/README.md", "contracts/learning/adaptation/v1/README.md", "contracts/learning/adaptation/v1/activity-launch.schema.json", "contracts/compatibility/adaptation-activity-launch/v1/README.md", "contracts/compatibility/adaptation-activity-launch/v1/approved/launch.json", "contracts/compatibility/adaptation-activity-launch/v1/cases/denials.json", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/assurance/architecture-verification.md", "docs/planning/work-packets/WRK-0085-freeze-activity-launch-contract-and-policy.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/register.md"]
 generated_artifacts: []
 base_revision: a34a94cedf72aef5fbbf3b3210f29cef29ec92b9
 claim_id: WRK-0085:2f2a8976-1780-4129-8d28-c73075b2cce9
@@ -95,7 +95,7 @@ mastery, assessment execution, or live browser qualification.
 
 | Area | Inspect | Allowed to change | Reason |
 | --- | --- | --- | --- |
-| Existing inputs | Curriculum public graph and Adaptation navigation models/contracts | none outside public Adaptation export | Consume accepted exact v1 meaning without revision |
+| Existing inputs | Curriculum public graph and Adaptation navigation models/contracts | Adaptation navigation schema-enumeration assertion only | Consume accepted exact v1 meaning without revision and keep the shared schema inventory exact |
 | Launch domain | Adaptation domain/public surface and README | new activity-launch module, bounded public exports, README | Own the pure deterministic decision and reusable result |
 | Executable contract | learning/adaptation contract family and catalog | one new closed schema plus catalog/readme entry | Freeze portable success shape before application composition |
 | Compatibility | existing graph/navigation runners and fixtures | new activity-launch runner, approved fixture, denial corpus, conformance test | Prove implementations share exact success/refusal meaning |
@@ -207,3 +207,8 @@ Leave JIT-B dependency-ready or return one bounded blocker.
   `a34a94cedf72aef5fbbf3b3210f29cef29ec92b9` after the implementation gate
   prerequisites confirmed current CAP authority, completed slice dependencies,
   bounded write scope, and no unresolved decision or ownership collision.
+- 2026-10-16: Released before implementation to add the existing Navigation
+  contract test that deliberately enumerates every Adaptation schema. This
+  bounded compatibility-test correction does not change the packet outcome,
+  contract meaning, acceptance set, or CAP authority and requires no new
+  approval or review cycle.
