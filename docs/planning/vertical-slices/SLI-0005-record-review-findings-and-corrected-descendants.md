@@ -1,7 +1,7 @@
 ---
 id: SLI-0005
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -110,7 +110,7 @@ SLI-0004 verification must run fresh before another review.
 | --- | --- | --- | --- | --- |
 | WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | complete |
 | WRK-0070 | Correct review proportionality so mechanically proven terminal-blank-line descendants receive fresh verification without redundant re-review | WRK-0013 | none | complete |
-| WRK-0112 | Allow a strict corrected descendant after the latest exact-candidate verification fails or times out, without fabricating a review | WRK-0013, WRK-0070 | none | ready |
+| WRK-0112 | Allow a strict corrected descendant after the latest exact-candidate verification fails or times out, without fabricating a review | WRK-0013, WRK-0070 | none | complete |
 
 ## Verification and Qualification
 
@@ -148,6 +148,16 @@ planning, documentation, artifact, and aggregate readiness checks passed. No
 hosted review, identity-provider proof, publication, or external action was
 performed; stronger reviewer authentication remains a future adapter decision.
 
+WRK-0112 closes the remaining failed-verification correction dead end. A clean
+strict descendant is now permitted only when the latest exact-candidate receipt
+is structurally complete and fails solely because a selected check failed or
+timed out. Receipt-chain integrity, current submission binding, locked-state
+authorization, descendant identity, fresh verification, and the ordinary
+technical-review path remain intact. Focused review, verification, and lifecycle
+suites, planning and documentation integrity, aggregate readiness, whitespace,
+and exact affected verification passed. The change adds no approval stage,
+external action, migration, or stored personal data.
+
 ## Planning History
 
 - 2026-10-15: Refined just in time after SLI-0004 completed; Candidate A scored
@@ -160,3 +170,5 @@ performed; stronger reviewer authentication remains a future adapter decision.
   permits only a strict descendant backed by the latest structurally valid
   exact-candidate failed-execution receipt; fresh verification and ordinary
   independent review remain required.
+- 2026-10-16: WRK-0112 completed the bounded correction and SLI-0005 returned
+  to complete without changing CAP-0002 scope or adding a lower-level gate.

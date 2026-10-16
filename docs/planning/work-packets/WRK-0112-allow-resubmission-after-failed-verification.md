@@ -1,7 +1,7 @@
 ---
 id: WRK-0112
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -113,6 +113,34 @@ Report the authorization predicate, retained refusal cases, exact focused and
 aggregate results, candidate and receipt, independent technical disposition,
 documentation impact, and confirmation that no approval or review record was
 synthesized.
+
+## Completion Evidence
+
+The failed-verification predicate accepts only the latest structurally valid
+receipt for the exact current submission when every nonqualifying result is a
+failed or timed-out selected check. It revalidates the authorization inside the
+locked mutation, requires a strict real-Git descendant, follows a unique
+append-only receipt-chain head, and refuses missing, passing, incomplete,
+ambiguous, tampered, drifted, stale, already-reviewed, same-candidate, and forked
+cases. The corrected descendant still requires fresh exact-candidate
+verification and the normal technical-review path.
+
+The exact candidate `0634c27ceb0685047f09de1e1486c19c07eb80eb` produced a
+qualifying affected-verification receipt with six selected checks. Focused
+review, verification, and lifecycle suites passed with 14, 28 (3 skipped), and
+11 tests respectively. Planning integrity covered 195 artifacts, documentation
+validation covered 339 Markdown files plus catalogs, aggregate readiness passed
+29 checks, and `git diff --check` passed. Tests cover real Git descendants,
+same-second receipt ordering, locked-state authorization, receipt integrity,
+catalog selection, and every retained refusal case.
+
+The reusable control-plane code, Financial AI Academy affected-suite adapter,
+operator guidance, packet, parent slice, and register are synchronized. No
+contract migration, external service, hosted execution, personal data,
+approval record, or tracked review record was introduced. Receipt files remain
+append-only local evidence; rollback must preserve their chain and may not
+synthesize a qualifying result. No known gap remains inside this bounded
+correction.
 
 ## Planning History
 
