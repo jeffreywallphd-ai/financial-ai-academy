@@ -227,10 +227,16 @@ class ReviewServiceTests(unittest.TestCase):
             source = root / "example.py"
             yaml = root / "example.yaml"
             text = root / "example.txt"
+            binary = root / "binary.py"
+            deleted = root / "delete_me.py"
+            renamed = root / "rename_me.py"
             source.write_text('if True:\n    value = "alpha beta"\n', encoding="utf-8")
             yaml.write_text("parent:\n  child: value\n", encoding="utf-8")
             text.write_text("alpha\n", encoding="utf-8")
-            subprocess.run(["git", "add", "example.py", "example.yaml", "example.txt"], cwd=root, check=True)
+            binary.write_bytes(b"\x00\x01\n")
+            deleted.write_text("value = 1\n", encoding="utf-8")
+            renamed.write_text("value = 2\n", encoding="utf-8")
+            subprocess.run(["git", "add", "example.py", "example.yaml", "example.txt", "binary.py", "delete_me.py", "rename_me.py"], cwd=root, check=True)
             subprocess.run(["git", "commit", "-m", "base"], cwd=root, check=True, capture_output=True)
             base = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
             source.write_text('if True:\n    value = "alpha beta"\n\n', encoding="utf-8")
@@ -260,6 +266,32 @@ class ReviewServiceTests(unittest.TestCase):
             subprocess.run(["git", "commit", "-am", "unapproved file class"], cwd=root, check=True, capture_output=True)
             unapproved_file = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
             self.assertFalse(git_terminal_blank_line_only_delta(root, base, unapproved_file))
+
+            subprocess.run(["git", "checkout", base, "--", "example.py", "example.yaml", "example.txt", "binary.py", "delete_me.py", "rename_me.py"], cwd=root, check=True)
+            binary.write_bytes(b"\x00\x01\n\n")
+            subprocess.run(["git", "commit", "-am", "binary terminal blank line"], cwd=root, check=True, capture_output=True)
+            binary_candidate = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, base, binary_candidate))
+
+            subprocess.run(["git", "checkout", base, "--", "example.py", "example.yaml", "example.txt", "binary.py", "delete_me.py", "rename_me.py"], cwd=root, check=True)
+            (root / "added.py").write_text("value = 3\n", encoding="utf-8")
+            subprocess.run(["git", "add", "added.py"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-m", "added source"], cwd=root, check=True, capture_output=True)
+            added_candidate = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, base, added_candidate))
+
+            (root / "added.py").unlink()
+            deleted.unlink()
+            subprocess.run(["git", "add", "--all"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-m", "deleted source"], cwd=root, check=True, capture_output=True)
+            deleted_candidate = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, base, deleted_candidate))
+
+            subprocess.run(["git", "checkout", base, "--", "delete_me.py"], cwd=root, check=True)
+            subprocess.run(["git", "mv", "rename_me.py", "renamed.py"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-m", "renamed source"], cwd=root, check=True, capture_output=True)
+            renamed_candidate = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, check=True, capture_output=True, text=True).stdout.strip()
+            self.assertFalse(git_terminal_blank_line_only_delta(root, base, renamed_candidate))
 
     def test_self_review_and_duplicate_candidate_are_refused(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-independent-") as directory:

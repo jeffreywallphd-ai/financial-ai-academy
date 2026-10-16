@@ -26,7 +26,7 @@ Correct the reusable review service so inconsequential cleanup findings cannot
 force an adverse disposition or a full correction/re-review loop. An accepted
 candidate may carry explicitly classified non-blocking cleanup findings. A
 strict descendant mechanically proven to change only terminal blank lines in
-an approved source or documentation file type must receive fresh affected
+an approved UTF-8 source or documentation file type must receive fresh affected
 verification but may inherit the accepted technical review. Other cleanup is
 deferred or uses the ordinary review path.
 
@@ -53,8 +53,8 @@ implementation, its tests, and the nearest README.
 - Review inheritance is allowed only for a strict descendant of an accepted
   candidate, only while every addressed open finding is cleanup, only when Git
   proves the incremental delta changes terminal blank lines in an approved
-  source or documentation file type, and only after fresh affected verification
-  of the descendant.
+  UTF-8 source or documentation file type, and only after fresh affected
+  verification of the descendant.
 - Repeated verified cleanup descendants retain the original accepted candidate
   and review-round basis; an inherited candidate is never used as a fake round.
 - The repository-specific alpha/beta UI deferral policy belongs in the testing
@@ -72,9 +72,9 @@ implementation, its tests, and the nearest README.
 - Status projection that distinguishes exact, pending inherited, and verified
   inherited review without rewriting reviewer history.
 - Anti-rigidity tests for terminal blank-line cleanup, repeated inherited
-  descendants, indentation/string/file-class denial, and retained hard stops for substantive
-  functionality, accessibility, security, data, contract, and semantic
-  findings.
+  descendants, and binary/invalid-text/add/delete/rename/indentation/string/
+  file-class denial, plus retained hard stops for substantive functionality,
+  accessibility, security, data, contract, and semantic findings.
 - Reusable documentation and repository-specific alpha/beta UI deferral rules.
 
 ## Out of Scope
@@ -99,7 +99,8 @@ The existing review round remains append-only. Finding records gain an additive
 class with `substantive` as the legacy default. Cleanup-only resubmission gains
 an explicit CLI flag and records the original accepted-review basis in the
 submission. The repository adapter must mechanically prove the incremental Git
-delta changes only terminal blank lines in an approved file type. The exact
+delta changes only terminal blank lines in an approved UTF-8 file type. Binary
+or invalid text and file additions, deletions, or renames are denied. The exact
 descendant still requires a qualifying receipt before inherited acceptance
 becomes effective.
 
@@ -119,7 +120,7 @@ to the completed packet's original control-plane and guidance boundary.
 | Cleanup deferred | The accepted candidate remains completable with the non-blocking finding visible for backlog capture |
 | Substantive defect | A blocking substantive finding still requires a strict descendant, fresh verification, explicit closure, and independent re-review |
 | Internal whitespace, indentation, string, or styling edit | It cannot inherit review through the terminal-blank-line route; styling is deferred to final cleanup unless explicitly moved earlier |
-| Attempted bypass | Cleanup inheritance is refused for adverse reviews, blocking findings, non-descendants, unverified descendants, unapproved file types, or a delta beyond terminal blank lines |
+| Attempted bypass | Cleanup inheritance is refused for adverse reviews, blocking findings, non-descendants, unverified descendants, binary/invalid text, file additions/deletions/renames, unapproved file types, or a delta beyond terminal blank lines |
 | Legacy finding | A finding without the additive class retains substantive behavior |
 
 ## Verification Commands

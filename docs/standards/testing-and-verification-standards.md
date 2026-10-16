@@ -53,8 +53,8 @@ blocking substantive finding may produce an adverse disposition. An explicitly
 classified `cleanup` finding is non-blocking and is limited to work that does
 not change functionality, meaning, accessibility, security, data, contracts,
 policy, or required evidence. If a cleanup correction is mechanically proven
-to change only terminal blank lines in an approved source or documentation
-file type, a strict descendant requires fresh
+to change only terminal blank lines in an approved UTF-8 source or
+documentation file type, a strict descendant requires fresh
 affected verification but inherits the accepted review; it does not start
 another review round. An unproven or semantic descendant uses the ordinary
 review path. Cleanup may instead be recorded for later work without blocking
@@ -70,10 +70,10 @@ criterion. Non-functional styling is deferred rather than repaired in the
 functional CAP; an explicit user request may move it earlier as separately
 scoped work. Apply the same consequence test to whitespace, formatting, prose,
 and similar hygiene findings: use the verified no-re-review path only for a
-mechanically proven terminal-blank-line delta in an approved file type;
-indentation, string content, internal whitespace, and all other changes use
-ordinary review. Otherwise defer the concern. Do not manufacture a
-correction/re-review loop.
+mechanically proven terminal-blank-line delta in an approved UTF-8 file type.
+Binary content, invalid text, file addition/deletion/rename, indentation,
+string content, internal whitespace, and all other changes use ordinary review.
+Otherwise defer the concern. Do not manufacture a correction/re-review loop.
 
 Control policy uses one stable rule inventory in local and CI profiles. A
 profile may change fact availability but not rule meaning: ignored local facts

@@ -103,6 +103,13 @@ def git_terminal_blank_line_only_delta(root: Path, ancestor: str, descendant: st
         after = subprocess.run([*git, "show", f"{descendant}:{path}"], cwd=root, check=False, capture_output=True, env=environment)
         if before.returncode or after.returncode or before.stdout == after.stdout:
             return False
+        if b"\0" in before.stdout or b"\0" in after.stdout:
+            return False
+        try:
+            before.stdout.decode("utf-8", errors="strict")
+            after.stdout.decode("utf-8", errors="strict")
+        except UnicodeDecodeError:
+            return False
         if _without_terminal_blank_lines(before.stdout) != _without_terminal_blank_lines(after.stdout):
             return False
     return True
