@@ -226,3 +226,8 @@ runtime or public contract changed.
   completed slice dependencies, exact checker/test/documentation scope,
   deterministic acceptance set, and collision-free file lease. No decision or
   lower-level approval gate applies.
+- 2026-10-16: WRK-0079 implemented the dependency-free changed-copy checker,
+  bounded full-scope mode, source-aware exclusions, blocking/advisory tiers,
+  narrow exceptions, stable machine report, documentation, and direct anti-
+  rigidity tests. Exact-candidate verification and independent disposition
+  remain before completion and JIT-B refinement.

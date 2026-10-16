@@ -1,0 +1,92 @@
+{
+  "schema_version": "learner-language-rules-v1",
+  "include": [
+    "apps/web/src/app/**/*.tsx",
+    "apps/web/src/components/**/*.tsx",
+    "apps/web/src/features/**/*.tsx"
+  ],
+  "exclude": [
+    "apps/web/src/generated/**",
+    "apps/web/src/**/*.d.ts"
+  ],
+  "technical_record_labels": [
+    "Technical record"
+  ],
+  "visible_attributes": [
+    "alt",
+    "aria-label",
+    "placeholder",
+    "title"
+  ],
+  "blocking_rules": [
+    {
+      "id": "primary.topic-slug",
+      "pattern": "\\btopic[ -]slug\\b",
+      "replacement": "Topic",
+      "message": "Name the value the learner chooses, not its internal field format."
+    },
+    {
+      "id": "primary.apply-query",
+      "pattern": "\\bapply query\\b",
+      "replacement": "Show results",
+      "message": "Describe the result of the action instead of the query mechanism."
+    },
+    {
+      "id": "primary.curriculum-graph",
+      "pattern": "\\b(?:approved )?curriculum graph\\b",
+      "replacement": "Learning path",
+      "message": "Name the learner-visible path instead of its graph representation."
+    },
+    {
+      "id": "primary.graph-relationships",
+      "pattern": "\\bgraph relationships?\\b",
+      "replacement": "How activities connect",
+      "message": "Describe the connection the learner can understand."
+    },
+    {
+      "id": "primary.exact-package",
+      "pattern": "\\bexact package\\b",
+      "replacement": "Lesson version",
+      "message": "Keep package identity in the technical record and lead with the lesson version."
+    },
+    {
+      "id": "primary.open-exact-lesson",
+      "pattern": "\\bopen exact lesson\\b",
+      "replacement": "Open lesson",
+      "message": "Describe the learner action without implementation precision in the control label."
+    },
+    {
+      "id": "primary.catalog-generation",
+      "pattern": "\\bcatalog generation\\b",
+      "replacement": "Current learning library",
+      "message": "Explain the learner-visible library state before its generation identifier."
+    },
+    {
+      "id": "primary.projection-generation",
+      "pattern": "\\bprojection generation\\b",
+      "replacement": "Current saved view",
+      "message": "Keep the projection identifier in the technical record and explain the saved view first."
+    }
+  ],
+  "advisory": {
+    "sentence_word_limit": 32,
+    "possible_jargon": [
+      "deserialize",
+      "hydrate",
+      "initialize",
+      "render",
+      "utilize"
+    ],
+    "acronym_allowlist": [
+      "AI",
+      "API",
+      "CSS",
+      "HTML",
+      "ID",
+      "ML",
+      "OIDC",
+      "URL",
+      "UTC"
+    ]
+  }
+}

@@ -17,5 +17,8 @@ Current entry points:
 - `planning/reserve_id.py` and `planning/claim_packet.py` perform constrained planning coordination mutations;
 - `documentation/check_docs.py` verifies documentation and context-catalog integrity;
 - `design/check_design_system.py` verifies semantic tokens and production icon assets.
+- `learner-language/check_learner_language.py` checks changed learner-facing
+  copy against a narrow high-confidence rule corpus while keeping readability
+  and possible-jargon signals advisory.
 
 Before changing a tool, follow applicable `AGENTS.md` and repository-root `docs/README.md`, inspect its callers and evidence consumers, and add deterministic positive and refusal-path tests. Tools do not grant approval or external-action authority.

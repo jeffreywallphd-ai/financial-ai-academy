@@ -214,6 +214,40 @@ that runtime product code, contracts, generated clients, CSS, browser behavior,
 and aggregate readiness integration did not change. Leave JIT-B dependency-
 ready or return one bounded blocker.
 
+## Implementation Evidence
+
+- Added a dependency-free Python CLI, tracked v1 rule configuration, direct
+  tests, and operator documentation under `dev-tools/learner-language/`.
+- Default selection covers staged, unstaged, and untracked owned learner-facing
+  TSX lines, ignores whitespace-only diffs, and accepts an exact `--base-ref`.
+  Explicit `--all` performs controlled whole-owned-source qualification.
+- The source boundary covers application, shared-component, and feature TSX;
+  it excludes platform internals, generated clients, tests/fixtures, CSS,
+  distribution output, comments, imports, code values, and native `Technical
+  record` regions.
+- Eight high-confidence configured phrases can block with an approved learner
+  replacement. Sentence length, possible jargon, and possible acronym signals
+  are advisory and never change the exit code.
+- A source-local exception names one rule, reason, explanation location, and
+  immediately following nonblank line. Unknown, malformed, duplicate, broad,
+  and stale exceptions fail narrowly instead of suppressing unrelated checks.
+- Human and `learner-language-report-v1` JSON results use stable sorted rule,
+  severity, path, line, count, and selection metadata without retaining source
+  payload, approval data, learner data, secrets, or telemetry.
+- All 11 direct tests pass, including committed base-ref selection, staged or
+  untracked changed copy, technical records, identifiers, advisory-only copy,
+  narrow and invalid exceptions, stable JSON, and whitespace/CSS-only changes.
+- Controlled full-scope qualification inspected 783 candidate regions in 12
+  files with zero blocking and zero advisory findings. Changed-copy mode over
+  this packet selected zero application regions and passed.
+- Python compilation, planning, documentation, design-system, Git whitespace,
+  and all 27 aggregate readiness checks pass. No application/runtime source,
+  public contract, generated client, dependency, CSS, UI behavior, browser
+  evidence, or aggregate readiness integration changed.
+- Deterministic lexical extraction deliberately favors a small high-confidence
+  corpus over complete natural-language parsing. Human review remains
+  responsible for semantics, financial nuance, comprehension, and tone.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time as SLI-0125 JIT-A. The packet isolates the
@@ -226,3 +260,9 @@ ready or return one bounded blocker.
   no unresolved decision. Exact-file lease
   `file-lease:e224c94c-da82-45aa-9354-06d0e5a797d5` protects the packet's
   eight writable paths.
+- 2026-10-16: Implemented the changed-copy selector, full-scope mode, source-
+  aware extraction, blocking/advisory tiers, narrow exception validation,
+  stable JSON, documentation, and 11-test anti-rigidity corpus. Focused,
+  full-scope, planning, documentation, design, whitespace, compilation, and
+  aggregate readiness checks pass; the candidate is ready for exact-candidate
+  verification and one independent technical disposition.
