@@ -136,7 +136,7 @@ each packet starts. The planned dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Clarify the learning-path page, connections, activity-state presentation, and technical records | none | none | captured |
+| WRK-0073 | Clarify the learning-path page, connections, activity-state presentation, and technical records | none | none | ready |
 | JIT-B | Clarify loading and bounded recovery states while preserving fail-closed behavior | JIT-A | none | captured |
 | JIT-C | Qualify the complete learning-path experience in Chromium, reconcile documentation, and close the slice | JIT-B | none | captured |
 
@@ -186,3 +186,6 @@ contracts/semantics, assumptions, residual gaps, and any decision gate.
   activity-state, recovery, and technical-record experience while leaving all
   graph and navigation authority unchanged. Three just-in-time work seams keep
   implementation bounded without creating lower-level approval gates.
+- 2026-10-16: Refined JIT-A as WRK-0073 around the ready learning-path
+  presentation, separate activity-state meaning, accessible complete technical
+  records, focused component evidence, and presentation-only documentation.
