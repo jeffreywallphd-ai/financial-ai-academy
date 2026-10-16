@@ -1,7 +1,7 @@
 ---
 id: SLI-0012
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0003-correction
 updated: 2026-10-16
@@ -97,7 +97,7 @@ prompts, credentials, approval/reviewer data, or personal identity requirements.
 | WRK-0020 | Deliver the local edit-intent and exclusive file-lease plane, repository authority adapter, CLI/docs, and tests | WRK-0019 | none | complete |
 | WRK-0023 | Revalidate active WRK authority on lease renewal while preserving post-completion release | WRK-0020 | none | complete |
 | WRK-0029 | Stabilize independent-process same-file races while preserving disjoint-file and read concurrency | WRK-0023 | none | complete |
-| WRK-0064 | Allow an authorized successor to recover only its exact in-scope paths from an expired grouped lease while retaining residual ownership and lineage | WRK-0029 | none | active |
+| WRK-0064 | Allow an authorized successor to recover only its exact in-scope paths from an expired grouped lease while retaining residual ownership and lineage | WRK-0029 | none | complete |
 
 ## Verification and Qualification
 
@@ -147,6 +147,18 @@ control-plane tests, and all 27 aggregate readiness checks passed. Disjoint
 files and reads remain concurrent, so the correction strengthens single-writer
 safety without adding a broad coordination barrier.
 
+WRK-0064 replaces complete-historical-set recovery with explicit path-bounded
+recovery. The reusable core splits residual expired ownership atomically,
+requires every requested recovery path to have an expired owner, validates the
+bidirectional lease/index and stored path/key relationship before mutation,
+and preserves lineage. Seventeen focused, 117 full control-plane, 13
+architecture, and 27 aggregate readiness checks passed. A real expired overlap
+was recovered without taking unrelated WRK-0062 files, and the repository
+adapter proves a narrowly scoped successor cannot acquire the residual path.
+All independent findings closed on exact candidate
+`a5baa6f24273f679ee26f4f1c21652e47bdd469c`; no schema migration, product
+behavior, broad lock, live preemption, or cross-host claim was added.
+
 ## Planning History
 
 - 2026-10-15: Refined just in time after SLI-0011; Candidate A scored 14/14
@@ -166,3 +178,9 @@ safety without adding a broad coordination barrier.
   after WRK-0063 reproduced an excessive-rigidity deadlock: complete-set
   recovery required unrelated historical files outside the successor packet's
   scope. WRK-0064 freezes path-bounded recovery with residual ownership.
+- 2026-10-16: WRK-0064 completed exact-candidate verification and independent
+  review with every finding closed; the slice entered deterministic completion
+  verification.
+- 2026-10-16: Completion structure, planning integrity, documentation, focused,
+  full control-plane, architecture, and aggregate readiness evidence passed;
+  the bounded correction closed and SLI-0012 returned to complete.

@@ -48,7 +48,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0009 | Vertical slice | [Project the Capability Delivery Hierarchy](vertical-slices/SLI-0009-project-capability-hierarchy.md) | complete | CAP-0003 | none | none | codex-cap-0003 | 2026-10-15 |
 | SLI-0010 | Vertical slice | [Explain Ready Work and Proposed Order](vertical-slices/SLI-0010-explain-ready-work-and-order.md) | complete | CAP-0003 | SLI-0009 | none | codex-cap-0003 | 2026-10-15 |
 | SLI-0011 | Vertical slice | [Identify Parallel-Safe Work](vertical-slices/SLI-0011-identify-parallel-safe-work.md) | complete | CAP-0003 | SLI-0009 | none | codex-cap-0003 | 2026-10-15 |
-| SLI-0012 | Vertical slice | [Coordinate Exclusive File Edits](vertical-slices/SLI-0012-coordinate-exclusive-file-edits.md) | active | CAP-0003 | SLI-0011 | none | codex-cap-0003-correction | 2026-10-16 |
+| SLI-0012 | Vertical slice | [Coordinate Exclusive File Edits](vertical-slices/SLI-0012-coordinate-exclusive-file-edits.md) | complete | CAP-0003 | SLI-0011 | none | codex-cap-0003-correction | 2026-10-16 |
 | SLI-0013 | Vertical slice | [Propose Hierarchy-Aware Agent Allocations](vertical-slices/SLI-0013-propose-hierarchy-aware-agent-allocations.md) | complete | CAP-0003 | SLI-0010, SLI-0011, SLI-0012 | none | codex-cap-0003 | 2026-10-15 |
 | SLI-0014 | Vertical slice | [Qualify the Portfolio Control Plane](vertical-slices/SLI-0014-qualify-portfolio-control-plane.md) | complete | CAP-0003 | SLI-0009, SLI-0010, SLI-0011, SLI-0012, SLI-0013 | none | codex-cap-0003 | 2026-10-15 |
 | SLI-0015 | Vertical slice | [Submit a Deterministic Knowledge Check](vertical-slices/SLI-0015-submit-deterministic-knowledge-check.md) | complete | CAP-0001 | SLI-0001 | none | codex-cap-0001 | 2026-10-15 |
@@ -122,7 +122,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0061 | Work packet | [Qualify the Live Curriculum Graph](work-packets/WRK-0061-qualify-live-curriculum-graph.md) | complete | SLI-0022 | WRK-0060 | none | codex-cap-0005 | 2026-10-15 |
 | WRK-0062 | Work packet | [Establish the Deterministic Navigation-State Core](work-packets/WRK-0062-establish-deterministic-navigation-state-core.md) | complete | SLI-0023 | none | none | codex-cap-0005 | 2026-10-16 |
 | WRK-0063 | Work packet | [Compose the Protected Navigation-State API](work-packets/WRK-0063-compose-protected-navigation-state-api.md) | ready | SLI-0023 | WRK-0062 | none | unassigned | 2026-10-16 |
-| WRK-0064 | Work packet | [Allow Bounded Expired-Lease Recovery](work-packets/WRK-0064-allow-bounded-expired-lease-recovery.md) | verifying | SLI-0012 | WRK-0029 | none | codex-cap-0003-correction | 2026-10-16 |
+| WRK-0064 | Work packet | [Allow Bounded Expired-Lease Recovery](work-packets/WRK-0064-allow-bounded-expired-lease-recovery.md) | complete | SLI-0012 | WRK-0029 | none | codex-cap-0003-correction | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

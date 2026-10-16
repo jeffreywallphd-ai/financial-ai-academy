@@ -1,7 +1,7 @@
 ---
 id: WRK-0064
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0003-correction
 updated: 2026-10-16
@@ -158,6 +158,44 @@ lineage and residual-lease behavior, focused/full control-plane and aggregate
 results, independent review outcome, anti-rigidity evidence, documentation
 impact, assumptions, residual risk, and the exact WRK-0063 resumption action.
 
+## Completion Evidence
+
+- Exact candidate `a5baa6f24273f679ee26f4f1c21652e47bdd469c` lets an
+  authorized successor recover only requested expired paths. It retains every
+  unrelated path on the original expired lease, records the original lease ID
+  in `recovered_from`, and deletes the original record only after its final
+  residual path is recovered.
+- Recovery now refuses a live owner, an unowned path mixed into recovery, an
+  inconsistent lease/path-owner index, and a noncanonical stored path/key pair
+  before state publication. Regression tests prove byte-identical state on the
+  new malformed and mixed-operation denials.
+- The repository-adapter regression models a broad expired predecessor and an
+  active successor scoped to one exact path. The in-scope path recovers, the
+  unrelated residual remains expired, and an attempt to take that residual is
+  scope-refused without mutation. The corrected command also recovered the
+  real `docs/planning/register.md` overlap while leaving WRK-0062's unrelated
+  SLI/packet paths on its original expired lease.
+- Focused file coordination passed 17 tests; the full control-plane discovery
+  passed 117 tests; architecture passed 13 tests; planning integrity passed for
+  134 artifacts; documentation validation passed for 275 Markdown files; work
+  packet validation and `git diff --check` passed; aggregate readiness passed
+  all 27 fixed checks. Windows temporary-directory/process checks required the
+  approved outside-sandbox route.
+- Fresh affected verification produced a qualifying receipt at
+  `.local-codex/control-plane/receipts/WRK-0064/a5baa6f24273f679ee26f4f1c21652e47bdd469c/20261016T003233Z-c70b61a2-f0f0-4b3e-ac73-f42d9bce86c9.json`.
+  Independent review accepted the exact candidate in R03 after all R01/R02
+  findings were closed; reviewer identity, findings, closures, and authority
+  remain only in ignored local control state.
+- `file-edit-state-v1`, lease/intent/event schemas, command surface, response
+  shapes, live-owner exclusion, all-or-nothing acquisition, and local ignored
+  storage remain compatible. Concurrent-work guidance now states path-bounded
+  recovery explicitly. No tracked-state migration, product/API/database/UI
+  change, external action, or new durable decision was required.
+- Cross-host consensus and automatic abandoned-lease cleanup remain out of
+  scope. Recovery is intentionally explicit, scope-authorized, and exact-file
+  only. WRK-0063 may now be reclaimed and recover only its actual expired
+  overlaps instead of expanding to WRK-0062's complete historical file sets.
+
 ## Planning History
 
 - 2026-10-16: Authored from the bounded completed-work correction route after
@@ -165,3 +203,7 @@ impact, assumptions, residual risk, and the exact WRK-0063 resumption action.
   WRK-0062 lease without also requesting unrelated files outside its scope.
   The packet preserves exact-file exclusion and replaces only the rigid
   complete-historical-set recovery requirement.
+- 2026-10-16: Completed after exact-candidate verification and three immutable
+  independent review rounds. Final regressions close mixed unowned recovery,
+  bidirectional lease/index corruption, stored path/key mismatch, and the
+  repository-adapter narrow-successor case without broadening coordination.
