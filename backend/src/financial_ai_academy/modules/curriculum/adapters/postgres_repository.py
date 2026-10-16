@@ -329,12 +329,13 @@ class PostgresCurriculumRepository:
                 INSERT INTO curriculum.project_brief_placements (
                     placement_id, placement_version, placement_digest,
                     curriculum_id, curriculum_version, curriculum_digest,
+                    activity_id,
                     package_id, package_version, package_digest,
                     brief_id, brief_version, brief_digest,
                     project_brief_schema_version, created_at
                 ) VALUES (
                     %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s
                 )
                 ON CONFLICT (placement_id) DO NOTHING
                 RETURNING *
@@ -346,6 +347,7 @@ class PostgresCurriculumRepository:
                     placement.curriculum_id,
                     placement.curriculum_version,
                     placement.curriculum_digest,
+                    placement.activity_id,
                     placement.package_id,
                     placement.package_version,
                     placement.package_digest,
@@ -374,6 +376,7 @@ class PostgresCurriculumRepository:
             "curriculum_id",
             "curriculum_version",
             "curriculum_digest",
+            "activity_id",
             "package_id",
             "package_version",
             "package_digest",
@@ -905,6 +908,7 @@ class PostgresCurriculumRepository:
             curriculum_id=str(row["curriculum_id"]),
             curriculum_version=str(row["curriculum_version"]),
             curriculum_digest=str(row["curriculum_digest"]),
+            activity_id=str(row["activity_id"]),
             package_id=str(row["package_id"]),
             package_version=str(row["package_version"]),
             package_digest=str(row["package_digest"]),

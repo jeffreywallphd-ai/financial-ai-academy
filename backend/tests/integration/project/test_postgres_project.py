@@ -7,6 +7,7 @@ from pathlib import Path
 
 import psycopg
 import pytest
+from psycopg.conninfo import make_conninfo
 
 from financial_ai_academy.modules.project.adapters.postgres_repository import (
     PostgresProjectRepository,
@@ -65,10 +66,10 @@ def empty_projects(migrated_database: object) -> None:
         connection.execute("TRUNCATE TABLE project.project_shells")
 
 
-def repository() -> PostgresProjectRepository:
+def repository(dsn: str | None = None) -> PostgresProjectRepository:
     assert POSTGRES_DSN is not None
     return PostgresProjectRepository(
-        POSTGRES_DSN,
+        dsn or POSTGRES_DSN,
         ContractProjectAdapter(SCHEMAS),
     )
 
@@ -101,6 +102,27 @@ def test_project_survives_repository_restart_and_is_learner_scoped() -> None:
     assert second.get_for_learner("learner-1", "project-1") == created
     assert second.get_for_learner("learner-2", "project-1") is None
     assert second.list_for_learner("learner-1") == (created,)
+
+
+def test_project_read_normalizes_a_non_utc_postgres_session() -> None:
+    assert POSTGRES_DSN is not None
+    created, _was_created = repository().create_if_absent(
+        idempotency_key="timezone-1",
+        request_fingerprint="f" * 64,
+        shell=shell("project-timezone"),
+    )
+    non_utc = repository(
+        make_conninfo(
+            POSTGRES_DSN,
+            options="-c timezone=Asia/Kolkata",
+        )
+    )
+
+    reopened = non_utc.get_for_learner("learner-1", "project-timezone")
+
+    assert reopened == created
+    assert reopened is not None
+    assert reopened.created_at.utcoffset() == timezone.utc.utcoffset(NOW)
 
 
 def test_concurrent_exact_retry_creates_one_row_and_returns_one_identity() -> None:

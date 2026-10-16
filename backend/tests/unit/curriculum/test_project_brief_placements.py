@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
 
@@ -18,6 +19,7 @@ from financial_ai_academy.modules.curriculum.ports.repositories import (
 )
 from financial_ai_academy.modules.curriculum.public import (
     CreateProjectBriefPlacementRequest,
+    LessonActivityReference,
     ProjectBriefPlacement,
     ResolveProjectBriefPlacementRequest,
 )
@@ -50,6 +52,30 @@ class Content:
 class Repository:
     def __init__(self) -> None:
         self.value: ProjectBriefPlacement | None = None
+        self.graph = SimpleNamespace(
+            graph_digest="c" * 64,
+            activities=(
+                SimpleNamespace(
+                    activity_id="activity-risk-return-project",
+                    reference=LessonActivityReference(
+                        placement_id="risk-return-project-source",
+                        package_id="intro-risk-return-project",
+                        package_version="1.0.0",
+                        package_digest="a" * 64,
+                    ),
+                ),
+            ),
+        )
+
+    def get_graph_exact(
+        self, curriculum_id: str, curriculum_version: str
+    ) -> object | None:
+        if (
+            curriculum_id,
+            curriculum_version,
+        ) == ("financial-foundations", "1.0.0"):
+            return self.graph
+        return None
 
     def save_project_brief_if_absent(
         self, placement: ProjectBriefPlacement
@@ -76,6 +102,7 @@ def request() -> CreateProjectBriefPlacementRequest:
         curriculum_id="financial-foundations",
         curriculum_version="1.0.0",
         curriculum_digest="c" * 64,
+        activity_id="activity-risk-return-project",
         package_id="intro-risk-return-project",
         package_version="1.0.0",
         package_digest="a" * 64,
@@ -116,6 +143,27 @@ def test_stale_brief_reference_fails_before_placement_persistence() -> None:
 
     with pytest.raises(LessonReadError) as captured:
         subject.create_project_brief_placement(stale)
+
+    assert captured.value.code is LessonErrorCode.INVALID_PACKAGE
+    assert selected.value is None
+
+
+@pytest.mark.parametrize(
+    "change",
+    (
+        {"curriculum_digest": "d" * 64},
+        {"activity_id": "activity-missing-project"},
+        {"package_digest": "e" * 64},
+    ),
+)
+def test_stale_curriculum_or_activity_fails_before_persistence(
+    change: dict[str, str],
+) -> None:
+    selected = Repository()
+    subject = service(selected)
+
+    with pytest.raises(LessonReadError) as captured:
+        subject.create_project_brief_placement(replace(request(), **change))
 
     assert captured.value.code is LessonErrorCode.INVALID_PACKAGE
     assert selected.value is None

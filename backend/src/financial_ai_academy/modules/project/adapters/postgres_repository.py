@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 from typing import Any
 
@@ -147,5 +147,11 @@ class PostgresProjectRepository:
 
     @staticmethod
     def _timestamp(value: datetime) -> str:
-        rendered = value.isoformat(timespec="microseconds").replace("+00:00", "Z")
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Stored Project timestamp must include an offset.")
+        rendered = (
+            value.astimezone(timezone.utc)
+            .isoformat(timespec="microseconds")
+            .replace("+00:00", "Z")
+        )
         return rendered.replace(".000000Z", "Z")

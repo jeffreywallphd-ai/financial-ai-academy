@@ -57,10 +57,13 @@ idempotency, changed-meaning refusal, and restart durability. Review routing
 does not rank, personalize, or generate a recommendation.
 
 `curriculum_0006_project_brief_placements` stores an append-only exact
-Curriculum/package/brief placement and its canonical placement digest. It has
-no Content or Project foreign key, creates no learner Project, and retains no
-brief bytes. Creation verifies the exact brief through Content's public facade;
-replay is idempotent and changed placement meaning is rejected.
+Curriculum/activity/package/brief placement and its canonical placement digest.
+It has no Content or Project foreign key, creates no learner Project, and
+retains no brief bytes. Creation resolves the exact published Curriculum graph,
+checks that the named lesson activity references the same exact package, and
+verifies the brief through Content's public facade. Replay is idempotent,
+changed placement meaning is rejected, and development rollback refuses
+retained placements.
 
 ## Discovery projection core
 

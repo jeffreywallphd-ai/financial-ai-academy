@@ -88,14 +88,19 @@ The executable profile uses schema version `1.0.0` and permits only these declar
 - `lesson.commonmark.v1`;
 - `asset.raster.v1`;
 - `assessment.reference.v1`;
-- `assessment.practice.v1`.
+- `assessment.practice.v1`;
+- `project.brief.v1`.
 
 The manifest schema delegates source, lesson-file, assessment-file,
-practice-file, passive-image, and package-index records to stable Draft 2020-12
+practice-file, Project-brief-file, passive-image, and package-index records to
+stable Draft 2020-12
 schema identifiers under `contracts/learning/lesson-package/v1/`. Assessment
 records are deliberately closure-only: they assign no answer, scoring, attempt,
 or completion authority to Content. The optional practice declaration is
-additive, so existing package-v1 bytes and digests remain unchanged.
+additive, as is the optional immutable learning-Project brief declaration, so
+existing package-v1 bytes and digests remain unchanged. Project brief records
+carry approved source meaning only; they do not create learner Project state,
+Assessment evidence, execution authority, or provider behavior.
 
 Admission enforces these initial measured limits:
 

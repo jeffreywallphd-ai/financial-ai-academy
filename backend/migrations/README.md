@@ -64,8 +64,11 @@ mapping has no Assessment or Content persistence dependency and never stores
 feedback, learner evidence, or content bytes.
 
 `curriculum_0006_project_brief_placements` adds append-only exact placements
-for approved Project briefs. The table stores only public identities, versions,
-digests, and creation time; it has no Content or Project persistence dependency.
+for approved Project briefs. Each placement binds an existing exact Curriculum
+graph and lesson activity to the matching Content package and brief. The table
+stores only public identities, versions, digests, and creation time; it has no
+Content or Project persistence dependency. Development rollback refuses to
+drop retained placements.
 
 The Learner-model stream under `learner_model/` owns only rebuildable completion
 projection/history tables. It retains Assessment identifiers as source

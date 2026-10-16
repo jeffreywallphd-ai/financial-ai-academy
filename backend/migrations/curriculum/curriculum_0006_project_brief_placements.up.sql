@@ -5,6 +5,7 @@ CREATE TABLE curriculum.project_brief_placements (
     curriculum_id text NOT NULL,
     curriculum_version text NOT NULL,
     curriculum_digest char(64) NOT NULL,
+    activity_id text NOT NULL,
     package_id text NOT NULL,
     package_version text NOT NULL,
     package_digest char(64) NOT NULL,
@@ -18,6 +19,7 @@ CREATE TABLE curriculum.project_brief_placements (
     CONSTRAINT curriculum_project_brief_identity_profile
         CHECK (
             curriculum_id ~ '^[a-z0-9][a-z0-9._-]{2,127}$'
+            AND activity_id ~ '^[a-z0-9][a-z0-9._-]{2,127}$'
             AND package_id ~ '^[a-z0-9][a-z0-9._-]{2,127}$'
             AND brief_id ~ '^[a-z0-9][a-z0-9._-]{2,127}$'
         ),

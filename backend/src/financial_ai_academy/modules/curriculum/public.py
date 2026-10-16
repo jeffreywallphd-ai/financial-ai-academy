@@ -131,6 +131,7 @@ class ProjectBriefPlacement:
     curriculum_id: str
     curriculum_version: str
     curriculum_digest: str
+    activity_id: str
     package_id: str
     package_version: str
     package_digest: str
@@ -148,6 +149,7 @@ class CreateProjectBriefPlacementRequest:
     curriculum_id: str
     curriculum_version: str
     curriculum_digest: str
+    activity_id: str
     package_id: str
     package_version: str
     package_digest: str

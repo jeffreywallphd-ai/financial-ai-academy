@@ -323,6 +323,7 @@ class CurriculumService:
         values = (
             request.placement_id,
             request.curriculum_id,
+            request.activity_id,
             request.package_id,
             request.brief_id,
         )
@@ -347,6 +348,46 @@ class CurriculumService:
             raise LessonReadError(
                 LessonErrorCode.INVALID_PACKAGE,
                 "Project brief placement is invalid.",
+                reference=request.placement_id,
+            )
+        try:
+            graph = self._repository.get_graph_exact(
+                request.curriculum_id,
+                request.curriculum_version,
+            )
+        except Exception as error:
+            raise LessonReadError(
+                LessonErrorCode.UNAVAILABLE,
+                "Curriculum source storage is unavailable.",
+                reference=request.placement_id,
+            ) from error
+        if graph is None or graph.graph_digest != request.curriculum_digest:
+            raise LessonReadError(
+                LessonErrorCode.INVALID_PACKAGE,
+                "Project brief placement does not match the exact curriculum.",
+                reference=request.placement_id,
+            )
+        activity = next(
+            (
+                item
+                for item in graph.activities
+                if item.activity_id == request.activity_id
+            ),
+            None,
+        )
+        reference = activity.reference if activity is not None else None
+        if not isinstance(reference, LessonActivityReference) or (
+            reference.package_id,
+            reference.package_version,
+            reference.package_digest,
+        ) != (
+            request.package_id,
+            request.package_version,
+            request.package_digest,
+        ):
+            raise LessonReadError(
+                LessonErrorCode.INVALID_PACKAGE,
+                "Project brief placement does not match the curriculum activity.",
                 reference=request.placement_id,
             )
         brief = self._content.get_project_brief_exact(
@@ -377,6 +418,7 @@ class CurriculumService:
             curriculum_id=request.curriculum_id,
             curriculum_version=request.curriculum_version,
             curriculum_digest=request.curriculum_digest,
+            activity_id=request.activity_id,
             package_id=request.package_id,
             package_version=request.package_version,
             package_digest=request.package_digest,
@@ -435,6 +477,7 @@ class CurriculumService:
             "curriculum_id": request.curriculum_id,
             "curriculum_version": request.curriculum_version,
             "curriculum_digest": request.curriculum_digest,
+            "activity_id": request.activity_id,
             "package_id": request.package_id,
             "package_version": request.package_version,
             "package_digest": request.package_digest,

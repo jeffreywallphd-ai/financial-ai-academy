@@ -9,9 +9,11 @@
 
 Content owns an approved learning-project brief as immutable source material.
 Curriculum owns the exact placement of that brief in an approved learning
-path. Project owns the learner's Project identity, charter, accepted origin,
-lifecycle, and revision. A learning-started Project can continue beyond a
-lesson without moving Content or Curriculum authority into Project.
+path and binds the placement to an existing exact Curriculum graph and lesson
+activity whose reference names the same Content package. Project owns the
+learner's Project identity, charter, accepted origin, lifecycle, and revision.
+A learning-started Project can continue beyond a lesson without moving Content
+or Curriculum authority into Project.
 
 An independent Project makes no claim about Curriculum placement, learning
 completion, mastery, Portfolio suitability, or Assessment evidence. A

@@ -135,6 +135,7 @@ def learning_setup() -> tuple[object, ProjectBriefPlacement, LearningProjectOrig
         curriculum_id="financial-foundations",
         curriculum_version="1.0.0",
         curriculum_digest="c" * 64,
+        activity_id="activity-risk-return-project",
         package_id="intro-risk-return-project",
         package_version="1.0.0",
         package_digest="d" * 64,

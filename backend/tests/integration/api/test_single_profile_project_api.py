@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -14,9 +15,22 @@ from financial_ai_academy.bootstrap.settings import SingleProfileApplicationSett
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.modules.content.public import AdmitLessonPackageRequest
 from financial_ai_academy.modules.curriculum.public import (
+    CreateLessonPlacementRequest,
     CreateProjectBriefPlacementRequest,
+    CurriculumActivity,
+    CurriculumActivityKind,
+    CurriculumBranch,
+    CurriculumBranchKind,
+    CurriculumCompetency,
+    CurriculumGraph,
+    CurriculumObjective,
+    CurriculumPresentationOrder,
+    CurriculumRelationship,
+    CurriculumRelationshipKind,
+    LessonActivityReference,
+    PublishCurriculumGraphRequest,
+    curriculum_graph_digest,
 )
-from financial_ai_academy.modules.curriculum.public import CurriculumOperations
 from financial_ai_academy.modules.identity.public import (
     IdentityError,
     IdentityErrorCode,
@@ -47,6 +61,79 @@ PROJECT_FIXTURE = (
     / "contracts/compatibility/lesson-package/v1/approved"
     / "intro-risk-return-project"
 )
+
+
+def project_curriculum_graph(
+    *, package_id: str, package_version: str, package_digest: str
+) -> CurriculumGraph:
+    activity_id = "activity-risk-return-project"
+    graph = CurriculumGraph(
+        schema_version="1.0.0",
+        curriculum_id="financial-foundations",
+        curriculum_version="1.0.0",
+        title="Financial foundations",
+        summary="A bounded path from an approved lesson to an applied Project.",
+        publication_state="approved",
+        published_at=NOW,
+        source_references=(f"content:{package_id}@{package_version}",),
+        objectives=(
+            CurriculumObjective(
+                "objective-apply-risk-return",
+                "Apply risk and return ideas",
+                "Use the lesson concepts in an educational comparison.",
+            ),
+        ),
+        competencies=(
+            CurriculumCompetency(
+                "competency-apply-risk-return",
+                "Risk and return application",
+                "Apply evidence without making a recommendation.",
+            ),
+        ),
+        activities=(
+            CurriculumActivity(
+                activity_id,
+                "Start the risk and return Project",
+                CurriculumActivityKind.LESSON,
+                LessonActivityReference(
+                    "risk-return-project-source",
+                    package_id,
+                    package_version,
+                    package_digest,
+                ),
+            ),
+        ),
+        branches=(
+            CurriculumBranch(
+                "branch-applied-project",
+                "Applied Project",
+                CurriculumBranchKind.REQUIRED,
+                (activity_id,),
+            ),
+        ),
+        relationships=(
+            CurriculumRelationship(
+                "relationship-project-objective",
+                CurriculumRelationshipKind.OBJECTIVE_COMPETENCY,
+                "objective-apply-risk-return",
+                "competency-apply-risk-return",
+            ),
+            CurriculumRelationship(
+                "relationship-project-develops",
+                CurriculumRelationshipKind.ACTIVITY_DEVELOPS_COMPETENCY,
+                activity_id,
+                "competency-apply-risk-return",
+            ),
+        ),
+        graph_digest="0" * 64,
+        presentation_order=CurriculumPresentationOrder(
+            objective_ids=("objective-apply-risk-return",),
+            competency_ids=("competency-apply-risk-return",),
+            activity_ids=(activity_id,),
+            branch_ids=("branch-applied-project",),
+        ),
+    )
+    return replace(graph, graph_digest=curriculum_graph_digest(graph))
 
 
 class Identity:
@@ -264,13 +351,30 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
     accepted = services.content.admit_lesson_package(
         AdmitLessonPackageRequest(PROJECT_FIXTURE)
     )
+    services.curriculum.create_lesson_placement(
+        CreateLessonPlacementRequest(
+            placement_id="risk-return-project-source",
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+        )
+    )
+    graph = project_curriculum_graph(
+        package_id=accepted.package_id,
+        package_version=accepted.package_version,
+        package_digest=accepted.package_digest,
+    )
+    services.curriculum.publish_curriculum_graph(
+        PublishCurriculumGraphRequest(graph)
+    )
     placement = services.curriculum.create_project_brief_placement(
         CreateProjectBriefPlacementRequest(
             placement_id="risk-return-project-primary",
             placement_version="1.0.0",
-            curriculum_id="financial-foundations",
-            curriculum_version="1.0.0",
-            curriculum_digest="c" * 64,
+            curriculum_id=graph.curriculum_id,
+            curriculum_version=graph.curriculum_version,
+            curriculum_digest=graph.graph_digest,
+            activity_id="activity-risk-return-project",
             package_id=accepted.package_id,
             package_version=accepted.package_version,
             package_digest=accepted.package_digest,

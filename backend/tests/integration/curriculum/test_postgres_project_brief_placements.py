@@ -69,6 +69,7 @@ def placement(digest: str = "a" * 64) -> ProjectBriefPlacement:
         curriculum_id="financial-foundations",
         curriculum_version="1.0.0",
         curriculum_digest="b" * 64,
+        activity_id="activity-risk-return-project",
         package_id="intro-risk-return-project",
         package_version="1.0.0",
         package_digest="c" * 64,
@@ -100,3 +101,21 @@ def test_same_placement_identity_rejects_changed_exact_meaning() -> None:
 
     with pytest.raises(PlacementConflict):
         selected.save_project_brief_if_absent(placement("e" * 64))
+
+
+def test_down_migration_refuses_retained_project_brief_placements() -> None:
+    assert POSTGRES_DSN is not None
+    selected = PostgresCurriculumRepository(POSTGRES_DSN)
+    selected.save_project_brief_if_absent(placement())
+    down = (
+        MIGRATIONS
+        / "curriculum/curriculum_0006_project_brief_placements.down.sql"
+    ).read_text(encoding="utf-8")
+
+    with pytest.raises(psycopg.Error):
+        with psycopg.connect(POSTGRES_DSN) as connection:
+            connection.execute(down)
+
+    assert selected.get_project_brief(
+        "risk-return-project-primary"
+    ) == placement()
