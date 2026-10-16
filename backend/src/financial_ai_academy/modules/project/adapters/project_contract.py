@@ -699,7 +699,7 @@ class ContractProjectAdapter:
             )
         segments = value.split("/")
         reserved = re.compile(
-            r"^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\..*)?$",
+            r"^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\..*)?$",
             re.IGNORECASE,
         )
         if any(

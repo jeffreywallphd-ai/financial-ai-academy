@@ -35,6 +35,20 @@
     "code": "project.contract.noncanonical_logical_path"
   },
   {
+    "case": "artifact path uses a superscript COM device alias",
+    "kind": "workspace",
+    "path": ["artifacts", 0, "logical_path"],
+    "value": "data/COM¹.txt",
+    "code": "project.contract.noncanonical_logical_path"
+  },
+  {
+    "case": "artifact path uses a superscript LPT device alias",
+    "kind": "workspace",
+    "path": ["artifacts", 0, "logical_path"],
+    "value": "data/LPT².csv",
+    "code": "project.contract.noncanonical_logical_path"
+  },
+  {
     "case": "reference URL contains credentials",
     "kind": "workspace",
     "path": ["references", 0, "url"],

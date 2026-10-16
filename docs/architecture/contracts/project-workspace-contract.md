@@ -104,8 +104,9 @@ authority.
 
 Artifact manifests admit only dataset, notebook, code, environment, result,
 reflection, and supporting-file evidence. They use NFC-normalized relative
-logical paths with one case-folded cross-platform comparison key, closed media and passive-
-inspection values, a maximum declared
+logical paths with one case-folded cross-platform comparison key and reject
+reserved device aliases, including the Windows superscript-digit COM/LPT forms.
+They use closed media and passive-inspection values with a maximum declared
 size of 10 MiB, lowercase SHA-256 content integrity, source/license/use
 provenance, assumptions, and optional external-environment evidence. Result
 records distinguish observed, calculated, simulated, predicted, generated,

@@ -39,7 +39,8 @@ authorization, time, revision, persistence, or durable state changes.
 revision. It bounds notes, HTTPS reference metadata, inert artifact manifests,
 and validated typed domain-resource references. Artifact paths are NFC-
 normalized logical, relative names with canonical cross-platform segments;
-case-folded aliases, traversal, reserved device names, and host paths fail
+case-folded aliases, traversal, reserved device names (including the Windows
+superscript-digit COM/LPT forms), and host paths fail
 closed. Each artifact has a
 closed kind, media type, inspection mode, byte count, lowercase SHA-256 digest,
 source history, assumptions, and optional environment declaration. Results

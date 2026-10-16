@@ -356,6 +356,8 @@ def test_workspace_artifact_boundaries(
         "data/trailing ",
         "data//sample.csv",
         "data/CON.csv",
+        "data/COM¹.txt",
+        "data/LPT².csv",
         "data/Cafe\u0301.csv",
     ],
 )

@@ -283,8 +283,8 @@ added.
   snapshot record versions, use-restricted export exclusions, and direct-UTF-8
   canonical digest vectors. It contains no personal or provider data and does
   not claim a live Portfolio adapter.
-- Focused Project contract and domain verification passed 113 tests. The broader
-  backend architecture, contract, and unit corpus passed 702 tests, including
+- Focused Project contract and domain verification passed 117 tests. The broader
+  backend architecture, contract, and unit corpus passed 706 tests, including
   flexible zero/single/multiple workspace shapes and fail-closed traversal,
   cross-platform path aliases, credential-bearing URLs, incomplete export
   coverage, altered record meaning, active effects, incomplete provenance,
@@ -323,3 +323,6 @@ added.
   comparison key, embedding complete closed snapshot/workspace JSON Schema
   definitions in the export contract, and binding workspace array order to the
   snapshot reference order. The correction stayed within the frozen packet.
+- 2026-10-16: Completed the cross-platform device-name boundary with the
+  documented Windows superscript-digit COM/LPT aliases and mirrored denial
+  evidence. No broader path or storage behavior changed.
