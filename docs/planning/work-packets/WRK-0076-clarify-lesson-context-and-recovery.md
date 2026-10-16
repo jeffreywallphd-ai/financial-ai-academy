@@ -1,7 +1,7 @@
 ---
 id: WRK-0076
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -155,3 +155,7 @@ CAP-0031.
 - 2026-10-16: Refined SLI-0124 JIT-A around lesson loading, publication context,
   accessible exact technical facts, bounded route failures, focused semantic
   evidence, and explicit exclusion of assessment behavior and visual polish.
+- 2026-10-16: Submitted exact implementation candidate
+  `62ad0f8c2e05882401c74fb6cebf68098f23ad35` for affected verification after
+  focused component, typecheck, lint, design, planning, documentation,
+  whitespace, and aggregate-readiness checks passed.
