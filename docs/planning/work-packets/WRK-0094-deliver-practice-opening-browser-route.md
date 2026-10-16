@@ -1,7 +1,7 @@
 ---
 id: WRK-0094
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/practice-activity", "apps/web/src/styles/practice-activity.css", "apps/web/tests/browser/practice-activity", "apps/web/tests/component/practiceActivity.test.tsx", "apps/web/tests/component/practiceFixture.ts", "apps/web/tests/unit/practiceActivityModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0026-open-versioned-practice-activity.md", "docs/planning/work-packets/WRK-0094-deliver-practice-opening-browser-route.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 93882c1025db65f483b3b867afa75381d7dabbdc
+claim_id: WRK-0094:6c66f0cf-a9b2-4239-90fb-113fb0596eaf
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T14:53:50Z
 ---
 
 # Agent Work Packet: Deliver Practice Opening Browser Route
@@ -189,3 +189,5 @@ for live qualification.
   the existing protected public API authoritative for browser and future
   headless consumers, adds only answer-safe rendering, and defers submission,
   persistence, scoring, live seeding, and any separate AI mode.
+- 2026-10-16: Claimed from base revision `93882c1` after dependency,
+  authority, decision, branch, exact-scope, and collision checks passed.
