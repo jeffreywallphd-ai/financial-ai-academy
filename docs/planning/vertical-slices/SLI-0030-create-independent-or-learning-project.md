@@ -1,7 +1,7 @@
 ---
 id: SLI-0030
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -200,7 +200,7 @@ each packet starts.
 | WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | complete |
 | WRK-0111 | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | WRK-0110 | none | complete |
 | WRK-0117 | Refresh the tracked production bundle from the accepted Project browser source without changing authored behavior | WRK-0111 | none | complete |
-| WRK-0116 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | WRK-0111, WRK-0117 | none | verifying |
+| WRK-0116 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | WRK-0111, WRK-0117 | none | complete |
 
 ## Verification and Qualification
 
@@ -352,3 +352,7 @@ not delivered or qualified.
   Chromium, static build, architecture, security, language/design, and
   containment checks. Assurance claims and residual gaps were reconciled
   without changing product behavior.
+- 2026-10-16: Closed SLI-0030 after WRK-0116's exact candidate and qualifying
+  receipt passed the five-packet completion gate. All eleven acceptance
+  scenarios are covered; the documented later-capability and deployment gaps
+  remain explicit.
