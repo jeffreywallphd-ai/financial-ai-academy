@@ -177,10 +177,10 @@ class ReceiptStore:
     def append(self, work_id: str, receipt: dict[str, Any]) -> Path:
         directory = self._directory(work_id, str(receipt["candidate"]))
         directory.mkdir(parents=True, exist_ok=True)
-        prior = sorted(directory.glob("*.json"))
         prior_digest = None
-        if prior:
-            prior_document = json.loads(prior[-1].read_bytes())
+        prior_path = self.latest_path(work_id, str(receipt["candidate"]))
+        if prior_path is not None:
+            prior_document = self.load(prior_path)
             prior_digest = prior_document.get("receipt_digest")
         payload = {**receipt, "prior_receipt_digest": prior_digest}
         payload["receipt_digest"] = digest(payload)
@@ -203,6 +203,80 @@ class ReceiptStore:
     def paths(self, work_id: str, candidate: str) -> list[Path]:
         directory = self._directory(work_id, candidate)
         return sorted(directory.glob("*.json")) if directory.is_dir() else []
+
+    def latest_path(self, work_id: str, candidate: str) -> Path | None:
+        """Return the unique append-chain head, independent of filename order."""
+
+        paths = self.paths(work_id, candidate)
+        if not paths:
+            return None
+        by_digest: dict[str, Path] = {}
+        prior_by_digest: dict[str, str | None] = {}
+        for path in paths:
+            document = self.load(path)
+            receipt_digest = document.get("receipt_digest")
+            prior_digest = document.get("prior_receipt_digest")
+            if (
+                not isinstance(receipt_digest, str)
+                or not receipt_digest.startswith("sha256:")
+                or receipt_digest in by_digest
+                or (prior_digest is not None and not isinstance(prior_digest, str))
+                or receipt_digest
+                != digest(
+                    {
+                        key: value
+                        for key, value in document.items()
+                        if key != "receipt_digest"
+                    }
+                )
+            ):
+                raise ControlError(
+                    "verification.receipt-chain-invalid",
+                    "The receipt chain is incomplete or ambiguous.",
+                    {"work_id": work_id, "candidate": candidate},
+                    ["Preserve the receipt files and use bounded control maintenance."],
+                )
+            by_digest[receipt_digest] = path
+            prior_by_digest[receipt_digest] = prior_digest
+        referenced = {
+            value for value in prior_by_digest.values() if value is not None
+        }
+        if not referenced.issubset(by_digest):
+            raise ControlError(
+                "verification.receipt-chain-invalid",
+                "The receipt chain is incomplete or ambiguous.",
+                {"work_id": work_id, "candidate": candidate},
+                ["Preserve the receipt files and use bounded control maintenance."],
+            )
+        heads = set(by_digest) - referenced
+        if len(heads) != 1:
+            raise ControlError(
+                "verification.receipt-chain-invalid",
+                "The receipt chain is incomplete or ambiguous.",
+                {"work_id": work_id, "candidate": candidate},
+                ["Preserve the receipt files and use bounded control maintenance."],
+            )
+        head = next(iter(heads))
+        seen: set[str] = set()
+        current: str | None = head
+        while current is not None:
+            if current in seen or current not in by_digest:
+                raise ControlError(
+                    "verification.receipt-chain-invalid",
+                    "The receipt chain is incomplete or ambiguous.",
+                    {"work_id": work_id, "candidate": candidate},
+                    ["Preserve the receipt files and use bounded control maintenance."],
+                )
+            seen.add(current)
+            current = prior_by_digest[current]
+        if seen != set(by_digest):
+            raise ControlError(
+                "verification.receipt-chain-invalid",
+                "The receipt chain is incomplete or ambiguous.",
+                {"work_id": work_id, "candidate": candidate},
+                ["Preserve the receipt files and use bounded control maintenance."],
+            )
+        return by_digest[head]
 
     def load(self, path: Path) -> dict[str, Any]:
         resolved = path.resolve()

@@ -1,7 +1,7 @@
 ---
 id: WRK-0112
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -10,7 +10,7 @@ capability: CAP-0002
 depends_on: ["WRK-0013", "WRK-0070"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0005-record-review-findings-and-corrected-descendants.md", "docs/planning/work-packets/WRK-0112-allow-resubmission-after-failed-verification.md"]
+write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py", "dev-tools/control-plane/test_verification.py", "dev-tools/control-plane/verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0005-record-review-findings-and-corrected-descendants.md", "docs/planning/work-packets/WRK-0112-allow-resubmission-after-failed-verification.md"]
 generated_artifacts: []
 base_revision: da4eee2b2037c127266111cdc605a08de20757fc
 claim_id: WRK-0112:c5c7d610-4a1d-456d-8f0f-fc05636e8777
@@ -31,7 +31,7 @@ candidate that never qualified for review.
 
 This packet implements the bounded correction route recorded for WRK-0013 with
 route digest
-`sha256:fd734819d0fb2fb9039fd7c221ff804e083198bf809a2a162b055dd913060dec`.
+`sha256:3bfbf6ad9f8c5c6d314d362e17e30447d025435217c57892a9823a7e9c716164`.
 
 ## Required Context
 
@@ -120,3 +120,7 @@ synthesized.
   product packet produced a non-qualifying first receipt and exposed that no
   legal strict-descendant resubmission existed before independent review. The
   correction removes that dead end without weakening evidence or review.
+- 2026-10-16: Returned to active correction after the first independent review
+  found real-Git descendant validation, receipt integrity/order, locked-state,
+  and affected-suite coverage gaps. The refined route remains inside the
+  original reusable control-plane boundary and adds no approval stage.

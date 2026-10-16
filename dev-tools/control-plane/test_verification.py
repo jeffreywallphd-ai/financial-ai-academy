@@ -424,6 +424,14 @@ class SelectionTests(unittest.TestCase):
                 "local:architecture",
                 "approved-lesson:live",
             ],
+            "dev-tools/control-plane/review.py": [
+                "control-plane:unit",
+                "control-plane:review",
+            ],
+            "dev-tools/control-plane/test_review.py": [
+                "control-plane:unit",
+                "control-plane:review",
+            ],
             "dev-tools/control-plane/check_approved_lesson.py": [
                 "control-plane:unit",
                 "control-plane:verification",
@@ -496,11 +504,12 @@ class ExecutionAndReceiptTests(unittest.TestCase):
                 "recorded_at": "2026-10-15T12:00:00Z",
             }
             first_path = store.append("WORK-1", base)
-            second_path = store.append("WORK-1", {**base, "recorded_at": "2026-10-15T12:00:01Z"})
+            second_path = store.append("WORK-1", {**base, "recorded_at": "2026-10-15T12:00:00Z"})
             first = store.load(first_path)
             second = store.load(second_path)
             self.assertIsNone(first["prior_receipt_digest"])
             self.assertEqual(first["receipt_digest"], second["prior_receipt_digest"])
+            self.assertEqual(second_path, store.latest_path("WORK-1", "a" * 40))
             self.assertEqual([], validate_receipt(second, catalog, current_candidate="a" * 40))
             second["candidate"] = "b" * 40
             self.assertIn("receipt candidate does not match plan", validate_receipt(second, catalog))

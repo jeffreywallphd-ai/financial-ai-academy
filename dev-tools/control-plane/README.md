@@ -208,14 +208,18 @@ immutable candidate rounds, blocking findings, explicit closure, stale-receipt
 denial, strict-descendant corrections, fresh-verification requirements,
 root-cause escalation, append-only ignored-ledger storage, and proportionate
 cleanup findings. Before any review exists, ordinary resubmission also accepts
-one narrow authorization source: the latest receipt for the exact submitted
-candidate is intact and fails validation only because one or more selected
-checks failed or timed out. The replacement must still be a strict descendant
-inside packet scope and receives fresh verification plus the ordinary
-independent review. A passing receipt, stale catalog or candidate, incomplete
-coverage, candidate drift, malformed or digest-invalid receipt, or an already
-reviewed exact candidate cannot use this route. Cleanup cannot cause an adverse
-disposition. A strict
+one narrow authorization source: the unique append-chain head for the exact
+submitted candidate is complete, binds the current submission-input digest,
+has intact receipt and provenance digests, and fails validation only because
+one or more selected checks failed or timed out. Receipt-chain order comes from
+digest lineage rather than timestamp/filename order and ambiguous chains fail
+closed. The replacement must still be a strict descendant inside packet scope
+and receives fresh verification plus the ordinary independent review. A
+passing receipt, stale catalog, submission, or candidate, incomplete coverage,
+candidate drift, malformed or digest-invalid receipt, or an already reviewed
+exact candidate cannot use this route. Authorization is recomputed from the
+current submitted state inside the state transition. Cleanup cannot cause an
+adverse disposition. A strict
 cleanup-only descendant of an accepted candidate inherits that review only
 when Git proves the incremental delta changes only terminal blank lines in an
 approved UTF-8 source or documentation file type and the descendant has its own

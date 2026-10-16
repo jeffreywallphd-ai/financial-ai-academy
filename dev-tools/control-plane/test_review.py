@@ -22,9 +22,17 @@ from approval_store import empty_store, load_store, save_store, store_path  # no
 from contracts import ControlError  # noqa: E402
 from control_plane import git_terminal_blank_line_only_delta, load_local_review_request  # noqa: E402
 from financial_academy_review_ledger import FinancialAcademyReviewLedger  # noqa: E402
+from git_candidate import GitCandidateAdapter  # noqa: E402
+from provenance import envelope as provenance_envelope  # noqa: E402
 from review import REVIEW_TYPE, ReviewService, open_findings  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
-from verification import CheckCatalog, CheckDefinition, ReceiptStore, select_checks  # noqa: E402
+from verification import (  # noqa: E402
+    CheckCatalog,
+    CheckDefinition,
+    ReceiptStore,
+    digest,
+    select_checks,
+)
 
 
 class JsonProjection:
@@ -149,24 +157,55 @@ class ReviewServiceTests(unittest.TestCase):
         stable: bool = True,
     ) -> Path:
         plan = select_checks(catalog(), candidate, ["docs/README.md"])
+        attempts = [
+            {
+                "check_id": "docs:fixture",
+                "exit_code": None if timed_out else 1,
+                "timed_out": timed_out,
+            }
+        ]
+        submission = {
+            "candidate": candidate,
+            "changed_paths": ["docs/README.md"],
+            "recorded_at": "2026-10-15T12:00:00Z",
+        }
+        submission_digest = digest(submission)
+        failure = "one or more selected checks failed or timed out"
         return receipts.append(
             "WORK-1",
             {
                 "schema_version": "verification-receipt-v1",
+                "work_id": "WORK-1",
                 "candidate": candidate,
+                "submission_input_digest": submission_digest,
                 "plan": plan,
-                "attempts": [
-                    {
-                        "check_id": "docs:fixture",
-                        "exit_code": None if timed_out else 1,
-                        "timed_out": timed_out,
-                    }
-                ],
+                "environment": {"digest": "sha256:" + "e" * 64},
+                "attempts": attempts,
                 "candidate_stability": {
                     "post_run_stable": stable,
                     "errors": [] if stable else ["candidate.dirty"],
                 },
+                "producer": {
+                    "tool": "local-control-plane",
+                    "schema_version": "1.0",
+                },
+                "fresh": True,
                 "recorded_at": "2026-10-15T12:06:00Z",
+                "provenance": provenance_envelope(
+                    operation_id="verification.receipt",
+                    output={
+                        "candidate": candidate,
+                        "plan_digest": plan["plan_digest"],
+                        "attempts": attempts,
+                    },
+                    revision=candidate,
+                    input_digest=submission_digest,
+                    capability_digest="sha256:" + "c" * 64,
+                ),
+                "qualification": {
+                    "qualifying": False,
+                    "errors": [failure],
+                },
             },
         )
 
@@ -429,6 +468,34 @@ class ReviewServiceTests(unittest.TestCase):
                 service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
             self.assertEqual("review.resubmit-not-authorized", passing.exception.code)
 
+        with tempfile.TemporaryDirectory(prefix="review-incomplete-receipt-") as directory:
+            service, _state, _ledger, _candidate, receipts = self.prepare(
+                Path(directory)
+            )
+            plan = select_checks(catalog(), "a" * 40, ["docs/README.md"])
+            receipts.append(
+                "WORK-1",
+                {
+                    "schema_version": "verification-receipt-v1",
+                    "candidate": "a" * 40,
+                    "plan": plan,
+                    "attempts": [
+                        {
+                            "check_id": "docs:fixture",
+                            "exit_code": 1,
+                            "timed_out": False,
+                        }
+                    ],
+                    "recorded_at": "2026-10-15T12:06:00Z",
+                },
+            )
+            with self.assertRaises(ControlError) as incomplete:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual(
+                "review.resubmit-not-authorized",
+                incomplete.exception.code,
+            )
+
         with tempfile.TemporaryDirectory(prefix="review-drifted-receipt-") as directory:
             service, _state, _ledger, _candidate, receipts = self.prepare(
                 Path(directory)
@@ -437,6 +504,20 @@ class ReviewServiceTests(unittest.TestCase):
             with self.assertRaises(ControlError) as drifted:
                 service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
             self.assertEqual("review.resubmit-not-authorized", drifted.exception.code)
+
+        with tempfile.TemporaryDirectory(prefix="review-tampered-receipt-") as directory:
+            root = Path(directory)
+            service, _state, _ledger, _candidate, receipts = self.prepare(root)
+            path = self.failed_receipt(receipts, "a" * 40)
+            document = json.loads(path.read_text(encoding="utf-8"))
+            document["fresh"] = False
+            path.write_text(json.dumps(document), encoding="utf-8")
+            with self.assertRaises(ControlError) as tampered:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual(
+                "verification.receipt-chain-invalid",
+                tampered.exception.code,
+            )
 
         with tempfile.TemporaryDirectory(prefix="reviewed-failed-receipt-") as directory:
             root = Path(directory)
@@ -454,6 +535,229 @@ class ReviewServiceTests(unittest.TestCase):
                 service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
             self.assertEqual("review.resubmit-not-authorized", reviewed.exception.code)
             self.assertEqual(1, len(ledger.items))
+
+    def test_failed_verification_authority_binds_current_submission_and_chain_head(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(prefix="review-current-submission-") as directory:
+            root = Path(directory)
+            service, state, _ledger, _candidate, receipts = self.prepare(root)
+            self.failed_receipt(receipts, "a" * 40)
+            envelope = state.load()
+            envelope["work_items"]["WORK-1"]["submission"]["declared_inputs"] = [
+                {"path": "docs/README.md", "sha256": "sha256:" + "1" * 64}
+            ]
+            atomic_write(state.state_path, canonical_bytes(envelope))
+            with self.assertRaises(ControlError) as changed_submission:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual(
+                "review.resubmit-not-authorized",
+                changed_submission.exception.code,
+            )
+
+        with tempfile.TemporaryDirectory(prefix="review-chain-head-") as directory:
+            root = Path(directory)
+            service, _state, _ledger, _candidate, receipts = self.prepare(root)
+            self.failed_receipt(receipts, "a" * 40)
+            self.receipt(receipts, "a" * 40)
+            with self.assertRaises(ControlError) as latest_passed:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1")
+            self.assertEqual(
+                "review.resubmit-not-authorized",
+                latest_passed.exception.code,
+            )
+
+    def test_real_git_descendant_can_replace_failed_candidate(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="review-real-git-") as directory:
+            root = Path(directory)
+            subprocess.run(
+                ["git", "init", "-b", "main"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.email", "fixture@example.invalid"],
+                cwd=root,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "user.name", "Fixture"],
+                cwd=root,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "config", "core.autocrlf", "false"],
+                cwd=root,
+                check=True,
+            )
+            (root / ".gitignore").write_text(".local-codex/\n", encoding="utf-8")
+            (root / "docs").mkdir()
+            (root / "docs" / "README.md").write_text("base\n", encoding="utf-8")
+            (root / "work.json").write_text(
+                '{"status":"verifying"}\n',
+                encoding="utf-8",
+            )
+            subprocess.run(
+                ["git", "add", ".gitignore", "docs/README.md", "work.json"],
+                cwd=root,
+                check=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "base"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+            )
+            base = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            (root / "docs" / "README.md").write_text("fails\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "commit", "-am", "submitted"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+            )
+            submitted = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+
+            project = FixtureProject(root)
+            state = StateStore(root, project.projection)
+            envelope = state.empty()
+            envelope["revision"] = 1
+            submission = {
+                "candidate": submitted,
+                "changed_paths": ["docs/README.md"],
+                "recorded_at": "2026-10-15T12:00:00Z",
+            }
+            envelope["work_items"]["WORK-1"] = {
+                "work_id": "WORK-1",
+                "revision": 1,
+                "state": "submitted",
+                "claim": {
+                    "owner": "owner",
+                    "claim_id": "claim-1",
+                    "base_revision": base,
+                },
+                "submission": submission,
+                "history": [],
+            }
+            atomic_write(state.state_path, canonical_bytes(envelope))
+            receipts = ReceiptStore(root)
+            plan = select_checks(
+                catalog(),
+                submitted,
+                ["docs/README.md"],
+                base_revision=base,
+            )
+            attempts = [
+                {
+                    "check_id": "docs:fixture",
+                    "exit_code": 1,
+                    "timed_out": False,
+                }
+            ]
+            submission_digest = digest(submission)
+            receipts.append(
+                "WORK-1",
+                {
+                    "schema_version": "verification-receipt-v1",
+                    "work_id": "WORK-1",
+                    "candidate": submitted,
+                    "submission_input_digest": submission_digest,
+                    "plan": plan,
+                    "environment": {"digest": "sha256:" + "e" * 64},
+                    "attempts": attempts,
+                    "candidate_stability": {
+                        "post_run_stable": True,
+                        "errors": [],
+                    },
+                    "producer": {
+                        "tool": "local-control-plane",
+                        "schema_version": "1.0",
+                    },
+                    "fresh": True,
+                    "recorded_at": "2026-10-15T12:06:00Z",
+                    "provenance": provenance_envelope(
+                        operation_id="verification.receipt",
+                        output={
+                            "candidate": submitted,
+                            "plan_digest": plan["plan_digest"],
+                            "attempts": attempts,
+                        },
+                        revision=submitted,
+                        input_digest=submission_digest,
+                        capability_digest="sha256:" + "c" * 64,
+                    ),
+                    "qualification": {
+                        "qualifying": False,
+                        "errors": [
+                            "one or more selected checks failed or timed out"
+                        ],
+                    },
+                },
+            )
+            (root / "docs" / "README.md").write_text("fixed\n", encoding="utf-8")
+            subprocess.run(
+                ["git", "commit", "-am", "corrected descendant"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+            )
+            corrected = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            self.assertEqual(
+                "",
+                subprocess.run(
+                    ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+                    cwd=root,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                ).stdout.strip(),
+            )
+            service = ReviewService(
+                root,
+                project,
+                state,
+                GitCandidateAdapter(root),
+                catalog(),
+                MemoryLedger(),
+                receipts,
+            )
+
+            try:
+                result = service.resubmit(
+                    "WORK-1",
+                    owner="owner",
+                    claim_id="claim-1",
+                    candidate=corrected,
+                )
+            except ControlError as error:
+                self.fail(f"unexpected real-Git refusal: {error.code} {error.observed}")
+
+            self.assertEqual(
+                "review.corrected-descendant-submitted",
+                result["code"],
+            )
+            current = state.load()["work_items"]["WORK-1"]["submission"]
+            self.assertEqual(submitted, current["parent_candidate"])
+            self.assertEqual(corrected, current["candidate"])
 
     def test_third_candidate_requires_root_cause_after_two_adverse_rounds(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-root-cause-") as directory:

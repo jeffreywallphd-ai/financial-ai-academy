@@ -110,9 +110,10 @@ def catalog() -> CheckCatalog:
         *roadmap_document_paths,
     )
     return CheckCatalog(
-        "financial-ai-academy-v4",
+        "financial-ai-academy-v5",
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
+            CheckDefinition("control-plane:review", (python, "dev-tools/control-plane/test_review.py"), ("dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py"), "medium", 11, description="Technical review, corrected-descendant, and review-ledger behavior"),
             CheckDefinition("control-plane:verification", (python, "dev-tools/control-plane/test_verification.py"), ("dev-tools/control-plane/verification.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/test_verification.py"), "medium", 12, description="Affected-selection, repository-check, and receipt behavior"),
             CheckDefinition("planning:tools", (python, "dev-tools/planning/test_planning_tools.py"), ("dev-tools/planning/**", "docs/planning/**"), "medium", 20, description="Planning-tool behavior"),
             CheckDefinition("planning:integrity", (python, "dev-tools/planning/check_planning.py"), ("dev-tools/planning/**", "docs/planning/**"), "low", 30, description="Planning artifact integrity"),
