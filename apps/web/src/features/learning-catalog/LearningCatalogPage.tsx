@@ -35,6 +35,7 @@ function OpportunityCard({
   returnTo: string;
 }) {
   const canOpen = opportunityCanOpen(opportunity);
+  const opportunityKind = label(opportunity.kind);
   const detailParameters = new URLSearchParams({ return_to: returnTo });
   return (
     <article className="catalog-card">
@@ -84,7 +85,7 @@ function OpportunityCard({
           <dd>{opportunity.prerequisite_summary}</dd>
         </div>
         <div>
-          <dt>Lesson version</dt>
+          <dt>{opportunityKind} version</dt>
           <dd>{opportunity.package_version}</dd>
         </div>
       </dl>
@@ -114,7 +115,7 @@ function OpportunityCard({
           <summary>Technical record</summary>
           <dl>
             <div>
-              <dt>Lesson package</dt>
+              <dt>{opportunityKind} package</dt>
               <dd>
                 <code>
                   {opportunity.package_id}@{opportunity.package_version}
@@ -190,7 +191,15 @@ function QueryControls({ page }: { page: LearningCatalogQueryPage }) {
         {topicValues.map((topic, index) => (
           <label key={`${topic}-${index}`}>
             {index === 0 ? "Topic" : `Additional topic ${index + 1}`}
+            <span id={`catalog-topic-${index}-help`}>
+              Use lowercase letters and hyphens between words, such as
+              cash-flow.
+            </span>
             <input
+              aria-label={
+                index === 0 ? "Topic" : `Additional topic ${index + 1}`
+              }
+              aria-describedby={`catalog-topic-${index}-help`}
               defaultValue={topic}
               maxLength={50}
               name="topic"

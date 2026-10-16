@@ -39,6 +39,7 @@ describe("LearningCatalogPage", () => {
     expect(within(firstCard).getByText("Lesson version")).toBeVisible();
     expect(within(firstCard).getByText("1.2.0")).toBeVisible();
     expect(within(firstCard).getByText("Publication details")).toBeVisible();
+    expect(within(secondCard).getByText("Project version")).toBeVisible();
     expect(screen.getAllByText(/Financial AI Academy/)).not.toHaveLength(0);
     expect(
       screen.getByText("The exact reviewed lesson is available."),
@@ -106,9 +107,11 @@ describe("LearningCatalogPage", () => {
     expect(
       screen.getByRole("searchbox", { name: "Search opportunities" }),
     ).toHaveValue("cash flow");
-    expect(screen.getByRole("textbox", { name: "Topic" })).toHaveAttribute(
-      "name",
-      "topic",
+    const topic = screen.getByRole("textbox", { name: "Topic" });
+    expect(topic).toHaveAttribute("name", "topic");
+    expect(topic).toHaveAttribute("pattern", "[a-z0-9][a-z0-9-]{1,49}");
+    expect(topic).toHaveAccessibleDescription(
+      "Use lowercase letters and hyphens between words, such as cash-flow.",
     );
     expect(
       screen.getByRole("listbox", { name: "Activity type" }),
@@ -150,14 +153,31 @@ describe("LearningCatalogPage", () => {
     ).toBeVisible();
     expect(within(firstCard).getByText("Package digest")).toBeVisible();
     expect(within(firstCard).getByText("Source fingerprint")).toBeVisible();
+
+    const plannedCard = screen
+      .getByRole("heading", { name: plannedOpportunity.title })
+      .closest("article");
+    expect(plannedCard).not.toBeNull();
+    await user.click(
+      within(plannedCard as HTMLElement).getByText("Technical record"),
+    );
+    expect(
+      within(plannedCard as HTMLElement).getByText("Project package"),
+    ).toBeVisible();
   });
 
   it("does not expose known implementation terms in the primary list flow", () => {
     renderCatalog();
 
-    expect(document.body.textContent).not.toMatch(
-      /Topic slug|Apply query|Exact package|Open exact lesson|Technical provenance/,
-    );
+    expect(screen.queryByText("Topic slug")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Apply query" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Exact package")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Open exact lesson" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Technical provenance")).not.toBeInTheDocument();
   });
 
   it("builds a bounded transient comparison in learner selection order", async () => {
