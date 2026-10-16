@@ -1,7 +1,7 @@
 ---
 id: WRK-0100
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/practice-activity.e2e.ts", "backend/src/financial_ai_academy/modules/assessment/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0027-submit-and-score-practice-attempt.md", "docs/planning/work-packets/WRK-0100-qualify-live-practice-submission.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 7c2ad0689b481a1821e01602b79a77acc341c6a2
+claim_id: WRK-0100:be0945de-34f3-4272-a4ff-1d51e3508fdc
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T16:45:33Z
 ---
 
 # Agent Work Packet: Qualify Live Practice Submission
@@ -206,3 +206,6 @@ external execution was added. Leave SLI-0027 ready for deterministic closure.
   shared replay input for a non-browser client, and qualifies durable practice
   evidence across normal restart without planning a separate AI mode or adding
   another transport or authority boundary.
+- 2026-10-16: Claimed from base revision `7c2ad06` after the implementation
+  gate confirmed current CAP authority, completed dependency, decision
+  readiness, exact qualification scope, and no active ownership collision.
