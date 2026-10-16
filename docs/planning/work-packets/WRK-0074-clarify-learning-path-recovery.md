@@ -1,7 +1,7 @@
 ---
 id: WRK-0074
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -147,6 +147,6 @@ work left to JIT-C, and any cosmetic issue deferred to CAP-0031.
 - 2026-10-16: Refined SLI-0123 JIT-B around route-owned loading and bounded
   recovery language, unchanged fail-closed behavior/actions, focused semantic
   evidence, and explicit exclusion of ready-page and visual-polish work.
-- 2026-10-16: Moved the completed route-language change to verification after
-  focused component, typecheck, lint, design, planning, documentation,
-  whitespace, and aggregate-readiness checks passed.
+- 2026-10-16: Prepared the completed route-language change for exact-candidate
+  submission after focused component, typecheck, lint, design, planning,
+  documentation, whitespace, and aggregate-readiness checks passed.
