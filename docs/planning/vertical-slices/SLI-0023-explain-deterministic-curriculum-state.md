@@ -175,7 +175,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0062 | Freeze the navigation-state contract, pure Adaptation policy, public operation, reason semantics, and focused anti-rigidity corpus | none | none | complete |
-| WRK-0063 | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | verifying |
+| WRK-0063 | Compose Curriculum and Learner-model public gateways, expose the protected API, and regenerate the client | WRK-0062 | none | complete |
 | JIT-C | Annotate the existing accessible map/list through the generated client without client-side policy | JIT-B | none | refine after JIT-B completes |
 | JIT-D | Qualify the live projection, failure paths, accessibility, provenance, module ownership, and documentation | JIT-C | none | refine after JIT-C completes |
 
@@ -274,3 +274,6 @@ was introduced.
   enforcement, exact v1 response bounds, and fork-safe readiness tests in a
   strict descendant candidate; full PostgreSQL, web, architecture, planning,
   documentation, and readiness qualification remained green.
+- 2026-10-16: WRK-0063 completed at exact descendant candidate `3f7b13f`
+  with its protected application/API boundary qualified and dependency-ready
+  for the browser-owned JIT-C increment.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0063
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -302,3 +302,7 @@ consume one exact generated operation, or return a bounded blocker.
   Removed ignored-ledger and hard-coded-current-CAP assumptions from the two
   control-plane tests that must also run in a forked checkout, then returned
   the packet to exact-candidate verification.
+- 2026-10-16: Completed at exact descendant candidate `3f7b13f` after all
+  malformed-source, query-input, v1 response-bound, and fork-portability
+  corrections passed focused, adjacent, live-PostgreSQL, web, architecture,
+  planning, documentation, aggregate readiness, and exact-candidate checks.
