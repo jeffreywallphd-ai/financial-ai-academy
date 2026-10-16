@@ -17,14 +17,11 @@ export function CurriculumGraphLoadingState() {
       className="curriculum-graph-loading"
       role="status"
     >
-      <p className="eyebrow">Approved curriculum graph</p>
-      <h1>Loading curriculum navigation</h1>
-      <p>
-        Establishing the private learner session and reading the exact reviewed
-        graph with its current server-evaluated activity state.
-      </p>
+      <p className="eyebrow">Approved learning path</p>
+      <h1>Loading your learning path</h1>
+      <p>Getting the current activities and their status.</p>
       <div aria-hidden="true" className="loading-placeholder" />
-      <span className="visually-hidden">Curriculum graph loading in progress.</span>
+      <span className="visually-hidden">Learning path loading in progress.</span>
     </section>
   );
 }
@@ -51,11 +48,11 @@ export function CurriculumGraphRouteView({
     case "invalid-selection":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="The curriculum graph link does not identify one supported exact version. No graph data was requested."
+          actionLabel="Return to learning library"
+          description="This link does not point to a supported learning path version. No learning-path details were requested."
           icon="error-circle"
           onAction={onCatalog}
-          title="Curriculum graph link unavailable"
+          title="Learning path link unavailable"
           tone="warning"
         />
       );
@@ -63,30 +60,30 @@ export function CurriculumGraphRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="A private learner session could not be established. No curriculum graph details were shown."
+          description="We could not confirm your learner access. No learning-path details were shown."
           icon="lock"
           onAction={onRetry}
-          title="Learner session required"
+          title="Learner access required"
           tone="warning"
         />
       );
     case "forbidden":
       return (
         <StatusPanel
-          description="This local learner profile is not permitted to view the requested curriculum graph."
+          description="This learner profile cannot view the requested learning path."
           icon="lock"
-          title="Curriculum graph access unavailable"
+          title="Learning path access unavailable"
           tone="warning"
         />
       );
     case "not-found":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="That exact approved curriculum graph version is not available. No alternate or latest version was substituted."
+          actionLabel="Return to learning library"
+          description="That exact approved learning path version could not be found. We did not substitute another version."
           icon="info-circle"
           onAction={onCatalog}
-          title="Curriculum graph version not found"
+          title="Learning path version not found"
           tone="info"
         />
       );
@@ -94,19 +91,19 @@ export function CurriculumGraphRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The exact curriculum graph and its current navigation state could not be loaded together right now. No stale or partial structure was displayed."
+          description="We could not load the complete learning path and current activity status together. No older or partial details were shown."
           icon="warning-triangle"
           onAction={onRetry}
-          title="Curriculum graph temporarily unavailable"
+          title="Learning path temporarily unavailable"
           tone="warning"
         />
       );
     case "invalid-response":
       return (
         <StatusPanel
-          description="The curriculum graph and navigation state did not pass their safety checks as one complete projection, so no partial structure was displayed."
+          description="We could not safely show the complete learning path and current activity status. No partial details were shown."
           icon="error-circle"
-          title="Curriculum graph response unavailable"
+          title="Learning path unavailable"
           tone="danger"
         />
       );
@@ -114,7 +111,7 @@ export function CurriculumGraphRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The curriculum graph request could not be completed safely. No technical or private details were displayed."
+          description="We could not open this learning path safely. No technical or private details were shown."
           icon="error-circle"
           onAction={onRetry}
           title="Something went wrong"

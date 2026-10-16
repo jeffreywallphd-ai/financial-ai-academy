@@ -4,7 +4,10 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { CurriculumGraphPage } from "../../src/features/curriculum-graph/CurriculumGraphPage";
-import { CurriculumGraphRouteView } from "../../src/features/curriculum-graph/CurriculumGraphRoute";
+import {
+  CurriculumGraphLoadingState,
+  CurriculumGraphRouteView,
+} from "../../src/features/curriculum-graph/CurriculumGraphRoute";
 import {
   curriculumGraphFixture,
   navigationStateFixture,
@@ -182,13 +185,28 @@ describe("CurriculumGraphPage", () => {
 });
 
 describe("CurriculumGraphRouteView", () => {
+  it("describes loading in learner task terms", () => {
+    render(<CurriculumGraphLoadingState />);
+
+    const status = screen.getByRole("status");
+    expect(
+      within(status).getByRole("heading", {
+        name: "Loading your learning path",
+      }),
+    ).toBeVisible();
+    expect(status).toHaveTextContent(/current activities and their status/i);
+    expect(status).not.toHaveTextContent(
+      /curriculum graph|navigation|projection|server|session establishment/i,
+    );
+  });
+
   it.each([
-    ["invalid-selection", "Curriculum graph link unavailable"],
-    ["unauthorized", "Learner session required"],
-    ["forbidden", "Curriculum graph access unavailable"],
-    ["not-found", "Curriculum graph version not found"],
-    ["unavailable", "Curriculum graph temporarily unavailable"],
-    ["invalid-response", "Curriculum graph response unavailable"],
+    ["invalid-selection", "Learning path link unavailable"],
+    ["unauthorized", "Learner access required"],
+    ["forbidden", "Learning path access unavailable"],
+    ["not-found", "Learning path version not found"],
+    ["unavailable", "Learning path temporarily unavailable"],
+    ["invalid-response", "Learning path unavailable"],
     ["unexpected", "Something went wrong"],
   ] as const)("renders the bounded %s state", (status, title) => {
     render(
@@ -202,6 +220,11 @@ describe("CurriculumGraphRouteView", () => {
     );
     expect(screen.getByRole("heading", { name: title })).toBeVisible();
     expect(screen.queryByText("Investing Foundations")).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: title }).parentElement,
+    ).not.toHaveTextContent(
+      /curriculum graph|navigation state|projection|server/i,
+    );
   });
 
   it("provides bounded retry and return actions", async () => {
@@ -230,7 +253,7 @@ describe("CurriculumGraphRouteView", () => {
       </MemoryRouter>,
     );
     await user.click(
-      screen.getByRole("button", { name: "Return to catalog" }),
+      screen.getByRole("button", { name: "Return to learning library" }),
     );
     expect(onCatalog).toHaveBeenCalledOnce();
   });

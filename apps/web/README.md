@@ -121,10 +121,10 @@ codes/references, source references, schema, graph and policy identity,
 evaluation time, and digests remain complete under accessible `Technical
 record` disclosures. Both peer views preserve the four orthogonal
 server-evaluated state dimensions. The route exposes no activity-launch action,
-mastery claim, recommendation, or browser-owned learner-state inference.
-Malformed links, denial, missing exact versions, unavailable state, graph/state
-mismatch, or an invalid success response fail closed without substituting a
-latest version or displaying a partial graph.
+mastery claim, recommendation, or browser-owned learner-state inference. Links
+that cannot be used, learner-access problems, missing versions, temporary
+failures, and unsafe incomplete results show bounded task-focused states. They
+never substitute another version or reveal partial learning-path details.
 
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated
