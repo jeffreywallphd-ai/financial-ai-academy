@@ -46,6 +46,13 @@ function availabilityLabel(value: ActivityNavigationState["availability"]): stri
   return value === "available" ? "Available" : "Unavailable";
 }
 
+function exactResource(activity: CurriculumGraph["activities"][number]): string {
+  const reference = activity.reference;
+  return reference.reference_kind === "lesson_placement"
+    ? `${reference.package_id}@${reference.package_version} · placement ${reference.placement_id}`
+    : `${reference.assessment_id}@${reference.assessment_version} · placement ${reference.placement_id}`;
+}
+
 async function expectNavigationFacts(
   card: Locator,
   state: ActivityNavigationState,
@@ -259,12 +266,29 @@ test("opens the live exact graph with peer views, provenance, and flexible group
       await expect(
         card.getByText(activity.activity_id, { exact: true }).first(),
       ).toBeVisible();
+      await expect(
+        card.getByText(exactResource(activity), { exact: true }),
+      ).toBeVisible();
       const digest =
         activity.reference.reference_kind === "lesson_placement"
           ? activity.reference.package_digest
           : activity.reference.definition_digest;
       await expect(card.getByText(digest, { exact: true })).toBeVisible();
     }
+  }
+  const relationshipItems = page
+    .getByTestId("curriculum-graph-list")
+    .locator(".curriculum-graph__relationships > ol > li");
+  await expect(relationshipItems).toHaveCount(graph.relationships.length);
+  for (const [index, relationship] of graph.relationships.entries()) {
+    const relationshipItem = relationshipItems.nth(index);
+    await relationshipItem.getByText("Technical record", { exact: true }).click();
+    await expect(
+      relationshipItem.getByText(relationship.relationship_id, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      relationshipItem.getByText(relationship.kind, { exact: true }),
+    ).toBeVisible();
   }
   await expect(page.getByRole("link", { name: /open|start|launch/i })).toHaveCount(
     0,

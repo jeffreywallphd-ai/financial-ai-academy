@@ -217,3 +217,6 @@ contracts/semantics, assumptions, residual gaps, and any decision gate.
   the shared live suite exposed one additional in-slice assertion consumer.
   The scope remains browser evidence and documentation only; five mocked and
   eight isolated live Chromium scenarios pass.
+- 2026-10-16: WRK-0075 R01 found one missing browser-evidence assertion for
+  exact activity resource and relationship technical records. The bounded
+  data-derived correction adds no product behavior or new approval gate.

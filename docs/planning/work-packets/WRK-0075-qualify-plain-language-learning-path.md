@@ -177,3 +177,7 @@ CAP-0031.
   manifest before updating the shared live-suite assertions. Five focused
   mocked scenarios and all eight isolated live scenarios now pass; final
   affected verification and independent review remain.
+- 2026-10-16: R01 requested one substantive evidence correction: exercise the
+  complete activity resource reference and relationship ID/type disclosures in
+  Chromium. Added data-derived mocked and live assertions without fixture-count,
+  prose, runtime, contract, or styling changes; focused qualification passes.

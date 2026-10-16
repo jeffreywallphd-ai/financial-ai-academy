@@ -147,8 +147,15 @@ test("renders an exact protected learning path with list-map and theme parity", 
     firstActivity.reference.reference_kind === "lesson_placement"
       ? firstActivity.reference.package_digest
       : firstActivity.reference.definition_digest;
+  const firstExactResource =
+    firstActivity.reference.reference_kind === "lesson_placement"
+      ? `${firstActivity.reference.package_id}@${firstActivity.reference.package_version} · placement ${firstActivity.reference.placement_id}`
+      : `${firstActivity.reference.assessment_id}@${firstActivity.reference.assessment_version} · placement ${firstActivity.reference.placement_id}`;
   await expect(
     firstCard.getByText(firstDigest, { exact: true }),
+  ).toBeVisible();
+  await expect(
+    firstCard.getByText(firstExactResource, { exact: true }),
   ).toBeVisible();
   for (const reason of firstState.reasons) {
     await expect(firstCard.getByText(reason.code, { exact: true })).toBeVisible();
@@ -161,6 +168,22 @@ test("renders an exact protected learning path with list-map and theme parity", 
     for (const reference of reason.references) {
       await expect(references.getByText(reference, { exact: true })).toBeVisible();
     }
+  }
+  const relationshipItems = page
+    .getByTestId("curriculum-graph-list")
+    .locator(".curriculum-graph__relationships > ol > li");
+  await expect(relationshipItems).toHaveCount(
+    curriculumGraphFixture.relationships.length,
+  );
+  for (const [index, relationship] of curriculumGraphFixture.relationships.entries()) {
+    const relationshipItem = relationshipItems.nth(index);
+    await relationshipItem.getByText("Technical record", { exact: true }).click();
+    await expect(
+      relationshipItem.getByText(relationship.relationship_id, { exact: true }),
+    ).toBeVisible();
+    await expect(
+      relationshipItem.getByText(relationship.kind, { exact: true }),
+    ).toBeVisible();
   }
 
   const listFacts = await page.getByTestId("curriculum-graph-list").innerText();
