@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
 
 import {
+  availableOpportunity,
   learningCatalogFixture,
   learningQueryPageFixture,
 } from "../../component/learningCatalogFixture";
@@ -51,9 +52,14 @@ test("renders the protected catalog with equivalent themes and no axe violations
   await expect(
     page.getByRole("searchbox", { name: "Search opportunities" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: "Apply query" })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Open exact lesson" }),
+    page.getByRole("textbox", { name: "Topic" }),
+  ).toHaveAccessibleDescription(
+    "Use lowercase letters and hyphens between words, such as cash-flow.",
+  );
+  await expect(page.getByRole("button", { name: "Show results" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Open lesson" }),
   ).toHaveAttribute("href", "/learn/placements/cash-flow-basics-primary");
   await expect(
     page.getByText("The exact reviewed lesson is available."),
@@ -123,7 +129,7 @@ test("preserves every valid page-size value in the query controls", async ({
   await page.goto("/learn?page_size=17");
 
   await expect(
-    page.getByRole("spinbutton", { name: "Results per page" }),
+    page.getByRole("spinbutton", { name: "Results shown per page" }),
   ).toHaveValue("17");
 });
 
@@ -194,16 +200,35 @@ test("inspects exact current opportunity details with theme and return parity", 
   await expect(
     page.getByRole("heading", { level: 1, name: "Cash Flow Basics" }),
   ).toBeVisible();
-  await expect(page.getByText("cash-flow-basics@1.2.0")).toBeVisible();
   await expect(
-    page.getByText(learningCatalogFixture.projection_generation),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Open exact lesson" }),
+    page.getByRole("link", { name: "Open lesson" }),
   ).toHaveAttribute("href", "/learn/placements/cash-flow-basics-primary");
   await expect(
-    page.getByRole("link", { name: "Return to catalog" }),
+    page.getByRole("link", { name: "Return to learning library" }),
   ).toHaveAttribute("href", "/learn?query=cash");
+
+  await page.getByText("Technical record", { exact: true }).click();
+  await expect(
+    page.getByText("cash-flow-basics@1.2.0", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(availableOpportunity.package_digest, {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(availableOpportunity.source_fingerprint, {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(learningCatalogFixture.projection_generation, {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(learningCatalogFixture.schema_version, { exact: true }),
+  ).toBeVisible();
 
   const baselineText = await page.locator("main").innerText();
   for (const theme of ["light", "dark", "system"] as const) {
@@ -214,7 +239,7 @@ test("inspects exact current opportunity details with theme and return parity", 
     expect(accessibility.violations).toEqual([]);
   }
 
-  await page.getByRole("link", { name: "Return to catalog" }).click();
+  await page.getByRole("link", { name: "Return to learning library" }).click();
   await expect(page).toHaveURL(/\/learn\?query=cash$/);
 });
 
@@ -229,10 +254,10 @@ test("keeps planned detail visible but non-executable", async ({ page }) => {
     page.getByText("This project is planned but cannot be opened yet."),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Open exact lesson" }),
+    page.getByRole("link", { name: "Open lesson" }),
   ).toHaveCount(0);
   await expect(
-    page.getByRole("link", { name: "Return to catalog" }),
+    page.getByRole("link", { name: "Return to learning library" }),
   ).toHaveAttribute("href", "/learn");
 });
 
@@ -251,7 +276,9 @@ test("supports detail keyboard focus, narrow reflow, reduced motion, and forced 
   await page.keyboard.press("Enter");
   await expect(page.locator("main")).toBeFocused();
 
-  const returnLink = page.getByRole("link", { name: "Return to catalog" });
+  const returnLink = page.getByRole("link", {
+    name: "Return to learning library",
+  });
   await returnLink.focus();
   expect(
     await returnLink.evaluate(
@@ -276,7 +303,7 @@ test("fails closed for changed and invalid detail requests", async ({
   await mockReadyCatalog(page);
   await page.goto("/learn/opportunities/removed-opportunity");
   await expect(
-    page.getByRole("heading", { name: "Opportunity changed" }),
+    page.getByRole("heading", { name: "This opportunity has changed" }),
   ).toBeVisible();
   await expect(page.getByText("Cash Flow Basics")).toHaveCount(0);
 
@@ -290,7 +317,7 @@ test("fails closed for changed and invalid detail requests", async ({
   await page.route(BROWSE_PATTERN, (route) => json(route, 200, invalid));
   await page.goto("/learn/opportunities/cash-flow-basics-primary");
   await expect(
-    page.getByRole("heading", { name: "Opportunity response unavailable" }),
+    page.getByRole("heading", { name: "We couldn't show this opportunity" }),
   ).toBeVisible();
   await expect(page.getByText("hidden")).toHaveCount(0);
 });
@@ -311,7 +338,7 @@ test("denies detail before requesting catalog records", async ({ page }) => {
   });
   await page.goto("/learn/opportunities/cash-flow-basics-primary");
   await expect(
-    page.getByRole("heading", { name: "Opportunity access unavailable" }),
+    page.getByRole("heading", { name: "You can't open this opportunity" }),
   ).toBeVisible();
   await expect(page.getByText("Cash Flow Basics")).toHaveCount(0);
   expect(browseRequested).toBe(false);
@@ -351,7 +378,10 @@ test("selects and compares exact opportunities in learner order with theme parit
     "cash-flow-basics-primary",
   ]);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Compare educational facts" }),
+    page.getByRole("heading", {
+      level: 1,
+      name: "Compare learning opportunities",
+    }),
   ).toBeVisible();
   const cards = page.getByRole("article");
   await expect(cards).toHaveCount(2);
@@ -362,14 +392,40 @@ test("selects and compares exact opportunities in learner order with theme parit
     "Cash Flow Basics",
   );
   await expect(
-    cards.nth(0).getByRole("link", { name: "Open exact lesson" }),
+    cards.nth(0).getByRole("link", { name: "Open lesson" }),
   ).toHaveCount(0);
   await expect(
-    cards.nth(1).getByRole("link", { name: "Open exact lesson" }),
+    cards.nth(1).getByRole("link", { name: "Open lesson" }),
   ).toHaveAttribute("href", "/learn/placements/cash-flow-basics-primary");
   await expect(
-    page.getByRole("link", { name: "Return to catalog" }),
+    page.getByRole("link", { name: "Return to learning library" }),
   ).toHaveAttribute("href", "/learn?query=project");
+
+  const technicalRecords = page.locator("summary").filter({
+    hasText: "Technical record",
+  });
+  await expect(technicalRecords).toHaveCount(3);
+  for (let index = 0; index < 3; index += 1) {
+    await technicalRecords.nth(index).click();
+  }
+  await expect(
+    page.getByText(learningCatalogFixture.projection_generation, {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(learningCatalogFixture.schema_version, { exact: true }),
+  ).toBeVisible();
+  for (const opportunity of learningCatalogFixture.records) {
+    await expect(
+      page.getByText(`${opportunity.package_id}@${opportunity.package_version}`, {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(opportunity.source_fingerprint, { exact: true }),
+    ).toBeVisible();
+  }
 
   const baselineText = await page.locator("main").innerText();
   for (const theme of ["light", "dark", "system"] as const) {
@@ -425,7 +481,7 @@ test("fails the whole comparison for changed, malformed, or invalid current data
     "/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=removed-opportunity",
   );
   await expect(
-    page.getByRole("heading", { name: "Comparison changed" }),
+    page.getByRole("heading", { name: "Your comparison has changed" }),
   ).toBeVisible();
   await expect(page.getByText("Cash Flow Basics")).toHaveCount(0);
 
@@ -433,7 +489,7 @@ test("fails the whole comparison for changed, malformed, or invalid current data
     "/learn/opportunities/compare?opportunity=cash-flow-basics-primary",
   );
   await expect(
-    page.getByRole("heading", { name: "Comparison link unavailable" }),
+    page.getByRole("heading", { name: "This comparison link isn't available" }),
   ).toBeVisible();
 
   const invalid = structuredClone(learningCatalogFixture) as unknown as {
@@ -448,7 +504,7 @@ test("fails the whole comparison for changed, malformed, or invalid current data
     "/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=portfolio-project-planned",
   );
   await expect(
-    page.getByRole("heading", { name: "Comparison response unavailable" }),
+    page.getByRole("heading", { name: "We couldn't show this comparison" }),
   ).toBeVisible();
   await expect(page.getByText("hidden")).toHaveCount(0);
   await expect(page.getByText("Portfolio Project")).toHaveCount(0);
@@ -474,7 +530,7 @@ test("denies comparison before requesting current catalog records", async ({
     "/learn/opportunities/compare?opportunity=cash-flow-basics-primary&opportunity=portfolio-project-planned",
   );
   await expect(
-    page.getByRole("heading", { name: "Comparison access unavailable" }),
+    page.getByRole("heading", { name: "You can't open this comparison" }),
   ).toBeVisible();
   await expect(page.getByText("Cash Flow Basics")).toHaveCount(0);
   expect(browseRequested).toBe(false);
