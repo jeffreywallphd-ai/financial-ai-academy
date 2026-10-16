@@ -171,10 +171,11 @@ changed, then leave SLI-0024 ready for deterministic closure.
   override, repository `backend/.venv`, and invoking-interpreter order. It
   exports that command to child processes and uses the same command for the
   isolated approved-lesson runner; Node/npm resolution is unchanged.
-- The focused verification suite passed 27 tests with two platform-bounded
+- The focused verification suite passed 28 tests with three platform-bounded
   skips. New coverage proves explicit override priority, prepared-environment
-  preference, portable fallback, child propagation, and exact live-runner
-  invocation.
+  preference, portable fallback, child propagation, exact live-runner
+  invocation, and—on POSIX—a symlinked `.venv/bin/python` remaining the
+  exported and invoked path.
 - Live qualification ran with no `PYTHONPATH` and passed all eight isolated
   PostgreSQL 18.4/Python/public-API/generated-client/Chromium scenarios. This
   directly reproduces the clean-fork path that previously selected the wrong
@@ -194,3 +195,8 @@ changed, then leave SLI-0024 ready for deterministic closure.
   candidate. The bounded wrapper/test/documentation correction remains inside
   SLI-0024 qualification, preserves exact-candidate isolation and public API
   availability, and adds no decision or lower-level approval gate.
+- 2026-10-16: Independent R01 identified that canonicalizing a POSIX virtual-
+  environment symlink could collapse it to the base interpreter and defeat
+  `pyvenv.cfg` discovery. The bounded correction now makes the selected path
+  absolute without dereferencing its final symlink and adds POSIX regression
+  coverage for resolution, child export, and live-runner invocation.

@@ -619,7 +619,7 @@ class RepositoryWebCheckTests(unittest.TestCase):
                 },
                 root=root,
             )
-            self.assertEqual(str(explicit.resolve()), runtime.python)
+            self.assertEqual(os.path.abspath(explicit), runtime.python)
 
     def test_runtime_prefers_prepared_backend_python_then_falls_back(self) -> None:
         with tempfile.TemporaryDirectory(prefix="prepared-python-") as directory:
@@ -634,7 +634,7 @@ class RepositoryWebCheckTests(unittest.TestCase):
                 "FINANCIAL_AI_ACADEMY_NPM_CLI": "npm-cli.js",
             }
             self.assertEqual(
-                str(prepared.resolve()),
+                os.path.abspath(prepared),
                 resolve_runtime(environment, root=root).python,
             )
             prepared.unlink()
@@ -642,6 +642,47 @@ class RepositoryWebCheckTests(unittest.TestCase):
                 sys.executable,
                 resolve_runtime(environment, root=root).python,
             )
+
+    @unittest.skipIf(os.name == "nt", "POSIX virtual environments use symlinks")
+    def test_posix_venv_symlink_remains_the_exported_and_invoked_path(self) -> None:
+        commands: list[tuple[str, ...]] = []
+
+        def runner(command: tuple[str, ...], *, root: Path) -> None:
+            commands.append(command)
+            if len(commands) == 1:
+                dist = root / "apps" / "web" / "dist"
+                dist.mkdir(parents=True)
+                (dist / "index.html").write_text("isolated", encoding="utf-8")
+
+        with tempfile.TemporaryDirectory(prefix="posix-venv-python-") as directory:
+            root = Path(directory)
+            base = root / "base-python"
+            base.write_bytes(b"base")
+            prepared = root / "backend" / ".venv" / "bin" / "python"
+            prepared.parent.mkdir(parents=True)
+            prepared.symlink_to(base)
+            runtime = resolve_runtime(
+                {
+                    "FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE": "node",
+                    "FINANCIAL_AI_ACADEMY_NPM_CLI": "npm-cli.js",
+                },
+                root=root,
+            )
+            expected = os.path.abspath(prepared)
+            self.assertTrue(prepared.is_symlink())
+            self.assertEqual(expected, runtime.python)
+            self.assertEqual(expected, child_environment(runtime, {})["PYTHON"])
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=runtime
+            ):
+                execute_web_check(
+                    "live",
+                    root=root,
+                    command_runner=runner,
+                    version_reader=self.versions,
+                    snapshot_preparer=self.prepare_snapshot,
+                )
+        self.assertEqual(expected, commands[1][0])
 
     def test_live_check_invokes_runner_with_resolved_python(self) -> None:
         commands: list[tuple[str, ...]] = []

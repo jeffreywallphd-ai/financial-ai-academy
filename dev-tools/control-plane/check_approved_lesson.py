@@ -39,10 +39,10 @@ def resolve_python(environment: Mapping[str, str], *, root: Path) -> str:
     if explicit:
         discovered = shutil.which(explicit)
         if discovered:
-            return str(Path(discovered).resolve())
+            return os.path.abspath(discovered)
         explicit_path = Path(explicit)
         if explicit_path.is_file():
-            return str(explicit_path.resolve())
+            return os.path.abspath(os.fspath(explicit_path))
         raise RuntimeError(
             "FINANCIAL_AI_ACADEMY_PYTHON_EXECUTABLE does not identify an "
             "available executable."
@@ -55,7 +55,9 @@ def resolve_python(environment: Mapping[str, str], *, root: Path) -> str:
         else virtual_environment / "bin" / "python"
     )
     if candidate.is_file():
-        return str(candidate.resolve())
+        # Keep the venv entry path. On POSIX it is commonly a symlink, and
+        # CPython needs that path to discover the adjacent pyvenv.cfg.
+        return os.path.abspath(os.fspath(candidate))
     return sys.executable
 
 
