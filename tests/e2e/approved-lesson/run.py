@@ -33,6 +33,7 @@ POSTGRES_PASSWORD = "qualification-only"
 CURRICULUM_ID = "investing-foundations"
 CURRICULUM_VERSION = "1.0.0"
 LESSON_ACTIVITY_ID = "activity-risk-return-lesson"
+PRACTICE_PLACEMENT_ID = "intro-risk-return-practice"
 REBUILDABLE_COMPLETION_RESET = (
     "DELETE FROM learner_model.lesson_completion_history",
     "DELETE FROM learner_model.lesson_completion_projections",
@@ -45,6 +46,27 @@ COMPLETION_STORAGE_COUNTS = """
            FROM learner_model.lesson_completion_projections),
         (SELECT count(*) FROM learner_model.lesson_completion_history)
 """
+PRACTICE_OPEN_STORAGE_COUNTS = """
+    SELECT
+        (SELECT count(*) FROM assessment.attempts),
+        (SELECT count(*) FROM assessment.responses),
+        (SELECT count(*) FROM assessment.scores),
+        (SELECT count(*) FROM assessment.completion_evidence),
+        (SELECT count(*) FROM assessment.outbox),
+        (SELECT count(*)
+           FROM learner_model.lesson_completion_projections),
+        (SELECT count(*)
+           FROM learner_model.lesson_completion_history)
+"""
+PRIVATE_PRACTICE_FIELDS = frozenset(
+    {
+        "answer",
+        "correct_option_id",
+        "correct_option_ids",
+        "feedback",
+        "scoring_policy",
+    }
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -466,6 +488,128 @@ def observe_headless_navigation(origin: str) -> dict[str, Any]:
     )
 
 
+def _nested_mapping_keys(value: object) -> set[str]:
+    if isinstance(value, dict):
+        keys = set(value)
+        for nested in value.values():
+            keys.update(_nested_mapping_keys(nested))
+        return keys
+    if isinstance(value, list):
+        keys: set[str] = set()
+        for nested in value:
+            keys.update(_nested_mapping_keys(nested))
+        return keys
+    return set()
+
+
+def stable_practice_semantics(practice: dict[str, Any]) -> dict[str, Any]:
+    required = (
+        "schema_version",
+        "placement_id",
+        "package_id",
+        "package_version",
+        "package_digest",
+        "practice_id",
+        "practice_version",
+        "definition_digest",
+        "title",
+        "purpose",
+        "instructions",
+        "attempt_policy",
+        "source_references",
+        "review_references",
+        "items",
+    )
+    missing = [key for key in required if key not in practice]
+    if missing:
+        raise RuntimeError(
+            "Practice response is missing stable fields: "
+            + ", ".join(sorted(missing))
+            + "."
+        )
+    if practice["placement_id"] != PRACTICE_PLACEMENT_ID:
+        raise RuntimeError("Headless practice does not match the exact placement.")
+    items = practice["items"]
+    if not isinstance(items, list) or [
+        item.get("item_type") if isinstance(item, dict) else None
+        for item in items
+    ] != ["single_select", "multiple_select", "numeric_entry"]:
+        raise RuntimeError("Headless practice does not preserve the closed item set.")
+    leaked = PRIVATE_PRACTICE_FIELDS & _nested_mapping_keys(practice)
+    if leaked:
+        raise RuntimeError(
+            "Headless practice exposed private fields: "
+            + ", ".join(sorted(leaked))
+            + "."
+        )
+    return {key: copy.deepcopy(practice[key]) for key in required}
+
+
+def observe_headless_practice(origin: str) -> dict[str, Any]:
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(cookies)
+    )
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    practice_path = (
+        f"/api/v1/curriculum/placements/{PRACTICE_PLACEMENT_ID}/practice"
+    )
+    first = stable_practice_semantics(
+        _request_json(opener, origin=origin, path=practice_path)
+    )
+    repeated = stable_practice_semantics(
+        _request_json(opener, origin=origin, path=practice_path)
+    )
+    if repeated != first:
+        raise RuntimeError("Repeated headless practice reads changed meaning.")
+    return first
+
+
+def practice_open_storage_counts(postgres_dsn: str) -> dict[str, int]:
+    with psycopg.connect(postgres_dsn) as connection:
+        row = connection.execute(PRACTICE_OPEN_STORAGE_COUNTS).fetchone()
+    if row is None:
+        raise RuntimeError("Practice storage counts are unavailable.")
+    labels = (
+        "assessment_attempts",
+        "assessment_responses",
+        "assessment_scores",
+        "assessment_completion_evidence",
+        "assessment_events",
+        "learner_projections",
+        "learner_history",
+    )
+    return dict(zip(labels, (int(value) for value in row), strict=True))
+
+
+def observe_side_effect_free_practice(
+    *,
+    origin: str,
+    postgres_dsn: str,
+) -> dict[str, Any]:
+    before = practice_open_storage_counts(postgres_dsn)
+    observation = observe_headless_practice(origin)
+    after = practice_open_storage_counts(postgres_dsn)
+    if after != before:
+        raise RuntimeError("Practice opening created learner evidence or state.")
+    return observation
+
+
+def assert_practice_restart_result(
+    *,
+    before_restart: dict[str, Any],
+    after_restart: dict[str, Any],
+) -> None:
+    if after_restart != before_restart:
+        raise RuntimeError("Practice presentation changed after normal restart.")
+
+
 def _storage_counts(connection: psycopg.Connection[Any]) -> dict[str, int]:
     row = connection.execute(COMPLETION_STORAGE_COUNTS).fetchone()
     if row is None or len(row) != 4:
@@ -649,6 +793,11 @@ def main() -> int:
             seed_fixture=True,
         )
 
+        practice_before_restart = observe_side_effect_free_practice(
+            origin=origin,
+            postgres_dsn=postgres_dsn,
+        )
+
         environment = os.environ.copy()
         environment["FINANCIAL_AI_ACADEMY_E2E_BASE_URL"] = origin
         run_checked(npm_e2e_command(), env=environment)
@@ -667,6 +816,14 @@ def main() -> int:
             seed_fixture=False,
         )
         after_observation = observe_headless_navigation(origin)
+        practice_after_restart = observe_side_effect_free_practice(
+            origin=origin,
+            postgres_dsn=postgres_dsn,
+        )
+        assert_practice_restart_result(
+            before_restart=practice_before_restart,
+            after_restart=practice_after_restart,
+        )
         after_rebuild = completion_storage_counts(postgres_dsn)
         assert_replay_result(
             before_observation=before_observation,
@@ -686,7 +843,12 @@ def main() -> int:
             ),
             "database": postgres_topology,
             "filesystem": "isolated temporary data root",
-            "fixture": "intro-risk-return@1.1.0 with risk-return-check-1@1.0.0",
+            "fixture": (
+                "intro-risk-return@1.1.0 with "
+                "risk-return-check-1@1.0.0 and "
+                "intro-risk-return@2.0.0 with "
+                "risk-return-practice@1.0.0"
+            ),
             "curriculum_graph": (
                 "investing-foundations@1.0.0 and @1.1.0 published through "
                 "public Curriculum operations and qualified through exact "
@@ -709,6 +871,12 @@ def main() -> int:
             ),
             "http_origin": origin,
             "production_application_process": Path(sys.executable).name,
+            "practice_opening": (
+                "the exact three-shape answer-safe presentation qualified "
+                "through repeated non-browser public API reads and the "
+                "generated browser client with storage-count invariance "
+                "and normal-restart stability"
+            ),
             "projection_replay": {
                 "assessment_source_preserved": True,
                 "headless_public_api": True,

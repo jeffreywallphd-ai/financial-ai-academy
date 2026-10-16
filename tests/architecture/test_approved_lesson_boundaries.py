@@ -45,6 +45,7 @@ def local_services() -> SimpleNamespace:
     curriculum = SimpleNamespace(
         create_lesson_placement=MagicMock(),
         create_assessment_placement=MagicMock(),
+        create_practice_placement=MagicMock(),
         publish_curriculum_graph=MagicMock(),
         register_lesson_opportunity=MagicMock(),
         rebuild_learning_opportunity_projection=MagicMock(),
@@ -93,17 +94,23 @@ def exercise_local_composition(
     application_factory = create_app or MagicMock(return_value=app)
     namespace = {
         "APPROVED_FIXTURE": REPOSITORY / "contracts",
+        "APPROVED_PRACTICE_FIXTURE": REPOSITORY / "contracts",
         "ASSESSMENT_ID": "risk-return-check-1",
         "AdmitLessonPackageRequest": Record,
         "ApiServices": Record,
         "AssessmentActivityReference": AssessmentReference,
         "CreateAssessmentPlacementRequest": Record,
         "CreateLessonPlacementRequest": Record,
+        "CreatePracticePlacementRequest": Record,
         "LOOPBACK_HOSTS": frozenset({"127.0.0.1", "::1", "localhost"}),
         "LessonActivityReference": LessonReference,
         "OpportunityAvailability": SimpleNamespace(AVAILABLE="available"),
         "OpportunityLevel": SimpleNamespace(INTRODUCTORY="introductory"),
         "PLACEMENT_ID": PLACEMENT_ID,
+        "PRACTICE_DEFINITION_DIGEST": "d" * 64,
+        "PRACTICE_ID": "risk-return-practice",
+        "PRACTICE_PLACEMENT_ID": "intro-risk-return-practice",
+        "PRACTICE_VERSION": "1.0.0",
         "PublishCurriculumGraphRequest": Record,
         "QUERY_OPPORTUNITY_FIXTURES": (
             {
@@ -268,6 +275,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         services.content.admit_lesson_package.assert_not_called()
         services.curriculum.create_lesson_placement.assert_not_called()
         services.curriculum.create_assessment_placement.assert_not_called()
+        services.curriculum.create_practice_placement.assert_not_called()
         services.curriculum.publish_curriculum_graph.assert_not_called()
         services.curriculum.register_lesson_opportunity.assert_not_called()
         services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
@@ -339,8 +347,14 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             package_version="1.1.0",
             package_digest="a" * 64,
         )
-        services.content.admit_lesson_package.side_effect = (
-            lambda request: events.append("admit") or accepted
+        accepted_practice = SimpleNamespace(
+            package_id="intro-risk-return",
+            package_version="2.0.0",
+            package_digest="d" * 64,
+        )
+        accepted_packages = iter((accepted, accepted_practice))
+        services.content.admit_lesson_package.side_effect = lambda request: (
+            events.append("admit") or next(accepted_packages)
         )
         services.curriculum.create_lesson_placement.side_effect = (
             lambda request: events.append(
@@ -350,6 +364,11 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         services.curriculum.create_assessment_placement.side_effect = (
             lambda request: events.append(
                 f"assessment-placement:{request.assessment_id}"
+            )
+        )
+        services.curriculum.create_practice_placement.side_effect = (
+            lambda request: events.append(
+                f"practice-placement:{request.practice_id}"
             )
         )
         services.curriculum.publish_curriculum_graph.side_effect = (
@@ -377,11 +396,14 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             events,
             [
                 "admit",
+                "admit",
                 f"lesson-placement:{PLACEMENT_ID}",
                 "lesson-placement:diversification-reading",
                 "lesson-placement:diversification-check",
                 "lesson-placement:investing-terms-glossary",
                 "lesson-placement:intro-risk-return-revised",
+                "lesson-placement:intro-risk-return-practice",
+                "practice-placement:risk-return-practice",
                 "assessment-placement:risk-return-check-1",
                 "assessment-placement:diversification-check",
                 "publish-graph",
@@ -393,7 +415,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         )
 
     def test_fixture_seed_failure_prevents_application_readiness(self) -> None:
-        for failure in ("graph", "register", "rebuild"):
+        for failure in ("practice", "graph", "register", "rebuild"):
             with self.subTest(failure=failure):
                 services = local_services()
                 accepted = SimpleNamespace(
@@ -405,6 +427,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
                 services.content.admit_lesson_package.return_value = accepted
                 services.curriculum.create_lesson_placement.return_value = placement
                 failing_operation = {
+                    "practice": services.curriculum.create_practice_placement,
                     "graph": services.curriculum.publish_curriculum_graph,
                     "register": services.curriculum.register_lesson_opportunity,
                     "rebuild": services.curriculum.rebuild_learning_opportunity_projection,
@@ -424,7 +447,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
                     )
 
                 create_app.assert_not_called()
-                if failure in {"graph", "register"}:
+                if failure in {"practice", "graph", "register"}:
                     services.curriculum.rebuild_learning_opportunity_projection.assert_not_called()
 
     def test_all_implemented_domain_layers_point_inward(self) -> None:

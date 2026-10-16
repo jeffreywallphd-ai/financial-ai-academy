@@ -49,3 +49,18 @@ confidentiality, explicit exact-source reuse, and changed-placement isolation.
 The host remains usable without the browser; no UI-only policy or durable launch
 state is introduced.
 
+The API host exposes answer-safe practice opening at
+`GET /api/v1/curriculum/placements/{placement_id}/practice`. It requires the
+server-resolved learner session and `assessment.practice.read`, accepts no
+learner, answer, policy, or version fallback selector, and delegates exact
+placement/content resolution to Assessment through public module seams.
+Unknown placements map to bounded 404 responses and unavailable or invalid
+definitions to bounded failures without partial questions or private answers.
+
+The isolated qualification calls the same operation repeatedly from a
+cookie-backed non-browser HTTP client and through the generated browser client.
+It proves exact three-shape provenance, absence of private answer/scoring/
+feedback fields, unchanged Assessment and learner-state counts, bounded denial,
+and stable meaning after a normal host restart without reseeding. This preserves
+the API for future headless consumers without defining a separate AI mode.
+

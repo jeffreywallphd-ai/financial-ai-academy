@@ -29,6 +29,11 @@ returns exact package/practice provenance, public prompts and choices, numeric
 response constraints, attempt-policy metadata, and resource references. It
 never returns correct option IDs, accepted numeric values/ranges, or feedback.
 Submission and scoring for this practice family are not implemented yet.
+The isolated local qualification admits the exact three-shape package through
+Content, creates its placement through Curriculum, and reads this same operation
+from non-browser and generated-browser clients. Repeated reads leave attempt,
+response, score, completion, outbox, and learner projection/history counts
+unchanged and retain identical answer-safe meaning after a normal restart.
 
 ## Persistence
 

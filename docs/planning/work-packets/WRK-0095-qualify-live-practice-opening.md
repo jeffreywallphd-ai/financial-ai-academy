@@ -10,7 +10,7 @@ capability: CAP-0006
 depends_on: [WRK-0094]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/practice-activity.e2e.ts", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/modules/assessment/README.md", "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice/manifest.json", "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice/practices/practice-1.json", "deployments/local/README.md", "deployments/local/serve.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0026-open-versioned-practice-activity.md", "docs/planning/work-packets/WRK-0095-qualify-live-practice-opening.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/practice-activity.e2e.ts", "backend/src/financial_ai_academy/bootstrap/settings.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/tests/unit/test_bootstrap_settings.py", "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice/manifest.json", "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice/practices/practice-1.json", "deployments/local/README.md", "deployments/local/serve.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0026-open-versioned-practice-activity.md", "docs/planning/work-packets/WRK-0095-qualify-live-practice-opening.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
 base_revision: 09713e065a51780a9de86e468f3b6641a5bba819
 claim_id: WRK-0095:794985f1-3344-4bf3-b378-0bfca600845f
@@ -77,6 +77,9 @@ architecture tests, affected READMEs, and concurrent-work protocol.
   practice GETs, including stable provenance, ordered three-type closure,
   private-field absence, browser-independent availability, and equality across
   a normal restart without reseeding.
+- Correct the existing shared-settings practice-schema path derivation exposed
+  by the first live startup and add a direct regression for the lesson,
+  Assessment, practice, event, and migration directory relationships.
 - Add before/after PostgreSQL counts proving open creates no practice attempt,
   response, score, completion, outbox, or learner projection evidence.
 - Add live Chromium evidence for the generated-client route, all three native
@@ -105,14 +108,16 @@ dependencies, or styling-only cleanup.
 | --- | --- | --- | --- |
 | Approved fixtures | practice and package compatibility corpus | listed practice definition and manifest | Exercise the accepted three-type contract through real package admission |
 | Local composition | public Content/Curriculum services and explicit fixture seed | `deployments/local/serve.py`, architecture test | Seed an exact practice only in qualification and preserve startup isolation |
+| Shared settings path | derived contract-directory properties | settings module and one focused unit test | Repair the existing practice-schema sibling path required by the real host |
 | Headless/live evidence | protected API, PostgreSQL state, restart and cleanup runner | runner and its focused unit test | Prove non-browser access, stable provenance, no mutations, and restart parity |
 | Browser evidence | generated practice client and delivered route | one new approved-lesson spec | Prove the same public presentation and accessible interaction live |
 | Assurance and guidance | architecture map, gaps, nearest READMEs | listed documentation | State only directly demonstrated API/headless/browser evidence and gaps |
 | Planning evidence | packet, SLI-0026, register | listed planning files | Close the final dependency-ordered SLI-0026 seam coherently |
 
-No product domain/application/API implementation, OpenAPI or generated-client
-source, persistence schema or migration, package dependency, shared design
-asset, or ordinary startup behavior may change.
+No product domain/application/API contract, OpenAPI or generated-client source,
+persistence schema or migration, package dependency, shared design asset, or
+ordinary startup behavior may change. The bounded shared-settings path
+correction is permitted only to resolve the already-declared practice schema.
 
 ## Contracts and Interfaces
 
@@ -197,6 +202,29 @@ API, submission, scoring, feedback, evidence, migration, browser authority,
 AI mode, provider, cloud, or external execution was added. Leave SLI-0026 ready
 for deterministic closure or return one bounded blocker.
 
+## Implementation Evidence
+
+- The approved practice package now carries the existing immutable three-item
+  definition and passes both practice-definition and lesson-package contract
+  conformance with exact manifest size and digest metadata.
+- The explicit qualification seed admits the package and creates its lesson and
+  practice placements through public Content and Curriculum operations. Normal
+  startup remains seed-free, and a focused settings regression preserves the
+  sibling lesson, Assessment, practice, event, and migration contract roots.
+- The isolated live run passed against PostgreSQL 18.4, the loopback Python
+  API/static host, a cookie-backed non-browser client, the generated browser
+  client, and pinned Chromium. All 10 live browser scenarios passed, including
+  the exact three-shape practice and bounded denial scenarios.
+- Repeated protected API reads returned identical answer-safe provenance,
+  created no attempt, response, score, completion, outbox, or learner projection
+  records, and retained the same meaning after a normal host restart without
+  reseeding. No public API or generated-client shape changed.
+- Focused Python evidence passed 112 tests plus 4 subtests; the full web
+  unit/component suite passed 181 tests; typecheck, lint, production build,
+  OpenAPI snapshot reproduction, generated-client reproduction, architecture,
+  documentation, planning, design-system, security, learner-language, and
+  whitespace checks passed.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0094 completion. The packet
@@ -206,3 +234,7 @@ for deterministic closure or return one bounded blocker.
   evidence without planning or implementing a separate AI mode.
 - 2026-10-16: Claimed from base revision `09713e0` after dependency,
   authority, decision, exact-scope, and file-collision checks passed.
+- 2026-10-16: The first contained live startup exposed an extra `v1` segment in
+  the existing derived practice-schema directory. Expanded scope to the shared
+  settings property and one direct regression; no API, domain, persistence, or
+  product behavior changed.

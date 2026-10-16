@@ -27,7 +27,7 @@ class SingleProfileApplicationSettings:
     @property
     def practice_schema_dir(self) -> Path:
         """Return the Assessment practice v1 schema directory."""
-        return self.assessment_schema_dir / "practice" / "v1"
+        return self.lesson_schema_dir.parents[1] / "assessment" / "practice" / "v1"
 
     @property
     def assessment_event_schema_dir(self) -> Path:

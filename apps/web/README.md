@@ -273,6 +273,7 @@ PostgreSQL 18.4 container when no explicitly acknowledged external test
 database is supplied, starts `deployments/local/serve.py` as the only
 application process, seeds the approved fixture through public Content and
 Curriculum operations, publishes two exact immutable curriculum versions,
+admits one exact three-shape practice and its placement,
 rebuilds its discovery projection, and runs the live Chromium checks from the protected
 graph and `/learn` catalog through the exact lesson, assessment, and retained
 completion against that same-origin Python host. The live graph and navigation
@@ -290,6 +291,11 @@ context through completion and reload, and shows fresh complete/current state
 on return. Its two versions prove that an explicitly reused exact placement may
 reuse retained evidence while a changed placement remains incomplete; neither
 case uses inferred equivalence or browser policy. The
+same run calls the protected practice GET repeatedly from a cookie-backed
+non-browser client, compares bounded Assessment and learner-state storage
+counts, opens the identical answer-safe presentation through the generated
+browser client, and proves all three response shapes, bounded denial,
+accessibility, and normal-restart stability without submission or scoring. The
 separate pinned browser fixture preserves
 the wider same-kind shared-branch and variable-reference anti-rigidity cases;
 the live approved graph does not invent those shapes for qualification.
@@ -317,7 +323,9 @@ activity-state closure, same-context
 completion transition, bounded assessment unavailability, shared/unbranched
 fixture grouping, selector and missing-version denial, submission, repeated
 retained-completion reopen, missing-context, stale-placement, security-header,
-education-boundary, and catalog/detail/comparison/graph/completion axe paths.
+education-boundary, exact headless/browser practice opening, three response
+shapes, practice storage-count invariance, restart parity, bounded practice
+denial, and catalog/detail/comparison/graph/completion/practice axe paths.
 Repeated cards preserve heading/list
 semantics without creating redundant nested named landmarks. Real
 screen-reader operation, actual browser

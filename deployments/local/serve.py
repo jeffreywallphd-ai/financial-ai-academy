@@ -35,6 +35,7 @@ from financial_ai_academy.modules.curriculum.public import (  # noqa: E402
     AssessmentActivityReference,
     CreateAssessmentPlacementRequest,
     CreateLessonPlacementRequest,
+    CreatePracticePlacementRequest,
     CurriculumGraph,
     LessonActivityReference,
     OpportunityAvailability,
@@ -52,6 +53,7 @@ from financial_ai_academy.platform.security.single_profile_policy import (  # no
 
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 PLACEMENT_ID = "intro-risk-return-primary"
+PRACTICE_PLACEMENT_ID = "intro-risk-return-practice"
 UPDATED_CURRICULUM_VERSION = "1.1.0"
 UPDATED_PLACEMENT_ID = "intro-risk-return-revised"
 REUSED_ACTIVITY_ID = "activity-risk-return-review"
@@ -64,6 +66,15 @@ APPROVED_FIXTURE = (
     / "approved"
     / "intro-risk-return-knowledge-check"
 )
+APPROVED_PRACTICE_FIXTURE = (
+    REPOSITORY
+    / "contracts"
+    / "compatibility"
+    / "lesson-package"
+    / "v1"
+    / "approved"
+    / "intro-risk-return-practice"
+)
 CURRICULUM_GRAPH_FIXTURE = (
     REPOSITORY
     / "contracts"
@@ -75,6 +86,11 @@ CURRICULUM_GRAPH_FIXTURE = (
 )
 
 ASSESSMENT_ID = "risk-return-check-1"
+PRACTICE_ID = "risk-return-practice"
+PRACTICE_VERSION = "1.0.0"
+PRACTICE_DEFINITION_DIGEST = (
+    "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527"
+)
 QUERY_OPPORTUNITY_FIXTURES = (
     {
         "opportunity_id": "intro-risk-return-quick-review",
@@ -300,6 +316,9 @@ def build_local_app(
         accepted = services.content.admit_lesson_package(
             AdmitLessonPackageRequest(APPROVED_FIXTURE)
         )
+        accepted_practice = services.content.admit_lesson_package(
+            AdmitLessonPackageRequest(APPROVED_PRACTICE_FIXTURE)
+        )
         graphs = qualification_graph_versions(
             package_id=accepted.package_id,
             package_version=accepted.package_version,
@@ -320,6 +339,25 @@ def build_local_app(
                     )
                 )
                 placement_ids.add(reference.placement_id)
+        services.curriculum.create_lesson_placement(
+            CreateLessonPlacementRequest(
+                placement_id=PRACTICE_PLACEMENT_ID,
+                package_id=accepted_practice.package_id,
+                package_version=accepted_practice.package_version,
+                package_digest=accepted_practice.package_digest,
+            )
+        )
+        services.curriculum.create_practice_placement(
+            CreatePracticePlacementRequest(
+                placement_id=PRACTICE_PLACEMENT_ID,
+                package_id=accepted_practice.package_id,
+                package_version=accepted_practice.package_version,
+                package_digest=accepted_practice.package_digest,
+                practice_id=PRACTICE_ID,
+                practice_version=PRACTICE_VERSION,
+                definition_digest=PRACTICE_DEFINITION_DIGEST,
+            )
+        )
         assessment_placement_ids: set[str] = set()
         for graph in graphs:
             for activity in graph.activities:

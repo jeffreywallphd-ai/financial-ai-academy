@@ -96,6 +96,36 @@ def launch() -> dict[str, Any]:
     }
 
 
+def practice() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0.0",
+        "placement_id": runner.PRACTICE_PLACEMENT_ID,
+        "package_id": "intro-risk-return",
+        "package_version": "2.0.0",
+        "package_digest": "a" * 64,
+        "practice_id": "risk-return-practice",
+        "practice_version": "1.0.0",
+        "definition_digest": "b" * 64,
+        "title": "Practice risk and return basics",
+        "purpose": "Review three educational examples.",
+        "instructions": "Answer every item.",
+        "attempt_policy": {
+            "policy_id": "formative-retry",
+            "policy_version": "1.0.0",
+            "max_attempts": 3,
+            "resume_allowed": True,
+            "history_visible": True,
+        },
+        "source_references": [],
+        "review_references": [],
+        "items": [
+            {"item_id": "one", "item_type": "single_select"},
+            {"item_id": "many", "item_type": "multiple_select"},
+            {"item_id": "number", "item_type": "numeric_entry"},
+        ],
+    }
+
+
 def observation(
     *,
     evaluated_at: str = "2026-10-16T12:00:00Z",
@@ -229,18 +259,116 @@ def test_headless_client_uses_only_public_session_and_learning_apis(
     ]
 
 
+def test_practice_semantics_preserve_closed_public_shape() -> None:
+    assert runner.stable_practice_semantics(practice()) == practice()
+
+    leaked = practice()
+    leaked["items"][0]["correct_option_id"] = "private-answer"
+    with pytest.raises(RuntimeError, match="exposed private fields"):
+        runner.stable_practice_semantics(leaked)
+
+    changed_shape = practice()
+    changed_shape["items"].reverse()
+    with pytest.raises(RuntimeError, match="closed item set"):
+        runner.stable_practice_semantics(changed_shape)
+
+
+def test_headless_practice_uses_session_and_repeated_public_gets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str, dict[str, object] | None]] = []
+
+    def request_json(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert origin == "http://127.0.0.1:8123"
+        calls.append((method, path, payload))
+        if path == "/api/v1/session/single-profile":
+            return {"expires_at": "later"}
+        return practice()
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+
+    assert runner.observe_headless_practice("http://127.0.0.1:8123") == practice()
+    practice_path = (
+        "/api/v1/curriculum/placements/intro-risk-return-practice/practice"
+    )
+    assert calls == [
+        (
+            "POST",
+            "/api/v1/session/single-profile",
+            {"limitation_acknowledged": True},
+        ),
+        ("GET", practice_path, None),
+        ("GET", practice_path, None),
+    ]
+
+
+def test_side_effect_free_practice_requires_storage_count_invariance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    counts = {
+        "assessment_attempts": 1,
+        "assessment_responses": 1,
+        "assessment_scores": 1,
+        "assessment_completion_evidence": 1,
+        "assessment_events": 1,
+        "learner_projections": 1,
+        "learner_history": 1,
+    }
+    snapshots = iter((counts, counts.copy()))
+    monkeypatch.setattr(
+        runner,
+        "practice_open_storage_counts",
+        lambda _dsn: next(snapshots),
+    )
+    monkeypatch.setattr(runner, "observe_headless_practice", lambda _origin: practice())
+
+    assert runner.observe_side_effect_free_practice(
+        origin="http://127.0.0.1:8123",
+        postgres_dsn="postgresql://isolated",
+    ) == practice()
+
+    changed = counts | {"assessment_attempts": 2}
+    snapshots = iter((counts, changed))
+    with pytest.raises(RuntimeError, match="created learner evidence or state"):
+        runner.observe_side_effect_free_practice(
+            origin="http://127.0.0.1:8123",
+            postgres_dsn="postgresql://isolated",
+        )
+
+
+def test_practice_restart_requires_exact_stable_public_meaning() -> None:
+    runner.assert_practice_restart_result(
+        before_restart=practice(),
+        after_restart=practice(),
+    )
+    changed = practice()
+    changed["package_version"] = "2.0.1"
+    with pytest.raises(RuntimeError, match="changed after normal restart"):
+        runner.assert_practice_restart_result(
+            before_restart=practice(),
+            after_restart=changed,
+        )
+
+
 class _RowResult:
-    def __init__(self, row: tuple[int, int, int, int]) -> None:
+    def __init__(self, row: tuple[int, ...]) -> None:
         self._row = row
 
-    def fetchone(self) -> tuple[int, int, int, int]:
+    def fetchone(self) -> tuple[int, ...]:
         return self._row
 
 
 class _FakeConnection:
     def __init__(
         self,
-        rows: list[tuple[int, int, int, int]],
+        rows: list[tuple[int, ...]],
     ) -> None:
         self._rows = iter(rows)
         self.statements: list[str] = []
