@@ -145,7 +145,7 @@ class RoadmapRequestHandler(BaseHTTPRequestHandler):
         if path in routes:
             return routes[path]
         segments = path.strip("/").split("/")
-        if len(segments) == 2 and segments[0] in {"capability", "cap", "slice", "work"}:
+        if len(segments) == 2 and segments[0] in {"capability", "cap", "slice", "work", "decision"}:
             value = segments[1]
             if value and all(character.isalnum() or character == "-" for character in value):
                 return routes["/"]

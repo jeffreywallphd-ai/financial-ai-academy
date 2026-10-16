@@ -24,6 +24,10 @@ function review(): RoadmapReview {
     catalog_count: 26,
     candidates,
     internal_capabilities: [],
+    decisions: [
+      { id: "DECISION-1", kind: "decision-request", status: "complete", title: "Choose evidence", source: "decisions/decision-1.md", dependencies: [], decision_record: "records/decision-1.md", decision_made: true },
+      { id: "DECISION-2", kind: "decision-request", status: "captured", title: "Choose later", source: "decisions/decision-2.md", dependencies: [], decision_record: null, decision_made: false },
+    ],
     ordering: {
       ready: [{ id: "PLAN-1", reasons: ["ready"] }],
       blocked: [],
@@ -106,7 +110,34 @@ describe("roadmap overview model", () => {
     const value = review();
     expect(resolveRoadmapRoute(value, "/capability/candidate-1").kind).toBe("candidate");
     expect(resolveRoadmapRoute(value, "/cap/PLAN-1").kind).toBe("capability");
+    expect(resolveRoadmapRoute(value, "/decision/DECISION-1").kind).toBe("decision");
+    expect(resolveRoadmapRoute(value, "/decision/MISSING").kind).toBe("not-found");
     expect(resolveRoadmapRoute(value, "/cap/../secret").kind).toBe("not-found");
     expect(resolveRoadmapRoute(value, "/work/MISSING").kind).toBe("not-found");
+  });
+
+  it("requires truthful decision status and a canonical record", () => {
+    const value = review();
+    expect(assertRoadmapEnvelope({ outcome: "succeeded", data: { review: value } }).data.review.decisions).toHaveLength(2);
+    value.decisions[0]!.decision_made = false;
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: value } })).toThrow(/missing or incompatible/);
+    const noRecord = review();
+    noRecord.decisions[0]!.decision_record = null;
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: noRecord } })).toThrow(/missing or incompatible/);
+    noRecord.decisions[0]!.decision_made = false;
+    expect(assertRoadmapEnvelope({ outcome: "succeeded", data: { review: noRecord } }).data.review.decisions[0]?.decision_made).toBe(false);
+  });
+
+  it("rejects null decision entries with the bounded compatibility error", () => {
+    const malformed = { ...review(), decisions: [null] };
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: malformed } })).toThrow("Roadmap response is missing or incompatible.");
+  });
+
+  it("rejects empty and whitespace-only canonical decision records", () => {
+    for (const decisionRecord of ["", "   "]) {
+      const malformed = review();
+      malformed.decisions[0]!.decision_record = decisionRecord;
+      expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: malformed } })).toThrow("Roadmap response is missing or incompatible.");
+    }
   });
 });

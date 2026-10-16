@@ -27,6 +27,7 @@ class RoadmapReviewQualificationTests(unittest.TestCase):
         self.assertNotIn("CAP-000", index)
         self.assertNotIn("SLI-000", index)
         self.assertNotIn("WRK-000", index)
+        self.assertNotIn("DEC-000", index)
 
     def test_generated_and_browser_outputs_are_ignored(self) -> None:
         ignored = read(".gitignore")
@@ -43,6 +44,7 @@ class RoadmapReviewQualificationTests(unittest.TestCase):
         self.assertIn('do_POST = _deny_mutation', server)
         self.assertIn('do_DELETE = _deny_mutation', server)
         self.assertIn('"/api/roadmap"', server)
+        self.assertIn('"decision"', server)
         self.assertNotIn("SimpleHTTPRequestHandler", server)
         self.assertNotRegex(server, r"subprocess\.(?:run|Popen)\([^\n]+shell\s*=\s*True")
 

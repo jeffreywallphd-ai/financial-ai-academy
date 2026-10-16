@@ -35,12 +35,19 @@ def catalog() -> dict:
 
 def nodes() -> list[dict]:
     return [
-        {"id": "PROGRAM-1", "kind": "capability", "status": "ready", "title": "Program one", "source": "plans/program-1.md", "parent": None, "dependencies": [], "manifest": ["INCREMENT-1", "INCREMENT-2"], "decision_gates": []},
+        {"id": "PROGRAM-1", "kind": "capability", "status": "ready", "title": "Program one", "source": "plans/program-1.md", "parent": None, "dependencies": [], "manifest": ["INCREMENT-1", "INCREMENT-2"], "decision_gates": ["CHOICE-1", "CHOICE-MISSING"]},
         {"id": "PROGRAM-INTERNAL", "kind": "capability", "status": "complete", "title": "Internal", "source": "plans/internal.md", "parent": None, "dependencies": [], "manifest": ["INCREMENT-INTERNAL"], "decision_gates": []},
-        {"id": "INCREMENT-1", "kind": "slice", "status": "active", "title": "Increment", "source": "plans/increment-1.md", "parent": "PROGRAM-1", "dependencies": [], "manifest": [], "decision_gates": []},
-        {"id": "TASK-1", "kind": "work", "status": "complete", "title": "Task", "source": "plans/task-1.md", "parent": "INCREMENT-1", "dependencies": [], "manifest": [], "decision_gates": []},
+        {"id": "INCREMENT-1", "kind": "slice", "status": "active", "title": "Increment", "source": "plans/increment-1.md", "parent": "PROGRAM-1", "dependencies": [], "manifest": [], "decision_gates": ["CHOICE-2"]},
+        {"id": "TASK-1", "kind": "work", "status": "complete", "title": "Task", "source": "plans/task-1.md", "parent": "INCREMENT-1", "dependencies": [], "manifest": [], "decision_gates": ["CHOICE-1"]},
         {"id": "INCREMENT-INTERNAL", "kind": "slice", "status": "complete", "title": "Internal increment", "source": "plans/increment-internal.md", "parent": "PROGRAM-INTERNAL", "dependencies": [], "manifest": [], "decision_gates": []},
         {"id": "TASK-INTERNAL", "kind": "work", "status": "complete", "title": "Internal task", "source": "plans/task-internal.md", "parent": "INCREMENT-INTERNAL", "dependencies": [], "manifest": [], "decision_gates": []},
+    ]
+
+
+def decisions() -> list[dict]:
+    return [
+        {"id": "CHOICE-1", "status": "complete", "title": "Choose one", "source": "decisions/choice-1.md", "dependencies": [], "decision_record": "records/choice-1.md"},
+        {"id": "CHOICE-2", "status": "captured", "title": "Choose two", "source": "decisions/choice-2.md", "dependencies": [{"target": "CHOICE-1", "type": "hard"}], "decision_record": None},
     ]
 
 
@@ -72,6 +79,10 @@ def project(*, document_suffix: str = "") -> dict:
         item["id"]: {"source": item["source"], "text": f"# {item['title']}\n\nSafe text{document_suffix}"}
         for item in nodes()
     }
+    documents.update({
+        item["id"]: {"source": item["source"], "text": f"# {item['title']}\n\nDecision detail{document_suffix}"}
+        for item in decisions()
+    })
     return build_projection(
         catalog=catalog(),
         planning_nodes=nodes(),
@@ -80,6 +91,7 @@ def project(*, document_suffix: str = "") -> dict:
         ordering=ordering,
         compatibility=compatibility,
         allocation=allocation(),
+        decisions=decisions(),
         expected_catalog_count=2,
     )
 
@@ -97,7 +109,48 @@ class RoadmapReviewTests(unittest.TestCase):
         self.assertEqual([item["id"] for item in result["internal_capabilities"]], ["PROGRAM-INTERNAL"])
         self.assertEqual(result["internal_capabilities"][0]["slices"][0]["id"], "INCREMENT-INTERNAL")
         self.assertEqual(result["internal_capabilities"][0]["slices"][0]["work"][0]["id"], "TASK-INTERNAL")
-        self.assertEqual(result["diagnostics"][0]["code"], "roadmap.slice-not-refined")
+        self.assertIn("roadmap.slice-not-refined", {item["code"] for item in result["diagnostics"]})
+
+    def test_decisions_are_public_dynamic_and_missing_links_are_non_blocking(self) -> None:
+        result = project()
+        self.assertEqual([item["id"] for item in result["decisions"]], ["CHOICE-1", "CHOICE-2"])
+        resolved, deferred = result["decisions"]
+        self.assertTrue(resolved["decision_made"])
+        self.assertEqual(resolved["decision_record"], "records/choice-1.md")
+        self.assertFalse(deferred["decision_made"])
+        self.assertIsNone(deferred["decision_record"])
+        self.assertEqual(deferred["document"]["source"], "decisions/choice-2.md")
+        missing = [item for item in result["diagnostics"] if item["code"] == "roadmap.decision-not-found"]
+        self.assertEqual(missing, [{"code": "roadmap.decision-not-found", "subject": "CHOICE-MISSING", "parent": "PROGRAM-1", "blocking": False}])
+        serialized = json.dumps(result["decisions"])
+        for private in ("approver", "reviewer", "actor_label", "approval_history"):
+            self.assertNotIn(private, serialized)
+
+    def test_decision_record_must_stay_inside_repository_projection(self) -> None:
+        unsafe = decisions()
+        unsafe[0]["decision_record"] = "../private.md"
+        with self.assertRaises(ControlError) as caught:
+            build_projection(
+                catalog=catalog(), planning_nodes=nodes(), documents={}, graph={"issues": []},
+                ordering={}, compatibility={}, allocation=allocation(), decisions=unsafe,
+                expected_catalog_count=2,
+            )
+        self.assertEqual(caught.exception.code, "roadmap.source-invalid")
+
+    def test_complete_decision_without_record_stays_unresolved_and_diagnostic(self) -> None:
+        inconsistent = decisions()
+        inconsistent[0]["decision_record"] = None
+        result = build_projection(
+            catalog=catalog(), planning_nodes=nodes(), documents={}, graph={"issues": []},
+            ordering={}, compatibility={}, allocation=allocation(), decisions=inconsistent,
+            expected_catalog_count=2,
+        )
+        projected = next(item for item in result["decisions"] if item["id"] == "CHOICE-1")
+        self.assertFalse(projected["decision_made"])
+        self.assertIn(
+            {"code": "roadmap.decision-record-missing", "subject": "CHOICE-1", "blocking": True},
+            result["diagnostics"],
+        )
 
     def test_catalog_rejects_duplicate_mapping_and_noncontiguous_order(self) -> None:
         duplicate = catalog()
@@ -301,7 +354,15 @@ class RoadmapReviewTests(unittest.TestCase):
             self.assertEqual(capability["manifest"], [item["id"] for item in capability["slices"]])
         cap_eight = next(item for item in result["internal_capabilities"] if item["id"] == "CAP-0008")
         slice_six = next(item for item in cap_eight["slices"] if item["id"] == "SLI-0036")
-        self.assertEqual([item["id"] for item in slice_six["work"]], ["WRK-0026"])
+        self.assertEqual([item["id"] for item in slice_six["work"]], ["WRK-0026", "WRK-0101"])
+        self.assertEqual(len(result["decisions"]), 20)
+        decisions_by_id = {item["id"]: item for item in result["decisions"]}
+        self.assertTrue(decisions_by_id["DEC-0013"]["decision_made"])
+        self.assertFalse(decisions_by_id["DEC-0012"]["decision_made"])
+        self.assertEqual(
+            decisions_by_id["DEC-0006"]["decision_record"],
+            "docs/planning/README.md#authority-model",
+        )
         serialized = json.dumps(result)
         self.assertNotIn('"actor_label":', serialized)
         self.assertNotIn('"reviewer_label":', serialized)

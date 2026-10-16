@@ -54,6 +54,8 @@ test("navigates the live hierarchy and preserves honest missing states", async (
   await page.goto("/capability/track-progress-and-competency-evidence");
   await expect(page.getByRole("heading", { level: 1, name: "Track Progress and Competency Evidence" })).toBeVisible();
   await expect(page.getByRole("link", { name: /SLI-0038: detailed plan not refined yet/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /DEC-0009/ })).toBeVisible();
+  await expect(page.getByLabel("Decision status: complete")).toBeVisible();
 
   await page.goto("/slice/SLI-0018");
   await expect(page.getByRole("heading", { level: 2, name: "Associated work" })).toBeVisible();
@@ -62,6 +64,18 @@ test("navigates the live hierarchy and preserves honest missing states", async (
   await page.goto("/slice/SLI-0038");
   await expect(page.getByText(/has not been refined/)).toBeVisible();
   await expect(page.getByText(/does not block review of other work/)).toBeVisible();
+  await expect(page.getByRole("link", { name: /DEC-0009/ })).toBeVisible();
+
+  await page.goto("/decision/DEC-0009");
+  await expect(page.getByRole("heading", { level: 1, name: /DEC-0009/ })).toBeVisible();
+  await expect(page.getByText("Decision recorded")).toBeVisible();
+  await expect(page.getByText("Yes", { exact: true })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.goto("/decision/DEC-0012");
+  await expect(page.getByRole("heading", { level: 1, name: /DEC-0012/ })).toBeVisible();
+  await expect(page.getByText("No decision outcome is recorded yet.")).toBeVisible();
+  await expect(page.getByText("No separate canonical record linked")).toBeVisible();
 
   await page.goto("/work/NOT-REAL");
   await expect(page.getByRole("alert")).toContainText("Roadmap entry not found");
