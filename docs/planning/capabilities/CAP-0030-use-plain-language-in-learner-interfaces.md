@@ -6,7 +6,7 @@ authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-15
 parent: null
-depends_on: ["CAP-0001", "CAP-0004", "CAP-0005"]
+depends_on: ["CAP-0001", "CAP-0004"]
 decision_gates: []
 approval_model: cap-package-v1
 slice_ids: ["SLI-0122", "SLI-0123", "SLI-0124", "SLI-0125"]
@@ -108,13 +108,16 @@ jargon without turning writing heuristics into a release barrier.
 - Copy-only work selects focused content, component, browser, accessibility,
   documentation, and readiness checks. It does not automatically require the
   complete application suite unless affected behavior warrants it.
+- Completed `SLI-0023` is the current curriculum-state presentation baseline.
+  Later CAP-0005 slices must consume the language standard and term map rather
+  than reintroducing avoidable technical language.
 
 ## Proposed Vertical Slices
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
-| SLI-0122 | A learner can find, filter, inspect, compare, and open learning opportunities using task-focused headings and controls such as `Topic`, `Show results`, `Lesson version`, and `Open lesson`; the repository gains the shared language standard, content style guide, and initial term map. | First after CAP-0004 and CAP-0005 completion; establishes the content contract used by later slices. | Domain/API renaming, new discovery behavior, changed risk disclosures, localization, or formal standards conformance changes the CAP package. | captured |
-| SLI-0123 | A learner can understand the learning path, activity connections, completion and availability status, and recovery actions without graph/projection terminology, while the full technical record remains accessible. | After SLI-0122; reuses the delivered CAP-0005 graph and navigation-state semantics. | Eligibility changes, recommendation or mastery language, activity-launch behavior, or removal of provenance changes the CAP package. | captured |
+| SLI-0122 | A learner can find, filter, inspect, compare, and open learning opportunities using task-focused headings and controls such as `Topic`, `Show results`, `Lesson version`, and `Open lesson`; the repository gains the shared language standard, content style guide, and initial term map. | First after CAP-0004; establishes the content contract used by later slices. | Domain/API renaming, new discovery behavior, changed risk disclosures, localization, or formal standards conformance changes the CAP package. | captured |
+| SLI-0123 | A learner can understand the learning path, activity connections, completion and availability status, and recovery actions without graph/projection terminology, while the full technical record remains accessible. | After SLI-0122; reuses completed SLI-0023 graph and navigation-state semantics. | Eligibility changes, recommendation or mastery language, activity-launch behavior, or removal of provenance changes the CAP package. | captured |
 | SLI-0124 | A learner can understand lesson loading, knowledge-check results, retained completion evidence, and session or safety failures in direct language with a clear next action where one exists. | After SLI-0122; may run in parallel with SLI-0123 only when exact file scopes are disjoint. | Grading/evidence changes, disclosure changes, answer exposure, or new session behavior changes the CAP package. | captured |
 | SLI-0125 | Learner-facing language is qualified and sustained through a diff-aware checker, focused usability and accessibility evidence, documented exceptions, and anti-rigidity tests that prevent the guidance from becoming a universal prose gate. | Last; depends on SLI-0122 through SLI-0124. | External review services, automatic rewriting, a mandatory universal reading grade, or repository-wide blocking of technical content changes the CAP package. | captured |
 
