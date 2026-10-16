@@ -8,6 +8,8 @@ import subprocess
 import sys
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -15,7 +17,7 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from contracts import ControlError  # noqa: E402
-from financial_academy_portfolio import current_capability_authority, project  # noqa: E402
+from financial_academy_portfolio import current_capability_authority  # noqa: E402
 from portfolio import analyze  # noqa: E402
 from portfolio_ordering import plan  # noqa: E402
 
@@ -79,11 +81,30 @@ class PortfolioOrderingTests(unittest.TestCase):
         self.assertEqual("portfolio.explicit_priority-outside-level", outside.exception.code)
 
     def test_repository_authority_adapter_exposes_only_current_cap_ids(self) -> None:
-        current = current_capability_authority(ROOT)
-        self.assertIn("CAP-0003", current)
-        graph = project(ROOT)
-        result = plan(graph, level="slice", authority_current=current)
-        by_id = {item["id"]: item for item in graph["nodes"]}
+        artifacts = [
+            SimpleNamespace(identifier="CAP-1", kind="capability"),
+            SimpleNamespace(identifier="CAP-2", kind="capability"),
+            SimpleNamespace(identifier="SLI-1", kind="vertical-slice"),
+        ]
+
+        def require_current(_store: object, artifact: object) -> None:
+            if artifact.identifier != "CAP-1":
+                raise ValueError("package is not current")
+
+        with (
+            patch("financial_academy_portfolio.load_store", return_value=(object(), Path("unused"))),
+            patch("financial_academy_portfolio.load_artifacts", return_value=artifacts),
+            patch("financial_academy_portfolio.require_current_package", side_effect=require_current) as checked,
+        ):
+            current = current_capability_authority(ROOT)
+
+        self.assertEqual({"CAP-1"}, current)
+        self.assertEqual(
+            ["CAP-1", "CAP-2"],
+            [call.args[1].identifier for call in checked.call_args_list],
+        )
+        result = plan(self.graph, level="slice", authority_current=current)
+        by_id = {item["id"]: item for item in self.graph["nodes"]}
         delivery_candidates = [
             *result["in_progress"],
             *(item["id"] for item in result["ready"]),
