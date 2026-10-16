@@ -11,7 +11,8 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
 
 
 VERSION = "1.0.0"
@@ -109,6 +110,62 @@ def approved_pair(
     )
 
 
+def approved_chain(
+    corpus: Path | None = None,
+) -> tuple[
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+]:
+    approved = (corpus or corpus_dir()) / "approved"
+    definition, presentation = approved_pair(corpus)
+    return (
+        definition,
+        presentation,
+        load_json(approved / "submission.json"),
+        load_json(approved / "result.json"),
+        load_json(approved / "completion-event.json"),
+    )
+
+
+def canonical_submission_bytes(submission: Mapping[str, Any]) -> bytes:
+    canonical = copy.deepcopy(dict(submission))
+    responses = canonical.get("responses")
+    if not isinstance(responses, list):
+        reject(
+            "assessment.practice.schema_invalid",
+            "responses",
+            "Practice responses must be an array.",
+        )
+    for response in responses:
+        if isinstance(response, dict) and isinstance(
+            response.get("selected_option_ids"), list
+        ):
+            response["selected_option_ids"] = sorted(
+                response["selected_option_ids"]
+            )
+    canonical["responses"] = sorted(
+        responses,
+        key=lambda response: (
+            str(response.get("item_id", ""))
+            if isinstance(response, Mapping)
+            else ""
+        ),
+    )
+    return json.dumps(
+        canonical,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+
+def submission_fingerprint(submission: Mapping[str, Any]) -> str:
+    return hashlib.sha256(canonical_submission_bytes(submission)).hexdigest()
+
+
 def _private_name(value: object) -> str | None:
     if isinstance(value, Mapping):
         for key, nested in value.items():
@@ -130,10 +187,30 @@ class PracticeContractValidator:
         root = schemas or schema_dir()
         self._schemas = {
             name: load_json(root / f"{name}.schema.json")
-            for name in ("definition", "presentation")
+            for name in (
+                "definition",
+                "presentation",
+                "submission",
+                "result",
+                "completion-event",
+            )
         }
+        registry = Registry().with_resources(
+            (
+                schema["$id"],
+                Resource.from_contents(schema),
+            )
+            for schema in self._schemas.values()
+        )
+        self._validators: dict[str, Draft202012Validator] = {}
         for schema in self._schemas.values():
             Draft202012Validator.check_schema(schema)
+        for name, schema in self._schemas.items():
+            self._validators[name] = Draft202012Validator(
+                schema,
+                registry=registry,
+                format_checker=FormatChecker(),
+            )
 
     def _versions(self, definition: Mapping[str, Any]) -> None:
         if definition.get("schema_version") != VERSION:
@@ -182,7 +259,9 @@ class PracticeContractValidator:
 
     def _shape(self, kind: str, value: Mapping[str, Any]) -> None:
         error = next(
-            iter(Draft202012Validator(self._schemas[kind]).iter_errors(value)),
+            iter(
+                self._validators[kind].iter_errors(value)
+            ),
             None,
         )
         if error is not None:
@@ -375,14 +454,271 @@ class PracticeContractValidator:
                 "Practice presentation does not match the exact definition.",
             )
 
+    def validate_submission_chain(
+        self,
+        definition: Mapping[str, Any],
+        presentation: Mapping[str, Any],
+        submission: Mapping[str, Any],
+        result: Mapping[str, Any],
+        event: Mapping[str, Any],
+    ) -> None:
+        self.validate_presentation(definition, presentation)
+        if submission.get("schema_version") != VERSION:
+            reject(
+                "assessment.practice.unsupported_version",
+                "schema_version",
+                "Practice submission version is unsupported.",
+            )
+        for kind, value in (
+            ("submission", submission),
+            ("result", result),
+            ("completion-event", event),
+        ):
+            self._shape(kind, value)
+        practice = definition["practice"]
+        correlation = {
+            "placement_id": presentation["placement_id"],
+            "package_id": presentation["package_id"],
+            "package_version": presentation["package_version"],
+            "package_digest": presentation["package_digest"],
+            "definition_digest": definition["definition_digest"],
+            "practice_id": practice["practice_id"],
+            "practice_version": practice["practice_version"],
+            "attempt_policy_id": practice["attempt_policy"]["policy_id"],
+            "attempt_policy_version": practice["attempt_policy"]["policy_version"],
+        }
+        for name, expected in correlation.items():
+            if submission.get(name) != expected:
+                reject(
+                    "assessment.practice.stale_reference",
+                    name,
+                    "Practice submission does not match the exact definition.",
+                )
+        responses = submission["responses"]
+        by_id = {response["item_id"]: response for response in responses}
+        if len(by_id) != len(responses) or set(by_id) != {
+            item["item_id"] for item in practice["items"]
+        }:
+            reject(
+                "assessment.practice.invalid_response",
+                "responses",
+                "Practice responses must cover every item exactly once.",
+            )
+        expected_items: list[dict[str, Any]] = []
+        review_ids: list[str] = []
+        for index, item in enumerate(practice["items"]):
+            response = by_id[item["item_id"]]
+            expected_items.append(
+                self._score_response(item, response, index, review_ids)
+            )
+        score = sum(item["score"] for item in expected_items)
+        maximum = sum(item["max_score"] for item in expected_items)
+        expected_result = {
+            "schema_version": VERSION,
+            "attempt_id": result["attempt_id"],
+            "evidence_id": result["evidence_id"],
+            "learner_id": result["learner_id"],
+            "submission_id": submission["submission_id"],
+            "request_fingerprint": submission_fingerprint(submission),
+            **correlation,
+            "score": score,
+            "max_score": maximum,
+            "outcome": "all_correct" if score == maximum else "review_needed",
+            "review_reference_ids": review_ids,
+            "item_results": expected_items,
+            "submitted_at": result["submitted_at"],
+        }
+        if result != expected_result:
+            reject(
+                "assessment.practice.stale_reference",
+                "result",
+                "Practice result does not match deterministic scoring.",
+            )
+        leaked = _output_private_name(result)
+        if leaked:
+            reject(
+                "assessment.practice.result_leak",
+                leaked,
+                "Practice result contains private Assessment fields.",
+            )
+        expected_event = {
+            "schema_version": VERSION,
+            "event_type": "assessment.practice.completed",
+            "event_version": VERSION,
+            "event_id": event["event_id"],
+            "owner": "assessment",
+            "occurred_at": result["submitted_at"],
+            "idempotency_key": result["evidence_id"],
+            "aggregate": {
+                "aggregate_type": "practice_attempt",
+                "aggregate_id": result["attempt_id"],
+            },
+            "source": {"evidence_id": result["evidence_id"]},
+            "payload": {
+                "learner_id": result["learner_id"],
+                "submission_id": result["submission_id"],
+                "placement_id": result["placement_id"],
+                "package_id": result["package_id"],
+                "package_version": result["package_version"],
+                "package_digest": result["package_digest"],
+                "definition_digest": result["definition_digest"],
+                "practice_id": result["practice_id"],
+                "practice_version": result["practice_version"],
+                "attempt_policy_id": result["attempt_policy_id"],
+                "attempt_policy_version": result["attempt_policy_version"],
+                "score": result["score"],
+                "max_score": result["max_score"],
+                "outcome": result["outcome"],
+                "item_scores": [
+                    {
+                        key: item[key]
+                        for key in (
+                            "item_id",
+                            "item_version",
+                            "item_type",
+                            "scoring_policy_id",
+                            "scoring_policy_version",
+                            "score",
+                            "max_score",
+                        )
+                    }
+                    for item in result["item_results"]
+                ],
+                "completed_at": result["submitted_at"],
+            },
+        }
+        if event != expected_event:
+            reject(
+                "assessment.practice.stale_reference",
+                "event",
+                "Practice completion event does not match its exact result.",
+            )
+
+    def _score_response(
+        self,
+        item: Mapping[str, Any],
+        response: Mapping[str, Any],
+        index: int,
+        review_ids: list[str],
+    ) -> dict[str, Any]:
+        policy = item["scoring_policy"]
+        expected = {
+            "item_version": item["item_version"],
+            "item_type": item["item_type"],
+            "scoring_policy_id": policy["policy_id"],
+            "scoring_policy_version": policy["policy_version"],
+        }
+        if any(response.get(name) != value for name, value in expected.items()):
+            reject(
+                "assessment.practice.invalid_response",
+                f"responses.{index}",
+                "Practice response type or version does not match its item.",
+            )
+        item_type = item["item_type"]
+        if item_type == "single_select":
+            selected = response["selected_option_id"]
+            declared = {option["option_id"] for option in item["options"]}
+            if selected not in declared:
+                reject(
+                    "assessment.practice.invalid_response",
+                    f"responses.{index}",
+                    "Selected option is not declared by the item.",
+                )
+            correct = selected == item["correct_option_id"]
+            submitted = {"selected_option_id": selected}
+        elif item_type == "multiple_select":
+            selected_values = response["selected_option_ids"]
+            declared = {option["option_id"] for option in item["options"]}
+            if not set(selected_values).issubset(declared):
+                reject(
+                    "assessment.practice.invalid_response",
+                    f"responses.{index}",
+                    "Selected options are not declared by the item.",
+                )
+            correct = set(selected_values) == set(item["correct_option_ids"])
+            submitted = {"selected_option_ids": copy.deepcopy(selected_values)}
+        else:
+            entered = response["entered_value"]
+            parsed = self._response_decimal(
+                entered,
+                item["response"]["scale"],
+                item["response"]["allow_negative"],
+                index,
+            )
+            answer = item["answer"]
+            if answer["mode"] == "exact":
+                correct = parsed == Decimal(answer["value"])
+            else:
+                correct = Decimal(answer["lower"]) <= parsed <= Decimal(
+                    answer["upper"]
+                )
+            submitted = {"entered_value": entered}
+        feedback = copy.deepcopy(item["feedback"]["correct" if correct else "incorrect"])
+        for reference_id in feedback["review_reference_ids"]:
+            if reference_id not in review_ids:
+                review_ids.append(reference_id)
+        return {
+            "item_id": item["item_id"],
+            **expected,
+            **submitted,
+            "score": 1 if correct else 0,
+            "max_score": policy["max_score"],
+            "correct": correct,
+            "feedback": feedback,
+        }
+
+    @staticmethod
+    def _response_decimal(
+        value: str, scale: int, allow_negative: bool, index: int
+    ) -> Decimal:
+        match = DECIMAL_RE.fullmatch(value)
+        if match is None or len(match.group(2) or "") != scale:
+            reject(
+                "assessment.practice.invalid_response",
+                f"responses.{index}",
+                "Numeric response does not match the declared fixed scale.",
+            )
+        parsed = Decimal(value)
+        if value.startswith("-0") and parsed == 0:
+            reject(
+                "assessment.practice.invalid_response",
+                f"responses.{index}",
+                "Numeric response is not canonical.",
+            )
+        if not allow_negative and parsed < 0:
+            reject(
+                "assessment.practice.invalid_response",
+                f"responses.{index}",
+                "Negative response is not allowed.",
+            )
+        return parsed
+
+
+def _output_private_name(value: object) -> str | None:
+    private_names = {"answer", "correct_option_id", "correct_option_ids"}
+    if isinstance(value, Mapping):
+        for key, nested in value.items():
+            if key in private_names:
+                return str(key)
+            found = _output_private_name(nested)
+            if found:
+                return found
+    elif isinstance(value, list):
+        for nested in value:
+            found = _output_private_name(nested)
+            if found:
+                return found
+    return None
+
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", type=Path, default=corpus_dir())
     arguments = parser.parse_args(argv)
     try:
-        definition, presentation = approved_pair(arguments.corpus)
-        PracticeContractValidator().validate_presentation(definition, presentation)
+        chain = approved_chain(arguments.corpus)
+        definition = chain[0]
+        PracticeContractValidator().validate_submission_chain(*chain)
     except (PracticeConformanceFailure, OSError, ValueError) as error:
         diagnostic = (
             error.as_dict()
@@ -404,6 +740,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "item_types": [
                     item["item_type"] for item in definition["practice"]["items"]
                 ],
+                "submission_fingerprint": chain[3]["request_fingerprint"],
             },
             sort_keys=True,
         )

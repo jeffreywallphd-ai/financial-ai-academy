@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "attempt_id": "33333333-3333-4333-8333-333333333333",
+  "evidence_id": "44444444-4444-4444-8444-444444444444",
+  "learner_id": "11111111-1111-4111-8111-111111111111",
+  "submission_id": "22222222-2222-4222-8222-222222222222",
+  "request_fingerprint": "474a06d242f32b94805862b6250f61374731d153fd1e72162f3cf38505a1500b",
+  "placement_id": "risk-return-practice-placement",
+  "package_id": "intro-risk-return",
+  "package_version": "2.0.0",
+  "package_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "definition_digest": "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527",
+  "practice_id": "risk-return-practice",
+  "practice_version": "1.0.0",
+  "attempt_policy_id": "formative-retry",
+  "attempt_policy_version": "1.0.0",
+  "score": 2,
+  "max_score": 3,
+  "outcome": "review_needed",
+  "review_reference_ids": ["risk-return-review"],
+  "item_results": [
+    {
+      "item_id": "risk-meaning",
+      "item_version": "1.0.0",
+      "item_type": "single_select",
+      "scoring_policy_id": "single-select-exact-match",
+      "scoring_policy_version": "1.0.0",
+      "selected_option_id": "uncertainty",
+      "score": 1,
+      "max_score": 1,
+      "correct": true,
+      "feedback": {"feedback_id": "risk-correct", "text": "Correct. Risk includes uncertainty about future outcomes.", "review_reference_ids": ["risk-return-review"]}
+    },
+    {
+      "item_id": "diversification-actions",
+      "item_version": "1.0.0",
+      "item_type": "multiple_select",
+      "scoring_policy_id": "multiple-select-exact-set",
+      "scoring_policy_version": "1.0.0",
+      "selected_option_ids": ["more-issuers", "same-copy"],
+      "score": 0,
+      "max_score": 1,
+      "correct": false,
+      "feedback": {"feedback_id": "diversification-review", "text": "Review what changes exposure instead of merely relabeling one position.", "review_reference_ids": ["risk-return-review"]}
+    },
+    {
+      "item_id": "simple-growth",
+      "item_version": "1.0.0",
+      "item_type": "numeric_entry",
+      "scoring_policy_id": "numeric-exact-or-inclusive-range",
+      "scoring_policy_version": "1.0.0",
+      "entered_value": "105.00",
+      "score": 1,
+      "max_score": 1,
+      "correct": true,
+      "feedback": {"feedback_id": "growth-correct", "text": "Correct. Five percent of 100.00 is 5.00.", "review_reference_ids": ["risk-return-review"]}
+    }
+  ],
+  "submitted_at": "2026-10-16T15:00:00Z"
+}

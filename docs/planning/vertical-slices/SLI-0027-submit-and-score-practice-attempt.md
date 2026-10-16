@@ -270,3 +270,8 @@ or autonomous authority was planned or implemented.
   current CAP authority, completed SLI-0026 dependency, decision readiness,
   exact write scope, and collision-free ownership. No lower-level approval was
   requested.
+- 2026-10-16: WRK-0096 implemented the additive whole-attempt contracts, pure
+  deterministic three-type scorer, canonical order-independent request
+  identity, learner-safe result, and bounded confidential completion event.
+  Persistence, the public POST, generated client, and browser result flow remain
+  the next packet boundaries.

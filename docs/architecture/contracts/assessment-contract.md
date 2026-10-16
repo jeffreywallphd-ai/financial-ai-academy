@@ -32,7 +32,8 @@ ordered items. It closes response meaning to single-select exact match (2-8
 options), multiple-select exact set (3-12 options, no partial credit), and
 numeric exact value or inclusive range over canonical fixed-decimal strings at
 scale 0 through 6. Every item is worth one point. The attempt policy is visible
-metadata only until later application packets enforce it.
+contract metadata; pure scoring does not enforce attempt counts, and later
+application packets retain that authority.
 
 ## Immutable Identity and Safe Presentation
 
@@ -74,6 +75,22 @@ Assessment/item/policy provenance, the selected option, deterministic score,
 correctness, reviewed feedback ID/text, and server timestamp. It does not
 claim lesson completion, mastery, suitability, performance, or advice.
 
+Practice submission is a separate additive whole-attempt record. It carries
+one response per exact definition item and no learner identity or time.
+Response array order is semantically irrelevant; item IDs correlate the set,
+multiple selections are exact unordered sets, and results return in definition
+order. The canonical request fingerprint sorts responses by item ID and
+multiple selections by option ID before hashing compact sorted-key UTF-8 JSON.
+Equivalent ordering therefore has one request identity.
+
+Single select is exact option match, multiple select is exact set with no
+partial credit, and numeric entry uses `Decimal` against the exact value or
+inclusive range at the declared canonical scale. Each item is zero or one; the
+activity result sums them and reports `all_correct` or `review_needed`. Only the
+applicable reviewed feedback and references are returned. Correct answer
+values, numeric ranges, private evaluator objects, mastery, suitability, and
+advice remain absent.
+
 ## Completion Event
 
 `assessment.knowledge-check.completed@1.0.0` is owned by Assessment. Its event
@@ -85,6 +102,14 @@ model and Audit synchronously replay this event through the Assessment public
 query for the initial completion-history path. The event contract does not
 select a queue, broker, dispatcher, background worker, checkpoint, or delivery
 guarantee.
+
+`assessment.practice.completed@1.0.0` is the additive practice event contract.
+It correlates server-issued event, attempt, evidence, learner, submission,
+placement, definition, and time metadata to one bounded score/provenance
+summary. Submitted values and feedback stay in Assessment's result boundary
+instead of being broadcast to consumers. The pure mapper validates this
+correlation but does not persist, dispatch, publish, or make the event a
+mastery signal.
 
 ## Compatibility and Diagnostics
 
@@ -113,6 +138,9 @@ successor, and stable bounded denial codes:
 - `assessment.practice.invalid_decimal`
 - `assessment.practice.presentation_leak`
 - `assessment.practice.stale_reference`
+- `assessment.practice.invalid_response`
+- `assessment.practice.result_leak`
+- `assessment.practice.invalid_server_metadata`
 
 Diagnostics identify only a bounded field/reference and stable code. They do
 not echo learner responses, correct answers, fixture bytes, paths, stack
@@ -140,16 +168,21 @@ directly covered. Background delivery, recovery, managed cloud, built-in/OIDC,
 production database roles, and broader Assessment families remain gaps.
 
 Practice v1 now has executable private-definition and safe-presentation
-schemas, a canonical compatibility corpus, additive package admission, exact
-Content retrieval, immutable Curriculum placement, a production
-parser/projector and public open operation, protected HTTP/OpenAPI, generated
-TypeScript client, and real-PostgreSQL composition evidence. Repeated opening
-is read-only and returns no answer or feedback branch. Browser rendering,
-response submission, scoring, feedback selection, retry enforcement, evidence,
-events, and practice persistence remain unqualified until their owning packets
-deliver them. No separate AI/headless mode is defined; the shared public API is
-the supported non-browser seam and keeps a future consumer possible without
-creating another domain core.
+schemas plus whole-attempt submission, result, and completion-event schemas; a
+canonical compatibility corpus; additive package admission; exact Content
+retrieval; immutable Curriculum placement; a production parser/projector and
+public open operation; protected HTTP/OpenAPI; a generated TypeScript client;
+browser opening; and real-PostgreSQL composition evidence. Its pure submission
+adapter now validates closed responses, canonicalizes request identity, scores
+all three item types, selects reviewed feedback, and maps a safe correlated
+event without side effects. Repeated opening is read-only and returns no answer
+or feedback branch. Application submission, authorization composition,
+practice evidence persistence, transactional outbox storage, the public POST
+and generated client, browser result flow, retry enforcement, history/replay
+consumers, and live submission remain unqualified until their owning packets
+deliver them. No separate AI/headless mode is defined; the shared public API
+remains the supported non-browser seam and keeps a future consumer possible
+without creating another domain core.
 
 Assessment now also exposes a typed, read-only completion-event replay query
 for one server-supplied learner and exact placement. It validates retained

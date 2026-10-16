@@ -13,11 +13,14 @@ from jsonschema import Draft202012Validator
 from .runner import (
     PracticeConformanceFailure,
     PracticeContractValidator,
+    approved_chain,
     approved_pair,
     canonical_practice_bytes,
+    canonical_submission_bytes,
     corpus_dir,
     definition_digest,
     schema_dir,
+    submission_fingerprint,
 )
 
 
@@ -43,8 +46,11 @@ def _mutated(case: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
 def test_schemas_are_valid_draft_2020_12() -> None:
     paths = sorted(schema_dir().glob("*.schema.json"))
     assert [path.name for path in paths] == [
+        "completion-event.schema.json",
         "definition.schema.json",
         "presentation.schema.json",
+        "result.schema.json",
+        "submission.schema.json",
     ]
     for path in paths:
         Draft202012Validator.check_schema(
@@ -314,3 +320,113 @@ def test_cli_emits_bounded_output_without_private_answers() -> None:
     combined = completed.stdout + completed.stderr
     assert "105.00" not in combined
     assert "Traceback" not in combined
+
+
+def test_approved_submission_result_and_event_chain_validate() -> None:
+    chain = approved_chain()
+    PracticeContractValidator().validate_submission_chain(*chain)
+    result = chain[3]
+    assert result["score"] == 2
+    assert result["max_score"] == 3
+    assert result["outcome"] == "review_needed"
+    assert [item["item_id"] for item in result["item_results"]] == [
+        "risk-meaning",
+        "diversification-actions",
+        "simple-growth",
+    ]
+    assert chain[4]["payload"]["score"] == result["score"]
+    assert chain[4]["payload"]["item_scores"] == [
+        {
+            key: item[key]
+            for key in (
+                "item_id",
+                "item_version",
+                "item_type",
+                "scoring_policy_id",
+                "scoring_policy_version",
+                "score",
+                "max_score",
+            )
+        }
+        for item in result["item_results"]
+    ]
+
+
+def test_request_fingerprint_is_fixed_and_order_independent() -> None:
+    submission = approved_chain()[2]
+    equivalent = json.loads(
+        (CORPUS / "vectors/order-equivalent-submission.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    vector = json.loads(
+        (CORPUS / "vectors/request-fingerprint.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert submission_fingerprint(submission) == vector["request_fingerprint"]
+    assert submission_fingerprint(equivalent) == vector["request_fingerprint"]
+    assert canonical_submission_bytes(submission) == canonical_submission_bytes(
+        equivalent
+    )
+
+
+def _submission_denial_chain(
+    case: dict[str, Any],
+) -> tuple[
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+]:
+    chain = list(map(copy.deepcopy, approved_chain()))
+    target_index = {"submission": 2, "result": 3, "event": 4}[
+        case["target"]
+    ]
+    target: Any = chain[target_index]
+    for part in case["path"][:-1]:
+        target = target[part]
+    final = case["path"][-1]
+    if case["op"] == "delete":
+        del target[final]
+    else:
+        target[final] = case["value"]
+    return tuple(chain)  # type: ignore[return-value]
+
+
+@pytest.mark.parametrize(
+    "case",
+    json.loads(
+        (CORPUS / "cases/submission-denials.json").read_text(encoding="utf-8")
+    ),
+    ids=lambda case: case["id"],
+)
+def test_submission_denial_corpus_fails_closed(case: dict[str, Any]) -> None:
+    with pytest.raises(PracticeConformanceFailure) as captured:
+        PracticeContractValidator().validate_submission_chain(
+            *_submission_denial_chain(case)
+        )
+    assert captured.value.code == case["expected_code"]
+    assert len(captured.value.reference) <= 120
+    assert "\n" not in captured.value.reference
+
+
+def test_result_and_event_recursively_exclude_private_answers() -> None:
+    result = approved_chain()[3]
+    event = approved_chain()[4]
+    serialized = json.dumps({"result": result, "event": event}, sort_keys=True)
+    for private_name in (
+        "correct_option_id",
+        "correct_option_ids",
+        '"answer"',
+    ):
+        assert private_name not in serialized
+    event_serialized = json.dumps(event, sort_keys=True)
+    for retained_only_name in (
+        "selected_option_id",
+        "selected_option_ids",
+        "entered_value",
+        '"feedback"',
+    ):
+        assert retained_only_name not in event_serialized

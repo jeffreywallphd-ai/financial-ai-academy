@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
-from typing import Literal, TypeAlias
+import re
+from typing import Literal, Mapping, TypeAlias
 
 
 @dataclass(frozen=True, slots=True)
@@ -176,3 +178,195 @@ class PracticePresentation:
     source_references: tuple[PracticeResourceReference, ...]
     review_references: tuple[PracticeResourceReference, ...]
     items: tuple[PracticePresentationItem, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class SingleSelectPracticeResponse:
+    item_id: str
+    item_version: str
+    item_type: Literal["single_select"]
+    scoring_policy_id: str
+    scoring_policy_version: str
+    selected_option_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class MultipleSelectPracticeResponse:
+    item_id: str
+    item_version: str
+    item_type: Literal["multiple_select"]
+    scoring_policy_id: str
+    scoring_policy_version: str
+    selected_option_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class NumericEntryPracticeResponse:
+    item_id: str
+    item_version: str
+    item_type: Literal["numeric_entry"]
+    scoring_policy_id: str
+    scoring_policy_version: str
+    entered_value: str
+
+
+PracticeResponse: TypeAlias = (
+    SingleSelectPracticeResponse
+    | MultipleSelectPracticeResponse
+    | NumericEntryPracticeResponse
+)
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeItemOutcome:
+    response: PracticeResponse
+    score: int
+    max_score: int
+    correct: bool
+    feedback: PracticeFeedback
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeAggregateOutcome:
+    item_results: tuple[PracticeItemOutcome, ...]
+    score: int
+    max_score: int
+    outcome: Literal["all_correct", "review_needed"]
+    review_reference_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeResult:
+    schema_version: str
+    attempt_id: str
+    evidence_id: str
+    learner_id: str
+    submission_id: str
+    request_fingerprint: str
+    placement_id: str
+    package_id: str
+    package_version: str
+    package_digest: str
+    definition_digest: str
+    practice_id: str
+    practice_version: str
+    attempt_policy_id: str
+    attempt_policy_version: str
+    score: int
+    max_score: int
+    outcome: Literal["all_correct", "review_needed"]
+    review_reference_ids: tuple[str, ...]
+    item_results: tuple[PracticeItemOutcome, ...]
+    submitted_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class PracticeSubmissionCandidate:
+    result: PracticeResult
+    request_fingerprint: str
+    event_id: str
+    event: Mapping[str, object]
+    occurred_at: datetime
+
+
+class PracticeScoringError(ValueError):
+    def __init__(self, reference: str) -> None:
+        super().__init__("Practice response was rejected.")
+        self.reference = reference
+
+
+_DECIMAL_RE = re.compile(r"^-?(0|[1-9][0-9]*)(?:\.([0-9]{1,6}))?$")
+
+
+def score_practice(
+    definition: PracticeDefinition,
+    responses: tuple[PracticeResponse, ...],
+) -> PracticeAggregateOutcome:
+    """Validate and score one complete response set in definition order."""
+
+    by_id: dict[str, PracticeResponse] = {}
+    for response in responses:
+        if response.item_id in by_id:
+            raise PracticeScoringError("responses")
+        by_id[response.item_id] = response
+    expected_ids = {item.item_id for item in definition.items}
+    if set(by_id) != expected_ids:
+        raise PracticeScoringError("responses")
+
+    results: list[PracticeItemOutcome] = []
+    review_ids: list[str] = []
+    for item in definition.items:
+        response = by_id[item.item_id]
+        _validate_response_identity(item, response)
+        correct = _score_item(item, response)
+        feedback = item.feedback.correct if correct else item.feedback.incorrect
+        results.append(
+            PracticeItemOutcome(
+                response=response,
+                score=1 if correct else 0,
+                max_score=item.scoring_policy.max_score,
+                correct=correct,
+                feedback=feedback,
+            )
+        )
+        for reference_id in feedback.review_reference_ids:
+            if reference_id not in review_ids:
+                review_ids.append(reference_id)
+
+    score = sum(result.score for result in results)
+    maximum = sum(result.max_score for result in results)
+    return PracticeAggregateOutcome(
+        item_results=tuple(results),
+        score=score,
+        max_score=maximum,
+        outcome="all_correct" if score == maximum else "review_needed",
+        review_reference_ids=tuple(review_ids),
+    )
+
+
+def _validate_response_identity(
+    item: PracticeItem, response: PracticeResponse
+) -> None:
+    if (
+        response.item_version != item.item_version
+        or response.item_type != item.item_type
+        or response.scoring_policy_id != item.scoring_policy.policy_id
+        or response.scoring_policy_version != item.scoring_policy.policy_version
+    ):
+        raise PracticeScoringError(f"responses.{item.item_id}")
+
+
+def _score_item(item: PracticeItem, response: PracticeResponse) -> bool:
+    if isinstance(item, SingleSelectPracticeItem):
+        if not isinstance(response, SingleSelectPracticeResponse):
+            raise PracticeScoringError(f"responses.{item.item_id}")
+        declared = {option.option_id for option in item.options}
+        if response.selected_option_id not in declared:
+            raise PracticeScoringError(f"responses.{item.item_id}")
+        return response.selected_option_id == item.correct_option_id
+
+    if isinstance(item, MultipleSelectPracticeItem):
+        if not isinstance(response, MultipleSelectPracticeResponse):
+            raise PracticeScoringError(f"responses.{item.item_id}")
+        selected = response.selected_option_ids
+        if len(selected) != len(set(selected)):
+            raise PracticeScoringError(f"responses.{item.item_id}")
+        declared = {option.option_id for option in item.options}
+        if not set(selected).issubset(declared):
+            raise PracticeScoringError(f"responses.{item.item_id}")
+        return set(selected) == set(item.correct_option_ids)
+
+    if not isinstance(response, NumericEntryPracticeResponse):
+        raise PracticeScoringError(f"responses.{item.item_id}")
+    match = _DECIMAL_RE.fullmatch(response.entered_value)
+    if match is None or len(match.group(2) or "") != item.response.scale:
+        raise PracticeScoringError(f"responses.{item.item_id}")
+    value = Decimal(response.entered_value)
+    if response.entered_value.startswith("-0") and value == 0:
+        raise PracticeScoringError(f"responses.{item.item_id}")
+    if not item.response.allow_negative and value < 0:
+        raise PracticeScoringError(f"responses.{item.item_id}")
+    if item.answer.mode == "exact":
+        return value == item.answer.value
+    assert item.answer.lower is not None and item.answer.upper is not None
+    return item.answer.lower <= value <= item.answer.upper

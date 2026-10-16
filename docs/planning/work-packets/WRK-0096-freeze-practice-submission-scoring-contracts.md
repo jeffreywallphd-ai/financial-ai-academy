@@ -85,7 +85,8 @@ work rules.
   stale, incomplete, extra, duplicate, or answer-leaking meaning.
 - Extend the dependency-light conformance runner to validate exact chain
   correlation, canonicalization, deterministic scores/feedback/summary,
-  provenance, event/result equivalence, and closed private-data boundaries.
+  provenance, bounded event/result correlation, and closed private-data
+  boundaries.
 - Add immutable practice response, item outcome, aggregate result, and
   submission-candidate domain values plus pure scoring functions.
 - Add a narrow Assessment-owned submission contract port/adapter that parses
@@ -141,10 +142,12 @@ review-reference IDs, and one UTC `submitted_at`. Item results echo only the
 learner's submitted value and the applicable safe feedback. They do not carry
 correct answer values or private evaluator objects.
 
-`assessment.practice.completed@1.0.0` wraps the exact safe result payload plus
-a server-issued event ID and occurred time. The event result and top-level
-correlation must agree exactly. This packet validates and maps documents but
-does not write or publish the event.
+`assessment.practice.completed@1.0.0` follows the existing Assessment event
+envelope and carries a bounded score/provenance summary plus server-issued
+event, attempt, evidence, learner, submission, and time correlation. Submitted
+values and feedback remain in the Assessment result instead of being broadcast
+to event consumers. This packet validates and maps documents but does not write
+or publish the event.
 
 The submission adapter accepts bytes, one exact `PracticeDefinition`, its
 `PracticePresentationContext`, and supplied server metadata. It returns an
@@ -233,7 +236,34 @@ execution changed, then leave JIT-B dependency-ready.
 
 ## Implementation Evidence
 
-Not started.
+- Added additive Draft 2020-12 practice submission, result, and completion-
+  event schemas without changing any knowledge-check-v1 or practice-opening
+  schema, fixture, digest, parser, public operation, or generated client.
+- The whole-attempt request carries one closed response per item. Canonical
+  identity sorts responses by item ID and multiple selections by option ID
+  before hashing compact sorted-key direct UTF-8 JSON. The fixed vector is
+  `474a06d242f32b94805862b6250f61374731d153fd1e72162f3cf38505a1500b`.
+- Added immutable response, item-outcome, aggregate-result, and submission-
+  candidate values plus pure definition-ordered scoring. Single select uses
+  exact match, multiple select uses exact set without partial credit, and
+  numeric entry compares canonical fixed-decimal values with `Decimal` against
+  exact or inclusive-range rules.
+- The result contains submitted values plus only the applicable reviewed
+  feedback/references. The Assessment completion event follows the existing
+  envelope but carries only a bounded score/provenance summary; submitted
+  values, feedback, unused branches, answers, ranges, and evaluators are absent.
+- The production adapter accepts supplied server identity/time metadata but
+  performs no lookup, clock read, persistence, transaction, publication,
+  network, API, UI, provider, model, or learner-state action.
+- Focused practice contract/domain evidence passes 94 tests. Existing
+  knowledge-check and practice-opening regression evidence passes 38 tests.
+  Architecture fitness passes all 15 tests; packet, planning, documentation,
+  and whitespace validation pass; aggregate readiness passes all 29 checks.
+- No application submission, repository port/adapter, migration, database,
+  transaction, HTTP/OpenAPI, generated client, browser behavior, retry/history,
+  projection/replay consumer, dependency, lockfile, AI mode, model authority,
+  or external execution changed. The later public POST remains the shared
+  browser and headless-consumer boundary.
 
 ## Planning History
 
@@ -241,3 +271,11 @@ Not started.
   freezes whole-practice submission, result, completion-event, canonical
   identity, and pure deterministic scoring meaning without adding persistence,
   HTTP/UI behavior, a lower-level approval, or a separate AI mode.
+- 2026-10-16: Claimed from base revision `fa69936` after current CAP authority,
+  dependency, decision, exact-scope, and collision checks passed. Packet-start
+  froze the contract/domain acceptance set.
+- 2026-10-16: Implemented and locally qualified the additive contract/domain
+  boundary. Direct compatibility, order-independence, anti-rigidity, scoring,
+  decimal, confidentiality, legacy-regression, architecture, documentation,
+  planning, whitespace, and aggregate-readiness checks pass; exact-candidate
+  submission and independent review remain.

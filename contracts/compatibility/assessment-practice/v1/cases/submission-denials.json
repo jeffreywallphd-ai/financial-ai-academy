@@ -1,0 +1,15 @@
+[
+  {"id": "submission-unsupported-version", "target": "submission", "op": "set", "path": ["schema_version"], "value": "2.0.0", "expected_code": "assessment.practice.unsupported_version"},
+  {"id": "submission-stale-definition", "target": "submission", "op": "set", "path": ["definition_digest"], "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "expected_code": "assessment.practice.stale_reference"},
+  {"id": "submission-missing-response", "target": "submission", "op": "delete", "path": ["responses", 0], "expected_code": "assessment.practice.invalid_response"},
+  {"id": "submission-duplicate-response", "target": "submission", "op": "set", "path": ["responses", 0, "item_id"], "value": "risk-meaning", "expected_code": "assessment.practice.invalid_response"},
+  {"id": "submission-wrong-response-type", "target": "submission", "op": "set", "path": ["responses", 0, "item_type"], "value": "single_select", "expected_code": "assessment.practice.schema_invalid"},
+  {"id": "submission-unknown-option", "target": "submission", "op": "set", "path": ["responses", 1, "selected_option_id"], "value": "not-declared", "expected_code": "assessment.practice.invalid_response"},
+  {"id": "submission-duplicate-selected-option", "target": "submission", "op": "set", "path": ["responses", 2, "selected_option_ids"], "value": ["more-issuers", "more-issuers"], "expected_code": "assessment.practice.schema_invalid"},
+  {"id": "submission-numeric-scale-mismatch", "target": "submission", "op": "set", "path": ["responses", 0, "entered_value"], "value": "105.0", "expected_code": "assessment.practice.invalid_response"},
+  {"id": "submission-private-answer-field", "target": "submission", "op": "set", "path": ["correct_option_id"], "value": "uncertainty", "expected_code": "assessment.practice.schema_invalid"},
+  {"id": "result-score-mutation", "target": "result", "op": "set", "path": ["score"], "value": 3, "expected_code": "assessment.practice.stale_reference"},
+  {"id": "result-private-answer-field", "target": "result", "op": "set", "path": ["item_results", 0, "correct_option_id"], "value": "uncertainty", "expected_code": "assessment.practice.schema_invalid"},
+  {"id": "event-result-mutation", "target": "event", "op": "set", "path": ["payload", "score"], "value": 3, "expected_code": "assessment.practice.stale_reference"},
+  {"id": "event-correlation-mutation", "target": "event", "op": "set", "path": ["payload", "submission_id"], "value": "66666666-6666-4666-8666-666666666666", "expected_code": "assessment.practice.stale_reference"}
+]

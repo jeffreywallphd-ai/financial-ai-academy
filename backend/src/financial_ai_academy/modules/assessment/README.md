@@ -11,6 +11,15 @@ Content bytes and the Curriculum placement through public-only gateways, then
 exposes the same protected operation to browser and non-browser clients. Opening
 has no persistence, clock, scoring, or learner-state side effect.
 
+The additive practice submission adapter accepts a whole transport-neutral
+response set, correlates it by item ID, canonicalizes semantically unordered
+response and multiple-selection order for request identity, and scores every
+item against the exact private definition. It returns immutable definition-
+ordered outcomes, aggregate `all_correct|review_needed` meaning, only the
+applicable reviewed feedback/references, and a safe correlated completion-event
+document from supplied server metadata. It performs no identity lookup, clock,
+persistence, publication, network, API, or UI action.
+
 ## Public operations
 
 - `open_placed_knowledge_check(OpenPlacedKnowledgeCheckRequest) -> KnowledgeCheckPresentation`
@@ -28,7 +37,9 @@ The practice-open operation resolves one immutable multi-item definition and
 returns exact package/practice provenance, public prompts and choices, numeric
 response constraints, attempt-policy metadata, and resource references. It
 never returns correct option IDs, accepted numeric values/ranges, or feedback.
-Submission and scoring for this practice family are not implemented yet.
+Practice submission/scoring contracts and pure scoring are implemented;
+application submission, evidence persistence, and the public POST are not yet
+implemented.
 The isolated local qualification admits the exact three-shape package through
 Content, creates its placement through Curriculum, and reads this same operation
 from non-browser and generated-browser clients. Repeated reads leave attempt,
