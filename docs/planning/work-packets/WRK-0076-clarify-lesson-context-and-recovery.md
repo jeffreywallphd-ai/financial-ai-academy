@@ -1,7 +1,7 @@
 ---
 id: WRK-0076
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -150,6 +150,38 @@ publication boundaries, focused and affected verification, aggregate readiness,
 assumptions, work left to JIT-B/JIT-C, and any cosmetic issue deferred to
 CAP-0031.
 
+## Completion Evidence
+
+- Delivered learner-focused lesson loading, ready-page orientation,
+  publication details, and six bounded failure states without changing the
+  closed route-state switch or any callback.
+- Exact package ID, semantic version, and full digest remain labeled and
+  selectable in a native keyboard-operable `Technical record`. Publisher,
+  publication date, review date, sources, objectives, lesson body, and the
+  educational-use limitation remain in the ordinary flow.
+- Session, permission, missing-version, temporary, invalid-content, and
+  unexpected states expose no lesson digest or protected lesson details.
+  Unauthorized, unavailable, and unexpected states retain the existing retry;
+  no alternate lesson, partial content, or new action was introduced.
+- Focused component qualification passed 12 scenarios, including native
+  disclosure operation, every bounded heading, all retry-capable states,
+  protected-fact suppression, and learner-focused loading. Typecheck, lint,
+  design-system, planning, documentation, Git whitespace, and all 27 aggregate
+  readiness checks passed.
+- Exact candidate `62ad0f8c2e05882401c74fb6cebf68098f23ad35` has a fresh
+  qualifying affected-verification receipt at
+  `.local-codex/control-plane/receipts/WRK-0076/`
+  `62ad0f8c2e05882401c74fb6cebf68098f23ad35/`
+  `20261016T103907Z-ba4426ce-5052-431e-ae8c-1d051f53f534.json`. Its selected
+  planning, documentation, typecheck, lint, unit, and production-build checks
+  all passed after the Windows snapshot link received its required local
+  privilege.
+- Independent R01 accepted the exact candidate with no substantive findings.
+  Public contracts, generated clients, models, sessions, authorization,
+  validation, persistence, educational-use meaning, and migrations are
+  unchanged. Assessment/completion presentation and complete Chromium/live
+  qualification remain assigned to JIT-B and JIT-C.
+
 ## Planning History
 
 - 2026-10-16: Refined SLI-0124 JIT-A around lesson loading, publication context,
@@ -159,3 +191,6 @@ CAP-0031.
   `62ad0f8c2e05882401c74fb6cebf68098f23ad35` for affected verification after
   focused component, typecheck, lint, design, planning, documentation,
   whitespace, and aggregate-readiness checks passed.
+- 2026-10-16: Completed WRK-0076 after the exact candidate received a fresh
+  qualifying receipt and independent R01 accepted it without substantive
+  findings. Cosmetic and nonfunctional styling review remained out of scope.
