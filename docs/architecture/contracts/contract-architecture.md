@@ -51,6 +51,12 @@ separate the mutable Project workspace, immutable digest-bound snapshots,
 Assessment submissions by snapshot reference, and typed references to
 independently owned learning and domain resources. A project-domain link never
 transfers the referenced aggregate's authority to Project.
+The first additive executable family now fixes a Content-owned immutable
+learning-project brief, a Project-owned closed independent-or-learning create
+intent, and a learner-safe active Project shell. Learning origin retains exact
+package, brief, Curriculum, and placement versions and digests. The schemas do
+not yet establish package admission, placement, persistence, HTTP, artifacts,
+snapshots, submissions, or domain links.
 
 Portable financial methods, portfolio records, and simulation results
 additionally follow
@@ -76,6 +82,10 @@ and simulated values and cannot expose provider payloads as platform meaning.
   accepted draft, retry, exact review-target, and history meanings without a
   separate AI domain core or client authority over identity, scoring, retry,
   eligibility, or durable state.
+- Content owns approved learning-project brief meaning. Project owns accepted
+  origin, Project identity, charter, lifecycle, and revision. Curriculum owns
+  exact placement and Assessment owns only a later exact submitted snapshot;
+  shared provenance transfers no persistence or policy authority.
 
 ## Generation
 

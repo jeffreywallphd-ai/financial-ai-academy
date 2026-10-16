@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "project-create-001",
+  "title": "My research question",
+  "charter": "Explore how fees can change long-term sample results.",
+  "origin": {
+    "origin_type": "independent"
+  }
+}

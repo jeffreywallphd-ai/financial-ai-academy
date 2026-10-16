@@ -1,0 +1,44 @@
+[
+  {
+    "case": "unsupported brief version",
+    "kind": "brief",
+    "path": ["schema_version"],
+    "value": "2.0.0",
+    "code": "project.contract.unsupported_version"
+  },
+  {
+    "case": "brief digest mismatch",
+    "kind": "brief",
+    "path": ["brief_digest"],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "code": "project.contract.brief_digest_mismatch"
+  },
+  {
+    "case": "client supplies learner identity",
+    "kind": "independent-intent",
+    "path": ["learner_id"],
+    "value": "another-learner",
+    "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "unknown origin type",
+    "kind": "independent-intent",
+    "path": ["origin", "origin_type"],
+    "value": "imported",
+    "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "inactive public shell",
+    "kind": "independent-shell",
+    "path": ["lifecycle"],
+    "value": "deleted",
+    "code": "project.contract.schema_invalid"
+  },
+  {
+    "case": "shell time moves backward",
+    "kind": "independent-shell",
+    "path": ["updated_at"],
+    "value": "2026-10-16T19:39:59Z",
+    "code": "project.contract.invalid_shell"
+  }
+]

@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "project-create-002",
+  "title": "My benchmark review",
+  "charter": "Complete the suggested review, then extend it with another sample period.",
+  "origin": {
+    "origin_type": "learning",
+    "project_brief_schema_version": "1.0.0",
+    "package_id": "portfolio-foundations",
+    "package_version": "2.1.0",
+    "package_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "brief_id": "risk-review-project",
+    "brief_version": "1.0.0",
+    "brief_digest": "ce9b65f8d84e87e5dd5d31ce72e97cc8cb51b8601e575779e7d97fdb9828fb9a",
+    "curriculum_id": "investing-foundations",
+    "curriculum_version": "3.0.0",
+    "curriculum_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "placement_id": "project-placement-001",
+    "placement_version": "1.0.0",
+    "placement_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "brief_title": "Review a sample portfolio",
+    "brief_purpose": "Compare a sample portfolio with a benchmark and explain the trade-offs."
+  }
+}

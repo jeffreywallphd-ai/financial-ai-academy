@@ -21,6 +21,23 @@ uv run --project backend pytest backend/tests/contract/lesson_package
 
 These contracts establish portable admission behavior only. They do not establish Content persistence, Assessment scoring, API, browser rendering, or local/cloud storage conformance.
 
+## Project Workspace v1
+
+[`project/v1/`](project/v1/README.md) defines one immutable Content-owned
+learning-project brief, the two closed Project creation origins, and one
+learner-safe Project shell. Its synthetic compatibility corpus lives in
+[`../compatibility/project-workspace/v1/`](../compatibility/project-workspace/v1/README.md).
+
+```powershell
+backend/.venv/Scripts/python.exe -m pytest backend/tests/contract/project_workspace backend/tests/unit/project/test_project_contract.py
+```
+
+The family is transport-neutral and is intended for one future protected API
+used equally by browser and headless clients. It does not establish package
+admission, Curriculum placement, persistence, identity, authorization, HTTP,
+artifacts, snapshots, Assessment submissions, Portfolio links, execution, or
+AI authority.
+
 ## Assessment v1
 
 [`assessment/v1/`](assessment/v1/README.md) defines the private single-select

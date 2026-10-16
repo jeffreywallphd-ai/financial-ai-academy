@@ -2,7 +2,7 @@
 
 - Status: partially accepted
 - Canonical for: accepted first learning-loop ownership and remaining module hypotheses
-- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md), [ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
+- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md), [ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md), [ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
 - Decision gate: use accepted first-loop boundaries; refine every still-proposed boundary before implementation
 
 | Module | Status | Primary responsibility | Publishes |
@@ -15,6 +15,7 @@
 | Adaptation | accepted; deterministic navigation-state core implemented | Eligibility, ranking orchestration, deterministic policy, recommendations | Deterministic navigation-state projections; durable recommendation decisions and outcomes remain future work |
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
+| Project | accepted; shell/origin contract core implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project lifecycle and snapshot records remain future work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; Assessment completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -36,6 +37,10 @@
   workflow, authorization, persistence, and result meaning.
 - Audit captures references and integrity evidence from owning modules without becoming a second business database.
 - Content owns ADR-0007 package identity, publication, lesson body, educational-source provenance, and storage references. Assessment owns the meaning and runtime use of packaged assessment definitions.
+- Content owns approved learning-project brief meaning and Curriculum owns its
+  exact learning placement. Project accepts exact public references and owns
+  the learner's continuing Project shell. Assessment later owns only a
+  submitted immutable Project snapshot and its evidence.
 
 ADR-0005 accepts the Content, Curriculum, Assessment, Learner model, and Audit
 boundaries only for the first learning loop. Rows still marked `proposed`
@@ -61,6 +66,12 @@ models advisory. The currently implemented baseline stops at a pure,
 provider-neutral navigation-state projection over an exact Curriculum graph
 and typed source facts. Gateway composition, durable recommendation records,
 model influence, and experiments remain separately governed work.
+
+ADR-0012 accepts Project ownership for both learning-started and independent
+Projects. The implemented deterministic baseline parses and projects the
+closed origin union plus a learner-safe active shell. It has no persistence,
+public application operation, API, artifact, snapshot, Assessment submission,
+Portfolio link, execution, provider, or AI-authoritative behavior.
 
 ## Implemented Adaptation Deterministic Baseline
 

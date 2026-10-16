@@ -235,6 +235,38 @@ migration, public operation, HTTP/OpenAPI, client, UI, artifact, snapshot,
 domain link, Assessment evidence, AI mode, provider, or execution changed, then
 leave JIT-B dependency-ready.
 
+## Implementation Evidence
+
+- Added the separate `project/v1` Draft 2020-12 family for the immutable
+  learning-project brief, closed independent-or-learning create intent, and
+  learner-safe active Project shell. Title and charter limits are 1-120 and
+  1-4000 characters; brief milestones and source references each allow 1-20.
+- Added a synthetic five-record compatibility corpus, stable denial cases, and
+  a non-ASCII digest vector. Brief meaning uses lowercase SHA-256 over compact
+  sorted-key UTF-8 JSON with no ASCII escaping or implicit Unicode
+  normalization.
+- Added immutable Project domain values plus a framework-free parser/projector.
+  A learning intent requires exact approved brief schema, identity, version,
+  digest, title, and purpose correlation. Shell parsing preserves accepted
+  origin without requiring a newer source lookup.
+- Focused contract and unit evidence passes 47 tests covering both origins,
+  digest behavior, semantic correlation, closed shapes, bounds, confidentiality,
+  immutable values, deterministic round trips, varied valid text/counts, and
+  side-effect freedom. The standalone compatibility runner also passes.
+- Architecture passes 16 tests; security passes 10 control groups; work-packet,
+  planning, documentation, compilation, and whitespace checks pass. The first
+  architecture run used a sandbox-owned temporary directory and was rerun
+  successfully with the bounded repository-local temp root; no product issue
+  was found.
+- No package admission, Curriculum placement, persistence, migration, public
+  application operation, HTTP/OpenAPI, generated client, UI, artifact,
+  snapshot, domain link, Assessment evidence, Learner-model state, Portfolio
+  state, AI mode, provider, network call, or execution behavior changed.
+- The transport-neutral contract is ready for the next packet to compose one
+  protected API for generated browser clients and supported non-browser or
+  future headless clients. Identity, authorization, time, revision, and durable
+  change authority remain server-owned.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after SLI-0030 refinement. The packet
@@ -242,3 +274,6 @@ leave JIT-B dependency-ready.
   boundary for both accepted origin types while leaving package admission,
   persistence, API, UI, artifacts, snapshots, submissions, domain links, and
   execution to later packets or slices. No lower-level approval is required.
+- 2026-10-16: Implemented and focused-qualified the additive Project contract
+  and pure domain seam. The exact candidate remains active until affected
+  verification and technical disposition complete.

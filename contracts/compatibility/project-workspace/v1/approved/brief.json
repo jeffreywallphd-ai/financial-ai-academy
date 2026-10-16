@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "brief_digest": "ce9b65f8d84e87e5dd5d31ce72e97cc8cb51b8601e575779e7d97fdb9828fb9a",
+  "brief": {
+    "brief_id": "risk-review-project",
+    "brief_version": "1.0.0",
+    "title": "Review a sample portfolio",
+    "purpose": "Compare a sample portfolio with a benchmark and explain the trade-offs.",
+    "milestones": [
+      {
+        "milestone_id": "choose-scope",
+        "description": "Choose the period and benchmark for the review."
+      },
+      {
+        "milestone_id": "explain-results",
+        "description": "Explain the main return and risk observations in plain language."
+      }
+    ],
+    "source_references": [
+      {
+        "resource_id": "portfolio-basics",
+        "resource_version": "1.2.0",
+        "resource_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+        "title": "Portfolio basics"
+      },
+      {
+        "resource_id": "benchmark-guide",
+        "resource_version": "1.0.0",
+        "resource_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "title": "Choosing a benchmark"
+      }
+    ]
+  }
+}
