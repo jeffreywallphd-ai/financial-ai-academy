@@ -1,9 +1,9 @@
 ---
 id: WRK-0064
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0003-correction
 updated: 2026-10-16
 parent: SLI-0012
 capability: CAP-0003
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/file_leases.py", "dev-tools/control-plane/financial_academy_editing.py", "dev-tools/control-plane/test_file_leases.py", "docs/planning/concurrent-work.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0012-coordinate-exclusive-file-edits.md", "docs/planning/work-packets/WRK-0064-allow-bounded-expired-lease-recovery.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b72f1834f5754914bc554db0a70b51873e45bafa
+claim_id: WRK-0064:f3b07f25-cde3-4b83-b8a6-98dac37bb27a
+claimed_by: codex-cap-0003-correction
+claimed_at: 2026-10-16T00:23:40Z
 ---
 
 # Agent Work Packet: Allow Bounded Expired-Lease Recovery

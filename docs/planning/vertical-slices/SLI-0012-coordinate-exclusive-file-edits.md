@@ -1,9 +1,9 @@
 ---
 id: SLI-0012
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0003-correction
 updated: 2026-10-16
 parent: CAP-0003
 depends_on: ["SLI-0011"]
@@ -97,7 +97,7 @@ prompts, credentials, approval/reviewer data, or personal identity requirements.
 | WRK-0020 | Deliver the local edit-intent and exclusive file-lease plane, repository authority adapter, CLI/docs, and tests | WRK-0019 | none | complete |
 | WRK-0023 | Revalidate active WRK authority on lease renewal while preserving post-completion release | WRK-0020 | none | complete |
 | WRK-0029 | Stabilize independent-process same-file races while preserving disjoint-file and read concurrency | WRK-0023 | none | complete |
-| WRK-0064 | Allow an authorized successor to recover only its exact in-scope paths from an expired grouped lease while retaining residual ownership and lineage | WRK-0029 | none | ready |
+| WRK-0064 | Allow an authorized successor to recover only its exact in-scope paths from an expired grouped lease while retaining residual ownership and lineage | WRK-0029 | none | active |
 
 ## Verification and Qualification
 
