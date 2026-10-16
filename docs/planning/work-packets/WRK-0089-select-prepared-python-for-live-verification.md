@@ -1,7 +1,7 @@
 ---
 id: WRK-0089
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["dev-tools/control-plane/README.md", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/test_verification.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/work-packets/WRK-0089-select-prepared-python-for-live-verification.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: e3a797735a4cfa3e5d9eb5bb853fb9687e57fcd2
+claim_id: WRK-0089:266738cf-3c47-47ce-a505-316a7632e245
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T13:20:05Z
 ---
 
 # Agent Work Packet: Select Prepared Python for Live Verification
