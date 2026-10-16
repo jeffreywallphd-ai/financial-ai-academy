@@ -121,6 +121,37 @@ class GitCandidateAdapter:
             )
         return hashlib.sha256(completed.stdout).hexdigest()
 
+    def _changed_paths(self, base_revision: str, candidate: str) -> list[str]:
+        output = self._required(
+            "diff",
+            "--name-status",
+            "-z",
+            "--find-renames",
+            "--diff-filter=ACMDRTUXB",
+            base_revision,
+            candidate,
+        )
+        fields = output.split("\0")
+        if fields and fields[-1] == "":
+            fields.pop()
+        changed: set[str] = set()
+        index = 0
+        while index < len(fields):
+            status = fields[index]
+            index += 1
+            path_count = 2 if status.startswith(("C", "R")) else 1
+            if not status or index + path_count > len(fields):
+                raise ControlError(
+                    "git.invalid-diff",
+                    "Git returned malformed candidate path evidence.",
+                    {"status": status, "remaining_fields": len(fields) - index},
+                    ["Correct the repository state and retry submission."],
+                )
+            for relative in fields[index : index + path_count]:
+                changed.add(self._normalized(relative))
+            index += path_count
+        return sorted(changed)
+
     def submission(
         self,
         *,
@@ -139,8 +170,7 @@ class GitCandidateAdapter:
                 {"base_revision": base_revision, "candidate": exact_candidate},
                 ["Reconcile ancestry on the intended branch and create a descendant candidate."],
             )
-        changed_output = self._required("diff", "--name-only", "--diff-filter=ACMDRTUXB", base_revision, exact_candidate)
-        changed = sorted({self._normalized(line) for line in changed_output.splitlines() if line.strip()})
+        changed = self._changed_paths(base_revision, exact_candidate)
         outside = [path for path in changed if not self._allowed(path, allowed_paths)]
         if outside:
             raise ControlError(

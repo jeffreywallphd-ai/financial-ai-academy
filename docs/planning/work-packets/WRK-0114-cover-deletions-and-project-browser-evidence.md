@@ -135,3 +135,7 @@ and residual environment gaps.
   independent product review found that exact-candidate evidence omitted
   deletions and that Project browser behavior was not selected for the packet.
   The correction stays inside SLI-0004 and adds no approval stage.
+- 2026-10-16: Returned to active correction after independent review found
+  rename-source, Project stylesheet, and candidate-bound browser-execution
+  gaps. The refined implementation remains inside the recorded correction
+  route and preserves narrow routing for unrelated web work.

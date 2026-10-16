@@ -364,6 +364,13 @@ class SelectionTests(unittest.TestCase):
                 "project:browser",
                 "web:build",
             ],
+            "apps/web/src/styles/project-workspace.css": [
+                "web:typecheck",
+                "web:lint",
+                "web:unit",
+                "project:browser",
+                "web:build",
+            ],
             "apps/web/tests/browser/approved-lesson/example.e2e.ts": [
                 "web:typecheck",
                 "web:lint",
@@ -448,7 +455,13 @@ class SelectionTests(unittest.TestCase):
             "dev-tools/control-plane/check_approved_lesson.py": [
                 "control-plane:unit",
                 "control-plane:verification",
+                "project:browser",
                 "approved-lesson:live",
+            ],
+            "dev-tools/control-plane/financial_academy_checks.py": [
+                "control-plane:unit",
+                "control-plane:verification",
+                "project:browser",
             ],
         }
         for path, expected in cases.items():

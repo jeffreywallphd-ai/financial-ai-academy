@@ -42,7 +42,13 @@ def catalog() -> CheckCatalog:
     )
     project_browser_paths = (
         "apps/web/src/features/project-workspace/**",
+        "apps/web/src/styles/project-workspace.css",
         "apps/web/tests/browser/project-workspace/**",
+    )
+    project_browser_check_paths = (
+        *project_browser_paths,
+        "dev-tools/control-plane/check_approved_lesson.py",
+        "dev-tools/control-plane/financial_academy_checks.py",
     )
     approved_browser_paths = (
         "apps/web/tests/browser/approved-lesson/**",
@@ -135,7 +141,7 @@ def catalog() -> CheckCatalog:
             CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_source_paths, *mocked_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths), "medium", 54, description="Web source and test lint"),
             CheckDefinition("web:unit", (*web_check, "--mode", "unit"), (*web_source_paths, "apps/web/scripts/generate-api-client.mjs"), "medium", 56, description="Web unit, component, and contract behavior"),
             CheckDefinition("web:browser", (*web_check, "--mode", "browser"), mocked_browser_paths, "medium", 58, timeout_seconds=120, description="Mocked Chromium application behavior"),
-            CheckDefinition("project:browser", (*web_check, "--mode", "project-browser"), project_browser_paths, "medium", 59, timeout_seconds=120, description="Focused Project Chromium behavior"),
+            CheckDefinition("project:browser", (*web_check, "--mode", "project-browser"), project_browser_check_paths, "medium", 59, timeout_seconds=120, description="Focused Project Chromium behavior"),
             CheckDefinition("design:integrity", (python, "dev-tools/design/check_design_system.py"), ("apps/web/src/design-system/**", "docs/design/**"), "medium", 60, description="Design-system integrity"),
             CheckDefinition("web:build", (*web_check, "--mode", "build"), web_build_paths, "medium", 62, description="Static web production build"),
             CheckDefinition("web:generated-client", (*web_check, "--mode", "generated"), generated_client_paths, "high", 64, description="Reviewed OpenAPI generated-client reproduction"),

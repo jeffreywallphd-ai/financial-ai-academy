@@ -449,6 +449,34 @@ claimed_at: null
             self.assertEqual("git.scope-escape", outside.exception.code)
             self.assertIn("AGENTS.md", outside.exception.observed["outside_paths"])
 
+    def test_rename_evidence_includes_source_and_destination_scope(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="faa-control-plane-rename-in-") as directory:
+            root, plane = self.fixture(directory)
+            claimed = plane.claim("WRK-0001", owner="agent", lease_minutes=30)
+            claim_id = claimed["data"]["claim"]["claim_id"]
+            self.git(root, "mv", "src/value.txt", "src/renamed.txt")
+            self.git(root, "add", ".")
+            self.git(root, "commit", "-m", "rename in-scope source")
+
+            submitted = plane.submit("WRK-0001", owner="agent", claim_id=claim_id)
+
+            self.assertIn("src/value.txt", submitted["data"]["submission"]["changed_paths"])
+            self.assertIn("src/renamed.txt", submitted["data"]["submission"]["changed_paths"])
+
+        with tempfile.TemporaryDirectory(prefix="faa-control-plane-rename-out-") as directory:
+            root, plane = self.fixture(directory)
+            claimed = plane.claim("WRK-0001", owner="agent", lease_minutes=30)
+            claim_id = claimed["data"]["claim"]["claim_id"]
+            self.git(root, "mv", "AGENTS.md", "src/moved-agents.md")
+            self.git(root, "add", ".")
+            self.git(root, "commit", "-m", "rename out-of-scope source")
+
+            with self.assertRaises(ControlError) as outside:
+                plane.submit("WRK-0001", owner="agent", claim_id=claim_id)
+
+            self.assertEqual("git.scope-escape", outside.exception.code)
+            self.assertIn("AGENTS.md", outside.exception.observed["outside_paths"])
+
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()

@@ -168,7 +168,9 @@ scope checks, and anti-rigidity assertions for the two-command claim/submit path
 Exact Git submission evidence treats deletions as first-class changed paths:
 an in-scope deletion appears in `changed_paths` and an out-of-scope deletion is
 refused like any other scope escape. Deleted paths are not declared inputs,
-because no candidate blob exists to fingerprint.
+because no candidate blob exists to fingerprint. Detected copies and renames
+record both source and destination, so moving an out-of-scope path into an
+allowed location cannot hide the source-side removal.
 Verification tests cover narrow-versus-full selection, deterministic plan
 digests, failed and timed-out attempts, append-only receipt chains, candidate
 drift, stale evidence, raw-output minimization, and disabled optimistic reuse.
@@ -184,7 +186,9 @@ work.
 Project workspace source and browser-spec changes select a focused Chromium
 check that runs only `apps/web/tests/browser/project-workspace`. This gives a
 Project packet direct browser evidence without making every web change run the
-Project suite or the broader live approved-lesson qualification.
+Project suite or the broader live approved-lesson qualification. The Project
+stylesheet is part of that behavioral boundary, and changes to the check
+catalog or its web executor self-qualify the focused command.
 
 Roadmap-review implementation paths are also divided by their owning boundary:
 TypeScript source selects qualification, typecheck, DOM unit, and Chromium
