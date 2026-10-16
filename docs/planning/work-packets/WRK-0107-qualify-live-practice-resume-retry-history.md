@@ -1,7 +1,7 @@
 ---
 id: WRK-0107
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -197,6 +197,47 @@ gaps. Confirm that no product API, policy, migration, browser authority,
 separate AI mode, autonomous authority, provider, cloud or external execution
 was added, and leave SLI-0028 ready for deterministic closure.
 
+## Completion Evidence
+
+- Delivered outcome: the existing approved-lesson qualification now proves a
+  generated-browser partial save and reload, successful submission, retained
+  retry/history/review state, a fresh non-browser session using the same public
+  API, exact save and submission replay, stale-save refusal, normal restart,
+  and unchanged public meaning. No product contract, API, policy, migration,
+  seed, browser authority, or separate headless/AI core changed.
+- Exact candidate: `5706f9a94df400e2858bd524a1557062d9e01d41`.
+  Its fresh eight-check affected-verification receipt is qualifying and
+  post-run stable with digest
+  `sha256:8283dd42cbb16b2901790a339270d078b0268fd9abf5c09083efdafa8d769270`.
+  Independent review R03 accepted the candidate with no open findings after
+  R01 closed exact practice/policy correlation and denial-value safety and R02
+  closed the correction's bare-word rigidity.
+- Acceptance evidence: the live ten-scenario PostgreSQL/Python/Chromium run
+  demonstrated browser and cookie-backed non-browser parity, partial draft
+  resume, exact replay, confidential stale conflict, draft clearing, stable
+  retry counts and attempt order, declaration-ordered review targets,
+  answer-free history, projection rebuild, restart without reseeding, and
+  bounded cleanup. Established real-PostgreSQL practice suites cover final-slot
+  concurrency, rollback, migration, retry limits, and interrupted rebuild.
+- Focused and cumulative checks: 39 runner/architecture tests plus four
+  subtests passed after the correction; the reviewer independently reran 25
+  focused runner tests. The cumulative slice evidence also includes 220 real-
+  PostgreSQL practice tests, 210 web unit/component/contract tests, 11 focused
+  Chromium scenarios, TypeScript typecheck and lint, static build, OpenAPI and
+  generated-client reproduction, documentation, planning, design, learner-
+  language, architecture, security, and whitespace checks.
+- Compatibility, recovery, and documentation: all public schemas and the
+  generated client remain unchanged. Existing additive migration and rollback
+  evidence remains authoritative; accepted Assessment attempts are append-only,
+  drafts are mutable work state, and Learner-model history is rebuildable. The
+  web, Assessment, Curriculum, Learner-model, deployment, architecture, and
+  known-gap guidance now match the qualified behavior.
+- Assumptions and gaps: evidence is bounded to one supported learner, the
+  approved practice fixture, PostgreSQL 18.4, loopback Python hosting, and the
+  reviewed Chromium path. Non-Chromium engines, managed-cloud recovery, outbox
+  delivery, mastery/adaptation, provider behavior, autonomous execution, and a
+  separately planned AI mode remain unqualified or outside CAP-0006.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0106 completed. The packet reuses
@@ -204,3 +245,10 @@ was added, and leave SLI-0028 ready for deterministic closure.
   submission flow and the same public documents observable to a fresh
   non-browser session, and combines that evidence with established PostgreSQL
   concurrency, rollback, migration and rebuild suites before slice closure.
+- 2026-10-16: Completed at exact candidate `5706f9a`. The fresh affected
+  receipt qualified with digest
+  `sha256:8283dd42cbb16b2901790a339270d078b0268fd9abf5c09083efdafa8d769270`,
+  and independent review R03 accepted the candidate with no open findings.
+  Correction rounds strengthened exact practice/policy correlation and denial
+  confidentiality while retaining order-insensitive response meaning and
+  explicitly allowing harmless learner-facing wording changes.

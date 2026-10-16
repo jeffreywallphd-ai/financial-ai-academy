@@ -1,7 +1,7 @@
 ---
 id: SLI-0028
 kind: vertical-slice
-planning_status: ready
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -226,7 +226,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0104 | Implement an Assessment-safe history source, Curriculum review-target resolution, and Learner-model history rebuild/persistence | WRK-0103 | none | complete |
 | WRK-0105 | Expose the composed progress, review, and history operations through protected API, OpenAPI, and generated clients | WRK-0104 | none | complete |
 | WRK-0106 | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | WRK-0105 | none | complete |
-| WRK-0107 | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | WRK-0106 | none | ready |
+| WRK-0107 | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | WRK-0106 | none | complete |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. This preserves incremental planning and avoids freezing later file
@@ -299,6 +299,50 @@ and residual gaps; and CAP-conformance assessment. State explicitly that retry
 history is evidence-only and no mastery, adaptive recommendation, separate AI
 mode, autonomous authority, provider, cloud, or external execution was added.
 
+Completion evidence:
+
+- Delivered outcome and boundaries: WRK-0102 through WRK-0107 are complete.
+  They deliver additive versioned draft/retry/history/review contracts,
+  Assessment-owned conditional draft and retry persistence, an answer-safe
+  Assessment replay source, Curriculum-owned review mapping, rebuildable
+  Learner-model history, protected public API/OpenAPI/generated-client seams,
+  an accessible browser flow, and cumulative live qualification. Browser and
+  headless consumers share one public API and one domain/application core.
+- Acceptance evidence: executable schema, domain, application, SQLite and real-
+  PostgreSQL, API, generated-client, component, Chromium, and live tests cover
+  save/resume, exact save replay and stale conflict, learner/version isolation,
+  atomic submission draft clearing, variable retry limits, exact replay at the
+  limit, final-slot concurrency, deterministic review selection, answer-free
+  comparison, idempotent and interrupted history rebuild, authorization,
+  confidentiality, responsive/theme/accessibility parity, restart, and cleanup.
+- Exact cumulative results: 220 real-PostgreSQL practice tests, 210 web tests,
+  11 focused Chromium scenarios, the ten-scenario live workflow, 39 focused
+  runner/architecture tests plus four subtests, TypeScript typecheck and lint,
+  static build, OpenAPI/generated-client reproduction, architecture, security,
+  learner-language, design, documentation, planning, and whitespace checks
+  passed. The final packet's exact candidate `5706f9a` has a fresh qualifying
+  eight-check receipt with digest
+  `sha256:8283dd42cbb16b2901790a339270d078b0268fd9abf5c09083efdafa8d769270`
+  and an accepted independent R03 review with no open findings.
+- Contract, migration, and recovery: public contracts remain additive and
+  versioned; response and multiple-selection order remain semantically
+  flexible. The migration preserves existing result/event meaning and assigns
+  prior attempts order one. Accepted attempts stay append-only; drafts and
+  Learner-model projections are mutable/rebuildable only within their accepted
+  roles. Normal restart ran without reseeding. No managed-cloud backup/restore
+  or recovery objective is claimed.
+- Documentation and gaps: Assessment, Curriculum, Learner model, API, web,
+  deployment, contract/persistence, architecture-verification, and known-gap
+  guidance are current. Evidence remains bounded to the approved fixture,
+  PostgreSQL 18.4, loopback Python hosting, and reviewed Chromium. External
+  cloud profiles, non-Chromium engines, outbox delivery, adaptive/mastery
+  behavior, provider integrations, autonomous execution, and a separate AI
+  mode remain outside this slice.
+- CAP conformance: the slice implements the approved CAP-0006 third increment
+  without material drift or a new durable decision. History remains evidence-
+  only; review targets are deterministic references, not recommendations; no
+  lower-level completion approval is required.
+
 ## Planning History
 
 - 2026-10-16: Refined the third CAP-0006 manifest increment after SLI-0027
@@ -347,4 +391,13 @@ mode, autonomous authority, provider, cloud, or external execution was added.
   submission evidence, fresh-session headless parity, normal restart, and the
   established PostgreSQL concurrency/rollback/migration/rebuild suites without
   changing product contracts or implementation.
+- 2026-10-16: Entered deterministic completion verification after all six
+  packets completed. WRK-0107 qualified at exact candidate `5706f9a` and
+  independent review R03 accepted it with no open findings; cumulative evidence
+  remains within the approved CAP package and preserves the shared API-first
+  browser/headless boundary.
+- 2026-10-16: Closed deterministically after the completion-structure gate,
+  planning and documentation integrity, cumulative focused/live evidence, and
+  the exact-candidate receipt and accepted review all passed. SLI-0029 is the
+  next CAP-manifest action and remains subject to just-in-time refinement.
 
