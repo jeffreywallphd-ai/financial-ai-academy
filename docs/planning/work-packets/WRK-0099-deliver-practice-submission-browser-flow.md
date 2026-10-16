@@ -1,7 +1,7 @@
 ---
 id: WRK-0099
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,6 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/router.tsx", "apps/web/src/features/practice-activity", "apps/web/src/styles/practice-activity.css", "apps/web/tests/browser/practice-activity", "apps/web/tests/component/practiceActivity.test.tsx", "apps/web/tests/component/practiceFixture.ts", "apps/web/tests/unit/practiceActivityModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0027-submit-and-score-practice-attempt.md", "docs/planning/work-packets/WRK-0099-deliver-practice-submission-browser-flow.md"]
 generated_artifacts: []
+base_revision: 2819e846af79f4e83066b75895b9f933d47c0982
+claim_id: WRK-0099:ef607f2e-0d9a-4d97-a0e9-69eeac81f1de
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T16:27:23Z
 ---
 
 # Agent Work Packet: Deliver the Practice Submission Browser Flow
@@ -212,3 +216,7 @@ Pending implementation.
   the browser a generated-client consumer of the already-qualified public API,
   retains stable direct/headless access, and adds no AI-specific mode or
   browser-owned scoring authority.
+- 2026-10-16: Claimed from base revision `2819e84` after the implementation
+  gate confirmed current CAP authority, completed dependency, decision
+  readiness, exact browser scope, unchanged public contract, and no active
+  ownership collision.
