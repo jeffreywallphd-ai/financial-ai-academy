@@ -239,6 +239,48 @@ class RoadmapReviewTests(unittest.TestCase):
             )
         self.assertEqual(caught.exception.code, "roadmap.allocation-group-invalid")
 
+    def test_current_allocation_rejects_unresolved_pair_inside_parallel_group(self) -> None:
+        contradictory = allocation(
+            ids=["PROGRAM-1", "PROGRAM-INTERNAL"],
+            groups=[["PROGRAM-1", "PROGRAM-INTERNAL"]],
+        )
+        contradictory["unresolved_pairs"] = [
+            {
+                "left": "PROGRAM-1",
+                "right": "PROGRAM-INTERNAL",
+                "decision": "unknown",
+                "reason_codes": ["evidence.scope-incomplete"],
+                "remediation": "Refine evidence.",
+            }
+        ]
+        with self.assertRaises(ControlError) as caught:
+            build_projection(
+                catalog=catalog(),
+                planning_nodes=nodes(),
+                documents={},
+                graph={"issues": []},
+                ordering={"proposed_order": ["PROGRAM-1", "PROGRAM-INTERNAL"]},
+                compatibility={"parallel_safe_sets": []},
+                allocation=contradictory,
+                expected_catalog_count=2,
+            )
+        self.assertEqual(caught.exception.code, "roadmap.allocation-group-contradiction")
+
+        separated = copy.deepcopy(contradictory)
+        separated["parallel_groups"] = [["PROGRAM-1"], ["PROGRAM-INTERNAL"]]
+        result = build_projection(
+            catalog=catalog(),
+            planning_nodes=nodes(),
+            documents={},
+            graph={"issues": []},
+            ordering={"proposed_order": ["PROGRAM-1", "PROGRAM-INTERNAL"]},
+            compatibility={"parallel_safe_sets": []},
+            allocation=separated,
+            expected_catalog_count=2,
+        )
+        self.assertEqual(result["current_allocation"]["parallel_groups"], separated["parallel_groups"])
+        self.assertEqual(result["current_allocation"]["unresolved_pairs"][0]["decision"], "unknown")
+
     def test_current_repository_projects_exact_catalog_and_explicit_mappings(self) -> None:
         result = projection(REPO)
         self.assertEqual(result["catalog_count"], 26)

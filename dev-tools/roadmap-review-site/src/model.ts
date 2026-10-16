@@ -158,8 +158,21 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
   const allocation = review?.current_allocation;
   const lanes = Array.isArray(allocation?.lanes) ? allocation.lanes : [];
   const groups = Array.isArray(allocation?.parallel_groups) ? allocation.parallel_groups : [];
+  const unresolvedPairs = Array.isArray(allocation?.unresolved_pairs) ? allocation.unresolved_pairs : [];
   const laneIds = lanes.map((lane) => lane.unit_id);
   const groupedIds = groups.every((group) => Array.isArray(group)) ? groups.flat() : [];
+  const groupById = new Map<string, number>();
+  groups.forEach((group, index) => group.forEach((id) => groupById.set(id, index)));
+  const invalidUnresolvedPair = unresolvedPairs.some((pair) =>
+    !pair ||
+    !laneIds.includes(pair.left) ||
+    !laneIds.includes(pair.right) ||
+    pair.left === pair.right ||
+    !["unknown", "incompatible"].includes(pair.decision) ||
+    !Array.isArray(pair.reason_codes) ||
+    typeof pair.remediation !== "string" ||
+    groupById.get(pair.left) === groupById.get(pair.right)
+  );
   if (
     envelope.outcome !== "succeeded" ||
     review?.schema_version !== "roadmap-review-v1" ||
@@ -170,14 +183,19 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
     allocation?.level !== "capability" ||
     !Array.isArray(allocation.lanes) ||
     !Array.isArray(allocation.parallel_groups) ||
+    !Array.isArray(allocation.unresolved_pairs) ||
     allocation?.constraints?.grants_authority !== false ||
     allocation?.constraints?.acquires_file_leases !== false ||
+    allocation?.constraints?.creates_agents !== false ||
+    allocation?.constraints?.mutates_branches !== false ||
+    allocation?.constraints?.future_order_is_global_lock !== false ||
     lanes.some((lane) => !lane.unit_id || !["in-progress", "proposed"].includes(lane.allocation_state)) ||
     groups.some((group) => !Array.isArray(group) || group.length === 0) ||
     laneIds.length !== new Set(laneIds).size ||
     groupedIds.length !== new Set(groupedIds).size ||
     groupedIds.length !== laneIds.length ||
-    groupedIds.some((id) => !laneIds.includes(id))
+    groupedIds.some((id) => !laneIds.includes(id)) ||
+    invalidUnresolvedPair
   ) {
     throw new Error("Roadmap response is missing or incompatible.");
   }

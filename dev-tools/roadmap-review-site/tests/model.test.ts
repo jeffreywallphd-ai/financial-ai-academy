@@ -90,6 +90,15 @@ describe("roadmap overview model", () => {
     const inconsistent = review();
     inconsistent.current_allocation.parallel_groups = [["PLAN-2"]];
     expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: inconsistent } })).toThrow(/missing or incompatible/);
+    const contradictory = review();
+    contradictory.current_allocation.lanes.push({ unit_id: "PLAN-2", allocation_state: "proposed", lifecycle_status: "complete" });
+    contradictory.current_allocation.parallel_groups = [["PLAN-1", "PLAN-2"]];
+    contradictory.current_allocation.unresolved_pairs = [{
+      left: "PLAN-1", right: "PLAN-2", decision: "unknown", reason_codes: ["evidence.missing"], remediation: "Refine evidence.",
+    }];
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: contradictory } })).toThrow(/missing or incompatible/);
+    contradictory.current_allocation.parallel_groups = [["PLAN-1"], ["PLAN-2"]];
+    expect(assertRoadmapEnvelope({ outcome: "succeeded", data: { review: contradictory } }).data.review.current_allocation.parallel_groups).toHaveLength(2);
     expect(() => assertRoadmapEnvelope(null)).toThrow(/not an object/);
   });
 

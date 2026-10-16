@@ -175,3 +175,6 @@ drift occurred.
 - 2026-10-16: Moved WRK-0084 to verification after the integrated candidate
   passed focused allocator, projection, site, planning, documentation, design,
   diff, and aggregate readiness checks.
+- 2026-10-16: Bounded qualification correction made the current in-progress
+  state explicit on the order card and added fail-closed projection and client
+  checks for contradictory parallel-group evidence.

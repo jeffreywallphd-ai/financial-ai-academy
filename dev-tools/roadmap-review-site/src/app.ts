@@ -37,9 +37,9 @@ function labelledSection(title: string, id: string): [HTMLElement, HTMLElement] 
   return [section, heading];
 }
 
-function statusBadge(status: string): HTMLElement {
+function statusBadge(status: string, label = "Planning state"): HTMLElement {
   const badge = element("span", `status status--${status}`, status.replaceAll("-", " "));
-  badge.setAttribute("aria-label", `Planning state: ${status}`);
+  badge.setAttribute("aria-label", `${label}: ${status.replaceAll("-", " ")}`);
   return badge;
 }
 
@@ -84,7 +84,12 @@ function renderOrder(review: RoadmapReview): HTMLElement {
     const laneLabel = group && group.group.length > 1
       ? `Parallel-safe group ${group.position}`
       : `Sequential lane ${group?.position ?? review.current_allocation.lanes.indexOf(lane) + 1}`;
-    item.append(link, statusBadge(lane.lifecycle_status || statusFor(review, id)), element("span", "card-meta", laneLabel));
+    const lifecycle = lane.lifecycle_status || statusFor(review, id);
+    item.append(
+      link,
+      statusBadge(lane.allocation_state, "Current work state"),
+      element("span", "card-meta", `${laneLabel} · Planning status: ${lifecycle}`),
+    );
     list.append(item);
   }
   if (review.current_allocation.lanes.length) {

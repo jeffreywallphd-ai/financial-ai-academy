@@ -170,3 +170,6 @@ the operator-owned-server condition without overstating evidence.
 - 2026-10-16: Submitted the integrated exact candidate after current allocation
   reported CAP-0030 first as in progress, followed by CAP-0005 and CAP-0006 as
   proposals, and every required focused and aggregate check passed.
+- 2026-10-16: Bounded correction now presents allocation state separately from
+  lifecycle state and rejects any parallel group containing an explicitly
+  unknown or incompatible pair in both projection and client validation.

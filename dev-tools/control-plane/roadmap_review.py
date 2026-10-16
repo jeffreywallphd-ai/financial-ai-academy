@@ -281,19 +281,55 @@ def _public_current_allocation(
             "Regenerate the capability allocation from the canonical allocator.",
         )
 
+    group_by_id = {
+        unit_id: position
+        for position, group in enumerate(parallel_groups)
+        for unit_id in group
+    }
+    raw_pairs = allocation.get("unresolved_pairs", [])
+    if not isinstance(raw_pairs, list):
+        raise _failure(
+            "roadmap.allocation-pair-invalid",
+            "Current allocation unresolved pairs must be an array.",
+            {},
+            "Regenerate the capability allocation from the canonical allocator.",
+        )
     unresolved_pairs = []
-    for raw in allocation.get("unresolved_pairs", []):
+    for position, raw in enumerate(raw_pairs):
         if not isinstance(raw, Mapping):
-            continue
+            raise _failure(
+                "roadmap.allocation-pair-invalid",
+                "Every current allocation unresolved pair must be an object.",
+                {"position": position},
+                "Regenerate the capability allocation from the canonical allocator.",
+            )
         left = str(raw.get("left", ""))
         right = str(raw.get("right", ""))
-        if left not in ordered_ids or right not in ordered_ids:
-            continue
+        decision = str(raw.get("decision", ""))
+        if (
+            left not in ordered_ids
+            or right not in ordered_ids
+            or left == right
+            or decision not in {"unknown", "incompatible"}
+        ):
+            raise _failure(
+                "roadmap.allocation-pair-invalid",
+                "A current allocation unresolved pair is unknown, self-referential, or has an invalid decision.",
+                {"position": position, "left": left, "right": right, "decision": decision},
+                "Regenerate the capability allocation from the canonical allocator.",
+            )
+        if group_by_id[left] == group_by_id[right]:
+            raise _failure(
+                "roadmap.allocation-group-contradiction",
+                "A parallel group cannot contain a pair with unknown or incompatible evidence.",
+                {"position": position, "left": left, "right": right, "decision": decision},
+                "Split the pair into separate groups or supply compatible evidence through the canonical allocator.",
+            )
         unresolved_pairs.append(
             {
                 "left": left,
                 "right": right,
-                "decision": str(raw.get("decision", "unknown")),
+                "decision": decision,
                 "reason_codes": sorted({str(item) for item in raw.get("reason_codes", [])}),
                 "remediation": str(raw.get("remediation", "")),
             }

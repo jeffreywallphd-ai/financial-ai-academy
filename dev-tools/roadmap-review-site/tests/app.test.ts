@@ -78,6 +78,10 @@ describe("roadmap overview DOM", () => {
     expect(root.textContent).toContain("do not replace any of the 26");
     const orderLinks = Array.from(root.querySelectorAll(".order-list .order-link")).map((link) => link.textContent);
     expect(orderLinks).toEqual(["CONTROL-X: Control plane", "CAP-X: Structured lessons"]);
+    const firstOrderItem = root.querySelector(".order-list .order-item");
+    expect(firstOrderItem?.textContent).toContain("in progress");
+    expect(firstOrderItem?.textContent).toContain("Planning status: complete");
+    expect(firstOrderItem?.querySelector('[aria-label="Current work state: in progress"]')).toBeTruthy();
     expect(root.querySelector(".order-list")?.textContent).not.toContain("CAP-FUTURE");
     expect(root.textContent).toContain("CAP-FUTURE");
     expect(root.querySelectorAll(".order-list .card-meta")).toHaveLength(2);
