@@ -1,7 +1,7 @@
 ---
 id: SLI-0004
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -108,7 +108,7 @@ returns one qualifying or actionable non-qualifying disposition to the CLI.
 | --- | --- | --- | --- | --- |
 | WRK-0012 | Deliver deterministic affected-check selection, exact verification receipts, adapters, commands, docs, and anti-rigidity tests | WRK-0011 | none | ready |
 | WRK-0067 | Correct web/live affected coverage with precise path classes and isolated exact-candidate build execution | WRK-0012 | none | complete |
-| WRK-0114 | Cover deleted-path evidence and focused Project browser qualification | WRK-0067 | none | active |
+| WRK-0114 | Cover deleted-path evidence and focused Project browser qualification | WRK-0067 | none | complete |
 
 ## Verification and Qualification
 
@@ -174,7 +174,11 @@ test-only changes remain free of unrelated live and aggregate requirements.
   verification covered precise web/live/roadmap selection, isolated build
   outputs, explicit nested runtimes, current dynamic hierarchy behavior, and
   anti-rigidity regressions without changing generic verification contracts.
-- 2026-10-16: Reopened through a bounded WRK-0012 correction route after an
-  independent product review found missing deletion evidence and absent focused
+- 2026-10-16: Reopened through a bounded WRK-0012 correction route after a
+  candidate audit found missing deletion evidence and absent focused
   Project browser selection. The correction remains within this slice's exact
   candidate and repository-adapter contracts.
+- 2026-10-16: Closed the bounded correction after exact-candidate evidence
+  included direct deletions and both sides of renames, Project behavioral paths
+  selected a focused Chromium command, and the correction candidate executed
+  that command without broadening unrelated web routes.

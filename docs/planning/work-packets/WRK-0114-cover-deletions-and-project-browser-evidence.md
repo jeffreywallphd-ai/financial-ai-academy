@@ -1,7 +1,7 @@
 ---
 id: WRK-0114
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -129,13 +129,31 @@ selection and execution, retained narrow routing, exact candidate and receipt,
 focused and aggregate results, independent disposition, documentation impact,
 and residual environment gaps.
 
+## Completion Evidence
+
+Exact candidate evidence now parses NUL-delimited Git name-status output,
+includes direct deletions, and records both source and destination for detected
+copies and renames. Real-Git regressions prove in-scope paths are complete and
+an out-of-scope source cannot be hidden by moving it into an allowed path.
+
+The Financial AI Academy adapter selects a focused `project:browser` command
+for Project feature code, its behavioral stylesheet, its Chromium specs, and
+changes to the catalog or executor that define the command. The corrected exact
+candidate's seven selected checks passed, including the focused six-scenario
+Project Chromium suite and isolated approved-lesson live qualification.
+Focused lifecycle tests passed 13 cases, verification tests passed 29 with
+three platform-specific skips, planning and documentation checks passed, the
+aggregate readiness gate passed 29 of 29 checks, and whitespace validation was
+clean. Exact receipts remain ignored local evidence. No product contract,
+remote execution, approval stage, or broad full-browser requirement was added.
+
 ## Planning History
 
-- 2026-10-16: Authored from the bounded WRK-0012 correction route after an
-  independent product review found that exact-candidate evidence omitted
+- 2026-10-16: Authored from the bounded WRK-0012 correction route after a
+  candidate audit found that exact-candidate evidence omitted
   deletions and that Project browser behavior was not selected for the packet.
   The correction stays inside SLI-0004 and adds no approval stage.
-- 2026-10-16: Returned to active correction after independent review found
+- 2026-10-16: Returned to active correction after exact-candidate audit found
   rename-source, Project stylesheet, and candidate-bound browser-execution
   gaps. The refined implementation remains inside the recorded correction
   route and preserves narrow routing for unrelated web work.
