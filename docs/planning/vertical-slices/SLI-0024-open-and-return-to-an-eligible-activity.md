@@ -204,7 +204,7 @@ their work begins. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | complete |
-| JIT-B | Compose the protected application/API operation through current public gateways and regenerate the client | JIT-A | none | planned |
+| WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | ready |
 | JIT-C | Add learner actions, validated return context, and equivalent list/map current-position presentation | JIT-B | none | planned |
 | JIT-D | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | JIT-C | none | planned |
 
@@ -285,3 +285,8 @@ and durable-state authority did not change.
   verification, independent-review, and aggregate-readiness checks. No
   migration, persistence, API, generated-client, browser, evidence, model,
   provider, or external-action boundary changed; composed launch remains JIT-B.
+- 2026-10-16: Refined JIT-B as WRK-0086 around one fresh Adaptation
+  graph/projection composition, the accepted pure launch resolver, both
+  existing read permissions, a bodyless exact-version endpoint, bounded HTTP
+  denials, and deterministic OpenAPI/client generation. No decision or
+  lower-level approval gate was added.
