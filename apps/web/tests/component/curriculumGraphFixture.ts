@@ -1,4 +1,7 @@
-import type { CurriculumGraph } from "../../src/features/curriculum-graph/model";
+import type {
+  CurriculumGraph,
+  NavigationState,
+} from "../../src/features/curriculum-graph/model";
 
 export const curriculumGraphFixture = {
   schema_version: "1.0.0",
@@ -176,3 +179,125 @@ export const curriculumGraphFixture = {
   ],
   graph_digest: "f".repeat(64),
 } satisfies CurriculumGraph;
+
+export const navigationStateFixture = {
+  schema_version: "1.0.0",
+  curriculum_id: "investing-foundations",
+  curriculum_version: "1.0.0",
+  graph_digest: "f".repeat(64),
+  policy_id: "deterministic-prerequisite-navigation",
+  policy_version: "1.0.0",
+  evaluated_at: "2026-10-15T12:30:00Z",
+  source_set_digest: "1".repeat(64),
+  activity_states: [
+    {
+      activity_id: "activity-risk-return-lesson",
+      completion: "completed",
+      eligibility: "eligible",
+      requirement: "required",
+      availability: "available",
+      reasons: [
+        {
+          code: "activity_completed",
+          explanation: "The retained completion evidence records this activity as completed.",
+          references: ["activity-risk-return-lesson", "completion:evt-101"],
+        },
+        {
+          code: "required_activity",
+          explanation: "The approved curriculum assigns this activity to a required branch.",
+          references: ["activity-risk-return-lesson", "branch-core"],
+        },
+      ],
+    },
+    {
+      activity_id: "activity-risk-return-check",
+      completion: "unavailable",
+      eligibility: "eligible",
+      requirement: "required",
+      availability: "available",
+      reasons: [
+        {
+          code: "completion_source_unavailable",
+          explanation: "This assessment does not yet expose a retained completion source.",
+          references: ["activity-risk-return-check", "completion:assessment"],
+        },
+        {
+          code: "prerequisite_satisfied",
+          explanation: "The required preceding lesson is recorded as completed.",
+          references: ["activity-risk-return-lesson", "activity-risk-return-check"],
+        },
+        {
+          code: "required_activity",
+          explanation: "The approved curriculum assigns this activity to a required branch.",
+          references: ["activity-risk-return-check", "branch-core"],
+        },
+      ],
+    },
+    {
+      activity_id: "activity-diversification-reading",
+      completion: "incomplete",
+      eligibility: "locked",
+      requirement: "optional",
+      availability: "available",
+      reasons: [
+        {
+          code: "optional_activity",
+          explanation: "The approved curriculum assigns this activity only to optional branches.",
+          references: [
+            "activity-diversification-reading",
+            "branch-explore",
+            "branch-practice",
+            "objective-diversification",
+          ],
+        },
+        {
+          code: "prerequisite_incomplete",
+          explanation: "A preceding curriculum activity is not yet complete.",
+          references: ["activity-risk-return-check", "activity-diversification-reading"],
+        },
+      ],
+    },
+    {
+      activity_id: "activity-diversification-check",
+      completion: "unavailable",
+      eligibility: "locked",
+      requirement: "optional",
+      availability: "available",
+      reasons: [
+        {
+          code: "completion_source_unavailable",
+          explanation: "This assessment does not yet expose a retained completion source.",
+          references: ["activity-diversification-check", "completion:assessment"],
+        },
+        {
+          code: "prerequisite_incomplete",
+          explanation: "The preceding diversification activity is not yet complete.",
+          references: [
+            "activity-diversification-reading",
+            "activity-diversification-check",
+          ],
+        },
+      ],
+    },
+    {
+      activity_id: "activity-terms-glossary",
+      completion: "incomplete",
+      eligibility: "eligible",
+      requirement: "unassigned",
+      availability: "available",
+      reasons: [
+        {
+          code: "unassigned_activity",
+          explanation: "This reviewed activity is not assigned to a curriculum branch.",
+          references: ["activity-terms-glossary"],
+        },
+        {
+          code: "entry_activity",
+          explanation: "This activity has no declared activity prerequisite.",
+          references: ["activity-terms-glossary"],
+        },
+      ],
+    },
+  ],
+  projection_digest: "2".repeat(64),
+} satisfies NavigationState;

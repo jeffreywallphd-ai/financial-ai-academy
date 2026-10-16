@@ -40,6 +40,18 @@ void client.GET(
   },
 );
 
+void client.GET(
+  "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state",
+  {
+    params: {
+      path: {
+        curriculum_id: "investing-foundations",
+        curriculum_version: "1.0.0",
+      },
+    },
+  },
+);
+
 void client.GET("/api/v1/curriculum/opportunities/query", {
   params: {
     query: {

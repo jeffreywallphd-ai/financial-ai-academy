@@ -283,3 +283,8 @@ was introduced.
   coverage. Activity launch and live cross-system qualification remain later.
 - 2026-10-16: Activated WRK-0065 after the current CAP package, completed API
   dependency, decision posture, exact write scope, and claim were revalidated.
+- 2026-10-16: WRK-0065 implemented the closed graph/navigation browser join,
+  complete server-state and reason annotations in both peer views, and direct
+  flexible-shape, mismatch, accessibility, theme, and reflow evidence. The
+  packet entered exact-candidate verification with live composed-system
+  qualification retained for the final dependency-ordered packet.

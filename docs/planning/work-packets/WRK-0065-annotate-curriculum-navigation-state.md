@@ -167,6 +167,47 @@ failure mapping, list/map parity, anti-rigidity shapes, accessibility and theme
 checks, exact test counts, assumptions, and retained live-qualification gap.
 Keep approval and reviewer data only in ignored local stores.
 
+## Implementation Evidence
+
+The exact curriculum route now reads the protected graph and Adaptation
+navigation projection as one atomic browser result. A 401 from either request
+invalidates the opaque session once and rereads the complete pair; denied,
+missing, unavailable, malformed, or graph/state-mismatched responses never
+produce a graph-only page. The closed browser validator enforces the v1
+identifier, strict version, timestamp, digest, enum, explanation, reference,
+and reason bounds plus exact graph identity/digest and one unique state per
+activity in graph order. It does not recompute a domain digest or Adaptation
+policy.
+
+Every activity card in both peer views presents completion, eligibility,
+requirement, and availability as separate text fields, then preserves every
+ordered server explanation and reference. Assessment completion remains
+visibly unavailable when reported that way; optional locked work remains
+optional; shared optional branches and unbranched activities remain visible.
+The route adds no activity action, mastery or competency judgment,
+recommendation, rank, model output, learner/policy selector, persistence, or
+saved browser state.
+
+Candidate preparation produced these results:
+
+- graph/navigation model, loader, and component tests: 26 passed;
+- focused Chromium graph tests: 5 passed, including axe-clean list/map and
+  theme parity, keyboard use, narrow and 200-percent text reflow, forced
+  colors, reduced motion, denial, malformed input, and unavailable/mismatched
+  projection behavior;
+- complete Vitest suite and generated-client determinism: 119 passed;
+- TypeScript typecheck, lint, and production build: passed;
+- design-system validation: 125 light/global tokens and 56 reviewed icons;
+- architecture fitness functions: 13 passed.
+
+Direct anti-rigidity evidence accepts multiple reasons, four reason
+references, variable/reordered activity sets when the exact state closure
+follows graph order, absent presentation hints, shared optional branches,
+unbranched activities, optional locked states, and variable branch and
+relationship sets. Exact identity, provenance, response closure, reference
+bounds, and graph-order matching remain strict. Live PostgreSQL/Python/static-
+host qualification remains the final SLI-0023 packet.
+
 ## Stop Conditions
 
 Stop for a navigation-state v1 or graph-contract change, client-side policy or
@@ -197,3 +238,8 @@ SLI-0023 qualification packet dependency-ready or return a bounded blocker.
 - 2026-10-16: Activated after revalidating the current CAP binding, completed
   WRK-0063 dependency, exact browser-only scope, decision posture, and absence
   of active scope conflicts.
+- 2026-10-16: Implemented the all-or-nothing graph/navigation read, closed v1
+  browser validation, equivalent list/map state and reason annotations, and
+  flexible-shape regression corpus. Entered exact-candidate verification after
+  the focused browser, complete web, build, design, and architecture gates
+  passed; live composed-system qualification remains JIT-D.

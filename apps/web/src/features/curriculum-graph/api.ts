@@ -8,6 +8,7 @@ import type {
 } from "./model";
 import {
   curriculumGraphIsSafe,
+  navigationStateIsSafe,
   parseCurriculumGraphSelection,
 } from "./model";
 
@@ -17,7 +18,7 @@ function sessionFailureState(
   return { status: kind };
 }
 
-function responseState(status: number): CurriculumGraphRouteState {
+function graphResponseState(status: number): CurriculumGraphRouteState {
   if (status === 400) return { status: "invalid-selection" };
   if (status === 401) return { status: "unauthorized" };
   if (status === 403) return { status: "forbidden" };
@@ -26,7 +27,17 @@ function responseState(status: number): CurriculumGraphRouteState {
   return { status: "unexpected" };
 }
 
-async function readGraph(
+function navigationResponseState(status: number): CurriculumGraphRouteState {
+  if (status === 400) return { status: "invalid-selection" };
+  if (status === 401) return { status: "unauthorized" };
+  if (status === 403) return { status: "forbidden" };
+  if (status === 404 || status === 409 || status === 503) {
+    return { status: "unavailable" };
+  }
+  return { status: "unexpected" };
+}
+
+async function readCurriculumState(
   client: FinancialAcademyApiClient,
   session: SingleProfileSession,
   signal: AbortSignal,
@@ -34,7 +45,7 @@ async function readGraph(
   retryUnauthorized: boolean,
 ): Promise<CurriculumGraphRouteState> {
   try {
-    const result = await client.GET(
+    const graphResult = await client.GET(
       "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",
       {
         params: {
@@ -46,18 +57,48 @@ async function readGraph(
         signal,
       },
     );
-    if (result.response.status === 200) {
-      return result.data && curriculumGraphIsSafe(result.data, selection)
-        ? { status: "ready", graph: result.data }
-        : { status: "invalid-response" };
-    }
-    if (result.response.status === 401 && retryUnauthorized) {
+    if (graphResult.response.status === 401 && retryUnauthorized) {
       session.invalidate();
       const renewed = await session.ensure(signal);
       if (renewed.status === "error") return sessionFailureState(renewed.kind);
-      return readGraph(client, session, signal, selection, false);
+      return readCurriculumState(client, session, signal, selection, false);
     }
-    return responseState(result.response.status);
+    if (graphResult.response.status !== 200) {
+      return graphResponseState(graphResult.response.status);
+    }
+    if (!graphResult.data || !curriculumGraphIsSafe(graphResult.data, selection)) {
+      return { status: "invalid-response" };
+    }
+
+    const navigationResult = await client.GET(
+      "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state",
+      {
+        params: {
+          path: {
+            curriculum_id: selection.curriculumId,
+            curriculum_version: selection.curriculumVersion,
+          },
+        },
+        signal,
+      },
+    );
+    if (navigationResult.response.status === 401 && retryUnauthorized) {
+      session.invalidate();
+      const renewed = await session.ensure(signal);
+      if (renewed.status === "error") return sessionFailureState(renewed.kind);
+      return readCurriculumState(client, session, signal, selection, false);
+    }
+    if (navigationResult.response.status !== 200) {
+      return navigationResponseState(navigationResult.response.status);
+    }
+    return navigationResult.data &&
+      navigationStateIsSafe(navigationResult.data, graphResult.data)
+      ? {
+          status: "ready",
+          graph: graphResult.data,
+          navigationState: navigationResult.data,
+        }
+      : { status: "invalid-response" };
   } catch (error) {
     if (signal.aborted) throw error;
     return { status: "unavailable" };
@@ -79,6 +120,12 @@ export function createCurriculumGraphLoader(
     if (established.status === "error") {
       return sessionFailureState(established.kind);
     }
-    return readGraph(client, session, request.signal, selection, true);
+    return readCurriculumState(
+      client,
+      session,
+      request.signal,
+      selection,
+      true,
+    );
   };
 }

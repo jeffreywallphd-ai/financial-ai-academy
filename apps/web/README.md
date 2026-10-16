@@ -39,9 +39,12 @@ source of graph, eligibility, completion, or mastery authority.
 The generated client also includes `getCurriculumNavigationState` for the
 protected exact-version Adaptation projection. It accepts only curriculum ID
 and version; learner identity and navigation policy remain server-owned. No
-browser route consumes this operation yet, so the web application does not
-duplicate or present eligibility before the next SLI-0023 packet qualifies its
-accessible list/map annotations.
+browser-supplied learner or policy selector is accepted. The exact curriculum
+route reads this projection with its graph as one all-or-nothing pair, validates
+the complete graph-ordered activity closure and matching graph identity/digest,
+and presents the server's separate completion, eligibility, requirement,
+availability, reasons, and references. It does not reproduce Adaptation policy,
+infer mastery, or calculate a path in the browser.
 
 The learning-catalog client also defines the reusable selection seam for
 detail and comparison routes. One detail ID or two through four distinct
@@ -104,10 +107,14 @@ relationships with a responsive grouping layout rather than fixed canvas
 coordinates. Optional or absent presentation hints, variable record counts,
 same-kind shared branch memberships, activities outside branches, and empty
 branch or relationship sets remain valid. The route shows exact source
-references, publication facts, schema version, and digest, but exposes no
-activity-launch action and makes no learner-state inference. Malformed links,
-denial, missing exact versions, unavailable service, or an invalid success
-response fail closed without substituting a latest version or partial graph.
+references, publication facts, schema version, graph digest, navigation policy,
+evaluation time, source-set digest, and projection digest. Every activity shows
+the four orthogonal server-evaluated state dimensions and the complete ordered
+reason/reference list in both peer views. It exposes no activity-launch action,
+mastery claim, recommendation, or browser-owned learner-state inference.
+Malformed links, denial, missing exact versions, unavailable state, graph/state
+mismatch, or an invalid success response fail closed without substituting a
+latest version or displaying a partial graph.
 
 `/learn/placements/:placementId` establishes the explicitly configured
 single-profile session and opens the exact placement through the generated

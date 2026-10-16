@@ -2,10 +2,15 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
 
-import { curriculumGraphFixture } from "../../component/curriculumGraphFixture";
+import {
+  curriculumGraphFixture,
+  navigationStateFixture,
+} from "../../component/curriculumGraphFixture";
 
 const SESSION_PATTERN = "**/api/v1/session/single-profile";
 const GRAPH_PATTERN = "**/api/v1/curriculum/graphs/*/versions/*";
+const NAVIGATION_PATTERN =
+  "**/api/v1/adaptation/curricula/*/versions/*/navigation-state";
 const GRAPH_URL =
   "/learn/curricula/investing-foundations/versions/1.0.0";
 
@@ -20,6 +25,7 @@ function json(route: Route, status: number, body: unknown) {
 async function mockReadyGraph(
   page: Page,
   graph: unknown = curriculumGraphFixture,
+  navigationState: unknown = navigationStateFixture,
 ) {
   await page.route(SESSION_PATTERN, (route) =>
     json(route, 201, {
@@ -29,6 +35,9 @@ async function mockReadyGraph(
     }),
   );
   await page.route(GRAPH_PATTERN, (route) => json(route, 200, graph));
+  await page.route(NAVIGATION_PATTERN, (route) =>
+    json(route, 200, navigationState),
+  );
 }
 
 test("renders an exact protected graph with list-map and theme parity", async ({
@@ -44,6 +53,15 @@ test("renders an exact protected graph with list-map and theme parity", async ({
     page.getByText("investing-foundations@1.0.0", { exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("article")).toHaveCount(6);
+  await expect(page.getByText("Locked")).toHaveCount(3);
+  await expect(
+    page.getByText(
+      "The approved curriculum assigns this activity only to optional branches.",
+    ),
+  ).toHaveCount(2);
+  await expect(
+    page.getByRole("article").getByText("branch-practice"),
+  ).toHaveCount(2);
   await expect(
     page.getByRole("heading", { name: "Activities outside branch groupings" }),
   ).toBeVisible();
@@ -123,6 +141,7 @@ test("keeps the graph operable with keyboard, narrow reflow, forced colors, redu
 
 test("denies the route before requesting a graph", async ({ page }) => {
   let graphRequested = false;
+  let navigationRequested = false;
   await page.route(SESSION_PATTERN, (route) =>
     json(route, 403, {
       error_version: "1.0",
@@ -135,6 +154,10 @@ test("denies the route before requesting a graph", async ({ page }) => {
     graphRequested = true;
     return json(route, 500, {});
   });
+  await page.route(NAVIGATION_PATTERN, (route) => {
+    navigationRequested = true;
+    return json(route, 500, {});
+  });
 
   await page.goto(GRAPH_URL);
   await expect(
@@ -142,6 +165,7 @@ test("denies the route before requesting a graph", async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByText("Investing Foundations")).toHaveCount(0);
   expect(graphRequested).toBe(false);
+  expect(navigationRequested).toBe(false);
 });
 
 test("fails closed for invalid, missing, and malformed exact graph requests", async ({
@@ -187,4 +211,28 @@ test("fails closed for invalid, missing, and malformed exact graph requests", as
     page.getByRole("heading", { name: "Curriculum graph link unavailable" }),
   ).toBeVisible();
   expect(malformedRequested).toBe(false);
+});
+
+test("fails the whole page closed for an unavailable or mismatched navigation projection", async ({
+  page,
+}) => {
+  await mockReadyGraph(page, curriculumGraphFixture, {
+    ...navigationStateFixture,
+    graph_digest: "9".repeat(64),
+  });
+  await page.goto(GRAPH_URL);
+  await expect(
+    page.getByRole("heading", { name: "Curriculum graph response unavailable" }),
+  ).toBeVisible();
+  await expect(page.getByText("Investing Foundations")).toHaveCount(0);
+
+  await page.unroute(NAVIGATION_PATTERN);
+  await page.route(NAVIGATION_PATTERN, (route) => json(route, 503, {}));
+  await page.goto(GRAPH_URL);
+  await expect(
+    page.getByRole("heading", {
+      name: "Curriculum graph temporarily unavailable",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Investing Foundations")).toHaveCount(0);
 });

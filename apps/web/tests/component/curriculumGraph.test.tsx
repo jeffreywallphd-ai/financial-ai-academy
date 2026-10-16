@@ -5,18 +5,24 @@ import { describe, expect, it, vi } from "vitest";
 
 import { CurriculumGraphPage } from "../../src/features/curriculum-graph/CurriculumGraphPage";
 import { CurriculumGraphRouteView } from "../../src/features/curriculum-graph/CurriculumGraphRoute";
-import { curriculumGraphFixture } from "./curriculumGraphFixture";
+import {
+  curriculumGraphFixture,
+  navigationStateFixture,
+} from "./curriculumGraphFixture";
 
 function renderGraph() {
   return render(
     <MemoryRouter>
-      <CurriculumGraphPage graph={curriculumGraphFixture} />
+      <CurriculumGraphPage
+        graph={curriculumGraphFixture}
+        navigationState={navigationStateFixture}
+      />
     </MemoryRouter>,
   );
 }
 
 describe("CurriculumGraphPage", () => {
-  it("shows the exact reviewed graph and provenance without implying learner state", () => {
+  it("shows exact reviewed graph and server-evaluated state without implying mastery", () => {
     renderGraph();
 
     expect(
@@ -26,13 +32,22 @@ describe("CurriculumGraphPage", () => {
     expect(screen.getByText("Approved")).toBeVisible();
     expect(
       screen.getByText(
-        /does not calculate eligibility, completion, mastery, or a personalized path/,
+        /Completion is not a mastery or competency judgment/,
       ),
     ).toBeVisible();
     expect(screen.getByText("f".repeat(64))).toBeInTheDocument();
     expect(screen.getByText("content:intro-risk-return@1.0.0")).toBeVisible();
-    expect(screen.queryByText(/you are eligible/i)).toBeNull();
-    expect(screen.queryByText(/you completed/i)).toBeNull();
+    expect(screen.getAllByText("Eligible").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Completed").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Optional").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Locked").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(
+        "The approved curriculum assigns this activity only to optional branches.",
+      ).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText("branch-practice").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Mastery")).toBeNull();
     expect(screen.queryByRole("link", { name: /open|start|launch/i })).toBeNull();
   });
 
@@ -74,7 +89,10 @@ describe("CurriculumGraphPage", () => {
     };
     render(
       <MemoryRouter>
-        <CurriculumGraphPage graph={flexibleGraph} />
+        <CurriculumGraphPage
+          graph={flexibleGraph}
+          navigationState={navigationStateFixture}
+        />
       </MemoryRouter>,
     );
 

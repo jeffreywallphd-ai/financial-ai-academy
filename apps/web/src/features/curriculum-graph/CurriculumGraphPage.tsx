@@ -3,9 +3,11 @@ import { Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
 import type {
+  ActivityNavigationState,
   CurriculumActivity,
   CurriculumGraph,
   CurriculumRelationship,
+  NavigationState,
 } from "./model";
 import { curriculumGraphPresentation } from "./model";
 
@@ -24,6 +26,14 @@ function readableDate(value: string): string {
     month: "short",
     timeZone: "UTC",
     year: "numeric",
+  }).format(new Date(value));
+}
+
+function readableDateTime(value: string): string {
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "UTC",
   }).format(new Date(value));
 }
 
@@ -54,7 +64,25 @@ function relationshipText(
   }
 }
 
-function ActivityCard({ activity }: { activity: CurriculumActivity }) {
+function navigationIcon(state: ActivityNavigationState) {
+  if (state.completion === "completed") return "shield-check" as const;
+  if (state.eligibility === "locked") return "lock" as const;
+  if (
+    state.availability === "unavailable" ||
+    state.eligibility === "unavailable"
+  ) {
+    return "warning-triangle" as const;
+  }
+  return "info-circle" as const;
+}
+
+function ActivityCard({
+  activity,
+  navigationState,
+}: {
+  activity: CurriculumActivity;
+  navigationState: ActivityNavigationState;
+}) {
   return (
     <article className="curriculum-graph__activity">
       <p className="curriculum-graph__badge">{label(activity.kind)}</p>
@@ -71,14 +99,67 @@ function ActivityCard({ activity }: { activity: CurriculumActivity }) {
           <dd>{activityReference(activity)}</dd>
         </div>
       </dl>
+      <div className="curriculum-graph__navigation-state">
+        <h5>
+          <Icon name={navigationIcon(navigationState)} />
+          Current navigation state
+        </h5>
+        <dl className="curriculum-graph__state-dimensions">
+          <div>
+            <dt>Completion</dt>
+            <dd>{label(navigationState.completion)}</dd>
+          </div>
+          <div>
+            <dt>Eligibility</dt>
+            <dd>{label(navigationState.eligibility)}</dd>
+          </div>
+          <div>
+            <dt>Requirement</dt>
+            <dd>{label(navigationState.requirement)}</dd>
+          </div>
+          <div>
+            <dt>Availability</dt>
+            <dd>{label(navigationState.availability)}</dd>
+          </div>
+        </dl>
+        <div className="curriculum-graph__state-reasons">
+          <h6>Why this state applies</h6>
+          <ol>
+            {navigationState.reasons.map((reason, index) => (
+              <li key={`${reason.code}:${index}`}>
+                <p>{reason.explanation}</p>
+                <span>{label(reason.code)}</span>
+                <ul aria-label={`${label(reason.code)} references`}>
+                  {reason.references.map((reference) => (
+                    <li key={reference}>
+                      <code>{reference}</code>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
     </article>
   );
 }
 
-function GraphFacts({ graph, view }: { graph: CurriculumGraph; view: GraphView }) {
+function GraphFacts({
+  graph,
+  navigationState,
+  view,
+}: {
+  graph: CurriculumGraph;
+  navigationState: NavigationState;
+  view: GraphView;
+}) {
   const presentation = curriculumGraphPresentation(graph);
   const activityById = new Map(
     graph.activities.map((activity) => [activity.activity_id, activity]),
+  );
+  const navigationByActivityId = new Map(
+    navigationState.activity_states.map((state) => [state.activity_id, state]),
   );
   const branchMemberships = new Set(
     graph.branches.flatMap((branch) => branch.activity_ids),
@@ -166,6 +247,7 @@ function GraphFacts({ graph, view }: { graph: CurriculumGraph; view: GraphView }
                       <ActivityCard
                         activity={activity}
                         key={`${branch.branch_id}:${activityId}`}
+                        navigationState={navigationByActivityId.get(activityId)!}
                       />
                     ) : null;
                   })}
@@ -183,7 +265,13 @@ function GraphFacts({ graph, view }: { graph: CurriculumGraph; view: GraphView }
             </p>
             <div className="curriculum-graph__activity-grid">
               {unbranchedActivities.map((activity) => (
-                <ActivityCard activity={activity} key={activity.activity_id} />
+                <ActivityCard
+                  activity={activity}
+                  key={activity.activity_id}
+                  navigationState={navigationByActivityId.get(
+                    activity.activity_id,
+                  )!}
+                />
               ))}
             </div>
           </section>
@@ -215,7 +303,13 @@ function GraphFacts({ graph, view }: { graph: CurriculumGraph; view: GraphView }
   );
 }
 
-export function CurriculumGraphPage({ graph }: { graph: CurriculumGraph }) {
+export function CurriculumGraphPage({
+  graph,
+  navigationState,
+}: {
+  graph: CurriculumGraph;
+  navigationState: NavigationState;
+}) {
   const [view, setView] = useState<GraphView>("list");
   return (
     <section className="curriculum-graph">
@@ -246,8 +340,10 @@ export function CurriculumGraphPage({ graph }: { graph: CurriculumGraph }) {
           </div>
         </dl>
         <p className="curriculum-graph__notice">
-          This page presents reviewed curriculum structure only. It does not
-          calculate eligibility, completion, mastery, or a personalized path.
+          Current completion, eligibility, requirement, availability, and
+          explanations are evaluated by the server from bounded evidence. The
+          browser does not calculate them or choose a path. Completion is not a
+          mastery or competency judgment.
         </p>
       </header>
 
@@ -270,17 +366,22 @@ export function CurriculumGraphPage({ graph }: { graph: CurriculumGraph }) {
         </button>
       </div>
 
-      <GraphFacts graph={graph} view={view} />
+      <GraphFacts
+        graph={graph}
+        navigationState={navigationState}
+        view={view}
+      />
 
       <section className="curriculum-graph__provenance">
         <div className="curriculum-graph__section-heading">
           <p className="eyebrow">Provenance</p>
-          <h2>Exact graph record</h2>
+          <h2>Exact graph and navigation records</h2>
         </div>
         <p>
           <Icon name="citation" />
-          This graph is displayed from its protected, immutable versioned
-          record. Presentation hints affect order only and do not add facts.
+          This graph and its current navigation projection are displayed from
+          protected versioned records. Presentation hints affect order only and
+          do not add facts.
         </p>
         <ul aria-label="Curriculum source references">
           {graph.source_references.map((reference) => (
@@ -290,7 +391,7 @@ export function CurriculumGraphPage({ graph }: { graph: CurriculumGraph }) {
           ))}
         </ul>
         <details>
-          <summary>Technical graph identity</summary>
+          <summary>Technical graph and navigation identity</summary>
           <dl>
             <div>
               <dt>Schema version</dt>
@@ -302,6 +403,34 @@ export function CurriculumGraphPage({ graph }: { graph: CurriculumGraph }) {
               <dt>Graph digest</dt>
               <dd>
                 <code>{graph.graph_digest}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Navigation evaluated</dt>
+              <dd>
+                <time dateTime={navigationState.evaluated_at}>
+                  {readableDateTime(navigationState.evaluated_at)} UTC
+                </time>
+              </dd>
+            </div>
+            <div>
+              <dt>Navigation policy</dt>
+              <dd>
+                <code>
+                  {navigationState.policy_id}@{navigationState.policy_version}
+                </code>
+              </dd>
+            </div>
+            <div>
+              <dt>Navigation source set digest</dt>
+              <dd>
+                <code>{navigationState.source_set_digest}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Navigation projection digest</dt>
+              <dd>
+                <code>{navigationState.projection_digest}</code>
               </dd>
             </div>
           </dl>

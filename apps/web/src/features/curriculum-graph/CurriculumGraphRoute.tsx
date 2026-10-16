@@ -18,10 +18,10 @@ export function CurriculumGraphLoadingState() {
       role="status"
     >
       <p className="eyebrow">Approved curriculum graph</p>
-      <h1>Loading curriculum structure</h1>
+      <h1>Loading curriculum navigation</h1>
       <p>
         Establishing the private learner session and reading the exact reviewed
-        graph version.
+        graph with its current server-evaluated activity state.
       </p>
       <div aria-hidden="true" className="loading-placeholder" />
       <span className="visually-hidden">Curriculum graph loading in progress.</span>
@@ -42,7 +42,12 @@ export function CurriculumGraphRouteView({
     case "loading":
       return <CurriculumGraphLoadingState />;
     case "ready":
-      return <CurriculumGraphPage graph={state.graph} />;
+      return (
+        <CurriculumGraphPage
+          graph={state.graph}
+          navigationState={state.navigationState}
+        />
+      );
     case "invalid-selection":
       return (
         <StatusPanel
@@ -89,7 +94,7 @@ export function CurriculumGraphRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The exact curriculum graph could not be loaded right now. No stale or partial structure was displayed."
+          description="The exact curriculum graph and its current navigation state could not be loaded together right now. No stale or partial structure was displayed."
           icon="warning-triangle"
           onAction={onRetry}
           title="Curriculum graph temporarily unavailable"
@@ -99,7 +104,7 @@ export function CurriculumGraphRouteView({
     case "invalid-response":
       return (
         <StatusPanel
-          description="The curriculum graph response did not pass its safety checks, so no partial structure was displayed."
+          description="The curriculum graph and navigation state did not pass their safety checks as one complete projection, so no partial structure was displayed."
           icon="error-circle"
           title="Curriculum graph response unavailable"
           tone="danger"

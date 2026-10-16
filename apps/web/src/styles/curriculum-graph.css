@@ -16,6 +16,8 @@
 .curriculum-graph__section-heading p,
 .curriculum-graph__section h3,
 .curriculum-graph__section h4,
+.curriculum-graph__section h5,
+.curriculum-graph__section h6,
 .curriculum-graph__activity p,
 .curriculum-graph__unbranched > p,
 .curriculum-graph__relationships li p,
@@ -168,6 +170,8 @@
 
 .curriculum-graph__section h3,
 .curriculum-graph__section h4,
+.curriculum-graph__section h5,
+.curriculum-graph__section h6,
 .curriculum-graph__section p,
 .curriculum-graph__section dt,
 .curriculum-graph__section dd,
@@ -222,6 +226,68 @@
   background: var(--faa-color-surface);
   border: var(--faa-border-width) solid var(--faa-color-border-strong);
   border-radius: var(--faa-radius-card);
+}
+
+.curriculum-graph__navigation-state {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-3);
+  padding-top: var(--faa-space-3);
+  border-top: var(--faa-border-width) solid var(--faa-color-border);
+}
+
+.curriculum-graph__navigation-state h5 {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--faa-space-2);
+  overflow-wrap: anywhere;
+  font-size: var(--faa-font-size-body);
+}
+
+.curriculum-graph__state-dimensions {
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.curriculum-graph__state-reasons {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-2);
+}
+
+.curriculum-graph__state-reasons > ol {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-3);
+  margin: var(--faa-space-0);
+  padding-left: var(--faa-space-5);
+}
+
+.curriculum-graph__state-reasons > ol > li {
+  min-width: 0;
+  padding-left: var(--faa-space-1);
+}
+
+.curriculum-graph__state-reasons li > p {
+  color: var(--faa-color-text-secondary);
+}
+
+.curriculum-graph__state-reasons li > span {
+  display: block;
+  margin-top: var(--faa-space-1);
+  color: var(--faa-color-text-muted);
+  font-size: var(--faa-font-size-caption);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.curriculum-graph__state-reasons ul {
+  display: grid;
+  min-width: 0;
+  gap: var(--faa-space-1);
+  margin: var(--faa-space-2) var(--faa-space-0) var(--faa-space-0);
+  padding-left: var(--faa-space-5);
 }
 
 .curriculum-graph__relationships li {
@@ -294,6 +360,10 @@
   }
 
   .curriculum-graph__relationships li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .curriculum-graph__state-dimensions {
     grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -12,6 +12,12 @@ export type CurriculumBranch =
   components["schemas"]["CurriculumBranchResponseModel"];
 export type CurriculumRelationship =
   components["schemas"]["CurriculumRelationshipResponseModel"];
+export type NavigationState =
+  components["schemas"]["NavigationStateResponseModel"];
+export type ActivityNavigationState =
+  components["schemas"]["ActivityNavigationStateResponseModel"];
+export type NavigationReason =
+  components["schemas"]["NavigationReasonResponseModel"];
 
 export interface CurriculumGraphSelection {
   curriculumId: string;
@@ -20,7 +26,11 @@ export interface CurriculumGraphSelection {
 
 export type CurriculumGraphRouteState =
   | { status: "loading" }
-  | { status: "ready"; graph: CurriculumGraph }
+  | {
+      status: "ready";
+      graph: CurriculumGraph;
+      navigationState: NavigationState;
+    }
   | { status: "invalid-selection" }
   | { status: "unauthorized" }
   | { status: "forbidden" }
@@ -32,6 +42,9 @@ export type CurriculumGraphRouteState =
 const IDENTIFIER = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 const SEMANTIC_VERSION =
   /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
+const NAVIGATION_IDENTIFIER = /^[a-z0-9][a-z0-9._:-]{0,127}$/;
+const STRICT_SEMANTIC_VERSION =
+  /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
 const DIGEST = /^[a-f0-9]{64}$/;
 const SOURCE_REFERENCE = /^[a-z][a-z0-9+.-]{1,31}:\S{1,255}$/u;
 const DATE_TIME =
@@ -82,6 +95,39 @@ const PRESENTATION_KEYS = [
   "branch_ids",
   "competency_ids",
   "objective_ids",
+] as const;
+const NAVIGATION_STATE_KEYS = [
+  "activity_states",
+  "curriculum_id",
+  "curriculum_version",
+  "evaluated_at",
+  "graph_digest",
+  "policy_id",
+  "policy_version",
+  "projection_digest",
+  "schema_version",
+  "source_set_digest",
+] as const;
+const ACTIVITY_NAVIGATION_STATE_KEYS = [
+  "activity_id",
+  "availability",
+  "completion",
+  "eligibility",
+  "reasons",
+  "requirement",
+] as const;
+const NAVIGATION_REASON_KEYS = ["code", "explanation", "references"] as const;
+const NAVIGATION_REASON_CODES = [
+  "activity_completed",
+  "required_activity",
+  "optional_activity",
+  "unassigned_activity",
+  "activity_source_unavailable",
+  "completion_source_unavailable",
+  "entry_activity",
+  "prerequisite_incomplete",
+  "prerequisite_unavailable",
+  "prerequisite_satisfied",
 ] as const;
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -152,6 +198,14 @@ function version(value: unknown): value is string {
 
 function digest(value: unknown): value is string {
   return typeof value === "string" && DIGEST.test(value);
+}
+
+function navigationIdentifier(value: unknown): value is string {
+  return typeof value === "string" && NAVIGATION_IDENTIFIER.test(value);
+}
+
+function strictVersion(value: unknown): value is string {
+  return typeof value === "string" && STRICT_SEMANTIC_VERSION.test(value);
 }
 
 function uniqueArray(
@@ -416,6 +470,77 @@ export function curriculumGraphIsSafe(
         return false;
     }
   });
+}
+
+function navigationReasonIsSafe(value: unknown): boolean {
+  const candidate = record(value);
+  return (
+    candidate !== null &&
+    hasExactKeys(candidate, NAVIGATION_REASON_KEYS) &&
+    NAVIGATION_REASON_CODES.includes(candidate.code as never) &&
+    boundedText(candidate.explanation, 1, 240) &&
+    uniqueArray(candidate.references, 1, 10, navigationIdentifier)
+  );
+}
+
+function activityNavigationStateIsSafe(value: unknown): boolean {
+  const candidate = record(value);
+  return (
+    candidate !== null &&
+    hasExactKeys(candidate, ACTIVITY_NAVIGATION_STATE_KEYS) &&
+    navigationIdentifier(candidate.activity_id) &&
+    ["available", "unavailable"].includes(String(candidate.availability)) &&
+    ["completed", "incomplete", "unavailable"].includes(
+      String(candidate.completion),
+    ) &&
+    ["eligible", "locked", "unavailable"].includes(
+      String(candidate.eligibility),
+    ) &&
+    ["required", "optional", "unassigned"].includes(
+      String(candidate.requirement),
+    ) &&
+    Array.isArray(candidate.reasons) &&
+    candidate.reasons.length >= 2 &&
+    candidate.reasons.length <= 2002 &&
+    candidate.reasons.every(navigationReasonIsSafe)
+  );
+}
+
+export function navigationStateIsSafe(
+  value: unknown,
+  graph: CurriculumGraph,
+): value is NavigationState {
+  const candidate = record(value);
+  if (
+    candidate === null ||
+    !hasExactKeys(candidate, NAVIGATION_STATE_KEYS) ||
+    candidate.schema_version !== "1.0.0" ||
+    candidate.curriculum_id !== graph.curriculum_id ||
+    candidate.curriculum_version !== graph.curriculum_version ||
+    candidate.graph_digest !== graph.graph_digest ||
+    !navigationIdentifier(candidate.curriculum_id) ||
+    !strictVersion(candidate.curriculum_version) ||
+    !digest(candidate.graph_digest) ||
+    !navigationIdentifier(candidate.policy_id) ||
+    !strictVersion(candidate.policy_version) ||
+    !validDateTime(candidate.evaluated_at) ||
+    !digest(candidate.source_set_digest) ||
+    !digest(candidate.projection_digest) ||
+    !Array.isArray(candidate.activity_states) ||
+    candidate.activity_states.length !== graph.activities.length ||
+    !candidate.activity_states.every(activityNavigationStateIsSafe)
+  ) {
+    return false;
+  }
+
+  const activityStates = candidate.activity_states as Record<string, unknown>[];
+  const activityIds = activityStates.map((state) => String(state.activity_id));
+  return (
+    new Set(activityIds).size === activityIds.length &&
+    activityIds.every(
+      (activityId, index) => activityId === graph.activities[index]?.activity_id,
+    )
+  );
 }
 
 function ordered<T>(
