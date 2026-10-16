@@ -1,7 +1,7 @@
 ---
 id: SLI-0005
 kind: vertical-slice
-planning_status: complete
+planning_status: active
 authority: noncanonical
 owner: codex-control-plane-correction
 updated: 2026-10-16
@@ -111,6 +111,7 @@ SLI-0004 verification must run fresh before another review.
 | WRK-0013 | Deliver append-only review rounds, open-finding closure, corrected-descendant lineage, commands, docs, and anti-rigidity tests | WRK-0012 | none | complete |
 | WRK-0070 | Correct review proportionality so mechanically proven terminal-blank-line descendants receive fresh verification without redundant re-review | WRK-0013 | none | complete |
 | WRK-0112 | Allow a strict corrected descendant after the latest exact-candidate verification fails or times out, without fabricating a review | WRK-0013, WRK-0070 | none | complete |
+| WRK-0113 | Preserve failed-verification correction across an unrelated catalog revision only when the affected route remains semantically identical | WRK-0112 | none | ready |
 
 ## Verification and Qualification
 
@@ -172,3 +173,7 @@ external action, migration, or stored personal data.
   independent review remain required.
 - 2026-10-16: WRK-0112 completed the bounded correction and SLI-0005 returned
   to complete without changing CAP-0002 scope or adding a lower-level gate.
+- 2026-10-16: Reopened through WRK-0112's bounded correction route after an
+  unrelated global catalog revision blocked a product packet whose selected
+  checks and commands were unchanged. WRK-0113 adds exact route-equivalence
+  proof rather than weakening stale-evidence protection.
