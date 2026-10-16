@@ -10,7 +10,7 @@ capability: CAP-0005
 depends_on: ["WRK-0087"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/modules/adaptation/README.md", "deployments/local/README.md", "deployments/local/serve.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/work-packets/WRK-0088-qualify-live-curriculum-activity-launch.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py"]
+write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/modules/adaptation/README.md", "deployments/local/README.md", "deployments/local/serve.py", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0024-open-and-return-to-an-eligible-activity.md", "docs/planning/work-packets/WRK-0088-qualify-live-curriculum-activity-launch.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py"]
 generated_artifacts: []
 base_revision: aac03a5fccdcb0b080bc3e4c8431e49cbb5b496e
 claim_id: WRK-0088:28f852a3-4eee-4d9c-b3f2-3d2da7b997a6
@@ -103,6 +103,7 @@ or separate headless-AI planning.
 | Qualification fixture | local composition and public Curriculum operations | `deployments/local/serve.py`, architecture test | Publish a second bounded exact graph only in explicit fixture mode |
 | Live API/browser evidence | approved lesson and curriculum graph specifications | the two listed `.e2e.ts` files | Prove public launch, lesson, return, completion, version, denial, and accessibility behavior |
 | Harness report | clean-start orchestration and redacted report | `tests/e2e/approved-lesson/run.py` | Describe the exact newly exercised boundary without secrets or overclaiming |
+| Isolated affected check | snapshot runtime selection and its unit coverage | `dev-tools/control-plane/check_approved_lesson.py`, `test_verification.py` | Use the prepared backend Python rather than an unrelated system interpreter |
 | Canonical and operational guidance | navigation contract, architecture map, relevant READMEs | listed documentation files | Keep API-first meaning and qualification claims synchronized |
 | Planning evidence | packet, SLI-0024, register | listed planning files | Close the final dependency-ordered slice seam coherently |
 
@@ -233,3 +234,8 @@ blocker.
   exact qualification version through public application boundaries, keeps the
   API available to UI and non-UI clients, and adds no decision or lower-level
   approval gate.
+- 2026-10-16: Refined the exact file scope after affected verification proved
+  the isolated live check selected the system Python instead of the repository's
+  prepared backend runtime. The bounded harness correction and regression test
+  are part of this packet's qualification objective and do not change product,
+  CAP, slice, or decision scope.
