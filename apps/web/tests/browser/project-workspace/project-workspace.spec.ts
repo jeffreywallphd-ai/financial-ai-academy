@@ -38,7 +38,11 @@ function json(route: Route, status: number, body: unknown) {
   return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 }
 
-async function mockProjects(page: Page, postBodies: Record<string, unknown>[], failFirstCreate = false) {
+async function mockProjects(page: Page, postBodies: Record<string, unknown>[], options: {
+  beforeCreateResponse?: () => Promise<void>;
+  firstCreateStatus?: 409 | 503;
+  staleStartOption?: boolean;
+} = {}) {
   let created: Record<string, unknown> | null = null;
   let creates = 0;
   await page.route("**/api/v1/session/single-profile", (route) => json(route, 201, {
@@ -51,7 +55,8 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], f
       const body = request.postDataJSON() as Record<string, unknown>;
       postBodies.push(body);
       creates += 1;
-      if (failFirstCreate && creates === 1) return json(route, 503, { code: "unavailable" });
+      await options.beforeCreateResponse?.();
+      if (options.firstCreateStatus && creates === 1) return json(route, options.firstCreateStatus, { code: options.firstCreateStatus === 409 ? "idempotency_conflict" : "unavailable" });
       created = {
         schema_version: "1.0.0", project_id: "project-learning", learner_id: "learner-a",
         title: body.title, charter: body.charter, origin: body.origin, lifecycle: "active", revision: 1,
@@ -60,7 +65,7 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], f
       return json(route, 200, created);
     }
     if (url.pathname === "/api/v1/projects/start-options") return json(route, 200, { records: [option] });
-    if (url.pathname === `/api/v1/projects/start-options/${origin.placement_id}`) return json(route, 200, option);
+    if (url.pathname === `/api/v1/projects/start-options/${origin.placement_id}`) return options.staleStartOption ? json(route, 400, { code: "stale_source" }) : json(route, 200, option);
     if (url.pathname === "/api/v1/projects") return json(route, 200, { records: [independent] });
     if (url.pathname === "/api/v1/projects/project-learning" && created) return json(route, 200, created);
     return json(route, 404, { code: "not_found" });
@@ -92,11 +97,14 @@ test("lists, starts, and reopens a learning Project through public APIs", async 
   expect(submitted.origin).toEqual(origin);
   await page.getByText("Technical record").click();
   await expect(page.getByText(origin.placement_digest)).toBeVisible();
+  await expect(page.getByText(origin.package_digest)).toBeVisible();
+  await expect(page.getByText(origin.curriculum_digest)).toBeVisible();
+  await expect(page.getByText(origin.project_brief_schema_version, { exact: true })).toBeVisible();
 });
 
 test("reuses one retry key for unchanged intent", async ({ page }) => {
   const posts: Record<string, unknown>[] = [];
-  await mockProjects(page, posts, true);
+  await mockProjects(page, posts, { firstCreateStatus: 503 });
   await page.goto(`/projects/new?placement=${origin.placement_id}`);
   await page.getByLabel(/What do you want/i).fill("First bounded purpose.");
   const firstRequestPromise = page.waitForRequest((request) => request.method() === "POST" && new URL(request.url()).pathname === "/api/v1/projects");
@@ -111,6 +119,45 @@ test("reuses one retry key for unchanged intent", async ({ page }) => {
   const retryRequest = await retryRequestPromise;
   await expect(page).toHaveURL(/\/projects\/project-learning$/);
   expect((retryRequest.postDataJSON() as Record<string, unknown>).idempotency_key).toBe(firstKey);
+});
+
+test("uses a fresh request after an idempotency conflict", async ({ page }) => {
+  const posts: Record<string, unknown>[] = [];
+  await mockProjects(page, posts, { firstCreateStatus: 409 });
+  await page.goto(`/projects/new?placement=${origin.placement_id}`);
+  await page.getByLabel(/What do you want/i).fill("First bounded purpose.");
+  await page.getByRole("button", { name: "Create Project" }).click();
+  await expect(page.getByText(/fresh request/i)).toBeVisible();
+
+  await page.getByRole("button", { name: "Create Project" }).click();
+
+  await expect(page).toHaveURL(/\/projects\/project-learning$/);
+  expect(posts[1]?.idempotency_key).not.toBe(posts[0]?.idempotency_key);
+});
+
+test("keeps the submitted Project draft fixed while the response is pending", async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => { release = resolve; });
+  await mockProjects(page, [], { beforeCreateResponse: () => pending });
+  await page.goto("/projects/new");
+  await page.getByLabel("Project title").fill("Delayed response");
+  await page.getByLabel(/What do you want/i).fill("Keep this exact request fixed.");
+  const submit = page.getByRole("button", { name: "Create Project" }).click();
+
+  await expect(page.getByLabel("Project title")).toBeDisabled();
+  await expect(page.getByLabel(/What do you want/i)).toBeDisabled();
+  release();
+  await submit;
+  await expect(page).toHaveURL(/\/projects\/project-learning$/);
+});
+
+test("returns a stale learning choice to current Projects", async ({ page }) => {
+  await mockProjects(page, [], { staleStartOption: true });
+  await page.goto(`/projects/new?placement=${origin.placement_id}`);
+
+  await expect(page.getByText("Project not found")).toBeVisible();
+  await page.getByRole("button", { name: "Return to Projects" }).click();
+  await expect(page).toHaveURL(/\/projects$/);
 });
 
 test("reflows at narrow width and keeps plain language outside technical records", async ({ page }) => {

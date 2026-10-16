@@ -117,6 +117,15 @@ describe("Project generated-client loaders and action", () => {
     expect(get).not.toHaveBeenCalled();
   });
 
+  it("returns stale learning choices to the current Projects list", async () => {
+    const get = vi.fn().mockResolvedValue(response(400, { code: "stale_source" }));
+    const loader = createProjectCreateLoader({ GET: get } as unknown as FinancialAcademyApiClient, session());
+
+    const result = await loader({ request: new Request(`http://localhost/projects/new?placement=${origin.placement_id}`) } as never);
+
+    expect(result).toEqual({ status: "invalid-selection" });
+  });
+
   it("resolves exact learning origin again before create and never submits learner authority", async () => {
     const get = vi.fn().mockResolvedValue(response(200, option));
     const post = vi.fn().mockResolvedValue(response(200, { ...project, project_id: "project-learning", origin }));
@@ -135,5 +144,20 @@ describe("Project generated-client loaders and action", () => {
     expect(submitted).not.toHaveProperty("learner_id");
     expect(submitted.origin).toEqual(origin);
     expect(submitted.idempotency_key).toBe("11111111-1111-4111-8111-111111111111");
+  });
+
+  it("does not classify an idempotency conflict as an unchanged retry", async () => {
+    const get = vi.fn().mockResolvedValue(response(200, option));
+    const post = vi.fn().mockResolvedValue(response(409, { code: "idempotency_conflict" }));
+    const action = createProjectCreateAction({ GET: get, POST: post } as unknown as FinancialAcademyApiClient, session());
+    const form = new FormData();
+    form.set("title", "My comparison");
+    form.set("charter", "Apply the approved brief.");
+    form.set("placement_id", origin.placement_id);
+    form.set("idempotency_key", "11111111-1111-4111-8111-111111111111");
+
+    const result = await action({ request: new Request("http://localhost/projects/new", { body: form, method: "POST" }) } as never);
+
+    expect(result).toEqual(expect.objectContaining({ status: "error", kind: "conflict" }));
   });
 });

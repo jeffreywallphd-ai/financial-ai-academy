@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
@@ -61,6 +61,9 @@ describe("Project learner pages", () => {
     await user.click(screen.getByText("Technical record"));
     expect(screen.getByText(project.project_id)).toBeVisible();
     expect(screen.getByText(origin.placement_digest)).toBeVisible();
+    expect(screen.getByText(origin.package_digest)).toBeVisible();
+    expect(screen.getByText(origin.curriculum_digest)).toBeVisible();
+    expect(screen.getByText(origin.project_brief_schema_version)).toBeVisible();
     expect(document.body.textContent).not.toMatch(/database|object storage|foreign key/i);
   });
 
@@ -77,5 +80,31 @@ describe("Project learner pages", () => {
     expect(hidden?.value).not.toBe(firstKey);
     expect(screen.getByLabelText("Project title")).toHaveValue(option.title);
     expect(document.body.textContent).not.toMatch(/idempotency|placement id|schema/i);
+  });
+
+  it("uses a fresh key after the server reports a changed request", () => {
+    const previousKey = "11111111-1111-4111-8111-111111111111";
+    const router = createMemoryRouter([{ path: "/projects/new", element: <ProjectCreatePage actionState={{ status: "error", kind: "conflict", idempotencyKey: previousKey, draft: { title: "My comparison", charter: "Compare two sources." } }} idempotencyKey={previousKey} option={option} /> }], { initialEntries: ["/projects/new"] });
+    const { container } = render(<RouterProvider router={router} />);
+
+    expect(container.querySelector<HTMLInputElement>('input[name="idempotency_key"]')?.value).not.toBe(previousKey);
+    expect(screen.getByText(/fresh request/i)).toBeVisible();
+  });
+
+  it("keeps material fields fixed while a create request is pending", async () => {
+    const user = userEvent.setup();
+    let finish!: () => void;
+    const action = () => new Promise<null>((resolve) => { finish = () => resolve(null); });
+    const router = createMemoryRouter([{ path: "/projects/new", action, element: <ProjectCreatePage actionState={undefined} idempotencyKey="11111111-1111-4111-8111-111111111111" option={null} /> }], { initialEntries: ["/projects/new"] });
+    render(<RouterProvider router={router} />);
+    await user.type(screen.getByLabelText("Project title"), "Delayed response");
+    await user.type(screen.getByLabelText(/What do you want/i), "Keep this exact request fixed.");
+
+    await user.click(screen.getByRole("button", { name: "Create Project" }));
+
+    await waitFor(() => expect(screen.getByLabelText("Project title")).toBeDisabled());
+    expect(screen.getByLabelText(/What do you want/i)).toBeDisabled();
+    finish();
+    await waitFor(() => expect(screen.getByLabelText("Project title")).toBeEnabled());
   });
 });

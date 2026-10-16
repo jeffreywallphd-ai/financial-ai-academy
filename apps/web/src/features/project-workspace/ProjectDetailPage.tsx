@@ -31,8 +31,13 @@ export function ProjectDetailPage({ project }: { project: ProjectShell }) {
             {learning ? <>
               <div><dt>Learning placement</dt><dd><code>{learning.placement_id}@{learning.placement_version}</code></dd></div>
               <div><dt>Placement digest</dt><dd><code>{learning.placement_digest}</code></dd></div>
+              <div><dt>Learning package</dt><dd><code>{learning.package_id}@{learning.package_version}</code></dd></div>
+              <div><dt>Package digest</dt><dd><code>{learning.package_digest}</code></dd></div>
+              <div><dt>Curriculum</dt><dd><code>{learning.curriculum_id}@{learning.curriculum_version}</code></dd></div>
+              <div><dt>Curriculum digest</dt><dd><code>{learning.curriculum_digest}</code></dd></div>
               <div><dt>Brief</dt><dd><code>{learning.brief_id}@{learning.brief_version}</code></dd></div>
               <div><dt>Brief digest</dt><dd><code>{learning.brief_digest}</code></dd></div>
+              <div><dt>Brief format</dt><dd><code>{learning.project_brief_schema_version}</code></dd></div>
             </> : null}
           </dl>
         </details>

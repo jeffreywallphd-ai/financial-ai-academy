@@ -18,7 +18,7 @@ export type ProjectCreateRouteState =
 
 export type ProjectCreateActionState = {
   status: "error";
-  kind: "invalid-input" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected";
+  kind: "invalid-input" | "invalid-selection" | "conflict" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected";
   idempotencyKey: string;
   draft?: { title: string; charter: string };
 };

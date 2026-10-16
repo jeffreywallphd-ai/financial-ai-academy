@@ -130,6 +130,9 @@ async function readStartOption(
       if (renewed.status === "error") return { status: renewed.kind };
       return readStartOption(client, session, signal, placementId, false);
     }
+    if (result.response.status === 400 || result.response.status === 404) {
+      return { status: "invalid-selection" };
+    }
     return { status: stateFromStatus(result.response.status) };
   } catch (error) {
     if (signal.aborted) throw error;
@@ -182,7 +185,7 @@ export function createProjectCreateAction(client: FinancialAcademyApiClient, ses
     if (placementId !== "") {
       const selected = await readStartOption(client, session, request.signal, placementId, true);
       if (selected.status !== "ready") {
-        return actionError(selected.status === "invalid-response" ? "invalid-response" : selected.status === "invalid-selection" ? "invalid-input" : selected.status, idempotencyKey, draft);
+        return actionError(selected.status === "invalid-response" ? "invalid-response" : selected.status, idempotencyKey, draft);
       }
       if (selected.option === null) return actionError("invalid-response", idempotencyKey, draft);
       origin = selected.option.origin;
@@ -197,6 +200,7 @@ export function createProjectCreateAction(client: FinancialAcademyApiClient, ses
           ? redirect(`/projects/${encodeURIComponent(result.data.project_id)}`)
           : actionError("invalid-response", idempotencyKey, draft);
       }
+      if (result.response.status === 409) return actionError("conflict", idempotencyKey, draft);
       return actionError(stateFromStatus(result.response.status), idempotencyKey, draft);
     } catch (error) {
       if (request.signal.aborted) throw error;
