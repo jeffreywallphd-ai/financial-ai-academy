@@ -234,7 +234,7 @@ refined just in time.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | captured |
+| WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | ready |
 | JIT-B | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | JIT-A | none | captured |
 | JIT-C | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | JIT-B | none | captured |
 | JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | JIT-C | none | captured |
@@ -322,3 +322,7 @@ created, and no managed-cloud or production-recovery profile was qualified.
   workspace-to-snapshot flow while preserving Project ownership, public-module
   boundaries, headless access, and explicit execution denial. The refinement
   conforms to the current CAP package and exposes no new decision gate.
+- 2026-10-16: Refined JIT-A as WRK-0118. The packet freezes additive portable
+  workspace, inert-artifact, typed-link, immutable-snapshot, and export
+  contracts plus pure Project policy; persistence, public API, browser behavior,
+  and every execution effect remain deferred.
