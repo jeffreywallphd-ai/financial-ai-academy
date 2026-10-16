@@ -198,6 +198,38 @@ product API, generated client, UI behavior, source evidence, migration, model,
 provider, cloud adapter, or separate AI-mode plan changed, then leave JIT-B
 dependency-ready.
 
+## Implementation Evidence
+
+- The existing runner now starts and stops the loopback application through one
+  bounded helper, cleans up a process that fails readiness, and restarts the
+  normal host against the retained database and object root without fixture
+  flags.
+- A cookie-aware headless client uses only the public single-profile session,
+  exact Curriculum graph, Navigation-state, and activity-launch endpoints. It
+  correlates exact graph-owned identity, resource, destination, policy,
+  source-set, ordered state, and reason semantics without importing product
+  internals or trusting browser state.
+- While the application is stopped, qualification executes exactly two fixed
+  deletes against the rebuildable Learner-model history and projection tables.
+  It observes Assessment evidence and outbox counts before and after, then
+  requires normal API access to rebuild nonempty derived state.
+- Nine focused orchestration tests pass. They cover seed-free restart command
+  construction, headless public API routing, graph/launch drift denial,
+  time/digest anti-rigidity, exact reset scope, source preservation, semantic
+  replay, graceful/forced stop, and failed-readiness cleanup.
+- The isolated PostgreSQL 18.4/Python/public-API/generated-client/Chromium run
+  passes all eight browser scenarios plus the new replay phase. It preserves
+  Assessment sources and rebuilds three projection rows and one history row
+  with stable Navigation semantics after a seed-free restart.
+- The focused contract/domain/application suite passes 189 tests; protected
+  FastAPI integration passes 32; architecture passes 13 tests plus three
+  subtests. Documentation and planning integrity, Git whitespace, and all 29
+  aggregate readiness checks pass.
+- No product domain, application, API, OpenAPI, generated client, UI, schema,
+  migration, dependency, fixture meaning, source evidence, model authority,
+  provider, cloud adapter, or separate AI-mode plan changed. Public APIs remain
+  the authoritative UI and non-UI boundary.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after SLI-0025 selection and WRK-0089
@@ -205,3 +237,8 @@ dependency-ready.
   headless qualification and projection replay explicit, limits direct SQL to
   derived rows in the ephemeral database, and adds no decision or lower-level
   approval gate.
+- 2026-10-16: Implemented the headless API observation, bounded host restart,
+  isolated derived-state reset, source-preserving replay assertion, redacted
+  report, focused tests, and synchronized contract/deployment guidance. The
+  exact implementation candidate is ready for affected verification and
+  independent review.

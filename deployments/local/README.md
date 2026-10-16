@@ -113,6 +113,16 @@ lesson continuation, retained completion, context denial, security headers,
 and axe accessibility. The companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.
+
+After the browser journey, the runner creates a fresh cookie-backed headless
+session and reads the exact graph, Navigation state, and eligible launch through
+public APIs. It then stops the application, deletes only the isolated
+Learner-model completion history and projection rows, restarts the normal host
+against the retained database and object root without reseeding, and proves
+that a fresh API read rebuilds the same semantic navigation state from unchanged
+Assessment evidence. This is an isolated replay check, not a product reset
+route or production recovery procedure.
+
 It removes only those exact resources in `finally` cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.
@@ -157,10 +167,15 @@ complete ordered activity closure, bounded assessment
 unavailability, filter/pagination/cursor-denial, exact detail, ordered
 comparison, changed/malformed selection, and
 catalog-to-exact-lesson Chromium paths, architecture and security scans, axe
-accessibility, and safe teardown.
+accessibility, safe teardown, API-only graph/state/launch consumption, and
+application-restart reconstruction of derived Learner-model state from
+unchanged Assessment evidence without fixture reseeding.
 
 The following remain unqualified: built-in credentials, OIDC, multiple
 learners, remote/public binding, worker and analytics composition, passive
 asset delivery, backup/restore, upgrade procedures beyond the tested slice
 migrations, non-Chromium browsers, non-Windows visual baselines, managed
 cloud, production distribution, and any RPO/RTO or availability claim.
+The qualification also does not define a headless AI mode, agent protocol,
+model provider, or autonomous action authority; it preserves the public API
+surface that such a separately planned consumer could use later.

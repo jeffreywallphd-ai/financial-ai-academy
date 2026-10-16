@@ -133,3 +133,21 @@ that deliberately reuses the exact placement/package source may observe its
 retained completion; an activity whose version changes the placement remains
 incomplete. This is exact source identity, not inferred equivalence or a
 cross-version migration.
+
+The same isolated qualification also exercises a headless consumer through the
+public session, exact graph, Navigation-state, and activity-launch APIs. After
+the visible journey creates accepted Assessment evidence, the qualifier stops
+the application, clears only the two rebuildable Learner-model completion
+tables in its ephemeral PostgreSQL database, and restarts the normal host
+against the same database and object root without fixture seeding. A fresh
+public Navigation-state read rebuilds the projection through Assessment's
+public replay source. Exact graph, policy, source-set, ordered activity-state,
+reason, and launch-resource semantics remain stable, while Assessment evidence
+counts remain unchanged and derived rows reappear. Observation timestamps and
+digests that incorporate them are not incorrectly treated as durable identity.
+
+This is recovery and API portability evidence for the shared core, not a
+production reset API, backup/restore claim, managed-cloud qualification, or
+separate AI execution mode. Browser and future non-browser consumers share the
+same protected public operations; neither receives permission to select learner
+identity, eligibility, completion, destination, or policy output.

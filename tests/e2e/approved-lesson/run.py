@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
+import http.cookiejar
 import json
 import os
 import shutil
@@ -15,7 +17,10 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Any
 from uuid import uuid4
+
+import psycopg
 
 
 REPOSITORY = Path(__file__).resolve().parents[3]
@@ -25,6 +30,21 @@ POSTGRES_IMAGE = "postgres:18.4"
 POSTGRES_USER = "financial_ai_academy"
 POSTGRES_DATABASE = "financial_ai_academy"
 POSTGRES_PASSWORD = "qualification-only"
+CURRICULUM_ID = "investing-foundations"
+CURRICULUM_VERSION = "1.0.0"
+LESSON_ACTIVITY_ID = "activity-risk-return-lesson"
+REBUILDABLE_COMPLETION_RESET = (
+    "DELETE FROM learner_model.lesson_completion_history",
+    "DELETE FROM learner_model.lesson_completion_projections",
+)
+COMPLETION_STORAGE_COUNTS = """
+    SELECT
+        (SELECT count(*) FROM assessment.completion_evidence),
+        (SELECT count(*) FROM assessment.outbox),
+        (SELECT count(*)
+           FROM learner_model.lesson_completion_projections),
+        (SELECT count(*) FROM learner_model.lesson_completion_history)
+"""
 
 
 def parse_args() -> argparse.Namespace:
@@ -137,6 +157,345 @@ def wait_for_http(url: str, process: subprocess.Popen[str]) -> None:
     raise RuntimeError("The Python application did not become ready.")
 
 
+def application_command(
+    *,
+    postgres_dsn: str,
+    data_root: Path,
+    port: int,
+    seed_fixture: bool,
+) -> list[str]:
+    command = [
+        sys.executable,
+        str(REPOSITORY / "deployments" / "local" / "serve.py"),
+        "--postgres-dsn",
+        postgres_dsn,
+        "--data-root",
+        str(data_root),
+        "--host",
+        "127.0.0.1",
+        "--port",
+        str(port),
+    ]
+    if seed_fixture:
+        command.extend(
+            ["--seed-approved-fixture", "--seed-discovery-query-fixtures"]
+        )
+    return command
+
+
+def start_application(
+    *,
+    postgres_dsn: str,
+    data_root: Path,
+    port: int,
+    application_log: Path,
+    seed_fixture: bool,
+) -> subprocess.Popen[str]:
+    with application_log.open("a", encoding="utf-8") as output:
+        process = subprocess.Popen(
+            application_command(
+                postgres_dsn=postgres_dsn,
+                data_root=data_root,
+                port=port,
+                seed_fixture=seed_fixture,
+            ),
+            cwd=REPOSITORY,
+            stdout=output,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+    try:
+        wait_for_http(f"http://127.0.0.1:{port}/ready", process)
+    except Exception:
+        stop_application(process)
+        raise
+    return process
+
+
+def stop_application(application: subprocess.Popen[str] | None) -> None:
+    if application is None or application.poll() is not None:
+        return
+    application.terminate()
+    try:
+        application.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        application.kill()
+        application.wait(timeout=5)
+
+
+def _request_json(
+    opener: urllib.request.OpenerDirector,
+    *,
+    origin: str,
+    path: str,
+    method: str = "GET",
+    payload: dict[str, object] | None = None,
+) -> dict[str, Any]:
+    data = None
+    headers = {"Accept": "application/json"}
+    if payload is not None:
+        data = json.dumps(payload).encode("utf-8")
+        headers.update(
+            {
+                "Content-Type": "application/json",
+                "Origin": origin,
+                "Sec-Fetch-Site": "same-origin",
+            }
+        )
+    request = urllib.request.Request(
+        f"{origin}{path}",
+        data=data,
+        headers=headers,
+        method=method,
+    )
+    try:
+        with opener.open(request, timeout=10) as response:
+            if not 200 <= response.status < 300:
+                raise RuntimeError(
+                    f"Headless API request failed: {method} {path} "
+                    f"returned {response.status}."
+                )
+            document = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        raise RuntimeError(
+            f"Headless API request failed: {method} {path} "
+            f"returned {error.code}."
+        ) from None
+    if not isinstance(document, dict):
+        raise RuntimeError(
+            f"Headless API request returned a non-object: {method} {path}."
+        )
+    return document
+
+
+def stable_navigation_semantics(
+    navigation: dict[str, Any],
+) -> dict[str, Any]:
+    required = (
+        "schema_version",
+        "curriculum_id",
+        "curriculum_version",
+        "graph_digest",
+        "policy_id",
+        "policy_version",
+        "source_set_digest",
+        "activity_states",
+    )
+    missing = [key for key in required if key not in navigation]
+    if missing:
+        raise RuntimeError(
+            "Navigation response is missing stable fields: "
+            + ", ".join(sorted(missing))
+            + "."
+        )
+    return {key: copy.deepcopy(navigation[key]) for key in required}
+
+
+def _stable_launch_semantics(launch: dict[str, Any]) -> dict[str, Any]:
+    required = (
+        "schema_version",
+        "curriculum_id",
+        "curriculum_version",
+        "graph_digest",
+        "activity_id",
+        "placement_id",
+        "package_id",
+        "package_version",
+        "package_digest",
+        "destination",
+    )
+    missing = [key for key in required if key not in launch]
+    if missing:
+        raise RuntimeError(
+            "Launch response is missing stable fields: "
+            + ", ".join(sorted(missing))
+            + "."
+        )
+    return {key: copy.deepcopy(launch[key]) for key in required}
+
+
+def headless_observation_semantics(
+    *,
+    graph: dict[str, Any],
+    navigation: dict[str, Any],
+    launch: dict[str, Any],
+    activity_id: str = LESSON_ACTIVITY_ID,
+) -> dict[str, Any]:
+    graph_identity = {
+        "schema_version": graph.get("schema_version"),
+        "curriculum_id": graph.get("curriculum_id"),
+        "curriculum_version": graph.get("curriculum_version"),
+        "graph_digest": graph.get("graph_digest"),
+    }
+    if graph_identity != {
+        "schema_version": "1.0.0",
+        "curriculum_id": CURRICULUM_ID,
+        "curriculum_version": CURRICULUM_VERSION,
+        "graph_digest": graph.get("graph_digest"),
+    } or not isinstance(graph_identity["graph_digest"], str):
+        raise RuntimeError("Headless graph identity is inconsistent.")
+
+    navigation_semantics = stable_navigation_semantics(navigation)
+    if any(
+        navigation_semantics[key] != graph_identity[key]
+        for key in ("curriculum_id", "curriculum_version", "graph_digest")
+    ):
+        raise RuntimeError("Headless navigation does not match the exact graph.")
+
+    activities = graph.get("activities")
+    if not isinstance(activities, list):
+        raise RuntimeError("Headless graph activities are unavailable.")
+    matching_activities = [
+        item
+        for item in activities
+        if isinstance(item, dict) and item.get("activity_id") == activity_id
+    ]
+    if len(matching_activities) != 1:
+        raise RuntimeError("Headless launch activity is not uniquely present.")
+    reference = matching_activities[0].get("reference")
+    if not isinstance(reference, dict):
+        raise RuntimeError("Headless launch activity reference is unavailable.")
+
+    states = navigation_semantics["activity_states"]
+    if not isinstance(states, list):
+        raise RuntimeError("Headless navigation states are unavailable.")
+    matching_states = [
+        item
+        for item in states
+        if isinstance(item, dict) and item.get("activity_id") == activity_id
+    ]
+    if len(matching_states) != 1 or matching_states[0].get("eligibility") != "eligible":
+        raise RuntimeError("Headless launch activity is not uniquely eligible.")
+
+    launch_semantics = _stable_launch_semantics(launch)
+    expected_launch = {
+        "schema_version": "1.0.0",
+        "curriculum_id": graph_identity["curriculum_id"],
+        "curriculum_version": graph_identity["curriculum_version"],
+        "graph_digest": graph_identity["graph_digest"],
+        "activity_id": activity_id,
+        "placement_id": reference.get("placement_id"),
+        "package_id": reference.get("package_id"),
+        "package_version": reference.get("package_version"),
+        "package_digest": reference.get("package_digest"),
+        "destination": f"/learn/placements/{reference.get('placement_id')}",
+    }
+    if launch_semantics != expected_launch:
+        raise RuntimeError("Headless launch does not match graph-owned facts.")
+
+    return {
+        "graph": graph_identity,
+        "navigation": navigation_semantics,
+        "launch": launch_semantics,
+    }
+
+
+def observe_headless_navigation(origin: str) -> dict[str, Any]:
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(cookies)
+    )
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    graph_path = (
+        f"/api/v1/curriculum/graphs/{CURRICULUM_ID}"
+        f"/versions/{CURRICULUM_VERSION}"
+    )
+    navigation_path = (
+        f"/api/v1/adaptation/curricula/{CURRICULUM_ID}"
+        f"/versions/{CURRICULUM_VERSION}/navigation-state"
+    )
+    launch_path = (
+        f"/api/v1/adaptation/curricula/{CURRICULUM_ID}"
+        f"/versions/{CURRICULUM_VERSION}/activities/"
+        f"{LESSON_ACTIVITY_ID}/launch"
+    )
+    return headless_observation_semantics(
+        graph=_request_json(opener, origin=origin, path=graph_path),
+        navigation=_request_json(
+            opener,
+            origin=origin,
+            path=navigation_path,
+        ),
+        launch=_request_json(opener, origin=origin, path=launch_path),
+    )
+
+
+def _storage_counts(connection: psycopg.Connection[Any]) -> dict[str, int]:
+    row = connection.execute(COMPLETION_STORAGE_COUNTS).fetchone()
+    if row is None or len(row) != 4:
+        raise RuntimeError("Completion storage counts are unavailable.")
+    return {
+        "assessment_evidence": int(row[0]),
+        "assessment_events": int(row[1]),
+        "learner_projections": int(row[2]),
+        "learner_history": int(row[3]),
+    }
+
+
+def completion_storage_counts(postgres_dsn: str) -> dict[str, int]:
+    with psycopg.connect(postgres_dsn) as connection:
+        return _storage_counts(connection)
+
+
+def reset_rebuildable_completion_state(
+    postgres_dsn: str,
+) -> tuple[dict[str, int], dict[str, int]]:
+    with psycopg.connect(postgres_dsn) as connection:
+        before = _storage_counts(connection)
+        for statement in REBUILDABLE_COMPLETION_RESET:
+            connection.execute(statement)
+        after = _storage_counts(connection)
+    if (
+        after["assessment_evidence"] != before["assessment_evidence"]
+        or after["assessment_events"] != before["assessment_events"]
+        or after["learner_projections"] != 0
+        or after["learner_history"] != 0
+    ):
+        raise RuntimeError("Derived completion reset exceeded its bounded scope.")
+    return before, after
+
+
+def assert_replay_result(
+    *,
+    before_observation: dict[str, Any],
+    after_observation: dict[str, Any],
+    before_reset: dict[str, int],
+    after_reset: dict[str, int],
+    after_rebuild: dict[str, int],
+) -> None:
+    if before_observation != after_observation:
+        raise RuntimeError("Navigation semantics changed after projection replay.")
+    if before_reset["assessment_evidence"] < 1 or before_reset[
+        "assessment_events"
+    ] < 1:
+        raise RuntimeError("Replay qualification requires retained Assessment evidence.")
+    if before_reset["learner_projections"] < 1 or before_reset[
+        "learner_history"
+    ] < 1:
+        raise RuntimeError("Replay qualification requires an initial projection.")
+    if after_reset["learner_projections"] != 0 or after_reset[
+        "learner_history"
+    ] != 0:
+        raise RuntimeError("Derived completion rows were not fully reset.")
+    if (
+        after_rebuild["assessment_evidence"]
+        != before_reset["assessment_evidence"]
+        or after_rebuild["assessment_events"]
+        != before_reset["assessment_events"]
+    ):
+        raise RuntimeError("Assessment evidence changed during projection replay.")
+    if after_rebuild["learner_projections"] < 1 or after_rebuild[
+        "learner_history"
+    ] < 1:
+        raise RuntimeError("Learner-model projection replay did not rebuild state.")
+
+
 def npm_e2e_command() -> list[str]:
     node = os.environ.get("FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE")
     npm_cli = os.environ.get("FINANCIAL_AI_ACADEMY_NPM_CLI")
@@ -241,33 +600,40 @@ def main() -> int:
             container_name, postgres_dsn = start_postgres()
             postgres_topology = f"{POSTGRES_IMAGE} isolated container"
 
-        command = [
-            sys.executable,
-            str(REPOSITORY / "deployments" / "local" / "serve.py"),
-            "--postgres-dsn",
-            postgres_dsn,
-            "--data-root",
-            str(data_root / "application-data"),
-            "--host",
-            "127.0.0.1",
-            "--port",
-            str(port),
-            "--seed-approved-fixture",
-            "--seed-discovery-query-fixtures",
-        ]
-        with application_log.open("w", encoding="utf-8") as output:
-            application = subprocess.Popen(
-                command,
-                cwd=REPOSITORY,
-                stdout=output,
-                stderr=subprocess.STDOUT,
-                text=True,
-            )
-        wait_for_http(f"{origin}/ready", application)
+        application = start_application(
+            postgres_dsn=postgres_dsn,
+            data_root=data_root / "application-data",
+            port=port,
+            application_log=application_log,
+            seed_fixture=True,
+        )
 
         environment = os.environ.copy()
         environment["FINANCIAL_AI_ACADEMY_E2E_BASE_URL"] = origin
         run_checked(npm_e2e_command(), env=environment)
+
+        before_observation = observe_headless_navigation(origin)
+        stop_application(application)
+        application = None
+        before_reset, after_reset = reset_rebuildable_completion_state(
+            postgres_dsn
+        )
+        application = start_application(
+            postgres_dsn=postgres_dsn,
+            data_root=data_root / "application-data",
+            port=port,
+            application_log=application_log,
+            seed_fixture=False,
+        )
+        after_observation = observe_headless_navigation(origin)
+        after_rebuild = completion_storage_counts(postgres_dsn)
+        assert_replay_result(
+            before_observation=before_observation,
+            after_observation=after_observation,
+            before_reset=before_reset,
+            after_reset=after_reset,
+            after_rebuild=after_rebuild,
+        )
 
         report = {
             "browser": "Playwright pinned Chromium",
@@ -302,6 +668,16 @@ def main() -> int:
             ),
             "http_origin": origin,
             "production_application_process": Path(sys.executable).name,
+            "projection_replay": {
+                "assessment_source_preserved": True,
+                "headless_public_api": True,
+                "learner_history_rows": after_rebuild["learner_history"],
+                "learner_projection_rows": after_rebuild[
+                    "learner_projections"
+                ],
+                "normal_restart_without_reseeding": True,
+                "stable_navigation_semantics": True,
+            },
             "query_corpus": (
                 "one available exact lesson plus planned and unavailable "
                 "synthetic classifications"
@@ -323,13 +699,7 @@ def main() -> int:
             print(diagnostics[-4000:], file=sys.stderr)
         raise
     finally:
-        if application is not None and application.poll() is None:
-            application.terminate()
-            try:
-                application.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                application.kill()
-                application.wait(timeout=5)
+        stop_application(application)
         remove_container(container_name)
         remove_data_root(data_root)
 

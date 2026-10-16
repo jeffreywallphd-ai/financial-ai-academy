@@ -74,7 +74,7 @@ adapter, or a separate AI execution mode.
 - [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md)
   separates Curriculum meaning, Assessment evidence, Learner-model
   projections, and host composition.
-- [ADR-0004](../../adr/ADR-0004-shared-core-local-and-cloud-profiles.md)
+- [ADR-0004](../../adr/ADR-0004-shared-core-local-cloud.md)
   requires one shared core rather than local and cloud product forks.
 - [ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md)
   keeps deterministic eligibility authoritative and model influence outside
@@ -248,3 +248,7 @@ plan remain out of scope.
 - 2026-10-16: Activated WRK-0090 after revalidating CAP membership, completed
   dependencies, decision readiness, exact write scope, and collision-free
   ownership.
+- 2026-10-16: WRK-0090 implemented a public-API-only headless observation,
+  seed-free host restart, isolated derived-projection reset, source-preserving
+  replay proof, and direct anti-rigidity coverage without changing product
+  contracts or planning a separate AI mode.
