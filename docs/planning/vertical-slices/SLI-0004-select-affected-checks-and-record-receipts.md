@@ -107,6 +107,7 @@ returns one qualifying or actionable non-qualifying disposition to the CLI.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0012 | Deliver deterministic affected-check selection, exact verification receipts, adapters, commands, docs, and anti-rigidity tests | WRK-0011 | none | ready |
+| WRK-0067 | Correct web/live affected coverage with precise path classes and isolated exact-candidate build execution | WRK-0012 | none | verifying |
 
 ## Verification and Qualification
 

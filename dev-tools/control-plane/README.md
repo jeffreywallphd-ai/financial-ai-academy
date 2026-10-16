@@ -152,15 +152,23 @@ scope checks, and anti-rigidity assertions for the two-command claim/submit path
 Verification tests cover narrow-versus-full selection, deterministic plan
 digests, failed and timed-out attempts, append-only receipt chains, candidate
 drift, stale evidence, raw-output minimization, and disabled optimistic reuse.
-The Financial AI Academy catalog maps web source and test paths to the prepared
-Node 24/npm 10.8.2 typecheck, lint, and Vitest commands. Known mocked browser
-suites additionally select their bounded Chromium run. Approved-lesson browser,
-runner, and local-composition paths select the existing live PostgreSQL/Python/
-static-browser qualification plus aggregate readiness. The repository wrapper
-builds the exact static application in place, always restores the candidate's
-prior `apps/web/dist` tree, and leaves the controller's post-run clean-HEAD
-check authoritative. Ordinary mocked browser changes do not select Docker or
-the live suite.
+The Financial AI Academy catalog classifies web source, production-build,
+generated-client, mocked-browser, roadmap-review, local-runtime, local-script,
+and documentation paths separately. Each class selects only the prepared Node
+24/npm 10.8.2, Python, Chromium, or live PostgreSQL behavior needed for that
+impact. Approved-lesson browser and runner changes select the existing live
+PostgreSQL/Python/static-browser qualification; documentation-only and
+Python-only changes do not inherit unrelated TypeScript or aggregate-readiness
+work.
+
+The production-build and live wrappers copy the exact tracked candidate into an
+isolated temporary snapshot, omit any tracked `apps/web/dist` output, and link
+the already prepared web dependencies. Production build and live qualification
+then run entirely inside that snapshot. They never read, replace, restore, or
+remove the working tree's `apps/web/dist`, including when that path is absent, a
+file, a link, or is being changed concurrently. Temporary output is deleted
+with the snapshot, while the controller's post-run clean-HEAD check remains
+authoritative.
 Review tests cover independent one-round acceptance, self-review denial,
 immutable candidate rounds, blocking findings, explicit closure, stale-receipt
 denial, strict-descendant corrections, fresh-verification requirements,

@@ -10,7 +10,7 @@ from verification import CheckCatalog, CheckDefinition
 def catalog() -> CheckCatalog:
     python = sys.executable
     web_check = (python, "dev-tools/control-plane/check_approved_lesson.py")
-    web_paths = (
+    web_source_paths = (
         "apps/web/src/**",
         "apps/web/tests/unit/**",
         "apps/web/tests/component/**",
@@ -19,6 +19,20 @@ def catalog() -> CheckCatalog:
         "apps/web/package.json",
         "apps/web/package-lock.json",
     )
+    web_build_paths = (
+        "apps/web/index.html",
+        "apps/web/tsconfig.json",
+        "apps/web/vite.config.ts",
+        "apps/web/package.json",
+        "apps/web/package-lock.json",
+        "apps/web/src/**",
+    )
+    generated_client_paths = (
+        "apps/web/scripts/generate-api-client.mjs",
+        "apps/web/src/generated/api-client/**",
+        "backend/src/financial_ai_academy/hosts/api/**",
+        "contracts/api/openapi.json",
+    )
     mocked_browser_paths = (
         "apps/web/tests/browser/curriculum-graph/**",
         "apps/web/tests/browser/learning-catalog/**",
@@ -26,27 +40,53 @@ def catalog() -> CheckCatalog:
         "apps/web/tests/browser/support/**",
         "apps/web/tests/browser/playwright.config.ts",
     )
-    live_paths = (
+    approved_browser_paths = (
         "apps/web/tests/browser/approved-lesson/**",
         "apps/web/tests/browser/approved-lesson.config.ts",
+    )
+    roadmap_browser_paths = (
+        "apps/web/tests/browser/roadmap-review/**",
+        "apps/web/tests/browser/roadmap-review.config.ts",
+    )
+    live_runtime_paths = (
         "tests/e2e/approved-lesson/**",
-        "deployments/local/**",
+        "deployments/local/serve.py",
+    )
+    local_script_paths = (
+        "deployments/local/dev.mjs",
+        "deployments/local/setup-dev.mjs",
+    )
+    local_composition_paths = (
+        "deployments/local/compose.qualify.yml",
+        *local_script_paths,
+        *live_runtime_paths,
+    )
+    documentation_paths = (
+        "apps/web/README.md",
+        "deployments/local/README.md",
+        "dev-tools/control-plane/README.md",
     )
     return CheckCatalog(
-        "financial-ai-academy-v2",
+        "financial-ai-academy-v3",
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
             CheckDefinition("control-plane:verification", (python, "dev-tools/control-plane/test_verification.py"), ("dev-tools/control-plane/verification.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/test_verification.py"), "medium", 12, description="Affected-selection, repository-check, and receipt behavior"),
             CheckDefinition("planning:tools", (python, "dev-tools/planning/test_planning_tools.py"), ("dev-tools/planning/**", "docs/planning/**"), "medium", 20, description="Planning-tool behavior"),
             CheckDefinition("planning:integrity", (python, "dev-tools/planning/check_planning.py"), ("dev-tools/planning/**", "docs/planning/**"), "low", 30, description="Planning artifact integrity"),
-            CheckDefinition("documentation:integrity", (python, "dev-tools/documentation/check_docs.py"), ("docs/**", "AGENTS.md"), "low", 40, description="Documentation and context integrity"),
+            CheckDefinition("documentation:integrity", (python, "dev-tools/documentation/check_docs.py"), ("docs/**", "AGENTS.md", *documentation_paths), "low", 40, description="Documentation and context integrity"),
+            CheckDefinition("roadmap-review:qualification", (python, "dev-tools/roadmap-review-site/test_qualification.py"), ("dev-tools/roadmap-review-site/**", *roadmap_browser_paths), "medium", 45, description="Roadmap review projection and site contract"),
             CheckDefinition("architecture:integrity", (python, "dev-tools/architecture/check_architecture.py"), ("backend/**", "contracts/**", "docs/architecture/**"), "high", 50, description="Architecture boundary checks"),
-            CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_paths, *mocked_browser_paths, *live_paths), "medium", 52, description="Web TypeScript boundary"),
-            CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_paths, *mocked_browser_paths, *live_paths), "medium", 54, description="Web source and test lint"),
-            CheckDefinition("web:unit", (*web_check, "--mode", "unit"), (*web_paths, *mocked_browser_paths, *live_paths), "medium", 56, description="Web unit, component, and contract behavior"),
+            CheckDefinition("local:architecture", (python, "tests/architecture/test_approved_lesson_boundaries.py"), local_composition_paths, "medium", 51, description="Local composition and approved-lesson boundary checks"),
+            CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_source_paths, *mocked_browser_paths, *approved_browser_paths, *roadmap_browser_paths, "apps/web/tsconfig.json"), "medium", 52, description="Web TypeScript boundary"),
+            CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_source_paths, *mocked_browser_paths, *approved_browser_paths, *roadmap_browser_paths), "medium", 54, description="Web source and test lint"),
+            CheckDefinition("web:unit", (*web_check, "--mode", "unit"), (*web_source_paths, "apps/web/scripts/generate-api-client.mjs"), "medium", 56, description="Web unit, component, and contract behavior"),
             CheckDefinition("web:browser", (*web_check, "--mode", "browser"), mocked_browser_paths, "medium", 58, timeout_seconds=120, description="Mocked Chromium application behavior"),
             CheckDefinition("design:integrity", (python, "dev-tools/design/check_design_system.py"), ("apps/web/src/design-system/**", "docs/design/**"), "medium", 60, description="Design-system integrity"),
-            CheckDefinition("approved-lesson:live", (*web_check, "--mode", "live"), live_paths, "high", 70, timeout_seconds=240, description="Live PostgreSQL, Python, static browser, and pinned Chromium qualification"),
-            CheckDefinition("agent:readiness", (python, "dev-tools/agent/check_ready.py"), ("dev-tools/agent/**", ".github/workflows/**", "docs/planning/skills/**", *live_paths), "high", 90, timeout_seconds=180, description="Shared agent-support readiness suite"),
+            CheckDefinition("web:build", (*web_check, "--mode", "build"), web_build_paths, "medium", 62, description="Static web production build"),
+            CheckDefinition("web:generated-client", (*web_check, "--mode", "generated"), generated_client_paths, "high", 64, description="Reviewed OpenAPI generated-client reproduction"),
+            CheckDefinition("roadmap-review:browser", (*web_check, "--mode", "roadmap"), roadmap_browser_paths, "medium", 66, timeout_seconds=120, description="Roadmap review Chromium behavior"),
+            CheckDefinition("local:node-syntax", (*web_check, "--mode", "local-scripts"), local_script_paths, "medium", 68, description="Local Node runner syntax"),
+            CheckDefinition("approved-lesson:live", (*web_check, "--mode", "live"), (*approved_browser_paths, *live_runtime_paths, "dev-tools/control-plane/check_approved_lesson.py"), "high", 70, timeout_seconds=300, description="Live PostgreSQL, Python, static browser, and pinned Chromium qualification"),
+            CheckDefinition("agent:readiness", (python, "dev-tools/agent/check_ready.py"), ("dev-tools/agent/**", ".github/workflows/**", "docs/planning/skills/**"), "high", 90, timeout_seconds=180, description="Shared agent-support readiness suite"),
         ),
     )

@@ -4,7 +4,8 @@
 from __future__ import annotations
 
 import json
-import shutil
+import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -159,35 +160,76 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(["dev-tools/agent/check_ready.py"], selected["agent:readiness"]["matched_paths"])
         self.assertEqual("affected path matched tracked rule", selected["agent:readiness"]["reason"])
 
-    def test_web_selection_exercises_behavior_without_forcing_live_on_mocked_tests(self) -> None:
-        mocked_plan = select_checks(
-            repository_catalog(),
-            "a" * 40,
-            ["apps/web/tests/browser/lesson-reading/example.spec.ts"],
-        )
-        mocked_ids = [item["check_id"] for item in mocked_plan["selected"]]
-        self.assertEqual(
-            ["web:typecheck", "web:lint", "web:unit", "web:browser"],
-            mocked_ids,
-        )
-        self.assertNotIn("approved-lesson:live", mocked_ids)
-        self.assertNotIn("agent:readiness", mocked_ids)
-
-        live_plan = select_checks(
-            repository_catalog(),
-            "a" * 40,
-            ["apps/web/tests/browser/approved-lesson/example.e2e.ts"],
-        )
-        self.assertEqual(
-            [
+    def test_repository_path_classes_select_precise_behavior_checks(self) -> None:
+        cases = {
+            "apps/web/index.html": ["web:build"],
+            "apps/web/tsconfig.json": ["web:typecheck", "web:build"],
+            "apps/web/scripts/generate-api-client.mjs": [
+                "web:unit",
+                "web:generated-client",
+            ],
+            "apps/web/src/generated/api-client/index.ts": [
                 "web:typecheck",
                 "web:lint",
                 "web:unit",
-                "approved-lesson:live",
-                "agent:readiness",
+                "web:build",
+                "web:generated-client",
             ],
-            [item["check_id"] for item in live_plan["selected"]],
-        )
+            "contracts/api/openapi.json": [
+                "architecture:integrity",
+                "web:generated-client",
+            ],
+            "apps/web/tests/browser/lesson-reading/example.spec.ts": [
+                "web:typecheck",
+                "web:lint",
+                "web:browser",
+            ],
+            "apps/web/tests/browser/approved-lesson/example.e2e.ts": [
+                "web:typecheck",
+                "web:lint",
+                "approved-lesson:live",
+            ],
+            "apps/web/tests/browser/roadmap-review/example.spec.ts": [
+                "roadmap-review:qualification",
+                "web:typecheck",
+                "web:lint",
+                "roadmap-review:browser",
+            ],
+            "apps/web/tests/browser/roadmap-review.config.ts": [
+                "roadmap-review:qualification",
+                "web:typecheck",
+                "web:lint",
+                "roadmap-review:browser",
+            ],
+            "apps/web/README.md": ["documentation:integrity"],
+            "deployments/local/README.md": ["documentation:integrity"],
+            "deployments/local/serve.py": [
+                "local:architecture",
+                "approved-lesson:live",
+            ],
+            "deployments/local/dev.mjs": [
+                "local:architecture",
+                "local:node-syntax",
+            ],
+            "deployments/local/compose.qualify.yml": ["local:architecture"],
+            "tests/e2e/approved-lesson/run.py": [
+                "local:architecture",
+                "approved-lesson:live",
+            ],
+            "dev-tools/control-plane/check_approved_lesson.py": [
+                "control-plane:unit",
+                "control-plane:verification",
+                "approved-lesson:live",
+            ],
+        }
+        for path, expected in cases.items():
+            with self.subTest(path=path):
+                plan = select_checks(repository_catalog(), "a" * 40, [path])
+                self.assertEqual(expected, [item["check_id"] for item in plan["selected"]])
+                self.assertNotIn(
+                    "agent:readiness",
+                    [item["check_id"] for item in plan["selected"]],
+                )
 
     def test_unclassified_path_refuses_instead_of_arbitrary_or_full_fallback(self) -> None:
         with self.assertRaises(ControlError) as refused:
@@ -253,64 +295,171 @@ class RepositoryWebCheckTests(unittest.TestCase):
         del root
         return "v24.14.0" if command[0] == "node" else "10.8.2"
 
-    def test_live_check_restores_existing_build_after_failure(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="web-check-existing-") as directory:
-            root = Path(directory)
-            dist = root / "apps" / "web" / "dist"
-            dist.mkdir(parents=True)
-            (dist / "index.html").write_text("old-index", encoding="utf-8")
-            (dist / "old.js").write_text("old-asset", encoding="utf-8")
-            calls = 0
+    @staticmethod
+    def prepare_snapshot(source: Path, target: Path) -> None:
+        del source
+        (target / "apps" / "web").mkdir(parents=True)
 
-            def failing_runner(command: tuple[str, ...], *, root: Path) -> None:
-                nonlocal calls
-                calls += 1
-                if calls == 1:
-                    shutil.rmtree(root / "apps" / "web" / "dist")
-                    (root / "apps" / "web" / "dist").mkdir()
-                    (root / "apps" / "web" / "dist" / "index.html").write_text(
-                        "new-index", encoding="utf-8"
-                    )
-                    return
+    def run_isolated_live(self, root: Path, *, fail: bool = False) -> int:
+        calls = 0
+
+        def runner(command: tuple[str, ...], *, root: Path) -> None:
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                dist = root / "apps" / "web" / "dist"
+                dist.mkdir(parents=True)
+                (dist / "index.html").write_text("isolated-index", encoding="utf-8")
+            elif fail:
                 raise RuntimeError("synthetic live failure")
 
-            with mock.patch(
-                "check_approved_lesson.resolve_runtime", return_value=self.runtime
-            ):
+        with mock.patch(
+            "check_approved_lesson.resolve_runtime", return_value=self.runtime
+        ):
+            if fail:
                 with self.assertRaisesRegex(RuntimeError, "synthetic live failure"):
                     execute_web_check(
                         "live",
                         root=root,
-                        command_runner=failing_runner,
+                        command_runner=runner,
                         version_reader=self.versions,
+                        snapshot_preparer=self.prepare_snapshot,
                     )
-            self.assertEqual("old-index", (dist / "index.html").read_text(encoding="utf-8"))
-            self.assertEqual("old-asset", (dist / "old.js").read_text(encoding="utf-8"))
-            self.assertEqual(2, calls)
+            else:
+                execute_web_check(
+                    "live",
+                    root=root,
+                    command_runner=runner,
+                    version_reader=self.versions,
+                    snapshot_preparer=self.prepare_snapshot,
+                )
+        return calls
 
-    def test_live_check_removes_generated_build_when_none_existed(self) -> None:
-        with tempfile.TemporaryDirectory(prefix="web-check-missing-") as directory:
+    def test_build_check_never_mutates_worktree_build(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="web-check-build-") as directory:
             root = Path(directory)
             dist = root / "apps" / "web" / "dist"
-            commands: list[tuple[str, ...]] = []
+            dist.mkdir(parents=True)
+            (dist / "index.html").write_text("worktree-index", encoding="utf-8")
 
-            def successful_runner(command: tuple[str, ...], *, root: Path) -> None:
-                commands.append(tuple(command))
-                if "build" in command:
-                    dist.mkdir(parents=True)
-                    (dist / "index.html").write_text("new-index", encoding="utf-8")
+            def runner(command: tuple[str, ...], *, root: Path) -> None:
+                self.assertIn("build", command)
+                isolated = root / "apps" / "web" / "dist"
+                isolated.mkdir(parents=True)
+                (isolated / "index.html").write_text(
+                    "isolated-index", encoding="utf-8"
+                )
 
             with mock.patch(
                 "check_approved_lesson.resolve_runtime", return_value=self.runtime
             ):
                 execute_web_check(
+                    "build",
+                    root=root,
+                    command_runner=runner,
+                    version_reader=self.versions,
+                    snapshot_preparer=self.prepare_snapshot,
+                )
+            self.assertEqual(
+                "worktree-index", dist.joinpath("index.html").read_text(encoding="utf-8")
+            )
+
+    def test_live_check_never_mutates_existing_or_missing_worktree_build(self) -> None:
+        for build_exists in (False, True):
+            for fail in (False, True):
+                with self.subTest(build_exists=build_exists, fail=fail):
+                    with tempfile.TemporaryDirectory(prefix="web-check-isolated-") as directory:
+                        root = Path(directory)
+                        dist = root / "apps" / "web" / "dist"
+                        if build_exists:
+                            dist.mkdir(parents=True)
+                            (dist / "index.html").write_text("old-index", encoding="utf-8")
+                            (dist / "old.js").write_text("old-asset", encoding="utf-8")
+                        calls = self.run_isolated_live(root, fail=fail)
+                        self.assertEqual(2, calls)
+                        if build_exists:
+                            self.assertEqual("old-index", (dist / "index.html").read_text(encoding="utf-8"))
+                            self.assertEqual("old-asset", (dist / "old.js").read_text(encoding="utf-8"))
+                        else:
+                            self.assertFalse(dist.exists())
+
+    def test_live_check_leaves_unexpected_and_concurrent_build_paths_untouched(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="web-check-unexpected-") as directory:
+            root = Path(directory)
+            dist = root / "apps" / "web" / "dist"
+            dist.parent.mkdir(parents=True)
+            dist.write_text("unexpected-file", encoding="utf-8")
+            self.run_isolated_live(root)
+            self.assertTrue(dist.is_file())
+            self.assertEqual("unexpected-file", dist.read_text(encoding="utf-8"))
+
+        with tempfile.TemporaryDirectory(prefix="web-check-concurrent-") as directory:
+            root = Path(directory)
+            dist = root / "apps" / "web" / "dist"
+            dist.mkdir(parents=True)
+            (dist / "before.js").write_text("before", encoding="utf-8")
+
+            def concurrent_snapshot(source: Path, target: Path) -> None:
+                self.prepare_snapshot(source, target)
+                (dist / "during.js").write_text("during", encoding="utf-8")
+
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+            ):
+                def runner(command: tuple[str, ...], *, root: Path) -> None:
+                    if "build" in command:
+                        isolated = root / "apps" / "web" / "dist"
+                        isolated.mkdir(parents=True)
+                        (isolated / "index.html").write_text("isolated", encoding="utf-8")
+
+                execute_web_check(
                     "live",
                     root=root,
-                    command_runner=successful_runner,
+                    command_runner=runner,
                     version_reader=self.versions,
+                    snapshot_preparer=concurrent_snapshot,
                 )
-            self.assertFalse(dist.exists())
-            self.assertEqual(2, len(commands))
+            self.assertEqual("before", (dist / "before.js").read_text(encoding="utf-8"))
+            self.assertEqual("during", (dist / "during.js").read_text(encoding="utf-8"))
+
+    def test_live_check_does_not_follow_worktree_build_symlink(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="web-check-symlink-") as directory:
+            root = Path(directory)
+            target = root / "outside-build"
+            target.mkdir()
+            (target / "sentinel.txt").write_text("outside", encoding="utf-8")
+            dist = root / "apps" / "web" / "dist"
+            dist.parent.mkdir(parents=True)
+            try:
+                dist.symlink_to(target, target_is_directory=True)
+            except OSError as error:
+                self.skipTest(f"directory symlinks are unavailable: {error}")
+            self.run_isolated_live(root)
+            self.assertTrue(dist.is_symlink())
+            self.assertEqual("outside", (target / "sentinel.txt").read_text(encoding="utf-8"))
+
+    @unittest.skipUnless(os.name == "nt", "directory junctions are Windows-specific")
+    def test_live_check_does_not_follow_worktree_build_junction(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="web-check-junction-root-") as root_dir:
+            with tempfile.TemporaryDirectory(prefix="web-check-junction-target-") as target_dir:
+                root = Path(root_dir)
+                target = Path(target_dir)
+                (target / "sentinel.txt").write_text("outside", encoding="utf-8")
+                dist = root / "apps" / "web" / "dist"
+                dist.parent.mkdir(parents=True)
+                completed = subprocess.run(
+                    ["cmd.exe", "/d", "/c", "mklink", "/J", str(dist), str(target)],
+                    check=False,
+                    capture_output=True,
+                )
+                if completed.returncode != 0:
+                    self.skipTest("directory junctions are unavailable")
+                self.run_isolated_live(root)
+                self.assertTrue(os.path.isjunction(dist))
+                self.assertEqual(
+                    "outside",
+                    (target / "sentinel.txt").read_text(encoding="utf-8"),
+                )
 
 
 class VerificationServiceTests(unittest.TestCase):

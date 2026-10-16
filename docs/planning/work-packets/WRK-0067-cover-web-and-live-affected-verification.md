@@ -25,9 +25,9 @@ claimed_at: 2026-10-16T01:33:39Z
 Correct the affected-check catalog so changed web tests and approved-lesson
 cross-system tests produce evidence that actually exercises those boundaries.
 Provide a repository adapter check that builds the exact static application,
-runs the existing live PostgreSQL/Python/Chromium qualification, and restores
-the candidate's tracked build tree before the controller rechecks Git
-stability.
+runs the existing live PostgreSQL/Python/Chromium qualification from an
+isolated tracked-candidate snapshot, and leaves the working tree untouched
+before the controller rechecks Git stability.
 
 ## Required Context
 
@@ -47,16 +47,23 @@ approved-lesson runner before editing.
   the current Python and either the existing explicit Node/npm pair or the
   available npm command, and fails with an actionable message when they are
   incompatible.
-- Static build restoration is mandatory on success, failure, and interruption;
-  the exact-candidate post-run stability check remains authoritative.
+- Working-tree build non-mutation is mandatory on success, failure, and
+  interruption; the exact-candidate post-run stability check remains
+  authoritative. The correction builds and runs from an isolated
+  tracked-candidate snapshot with the prepared dependencies linked into that
+  snapshot.
 
 ## In Scope
 
 - Map changed web source/tests to typecheck, lint, and Vitest checks.
 - Map changed approved-lesson browser/runner inputs to the existing live
-  qualification and aggregate readiness checks.
-- Add a bounded build/live/restore wrapper with deterministic tests for
-  absent/present build trees and failing subprocesses.
+  qualification.
+- Classify first-class web build, generated-client, mocked-browser,
+  roadmap-review, local-runtime, local-script, and documentation paths without
+  routing documentation-only or Python-only changes through unrelated checks.
+- Add bounded isolated build/live wrappers with deterministic tests for
+  absent, present, unexpected, linked, and concurrently changing worktree
+  build paths plus failing subprocesses.
 - Prove narrow documentation and ordinary control-plane changes remain narrow,
   while browser-unit changes do not automatically select Docker/live evidence.
 - Document the repository-specific check behavior and prerequisites.
@@ -90,10 +97,9 @@ candidate.
 | Scenario | Given | When | Then | Evidence |
 | --- | --- | --- | --- | --- |
 | Web behavior | A web source or test changes | affected checks are selected | typecheck, lint, and Vitest are selected with exact matched paths | selector regression |
-| Live boundary | Approved-lesson browser or runner behavior changes | affected checks are selected | live cross-system qualification and aggregate readiness are selected | selector regression |
+| Live boundary | Approved-lesson browser or runner behavior changes | affected checks are selected | live cross-system qualification is selected without unrelated aggregate readiness | selector regression |
 | Narrow browser check | An unrelated mocked browser test changes | affected checks are selected | web checks run without Docker/live qualification | anti-rigidity regression |
-| Static build lifecycle | Existing tracked build bytes are present | composed qualification succeeds or fails | the original tree is restored byte-for-byte | wrapper unit regression |
-| Missing build lifecycle | No static build exists | composed qualification runs | generated output is removed afterward | wrapper unit regression |
+| Isolated build lifecycle | The candidate has an existing, missing, file, symlink, junction, or concurrently changing worktree build path | composed qualification succeeds or fails | only the temporary snapshot receives generated output and the working tree remains untouched | wrapper safety regressions |
 | Exact candidate | The controller runs selected checks | execution ends | Git remains at the submitted clean revision | fresh receipt/stability check |
 
 ## Verification Commands
@@ -113,7 +119,7 @@ active edit collision, or material CAP-0002 drift.
 
 ## Required Handoff
 
-Report selected/deferred path behavior, build restoration on success and
+Report selected/deferred path behavior, isolated build safety on success and
 failure, exact live evidence, focused and aggregate results, receipt/review
 disposition, changed paths, and confirmation that the product and generic
 verification contracts did not change.
@@ -124,3 +130,10 @@ verification contracts did not change.
   WRK-0066 review found that changed browser and live-runner paths selected no
   behavior-exercising affected checks. The correction stays within CAP-0002's
   repository-adapter design and adds no approval or decision gate.
+- 2026-10-16: R01 review required the live wrapper to select its own real
+  qualification, complete first-class web-path classification, separate
+  TypeScript/runtime/documentation impacts, and avoid unsafe mutation of the
+  tracked static build tree. The correction uses an isolated candidate
+  snapshot instead of a broader generated-output claim; these are bounded
+  correctness and anti-rigidity refinements within the same routed adapter
+  scope.

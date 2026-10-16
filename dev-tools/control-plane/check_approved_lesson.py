@@ -97,39 +97,101 @@ def npm_command(runtime: WebRuntime, root: Path, *arguments: str) -> tuple[str, 
     )
 
 
-def run_live_with_restored_build(
+def copy_tracked_candidate(source_root: Path, target_root: Path) -> None:
+    completed = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=source_root,
+        check=False,
+        capture_output=True,
+    )
+    if completed.returncode != 0:
+        raise RuntimeError("Unable to enumerate the exact tracked candidate.")
+    for raw_path in completed.stdout.split(b"\0"):
+        if not raw_path:
+            continue
+        value = os.fsdecode(raw_path).replace("\\", "/")
+        relative = Path(value)
+        if relative.is_absolute() or ".." in relative.parts:
+            raise RuntimeError("Git returned an unsafe tracked candidate path.")
+        if relative.parts[:3] == ("apps", "web", "dist"):
+            continue
+        source = source_root / relative
+        target = target_root / relative
+        if source.is_symlink() or not source.is_file():
+            raise RuntimeError(f"Unsupported tracked candidate path: {value}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+
+def link_web_dependencies(source_root: Path, target_root: Path) -> None:
+    source = source_root / "apps" / "web" / "node_modules"
+    target = target_root / "apps" / "web" / "node_modules"
+    if not source.is_dir():
+        raise RuntimeError(
+            "The prepared web dependencies are absent; run repository setup first."
+        )
+    target.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        target.symlink_to(source, target_is_directory=True)
+    except OSError as error:
+        if os.name != "nt":
+            raise RuntimeError("Unable to link prepared web dependencies.") from error
+        completed = subprocess.run(
+            ["cmd.exe", "/d", "/c", "mklink", "/J", str(target), str(source)],
+            check=False,
+            capture_output=True,
+        )
+        if completed.returncode != 0:
+            raise RuntimeError("Unable to link prepared web dependencies.") from error
+
+
+def prepare_candidate_snapshot(source_root: Path, target_root: Path) -> None:
+    target_root.mkdir(parents=True, exist_ok=False)
+    copy_tracked_candidate(source_root, target_root)
+    link_web_dependencies(source_root, target_root)
+
+
+def run_build_in_snapshot(
     runtime: WebRuntime,
     *,
     root: Path,
     command_runner: Callable[..., None] = run_checked,
+    snapshot_preparer: Callable[[Path, Path], None] = prepare_candidate_snapshot,
 ) -> None:
-    dist = root / "apps" / "web" / "dist"
-    if dist.is_symlink() or (dist.exists() and not dist.is_dir()):
-        raise RuntimeError("Refusing to replace an unexpected web build path.")
     with tempfile.TemporaryDirectory(prefix="faa-affected-web-") as directory:
-        backup = Path(directory) / "dist"
-        existed = dist.is_dir()
-        if existed:
-            shutil.copytree(dist, backup)
-        try:
-            command_runner(
-                npm_command(runtime, root, "run", "build"),
-                root=root,
-            )
-            if not (dist / "index.html").is_file():
-                raise RuntimeError("The web build did not produce dist/index.html.")
-            command_runner(
-                (
-                    sys.executable,
-                    str(root / "tests" / "e2e" / "approved-lesson" / "run.py"),
-                ),
-                root=root,
-            )
-        finally:
-            if dist.exists():
-                shutil.rmtree(dist)
-            if existed:
-                shutil.copytree(backup, dist)
+        snapshot = Path(directory) / "candidate"
+        snapshot_preparer(root, snapshot)
+        command_runner(
+            npm_command(runtime, snapshot, "run", "build"),
+            root=snapshot,
+        )
+        if not (snapshot / "apps" / "web" / "dist" / "index.html").is_file():
+            raise RuntimeError("The isolated web build did not produce dist/index.html.")
+
+
+def run_live_in_snapshot(
+    runtime: WebRuntime,
+    *,
+    root: Path,
+    command_runner: Callable[..., None] = run_checked,
+    snapshot_preparer: Callable[[Path, Path], None] = prepare_candidate_snapshot,
+) -> None:
+    with tempfile.TemporaryDirectory(prefix="faa-affected-web-") as directory:
+        snapshot = Path(directory) / "candidate"
+        snapshot_preparer(root, snapshot)
+        command_runner(
+            npm_command(runtime, snapshot, "run", "build"),
+            root=snapshot,
+        )
+        if not (snapshot / "apps" / "web" / "dist" / "index.html").is_file():
+            raise RuntimeError("The isolated web build did not produce dist/index.html.")
+        command_runner(
+            (
+                sys.executable,
+                str(snapshot / "tests" / "e2e" / "approved-lesson" / "run.py"),
+            ),
+            root=snapshot,
+        )
 
 
 def execute(
@@ -139,6 +201,7 @@ def execute(
     environment: Mapping[str, str] = os.environ,
     command_runner: Callable[..., None] = run_checked,
     version_reader: Callable[..., str] = capture,
+    snapshot_preparer: Callable[[Path, Path], None] = prepare_candidate_snapshot,
 ) -> None:
     runtime = resolve_runtime(environment)
     require_versions(runtime, root=root, version_reader=version_reader)
@@ -146,6 +209,9 @@ def execute(
         "typecheck": npm_command(runtime, root, "run", "typecheck"),
         "lint": npm_command(runtime, root, "run", "lint"),
         "unit": npm_command(runtime, root, "test", "--", "--run"),
+        "generated": npm_command(
+            runtime, root, "run", "generate:api", "--", "--check"
+        ),
         "browser": npm_command(
             runtime,
             root,
@@ -154,9 +220,40 @@ def execute(
             "--",
             *MOCKED_BROWSER_SUITES,
         ),
+        "roadmap": npm_command(
+            runtime,
+            root,
+            "exec",
+            "--",
+            "playwright",
+            "test",
+            "--config",
+            "tests/browser/roadmap-review.config.ts",
+            "apps/web/tests/browser/roadmap-review",
+        ),
     }
+    if mode == "build":
+        run_build_in_snapshot(
+            runtime,
+            root=root,
+            command_runner=command_runner,
+            snapshot_preparer=snapshot_preparer,
+        )
+        return
     if mode == "live":
-        run_live_with_restored_build(runtime, root=root, command_runner=command_runner)
+        run_live_in_snapshot(
+            runtime,
+            root=root,
+            command_runner=command_runner,
+            snapshot_preparer=snapshot_preparer,
+        )
+        return
+    if mode == "local-scripts":
+        for script in ("dev.mjs", "setup-dev.mjs"):
+            command_runner(
+                (runtime.node, "--check", str(root / "deployments" / "local" / script)),
+                root=root,
+            )
         return
     try:
         command = commands[mode]
@@ -169,7 +266,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--mode",
-        choices=("typecheck", "lint", "unit", "browser", "live"),
+        choices=(
+            "typecheck",
+            "lint",
+            "unit",
+            "build",
+            "generated",
+            "browser",
+            "roadmap",
+            "local-scripts",
+            "live",
+        ),
         required=True,
     )
     args = parser.parse_args()
