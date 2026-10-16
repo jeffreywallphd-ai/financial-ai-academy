@@ -150,6 +150,45 @@ class PortfolioAllocationTests(unittest.TestCase):
         self.assertEqual(["alpha/a.py"], lane["coordination"]["live_lease_paths"])
         self.assertEqual(3, result["coordination_revision"])
 
+    def test_active_descendant_promotes_container_ahead_of_proposals_without_locking_future_order(self) -> None:
+        graph = analyze([
+            {"id": "PROGRAM-A", "kind": "capability", "status": "ready", "manifest": [], "manifest_declared": True, "dependencies": [], "decision_gates": [], "write_scope": ["alpha"], "scope_complete": True},
+            {"id": "PROGRAM-B", "kind": "capability", "status": "ready", "manifest": [], "manifest_declared": True, "dependencies": [], "decision_gates": [], "write_scope": ["beta"], "scope_complete": True},
+            {"id": "PROGRAM-C", "kind": "capability", "status": "ready", "manifest": ["INCREMENT-C"], "manifest_declared": True, "dependencies": [], "decision_gates": [], "write_scope": ["gamma"], "scope_complete": True},
+            {"id": "INCREMENT-C", "kind": "slice", "status": "verifying", "parent": "PROGRAM-C", "dependencies": [], "decision_gates": [], "scope_complete": True},
+            {"id": "TASK-C", "kind": "work", "status": "active", "parent": "INCREMENT-C", "dependencies": [], "decision_gates": [], "write_scope": ["gamma/c.py"], "generated_artifacts": [], "active_claim": True, "scope_complete": True},
+            {"id": "PROGRAM-FUTURE", "kind": "capability", "status": "ready", "manifest": [], "manifest_declared": True, "dependencies": [{"target": "PROGRAM-A", "type": "hard"}], "decision_gates": [], "write_scope": ["future"], "scope_complete": True},
+        ])
+        result = allocate(
+            graph,
+            level="capability",
+            authority_current=["PROGRAM-A", "PROGRAM-B", "PROGRAM-C", "PROGRAM-FUTURE"],
+            explicit_priority=["PROGRAM-B", "PROGRAM-A", "PROGRAM-C", "PROGRAM-FUTURE"],
+        )
+        self.assertEqual(
+            ["PROGRAM-C", "PROGRAM-B", "PROGRAM-A"],
+            [item["unit_id"] for item in result["lanes"]],
+        )
+        promoted = result["lanes"][0]
+        self.assertEqual("in-progress", promoted["allocation_state"])
+        self.assertEqual("ready", promoted["lifecycle_status"])
+        self.assertEqual(["INCREMENT-C", "TASK-C"], promoted["active_descendants"])
+        self.assertEqual(["lifecycle.descendant-in-progress"], promoted["rationale"])
+        self.assertEqual(["proposed", "proposed"], [item["allocation_state"] for item in result["lanes"][1:]])
+        self.assertNotIn("PROGRAM-FUTURE", [item["unit_id"] for item in result["lanes"]])
+        self.assertIn("PROGRAM-FUTURE", {item["id"] for item in result["blocked"]})
+
+        direct_graph = json.loads(json.dumps(graph))
+        next(item for item in direct_graph["nodes"] if item["id"] == "PROGRAM-C")["status"] = "active"
+        direct = allocate(
+            direct_graph,
+            level="capability",
+            authority_current=["PROGRAM-A", "PROGRAM-B", "PROGRAM-C", "PROGRAM-FUTURE"],
+            explicit_priority=["PROGRAM-B", "PROGRAM-A", "PROGRAM-C", "PROGRAM-FUTURE"],
+        )
+        self.assertEqual(1, [item["unit_id"] for item in direct["lanes"]].count("PROGRAM-C"))
+        self.assertEqual(["lifecycle.in-progress"], direct["lanes"][0]["rationale"])
+
     def test_replan_preserves_previous_digest_and_explains_live_fact_change(self) -> None:
         first = allocate(work_graph(), level="work", authority_current=["PROGRAM-X"], explicit_priority=["TASK-A", "TASK-B", "TASK-C"])
         coordination = {"revision": 2, "intents": [], "leases": [{"unit_id": "TASK-A", "work_id": "TASK-A", "paths": ["alpha/a.py"], "state": "live"}]}

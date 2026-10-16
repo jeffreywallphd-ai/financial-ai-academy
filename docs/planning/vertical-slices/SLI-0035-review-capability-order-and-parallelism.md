@@ -3,8 +3,8 @@ id: SLI-0035
 kind: vertical-slice
 planning_status: complete
 authority: noncanonical
-owner: codex-roadmap-review
-updated: 2026-10-15
+owner: codex-roadmap-order-correction
+updated: 2026-10-16
 parent: CAP-0008
 depends_on: ["SLI-0034"]
 decision_gates: []
@@ -99,6 +99,7 @@ planning data is not persisted. Every displayed source fingerprint comes from
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0025 | Deliver the loopback read-only host and accessible TypeScript all-capability overview with focused server/client tests and operator guidance | WRK-0024 | none | complete |
+| WRK-0081 | Render the allocator-derived current capability order and explicit sequential/parallel lanes while retaining future order as advisory context | WRK-0025, WRK-0080 | none | complete |
 
 ## Verification and Qualification
 
@@ -155,3 +156,9 @@ existing CAP/SLI/WRK vocabulary.
   overview and passing focused and aggregate automated evidence.
 - 2026-10-15: Closed deterministically after WRK-0025 completed and the slice
   completion structure, evidence, documentation, and CAP conformance passed.
+- 2026-10-16: Reopened through a bounded descendant correction after the order
+  card was found to render broader future ordering rather than current
+  executable allocation lanes.
+- 2026-10-16: The review now renders the allocator's exact current order and
+  explicit sequential/parallel groups while keeping future dependency order,
+  blockers, and compatibility detail advisory and non-authorizing.

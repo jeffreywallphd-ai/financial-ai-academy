@@ -67,6 +67,34 @@ export interface CompatibilityPair {
   remediation: string;
 }
 
+export interface CurrentAllocationLane {
+  unit_id: string;
+  allocation_state: "in-progress" | "proposed";
+  lifecycle_status: string;
+}
+
+export interface CurrentAllocation {
+  schema_version: "roadmap-current-allocation-v1";
+  source_schema_version: "portfolio-allocation-v1";
+  level: "capability";
+  lanes: CurrentAllocationLane[];
+  parallel_groups: string[][];
+  unresolved_pairs: Array<{
+    left: string;
+    right: string;
+    decision: string;
+    reason_codes: string[];
+    remediation: string;
+  }>;
+  constraints: {
+    grants_authority: false;
+    acquires_file_leases: false;
+    creates_agents: false;
+    mutates_branches: false;
+    future_order_is_global_lock: false;
+  };
+}
+
 export interface RoadmapReview {
   schema_version: "roadmap-review-v1";
   catalog_count: number;
@@ -89,6 +117,7 @@ export interface RoadmapReview {
     incompatible_pair_count: number;
     unknown_pair_count: number;
   };
+  current_allocation: CurrentAllocation;
   graph_issues: Array<{ code?: string; subject?: string }>;
   diagnostics: Array<{ code?: string; subject?: string; blocking?: boolean }>;
   source_fingerprint: string;
@@ -126,11 +155,29 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
   if (!value || typeof value !== "object") throw new Error("Roadmap response is not an object.");
   const envelope = value as Partial<RoadmapEnvelope>;
   const review = envelope.data?.review;
+  const allocation = review?.current_allocation;
+  const lanes = Array.isArray(allocation?.lanes) ? allocation.lanes : [];
+  const groups = Array.isArray(allocation?.parallel_groups) ? allocation.parallel_groups : [];
+  const laneIds = lanes.map((lane) => lane.unit_id);
+  const groupedIds = groups.every((group) => Array.isArray(group)) ? groups.flat() : [];
   if (
     envelope.outcome !== "succeeded" ||
     review?.schema_version !== "roadmap-review-v1" ||
     !Array.isArray(review.candidates) ||
-    review.candidates.length !== review.catalog_count
+    review.candidates.length !== review.catalog_count ||
+    allocation?.schema_version !== "roadmap-current-allocation-v1" ||
+    allocation?.source_schema_version !== "portfolio-allocation-v1" ||
+    allocation?.level !== "capability" ||
+    !Array.isArray(allocation.lanes) ||
+    !Array.isArray(allocation.parallel_groups) ||
+    allocation?.constraints?.grants_authority !== false ||
+    allocation?.constraints?.acquires_file_leases !== false ||
+    lanes.some((lane) => !lane.unit_id || !["in-progress", "proposed"].includes(lane.allocation_state)) ||
+    groups.some((group) => !Array.isArray(group) || group.length === 0) ||
+    laneIds.length !== new Set(laneIds).size ||
+    groupedIds.length !== new Set(groupedIds).size ||
+    groupedIds.length !== laneIds.length ||
+    groupedIds.some((id) => !laneIds.includes(id))
   ) {
     throw new Error("Roadmap response is missing or incompatible.");
   }

@@ -19,9 +19,13 @@ approval, packet claim, or repository-wide test command is required to review
 the roadmap.
 
 The overview accounts for all 26 product candidates and distinguishes formal
-CAP coverage from unplanned candidates. It shows proposed dependency order,
-unresolved ties, blockers, and compatible/incompatible/unknown coordination
-evidence without implying that a display position grants authority. Internal
+CAP coverage from unplanned candidates. Its proposed-order card mirrors the
+default control-plane allocation's currently active and dependency-ready lanes
+in exact order. Singleton groups are identified as sequential lanes and
+multi-capability groups as evidence-backed parallel-safe lanes. The broader
+dependency order, unresolved ties, blockers, and full compatibility diagnostics
+remain advisory context: they do not grant authority, acquire a lease, treat
+unknown evidence as safe, or turn future ordering into a global lock. Internal
 enabling CAPs remain separate from the product catalog.
 
 The server binds to numeric loopback addresses only, accepts GET and HEAD only,

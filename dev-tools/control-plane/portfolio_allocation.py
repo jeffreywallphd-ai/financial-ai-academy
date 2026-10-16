@@ -131,34 +131,67 @@ def allocate(
     priority_values = [str(item) for item in explicit_priority]
     sequence_values = [str(item) for item in accepted_sequence]
     coordination = coordination or {"revision": 0, "leases": [], "intents": []}
+    by_id = {str(item.get("id")): dict(item) for item in graph.get("nodes", [])}
     ordered = plan(graph, level=level, authority_current=authority_values, explicit_priority=priority_values, accepted_sequence=sequence_values)
     ready_ids = {str(item["id"]) for item in ordered["ready"]}
     proposed_ready = [item for item in ordered["proposed_order"] if item in ready_ids]
-    candidate_ids = [*ordered["in_progress"], *proposed_ready]
+    active_descendants_by_unit = {
+        unit_id: sorted(
+            candidate
+            for candidate, item in by_id.items()
+            if _descendant(candidate, unit_id, by_id)
+            and (item.get("active_claim") or item.get("status") in {"active", "verifying"})
+        )
+        for unit_id, node in by_id.items()
+        if node.get("kind") == LEVEL_KIND[level]
+    }
+    proposal_position = {unit_id: index for index, unit_id in enumerate(proposed_ready)}
+    direct_in_progress = [str(item) for item in ordered["in_progress"]]
+    direct_in_progress_set = set(direct_in_progress)
+    promoted = sorted(
+        (
+            unit_id
+            for unit_id, descendants in active_descendants_by_unit.items()
+            if descendants
+            and by_id[unit_id].get("status") == "ready"
+            and unit_id not in direct_in_progress_set
+        ),
+        key=lambda unit_id: (
+            0 if unit_id in proposal_position else 1,
+            proposal_position.get(unit_id, unit_id),
+        ),
+    )
+    in_progress_ids = {*direct_in_progress, *promoted}
+    candidate_ids = [
+        *direct_in_progress,
+        *promoted,
+        *(unit_id for unit_id in proposed_ready if unit_id not in in_progress_ids),
+    ]
     compatibility = analyze_compatibility(graph, level=level, candidate_ids=candidate_ids)
     parallel_groups, unresolved = _groups(candidate_ids, compatibility)
-    by_id = {str(item.get("id")): dict(item) for item in graph.get("nodes", [])}
     lanes: list[dict[str, Any]] = []
     for position, unit_id in enumerate(candidate_ids):
         node = by_id[unit_id]
-        active_descendants = sorted(
-            candidate
-            for candidate, item in by_id.items()
-            if _descendant(candidate, unit_id, by_id) and (item.get("active_claim") or item.get("status") in {"active", "verifying"})
-        )
+        active_descendants = active_descendants_by_unit.get(unit_id, [])
         branches = sorted({str(value) for value in node.get("branches", []) if str(value)})
         branch_state = "unrecorded" if not branches else ("codex" if all(value.startswith("codex/") for value in branches) else "non-codex")
+        if unit_id in direct_in_progress_set:
+            rationale = ["lifecycle.in-progress"]
+        elif unit_id in in_progress_ids:
+            rationale = ["lifecycle.descendant-in-progress"]
+        else:
+            rationale = ["authority.current", "dependencies.satisfied", "lifecycle.ready"]
         lane = {
             "lane_id": f"lane-{position + 1:03d}",
             "unit_id": unit_id,
             "unit_kind": node.get("kind"),
-            "allocation_state": "in-progress" if unit_id in ordered["in_progress"] else "proposed",
+            "allocation_state": "in-progress" if unit_id in in_progress_ids else "proposed",
             "lifecycle_status": node.get("status"),
             "branches": branches,
             "branch_state": branch_state,
             "active_descendants": active_descendants,
             "coordination": _coordination_for(unit_id, by_id, coordination),
-            "rationale": ["lifecycle.in-progress"] if unit_id in ordered["in_progress"] else ["authority.current", "dependencies.satisfied", "lifecycle.ready"],
+            "rationale": rationale,
         }
         lane["lane_digest"] = _digest(lane)
         lanes.append(lane)

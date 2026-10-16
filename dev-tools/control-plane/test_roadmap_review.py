@@ -16,6 +16,7 @@ if str(HERE) not in sys.path:
 
 from contracts import ControlError  # noqa: E402
 from financial_academy_roadmap_review import projection  # noqa: E402
+from financial_academy_portfolio import allocation_result  # noqa: E402
 from roadmap_review import build_projection, safe_document, validate_catalog  # noqa: E402
 
 
@@ -43,6 +44,26 @@ def nodes() -> list[dict]:
     ]
 
 
+def allocation(*, ids: list[str] | None = None, groups: list[list[str]] | None = None) -> dict:
+    ordered = ids or ["PROGRAM-1"]
+    return {
+        "schema_version": "portfolio-allocation-v1",
+        "level": "capability",
+        "lanes": [
+            {
+                "unit_id": unit_id,
+                "allocation_state": "proposed",
+                "lifecycle_status": "ready",
+                "branches": ["codex/private-local-branch"],
+                "coordination": {"live_lease_paths": ["private/path"]},
+            }
+            for unit_id in ordered
+        ],
+        "parallel_groups": groups or [[unit_id] for unit_id in ordered],
+        "unresolved_pairs": [],
+    }
+
+
 def project(*, document_suffix: str = "") -> dict:
     graph = {"schema_version": "portfolio-graph-v1", "issues": []}
     ordering = {"schema_version": "portfolio-plan-v1", "proposed_order": ["PROGRAM-1"]}
@@ -58,6 +79,7 @@ def project(*, document_suffix: str = "") -> dict:
         graph=graph,
         ordering=ordering,
         compatibility=compatibility,
+        allocation=allocation(),
         expected_catalog_count=2,
     )
 
@@ -101,6 +123,7 @@ class RoadmapReviewTests(unittest.TestCase):
                 graph={"issues": []},
                 ordering={},
                 compatibility={},
+                allocation=allocation(),
                 expected_catalog_count=2,
             )
         self.assertEqual(caught.exception.code, "roadmap.catalog-mapping-missing")
@@ -134,6 +157,7 @@ class RoadmapReviewTests(unittest.TestCase):
             graph={"issues": []},
             ordering={"proposed_order": ["PROGRAM-1"]},
             compatibility={"parallel_safe_sets": []},
+            allocation=allocation(),
             expected_catalog_count=2,
         )
         self.assertNotEqual(project()["source_fingerprint"], result["source_fingerprint"])
@@ -147,6 +171,13 @@ class RoadmapReviewTests(unittest.TestCase):
             graph={"issues": []},
             ordering={"proposed_order": []},
             compatibility={"parallel_safe_sets": []},
+            allocation={
+                "schema_version": "portfolio-allocation-v1",
+                "level": "capability",
+                "lanes": [],
+                "parallel_groups": [],
+                "unresolved_pairs": [],
+            },
             expected_catalog_count=0,
         )
         self.assertEqual(result["catalog_count"], 0)
@@ -161,6 +192,52 @@ class RoadmapReviewTests(unittest.TestCase):
         self.assertNotIn("CAP-", source)
         self.assertNotIn("SLI-", source)
         self.assertNotIn("WRK-", source)
+
+    def test_current_allocation_preserves_parallel_groups_without_locking_future_order(self) -> None:
+        result = build_projection(
+            catalog=catalog(),
+            planning_nodes=nodes(),
+            documents={},
+            graph={"issues": []},
+            ordering={"proposed_order": ["PROGRAM-1", "PROGRAM-INTERNAL"]},
+            compatibility={"parallel_safe_sets": [["PROGRAM-1", "PROGRAM-INTERNAL"]]},
+            allocation=allocation(
+                ids=["PROGRAM-1", "PROGRAM-INTERNAL"],
+                groups=[["PROGRAM-1", "PROGRAM-INTERNAL"]],
+            ),
+            expected_catalog_count=2,
+        )
+        current = result["current_allocation"]
+        self.assertEqual(
+            [lane["unit_id"] for lane in current["lanes"]],
+            ["PROGRAM-1", "PROGRAM-INTERNAL"],
+        )
+        self.assertEqual(current["parallel_groups"], [["PROGRAM-1", "PROGRAM-INTERNAL"]])
+        self.assertFalse(current["constraints"]["future_order_is_global_lock"])
+        serialized = json.dumps(current)
+        self.assertNotIn('"branches":', serialized)
+        self.assertNotIn('"coordination":', serialized)
+
+        advisory = copy.deepcopy(result)
+        advisory["ordering"]["proposed_order"].append("PROGRAM-FUTURE")
+        self.assertNotIn(
+            "PROGRAM-FUTURE",
+            [lane["unit_id"] for lane in advisory["current_allocation"]["lanes"]],
+        )
+
+    def test_current_allocation_rejects_groups_that_do_not_partition_lanes(self) -> None:
+        with self.assertRaises(ControlError) as caught:
+            build_projection(
+                catalog=catalog(),
+                planning_nodes=nodes(),
+                documents={},
+                graph={"issues": []},
+                ordering={"proposed_order": ["PROGRAM-1"]},
+                compatibility={"parallel_safe_sets": []},
+                allocation=allocation(ids=["PROGRAM-1"], groups=[["PROGRAM-INTERNAL"]]),
+                expected_catalog_count=2,
+            )
+        self.assertEqual(caught.exception.code, "roadmap.allocation-group-invalid")
 
     def test_current_repository_projects_exact_catalog_and_explicit_mappings(self) -> None:
         result = projection(REPO)
@@ -187,6 +264,18 @@ class RoadmapReviewTests(unittest.TestCase):
         self.assertNotIn('"actor_label":', serialized)
         self.assertNotIn('"reviewer_label":', serialized)
         self.assertNotIn(str(REPO), serialized)
+
+    def test_current_repository_execution_order_matches_default_allocator(self) -> None:
+        result = projection(REPO)
+        expected = allocation_result(REPO, level="capability")["data"]["allocation"]
+        self.assertEqual(
+            [lane["unit_id"] for lane in result["current_allocation"]["lanes"]],
+            [lane["unit_id"] for lane in expected["lanes"]],
+        )
+        self.assertEqual(result["current_allocation"]["parallel_groups"], expected["parallel_groups"])
+        blocked_ids = {item["id"] for item in result["ordering"]["blocked"]}
+        current_ids = {lane["unit_id"] for lane in result["current_allocation"]["lanes"]}
+        self.assertTrue(blocked_ids.isdisjoint(current_ids))
 
     def test_cli_is_one_read_only_projection_command(self) -> None:
         before = (REPO / "docs/product/capability-catalog.json").read_bytes()

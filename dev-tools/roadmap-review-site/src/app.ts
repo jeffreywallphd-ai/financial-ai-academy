@@ -66,21 +66,32 @@ function renderOrder(review: RoadmapReview): HTMLElement {
   const note = element(
     "p",
     "authority-note",
-    review.ordering.constraints.accepted_sequence.length
-      ? "An accepted sequence is present in the planning projection."
-      : "This order is a dependency-aware proposal, not accepted priority or implementation authority.",
+    "These current lanes mirror the default control-plane allocation proposal. They do not accept priority, grant authority, acquire a lease, or make future ordering a global lock.",
   );
   section.append(note);
   const list = element("ol", "order-list");
-  for (const id of review.ordering.proposed_order) {
+  const groupById = new Map<string, { group: string[]; position: number }>();
+  review.current_allocation.parallel_groups.forEach((group, index) => {
+    group.forEach((id) => groupById.set(id, { group, position: index + 1 }));
+  });
+  for (const lane of review.current_allocation.lanes) {
+    const id = lane.unit_id;
     const item = element("li", "order-item");
     const link = element("a", "order-link", `${id}: ${titleFor(review, id)}`);
     const candidate = review.candidates.find((entry) => entry.planning_id === id);
     link.href = candidate ? `/capability/${encodeURIComponent(candidate.key)}` : `/cap/${encodeURIComponent(id)}`;
-    item.append(link, statusBadge(statusFor(review, id)));
+    const group = groupById.get(id);
+    const laneLabel = group && group.group.length > 1
+      ? `Parallel-safe group ${group.position}`
+      : `Sequential lane ${group?.position ?? review.current_allocation.lanes.indexOf(lane) + 1}`;
+    item.append(link, statusBadge(lane.lifecycle_status || statusFor(review, id)), element("span", "card-meta", laneLabel));
     list.append(item);
   }
-  section.append(list);
+  if (review.current_allocation.lanes.length) {
+    section.append(list);
+  } else {
+    section.append(element("p", "empty-state", "No capability is currently active or dependency-ready. Future ordering remains advisory."));
+  }
   if (review.ordering.unresolved_ties.length) {
     const heading = element("h3", "subheading", "Unresolved ties");
     const ties = element("ul", "plain-list");
@@ -137,9 +148,11 @@ function renderParallelism(review: RoadmapReview): HTMLElement {
     summary.append(metric);
   }
   section.append(summary);
-  if (review.compatibility.parallel_safe_sets.length) {
+  const parallelGroups = review.current_allocation.parallel_groups.filter((group) => group.length > 1);
+  const sequentialGroups = review.current_allocation.parallel_groups.filter((group) => group.length === 1);
+  if (parallelGroups.length) {
     const lanes = element("ul", "lane-list");
-    for (const lane of review.compatibility.parallel_safe_sets) {
+    for (const lane of parallelGroups) {
       lanes.append(element("li", "lane", lane.join(" + ")));
     }
     section.append(element("h3", "subheading", "Evidence-backed parallel lanes"), lanes);
@@ -151,6 +164,13 @@ function renderParallelism(review: RoadmapReview): HTMLElement {
         "No evidence-backed parallel CAP lane is currently available. Unknown evidence is not treated as safe.",
       ),
     );
+  }
+  if (sequentialGroups.length) {
+    const lanes = element("ul", "lane-list");
+    for (const lane of sequentialGroups) {
+      lanes.append(element("li", "lane", lane[0] ?? ""));
+    }
+    section.append(element("h3", "subheading", "Sequential current lanes"), lanes);
   }
   const details = element("details", "evidence-details");
   details.append(element("summary", "", "Review incompatible and unknown pairs"));

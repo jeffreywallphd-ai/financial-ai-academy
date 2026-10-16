@@ -21,6 +21,7 @@ from financial_academy_portfolio import (
     project,
 )
 from portfolio_conflicts import analyze_compatibility
+from portfolio_allocation import allocate
 from portfolio_ordering import plan
 from roadmap_review import build_projection
 
@@ -53,14 +54,22 @@ def _load_catalog(root: Path) -> dict[str, Any]:
 def projection(root: Path) -> dict[str, Any]:
     graph = project(root)
     nodes = planning_nodes(root)
+    authority_current = current_capability_authority(root)
     ordering = plan(
         graph,
         level="capability",
-        authority_current=current_capability_authority(root),
+        authority_current=authority_current,
         explicit_priority=[],
         accepted_sequence=[],
     )
     compatibility = analyze_compatibility(graph, level="capability")
+    allocation = allocate(
+        graph,
+        level="capability",
+        authority_current=authority_current,
+        explicit_priority=[],
+        accepted_sequence=[],
+    )
     documents = {
         artifact.identifier: {
             "source": artifact.relative_path,
@@ -76,6 +85,7 @@ def projection(root: Path) -> dict[str, Any]:
         graph=graph,
         ordering=ordering,
         compatibility=compatibility,
+        allocation=allocation,
         expected_catalog_count=EXPECTED_PRODUCT_CAPABILITIES,
     )
 

@@ -39,12 +39,24 @@ function fixture(): RoadmapReview {
     }],
     ordering: {
       ready: [{ id: "CAP-X", reasons: ["ready"] }],
-      blocked: [], completed: ["CONTROL-X"], in_progress: [], proposed_order: ["CAP-X", "CONTROL-X"],
+      blocked: [{ id: "CAP-FUTURE", reasons: ["dependencies.incomplete"], incomplete_dependencies: ["CAP-X"], remediation: "Complete CAP-X." }], completed: ["CONTROL-X"], in_progress: [], proposed_order: ["CAP-X", "CONTROL-X", "CAP-FUTURE"],
       unresolved_ties: [["CAP-X", "CONTROL-X"]], constraints: { accepted_sequence: [], stable_id_order_is_authority: false },
     },
     compatibility: {
-      pairs: [{ left: "CAP-X", right: "CONTROL-X", decision: "unknown", confidence: "low", reasons: [{ code: "evidence.scope-incomplete", evidence: ["CAP-X"] }], remediation: "Refine." }],
-      parallel_safe_sets: [], isolated_or_unresolved: ["CAP-X", "CONTROL-X"], compatible_pair_count: 0, incompatible_pair_count: 0, unknown_pair_count: 1,
+      pairs: [{ left: "CAP-X", right: "CONTROL-X", decision: "compatible", confidence: "high", reasons: [{ code: "scope.disjoint", evidence: ["CAP-X", "CONTROL-X"] }], remediation: "None." }],
+      parallel_safe_sets: [["CAP-X", "CONTROL-X"]], isolated_or_unresolved: [], compatible_pair_count: 1, incompatible_pair_count: 0, unknown_pair_count: 0,
+    },
+    current_allocation: {
+      schema_version: "roadmap-current-allocation-v1",
+      source_schema_version: "portfolio-allocation-v1",
+      level: "capability",
+      lanes: [
+        { unit_id: "CONTROL-X", allocation_state: "in-progress", lifecycle_status: "complete" },
+        { unit_id: "CAP-X", allocation_state: "proposed", lifecycle_status: "ready" },
+      ],
+      parallel_groups: [["CONTROL-X", "CAP-X"]],
+      unresolved_pairs: [],
+      constraints: { grants_authority: false, acquires_file_leases: false, creates_agents: false, mutates_branches: false, future_order_is_global_lock: false },
     },
     graph_issues: [], diagnostics: [], source_fingerprint: "sha256:fixture",
   };
@@ -61,9 +73,28 @@ describe("roadmap overview DOM", () => {
     mountRoadmap(root, fixture());
     expect(root.querySelector(".results-status")?.textContent).toBe("Showing 26 of 26 product capabilities.");
     expect(Array.from(root.querySelectorAll("a")).filter((link) => link.getAttribute("href")?.startsWith("/capability/"))).toHaveLength(27);
-    expect(root.textContent).toContain("dependency-aware proposal, not accepted priority");
-    expect(root.textContent).toContain("Unknown evidence is not treated as safe");
+    expect(root.textContent).toContain("make future ordering a global lock");
+    expect(root.textContent).toContain("CONTROL-X + CAP-X");
     expect(root.textContent).toContain("do not replace any of the 26");
+    const orderLinks = Array.from(root.querySelectorAll(".order-list .order-link")).map((link) => link.textContent);
+    expect(orderLinks).toEqual(["CONTROL-X: Control plane", "CAP-X: Structured lessons"]);
+    expect(root.querySelector(".order-list")?.textContent).not.toContain("CAP-FUTURE");
+    expect(root.textContent).toContain("CAP-FUTURE");
+    expect(root.querySelectorAll(".order-list .card-meta")).toHaveLength(2);
+  });
+
+  it("distinguishes sequential current lanes without treating unknown pairs as safe", () => {
+    const root = document.createElement("main");
+    document.body.append(root);
+    const value = fixture();
+    value.current_allocation.parallel_groups = [["CONTROL-X"], ["CAP-X"]];
+    value.compatibility.pairs[0] = { left: "CAP-X", right: "CONTROL-X", decision: "unknown", confidence: "low", reasons: [{ code: "evidence.scope-incomplete", evidence: ["CAP-X"] }], remediation: "Refine." };
+    value.compatibility.parallel_safe_sets = [];
+    mountRoadmap(root, value);
+    expect(root.textContent).toContain("Sequential current lanes");
+    expect(root.textContent).toContain("No evidence-backed parallel CAP lane is currently available");
+    expect(root.querySelector(".order-list")?.textContent).toContain("Sequential lane 1");
+    expect(root.querySelector(".order-list")?.textContent).toContain("Sequential lane 2");
   });
 
   it("filters accessibly and restores the complete catalog", () => {

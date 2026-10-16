@@ -3,8 +3,8 @@ id: SLI-0013
 kind: vertical-slice
 planning_status: complete
 authority: noncanonical
-owner: codex-cap-0003
-updated: 2026-10-15
+owner: codex-roadmap-order-correction
+updated: 2026-10-16
 parent: CAP-0003
 depends_on: ["SLI-0010", "SLI-0011", "SLI-0012"]
 decision_gates: []
@@ -97,6 +97,7 @@ approval/reviewer records.
 | --- | --- | --- | --- | --- |
 | WRK-0021 | Deliver project-neutral allocation/replanning, the Financial AI Academy adapter/CLI, docs, and focused tests | WRK-0018, WRK-0019, WRK-0020 | none | complete |
 | WRK-0052 | Ignore the compatibility-only branch sentinel while preserving genuine and current-checkout branch facts | WRK-0021 | none | complete |
+| WRK-0083 | Promote a container with active or verifying descendants to an in-progress lane ahead of proposals while preserving remaining order | WRK-0021, WRK-0052 | none | complete |
 
 ## Verification and Qualification
 
@@ -144,3 +145,10 @@ scheduling remain intentionally out of scope. The slice conforms to CAP-0003.
 - 2026-10-15: Completed WRK-0052 with deterministic adapter and container
   roll-up coverage; compatibility-only branch markers no longer obstruct
   current Codex-branch readiness.
+- 2026-10-16: Reopened through a bounded descendant correction after current
+  allocation reported an ancestor with active descendant work as a later
+  proposal rather than an in-progress lane.
+- 2026-10-16: The allocator now promotes lifecycle-ready ancestors with active
+  descendants to the in-progress prefix while preserving direct in-progress
+  precedence, remaining proposal order, terminal completion, and read-only
+  non-authority constraints.

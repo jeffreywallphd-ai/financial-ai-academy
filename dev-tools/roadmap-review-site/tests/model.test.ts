@@ -43,6 +43,15 @@ function review(): RoadmapReview {
       incompatible_pair_count: 0,
       unknown_pair_count: 1,
     },
+    current_allocation: {
+      schema_version: "roadmap-current-allocation-v1",
+      source_schema_version: "portfolio-allocation-v1",
+      level: "capability",
+      lanes: [{ unit_id: "PLAN-1", allocation_state: "proposed", lifecycle_status: "ready" }],
+      parallel_groups: [["PLAN-1"]],
+      unresolved_pairs: [],
+      constraints: { grants_authority: false, acquires_file_leases: false, creates_agents: false, mutates_branches: false, future_order_is_global_lock: false },
+    },
     graph_issues: [],
     diagnostics: [],
     source_fingerprint: "sha256:test",
@@ -75,6 +84,12 @@ describe("roadmap overview model", () => {
 
   it("rejects malformed or count-drifted envelopes", () => {
     expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: { ...review(), catalog_count: 25 } } })).toThrow(/missing or incompatible/);
+    const missingAllocation: Partial<RoadmapReview> = { ...review() };
+    delete missingAllocation.current_allocation;
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: missingAllocation } })).toThrow(/missing or incompatible/);
+    const inconsistent = review();
+    inconsistent.current_allocation.parallel_groups = [["PLAN-2"]];
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: inconsistent } })).toThrow(/missing or incompatible/);
     expect(() => assertRoadmapEnvelope(null)).toThrow(/not an object/);
   });
 

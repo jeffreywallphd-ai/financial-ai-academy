@@ -3,8 +3,8 @@ id: SLI-0034
 kind: vertical-slice
 planning_status: complete
 authority: noncanonical
-owner: codex-roadmap-review
-updated: 2026-10-15
+owner: codex-roadmap-order-correction
+updated: 2026-10-16
 parent: CAP-0008
 depends_on: []
 decision_gates: []
@@ -108,6 +108,7 @@ HTML. Repository-relative source references and digests preserve provenance.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0024 | Deliver the versioned machine-readable catalog, reusable dynamic projection, Financial AI Academy adapter, read-only CLI, parity validation, focused tests, and operator documentation | none | none | complete |
+| WRK-0080 | Align the public roadmap's current lanes and parallel groups with the deterministic capability allocator while retaining future order as advisory evidence | WRK-0024 | none | complete |
 
 ## Verification and Qualification
 
@@ -154,3 +155,8 @@ generated tracked data was introduced, and the slice remains within CAP-0008.
 - 2026-10-15: Delivered and verified the machine catalog, reusable live
   projection, repository adapter, read-only CLI, parity validation, and focused
   safety, privacy, freshness, and reuse evidence.
+- 2026-10-16: Reopened through a bounded descendant correction after the review
+  projection was found to bypass the canonical current allocation composition.
+- 2026-10-16: The correction now derives current executable order and parallel
+  groups from `portfolio-allocation-v1` while preserving future dependency
+  order as advisory, non-authorizing evidence for the review client.

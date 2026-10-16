@@ -13,6 +13,7 @@ from contracts import ControlError
 
 CATALOG_SCHEMA = "capability-catalog-v1"
 REVIEW_SCHEMA = "roadmap-review-v1"
+CURRENT_ALLOCATION_SCHEMA = "roadmap-current-allocation-v1"
 KEY_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 LIST_RE = re.compile(r"^\s*(?:[-*+] |\d+[.)] )(.*)$")
@@ -199,6 +200,121 @@ def _digest(value: object) -> str:
     return "sha256:" + hashlib.sha256(encoded).hexdigest()
 
 
+def _public_current_allocation(
+    allocation: Mapping[str, Any], *, capability_ids: set[str]
+) -> dict[str, Any]:
+    if allocation.get("schema_version") != "portfolio-allocation-v1" or allocation.get("level") != "capability":
+        raise _failure(
+            "roadmap.allocation-incompatible",
+            "The current capability allocation is missing or incompatible.",
+            {"schema_version": allocation.get("schema_version"), "level": allocation.get("level")},
+            "Project a portfolio-allocation-v1 result at capability level.",
+        )
+    raw_lanes = allocation.get("lanes")
+    raw_groups = allocation.get("parallel_groups")
+    if not isinstance(raw_lanes, list) or not isinstance(raw_groups, list):
+        raise _failure(
+            "roadmap.allocation-invalid",
+            "The current allocation must contain lane and parallel-group arrays.",
+            {},
+            "Regenerate the allocation with the canonical portfolio allocator.",
+        )
+
+    lanes: list[dict[str, Any]] = []
+    ordered_ids: list[str] = []
+    for position, raw in enumerate(raw_lanes):
+        if not isinstance(raw, Mapping):
+            raise _failure(
+                "roadmap.allocation-invalid",
+                "Every current allocation lane must be an object.",
+                {"position": position},
+                "Regenerate the allocation with the canonical portfolio allocator.",
+            )
+        unit_id = str(raw.get("unit_id", "")).strip()
+        allocation_state = str(raw.get("allocation_state", "")).strip()
+        if (
+            not unit_id
+            or unit_id not in capability_ids
+            or unit_id in ordered_ids
+            or allocation_state not in {"in-progress", "proposed"}
+        ):
+            raise _failure(
+                "roadmap.allocation-lane-invalid",
+                "A current allocation lane is unknown, duplicated, or has an invalid state.",
+                {"position": position, "unit_id": unit_id, "allocation_state": allocation_state},
+                "Regenerate the capability allocation from the same planning graph.",
+            )
+        ordered_ids.append(unit_id)
+        lanes.append(
+            {
+                "unit_id": unit_id,
+                "allocation_state": allocation_state,
+                "lifecycle_status": str(raw.get("lifecycle_status", "unknown")),
+            }
+        )
+
+    parallel_groups: list[list[str]] = []
+    grouped_ids: list[str] = []
+    for position, raw in enumerate(raw_groups):
+        if not isinstance(raw, list) or not raw:
+            raise _failure(
+                "roadmap.allocation-group-invalid",
+                "Every current allocation parallel group must be a non-empty array.",
+                {"position": position},
+                "Regenerate the capability allocation from the canonical allocator.",
+            )
+        group = [str(item) for item in raw]
+        if any(item not in ordered_ids for item in group) or len(group) != len(set(group)):
+            raise _failure(
+                "roadmap.allocation-group-invalid",
+                "A parallel group references an unknown or duplicated current lane.",
+                {"position": position, "group": group},
+                "Regenerate the capability allocation from the canonical allocator.",
+            )
+        parallel_groups.append(group)
+        grouped_ids.extend(group)
+    if len(grouped_ids) != len(set(grouped_ids)) or set(grouped_ids) != set(ordered_ids):
+        raise _failure(
+            "roadmap.allocation-group-invalid",
+            "Current parallel groups must partition the projected lanes exactly once.",
+            {"lane_ids": ordered_ids, "grouped_ids": grouped_ids},
+            "Regenerate the capability allocation from the canonical allocator.",
+        )
+
+    unresolved_pairs = []
+    for raw in allocation.get("unresolved_pairs", []):
+        if not isinstance(raw, Mapping):
+            continue
+        left = str(raw.get("left", ""))
+        right = str(raw.get("right", ""))
+        if left not in ordered_ids or right not in ordered_ids:
+            continue
+        unresolved_pairs.append(
+            {
+                "left": left,
+                "right": right,
+                "decision": str(raw.get("decision", "unknown")),
+                "reason_codes": sorted({str(item) for item in raw.get("reason_codes", [])}),
+                "remediation": str(raw.get("remediation", "")),
+            }
+        )
+    return {
+        "schema_version": CURRENT_ALLOCATION_SCHEMA,
+        "source_schema_version": "portfolio-allocation-v1",
+        "level": "capability",
+        "lanes": lanes,
+        "parallel_groups": parallel_groups,
+        "unresolved_pairs": unresolved_pairs,
+        "constraints": {
+            "grants_authority": False,
+            "acquires_file_leases": False,
+            "creates_agents": False,
+            "mutates_branches": False,
+            "future_order_is_global_lock": False,
+        },
+    }
+
+
 def build_projection(
     *,
     catalog: object,
@@ -207,6 +323,7 @@ def build_projection(
     graph: Mapping[str, Any],
     ordering: Mapping[str, Any],
     compatibility: Mapping[str, Any],
+    allocation: Mapping[str, Any],
     expected_catalog_count: int | None = None,
 ) -> dict[str, Any]:
     catalog_items = validate_catalog(catalog, expected_count=expected_catalog_count)
@@ -286,6 +403,9 @@ def build_projection(
         for node_id, node in sorted(by_id.items())
         if str(node.get("kind")) == "capability" and node_id not in mapped_ids
     ]
+    capability_ids = {
+        node_id for node_id, node in by_id.items() if str(node.get("kind")) == "capability"
+    }
     payload: dict[str, Any] = {
         "schema_version": REVIEW_SCHEMA,
         "catalog_count": len(candidates),
@@ -293,6 +413,9 @@ def build_projection(
         "internal_capabilities": internal_capabilities,
         "ordering": dict(ordering),
         "compatibility": dict(compatibility),
+        "current_allocation": _public_current_allocation(
+            allocation, capability_ids=capability_ids
+        ),
         "graph_issues": list(graph.get("issues", [])),
         "diagnostics": diagnostics,
     }

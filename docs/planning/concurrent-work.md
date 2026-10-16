@@ -64,6 +64,14 @@ only the affected lane and points to the missing refinement; it does not create
 a repository-wide lock. Prior-plan comparison records lane and group changes
 without overwriting the prior rationale.
 
+When descendant work is active or verifying, its lifecycle-ready container at
+the requested allocation level is shown as `in-progress` ahead of proposed
+lanes even if the container's own lifecycle field has not yet advanced. Direct
+in-progress work stays first, promoted containers retain deterministic relative
+order, and the remaining proposals keep their prior relative order. Completed
+containers stay terminal. This is current-execution evidence only: it does not
+mutate lifecycle, grant authority, or accept future priority.
+
 Allocation is advisory and read-only. It cannot create an agent, claim a packet,
 acquire a file, switch a branch, or grant authority. Follow the normal claim and
 exact-file lease workflow for each chosen lane.

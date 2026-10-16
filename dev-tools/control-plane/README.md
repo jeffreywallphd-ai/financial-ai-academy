@@ -122,6 +122,20 @@ current `roadmap-review-v1` projection. See
 work routes, missing-refinement behavior, inert plan rendering, safeguards,
 focused checks, and the reuse seam.
 
+The projection's `current_allocation` is a privacy-minimized view of the same
+default `portfolio-allocation-v1` composition used by `portfolio-allocate` at
+capability level. Its lanes and parallel groups cover work that is active or
+dependency-ready now. The broader `ordering` member deliberately retains
+blocked and future dependency context; that advisory future order is not a
+global lock and does not grant authority, create an agent, or acquire a lease.
+
+At any requested allocation level, active or verifying descendant work promotes
+its lifecycle-ready ancestor container to an `in-progress` lane ahead of
+not-yet-started proposals. The lane keeps the container's actual lifecycle
+status and names the active descendants as rationale. This reflects current
+execution without reopening completed containers, mutating lifecycle, accepting
+product priority, or turning the remaining proposal order into a lock.
+
 Add `--json` before the subcommand for the stable machine result. Mutations
 automatically finish an interrupted journal before proceeding. Submission
 records an existing clean exact Git candidate; it never commits, pushes, merges,
