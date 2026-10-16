@@ -175,8 +175,12 @@ non-applicability. Do not store reviewer or approval metadata in tracked files.
   set and derives its local path. Returning reloads graph and Navigation state;
   only a selected identifier present in the fresh graph receives visible
   `Current activity` text and `aria-current="step"`.
-- Focused model/component verification passed 56 tests and the complete web
-  unit/component regression passed 150 tests. Generated-client contract use,
+- The graph route owns launch cancellation: a later learner action or route
+  unmount aborts the superseded request without leaking an unhandled rejection,
+  while unexpected failures remain bounded. Route-level coverage exercises the
+  superseding-action path through the real router.
+- Focused model/component verification passed 57 tests and the complete web
+  unit/component regression passed 151 tests. Generated-client contract use,
   TypeScript typecheck, lint, production build, design-system validation,
   planning, documentation, and whitespace checks passed. The tracked static
   production bundle was regenerated from the verified source.
