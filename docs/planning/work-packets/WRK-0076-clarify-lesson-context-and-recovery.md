@@ -1,7 +1,7 @@
 ---
 id: WRK-0076
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/README.md", "docs/planning/work-packets/WRK-0076-clarify-lesson-context-and-recovery.md", "docs/planning/vertical-slices/SLI-0124-understand-lesson-check-and-completion.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 6d6478927f6bd64d7e89745c642e19bbaa5cc487
+claim_id: WRK-0076:0167f10b-d260-40d6-92f8-399ae9c4d694
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T10:36:21Z
 ---
 
 # Agent Work Packet: Clarify Lesson Context and Recovery
