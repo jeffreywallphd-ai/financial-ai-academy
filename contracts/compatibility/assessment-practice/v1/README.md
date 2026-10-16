@@ -14,6 +14,10 @@ definition without changing the existing single-select knowledge-check corpus.
   canonical response and multiple-selection order independence.
 - `cases/denials.json` and `cases/submission-denials.json` name stable schema,
   definition, submission, result, and event failures.
+- `approved/draft-save.json`, `draft.json`, and `retry-state.json` fix one
+  partial conditional save, its server-owned representation, and visible retry
+  state. `cases/draft-retry-denials.json` fixes stale, contradictory, private,
+  and client-authority denials.
 
 The approved request is intentionally not in definition order. Contract
 validation correlates by item ID, scores against the exact private definition,
@@ -23,3 +27,10 @@ branches, and evaluator rules remain private.
 
 The fixtures contain no personal information, provider payload, credential,
 investment recommendation, suitability claim, or performance claim.
+
+The additive draft and retry records do not change accepted practice bytes.
+Empty through complete response subsets are valid drafts. Requests carry only
+an expected revision; server drafts carry the positive revision, UTC save
+time, and canonical response fingerprint. Retry state is derived from accepted
+attempt count and the exact `formative-retry@1.0.0` policy for every limit from
+1 through 10.

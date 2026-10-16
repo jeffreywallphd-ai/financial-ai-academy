@@ -130,6 +130,35 @@ def approved_chain(
     )
 
 
+def approved_progress(
+    corpus: Path | None = None,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    approved = (corpus or corpus_dir()) / "approved"
+    return (
+        load_json(approved / "draft-save.json"),
+        load_json(approved / "draft.json"),
+        load_json(approved / "retry-state.json"),
+    )
+
+
+def canonical_draft_responses_bytes(responses: Sequence[Mapping[str, Any]]) -> bytes:
+    canonical = copy.deepcopy(list(responses))
+    for response in canonical:
+        if isinstance(response.get("selected_option_ids"), list):
+            response["selected_option_ids"] = sorted(response["selected_option_ids"])
+    canonical.sort(key=lambda response: str(response.get("item_id", "")))
+    return json.dumps(
+        canonical,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+
+def draft_response_fingerprint(responses: Sequence[Mapping[str, Any]]) -> str:
+    return hashlib.sha256(canonical_draft_responses_bytes(responses)).hexdigest()
+
+
 def canonical_submission_bytes(submission: Mapping[str, Any]) -> bytes:
     canonical = copy.deepcopy(dict(submission))
     responses = canonical.get("responses")
@@ -193,6 +222,9 @@ class PracticeContractValidator:
                 "submission",
                 "result",
                 "completion-event",
+                "draft-save",
+                "draft",
+                "retry-state",
             )
         }
         registry = Registry().with_resources(
@@ -592,6 +624,128 @@ class PracticeContractValidator:
                 "assessment.practice.stale_reference",
                 "event",
                 "Practice completion event does not match its exact result.",
+            )
+
+    @staticmethod
+    def _practice_correlation(
+        definition: Mapping[str, Any], presentation: Mapping[str, Any]
+    ) -> dict[str, Any]:
+        practice = definition["practice"]
+        return {
+            "placement_id": presentation["placement_id"],
+            "package_id": presentation["package_id"],
+            "package_version": presentation["package_version"],
+            "package_digest": presentation["package_digest"],
+            "definition_digest": definition["definition_digest"],
+            "practice_id": practice["practice_id"],
+            "practice_version": practice["practice_version"],
+            "attempt_policy_id": practice["attempt_policy"]["policy_id"],
+            "attempt_policy_version": practice["attempt_policy"]["policy_version"],
+        }
+
+    def _validate_draft_responses(
+        self,
+        definition: Mapping[str, Any],
+        responses: Sequence[Mapping[str, Any]],
+    ) -> None:
+        practice = definition["practice"]
+        items = {item["item_id"]: item for item in practice["items"]}
+        response_ids = [str(response.get("item_id", "")) for response in responses]
+        if len(response_ids) != len(set(response_ids)):
+            reject(
+                "assessment.practice.invalid_draft",
+                "responses",
+                "A draft can contain each practice item at most once.",
+            )
+        for index, response in enumerate(responses):
+            item = items.get(response.get("item_id"))
+            if item is None:
+                reject(
+                    "assessment.practice.invalid_draft",
+                    f"responses.{index}.item_id",
+                    "A draft response must reference an item in the exact definition.",
+                )
+            self._score_response(item, response, index, [])
+
+    def validate_draft_save(
+        self,
+        definition: Mapping[str, Any],
+        presentation: Mapping[str, Any],
+        draft_save: Mapping[str, Any],
+    ) -> None:
+        self.validate_presentation(definition, presentation)
+        self._shape("draft-save", draft_save)
+        for name, expected in self._practice_correlation(
+            definition, presentation
+        ).items():
+            if draft_save.get(name) != expected:
+                reject(
+                    "assessment.practice.stale_reference",
+                    name,
+                    "Practice draft does not match the exact definition.",
+                )
+        self._validate_draft_responses(definition, draft_save["responses"])
+
+    def validate_draft(
+        self,
+        definition: Mapping[str, Any],
+        presentation: Mapping[str, Any],
+        draft: Mapping[str, Any],
+    ) -> None:
+        self.validate_presentation(definition, presentation)
+        self._shape("draft", draft)
+        for name, expected in self._practice_correlation(
+            definition, presentation
+        ).items():
+            if draft.get(name) != expected:
+                reject(
+                    "assessment.practice.stale_reference",
+                    name,
+                    "Practice draft does not match the exact definition.",
+                )
+        self._validate_draft_responses(definition, draft["responses"])
+        if draft_response_fingerprint(draft["responses"]) != draft.get(
+            "response_fingerprint"
+        ):
+            reject(
+                "assessment.practice.invalid_draft",
+                "response_fingerprint",
+                "Practice draft fingerprint does not match its response snapshot.",
+            )
+
+    def validate_retry_state(
+        self,
+        definition: Mapping[str, Any],
+        presentation: Mapping[str, Any],
+        retry_state: Mapping[str, Any],
+    ) -> None:
+        self.validate_presentation(definition, presentation)
+        self._shape("retry-state", retry_state)
+        for name, expected in self._practice_correlation(
+            definition, presentation
+        ).items():
+            if retry_state.get(name) != expected:
+                reject(
+                    "assessment.practice.stale_reference",
+                    name,
+                    "Practice retry state does not match the exact definition.",
+                )
+        declared_maximum = definition["practice"]["attempt_policy"]["max_attempts"]
+        used = retry_state["attempts_used"]
+        remaining = declared_maximum - used
+        expected_can_retry = remaining > 0
+        if (
+            retry_state["max_attempts"] != declared_maximum
+            or used > declared_maximum
+            or retry_state["attempts_remaining"] != max(remaining, 0)
+            or retry_state["can_retry"] is not expected_can_retry
+            or retry_state["state"]
+            != ("available" if expected_can_retry else "exhausted")
+        ):
+            reject(
+                "assessment.practice.invalid_retry_state",
+                "retry_state",
+                "Practice retry state contradicts the exact attempt policy.",
             )
 
     def _score_response(

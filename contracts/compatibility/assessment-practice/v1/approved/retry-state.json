@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "placement_id": "risk-return-practice-placement",
+  "package_id": "intro-risk-return",
+  "package_version": "2.0.0",
+  "package_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "definition_digest": "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527",
+  "practice_id": "risk-return-practice",
+  "practice_version": "1.0.0",
+  "attempt_policy_id": "formative-retry",
+  "attempt_policy_version": "1.0.0",
+  "attempts_used": 1,
+  "max_attempts": 3,
+  "attempts_remaining": 2,
+  "can_retry": true,
+  "state": "available"
+}

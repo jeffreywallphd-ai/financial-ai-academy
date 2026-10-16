@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "placement_id": "risk-return-practice-placement",
+  "package_id": "intro-risk-return",
+  "package_version": "2.0.0",
+  "package_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "definition_digest": "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527",
+  "practice_id": "risk-return-practice",
+  "practice_version": "1.0.0",
+  "attempt_policy_id": "formative-retry",
+  "attempt_policy_version": "1.0.0",
+  "expected_revision": 0,
+  "responses": [
+    {"item_id": "simple-growth", "item_version": "1.0.0", "item_type": "numeric_entry", "scoring_policy_id": "numeric-exact-or-inclusive-range", "scoring_policy_version": "1.0.0", "entered_value": "105.00"},
+    {"item_id": "risk-meaning", "item_version": "1.0.0", "item_type": "single_select", "scoring_policy_id": "single-select-exact-match", "scoring_policy_version": "1.0.0", "selected_option_id": "uncertainty"}
+  ]
+}

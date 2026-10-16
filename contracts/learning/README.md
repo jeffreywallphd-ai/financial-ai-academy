@@ -56,6 +56,22 @@ projector, and scorer fix canonical request identity, exact-version scoring,
 safe feedback, and event meaning. They do not issue identity/time, persist or
 publish evidence, expose submission HTTP, or create a separate AI mode.
 
+The same family now freezes additive conditional draft-save, server draft, and
+retry-state shapes. Empty and partial snapshots remain mutable work state, not
+attempts or evidence. Exact replay compares the canonical response fingerprint;
+different stale input conflicts. Retry counts derive from the exact published
+policy and support limits 1 through 10.
+
+## Learner-model Practice History v1
+
+[`learner-model/practice/v1/`](learner-model/practice/v1/README.md) defines an
+evidence-only, rebuildable view of ordered practice attempts. Its corpus lives
+in
+[`../compatibility/learner-model-practice-history/v1/`](../compatibility/learner-model-practice-history/v1/README.md).
+It preserves exact source and content provenance while excluding learner
+identity, responses, answer keys, feedback text, mastery, adaptation, and
+advice.
+
 ## Learning Discovery v1
 
 [`discovery/v1/`](discovery/v1/README.md) defines the portable approved
@@ -100,6 +116,11 @@ uv run --project backend pytest backend/tests/contract/curriculum_graph
 
 The graph contract does not establish learner eligibility, completion,
 recommendation, persistence, API authorization, or browser behavior.
+
+The additive Curriculum practice-review target schema maps exact approved
+review resources to safe lesson placements and reports unavailable mappings
+without fallback or ranking. Its corpus lives in
+[`../compatibility/curriculum-practice-review/v1/`](../compatibility/curriculum-practice-review/v1/README.md).
 
 ## Adaptation Navigation State v1
 

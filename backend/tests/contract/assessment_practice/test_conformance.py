@@ -15,10 +15,13 @@ from .runner import (
     PracticeContractValidator,
     approved_chain,
     approved_pair,
+    approved_progress,
     canonical_practice_bytes,
+    canonical_draft_responses_bytes,
     canonical_submission_bytes,
     corpus_dir,
     definition_digest,
+    draft_response_fingerprint,
     schema_dir,
     submission_fingerprint,
 )
@@ -48,8 +51,11 @@ def test_schemas_are_valid_draft_2020_12() -> None:
     assert [path.name for path in paths] == [
         "completion-event.schema.json",
         "definition.schema.json",
+        "draft-save.schema.json",
+        "draft.schema.json",
         "presentation.schema.json",
         "result.schema.json",
+        "retry-state.schema.json",
         "submission.schema.json",
     ]
     for path in paths:
@@ -74,6 +80,93 @@ def test_approved_definition_and_safe_projection_validate() -> None:
         package_version=presentation["package_version"],
         package_digest=presentation["package_digest"],
     ) == presentation
+
+
+def test_approved_draft_save_server_draft_and_retry_state_validate() -> None:
+    definition, presentation = approved_pair()
+    draft_save, draft, retry_state = approved_progress()
+    validator = PracticeContractValidator()
+    validator.validate_draft_save(definition, presentation, draft_save)
+    validator.validate_draft(definition, presentation, draft)
+    validator.validate_retry_state(definition, presentation, retry_state)
+    assert draft["response_fingerprint"] == draft_response_fingerprint(
+        draft["responses"]
+    )
+    assert "learner_id" not in json.dumps(
+        {"draft_save": draft_save, "draft": draft, "retry": retry_state}
+    )
+
+
+def test_draft_fingerprint_is_order_independent_and_supports_empty_progress() -> None:
+    definition, presentation = approved_pair()
+    draft_save, _, _ = map(copy.deepcopy, approved_progress())
+    forward = canonical_draft_responses_bytes(draft_save["responses"])
+    draft_save["responses"].reverse()
+    assert canonical_draft_responses_bytes(draft_save["responses"]) == forward
+    PracticeContractValidator().validate_draft_save(
+        definition, presentation, draft_save
+    )
+    draft_save["responses"] = []
+    PracticeContractValidator().validate_draft_save(
+        definition, presentation, draft_save
+    )
+
+
+@pytest.mark.parametrize("maximum", range(1, 11))
+def test_retry_state_accepts_every_policy_limit(maximum: int) -> None:
+    definition, presentation = map(copy.deepcopy, approved_pair())
+    _, _, retry_state = map(copy.deepcopy, approved_progress())
+    definition["practice"]["attempt_policy"]["max_attempts"] = maximum
+    definition["definition_digest"] = definition_digest(definition)
+    presentation = PracticeContractValidator().project(
+        definition,
+        placement_id=presentation["placement_id"],
+        package_id=presentation["package_id"],
+        package_version=presentation["package_version"],
+        package_digest=presentation["package_digest"],
+    )
+    retry_state["definition_digest"] = definition["definition_digest"]
+    retry_state["attempts_used"] = maximum
+    retry_state["max_attempts"] = maximum
+    retry_state["attempts_remaining"] = 0
+    retry_state["can_retry"] = False
+    retry_state["state"] = "exhausted"
+    PracticeContractValidator().validate_retry_state(
+        definition, presentation, retry_state
+    )
+
+
+def _progress_denial(case: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    values = dict(zip(("draft_save", "draft", "retry_state"), map(copy.deepcopy, approved_progress())))
+    target = values[case["target"]]
+    if case["op"] == "append_response_copy":
+        target["responses"].append(copy.deepcopy(target["responses"][0]))
+    else:
+        _set_at(target, case["path"], case["value"])
+    return case["target"], target
+
+
+@pytest.mark.parametrize(
+    "case",
+    json.loads(
+        (CORPUS / "cases/draft-retry-denials.json").read_text(encoding="utf-8")
+    ),
+    ids=lambda case: case["id"],
+)
+def test_draft_and_retry_denials_are_bounded(case: dict[str, Any]) -> None:
+    definition, presentation = approved_pair()
+    target_name, target = _progress_denial(case)
+    validator = PracticeContractValidator()
+    method = {
+        "draft_save": validator.validate_draft_save,
+        "draft": validator.validate_draft,
+        "retry_state": validator.validate_retry_state,
+    }[target_name]
+    with pytest.raises(PracticeConformanceFailure) as captured:
+        method(definition, presentation, target)
+    assert captured.value.code == case["expected_code"]
+    assert len(captured.value.reference) <= 120
+    assert "\n" not in captured.value.reference
 
 
 def test_definition_digest_vector_fixes_private_meaning() -> None:

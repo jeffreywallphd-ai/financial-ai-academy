@@ -13,3 +13,12 @@ explicitly approved breaking-change records live here.
   bounded contract denials without implying ranking or non-lesson execution.
 - [`discovery/query/v1/`](discovery/query/v1/README.md) fixes deterministic
   query normalization, filters, paging, and bounded denials over discovery v1.
+- [`assessment-practice/v1/`](assessment-practice/v1/README.md) fixes
+  multi-item practice, partial-draft, retry-state, result, and completion-event
+  compatibility without changing accepted knowledge-check contracts.
+- [`curriculum-practice-review/v1/`](curriculum-practice-review/v1/README.md)
+  fixes exact review-resource mappings, safe unavailable behavior, and
+  declaration-ordered selection.
+- [`learner-model-practice-history/v1/`](learner-model-practice-history/v1/README.md)
+  fixes rebuildable ordered attempt summaries, source digests, confidentiality,
+  and duplicate-replay behavior.

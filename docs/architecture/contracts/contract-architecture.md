@@ -67,6 +67,14 @@ and simulated values and cannot expose provider payloads as platform meaning.
 - Providers translate to and from platform contracts.
 - A contract has one owning module or cross-cutting owner, a version, compatibility policy, examples, and conformance tests.
 - Exact wire shape belongs in executable schemas. Semantic rules and module ownership belong in canonical documentation.
+- Assessment owns mutable practice-draft and deterministic retry-state
+  contracts; Curriculum owns exact practice-review targets; Learner model owns
+  rebuildable practice-history projections. Their shared provenance does not
+  transfer table access or policy authority between modules.
+- Browser and non-browser clients consume the same reviewed public APIs when
+  those APIs are implemented. Contract families do not create a separate AI
+  domain core or grant a client authority over identity, scoring, retry,
+  eligibility, or durable state.
 
 ## Generation
 

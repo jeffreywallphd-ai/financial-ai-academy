@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/curriculum/v1/practice-review-target/target.schema.json",
+  "title": "Exact practice review target",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "practice_placement_id", "resource_id", "resource_version", "resource_digest", "resource_title", "state"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "practice_placement_id": {"$ref": "#/$defs/id"},
+    "resource_id": {"$ref": "#/$defs/id"},
+    "resource_version": {"$ref": "#/$defs/version"},
+    "resource_digest": {"$ref": "#/$defs/digest"},
+    "resource_title": {"type": "string", "minLength": 1, "maxLength": 240},
+    "state": {"enum": ["available", "unavailable"]},
+    "destination": {"$ref": "#/$defs/destination"},
+    "unavailable_reason": {"enum": ["mapping_not_found", "destination_not_available", "version_mismatch"]}
+  },
+  "oneOf": [
+    {"properties": {"state": {"const": "available"}}, "required": ["destination"], "not": {"required": ["unavailable_reason"]}},
+    {"properties": {"state": {"const": "unavailable"}}, "required": ["unavailable_reason"], "not": {"required": ["destination"]}}
+  ],
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "destination": {
+      "type": "object", "additionalProperties": false,
+      "required": ["placement_id", "package_id", "package_version", "package_digest"],
+      "properties": {
+        "placement_id": {"$ref": "#/$defs/id"}, "package_id": {"$ref": "#/$defs/id"},
+        "package_version": {"$ref": "#/$defs/version"}, "package_digest": {"$ref": "#/$defs/digest"},
+        "section_id": {"$ref": "#/$defs/id"}
+      }
+    }
+  }
+}

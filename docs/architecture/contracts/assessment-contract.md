@@ -142,6 +142,26 @@ correlation but does not persist, dispatch, publish, or make the event a
 mastery signal. Result and event timestamps use canonical UTC RFC 3339 text
 ending in `Z`; equivalent non-zero offsets are not accepted contract forms.
 
+## Practice Draft and Retry Contracts
+
+Assessment owns one mutable draft for a learner and exact placed-practice
+version. The additive `draft-save@1.0.0` request repeats the public package,
+definition, practice, and policy selectors, supplies the caller's last observed
+revision, and contains zero through all valid response shapes. It contains no
+learner identity, server time, server revision, score, feedback, or answer key.
+The returned `draft@1.0.0` adds a positive server revision, canonical UTC save
+time, and deterministic fingerprint of the response snapshot. An exact
+same-content replay may return the current representation; different stale
+input conflicts without replacement. A draft is work state, not an attempt,
+event, result, or evidence record.
+
+`retry-state@1.0.0` is derived only from the immutable accepted-attempt count
+and the exact definition's `formative-retry@1.0.0` policy. It supports published
+limits from 1 through 10 and requires attempts used, attempts remaining,
+availability, and state to agree. Clients, including future headless clients,
+cannot grant retries or alter the attempt limit. These contract shapes do not
+yet qualify persistence, concurrency, public APIs, or draft clearing.
+
 ## Compatibility and Diagnostics
 
 The compatibility corpus fixes correct and incorrect chains, canonical
@@ -215,9 +235,9 @@ confidentiality, and mutation denial without changing knowledge-check storage.
 Repeated opening remains read-only and returns no answer or feedback branch.
 Authorization host composition, the public POST, reviewed OpenAPI, generated
 client, bounded denials, and direct non-browser result confidentiality are now
-covered. Browser result flow, retry enforcement, history/replay consumers, and
-live local submission remain unqualified until their owning packets deliver
-them. No separate AI/headless mode is defined; the shared public API remains
+covered. Browser result flow, draft persistence, retry enforcement, history
+consumers, and review-target resolution remain unqualified until their owning
+packets deliver them. No separate AI/headless mode is defined; the shared public API remains
 the supported non-browser seam and keeps a future consumer possible without
 creating another domain core.
 

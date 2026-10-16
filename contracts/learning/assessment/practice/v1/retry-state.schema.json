@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/assessment/practice/v1/retry-state.schema.json",
+  "title": "Deterministic practice retry state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "placement_id", "package_id", "package_version", "package_digest", "definition_digest", "practice_id", "practice_version", "attempt_policy_id", "attempt_policy_version", "attempts_used", "max_attempts", "attempts_remaining", "can_retry", "state"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "placement_id": {"$ref": "#/$defs/id"},
+    "package_id": {"$ref": "#/$defs/id"},
+    "package_version": {"$ref": "#/$defs/version"},
+    "package_digest": {"$ref": "#/$defs/digest"},
+    "definition_digest": {"$ref": "#/$defs/digest"},
+    "practice_id": {"$ref": "#/$defs/id"},
+    "practice_version": {"const": "1.0.0"},
+    "attempt_policy_id": {"const": "formative-retry"},
+    "attempt_policy_version": {"const": "1.0.0"},
+    "attempts_used": {"type": "integer", "minimum": 0, "maximum": 10},
+    "max_attempts": {"type": "integer", "minimum": 1, "maximum": 10},
+    "attempts_remaining": {"type": "integer", "minimum": 0, "maximum": 10},
+    "can_retry": {"type": "boolean"},
+    "state": {"enum": ["available", "exhausted"]}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"}
+  }
+}

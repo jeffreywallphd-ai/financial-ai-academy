@@ -47,9 +47,23 @@ the contract does not perform implicit Unicode normalization.
 The paired compatibility corpus is in
 [`contracts/compatibility/assessment-practice/v1`](../../../../compatibility/assessment-practice/v1/README.md).
 
+The additive `draft-save`, `draft`, and `retry-state` schemas preserve the same
+exact selectors and response union. A draft-save request carries
+`expected_revision` and zero through all defined responses. It cannot supply
+learner identity, server revision, save time, or a score. The returned draft
+carries the positive server revision, canonical UTC save time, and a lowercase
+SHA-256 fingerprint over the sorted response snapshot. Response order and
+multiple-selection order do not change that fingerprint.
+
+Retry state is a deterministic view of immutable accepted-attempt count and
+the exact `formative-retry@1.0.0` policy. `max_attempts` supports every value
+from 1 through 10. Remaining attempts, availability, and state must agree; no
+client field can grant another attempt.
+
 Schemas and the dependency-light compatibility runner are transport-neutral.
-They do not authorize identity, issue time or IDs, persist evidence, publish an
-event, expose HTTP, or create a separate browser or AI mode. Run their contract
+They do not authorize identity, issue time or IDs, persist drafts or evidence,
+enforce retry concurrency, publish an event, expose HTTP, or create a separate
+browser or AI mode. Run their contract
 evidence from the repository root:
 
 ```powershell

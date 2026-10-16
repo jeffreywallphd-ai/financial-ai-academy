@@ -41,3 +41,19 @@ uv run --project backend pytest backend/tests/contract/curriculum_graph
 This contract does not qualify persistence, publication commands, API
 authorization, eligibility, activity launch, browser rendering, or adaptive
 ranking.
+
+## Practice Review Target v1
+
+`practice-review-target/target.schema.json` is an additive Curriculum-owned mapping
+from one exact practice placement and approved review-resource identity,
+version, and digest to a safe lesson placement. Available targets carry only
+stable placement, package, and optional section identifiers. Unavailable
+targets preserve the requested resource and expose a bounded reason without
+substituting another lesson or hiding the Assessment result.
+
+Selection uses review references attached to incorrect item feedback,
+deduplicates them in the practice definition's declaration order, and does not
+rank or generate recommendations. Raw URLs, routes, HTML, filesystem paths,
+provider payloads, and credentials are outside the contract. Compatibility
+evidence lives in
+[`../../../compatibility/curriculum-practice-review/v1/`](../../../compatibility/curriculum-practice-review/v1/README.md).

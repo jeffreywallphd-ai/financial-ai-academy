@@ -1,0 +1,10 @@
+[
+  {"id": "raw-url-at-root", "target": "available", "op": "set", "path": ["url"], "value": "https://example.invalid/review", "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "raw-url-at-destination", "target": "available", "op": "set", "path": ["destination", "url"], "value": "/lessons/review", "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "available-without-destination", "target": "available", "op": "delete", "path": ["destination"], "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "available-with-reason", "target": "available", "op": "set", "path": ["unavailable_reason"], "value": "mapping_not_found", "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "unavailable-with-destination", "target": "unavailable", "op": "copy_destination", "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "unavailable-without-reason", "target": "unavailable", "op": "delete", "path": ["unavailable_reason"], "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "bad-resource-version", "target": "available", "op": "set", "path": ["resource_version"], "value": "current", "expected_code": "curriculum.practice_review.schema_invalid"},
+  {"id": "private-provider-payload", "target": "available", "op": "set", "path": ["provider_payload"], "value": {"key": "secret"}, "expected_code": "curriculum.practice_review.schema_invalid"}
+]

@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "practice_placement_id": "risk-return-practice-placement",
+  "resource_id": "risk-return-review",
+  "resource_version": "1.0.0",
+  "resource_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+  "resource_title": "Review risk and return",
+  "state": "available",
+  "destination": {
+    "placement_id": "risk-return-reading-placement",
+    "package_id": "intro-risk-return",
+    "package_version": "2.0.0",
+    "package_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "section_id": "risk-return-review-section"
+  }
+}

@@ -55,3 +55,20 @@ adaptive ranking, external learning standards, organization tenancy, and
 cross-curriculum credit require separate governed work. Later storage adapters
 must pass the same admission, replay/conflict, exact-version, corruption,
 authorization, and flexible-shape scenarios.
+
+## Exact Practice Review Targets
+
+Curriculum also owns the additive `practice-review-target@1.0.0` mapping. One
+record binds an exact practice placement plus approved review-resource
+identity, version, and digest to a safe lesson placement, exact package, and
+optional section ID. It stores neither Assessment feedback nor Content bytes.
+It never carries a raw URL, HTML fragment, filesystem path, provider payload,
+credential, or client-selected route.
+
+Selection consumes the review-reference IDs produced for incorrect practice
+items, deduplicates them in definition declaration order, and resolves only an
+exact registered mapping. A missing or stale mapping returns a bounded
+unavailable record. It does not substitute a different resource, hide the
+Assessment result, rank learning material, or infer mastery. The contract and
+dependency-light runner do not yet implement mapping persistence, a public
+gateway, browser navigation, or Content retrieval.
