@@ -206,7 +206,7 @@ their work begins. The dependency-ordered seams are:
 | WRK-0085 | Freeze activity-launch v1, the pure launch decision, bounded errors, and direct anti-rigidity corpus | SLI-0023 | none | complete |
 | WRK-0086 | Compose the protected application/API operation through current public gateways and regenerate the client | WRK-0085 | none | complete |
 | WRK-0087 | Add learner actions, validated return context, and equivalent list/map current-position presentation | WRK-0086 | none | complete |
-| JIT-D | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | JIT-C | none | planned |
+| WRK-0088 | Qualify exact launch/return/completion/version behavior in the isolated live stack and reconcile documentation | WRK-0087 | none | ready |
 
 ## Verification and Qualification
 
@@ -319,3 +319,9 @@ and durable-state authority did not change.
   cancellation correction was independently accepted, and the generated
   public API boundary remains available to UI and non-UI clients. Live-stack
   qualification remains JIT-D.
+- 2026-10-16: Refined JIT-D as WRK-0088 around the existing isolated live
+  harness, public launch API/client boundary, exact lesson return after
+  completion, denial confidentiality, and two coexisting qualification graph
+  versions with deliberately reused and changed exact resources. No product API
+  or separate AI-mode planning was added, and no decision or lower-level
+  approval gate applies.
