@@ -604,6 +604,7 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
         runner.load_practice_submission_capture(
             capture,
             data_root=tmp_path,
+            expected_practice=practice(),
         )
     )
     assert draft_request == practice_draft_save()
@@ -621,6 +622,7 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
     runner.load_practice_submission_capture(
         capture,
         data_root=tmp_path,
+        expected_practice=practice(),
     )
 
     leaked = practice_result()
@@ -631,7 +633,11 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
         encoding="utf-8",
     )
     with pytest.raises(RuntimeError, match="closed public contract"):
-        runner.load_practice_submission_capture(capture, data_root=tmp_path)
+        runner.load_practice_submission_capture(
+            capture,
+            data_root=tmp_path,
+            expected_practice=practice(),
+        )
 
     changed = practice_result()
     changed["package_version"] = "2.0.1"
@@ -641,7 +647,11 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
         encoding="utf-8",
     )
     with pytest.raises(RuntimeError, match="changed the submitted"):
-        runner.load_practice_submission_capture(capture, data_root=tmp_path)
+        runner.load_practice_submission_capture(
+            capture,
+            data_root=tmp_path,
+            expected_practice=practice(),
+        )
 
     outside = tmp_path.parent / "outside-practice-capture.json"
     outside.write_text(
@@ -650,7 +660,11 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
     )
     try:
         with pytest.raises(RuntimeError, match="escaped its bounded root"):
-            runner.load_practice_submission_capture(outside, data_root=tmp_path)
+            runner.load_practice_submission_capture(
+                outside,
+                data_root=tmp_path,
+                expected_practice=practice(),
+            )
     finally:
         outside.unlink()
 
@@ -677,8 +691,24 @@ def test_headless_submission_uses_only_public_session_and_post(
 
     statuses = iter(
         (
-            (401, {"code": "unauthorized", "message": "Session required."}),
-            (409, {"code": "conflict", "message": "Request changed."}),
+            (
+                401,
+                {
+                    "error_version": "1.0",
+                    "code": "unauthorized",
+                    "message": "Session required.",
+                    "correlation_id": "11111111-1111-4111-8111-111111111111",
+                },
+            ),
+            (
+                409,
+                {
+                    "error_version": "1.0",
+                    "code": "conflict",
+                    "message": "Request changed.",
+                    "correlation_id": "11111111-1111-4111-8111-111111111111",
+                },
+            ),
         )
     )
 
@@ -728,6 +758,7 @@ def test_progress_is_closed_coherent_and_order_tolerant() -> None:
         practice_progress(),
         expected_submission=practice_submission(),
         expected_result=practice_result(),
+        expected_practice=practice(),
     ) == practice_progress()
 
     reordered = practice_draft()
@@ -747,6 +778,63 @@ def test_progress_is_closed_coherent_and_order_tolerant() -> None:
     ] = "private-response"
     with pytest.raises(RuntimeError, match="closed public contract"):
         runner.stable_practice_progress(leaked)
+
+    mismatched_scope = practice_progress()
+    mismatched_scope["retry_state"]["package_version"] = "9.9.9"
+    mismatched_scope["history"]["package_version"] = "9.9.9"
+    with pytest.raises(RuntimeError, match="changed the practice package_version"):
+        runner.stable_practice_progress(
+            mismatched_scope,
+            expected_submission=practice_submission(),
+            expected_result=practice_result(),
+        )
+
+    mismatched_limit = practice_progress()
+    mismatched_limit["retry_state"]["max_attempts"] = 10
+    mismatched_limit["retry_state"]["attempts_remaining"] = 9
+    with pytest.raises(RuntimeError, match="immutable presentation"):
+        runner.stable_practice_progress(
+            mismatched_limit,
+            expected_practice=practice(),
+        )
+
+
+def test_practice_denial_is_closed_and_rejects_private_values() -> None:
+    safe = {
+        "error_version": "1.0",
+        "code": "conflict",
+        "message": "Saved practice progress changed in another session.",
+        "correlation_id": "11111111-1111-4111-8111-111111111111",
+    }
+    runner._assert_safe_practice_denial(
+        409,
+        safe,
+        expected_status=409,
+        expected_code="conflict",
+    )
+
+    leaked = safe | {
+        "message": (
+            "learner_id=private selected_option_id=answer "
+            "from assessment.practice_drafts"
+        )
+    }
+    with pytest.raises(RuntimeError, match="private or diagnostic"):
+        runner._assert_safe_practice_denial(
+            409,
+            leaked,
+            expected_status=409,
+            expected_code="conflict",
+        )
+
+    expanded = safe | {"diagnostic": "private.storage.detail"}
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner._assert_safe_practice_denial(
+            409,
+            expanded,
+            expected_status=409,
+            expected_code="conflict",
+        )
 
 
 def test_headless_progress_uses_shared_public_api_and_preserves_stale_state(
@@ -789,7 +877,12 @@ def test_headless_progress_uses_shared_public_api_and_preserves_stale_state(
         assert path.endswith("/draft")
         assert method == "PUT"
         denial_calls.append(payload)
-        return 409, {"code": "conflict", "message": "Revision changed."}
+        return 409, {
+            "error_version": "1.0",
+            "code": "conflict",
+            "message": "Revision changed.",
+            "correlation_id": "11111111-1111-4111-8111-111111111111",
+        }
 
     monkeypatch.setattr(runner, "_request_json", request_json)
     monkeypatch.setattr(runner, "_request_json_status", request_status)

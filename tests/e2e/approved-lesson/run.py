@@ -196,6 +196,37 @@ PRACTICE_PROGRESS_ROOT_KEYS = frozenset(
         "review_targets",
     }
 )
+PRACTICE_DENIAL_ROOT_KEYS = frozenset(
+    {"error_version", "code", "message", "correlation_id"}
+)
+PRACTICE_DENIAL_PRIVATE_FRAGMENTS = frozenset(
+    {
+        "answer",
+        "assessment.",
+        "authorization",
+        "bearer",
+        "cookie",
+        "credential",
+        "database",
+        "entered_value",
+        "evaluator",
+        "learner_id",
+        "password",
+        "postgres",
+        "practice_attempts",
+        "practice_drafts",
+        "practice_responses",
+        "request_fingerprint",
+        "scoring_policy",
+        "selected_option_id",
+        "sql",
+        "stack trace",
+        "storage",
+        "submission_id",
+        "token",
+        "traceback",
+    }
+)
 PRACTICE_REVIEW_TARGET_COMMON_KEYS = frozenset(
     {
         "schema_version",
@@ -908,6 +939,37 @@ def _assert_same_practice_scope(
             raise RuntimeError(f"{label} changed the practice {key}.")
 
 
+def _practice_scope_from_presentation(
+    document: dict[str, Any],
+) -> tuple[dict[str, Any], int]:
+    practice = stable_practice_semantics(document)
+    policy = practice["attempt_policy"]
+    if not isinstance(policy, dict):
+        raise RuntimeError("Practice presentation attempt policy is not an object.")
+    required_policy = {
+        "policy_id",
+        "policy_version",
+        "max_attempts",
+        "resume_allowed",
+        "history_visible",
+    }
+    if set(policy) != required_policy:
+        raise RuntimeError(
+            "Practice presentation attempt policy is not the closed public contract."
+        )
+    maximum = policy["max_attempts"]
+    if type(maximum) is not int or not 1 <= maximum <= 10:
+        raise RuntimeError("Practice presentation attempt limit is invalid.")
+    scope = {
+        key: practice[key]
+        for key in PRACTICE_SCOPE_KEYS
+        if key not in {"attempt_policy_id", "attempt_policy_version"}
+    }
+    scope["attempt_policy_id"] = policy["policy_id"]
+    scope["attempt_policy_version"] = policy["policy_version"]
+    return scope, maximum
+
+
 def stable_practice_draft_save(document: dict[str, Any]) -> dict[str, Any]:
     _exact_keys(document, PRACTICE_DRAFT_SAVE_ROOT_KEYS, "Practice draft save")
     if document["placement_id"] != PRACTICE_PLACEMENT_ID:
@@ -954,6 +1016,7 @@ def stable_practice_progress(
     *,
     expected_submission: dict[str, Any] | None = None,
     expected_result: dict[str, Any] | None = None,
+    expected_practice: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     _exact_keys(document, PRACTICE_PROGRESS_ROOT_KEYS, "Practice progress")
     if document["schema_version"] != "1.0.0":
@@ -990,6 +1053,19 @@ def stable_practice_progress(
         "available" if can_retry else "exhausted"
     ):
         raise RuntimeError("Practice retry eligibility is incoherent.")
+    if expected_practice is not None:
+        expected_scope, expected_maximum = _practice_scope_from_presentation(
+            expected_practice
+        )
+        _assert_same_practice_scope(
+            retry,
+            expected_scope,
+            label="Practice retry state",
+        )
+        if maximum != expected_maximum:
+            raise RuntimeError(
+                "Practice retry limit changed from the immutable presentation."
+            )
 
     attempts = history["attempts"]
     if not isinstance(attempts, list) or len(attempts) != used:
@@ -1105,6 +1181,11 @@ def stable_practice_progress(
         stable_submission = stable_practice_submission(expected_submission)
         stable_result = stable_practice_submission_result(
             expected_result, stable_submission
+        )
+        _assert_same_practice_scope(
+            retry,
+            stable_submission,
+            label="Practice retry state",
         )
         if draft is not None:
             raise RuntimeError("Accepted practice submission did not clear its draft.")
@@ -1265,6 +1346,7 @@ def load_practice_submission_capture(
     path: Path,
     *,
     data_root: Path,
+    expected_practice: dict[str, Any] | None = None,
 ) -> tuple[
     dict[str, Any],
     dict[str, Any],
@@ -1304,10 +1386,30 @@ def load_practice_submission_capture(
     )
     stable_request = stable_practice_submission(request)
     stable_result = stable_practice_submission_result(result, stable_request)
+    _assert_same_practice_scope(
+        stable_draft_request,
+        stable_request,
+        label="Practice draft request",
+    )
+    _assert_same_practice_scope(
+        stable_draft_result,
+        stable_request,
+        label="Practice draft result",
+    )
+    if expected_practice is not None:
+        expected_scope, _expected_maximum = _practice_scope_from_presentation(
+            expected_practice
+        )
+        _assert_same_practice_scope(
+            stable_request,
+            expected_scope,
+            label="Practice submission",
+        )
     stable_progress = stable_practice_progress(
         progress,
         expected_submission=stable_request,
         expected_result=stable_result,
+        expected_practice=expected_practice,
     )
     return (
         stable_draft_request,
@@ -1340,13 +1442,35 @@ def _assert_safe_practice_denial(
     expected_status: int,
     expected_code: str,
 ) -> None:
+    _exact_keys(document, PRACTICE_DENIAL_ROOT_KEYS, "Practice denial")
     if status != expected_status or document.get("code") != expected_code:
         raise RuntimeError(
             f"Practice denial changed: expected {expected_status} {expected_code}."
         )
+    if document["error_version"] != "1.0":
+        raise RuntimeError("Practice denial error version changed.")
+    message = document["message"]
+    if not isinstance(message, str) or not 1 <= len(message) <= 240:
+        raise RuntimeError("Practice denial message is invalid.")
+    try:
+        UUID(str(document["correlation_id"]))
+    except (TypeError, ValueError, AttributeError):
+        raise RuntimeError("Practice denial correlation ID is invalid.") from None
     leaked = PRIVATE_PRACTICE_RESULT_FIELDS & _nested_mapping_keys(document)
     if leaked:
         raise RuntimeError("Practice denial exposed private fields.")
+    normalized_message = message.casefold()
+    if "\n" in message or any(
+        fragment in normalized_message
+        for fragment in PRACTICE_DENIAL_PRIVATE_FRAGMENTS
+    ):
+        raise RuntimeError("Practice denial exposed private or diagnostic detail.")
+    private_path = re.compile(
+        r"(?:[a-z]:\\|/(?:home|users?|var|tmp)/|\.py\b)",
+        re.I,
+    )
+    if private_path.search(message):
+        raise RuntimeError("Practice denial exposed a private path or stack detail.")
 
 
 def observe_headless_practice_submission(
@@ -1814,6 +1938,7 @@ def main() -> int:
         ) = load_practice_submission_capture(
             practice_capture,
             data_root=data_root,
+            expected_practice=practice_before_restart,
         )
         practice_storage_before_restart = practice_submission_storage_snapshot(
             postgres_dsn
