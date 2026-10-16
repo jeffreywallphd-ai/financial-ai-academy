@@ -1,7 +1,7 @@
 ---
 id: WRK-0093
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -207,3 +207,12 @@ and external execution did not change, then leave JIT-C dependency-ready.
 - 2026-10-16: Claimed from base revision `be29234` after dependency, authority,
   decision, exact-scope, and branch checks passed. Packet-start freezes the
   additive package, placement, public-operation, API, and client acceptance set.
+- 2026-10-16: Completed at exact candidate `8ea3ef2`. The public protected GET
+  operation and generated client provide the same answer-safe presentation to
+  browser and non-browser consumers; opening creates no learner evidence.
+  Duplicate practice identities fail package admission, while an exact
+  immutable practice may be reused at distinct curriculum placements without
+  weakening same-placement conflict handling. The focused suite passed 141
+  tests, the full backend passed 505 tests with 35 environment-marked skips,
+  the real PostgreSQL qualifier passed, affected verification qualified, and
+  the aggregate readiness gate passed all 29 checks.

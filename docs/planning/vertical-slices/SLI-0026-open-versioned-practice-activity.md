@@ -182,7 +182,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | complete |
-| WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | verifying |
+| WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | complete |
 | JIT-C | Generate the public client and deliver the accessible practice-opening browser route | JIT-B | none | captured |
 | JIT-D | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, and live local composition | JIT-C | none | captured |
 
@@ -265,3 +265,11 @@ cloud, and recovery behavior.
 - 2026-10-16: Activated WRK-0093 after revalidating WRK-0092 completion,
   current CAP authority, decision readiness, branch ownership, and declared
   package-to-API scope. No lower-level approval was requested.
+- 2026-10-16: Completed WRK-0093 at exact candidate `8ea3ef2`. Content now
+  admits unambiguous immutable practice definitions, Curriculum permits one
+  exact practice at distinct placements while preserving placement
+  immutability, and Assessment exposes one answer-safe protected API for both
+  browser and non-browser clients. Focused tests passed 141 cases, the full
+  backend passed 505 cases with 35 environment-marked skips, the real
+  PostgreSQL practice qualifier passed, the exact-candidate verification
+  receipt qualified, and aggregate readiness passed all 29 checks.
