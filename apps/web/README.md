@@ -319,10 +319,14 @@ case uses inferred equivalence or browser policy. The
 same run calls the protected practice GET repeatedly from a cookie-backed
 non-browser client, compares bounded Assessment and learner-state storage
 counts, and opens the identical answer-safe presentation through the generated
-browser client. That browser saves all three response shapes once through the
-generated POST. A fresh non-browser session replays the captured public request
-before and after normal restart and proves the exact result, conflict and
-completed-attempt denials, atomic evidence-count invariance, confidentiality,
+browser client. That browser saves a partial two-shape draft, reloads the same
+responses, completes all three shapes, submits one attempt, and displays the
+server-owned retry, answer-free history, and review-target state. A fresh
+non-browser session reads the identical public progress document, saves and
+exactly replays the captured partial snapshot as the next-attempt draft,
+proves a different stale save cannot overwrite it, and observes the same state
+after normal restart. Exact submission replay preserves both immutable
+evidence counts and the newer draft. This proves confidentiality,
 accessibility, and restart durability without a browser-only API. The
 separate pinned browser fixture preserves
 the wider same-kind shared-branch and variable-reference anti-rigidity cases;
@@ -351,9 +355,10 @@ activity-state closure, same-context
 completion transition, bounded assessment unavailability, shared/unbranched
 fixture grouping, selector and missing-version denial, submission, repeated
 retained-completion reopen, missing-context, stale-placement, security-header,
-education-boundary, exact headless/browser practice opening and submission,
-three response shapes, exact replay, conflict and attempt-limit refusal,
-practice storage-count invariance, restart parity, bounded practice denial, and
+education-boundary, exact headless/browser practice opening, progress, draft,
+and submission, three response shapes, conditional save, reload, exact replay,
+stale conflict, server-owned retry/history/review state, practice storage-count
+invariance, restart parity, bounded practice denial, and
 catalog/detail/comparison/graph/completion/practice axe paths.
 Repeated cards preserve heading/list
 semantics without creating redundant nested named landmarks. Real

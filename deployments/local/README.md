@@ -119,11 +119,16 @@ and axe accessibility. It also opens the exact three-shape practice through a
 cookie-backed non-browser HTTP client and the generated browser client, checks
 all three controls and bounded denials, compares storage counts across repeated
 reads, and proves the same presentation survives a normal restart without
-reseeding. The browser then saves one mixed result through the generated POST.
-The runner replays that exact captured public request through a fresh
-non-browser session, proves conflict and completed-attempt refusals append
-nothing, verifies one atomic attempt/response/score/completion/outbox aggregate,
-and repeats the exact result and count checks after normal restart. The
+reseeding. The browser then saves a partial draft, reloads it, completes all
+three response shapes, submits one mixed result, and displays server-owned
+retry, answer-free history, and review-target state. A fresh non-browser
+session reads the same public progress document, saves and exactly replays the
+partial snapshot as the next-attempt draft, proves a different stale save
+cannot replace it, and verifies one atomic
+attempt/response/score/completion/outbox aggregate. After normal restart, the
+runner reopens the same progress and draft, exactly replays both accepted
+documents, and confirms immutable counts and the newer draft remain unchanged.
+The
 companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.
@@ -184,9 +189,10 @@ unavailability, filter/pagination/cursor-denial, exact detail, ordered
 comparison, changed/malformed selection, and
 catalog-to-exact-lesson Chromium paths, architecture and security scans, axe
 accessibility, safe teardown, API-only graph/state/launch consumption, exact
-three-shape practice opening, generated-browser submission, exact non-browser
-replay, atomic Assessment evidence/outbox counts, conflict and completed-attempt
-refusal, bounded practice denial, practice restart parity, and
+three-shape practice opening, generated-browser partial save/reload and
+submission, identical non-browser progress/draft use, exact replay, stale-save
+refusal, server-owned retry/history/review state, atomic Assessment
+evidence/outbox counts, bounded practice denial, practice restart parity, and
 application-restart reconstruction of derived Learner-model state from
 unchanged Assessment evidence without fixture reseeding.
 
@@ -195,11 +201,12 @@ learners, remote/public binding, worker and analytics composition, passive
 asset delivery, backup/restore, upgrade procedures beyond the tested slice
 migrations, non-Chromium browsers, non-Windows visual baselines, managed
 cloud, production distribution, and any RPO/RTO or availability claim.
-Additional-attempt execution, resume/history behavior, result comparison,
-review navigation, and downstream practice-event consumption remain
-unqualified. The first deterministic three-shape submission, feedback result,
-one-completion enforcement, atomic evidence/outbox append, exact replay,
-conflict refusal, and normal-restart durability are qualified only in this
+Additional live accepted attempts through the browser, an available live review
+destination, downstream practice-event consumption, and production recovery
+remain unqualified. The deterministic three-shape submission, feedback result,
+bounded retry enforcement, conditional draft save/resume, answer-free history,
+unavailable review guidance, atomic evidence/outbox append, exact replay,
+stale conflict refusal, and normal-restart durability are qualified only in this
 local single-profile fixture.
 The qualification also does not define a headless AI mode, agent protocol,
 model provider, or autonomous action authority; it preserves the public API

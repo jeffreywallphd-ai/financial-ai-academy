@@ -233,6 +233,114 @@ def practice_result() -> dict[str, Any]:
     }
 
 
+def practice_draft_save() -> dict[str, Any]:
+    submission = practice_submission()
+    return {
+        key: submission[key]
+        for key in (
+            "schema_version",
+            "placement_id",
+            "package_id",
+            "package_version",
+            "package_digest",
+            "definition_digest",
+            "practice_id",
+            "practice_version",
+            "attempt_policy_id",
+            "attempt_policy_version",
+        )
+    } | {
+        "expected_revision": 0,
+        "responses": [submission["responses"][0], submission["responses"][2]],
+    }
+
+
+def practice_draft() -> dict[str, Any]:
+    save = practice_draft_save()
+    return {
+        key: save[key]
+        for key in runner.PRACTICE_SCOPE_KEYS
+    } | {
+        "responses": save["responses"],
+        "revision": 1,
+        "saved_at": "2026-10-16T15:59:00Z",
+        "response_fingerprint": "d" * 64,
+    }
+
+
+def practice_progress(*, draft: dict[str, Any] | None = None) -> dict[str, Any]:
+    submission = practice_submission()
+    result = practice_result()
+    scope = {
+        key: submission[key]
+        for key in runner.PRACTICE_SCOPE_KEYS
+    }
+    return {
+        "schema_version": "1.0.0",
+        "placement_id": runner.PRACTICE_PLACEMENT_ID,
+        "draft": draft,
+        "retry_state": {
+            **scope,
+            "attempts_used": 1,
+            "max_attempts": 3,
+            "attempts_remaining": 2,
+            "can_retry": True,
+            "state": "available",
+        },
+        "history": {
+            **scope,
+            "source_digest": "e" * 64,
+            "attempts": [
+                {
+                    "attempt_order": 1,
+                    "event_id": "55555555-5555-4555-8555-555555555555",
+                    "attempt_id": result["attempt_id"],
+                    "evidence_id": result["evidence_id"],
+                    "submission_id": result["submission_id"],
+                    "score": result["score"],
+                    "max_score": result["max_score"],
+                    "outcome": result["outcome"],
+                    "item_summaries": [
+                        {
+                            **{
+                                key: item[key]
+                                for key in (
+                                    runner.PRACTICE_HISTORY_ITEM_KEYS
+                                    - {"review_reference_ids"}
+                                )
+                            },
+                            "review_reference_ids": (
+                                []
+                                if item["correct"]
+                                else item["feedback"]["review_reference_ids"]
+                            ),
+                        }
+                        for item in result["item_results"]
+                    ],
+                    "completed_at": result["submitted_at"],
+                }
+            ],
+        },
+        "review_targets": [
+            {
+                "schema_version": "1.0.0",
+                "practice_placement_id": runner.PRACTICE_PLACEMENT_ID,
+                "resource_id": "risk-return-review",
+                "resource_version": "1.0.0",
+                "resource_digest": "c" * 64,
+                "resource_title": "Review risk and return",
+                "state": "available",
+                "destination": {
+                    "placement_id": "intro-risk-return-primary",
+                    "package_id": "intro-risk-return",
+                    "package_version": "1.1.0",
+                    "package_digest": "f" * 64,
+                },
+            }
+        ],
+    }
+
+
 def observation(
     *,
     evaluated_at: str = "2026-10-16T12:00:00Z",
@@ -483,27 +591,43 @@ def test_practice_restart_requires_exact_stable_public_meaning() -> None:
 def test_practice_submission_capture_is_closed_correlated_and_confined(
     tmp_path: Path,
 ) -> None:
+    valid_capture = {
+        "draft_request": practice_draft_save(),
+        "draft_result": practice_draft(),
+        "request": practice_submission(),
+        "result": practice_result(),
+        "progress": practice_progress(),
+    }
     capture = tmp_path / "practice-submission-capture.json"
-    capture.write_text(
-        json.dumps(
-            {
-                "request": practice_submission(),
-                "result": practice_result(),
-            }
-        ),
-        encoding="utf-8",
+    capture.write_text(json.dumps(valid_capture), encoding="utf-8")
+    draft_request, draft_result, request, result, progress = (
+        runner.load_practice_submission_capture(
+            capture,
+            data_root=tmp_path,
+        )
     )
-    request, result = runner.load_practice_submission_capture(
+    assert draft_request == practice_draft_save()
+    assert draft_result == practice_draft()
+    assert request == practice_submission()
+    assert result == practice_result()
+    assert progress == practice_progress()
+
+    reordered = json.loads(json.dumps(valid_capture))
+    reordered["draft_request"]["responses"].reverse()
+    reordered["draft_result"]["responses"].reverse()
+    reordered["request"]["responses"].reverse()
+    reordered["result"]["item_results"].reverse()
+    capture.write_text(json.dumps(reordered), encoding="utf-8")
+    runner.load_practice_submission_capture(
         capture,
         data_root=tmp_path,
     )
-    assert request == practice_submission()
-    assert result == practice_result()
 
     leaked = practice_result()
     leaked["learner_id"] = "private-learner"
+    changed_capture = valid_capture | {"result": leaked}
     capture.write_text(
-        json.dumps({"request": practice_submission(), "result": leaked}),
+        json.dumps(changed_capture),
         encoding="utf-8",
     )
     with pytest.raises(RuntimeError, match="closed public contract"):
@@ -511,8 +635,9 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
 
     changed = practice_result()
     changed["package_version"] = "2.0.1"
+    changed_capture = valid_capture | {"result": changed}
     capture.write_text(
-        json.dumps({"request": practice_submission(), "result": changed}),
+        json.dumps(changed_capture),
         encoding="utf-8",
     )
     with pytest.raises(RuntimeError, match="changed the submitted"):
@@ -520,9 +645,7 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
 
     outside = tmp_path.parent / "outside-practice-capture.json"
     outside.write_text(
-        json.dumps(
-            {"request": practice_submission(), "result": practice_result()}
-        ),
+        json.dumps(valid_capture),
         encoding="utf-8",
     )
     try:
@@ -556,13 +679,6 @@ def test_headless_submission_uses_only_public_session_and_post(
         (
             (401, {"code": "unauthorized", "message": "Session required."}),
             (409, {"code": "conflict", "message": "Request changed."}),
-            (
-                409,
-                {
-                    "code": "already_completed",
-                    "message": "A completed attempt is already saved.",
-                },
-            ),
         )
     )
 
@@ -599,15 +715,105 @@ def test_headless_submission_uses_only_public_session_and_post(
         ),
         ("POST", submission_path, practice_submission()),
     ]
-    assert [path for path, _payload in denial_calls] == [submission_path] * 3
+    assert [path for path, _payload in denial_calls] == [submission_path] * 2
     assert denial_calls[0][1] == practice_submission()
     assert denial_calls[1][1]["submission_id"] == practice_submission()[
         "submission_id"
     ]
     assert denial_calls[1][1] != practice_submission()
-    assert denial_calls[2][1]["submission_id"] != practice_submission()[
-        "submission_id"
+
+
+def test_progress_is_closed_coherent_and_order_tolerant() -> None:
+    assert runner.stable_practice_progress(
+        practice_progress(),
+        expected_submission=practice_submission(),
+        expected_result=practice_result(),
+    ) == practice_progress()
+
+    reordered = practice_draft()
+    reordered["responses"].reverse()
+    save = practice_draft_save()
+    save["responses"].reverse()
+    assert runner.stable_practice_draft(reordered, save=save) == reordered
+
+    incoherent = practice_progress()
+    incoherent["retry_state"]["attempts_remaining"] = 1
+    with pytest.raises(RuntimeError, match="retry counts are incoherent"):
+        runner.stable_practice_progress(incoherent)
+
+    leaked = practice_progress()
+    leaked["history"]["attempts"][0]["item_summaries"][0][
+        "selected_option_id"
+    ] = "private-response"
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner.stable_practice_progress(leaked)
+
+
+def test_headless_progress_uses_shared_public_api_and_preserves_stale_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str, dict[str, object] | None]] = []
+    saved = practice_draft()
+    progress_documents = iter(
+        (practice_progress(), practice_progress(draft=saved))
+    )
+    draft_documents = iter((saved, saved))
+
+    def request_json(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert origin == "http://127.0.0.1:8123"
+        calls.append((method, path, payload))
+        if path == "/api/v1/session/single-profile":
+            return {"expires_at": "later"}
+        if path.endswith("/progress"):
+            return next(progress_documents)
+        return next(draft_documents)
+
+    denial_calls: list[dict[str, object]] = []
+
+    def request_status(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str,
+        payload: dict[str, object],
+    ) -> tuple[int, dict[str, Any]]:
+        assert origin == "http://127.0.0.1:8123"
+        assert path.endswith("/draft")
+        assert method == "PUT"
+        denial_calls.append(payload)
+        return 409, {"code": "conflict", "message": "Revision changed."}
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+    monkeypatch.setattr(runner, "_request_json_status", request_status)
+
+    observed_draft, observed_progress = runner.observe_headless_practice_progress(
+        origin="http://127.0.0.1:8123",
+        expected_progress=practice_progress(),
+        draft_save=practice_draft_save(),
+    )
+
+    assert observed_draft == saved
+    assert observed_progress == practice_progress(draft=saved)
+    assert [method for method, _path, _payload in calls] == [
+        "POST",
+        "GET",
+        "PUT",
+        "PUT",
+        "GET",
     ]
+    assert calls[2][2] == practice_draft_save()
+    assert calls[3][2] == practice_draft_save()
+    assert len(denial_calls) == 1
+    assert denial_calls[0]["expected_revision"] == 0
+    assert denial_calls[0] != practice_draft_save()
 
 
 def test_practice_submission_restart_preserves_result_and_evidence() -> None:

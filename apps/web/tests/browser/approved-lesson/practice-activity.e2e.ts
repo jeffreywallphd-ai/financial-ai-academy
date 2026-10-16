@@ -10,6 +10,8 @@ const PRACTICE_PATH = `/learn/placements/${PLACEMENT_ID}/practice`;
 const PRACTICE_API =
   `/api/v1/curriculum/placements/${PLACEMENT_ID}/practice`;
 const SUBMISSION_API = `${PRACTICE_API}/submissions`;
+const PROGRESS_API = `${PRACTICE_API}/progress`;
+const DRAFT_API = `${PRACTICE_API}/draft`;
 
 function nestedKeys(value: unknown): Set<string> {
   if (Array.isArray(value)) {
@@ -40,7 +42,12 @@ test("opens the same exact three-shape practice through the live public API", as
   }> = [];
   page.on("request", (request) => {
     const path = new URL(request.url()).pathname;
-    if (path === PRACTICE_API || path === SUBMISSION_API) {
+    if (
+      path === PRACTICE_API ||
+      path === SUBMISSION_API ||
+      path === PROGRESS_API ||
+      path === DRAFT_API
+    ) {
       practiceRequests.push({
         method: request.method(),
         path,
@@ -97,6 +104,31 @@ test("opens the same exact three-shape practice through the live public API", as
   ).toBe(true);
   await expect(page.getByRole("button", { name: "Check answers" })).toBeVisible();
 
+  await page.getByLabel("Outcomes can differ from what was expected.").check();
+  const draftResponsePromise = page.waitForResponse(
+    (draftResponse) =>
+      new URL(draftResponse.url()).pathname === DRAFT_API &&
+      draftResponse.request().method() === "PUT",
+  );
+  await page.getByRole("button", { name: "Save progress" }).click();
+  const draftResponse = await draftResponsePromise;
+  expect(draftResponse.status()).toBe(200);
+  const draftRequestBody = draftResponse.request().postDataJSON();
+  const draftResultBody = await draftResponse.json();
+  await expect(page.getByRole("heading", { name: "Progress saved" })).toBeVisible();
+
+  await page.reload();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Practice risk and return basics",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Outcomes can differ from what was expected."),
+  ).toBeChecked();
+  await expect(numeric).toHaveValue("105.00");
+
   await page.getByText("Technical record", { exact: true }).click();
   for (const exactFact of [
     practice.placement_id,
@@ -128,7 +160,6 @@ test("opens the same exact three-shape practice through the live public API", as
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 
-  await page.getByLabel("Outcomes can differ from what was expected.").check();
   await page.getByLabel("Hold assets from more than one issuer.").check();
   await page.getByLabel("Count the same position twice.").check();
   await numeric.fill("105.00");
@@ -165,11 +196,37 @@ test("opens the same exact three-shape practice through the live public API", as
   await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "none" });
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
+  await expect(page.getByRole("heading", { name: "Attempt 1" })).toBeVisible();
+  await expect(
+    page.getByText(
+      "Review risk and return is not available in this learning path.",
+    ),
+  ).toBeVisible();
+  const progressResponse = await context.request.get(PROGRESS_API);
+  expect(progressResponse.status()).toBe(200);
+  const progressBody = await progressResponse.json();
+  await page.getByRole("button", { name: "Try another attempt" }).click();
+  await expect(
+    page.getByLabel("Outcomes can differ from what was expected."),
+  ).not.toBeChecked();
+  await expect(numeric).toHaveValue("");
+  await expect(page.getByRole("heading", { name: "Attempt 1" })).toBeVisible();
+
   const capturePath = process.env.FINANCIAL_AI_ACADEMY_PRACTICE_CAPTURE;
   if (capturePath) {
     await writeFile(
       capturePath,
-      `${JSON.stringify({ request: requestBody, result: resultBody }, null, 2)}\n`,
+      `${JSON.stringify(
+        {
+          draft_request: draftRequestBody,
+          draft_result: draftResultBody,
+          request: requestBody,
+          result: resultBody,
+          progress: progressBody,
+        },
+        null,
+        2,
+      )}\n`,
       { encoding: "utf-8", flag: "wx" },
     );
   }

@@ -642,10 +642,15 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             )
         )
         self.assertIn('"/practice/submissions"', source)
+        self.assertIn('"/practice/progress"', source)
+        self.assertIn('"/practice/draft"', source)
         self.assertIn("FINANCIAL_AI_ACADEMY_PRACTICE_CAPTURE", source)
         self.assertIn("exact_headless_replay", source)
+        self.assertIn("draft_exact_replay", source)
+        self.assertIn("draft_stale_write_refused", source)
         self.assertNotIn("contracts/compatibility/assessment-practice", source)
         self.assertNotIn("ContractPracticeDefinitionAdapter", source)
+        self.assertNotIn("ContractPracticeProgressAdapter", source)
 
     def test_static_build_contains_only_browser_artifacts_when_present(
         self,

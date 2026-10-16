@@ -137,6 +137,79 @@ PRACTICE_RESPONSE_COMMON_KEYS = frozenset(
 PRACTICE_RESULT_COMMON_KEYS = PRACTICE_RESPONSE_COMMON_KEYS | frozenset(
     {"score", "max_score", "correct", "feedback"}
 )
+PRACTICE_SCOPE_KEYS = frozenset(
+    {
+        "schema_version",
+        "placement_id",
+        "package_id",
+        "package_version",
+        "package_digest",
+        "definition_digest",
+        "practice_id",
+        "practice_version",
+        "attempt_policy_id",
+        "attempt_policy_version",
+    }
+)
+PRACTICE_DRAFT_SAVE_ROOT_KEYS = PRACTICE_SCOPE_KEYS | frozenset(
+    {"expected_revision", "responses"}
+)
+PRACTICE_DRAFT_ROOT_KEYS = PRACTICE_SCOPE_KEYS | frozenset(
+    {"responses", "revision", "saved_at", "response_fingerprint"}
+)
+PRACTICE_RETRY_ROOT_KEYS = PRACTICE_SCOPE_KEYS | frozenset(
+    {
+        "attempts_used",
+        "max_attempts",
+        "attempts_remaining",
+        "can_retry",
+        "state",
+    }
+)
+PRACTICE_HISTORY_ROOT_KEYS = PRACTICE_SCOPE_KEYS | frozenset(
+    {"source_digest", "attempts"}
+)
+PRACTICE_HISTORY_ATTEMPT_KEYS = frozenset(
+    {
+        "attempt_order",
+        "event_id",
+        "attempt_id",
+        "evidence_id",
+        "submission_id",
+        "score",
+        "max_score",
+        "outcome",
+        "item_summaries",
+        "completed_at",
+    }
+)
+PRACTICE_HISTORY_ITEM_KEYS = PRACTICE_RESPONSE_COMMON_KEYS | frozenset(
+    {"score", "max_score", "correct", "review_reference_ids"}
+)
+PRACTICE_PROGRESS_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "placement_id",
+        "draft",
+        "retry_state",
+        "history",
+        "review_targets",
+    }
+)
+PRACTICE_REVIEW_TARGET_COMMON_KEYS = frozenset(
+    {
+        "schema_version",
+        "practice_placement_id",
+        "resource_id",
+        "resource_version",
+        "resource_digest",
+        "resource_title",
+        "state",
+    }
+)
+PRACTICE_REVIEW_DESTINATION_KEYS = frozenset(
+    {"placement_id", "package_id", "package_version", "package_digest"}
+)
 PRIVATE_PRACTICE_RESULT_FIELDS = frozenset(
     {
         "answer",
@@ -775,6 +848,290 @@ def _practice_response_keys(item_type: str) -> frozenset[str]:
     raise RuntimeError("Practice submission contains an unsupported response type.")
 
 
+def _canonical_practice_responses(
+    responses: object,
+    *,
+    label: str,
+) -> tuple[tuple[str, str], ...]:
+    if not isinstance(responses, list) or len(responses) > 20:
+        raise RuntimeError(f"{label} has an invalid response collection.")
+    item_ids: set[str] = set()
+    canonical: list[tuple[str, str]] = []
+    for response in responses:
+        if not isinstance(response, dict):
+            raise RuntimeError(f"{label} response is not an object.")
+        item_type = response.get("item_type")
+        if not isinstance(item_type, str):
+            raise RuntimeError(f"{label} response type is missing.")
+        _exact_keys(response, _practice_response_keys(item_type), f"{label} response")
+        item_id = response.get("item_id")
+        if not isinstance(item_id, str) or item_id in item_ids:
+            raise RuntimeError(f"{label} item IDs are invalid or duplicated.")
+        item_ids.add(item_id)
+        normalized = copy.deepcopy(response)
+        if item_type == "multiple_select":
+            selected = normalized["selected_option_ids"]
+            if (
+                not isinstance(selected, list)
+                or not selected
+                or len(selected) != len(set(selected))
+            ):
+                raise RuntimeError(f"{label} selection set is invalid.")
+            normalized["selected_option_ids"] = sorted(selected)
+        canonical.append(
+            (
+                item_id,
+                json.dumps(normalized, sort_keys=True, separators=(",", ":")),
+            )
+        )
+    return tuple(sorted(canonical))
+
+
+def _canonical_utc(value: object, *, label: str) -> str:
+    if not isinstance(value, str) or not UTC_TIMESTAMP.fullmatch(value):
+        raise RuntimeError(f"{label} is not canonical UTC.")
+    try:
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        raise RuntimeError(f"{label} is not a real date.") from None
+    return value
+
+
+def _assert_same_practice_scope(
+    document: dict[str, Any],
+    expected: dict[str, Any],
+    *,
+    label: str,
+) -> None:
+    for key in PRACTICE_SCOPE_KEYS:
+        if document.get(key) != expected.get(key):
+            raise RuntimeError(f"{label} changed the practice {key}.")
+
+
+def stable_practice_draft_save(document: dict[str, Any]) -> dict[str, Any]:
+    _exact_keys(document, PRACTICE_DRAFT_SAVE_ROOT_KEYS, "Practice draft save")
+    if document["placement_id"] != PRACTICE_PLACEMENT_ID:
+        raise RuntimeError("Practice draft save does not match the exact placement.")
+    expected_revision = document["expected_revision"]
+    if type(expected_revision) is not int or expected_revision < 0:
+        raise RuntimeError("Practice draft save has an invalid expected revision.")
+    _canonical_practice_responses(document["responses"], label="Practice draft save")
+    return copy.deepcopy(document)
+
+
+def stable_practice_draft(
+    document: dict[str, Any],
+    *,
+    save: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    _exact_keys(document, PRACTICE_DRAFT_ROOT_KEYS, "Practice draft")
+    if document["placement_id"] != PRACTICE_PLACEMENT_ID:
+        raise RuntimeError("Practice draft does not match the exact placement.")
+    revision = document["revision"]
+    if type(revision) is not int or revision < 1:
+        raise RuntimeError("Practice draft has an invalid revision.")
+    fingerprint = document["response_fingerprint"]
+    if not isinstance(fingerprint, str) or not re.fullmatch(r"[a-f0-9]{64}", fingerprint):
+        raise RuntimeError("Practice draft has an invalid response fingerprint.")
+    _canonical_utc(document["saved_at"], label="Practice draft timestamp")
+    canonical = _canonical_practice_responses(
+        document["responses"], label="Practice draft"
+    )
+    if save is not None:
+        stable_save = stable_practice_draft_save(save)
+        _assert_same_practice_scope(document, stable_save, label="Practice draft")
+        if canonical != _canonical_practice_responses(
+            stable_save["responses"], label="Practice draft save"
+        ):
+            raise RuntimeError("Practice draft changed the saved responses.")
+        if revision < max(1, stable_save["expected_revision"]):
+            raise RuntimeError("Practice draft revision precedes the requested state.")
+    return copy.deepcopy(document)
+
+
+def stable_practice_progress(
+    document: dict[str, Any],
+    *,
+    expected_submission: dict[str, Any] | None = None,
+    expected_result: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    _exact_keys(document, PRACTICE_PROGRESS_ROOT_KEYS, "Practice progress")
+    if document["schema_version"] != "1.0.0":
+        raise RuntimeError("Practice progress schema version changed.")
+    if document["placement_id"] != PRACTICE_PLACEMENT_ID:
+        raise RuntimeError("Practice progress does not match the exact placement.")
+    leaked = PRIVATE_PRACTICE_RESULT_FIELDS & _nested_mapping_keys(document)
+    if leaked:
+        raise RuntimeError("Practice progress exposed private fields.")
+
+    retry = document["retry_state"]
+    history = document["history"]
+    targets = document["review_targets"]
+    if not isinstance(retry, dict) or not isinstance(history, dict):
+        raise RuntimeError("Practice progress state is not an object.")
+    if not isinstance(targets, list) or len(targets) > 8:
+        raise RuntimeError("Practice progress review targets are invalid.")
+    _exact_keys(retry, PRACTICE_RETRY_ROOT_KEYS, "Practice retry state")
+    _exact_keys(history, PRACTICE_HISTORY_ROOT_KEYS, "Practice history")
+    _assert_same_practice_scope(history, retry, label="Practice history")
+    if retry["placement_id"] != PRACTICE_PLACEMENT_ID:
+        raise RuntimeError("Practice retry state does not match the placement.")
+
+    for key in ("attempts_used", "max_attempts", "attempts_remaining"):
+        if type(retry[key]) is not int:
+            raise RuntimeError("Practice retry counts are not integers.")
+    used = retry["attempts_used"]
+    maximum = retry["max_attempts"]
+    remaining = retry["attempts_remaining"]
+    if not (0 <= used <= maximum <= 10) or remaining != maximum - used:
+        raise RuntimeError("Practice retry counts are incoherent.")
+    can_retry = remaining > 0
+    if retry["can_retry"] is not can_retry or retry["state"] != (
+        "available" if can_retry else "exhausted"
+    ):
+        raise RuntimeError("Practice retry eligibility is incoherent.")
+
+    attempts = history["attempts"]
+    if not isinstance(attempts, list) or len(attempts) != used:
+        raise RuntimeError("Practice history does not match attempts used.")
+    if not isinstance(history["source_digest"], str) or not re.fullmatch(
+        r"[a-f0-9]{64}", history["source_digest"]
+    ):
+        raise RuntimeError("Practice history source digest is invalid.")
+    latest_incorrect_references: list[str] = []
+    for index, attempt in enumerate(attempts, start=1):
+        if not isinstance(attempt, dict):
+            raise RuntimeError("Practice history attempt is not an object.")
+        _exact_keys(attempt, PRACTICE_HISTORY_ATTEMPT_KEYS, "Practice history attempt")
+        if attempt["attempt_order"] != index:
+            raise RuntimeError("Practice history attempt order is not gap-free.")
+        for key in ("event_id", "attempt_id", "evidence_id", "submission_id"):
+            try:
+                UUID(str(attempt[key]))
+            except (TypeError, ValueError, AttributeError):
+                raise RuntimeError(f"Practice history has an invalid {key}.") from None
+        _canonical_utc(attempt["completed_at"], label="Practice history timestamp")
+        summaries = attempt["item_summaries"]
+        if not isinstance(summaries, list) or not 1 <= len(summaries) <= 20:
+            raise RuntimeError("Practice history item summaries are invalid.")
+        item_ids: set[str] = set()
+        score = 0
+        max_score = 0
+        incorrect_references: list[str] = []
+        for summary in summaries:
+            if not isinstance(summary, dict):
+                raise RuntimeError("Practice history item summary is not an object.")
+            _exact_keys(summary, PRACTICE_HISTORY_ITEM_KEYS, "Practice history item")
+            item_id = summary.get("item_id")
+            item_type = summary.get("item_type")
+            if (
+                not isinstance(item_id, str)
+                or item_id in item_ids
+                or item_type not in SUPPORTED_PRACTICE_ITEM_TYPES
+            ):
+                raise RuntimeError("Practice history item identity is invalid.")
+            item_ids.add(item_id)
+            if type(summary["score"]) is not int or summary["max_score"] != 1:
+                raise RuntimeError("Practice history item score is invalid.")
+            if summary["correct"] is not (summary["score"] == summary["max_score"]):
+                raise RuntimeError("Practice history item correctness is incoherent.")
+            references = summary["review_reference_ids"]
+            if (
+                not isinstance(references, list)
+                or len(references) > 8
+                or len(references) != len(set(references))
+            ):
+                raise RuntimeError("Practice history review references are invalid.")
+            score += summary["score"]
+            max_score += summary["max_score"]
+            if not summary["correct"]:
+                for reference in references:
+                    if reference not in incorrect_references:
+                        incorrect_references.append(reference)
+        if attempt["score"] != score or attempt["max_score"] != max_score:
+            raise RuntimeError("Practice history totals do not match item summaries.")
+        if attempt["outcome"] != (
+            "all_correct" if score == max_score else "review_needed"
+        ):
+            raise RuntimeError("Practice history outcome is incoherent.")
+        latest_incorrect_references = incorrect_references
+
+    resource_ids: list[str] = []
+    for target in targets:
+        if not isinstance(target, dict):
+            raise RuntimeError("Practice review target is not an object.")
+        state = target.get("state")
+        expected_keys = PRACTICE_REVIEW_TARGET_COMMON_KEYS | (
+            {"destination"} if state == "available" else {"unavailable_reason"}
+        )
+        _exact_keys(target, frozenset(expected_keys), "Practice review target")
+        if target["practice_placement_id"] != PRACTICE_PLACEMENT_ID:
+            raise RuntimeError("Practice review target changed the placement.")
+        resource_id = target["resource_id"]
+        if not isinstance(resource_id, str) or resource_id in resource_ids:
+            raise RuntimeError("Practice review target identity is invalid.")
+        resource_ids.append(resource_id)
+        if state == "available":
+            destination = target["destination"]
+            if not isinstance(destination, dict):
+                raise RuntimeError("Practice review destination is not an object.")
+            destination_keys = frozenset(destination)
+            if destination_keys not in {
+                PRACTICE_REVIEW_DESTINATION_KEYS,
+                PRACTICE_REVIEW_DESTINATION_KEYS | {"section_id"},
+            }:
+                raise RuntimeError("Practice review destination is not closed.")
+            if (
+                "section_id" in destination
+                and destination["section_id"] is not None
+                and not isinstance(destination["section_id"], str)
+            ):
+                raise RuntimeError("Practice review section is invalid.")
+        elif state != "unavailable":
+            raise RuntimeError("Practice review target state is invalid.")
+    if resource_ids != latest_incorrect_references:
+        raise RuntimeError("Practice review targets do not match latest incorrect evidence.")
+
+    draft = document["draft"]
+    if draft is not None:
+        if not isinstance(draft, dict):
+            raise RuntimeError("Practice progress draft is not an object.")
+        stable_practice_draft(draft)
+        _assert_same_practice_scope(draft, retry, label="Practice progress draft")
+
+    if expected_submission is not None or expected_result is not None:
+        if expected_submission is None or expected_result is None:
+            raise RuntimeError("Practice progress correlation requires request and result.")
+        stable_submission = stable_practice_submission(expected_submission)
+        stable_result = stable_practice_submission_result(
+            expected_result, stable_submission
+        )
+        if draft is not None:
+            raise RuntimeError("Accepted practice submission did not clear its draft.")
+        if len(attempts) != 1:
+            raise RuntimeError("Captured practice progress does not contain one attempt.")
+        attempt = attempts[0]
+        for key in ("attempt_id", "evidence_id", "submission_id", "score", "max_score", "outcome"):
+            if attempt[key] != stable_result[key]:
+                raise RuntimeError(f"Practice history changed the result {key}.")
+        result_items = {
+            item["item_id"]: item for item in stable_result["item_results"]
+        }
+        for item in attempt["item_summaries"]:
+            source = result_items.get(item["item_id"])
+            if source is None:
+                raise RuntimeError("Practice history contains an unknown result item.")
+            for key in PRACTICE_HISTORY_ITEM_KEYS - {"review_reference_ids"}:
+                if item[key] != source[key]:
+                    raise RuntimeError("Practice history changed result item evidence.")
+            expected_references = [] if source["correct"] else source["feedback"][
+                "review_reference_ids"
+            ]
+            if item["review_reference_ids"] != expected_references:
+                raise RuntimeError("Practice history changed review evidence.")
+    return copy.deepcopy(document)
+
+
 def stable_practice_submission(document: dict[str, Any]) -> dict[str, Any]:
     _exact_keys(document, PRACTICE_SUBMISSION_ROOT_KEYS, "Practice submission")
     if document["placement_id"] != PRACTICE_PLACEMENT_ID:
@@ -908,22 +1265,57 @@ def load_practice_submission_capture(
     path: Path,
     *,
     data_root: Path,
-) -> tuple[dict[str, Any], dict[str, Any]]:
+) -> tuple[
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+]:
     if path.is_symlink() or not path.is_file():
         raise RuntimeError("The bounded practice submission capture is absent.")
     resolved = path.resolve()
     if resolved.parent != data_root.resolve() or resolved.stat().st_size > 262_144:
         raise RuntimeError("Practice submission capture escaped its bounded root.")
     capture = json.loads(resolved.read_text(encoding="utf-8"))
-    if not isinstance(capture, dict) or set(capture) != {"request", "result"}:
+    expected_capture_keys = {
+        "draft_request",
+        "draft_result",
+        "request",
+        "result",
+        "progress",
+    }
+    if not isinstance(capture, dict) or set(capture) != expected_capture_keys:
         raise RuntimeError("Practice submission capture has an invalid shape.")
+    draft_request = capture["draft_request"]
+    draft_result = capture["draft_result"]
     request = capture["request"]
     result = capture["result"]
-    if not isinstance(request, dict) or not isinstance(result, dict):
+    progress = capture["progress"]
+    if not all(
+        isinstance(document, dict)
+        for document in (draft_request, draft_result, request, result, progress)
+    ):
         raise RuntimeError("Practice submission capture documents must be objects.")
+    stable_draft_request = stable_practice_draft_save(draft_request)
+    stable_draft_result = stable_practice_draft(
+        draft_result,
+        save=stable_draft_request,
+    )
     stable_request = stable_practice_submission(request)
     stable_result = stable_practice_submission_result(result, stable_request)
-    return stable_request, stable_result
+    stable_progress = stable_practice_progress(
+        progress,
+        expected_submission=stable_request,
+        expected_result=stable_result,
+    )
+    return (
+        stable_draft_request,
+        stable_draft_result,
+        stable_request,
+        stable_result,
+        stable_progress,
+    )
 
 
 def _conflicting_practice_submission(
@@ -1021,22 +1413,140 @@ def observe_headless_practice_submission(
         expected_status=409,
         expected_code="conflict",
     )
-    second = copy.deepcopy(request)
-    second["submission_id"] = str(uuid4())
+    return replay
+
+
+def _supported_practice_opener(origin: str) -> object:
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(cookies)
+    )
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    return opener
+
+
+def read_headless_practice_progress(origin: str) -> dict[str, Any]:
+    opener = _supported_practice_opener(origin)
+    progress_path = (
+        f"/api/v1/curriculum/placements/{PRACTICE_PLACEMENT_ID}"
+        "/practice/progress"
+    )
+    return stable_practice_progress(
+        _request_json(opener, origin=origin, path=progress_path)
+    )
+
+
+def replay_headless_practice_draft(
+    *,
+    origin: str,
+    save: dict[str, Any],
+) -> dict[str, Any]:
+    opener = _supported_practice_opener(origin)
+    draft_path = (
+        f"/api/v1/curriculum/placements/{PRACTICE_PLACEMENT_ID}"
+        "/practice/draft"
+    )
+    stable_save = stable_practice_draft_save(save)
+    return stable_practice_draft(
+        _request_json(
+            opener,
+            origin=origin,
+            path=draft_path,
+            method="PUT",
+            payload=stable_save,
+        ),
+        save=stable_save,
+    )
+
+
+def observe_headless_practice_progress(
+    *,
+    origin: str,
+    expected_progress: dict[str, Any],
+    draft_save: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    expected = stable_practice_progress(expected_progress)
+    stable_save = stable_practice_draft_save(draft_save)
+    opener = _supported_practice_opener(origin)
+    progress_path = (
+        f"/api/v1/curriculum/placements/{PRACTICE_PLACEMENT_ID}"
+        "/practice/progress"
+    )
+    draft_path = (
+        f"/api/v1/curriculum/placements/{PRACTICE_PLACEMENT_ID}"
+        "/practice/draft"
+    )
+    first = stable_practice_progress(
+        _request_json(opener, origin=origin, path=progress_path)
+    )
+    if first != expected:
+        raise RuntimeError("Headless progress changed browser-observed meaning.")
+
+    saved = stable_practice_draft(
+        _request_json(
+            opener,
+            origin=origin,
+            path=draft_path,
+            method="PUT",
+            payload=stable_save,
+        ),
+        save=stable_save,
+    )
+    replayed = stable_practice_draft(
+        _request_json(
+            opener,
+            origin=origin,
+            path=draft_path,
+            method="PUT",
+            payload=stable_save,
+        ),
+        save=stable_save,
+    )
+    if replayed != saved:
+        raise RuntimeError("Exact practice draft replay changed saved meaning.")
+
+    conflict = copy.deepcopy(stable_save)
+    changed = False
+    for response in conflict["responses"]:
+        if response["item_type"] == "single_select":
+            response["selected_option_id"] = (
+                "guarantee"
+                if response["selected_option_id"] != "guarantee"
+                else "uncertainty"
+            )
+            changed = True
+            break
+    if not changed:
+        raise RuntimeError("Qualification draft needs one single-select response.")
     status, denial = _request_json_status(
         opener,
         origin=origin,
-        path=submission_path,
-        method="POST",
-        payload=second,
+        path=draft_path,
+        method="PUT",
+        payload=conflict,
     )
     _assert_safe_practice_denial(
         status,
         denial,
         expected_status=409,
-        expected_code="already_completed",
+        expected_code="conflict",
     )
-    return replay
+
+    after = stable_practice_progress(
+        _request_json(opener, origin=origin, path=progress_path)
+    )
+    if after["draft"] != saved:
+        raise RuntimeError("Stale practice save changed the retained draft.")
+    for key in ("retry_state", "history", "review_targets"):
+        if after[key] != expected[key]:
+            raise RuntimeError(f"Practice draft save changed public {key}.")
+    return saved, after
 
 
 def practice_submission_storage_snapshot(
@@ -1295,7 +1805,13 @@ def main() -> int:
         )
         run_checked(npm_e2e_command(), env=environment)
 
-        practice_submission, practice_result = load_practice_submission_capture(
+        (
+            practice_draft_save,
+            _browser_practice_draft,
+            practice_submission,
+            practice_result,
+            browser_practice_progress,
+        ) = load_practice_submission_capture(
             practice_capture,
             data_root=data_root,
         )
@@ -1317,6 +1833,14 @@ def main() -> int:
         )
         if practice_storage_after_replay != practice_storage_before_restart:
             raise RuntimeError("Practice replay or refusal appended duplicate evidence.")
+        (
+            headless_practice_draft,
+            practice_progress_before_restart,
+        ) = observe_headless_practice_progress(
+            origin=origin,
+            expected_progress=browser_practice_progress,
+            draft_save=practice_draft_save,
+        )
 
         before_observation = observe_headless_navigation(origin)
         stop_application(application)
@@ -1340,11 +1864,25 @@ def main() -> int:
             before_restart=practice_before_restart,
             after_restart=practice_after_restart,
         )
+        practice_progress_after_restart = read_headless_practice_progress(origin)
+        if practice_progress_after_restart != practice_progress_before_restart:
+            raise RuntimeError("Practice progress changed after normal restart.")
+        replayed_draft_after_restart = replay_headless_practice_draft(
+            origin=origin,
+            save=practice_draft_save,
+        )
+        if replayed_draft_after_restart != headless_practice_draft:
+            raise RuntimeError("Practice draft replay changed after normal restart.")
         practice_result_after_restart = observe_headless_practice_submission(
             origin=origin,
             submission=practice_submission,
             expected_result=practice_result,
         )
+        progress_after_submission_replay = read_headless_practice_progress(origin)
+        if progress_after_submission_replay != practice_progress_before_restart:
+            raise RuntimeError(
+                "Exact submission replay changed retained practice progress."
+            )
         practice_storage_after_restart = practice_submission_storage_snapshot(
             postgres_dsn
         )
@@ -1411,9 +1949,14 @@ def main() -> int:
                 "atomic_evidence": True,
                 "browser_generated_client": True,
                 "confidential_denials": True,
+                "draft_exact_replay": True,
+                "draft_resume_after_restart": True,
+                "draft_stale_write_refused": True,
                 "exact_headless_replay": True,
+                "history_and_review_targets": True,
                 "normal_restart_without_reseeding": True,
                 "public_api_shared": True,
+                "retry_state_server_owned": True,
                 "three_response_types": True,
             },
             "projection_replay": {

@@ -37,3 +37,11 @@ transaction replaces the complete projection. Incorrect-item review IDs are
 retained; responses, feedback text, answers, and raw Assessment documents are
 not. Retry history remains evidence-only and never becomes mastery,
 competency, eligibility, certification, recommendation, or advice.
+
+The isolated local qualification submits one browser attempt, reads the same
+ordered answer-free history from a fresh non-browser session, preserves its
+source digest and review evidence while a next-attempt draft is saved, and
+reopens the identical public progress meaning after normal host restart.
+Focused PostgreSQL evidence owns idempotent rebuild, interrupted-rebuild
+rollback, migration, and variable attempt-history cases; the live runner does
+not reach into this module's tables or introduce another projection path.

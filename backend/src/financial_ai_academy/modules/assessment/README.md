@@ -52,20 +52,23 @@ command-line, and future headless clients use this same operation rather than a
 second scoring or persistence path.
 The isolated local qualification admits the exact three-shape package through
 Content, creates its placement through Curriculum, lets the generated browser
-client save one mixed result, and replays that exact captured public document
-from a fresh non-browser session before and after normal restart. It proves one
-atomic definition-ordered evidence aggregate and outbox event, stable server
-IDs/time/result, distinct conflict and completed-attempt denials, and unchanged
-row counts after replay or refusal. No separate AI mode or autonomous action
-authority is part of this qualification.
+client save and reload a partial draft, and then saves one mixed result. A
+fresh non-browser session reads the same progress contract, saves and exactly
+replays the partial snapshot as the next-attempt draft, receives a bounded
+conflict for a changed stale save, and reopens the same draft, retry, history,
+and review state after normal restart. Exact submission replay preserves one
+atomic definition-ordered evidence aggregate and outbox event as well as the
+newer draft. No separate AI mode or autonomous action authority is part of this
+qualification.
 
-The transport-neutral practice-progress operations now validate partial draft
+The transport-neutral practice-progress operations validate partial draft
 snapshots, persist one server-revisioned draft for each learner and exact
 practice scope, derive retry availability from the immutable definition, and
-replay typed ordered completion events. They are application operations rather
-than browser services, so a later protected HTTP route, generated client,
-command-line tool, or headless consumer can use the same core. HTTP, generated-
-client, and browser exposure remains a later SLI-0028 seam.
+replay typed ordered completion events. The protected HTTP routes, reviewed
+OpenAPI snapshot, generated TypeScript client, browser, and cookie-backed
+non-browser qualification all use these same application operations. A future
+command-line or headless AI consumer can reuse the same API; there is no second
+core or browser-owned policy.
 
 ## Persistence
 

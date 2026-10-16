@@ -47,6 +47,13 @@ declaration order, removes only exact duplicates, and represents a missing
 mapping as `mapping_not_found`; it never falls forward, ranks resources, reads
 Assessment evidence, or stores Content bytes.
 
+The isolated live practice flow qualifies that a missing exact mapping remains
+an explicit unavailable target in both the generated browser and a fresh
+cookie-backed non-browser progress read. Focused contract and PostgreSQL suites
+also cover available destinations, declaration-order preservation,
+idempotency, changed-meaning refusal, and restart durability. Review routing
+does not rank, personalize, or generate a recommendation.
+
 ## Discovery projection core
 
 Curriculum owns bounded catalog classification, exact destination,
