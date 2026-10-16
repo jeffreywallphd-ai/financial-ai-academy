@@ -1,7 +1,7 @@
 ---
 id: WRK-0094
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -183,6 +183,28 @@ submission, scoring, feedback, evidence, history, live seeding, AI mode, model
 authority, cloud, and external execution did not change, leaving JIT-D ready
 for live qualification.
 
+## Implementation Evidence
+
+- `/learn/placements/:placementId/practice` establishes the supported session
+  and reads the protected generated `getPlacedPractice` operation with only the
+  placement path. The public API remains equally available to browser and
+  non-browser/headless clients, with no browser-owned learner or policy state.
+- The page rejects an incomplete, unknown, or private-field-bearing response
+  before rendering and presents the ordered single-select, multiple-select,
+  and canonical fixed-decimal controls without a submit, save, answer,
+  feedback, score, attempt, or completion action.
+- Canonical numeric patterns reject leading-zero integers, negative zero,
+  exponents, locale separators, and scale mismatches while accepting valid
+  values such as `0`, `1.00`, and `-0.01` when the item permits negatives.
+- Focused model/component checks passed 30 cases and focused Chromium passed
+  four success, confidentiality, denial, accessibility, responsive, keyboard,
+  media, and theme cases. Exact-candidate affected verification passed all
+  eight selected planning, documentation, language, typecheck, lint, unit, and
+  isolated-build checks.
+- No backend, OpenAPI, generated-client, persistence, submission, scoring,
+  feedback, evidence, history, live fixture, AI mode, model authority, cloud,
+  or external-execution boundary changed.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0093 completed. The packet keeps
@@ -191,3 +213,9 @@ for live qualification.
   persistence, scoring, live seeding, and any separate AI mode.
 - 2026-10-16: Claimed from base revision `93882c1` after dependency,
   authority, decision, branch, exact-scope, and collision checks passed.
+- 2026-10-16: Completed at exact candidate `5ab6127` with a generated-client
+  practice route, closed response validation, all three supported answer-safe
+  controls, canonical decimal input, plain learner guidance, and complete
+  technical evidence. Focused browser and unit/component checks and the
+  exact-candidate affected-verification plan passed; JIT-D remains the bounded
+  live-composition qualifier.

@@ -183,7 +183,7 @@ each packet starts.
 | --- | --- | --- | --- | --- |
 | WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | complete |
 | WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | complete |
-| WRK-0094 | Deliver the accessible practice-opening browser route from the generated public client | WRK-0093 | none | verifying |
+| WRK-0094 | Deliver the accessible practice-opening browser route from the generated public client | WRK-0093 | none | complete |
 | JIT-D | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, and live local composition | JIT-C | none | captured |
 
 ## Verification and Qualification
@@ -280,3 +280,13 @@ cloud, and recovery behavior.
 - 2026-10-16: Activated WRK-0094 after revalidating CAP-0006 authority,
   WRK-0093 completion, decision readiness, exact browser-only scope, and
   collision-free ownership. No lower-level approval was requested.
+- 2026-10-16: Completed WRK-0094 at exact candidate `5ab6127`. The browser
+  route consumes the same protected generated practice API available to
+  headless clients, validates the complete closed response before rendering,
+  and presents all three answer-safe response shapes without submission or
+  scoring authority. Canonical numeric input now rejects leading-zero forms
+  and negative zero while retaining valid negative fractions. Focused
+  unit/component checks passed 30 cases, focused Chromium passed four cases,
+  and the exact-candidate affected-verification receipt passed all eight
+  selected checks. Backend, OpenAPI, generated-client, persistence, evidence,
+  scoring, and AI-specific behavior did not change.
