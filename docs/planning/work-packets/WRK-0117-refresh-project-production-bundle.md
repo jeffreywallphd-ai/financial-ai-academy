@@ -1,7 +1,7 @@
 ---
 id: WRK-0117
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007-correction
 updated: 2026-10-16
@@ -129,6 +129,10 @@ authored behavior or public interface changed.
 
 ## Completion Evidence
 
+- Exact candidate `21cfa8cfded1a0968d4fa520ecd68d6801383c08` has the
+  qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0117/21cfa8cfded1a0968d4fa520ecd68d6801383c08/20261016T222548Z-32f567b9-751a-47ae-ad40-20eb207808a3.json`;
+  receipt validation binds it to the submitted changed-path set.
 - The pinned Node 24/npm 10.8.2 Vite build replaced obsolete
   `index-CSLAcjng.js` and its source map with `index-BiYcwksJ.js` and its
   source map, and updated only the matching script reference in
@@ -162,3 +166,6 @@ authored behavior or public interface changed.
   reproducible builds, static-reference validation, focused Project Chromium,
   architecture, planning, documentation, whitespace, and aggregate readiness
   checks passed.
+- 2026-10-16: Finalized the bounded correction after the exact receipt and all
+  required completion conditions passed with no source, contract, dependency,
+  configuration, or test changes.
