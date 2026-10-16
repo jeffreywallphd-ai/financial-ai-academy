@@ -1,7 +1,7 @@
 ---
 id: WRK-0097
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -256,3 +256,6 @@ changed, then leave JIT-C dependency-ready.
   focused application, contract, real-database, legacy-regression,
   confidentiality, atomicity, idempotency, concurrency, rollback, restart, and
   architecture checks passed.
+- 2026-10-16: Submitted exact candidate
+  `f4ebf8f4745012afc9913a6c218e339431cda1e7` for fresh affected verification
+  and independent technical review.

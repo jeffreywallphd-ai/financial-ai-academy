@@ -191,7 +191,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | complete |
-| WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | active |
+| WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | verifying |
 | JIT-C | Add the protected public POST, reviewed OpenAPI/generated client, and accessible browser submit/result flow with headless parity | JIT-B | none | candidate |
 | JIT-D | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-C | none | candidate |
 
@@ -295,3 +295,5 @@ or autonomous authority was planned or implemented.
   Focused Assessment evidence passes 142 non-database and 14 real-PostgreSQL
   tests, including replay, conflict, concurrency, rollback, restart,
   confidentiality, mutation denial, and unchanged knowledge-check behavior.
+- 2026-10-16: Submitted exact candidate `f4ebf8f` for affected verification
+  and independent technical review after all packet checks passed.
