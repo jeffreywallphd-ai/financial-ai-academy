@@ -1,9 +1,9 @@
 ---
 id: WRK-0093
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0006
 updated: 2026-10-16
 parent: SLI-0026
 capability: CAP-0006
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/generated/api-client", "backend/migrations/curriculum/curriculum_0004_practice_placements.down.sql", "backend/migrations/curriculum/curriculum_0004_practice_placements.up.sql", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/settings.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/content_gateway.py", "backend/src/financial_ai_academy/modules/assessment/adapters/curriculum_gateway.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/gateways.py", "backend/src/financial_ai_academy/modules/assessment/public.py", "backend/src/financial_ai_academy/modules/content/README.md", "backend/src/financial_ai_academy/modules/content/adapters/lesson_package.py", "backend/src/financial_ai_academy/modules/content/application/service.py", "backend/src/financial_ai_academy/modules/content/public.py", "backend/src/financial_ai_academy/modules/curriculum/README.md", "backend/src/financial_ai_academy/modules/curriculum/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/curriculum/application/service.py", "backend/src/financial_ai_academy/modules/curriculum/ports/repositories.py", "backend/src/financial_ai_academy/modules/curriculum/public.py", "backend/tests/contract/lesson_package", "backend/tests/integration/api/test_single_profile_practice_api.py", "backend/tests/integration/curriculum/test_postgres_practice.py", "backend/tests/unit/assessment/test_practice_service.py", "backend/tests/unit/content/test_content_service.py", "backend/tests/unit/content/test_lesson_package_adapter.py", "backend/tests/unit/curriculum/test_curriculum_service.py", "contracts/api/README.md", "contracts/api/openapi.json", "contracts/compatibility/lesson-package/v1", "contracts/learning/lesson-package/v1", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/content-package-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0026-open-versioned-practice-activity.md", "docs/planning/work-packets/WRK-0093-compose-protected-practice-opening-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: be29234c586c475463cbbca55c2b4c03b4c2939e
+claim_id: WRK-0093:bb531891-d353-42e3-96fb-15286e441caa
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T14:22:31Z
 ---
 
 # Agent Work Packet: Compose Protected Practice Opening API
@@ -204,3 +204,6 @@ and external execution did not change, then leave JIT-C dependency-ready.
   uses additive Content and Curriculum contracts instead of overloading the
   knowledge-check family, and defers a separate AI mode without closing future
   headless consumption.
+- 2026-10-16: Claimed from base revision `be29234` after dependency, authority,
+  decision, exact-scope, and branch checks passed. Packet-start freezes the
+  additive package, placement, public-operation, API, and client acceptance set.
