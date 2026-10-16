@@ -10,8 +10,10 @@ Before changing a user-facing interface, read:
 
 1. [Interface Design System](../design/README.md)
 2. [Interface Style Guide](../design/style-guide.md)
-3. [Web design-system assets](../../apps/web/src/design-system/README.md)
-4. [Iconography rules](../../apps/web/src/design-system/icons/README.md) when icons are involved
+3. [Learner-Facing Content Style Guide](../design/content-style-guide.md)
+4. [User-Facing Language Standards](user-facing-language-standards.md)
+5. [Web design-system assets](../../apps/web/src/design-system/README.md)
+6. [Iconography rules](../../apps/web/src/design-system/icons/README.md) when icons are involved
 
 Mockups are directional references only and cannot authorize exact behavior, component structure, copy, calculations, data contracts, or accessibility exceptions.
 
@@ -54,11 +56,28 @@ Mockups are directional references only and cannot authorize exact behavior, com
 - Do not use color alone for positive/negative, risk, status, or chart-series meaning.
 - Keep educational labs distinct from brokerage or execution interfaces.
 
+## Language and Information Hierarchy
+
+- Lead with the learner's task, status, reason, or next safe action rather than
+  an implementation, storage, contract, or data-pipeline term.
+- Use the content style guide's preferred terms consistently across headings,
+  controls, statuses, loading, empty, and error states.
+- Keep material limitations, status reasons, and safe recovery actions in the
+  primary flow. Do not hide essential meaning in a tooltip or disclosure.
+- Place exact versions, identifiers, digests, source records, policy values,
+  and similar diagnostics in an accessible `Technical record` when they are
+  not required for the primary task. Moving a fact must not remove or weaken it.
+- Necessary financial, learning, evidence, and AI terms may remain when precise
+  and explained. Never trade domain accuracy for a reading score.
+- Treat sentence length, passive voice, reading grade, and possible jargon as
+  review signals rather than universal blocking rules.
+
 ## Same-Change Update Rule
 
 When a shared visual decision changes, update all sources made stale in the same change:
 
 - `docs/design/style-guide.md`;
+- `docs/design/content-style-guide.md` when voice, terminology, content hierarchy, or message patterns change;
 - `apps/web/src/design-system/tokens.css`;
 - the SVG sprite, manifest, icon CSS, and icon README when iconography changes;
 - consuming components and affected visual/accessibility tests;

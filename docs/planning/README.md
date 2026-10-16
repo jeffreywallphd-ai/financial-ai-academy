@@ -119,6 +119,14 @@ A vertical slice or work packet is `ready` only when it:
 
 Acceptance scenarios should cover the relevant subset of success, malformed input, unauthorized access, replay or duplicate delivery, stale versions, provider timeout or degradation, local/cloud parity, provenance, accessibility, and light/dark presentation. Do not add irrelevant scenarios merely to fill a template.
 
+Plans that change learner-facing copy or information hierarchy must route to
+the [User-Facing Language Standards](../standards/user-facing-language-standards.md)
+and [Learner-Facing Content Style Guide](../design/content-style-guide.md).
+Prefer focused copy, component, browser, accessibility, documentation, and
+readiness evidence. Do not turn reading grade, passive voice, sentence length,
+or another writing heuristic into a universal gate, and do not create a new
+human approval stage for ordinary conforming copy work.
+
 ## Automated Execution Rules
 
 - Use `guide-next-planning-action` for broad next-step requests; it is read-only by default.

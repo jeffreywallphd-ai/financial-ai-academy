@@ -14,6 +14,7 @@ Baseline context for every non-trivial task.
 - Provenance for learner, market-data, dataset, model, and portfolio evidence
 - Educational scope without personalized financial-advice claims
 - Canonical semantic design tokens and iconography for interface work; mockups remain directional
+- Plain, task-focused learner language preserves domain and risk meaning while keeping exact technical evidence available through accessible progressive disclosure
 - One delivery approval for a complete CAP package whose manifest enumerates every slice; refine slices and packets just in time without approval while they remain inside the package
 - Keep explicit durable decisions and external/destructive authority separate from the CAP planning approval
 - Approval and reviewer records remain only in the ignored local ledger, never tracked artifacts or summaries

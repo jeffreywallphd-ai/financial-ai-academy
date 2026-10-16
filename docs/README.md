@@ -49,7 +49,7 @@ For non-trivial work:
 2. Use `context/prompt-routing.md` and `context/pack-catalog.json`.
 3. Apply `standards/change-impact-matrix.md`.
 4. Consult `adr/decision-readiness.md` for architecture-sensitive work.
-5. For interface work, read `design/README.md`, `design/style-guide.md`, and `standards/interface-design-standards.md`.
+5. For interface work, read `design/README.md`, `design/style-guide.md`, `design/content-style-guide.md`, `standards/interface-design-standards.md`, and `standards/user-facing-language-standards.md`.
 6. For planning work, read `planning/README.md`, `planning/register.md`, `planning/concurrent-work.md`, and `planning/skills/README.md`.
 7. Read only the task-specific canonical sources and inspect affected implementation/tests.
 
@@ -67,6 +67,7 @@ For non-trivial work:
 - [Decision Readiness](adr/decision-readiness.md)
 - [Repository Standards](standards/README.md)
 - [Interface Design System](design/README.md)
+- [User-Facing Language Standards](standards/user-facing-language-standards.md)
 - [Automated Development Planning](planning/README.md)
 - [Governed Planning Skill Suite](planning/skills/README.md)
 - [Concurrent Automated Work](planning/concurrent-work.md)

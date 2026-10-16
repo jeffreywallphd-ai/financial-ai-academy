@@ -35,11 +35,12 @@ If canonical sources conflict, stop and surface the conflict. Do not silently se
 
 Before changing a user-facing interface:
 
-1. Read `docs/design/README.md`, `docs/design/style-guide.md`, and `docs/standards/interface-design-standards.md`.
+1. Read `docs/design/README.md`, `docs/design/style-guide.md`, `docs/design/content-style-guide.md`, `docs/standards/interface-design-standards.md`, and `docs/standards/user-facing-language-standards.md`.
 2. Use semantic variables from `apps/web/src/design-system/tokens.css`; do not create feature-local colors, spacing scales, shadows, radii, or theme maps.
 3. Use the reviewed SVG pack in `apps/web/src/design-system/icons/`; do not substitute emoji, icon fonts, generated raster controls, or unreviewed third-party icons.
 4. Preserve equivalent content, actions, hierarchy, contrast, focus, and responsive behavior in light and dark modes.
 5. Treat `docs/design/mockups/` as directional guidance only, never as exact implementation authority.
+6. Use plain, task-focused learner language; keep necessary technical evidence available through accessible progressive disclosure rather than leading with computing terminology.
 
 When a shared visual decision changes, update the style guide, executable tokens or icon assets, consuming UI, and relevant tests in the same change. Run `python dev-tools/design/check_design_system.py` and the documentation check.
 

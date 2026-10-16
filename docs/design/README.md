@@ -14,6 +14,7 @@ This area converts the visual direction explored in the mockups into an explicit
 | Resource | Authority |
 | --- | --- |
 | [Interface Style Guide](style-guide.md) | Canonical for visual principles, semantic token roles, spacing, layout, typography, component presentation, charts, and theme behavior |
+| [Learner-Facing Content Style Guide](content-style-guide.md) | Canonical for interface voice, preferred learner terms, content hierarchy, and message patterns |
 | [Design tokens](../../apps/web/src/design-system/tokens.css) | Executable source for exact light/dark values consumed by the web application |
 | [Iconography pack](../../apps/web/src/design-system/icons/README.md) | Canonical usage rules and production SVG assets |
 | [Mockups](mockups/README.md) | Directional only; never an implementation specification |
@@ -24,17 +25,19 @@ If a mockup conflicts with the style guide or executable tokens, the style guide
 
 Before changing a user-facing interface:
 
-1. Read the [Interface Style Guide](style-guide.md).
+1. Read the [Interface Style Guide](style-guide.md), [Learner-Facing Content Style Guide](content-style-guide.md), and [User-Facing Language Standards](../standards/user-facing-language-standards.md).
 2. Reuse semantic variables from [tokens.css](../../apps/web/src/design-system/tokens.css); do not add one-off colors, spacing values, shadows, or radii inside feature code.
 3. Reuse an icon from the [iconography pack](../../apps/web/src/design-system/icons/README.md); do not use emoji, font glyphs, or unreviewed third-party icons as interface controls.
 4. Preserve functional parity, readable contrast, and equivalent hierarchy in light and dark modes.
-5. Treat mockups as composition references only.
+5. Lead with task-focused learner meaning and keep exact technical evidence available through accessible progressive disclosure.
+6. Treat mockups as composition references only.
 
 ## Update Rule
 
 Keep the design system current in the same change that introduces or alters a shared visual decision:
 
 - update the style guide when a visual rule or component pattern changes;
+- update the content style guide when shared voice, terminology, hierarchy, or message patterns change;
 - update `tokens.css` when an exact token value or semantic role changes;
 - update the SVG sprite, icon manifest, and icon documentation together when icon geometry or meaning changes;
 - update affected mockups only when a new directional illustration is genuinely useful;

@@ -25,7 +25,7 @@
 | Privacy, financial claims, licenses, external sources, executable plugins | `security-risk` | owning feature pack |
 | Local/cloud configuration, storage, jobs, backup, migrations, recovery | `deployment-operations` | `security-risk` |
 | Capability shaping, vertical slices, work packets, approvals, planning skills, ID reservation, packet claims, concurrent ownership, “what next?” routing, delivery sequencing | `delivery-planning` | `testing-quality` when changing planning automation |
-| User interface, themes, design tokens, layouts, charts, accessibility presentation, iconography | `interface-design` | `testing-quality` |
+| User interface, learner-facing copy, plain language, content hierarchy, errors, themes, design tokens, layouts, charts, accessibility presentation, iconography | `interface-design` | `testing-quality` |
 | Tests, defects, diagnostics, architecture checks, documentation checks, agent readiness, prompt evaluations, CI gates | `testing-quality` | pack owning the failing seam |
 
 ## Stop Conditions

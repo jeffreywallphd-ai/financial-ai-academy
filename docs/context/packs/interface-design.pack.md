@@ -2,7 +2,7 @@
 
 ## Use When
 
-Work affects user-facing layouts, themes, typography, spacing, cards, controls, charts, responsive behavior, accessibility presentation, design tokens, or iconography.
+Work affects user-facing language, content hierarchy, labels, errors, layouts, themes, typography, spacing, cards, controls, charts, responsive behavior, accessibility presentation, design tokens, or iconography.
 
 ## Preserve
 
@@ -11,13 +11,17 @@ Work affects user-facing layouts, themes, typography, spacing, cards, controls, 
 - Feature code does not create local palettes, spacing scales, shadow systems, theme maps, or icon sets.
 - General interface icons come from the reviewed theme-neutral SVG sprite and inherit `currentColor`.
 - Learning and provenance remain visually primary; analytical experiences do not imitate brokerage execution interfaces.
+- Primary learner copy uses familiar task language, necessary specialist terms are explained, and exact technical evidence remains available through accessible progressive disclosure.
+- Automated language heuristics remain proportionate: narrowly defined high-confidence defects may block, while reading grade, passive voice, and sentence length remain advisory.
 - Mockups remain directional and never define behavior, contracts, exact data, or accessibility exceptions.
 
 ## Canonical Sources
 
 - `docs/design/README.md`
 - `docs/design/style-guide.md`
+- `docs/design/content-style-guide.md`
 - `docs/standards/interface-design-standards.md`
+- `docs/standards/user-facing-language-standards.md`
 - `apps/web/src/design-system/tokens.css`
 - `apps/web/src/design-system/icons/README.md`
 

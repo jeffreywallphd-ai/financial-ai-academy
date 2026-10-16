@@ -91,9 +91,9 @@
     {
       "id": "interface-design",
       "path": "docs/context/packs/interface-design.pack.md",
-      "keywords": ["UI", "theme", "design token", "layout", "component style", "chart", "accessibility", "icon"],
-      "pathGlobs": ["apps/web/src/design-system/**", "apps/web/src/components/**", "apps/web/src/features/**", "docs/design/**", "docs/standards/interface-design-standards.md"],
-      "canonicalSources": ["docs/design/README.md", "docs/design/style-guide.md", "docs/standards/interface-design-standards.md"],
+      "keywords": ["UI", "plain language", "learner-facing copy", "content hierarchy", "error message", "theme", "design token", "layout", "component style", "chart", "accessibility", "icon"],
+      "pathGlobs": ["apps/web/src/design-system/**", "apps/web/src/components/**", "apps/web/src/features/**", "docs/design/**", "docs/standards/interface-design-standards.md", "docs/standards/user-facing-language-standards.md"],
+      "canonicalSources": ["docs/design/README.md", "docs/design/style-guide.md", "docs/design/content-style-guide.md", "docs/standards/interface-design-standards.md", "docs/standards/user-facing-language-standards.md"],
       "adjacentPacks": ["testing-quality", "product-domain"],
       "stopConditions": ["Mockup becomes implementation authority or theme/accessibility parity is weakened"]
     },
