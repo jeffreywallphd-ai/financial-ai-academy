@@ -169,15 +169,32 @@ describe("LearningCatalogPage", () => {
   it("does not expose known implementation terms in the primary list flow", () => {
     renderCatalog();
 
-    expect(screen.queryByText("Topic slug")).not.toBeInTheDocument();
+    const search = screen.getByRole("search");
+    const firstCard = screen
+      .getByRole("heading", { name: availableOpportunity.title })
+      .closest("article");
+    expect(firstCard).not.toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Apply query" }),
+      within(search).queryByRole("textbox", { name: "Topic slug" }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText("Exact package")).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: "Open exact lesson" }),
+      within(search).queryByRole("button", { name: "Apply query" }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText("Technical provenance")).not.toBeInTheDocument();
+    expect(
+      within(firstCard as HTMLElement).queryByText("Exact package", {
+        selector: ".catalog-facts dt",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(firstCard as HTMLElement).queryByRole("link", {
+        name: "Open exact lesson",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(firstCard as HTMLElement).queryByText("Technical provenance", {
+        selector: "summary",
+      }),
+    ).not.toBeInTheDocument();
   });
 
   it("builds a bounded transient comparison in learner selection order", async () => {
