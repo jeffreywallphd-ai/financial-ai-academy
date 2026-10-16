@@ -1,9 +1,9 @@
 ---
 id: WRK-0116
 kind: work-packet
-planning_status: ready
+planning_status: verifying
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0007
 updated: 2026-10-16
 parent: SLI-0030
 capability: CAP-0007
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0116-qualify-project-shell-origin-flow.md"]
 generated_artifacts: []
-base_revision: 7ec80cd92eea9f11caf448fb85c0a190ddd7f573
-claim_id: WRK-0116:241e03bb-c9cf-44f3-b29b-6c9cf7ca9391
+base_revision: 1c46ca6822db251da08fed2be8cef39d4a5b30ce
+claim_id: WRK-0116:f432b1e4-7564-4340-8437-c546bd1bc85d
 claimed_by: codex-cap-0007
-claimed_at: 2026-10-16T22:18:50Z
+claimed_at: 2026-10-16T22:28:28Z
 ---
 
 # Agent Work Packet: Qualify Project Shell and Origin Flow
@@ -149,6 +149,45 @@ assumptions, residual limits, unresolved decisions, and SLI-0030 package
 conformance. Confirm that no product behavior or later Project capability was
 added.
 
+## Qualification Evidence
+
+- All seven packet scenarios and all eleven SLI-0030 acceptance scenarios map
+  to the direct evidence recorded in SLI-0030. The cumulative run passed 814
+  backend contract/unit/integration/API/architecture tests against disposable
+  PostgreSQL 18.4, current OpenAPI and generated-client checks, TypeScript
+  typecheck and lint, 226 web tests, production build, eight general Chromium
+  tests, ten live cross-system browser tests, architecture, security, design,
+  documentation, and planning checks.
+- Project-specific qualification passed six focused Chromium scenarios and two
+  byte-identical production builds. Exact WRK-0117 candidate
+  `21cfa8cfded1a0968d4fa520ecd68d6801383c08` has a qualifying receipt, and the
+  tracked bundle contains only current browser artifacts served by the Python
+  host.
+- A fresh composed Project API test against isolated PostgreSQL created one
+  independent and one exact learning-origin shell. Direct SQL observation
+  found two Project rows, zero rows in all 12 Assessment tables, and zero rows
+  in all four Learner-model projection/history tables; cleanup removed the
+  exact Compose container and network.
+- Focused denial and persistence evidence covers stale and mismatched sources,
+  client-selected identity, missing permission, cross-learner guesses,
+  same-origin mutation policy, private storage fields, exact retry,
+  changed-intent conflict, concurrency, restart, UTC projection, and migration
+  rollback bounds. Valid Unicode, boundary-length text, empty/multiple lists,
+  varied ordering, generated identities/times, responsive display, and
+  nonfunctional presentation changes do not weaken those invariants.
+- Final repository gates passed planning integrity for 200 artifacts,
+  documentation integrity for 344 Markdown files plus catalogs, 16
+  architecture checks, whitespace integrity, and all 29 aggregate readiness
+  checks. The first architecture-only rerun hit the known sandbox temp ACL;
+  the exact suite passed with the documented repository-local Windows temp
+  root, as it also had in the complete Docker-backed run.
+- Architecture verification and known gaps were reconciled. The accepted local
+  single-profile/PostgreSQL profile is qualified; Project resources,
+  snapshots, submissions, domain links, Portfolio behavior, external
+  execution, collaboration, managed cloud, production recovery, a separate AI
+  mode, and a full live Project-specific browser flow remain explicitly
+  unsupported.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0111 completed as the final
@@ -159,3 +198,7 @@ added.
   tracked production bundle was stale relative to the accepted browser source.
   WRK-0117 owns only that generated-artifact correction; already-passed
   product checks remain evidence for the unchanged source candidate.
+- 2026-10-16: Prepared the evidence-only final candidate after WRK-0117
+  completed and cumulative API/headless, PostgreSQL, browser, build,
+  architecture, security, documentation, planning, containment, and readiness
+  evidence passed. Product behavior and the approved CAP package are unchanged.

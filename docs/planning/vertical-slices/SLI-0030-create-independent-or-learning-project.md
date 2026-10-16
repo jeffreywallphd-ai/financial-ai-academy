@@ -200,7 +200,7 @@ each packet starts.
 | WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | complete |
 | WRK-0111 | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | WRK-0110 | none | complete |
 | WRK-0117 | Refresh the tracked production bundle from the accepted Project browser source without changing authored behavior | WRK-0111 | none | complete |
-| WRK-0116 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | WRK-0111, WRK-0117 | none | ready |
+| WRK-0116 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | WRK-0111, WRK-0117 | none | verifying |
 
 ## Verification and Qualification
 
@@ -267,6 +267,52 @@ Assessment submission, execution, external providers, organizations, managed
 cloud, production recovery, a separate AI mode, and autonomous authority were
 not delivered or qualified.
 
+### Qualification Evidence
+
+- WRK-0109 through WRK-0111 deliver the reviewed closed contract, exact
+  Content/Curriculum origin resolution, Project-owned application and
+  PostgreSQL persistence, protected public API, generated client, and
+  accessible Project list/create/reopen browser flow. WRK-0117 synchronizes
+  the tracked static production bundle with that accepted source; the
+  correction adds no authored behavior and does not drift from CAP-0007.
+- Independent and exact learning-origin creation, read/list, same-key replay,
+  changed-meaning conflict, immutable exact provenance, stale-source denial,
+  learner isolation, normal repository restart, concurrent retry, UTC
+  projection, retained-data downgrade refusal, and empty-development
+  down/reapply all have direct contract, application, API, and PostgreSQL 18.4
+  evidence. The complete Docker-backed backend run passed 814 tests.
+- The protected Project API serves browser and headless callers through the
+  same create/list/read and start-option operations. Direct API evidence
+  covers server-owned identity, same-origin mutation policy, permission and
+  cross-learner denial, confidential not-found behavior, independent and
+  learning-origin creation, and start-option responses without storage facts.
+- A fresh isolated PostgreSQL composition created two Project shells through
+  the composed public API while all 12 Assessment tables and all four
+  Learner-model projection/history tables remained at zero rows. Its exact
+  Compose network and container were removed in `finally` cleanup.
+- OpenAPI and generated-client currency, TypeScript typecheck and lint, 226 web
+  unit/component tests, two reproducible production builds, and six focused
+  Chromium Project scenarios passed. The browser evidence covers public-API
+  list/start/reopen, unchanged retry, fresh intent after conflict, immutable
+  submitted input while pending, stale-option recovery, narrow reflow,
+  accessibility, and plain language outside the Technical record.
+- Cross-capability cumulative evidence also passed eight lesson Chromium and
+  ten live Python/static/PostgreSQL browser scenarios, 16 architecture checks,
+  ten security groups, 125 design tokens and 56 icons, planning integrity for
+  200 artifacts, documentation integrity for 344 Markdown files plus
+  catalogs, whitespace checks, and all 29 aggregate readiness checks.
+- Architecture verification now records Project domain, public-surface,
+  persistence, API/headless, and generated-browser evidence as direct. Known
+  gaps explicitly retain Project resources, snapshots, submissions, domain
+  links, Portfolio associations, execution, collaboration, managed cloud,
+  production recovery, a separate AI mode, and a full live Project-specific
+  browser flow as unqualified.
+- Qualification assumes the accepted local `single_profile` identity and
+  PostgreSQL 18.4 development profile. No artifact, snapshot, submission,
+  Portfolio state, provider call, external execution, organization, managed-
+  cloud profile, production recovery, model authority, autonomous action, or
+  personalized financial advice was added or claimed.
+
 ## Planning History
 
 - 2026-10-16: Activated the slice with WRK-0109 as its first bounded packet;
@@ -300,3 +346,9 @@ not delivered or qualified.
   reproducible-build evidence confirmed the tracked production bundle matches
   the accepted Project browser source. WRK-0116 is dependency-ready to resume
   final SLI-0030 qualification.
+- 2026-10-16: Prepared the final SLI-0030 qualification candidate after every
+  acceptance scenario had direct evidence across contracts, application,
+  PostgreSQL, public API/headless access, generated browser client, focused
+  Chromium, static build, architecture, security, language/design, and
+  containment checks. Assurance claims and residual gaps were reconciled
+  without changing product behavior.
