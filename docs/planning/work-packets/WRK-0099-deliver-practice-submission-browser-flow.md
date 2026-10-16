@@ -1,7 +1,7 @@
 ---
 id: WRK-0099
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -227,7 +227,7 @@ not change, leaving WRK-0100 dependency-ready.
   result states; focuses the first incomplete question or returned status;
   retains exact technical evidence; and explains that retry/history behavior
   remains deferred without overstating the accepted attempt maximum.
-- Focused model/component evidence passes 46 tests and focused Chromium passes
+- Focused model/component evidence passes 51 tests and focused Chromium passes
   eight generated-client submission, exact retry, session renewal, completed-
   attempt denial, confidentiality, focus, responsive, forced-color, reduced-
   motion, theme-parity, and axe scenarios. The full web suite passes 197 tests;
@@ -240,6 +240,11 @@ not change, leaving WRK-0100 dependency-ready.
   policy, live seed, separate AI mode, autonomous authority, or external-
   execution boundary changed. The public POST remains directly available to
   non-browser and future headless consumers.
+- Exact corrected candidate `9f53ccb434a2e4e13f786d63e1cab9d5da2d3c5a`
+  has a fresh qualifying eight-check affected-verification receipt with digest
+  `sha256:a20a267578981cdef4aa2761cb8980af9fda7e083d2678f1b1bdfaf84c7b47f1`.
+  Independent review R02 accepted it with R01-F001 closed and no open
+  substantive or cleanup findings.
 
 ## Planning History
 
@@ -259,3 +264,14 @@ not change, leaving WRK-0100 dependency-ready.
 - 2026-10-16: Submitted exact candidate
   `16a85659b488663210f40e51cb74f68b63e1dd1a` for fresh affected
   verification and independent technical review.
+- 2026-10-16: Independent review R01 found that browser result validation
+  accepted impossible dates and noncanonical RFC 3339 forms. The corrected
+  descendant now validates exact UTC `Z` syntax, one-to-six fractional digits,
+  clock bounds, Gregorian leap years, and month lengths. Regression cases reject
+  impossible dates, offsets, and excessive precision without constraining valid
+  UTC seconds or microseconds.
+- 2026-10-16: Completed WRK-0099 at corrected exact candidate `9f53ccb4` after
+  the fresh affected receipt qualified and independent review R02 closed
+  R01-F001 with no open findings. The correction changed only fail-closed
+  browser validation; the generated public API remains independently usable by
+  non-browser and future headless consumers.
