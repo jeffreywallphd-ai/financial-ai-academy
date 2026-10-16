@@ -81,3 +81,20 @@ uv run --project backend pytest backend/tests/contract/curriculum_graph
 
 The graph contract does not establish learner eligibility, completion,
 recommendation, persistence, API authorization, or browser behavior.
+
+## Adaptation Navigation State v1
+
+[`adaptation/v1/`](adaptation/v1/README.md) defines the deterministic rule
+baseline that composes one exact Curriculum graph and complete typed activity
+source facts into orthogonal completion, eligibility, requirement, and
+availability state with bounded reasons and replay digests. Its compatibility
+corpus lives in
+[`../compatibility/adaptation-navigation/v1/`](../compatibility/adaptation-navigation/v1/README.md).
+
+```powershell
+uv run --project backend pytest backend/tests/contract/adaptation_navigation
+```
+
+The contract and pure policy do not qualify public gateways, authentication,
+API/generated clients, browser rendering, persistence, ranking, models, or
+experiments.

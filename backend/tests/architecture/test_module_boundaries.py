@@ -35,6 +35,7 @@ def test_curriculum_imports_only_the_content_public_surface() -> None:
 def test_cross_module_imports_use_only_public_surfaces() -> None:
     violations: list[str] = []
     module_names = {
+        "adaptation",
         "assessment",
         "audit",
         "content",
@@ -72,6 +73,7 @@ def test_domain_layers_are_framework_and_adapter_free() -> None:
     }
     violations: list[str] = []
     for module_name in (
+        "adaptation",
         "assessment",
         "audit",
         "content",
@@ -185,6 +187,7 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
 
 def test_modules_have_public_application_and_port_seams() -> None:
     for module_name in (
+        "adaptation",
         "assessment",
         "audit",
         "content",
@@ -238,6 +241,34 @@ def test_learner_model_consumes_only_the_assessment_public_surface() -> None:
     assert {
         item for item in imported if item.startswith(prefix)
     } == {f"{prefix}.public"}
+
+
+def test_adaptation_core_consumes_only_the_curriculum_public_surface() -> None:
+    imported: set[str] = set()
+    for path in (MODULES / "adaptation").rglob("*.py"):
+        imported.update(imported_modules(path))
+    prefix = "financial_ai_academy.modules.curriculum"
+    assert {
+        item for item in imported if item.startswith(prefix)
+    } == {f"{prefix}.public"}
+
+
+def test_adaptation_core_has_no_model_provider_or_persistence_authority() -> None:
+    source = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (MODULES / "adaptation").rglob("*.py")
+    ).casefold()
+    for prohibited in (
+        "psycopg",
+        "fastapi",
+        "pydantic",
+        "openai",
+        "provider_payload",
+        "recommendation_score",
+        "engagement_score",
+        "mastery_score",
+    ):
+        assert prohibited not in source
 
 
 def test_audit_consumes_only_the_assessment_public_surface() -> None:

@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0.0",
+  "curriculum_id": "investing-foundations",
+  "curriculum_version": "1.0.0",
+  "graph_digest": "9b044b324c9d4dcd95a394d55d595fe3d7c7c4ba0a3cb32b961480eead8b2f57",
+  "policy_id": "deterministic-prerequisite-baseline",
+  "policy_version": "1.0.0",
+  "evaluated_at": "2026-10-16T00:00:00Z",
+  "source_set_digest": "8fe1cb7b3b425c77f61fd873293409b6a9168e2c10659e55caddf5dcbd859064",
+  "activity_states": [
+    {
+      "activity_id": "activity-risk-return-lesson",
+      "completion": "completed",
+      "eligibility": "eligible",
+      "requirement": "required",
+      "availability": "available",
+      "reasons": [
+        {
+          "code": "activity_completed",
+          "explanation": "Accepted completion evidence exists for this exact activity.",
+          "references": ["activity-risk-return-lesson"]
+        },
+        {
+          "code": "required_activity",
+          "explanation": "This activity belongs to a required curriculum branch.",
+          "references": ["activity-risk-return-lesson"]
+        },
+        {
+          "code": "entry_activity",
+          "explanation": "This activity has no activity prerequisite.",
+          "references": ["activity-risk-return-lesson"]
+        }
+      ]
+    },
+    {
+      "activity_id": "activity-risk-return-check",
+      "completion": "incomplete",
+      "eligibility": "eligible",
+      "requirement": "required",
+      "availability": "available",
+      "reasons": [
+        {
+          "code": "required_activity",
+          "explanation": "This activity belongs to a required curriculum branch.",
+          "references": ["activity-risk-return-check"]
+        },
+        {
+          "code": "prerequisite_satisfied",
+          "explanation": "A required activity prerequisite is complete.",
+          "references": [
+            "activity-risk-return-check",
+            "activity-risk-return-lesson",
+            "relationship-lesson-before-check"
+          ]
+        }
+      ]
+    },
+    {
+      "activity_id": "activity-diversification-reading",
+      "completion": "incomplete",
+      "eligibility": "eligible",
+      "requirement": "optional",
+      "availability": "available",
+      "reasons": [
+        {
+          "code": "optional_activity",
+          "explanation": "This activity belongs to an optional curriculum branch.",
+          "references": ["activity-diversification-reading"]
+        },
+        {
+          "code": "entry_activity",
+          "explanation": "This activity has no activity prerequisite.",
+          "references": ["activity-diversification-reading"]
+        }
+      ]
+    },
+    {
+      "activity_id": "activity-diversification-check",
+      "completion": "incomplete",
+      "eligibility": "unavailable",
+      "requirement": "optional",
+      "availability": "unavailable",
+      "reasons": [
+        {
+          "code": "optional_activity",
+          "explanation": "This activity belongs to an optional curriculum branch.",
+          "references": ["activity-diversification-check"]
+        },
+        {
+          "code": "activity_source_unavailable",
+          "explanation": "The exact activity source is currently unavailable.",
+          "references": ["activity-diversification-check"]
+        }
+      ]
+    },
+    {
+      "activity_id": "activity-terms-glossary",
+      "completion": "incomplete",
+      "eligibility": "eligible",
+      "requirement": "unassigned",
+      "availability": "available",
+      "reasons": [
+        {
+          "code": "unassigned_activity",
+          "explanation": "This activity is not assigned to a required or optional branch.",
+          "references": ["activity-terms-glossary"]
+        },
+        {
+          "code": "entry_activity",
+          "explanation": "This activity has no activity prerequisite.",
+          "references": ["activity-terms-glossary"]
+        }
+      ]
+    }
+  ],
+  "projection_digest": "2804565cf538b0a2418a6ed9364be862c3999c75cfc02141d3119994beb4dd57"
+}

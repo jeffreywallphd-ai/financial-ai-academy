@@ -2,7 +2,7 @@
 
 - Status: partially accepted
 - Canonical for: accepted first learning-loop ownership and remaining module hypotheses
-- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md), [ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
+- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md), [ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
 - Decision gate: use accepted first-loop boundaries; refine every still-proposed boundary before implementation
 
 | Module | Status | Primary responsibility | Publishes |
@@ -12,7 +12,7 @@
 | Curriculum | accepted; lesson, initial Assessment placement/read, protected discovery, and immutable exact graph read implemented | Competencies, prerequisites, pathways, course structure, exact versioned activity placement, and rebuildable discovery views | Curriculum-version events remain future work |
 | Assessment | accepted; deterministic single-select core implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check completion evidence |
 | Learner model | accepted; bounded completion projection implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
-| Adaptation | proposed | Eligibility, ranking, deterministic policy, recommendations | Recommendation decisions and outcomes |
+| Adaptation | accepted; deterministic navigation-state core implemented | Eligibility, ranking orchestration, deterministic policy, recommendations | Deterministic navigation-state projections; durable recommendation decisions and outcomes remain future work |
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
@@ -54,6 +54,29 @@ ADR-0015 accepts Market data and Portfolio ownership for the initial financial
 analysis and simulation lane plus the platform method-registry seam. Exact
 methods, schemas, accounting policies, and provider admissions remain bounded
 CAP and contract work.
+
+ADR-0014 accepts Adaptation ownership for deterministic eligibility, ranking
+orchestration, policy application, and recommendation records while keeping
+models advisory. The currently implemented baseline stops at a pure,
+provider-neutral navigation-state projection over an exact Curriculum graph
+and typed source facts. Gateway composition, durable recommendation records,
+model influence, and experiments remain separately governed work.
+
+## Implemented Adaptation Deterministic Baseline
+
+- `adaptation-navigation-state-v1` keeps completion, eligibility,
+  required/optional membership, and exact-source availability as orthogonal
+  closed dimensions with stable bounded reasons.
+- The framework-free policy validates one exact Curriculum graph and one source
+  fact per activity, evaluates source-to-target activity prerequisites, and
+  emits canonical source/projection digests for replay.
+- Optionality is not eligibility. Multiple entries and prerequisites, absent
+  presentation hints, same-kind shared branches, unbranched activities, and
+  sibling reordering remain compatible.
+- The core imports only Curriculum's public surface, has no repository or
+  migration, and exposes no learner identity, answer, score interpretation,
+  provider payload, model, rank, recommendation, mastery, approval, or advice
+  field.
 
 ## Implemented Lesson-Read Seams
 

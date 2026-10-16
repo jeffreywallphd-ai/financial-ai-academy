@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "curriculum_id": "investing-foundations",
+  "curriculum_version": "1.0.0",
+  "graph_digest": "9b044b324c9d4dcd95a394d55d595fe3d7c7c4ba0a3cb32b961480eead8b2f57",
+  "policy_id": "deterministic-prerequisite-baseline",
+  "policy_version": "1.0.0",
+  "evaluated_at": "2026-10-16T00:00:00Z",
+  "activity_facts": [
+    {
+      "activity_id": "activity-risk-return-lesson",
+      "activity_source_state": "available",
+      "completion_state": "completed",
+      "source_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "activity_id": "activity-risk-return-check",
+      "activity_source_state": "available",
+      "completion_state": "incomplete",
+      "source_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    {
+      "activity_id": "activity-diversification-reading",
+      "activity_source_state": "available",
+      "completion_state": "incomplete",
+      "source_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    },
+    {
+      "activity_id": "activity-diversification-check",
+      "activity_source_state": "unavailable",
+      "completion_state": "incomplete",
+      "source_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    {
+      "activity_id": "activity-terms-glossary",
+      "activity_source_state": "available",
+      "completion_state": "incomplete",
+      "source_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    }
+  ]
+}

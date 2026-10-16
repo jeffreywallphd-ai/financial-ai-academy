@@ -181,7 +181,7 @@ Run from the repository root:
 uv run --project backend pytest backend/tests/contract/adaptation_navigation backend/tests/unit/adaptation backend/tests/architecture/test_module_boundaries.py
 uv run --project backend pytest backend/tests/contract/curriculum_graph backend/tests/unit/curriculum/test_curriculum_graph.py backend/tests/unit/learner_model/test_completion_service.py
 python dev-tools/planning/check_planning.py
-python dev-tools/docs/check_docs.py
+python dev-tools/documentation/check_docs.py
 python dev-tools/architecture/check_architecture.py
 python .agents/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0062-establish-deterministic-navigation-state-core.md
 python dev-tools/agent/check_ready.py

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/adaptation/v1/navigation-state.schema.json",
+  "title": "Adaptation Navigation State v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "curriculum_id",
+    "curriculum_version",
+    "graph_digest",
+    "policy_id",
+    "policy_version",
+    "evaluated_at",
+    "source_set_digest",
+    "activity_states",
+    "projection_digest"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "curriculum_id": { "$ref": "#/$defs/identifier" },
+    "curriculum_version": { "$ref": "#/$defs/version" },
+    "graph_digest": { "$ref": "#/$defs/digest" },
+    "policy_id": { "$ref": "#/$defs/identifier" },
+    "policy_version": { "$ref": "#/$defs/version" },
+    "evaluated_at": { "$ref": "#/$defs/timestamp" },
+    "source_set_digest": { "$ref": "#/$defs/digest" },
+    "activity_states": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/activity_state" }
+    },
+    "projection_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._:-]{0,127}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]{1,6})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])$"
+    },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "explanation", "references"],
+      "properties": {
+        "code": {
+          "enum": [
+            "activity_completed",
+            "required_activity",
+            "optional_activity",
+            "unassigned_activity",
+            "activity_source_unavailable",
+            "completion_source_unavailable",
+            "entry_activity",
+            "prerequisite_incomplete",
+            "prerequisite_unavailable",
+            "prerequisite_satisfied"
+          ]
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
+        "references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/identifier" }
+        }
+      }
+    },
+    "activity_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activity_id",
+        "completion",
+        "eligibility",
+        "requirement",
+        "availability",
+        "reasons"
+      ],
+      "properties": {
+        "activity_id": { "$ref": "#/$defs/identifier" },
+        "completion": {
+          "enum": ["completed", "incomplete", "unavailable"]
+        },
+        "eligibility": {
+          "enum": ["eligible", "locked", "unavailable"]
+        },
+        "requirement": {
+          "enum": ["required", "optional", "unassigned"]
+        },
+        "availability": {
+          "enum": ["available", "unavailable"]
+        },
+        "reasons": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2002,
+          "items": { "$ref": "#/$defs/reason" }
+        }
+      }
+    }
+  }
+}

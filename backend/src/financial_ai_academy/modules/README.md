@@ -11,6 +11,13 @@ the Content and Curriculum public facades and owns its persistence and
 completion-event meaning. Learner model consumes only Assessment's public event
 query and owns its rebuildable projection schema.
 
+Adaptation now has a framework-free deterministic navigation-state core and
+public operation protocol accepted by ADR-0014. It consumes only validated
+Curriculum graph meaning and typed source facts, keeps completion, eligibility,
+requirement, and availability orthogonal, and has no model, provider,
+persistence, host, or ranking authority. Public Curriculum/Learner-model
+gateway composition is introduced separately.
+
 Audit also consumes only the Assessment public event query. It owns an
 append-oriented integrity/provenance schema and never becomes a second store of
 Assessment or Learner-model business state.
