@@ -147,7 +147,7 @@ each packet starts. The planned dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0076 | Clarify lesson loading, publication context, and bounded route recovery with focused component evidence | none | none | complete |
 | WRK-0077 | Clarify knowledge-check result, retry, saved-completion summary, and technical records with focused component evidence | WRK-0076 | none | complete |
-| WRK-0078 | Qualify the complete lesson and saved-completion experience in Chromium, reconcile documentation, and close the slice | WRK-0076, WRK-0077 | none | active |
+| WRK-0078 | Qualify the complete lesson and saved-completion experience in Chromium, reconcile documentation, and close the slice | WRK-0076, WRK-0077 | none | verifying |
 
 ## Verification and Qualification
 
@@ -227,3 +227,7 @@ failures, assumptions, known gaps, and any residual decision gate.
 - 2026-10-16: Activated WRK-0078 after validating its complete dependencies,
   exact test/snapshot/documentation scope, current CAP authority, semantic
   acceptance set, and absence of a decision gate or file collision.
+- 2026-10-16: Submitted exact WRK-0078 candidate
+  `d430205fdd4b41c3dbcb817769b8593b3649f783` after mocked Chromium,
+  isolated-live, component, typecheck, lint, build, design, planning,
+  documentation, whitespace, and aggregate-readiness checks passed.

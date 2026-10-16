@@ -1,7 +1,7 @@
 ---
 id: WRK-0078
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -184,3 +184,8 @@ gaps, and the next CAP-manifest action. Do not request slice approval.
   record expanded the 375-pixel viewport to 669 pixels. Refined the packet to
   allow one functional wrapping correction while leaving cosmetic styling and
   layout redesign out of scope.
+- 2026-10-16: Submitted exact candidate
+  `d430205fdd4b41c3dbcb817769b8593b3649f783` after 8 mocked Chromium, 8
+  isolated-live, 27 focused component, typecheck, lint, build, design,
+  planning, documentation, whitespace, and 27/27 aggregate-readiness checks
+  passed. The live harness removed its disposable database and data root.
