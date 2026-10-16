@@ -158,7 +158,7 @@ Run:
 backend/.venv/Scripts/python.exe -m pytest backend/tests/integration/api/test_single_profile_practice_submission_api.py backend/tests/integration/api/test_single_profile_practice_api.py backend/tests/integration/api/test_single_profile_assessment_api.py
 backend/.venv/Scripts/python.exe -m financial_ai_academy.hosts.api.generate_openapi --check
 node apps/web/scripts/generate-api-client.mjs --check
-node --test apps/web/tests/contract/generated-client.test.mjs
+npm --prefix apps/web run test
 npm --prefix apps/web run typecheck
 python dev-tools/architecture/check_architecture.py
 python docs/planning/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0098-expose-practice-submission-api.md
@@ -208,7 +208,36 @@ leave WRK-0099 dependency-ready.
 
 ## Implementation Evidence
 
-Not started.
+- Added protected `submitPlacedPractice` at
+  `/api/v1/curriculum/placements/{placement_id}/practice/submissions` as a thin
+  adapter over the WRK-0097 public operation. The host supplies the learner
+  from the opaque session, rejects route/body mismatch and query authority,
+  serializes the closed validated document, and owns no scoring, replay, or
+  persistence policy.
+- Added closed discriminated request/result API models for single-select,
+  multiple-select, and canonical fixed-decimal responses. The response retains
+  submitted values, ordered outcomes, applicable reviewed feedback, review
+  references, exact public provenance, evidence IDs, and UTC time while
+  deliberately omitting learner identity, the internal request fingerprint,
+  answer keys, private evaluators, and diagnostics.
+- Production composition now supplies the accepted
+  `ContractPracticeSubmissionAdapter`. The reviewed OpenAPI snapshot and
+  deterministic TypeScript client expose the exact operation for direct,
+  browser, command-line, service, and future headless consumers; no second
+  protocol or browser-only contract exists.
+- Sixteen new direct API tests cover success, all three response shapes,
+  server-owned identity, confidentiality, exact operation shape, route/body
+  mismatch, query and extra-field denial, duplicate selection, every bounded
+  Assessment error class, unconfigured service, invalid service output, and
+  varied valid item counts. The focused practice/knowledge-check group passes
+  27 tests; the complete backend API integration directory passes 79 with six
+  environment-gated PostgreSQL tests skipped; Assessment unit/practice-
+  contract regression passes 115.
+- Generated-client tests plus the full web suite pass 181 tests. OpenAPI and
+  client reproduction, TypeScript typecheck, web lint, all 15 architecture
+  fitness tests, packet/planning/documentation validation, and whitespace
+  integrity pass. Browser submission/rendering and live PostgreSQL HTTP
+  qualification remain intentionally deferred to the dependent packets.
 
 ## Planning History
 
@@ -219,3 +248,8 @@ Not started.
 - 2026-10-16: Claimed from base revision `34ef4a9` after the implementation
   gate confirmed current CAP authority, completed dependencies, decision
   readiness, exact generated-artifact scope, and no active ownership collision.
+- 2026-10-16: Implemented and focused-qualified the protected public POST,
+  reviewed OpenAPI, generated TypeScript client, production adapter
+  composition, and direct non-browser result contract. The API remains the
+  primary boundary; browser use is dependency-ready and separate AI-mode
+  planning remains out of scope.

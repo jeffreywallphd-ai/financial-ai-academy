@@ -51,11 +51,22 @@ state is introduced.
 
 The API host exposes answer-safe practice opening at
 `GET /api/v1/curriculum/placements/{placement_id}/practice`. It requires the
-server-resolved learner session and `assessment.practice.read`, accepts no
+server-resolved learner session and current lesson-read permission, accepts no
 learner, answer, policy, or version fallback selector, and delegates exact
 placement/content resolution to Assessment through public module seams.
 Unknown placements map to bounded 404 responses and unavailable or invalid
 definitions to bounded failures without partial questions or private answers.
+
+Whole-attempt submission is available at
+`POST /api/v1/curriculum/placements/{placement_id}/practice/submissions`.
+The same session and same-origin boundary supplies learner identity, rejects
+route/body mismatch and caller-selected authority, and forwards the closed
+versioned document to Assessment. The response returns ordered submitted
+values, score, applicable reviewed feedback, review references, server evidence
+IDs, exact public provenance, and time. It excludes learner identity, the
+internal request fingerprint, correct answers, evaluator declarations, and
+private diagnostics. The reviewed OpenAPI operation is directly usable without
+the browser and is the only generated-client seam later UI work may call.
 
 The isolated qualification calls the same operation repeatedly from a
 cookie-backed non-browser HTTP client and through the generated browser client.

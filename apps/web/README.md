@@ -190,6 +190,15 @@ bounded learner-focused state without partial questions or choices. The same
 protected HTTP operation remains available to non-browser and future headless
 clients; the page does not define a second contract or a separate AI mode.
 
+The reviewed OpenAPI and generated TypeScript client also expose protected
+whole-practice submission at the placement's `/practice/submissions` route.
+Its closed request covers all three supported response shapes and its response
+contains ordered learner-safe outcomes without learner identity, internal
+request fingerprint, answer keys, or evaluator declarations. The public route
+is independently qualified for non-browser use. This opening page does not call
+it yet; the dependent browser-result packet will use this generated operation
+rather than introducing browser-only scoring or another API.
+
 The browser never selects the learner, reads the HttpOnly cookie, imports
 backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference

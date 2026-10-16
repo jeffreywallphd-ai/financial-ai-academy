@@ -12,6 +12,10 @@ void client.GET("/api/v1/curriculum/opportunities");
 
 type CurriculumGraphResponse =
   components["schemas"]["CurriculumGraphResponseModel"];
+type PracticeSubmission =
+  components["schemas"]["PracticeSubmissionRequestModel"];
+type PracticeSubmissionResult =
+  components["schemas"]["PracticeSubmissionResultResponseModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -28,6 +32,15 @@ function exerciseFlexibleCurriculumGraphResponse(
 
 void exerciseFlexibleCurriculumGraphResponse;
 
+function exercisePracticeResult(result: PracticeSubmissionResult): void {
+  const orderedItemKinds = result.item_results.map((item) => item.item_type);
+  const needsReview = result.outcome === "review_needed";
+  void orderedItemKinds;
+  void needsReview;
+}
+
+void exercisePracticeResult;
+
 void client.GET(
   "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",
   {
@@ -37,6 +50,42 @@ void client.GET(
         curriculum_version: "1.0.0",
       },
     },
+  },
+);
+
+const practiceSubmission: PracticeSubmission = {
+  schema_version: "1.0.0",
+  submission_id: "22222222-2222-4222-8222-222222222222",
+  placement_id: "risk-return-practice-placement",
+  package_id: "intro-risk-return",
+  package_version: "2.0.0",
+  package_digest: "a".repeat(64),
+  definition_digest: "b".repeat(64),
+  practice_id: "risk-return-practice",
+  practice_version: "1.0.0",
+  attempt_policy_id: "formative-retry",
+  attempt_policy_version: "1.0.0",
+  responses: [
+    {
+      item_id: "risk-meaning",
+      item_version: "1.0.0",
+      item_type: "single_select",
+      scoring_policy_id: "single-select-exact-match",
+      scoring_policy_version: "1.0.0",
+      selected_option_id: "uncertainty",
+    },
+  ],
+};
+
+void client.POST(
+  "/api/v1/curriculum/placements/{placement_id}/practice/submissions",
+  {
+    params: {
+      path: {
+        placement_id: "risk-return-practice-placement",
+      },
+    },
+    body: practiceSubmission,
   },
 );
 

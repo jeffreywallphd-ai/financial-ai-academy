@@ -36,6 +36,16 @@ event query, while Audit appends canonical integrity/provenance references.
 The protected FastAPI completion endpoint reconciles Audit before returning the
 Learner-model view and never accepts a client-selected learner.
 
+The protected practice boundary now exposes both answer-safe opening and
+whole-attempt submission through the reviewed public API. The submission host
+accepts only the closed versioned document, supplies learner identity from the
+server session, and delegates scoring, replay, conflict, attempt limits, and
+atomic evidence to Assessment. Its learner-safe result omits learner identity,
+the internal request fingerprint, answer keys, and evaluator declarations.
+OpenAPI and the generated TypeScript client retain the same operation for
+browser, command-line, service, and future headless consumers; no separate AI
+transport or browser-owned scoring path exists.
+
 ## Commands
 
 Use the committed Python 3.14 lock:

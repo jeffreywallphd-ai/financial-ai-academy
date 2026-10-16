@@ -313,3 +313,8 @@ or autonomous authority was planned or implemented.
 - 2026-10-16: Activated WRK-0098 after the implementation gate confirmed the
   current CAP authority, completed WRK-0097 dependency, resolved decision
   posture, bounded API/generated-client scope, and collision-free ownership.
+- 2026-10-16: WRK-0098 implemented the protected whole-practice POST and
+  reviewed generated-client contract. Direct API tests prove server-owned
+  identity, all three response shapes, bounded denials, confidentiality, and
+  varied valid item counts independently of the browser. Browser submission
+  and live local qualification remain the next dependent packet boundaries.

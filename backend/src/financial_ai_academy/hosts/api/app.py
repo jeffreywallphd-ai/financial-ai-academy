@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+import json
 from uuid import uuid4
 
 from fastapi import (
@@ -37,6 +38,7 @@ from financial_ai_academy.modules.assessment.public import (
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
     SubmitPlacedKnowledgeCheckRequest,
+    SubmitPlacedPracticeRequest,
 )
 from financial_ai_academy.modules.audit.public import (
     AuditError,
@@ -96,6 +98,8 @@ from .models import (
     LessonReadingResponseModel,
     NavigationStateResponseModel,
     PracticePresentationResponseModel,
+    PracticeSubmissionRequestModel,
+    PracticeSubmissionResultResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     activity_launch_response,
@@ -108,6 +112,7 @@ from .models import (
     lesson_response,
     navigation_state_response,
     practice_presentation_response,
+    practice_submission_result_response,
 )
 
 
@@ -811,6 +816,51 @@ def create_app(services: ApiServices) -> FastAPI:
         return practice_presentation_response(presentation)
 
     @app.post(
+        "/api/v1/curriculum/placements/{placement_id}/practice/submissions",
+        response_model=PracticeSubmissionResultResponseModel,
+        operation_id="submitPlacedPractice",
+        responses=_ERROR_RESPONSES,
+        tags=["assessment"],
+    )
+    def submit_placed_practice(
+        request: Request,
+        request_model: PracticeSubmissionRequestModel,
+        placement_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        context: LearnerContext = Depends(lesson_context),
+    ) -> PracticeSubmissionResultResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Practice submission does not accept query input.",
+                reference="query",
+            )
+        if request_model.placement_id != placement_id:
+            raise AssessmentError(
+                AssessmentErrorCode.STALE_REFERENCE,
+                "Practice version references do not match.",
+                reference="placement_id",
+            )
+        document = json.dumps(
+            request_model.model_dump(mode="json"),
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        assessment = _assessment_service(services.assessment)
+        result = assessment.submit_placed_practice(
+            SubmitPlacedPracticeRequest(
+                learner_id=context.learner_id,
+                placement_id=placement_id,
+                submission=document,
+            )
+        )
+        return practice_submission_result_response(result)
+
+    @app.post(
         "/api/v1/curriculum/placements/{placement_id}/knowledge-check/submissions",
         response_model=KnowledgeCheckResultResponseModel,
         operation_id="submitPlacedKnowledgeCheck",
@@ -914,6 +964,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/activities/{activity_id}/launch"
             ]["get"]
             launch_operation["responses"].pop("422", None)
+            practice_submission_operation = schema["paths"][
+                "/api/v1/curriculum/placements/{placement_id}/practice/submissions"
+            ]["post"]
+            practice_submission_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 

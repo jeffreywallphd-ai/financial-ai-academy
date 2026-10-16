@@ -34,6 +34,19 @@ assert.match(schema, /NavigationStateResponseModel/);
 assert.match(schema, /operations\["browseLearningOpportunities"\]/);
 assert.match(schema, /operations\["queryLearningOpportunities"\]/);
 assert.match(schema, /LearningOpportunityQueryPageResponseModel/);
+assert.match(
+  schema,
+  /\/api\/v1\/curriculum\/placements\/\{placement_id\}\/practice\/submissions/,
+);
+assert.match(schema, /operations\["submitPlacedPractice"\]/);
+assert.match(schema, /PracticeSubmissionRequestModel/);
+assert.match(schema, /PracticeSubmissionResultResponseModel/);
+assert.doesNotMatch(
+  schema.match(
+    /readonly "PracticeSubmissionResultResponseModel": \{[\s\S]*?^    \};/m,
+  )?.[0] ?? "",
+  /learner_id|request_fingerprint/,
+);
 assert.match(client, /createClient<paths>/);
 assert.match(client, /credentials: "same-origin"/);
 assert.doesNotMatch(combined, /financial_ai_academy/);

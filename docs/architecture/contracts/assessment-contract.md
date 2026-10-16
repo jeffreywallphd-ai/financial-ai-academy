@@ -95,9 +95,21 @@ The transport-neutral `submit_placed_practice` application operation accepts
 server-resolved learner context, one route-bound placement ID, and the exact
 versioned submission document. It resolves Curriculum and Content only through
 their public facades, re-parses the exact private definition, supplies server
-IDs and canonical UTC time, and invokes the accepted parser/scorer. A later
-HTTP host, generated client, command-line caller, and future headless consumer
-must all use this operation instead of owning scoring, replay, or persistence.
+IDs and canonical UTC time, and invokes the accepted parser/scorer. The
+protected HTTP host and reviewed generated client expose this operation to
+browser, command-line, service, and future headless consumers instead of
+letting any caller own scoring, replay, or persistence.
+
+`POST /api/v1/curriculum/placements/{placement_id}/practice/submissions`
+accepts the closed versioned submission body and resolves learner identity only
+from the opaque server session. The route and body placement must match. The
+response returns exact public provenance, submitted values, deterministic
+scores, applicable feedback, review references, evidence IDs, and UTC time,
+while omitting learner identity, the internal request fingerprint, correct
+answers, private evaluator declarations, and diagnostics. OpenAPI is the
+reviewed source for the TypeScript client, so direct and browser callers share
+one contract. This does not define an AI-specific mode, protocol, credential,
+tool surface, or autonomous authority.
 
 Assessment retains each accepted practice aggregate in separate additive
 attempt, ordered-response, item-score, completion-result, and practice-outbox
@@ -201,12 +213,13 @@ PostgreSQL evidence covers migration/reapply/teardown, exact and reordered
 replay, conflict, one-attempt enforcement, concurrency, rollback, restart,
 confidentiality, and mutation denial without changing knowledge-check storage.
 Repeated opening remains read-only and returns no answer or feedback branch.
-Authorization host composition, the public POST and generated client, browser
-result flow, retry enforcement, history/replay consumers, and live submission
-remain unqualified until their owning packets deliver them. No separate AI/
-headless mode is defined; the shared public API remains the supported non-
-browser seam and keeps a future consumer possible without creating another
-domain core.
+Authorization host composition, the public POST, reviewed OpenAPI, generated
+client, bounded denials, and direct non-browser result confidentiality are now
+covered. Browser result flow, retry enforcement, history/replay consumers, and
+live local submission remain unqualified until their owning packets deliver
+them. No separate AI/headless mode is defined; the shared public API remains
+the supported non-browser seam and keeps a future consumer possible without
+creating another domain core.
 
 Assessment now also exposes a typed, read-only completion-event replay query
 for one server-supplied learner and exact placement. It validates retained

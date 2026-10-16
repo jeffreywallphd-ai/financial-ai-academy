@@ -621,6 +621,16 @@ class KnowledgeCheckPresentationResponseModel(ApiModel):
     )
 
 
+PracticeIdentifier = Annotated[
+    str,
+    Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    ),
+]
+
+
 class PracticeResourceReferenceModel(ApiModel):
     resource_id: str = Field(
         min_length=3,
@@ -786,6 +796,217 @@ class PracticePresentationResponseModel(ApiModel):
     items: list[PracticePresentationItemModel] = Field(
         min_length=1, max_length=20
     )
+
+
+class SingleSelectPracticeResponseModel(ApiModel):
+    item_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    item_version: Literal["1.0.0"]
+    item_type: Literal["single_select"]
+    scoring_policy_id: Literal["single-select-exact-match"]
+    scoring_policy_version: Literal["1.0.0"]
+    selected_option_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+
+
+class MultipleSelectPracticeResponseModel(ApiModel):
+    item_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    item_version: Literal["1.0.0"]
+    item_type: Literal["multiple_select"]
+    scoring_policy_id: Literal["multiple-select-exact-set"]
+    scoring_policy_version: Literal["1.0.0"]
+    selected_option_ids: list[PracticeIdentifier] = Field(
+        min_length=1,
+        max_length=12,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+    @field_validator("selected_option_ids")
+    @classmethod
+    def selected_options_are_unique(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("selected option identifiers must be unique")
+        return value
+
+
+class NumericEntryPracticeResponseModel(ApiModel):
+    item_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    item_version: Literal["1.0.0"]
+    item_type: Literal["numeric_entry"]
+    scoring_policy_id: Literal["numeric-exact-or-inclusive-range"]
+    scoring_policy_version: Literal["1.0.0"]
+    entered_value: str = Field(
+        max_length=40,
+        pattern=r"^-?(0|[1-9][0-9]*)(\.[0-9]{1,6})?$",
+    )
+
+
+PracticeSubmissionItemModel = Annotated[
+    Union[
+        SingleSelectPracticeResponseModel,
+        MultipleSelectPracticeResponseModel,
+        NumericEntryPracticeResponseModel,
+    ],
+    Field(discriminator="item_type"),
+]
+
+
+class PracticeSubmissionRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    submission_id: UUID
+    placement_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    )
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    practice_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    practice_version: Literal["1.0.0"]
+    attempt_policy_id: Literal["formative-retry"]
+    attempt_policy_version: Literal["1.0.0"]
+    responses: list[PracticeSubmissionItemModel] = Field(
+        min_length=1, max_length=20
+    )
+
+
+class PracticeFeedbackResultModel(ApiModel):
+    feedback_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    text: str = Field(
+        min_length=1,
+        max_length=600,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+    review_reference_ids: list[PracticeIdentifier] = Field(
+        min_length=1,
+        max_length=8,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+    @field_validator("review_reference_ids")
+    @classmethod
+    def review_references_are_unique(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("review reference identifiers must be unique")
+        return value
+
+
+class SingleSelectPracticeResultModel(SingleSelectPracticeResponseModel):
+    score: int = Field(ge=0, le=1)
+    max_score: Literal[1]
+    correct: bool
+    feedback: PracticeFeedbackResultModel
+
+
+class MultipleSelectPracticeResultModel(MultipleSelectPracticeResponseModel):
+    score: int = Field(ge=0, le=1)
+    max_score: Literal[1]
+    correct: bool
+    feedback: PracticeFeedbackResultModel
+
+
+class NumericEntryPracticeResultModel(NumericEntryPracticeResponseModel):
+    score: int = Field(ge=0, le=1)
+    max_score: Literal[1]
+    correct: bool
+    feedback: PracticeFeedbackResultModel
+
+
+PracticeSubmissionItemResultModel = Annotated[
+    Union[
+        SingleSelectPracticeResultModel,
+        MultipleSelectPracticeResultModel,
+        NumericEntryPracticeResultModel,
+    ],
+    Field(discriminator="item_type"),
+]
+
+
+class PracticeSubmissionResultResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    attempt_id: UUID
+    evidence_id: UUID
+    submission_id: UUID
+    placement_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    package_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    )
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    practice_id: str = Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    )
+    practice_version: Literal["1.0.0"]
+    attempt_policy_id: Literal["formative-retry"]
+    attempt_policy_version: Literal["1.0.0"]
+    score: int = Field(ge=0, le=20)
+    max_score: int = Field(ge=1, le=20)
+    outcome: Literal["all_correct", "review_needed"]
+    review_reference_ids: list[PracticeIdentifier] = Field(
+        min_length=1,
+        max_length=8,
+        json_schema_extra={"uniqueItems": True},
+    )
+    item_results: list[PracticeSubmissionItemResultModel] = Field(
+        min_length=1, max_length=20
+    )
+    submitted_at: datetime
+
+    @field_validator("review_reference_ids")
+    @classmethod
+    def result_review_references_are_unique(
+        cls, value: list[str]
+    ) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("review reference identifiers must be unique")
+        return value
 
 
 class KnowledgeCheckSubmissionRequestModel(ApiModel):
@@ -1118,6 +1339,41 @@ def practice_presentation_response(
 ) -> PracticePresentationResponseModel:
     return PracticePresentationResponseModel.model_validate(
         asdict(presentation)
+    )
+
+
+def practice_submission_result_response(
+    result: PracticeResult,
+) -> PracticeSubmissionResultResponseModel:
+    item_results: list[dict[str, object]] = []
+    for item in result.item_results:
+        value = asdict(item)
+        response = value.pop("response")
+        if not isinstance(response, dict):
+            raise ValueError("Practice response projection is invalid.")
+        item_results.append({**response, **value})
+    return PracticeSubmissionResultResponseModel.model_validate(
+        {
+            "schema_version": result.schema_version,
+            "attempt_id": result.attempt_id,
+            "evidence_id": result.evidence_id,
+            "submission_id": result.submission_id,
+            "placement_id": result.placement_id,
+            "package_id": result.package_id,
+            "package_version": result.package_version,
+            "package_digest": result.package_digest,
+            "definition_digest": result.definition_digest,
+            "practice_id": result.practice_id,
+            "practice_version": result.practice_version,
+            "attempt_policy_id": result.attempt_policy_id,
+            "attempt_policy_version": result.attempt_policy_version,
+            "score": result.score,
+            "max_score": result.max_score,
+            "outcome": result.outcome,
+            "review_reference_ids": list(result.review_reference_ids),
+            "item_results": item_results,
+            "submitted_at": result.submitted_at,
+        }
     )
 
 

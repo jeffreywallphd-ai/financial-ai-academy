@@ -13,7 +13,9 @@ from financial_ai_academy.modules.assessment.public import (
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
     PracticePresentation,
+    PracticeResult,
     SubmitPlacedKnowledgeCheckRequest,
+    SubmitPlacedPracticeRequest,
 )
 from financial_ai_academy.modules.identity.public import (
     IdentityError,
@@ -93,6 +95,11 @@ class _SchemaAssessment:
     def open_placed_practice(
         self, request: OpenPlacedPracticeRequest
     ) -> PracticePresentation:
+        raise NotImplementedError
+
+    def submit_placed_practice(
+        self, request: SubmitPlacedPracticeRequest
+    ) -> PracticeResult:
         raise NotImplementedError
 
     def submit_placed_knowledge_check(
