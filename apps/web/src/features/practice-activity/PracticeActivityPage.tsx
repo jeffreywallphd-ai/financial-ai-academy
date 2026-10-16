@@ -13,11 +13,23 @@ function itemKind(item: PracticeItem): string {
   }
 }
 
-function decimalPattern(scale: number, allowNegative: boolean): string {
-  const sign = allowNegative ? "-?" : "";
-  return scale === 0
-    ? `${sign}[0-9]+`
-    : `${sign}[0-9]+\\.[0-9]{${scale}}`;
+export function canonicalDecimalPattern(
+  scale: number,
+  allowNegative: boolean,
+): string {
+  const unsignedInteger = "(?:0|[1-9][0-9]*)";
+  if (scale === 0) {
+    return allowNegative
+      ? "(?:0|[1-9][0-9]*|-[1-9][0-9]*)"
+      : unsignedInteger;
+  }
+
+  const unsignedDecimal = `${unsignedInteger}\\.[0-9]{${scale}}`;
+  if (!allowNegative) {
+    return unsignedDecimal;
+  }
+  const negativeNonzeroDecimal = `-(?!0\\.0{${scale}})(?:0|[1-9][0-9]*)\\.[0-9]{${scale}}`;
+  return `(?:${unsignedDecimal}|${negativeNonzeroDecimal})`;
 }
 
 function PracticeResponseControl({
@@ -36,7 +48,9 @@ function PracticeResponseControl({
           {item.prompt}
         </legend>
         <p className="practice-response-kind" id={descriptionId}>
-          Enter a number with exactly {item.scale} decimal {item.scale === 1 ? "place" : "places"}. {item.allow_negative ? "Negative values are allowed." : "Use zero or a positive value."} Unit: {item.unit_label}.
+          {item.scale === 0
+            ? "Enter a whole number."
+            : `Enter a number with exactly ${item.scale} decimal ${item.scale === 1 ? "place" : "places"}.`} Use 0 or a number without a leading zero. {item.allow_negative ? "Negative values are allowed, but negative zero is not." : "Use zero or a positive value."} Unit: {item.unit_label}.
         </p>
         <label htmlFor={`practice-item-${item.item_id}`}>
           Your answer ({item.unit_label})
@@ -47,7 +61,7 @@ function PracticeResponseControl({
           id={`practice-item-${item.item_id}`}
           inputMode="decimal"
           name={item.item_id}
-          pattern={decimalPattern(item.scale, item.allow_negative)}
+          pattern={canonicalDecimalPattern(item.scale, item.allow_negative)}
           required
           type="text"
         />
