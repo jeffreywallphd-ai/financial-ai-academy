@@ -1,7 +1,7 @@
 ---
 id: SLI-0025
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -182,7 +182,7 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | ready |
+| WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | active |
 | JIT-B | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | captured |
 
 ## Verification and Qualification
@@ -245,3 +245,6 @@ plan remain out of scope.
 - 2026-10-16: Refined JIT-A as WRK-0090 around a headless public-API client,
   bounded application restart, isolated derived-projection reset, normal
   Learner-model replay, source preservation, and focused orchestration tests.
+- 2026-10-16: Activated WRK-0090 after revalidating CAP membership, completed
+  dependencies, decision readiness, exact write scope, and collision-free
+  ownership.

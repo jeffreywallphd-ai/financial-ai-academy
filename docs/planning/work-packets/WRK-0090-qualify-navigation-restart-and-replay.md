@@ -1,7 +1,7 @@
 ---
 id: WRK-0090
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["deployments/local/README.md", "docs/architecture/contracts/adaptive-navigation-state-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0025-qualify-complete-curriculum-navigation.md", "docs/planning/work-packets/WRK-0090-qualify-navigation-restart-and-replay.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: bb1ce700101058cf4e295c049840519b4ccceaee
+claim_id: WRK-0090:b7bc6844-871f-46ca-b908-831537b2dd52
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T13:36:02Z
 ---
 
 # Agent Work Packet: Qualify Navigation Restart and Replay
