@@ -182,7 +182,7 @@ each packet starts.
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | active |
+| WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | verifying |
 | JIT-B | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | captured |
 
 ## Verification and Qualification
@@ -252,3 +252,6 @@ plan remain out of scope.
   seed-free host restart, isolated derived-projection reset, source-preserving
   replay proof, and direct anti-rigidity coverage without changing product
   contracts or planning a separate AI mode.
+- 2026-10-16: Submitted WRK-0090 exact candidate `03f55a5` for affected
+  verification and independent review after focused, live, documentation,
+  planning, whitespace, and aggregate readiness checks passed.
