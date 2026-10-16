@@ -151,6 +151,50 @@ class ReviewServiceTests(unittest.TestCase):
             self.assertEqual(1, len(ledger.items))
             self.assertEqual([], result["data"]["open_finding_ids"])
 
+    def test_cleanup_finding_cannot_force_adverse_review(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="review-cleanup-disposition-") as directory:
+            service, _state, ledger, _candidate, receipts = self.prepare(Path(directory))
+            receipt = self.receipt(receipts, "a" * 40)
+            cleanup = [{"severity": "low", "finding_class": "cleanup", "blocking": False, "title": "Trailing blank line", "criterion": "formatting is tidy", "evidence": ["one extra blank line"]}]
+            with self.assertRaises(ControlError) as adverse:
+                service.record("WORK-1", reviewer_label="independent", status="changes-requested", receipt_path=receipt, findings=cleanup, closures=[])
+            self.assertEqual("review.adverse-without-blocking-finding", adverse.exception.code)
+            accepted = service.record("WORK-1", reviewer_label="independent", status="accepted", receipt_path=receipt, findings=cleanup, closures=[])
+            self.assertEqual("accepted", accepted["data"]["status"])
+            self.assertEqual(1, len(ledger.items))
+
+    def test_cleanup_descendant_inherits_review_after_fresh_verification(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="review-cleanup-inheritance-") as directory:
+            root = Path(directory)
+            service, state, ledger, _candidate, receipts = self.prepare(root)
+            cleanup = [{"severity": "low", "finding_class": "cleanup", "blocking": False, "title": "Cosmetic spacing", "criterion": "presentation is tidy", "evidence": ["spacing does not affect use"]}]
+            service.record("WORK-1", reviewer_label="independent", status="accepted", receipt_path=self.receipt(receipts, "a" * 40), findings=cleanup, closures=[])
+            resubmitted = service.resubmit("WORK-1", owner="owner", claim_id="claim-1", cleanup_only=True)
+            self.assertEqual("review.cleanup-descendant-submitted", resubmitted["code"])
+            self.assertTrue(resubmitted["data"]["review_inherited_after_verification"])
+            self.assertEqual("inherited-pending-verification", service.status("WORK-1")["data"]["review_binding"])
+            self.receipt(receipts, "b" * 40)
+            status = service.status("WORK-1")["data"]
+            self.assertEqual("inherited", status["review_binding"])
+            self.assertEqual("review complete", status["next_action"])
+            self.assertEqual([], status["open_finding_ids"])
+            self.assertEqual(1, len(ledger.items))
+            self.assertEqual("a" * 40, state.load()["work_items"]["WORK-1"]["submission"]["review_inheritance"]["basis_candidate"])
+
+    def test_cleanup_route_refuses_blocking_or_adverse_findings(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="review-cleanup-denial-") as directory:
+            service, _state, _ledger, _candidate, receipts = self.prepare(Path(directory))
+            with self.assertRaises(ControlError) as invalid_cleanup:
+                service.record("WORK-1", reviewer_label="independent", status="accepted", receipt_path=self.receipt(receipts, "a" * 40), findings=[{"severity": "high", "finding_class": "cleanup", "blocking": True, "title": "Functional failure", "criterion": "feature works", "evidence": ["broken action"]}], closures=[])
+            self.assertEqual("review.cleanup-cannot-block", invalid_cleanup.exception.code)
+
+        with tempfile.TemporaryDirectory(prefix="review-cleanup-adverse-") as directory:
+            service, _state, _ledger, _candidate, receipts = self.prepare(Path(directory))
+            service.record("WORK-1", reviewer_label="independent", status="changes-requested", receipt_path=self.receipt(receipts, "a" * 40), findings=self.blocking_finding(), closures=[])
+            with self.assertRaises(ControlError) as refused:
+                service.resubmit("WORK-1", owner="owner", claim_id="claim-1", cleanup_only=True)
+            self.assertEqual("review.cleanup-resubmit-not-authorized", refused.exception.code)
+
     def test_self_review_and_duplicate_candidate_are_refused(self) -> None:
         with tempfile.TemporaryDirectory(prefix="review-independent-") as directory:
             service, _state, _ledger, _candidate, receipts = self.prepare(Path(directory))

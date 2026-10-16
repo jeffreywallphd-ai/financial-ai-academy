@@ -111,6 +111,7 @@ def build_parser() -> argparse.ArgumentParser:
     resubmit.add_argument("--input", action="append", dest="declared_inputs", default=[])
     resubmit.add_argument("--expected-revision", type=int)
     resubmit.add_argument("--root-cause")
+    resubmit.add_argument("--cleanup-only", action="store_true")
 
     policy = commands.add_parser("policy-check")
     policy.add_argument("--profile", choices=("local", "ci"), default="local")

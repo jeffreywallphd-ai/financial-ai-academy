@@ -17,6 +17,7 @@ from verification import CheckCatalog, ReceiptStore, validate_receipt
 REVIEW_TYPE = "technical-control-plane-v1"
 STATUSES = {"accepted", "changes-requested", "rejected"}
 SEVERITIES = {"critical", "high", "medium", "low"}
+FINDING_CLASSES = {"substantive", "cleanup"}
 ADVERSE = {"changes-requested", "rejected"}
 
 
@@ -33,6 +34,20 @@ def open_findings(rounds: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             opened.pop(str(closure.get("finding_id")), None)
         for finding in round_record.get("findings", []):
             opened[str(finding["finding_id"])] = copy.deepcopy(finding)
+    return opened
+
+
+def effective_open_findings(
+    rounds: list[dict[str, Any]], submission: dict[str, Any] | None = None
+) -> dict[str, dict[str, Any]]:
+    opened = open_findings(rounds)
+    inheritance = (submission or {}).get("review_inheritance")
+    if not isinstance(inheritance, dict):
+        return opened
+    for finding_id in inheritance.get("addressed_cleanup_finding_ids", []):
+        finding = opened.get(str(finding_id))
+        if finding and finding.get("finding_class", "substantive") == "cleanup":
+            opened.pop(str(finding_id), None)
     return opened
 
 
@@ -53,16 +68,21 @@ def validate_findings(round_id: str, findings: object) -> list[dict[str, Any]]:
         if not isinstance(item, dict):
             raise ControlError("review.findings-invalid", "Every finding must be an object.", {"index": index}, ["Use the local review-request schema."])
         severity = str(item.get("severity", ""))
+        finding_class = str(item.get("finding_class", "substantive"))
         title = str(item.get("title", "")).strip()
         criterion = str(item.get("criterion", "")).strip()
         evidence = item.get("evidence")
-        if severity not in SEVERITIES or not title or not criterion or not isinstance(evidence, list) or not evidence:
+        if severity not in SEVERITIES or finding_class not in FINDING_CLASSES or not title or not criterion or not isinstance(evidence, list) or not evidence:
             raise ControlError("review.findings-invalid", "Each finding needs severity, title, criterion, and non-empty evidence.", {"index": index}, ["Complete the finding before recording the round."])
+        blocking = bool(item.get("blocking", severity in {"critical", "high"}))
+        if finding_class == "cleanup" and blocking:
+            raise ControlError("review.cleanup-cannot-block", "A cleanup finding cannot block delivery.", {"index": index}, ["Classify functionality, semantics, accessibility, security, data, contract, policy, or evidence risk as substantive; otherwise keep cleanup non-blocking."])
         result.append(
             {
                 "finding_id": f"{round_id}-F{index:03d}",
                 "severity": severity,
-                "blocking": bool(item.get("blocking", severity in {"critical", "high"})),
+                "finding_class": finding_class,
+                "blocking": blocking,
                 "title": title,
                 "criterion": criterion,
                 "evidence": [str(value) for value in evidence],
@@ -117,9 +137,37 @@ class ReviewService:
         return envelope, work, recovered
 
     def status(self, work_id: str) -> dict[str, Any]:
+        envelope, _recovered = self.state.read()
+        work = envelope.get("work_items", {}).get(work_id, {})
+        submission = work.get("submission") if isinstance(work, dict) else None
+        submission = submission if isinstance(submission, dict) else {}
+        candidate = str(submission.get("candidate", ""))
         rounds = self.ledger.rounds(work_id)
-        opened = open_findings(rounds)
+        inheritance = submission.get("review_inheritance")
+        inherited = isinstance(inheritance, dict) and any(
+            item.get("status") == "accepted"
+            and item.get("candidate") == inheritance.get("basis_candidate")
+            and item.get("round_id") == inheritance.get("basis_round_id")
+            for item in rounds
+        )
+        verified = inherited and any(
+            not validate_receipt(self.receipts.load(path), self.catalog, current_candidate=candidate)
+            for path in reversed(self.receipts.paths(work_id, candidate))
+        )
+        opened = effective_open_findings(rounds, submission if verified else None)
         blocking = sorted(identifier for identifier, item in opened.items() if item.get("blocking"))
+        exact = any(item.get("candidate") == candidate and item.get("status") == "accepted" for item in rounds)
+        review_binding = "exact" if exact else ("inherited" if verified else ("inherited-pending-verification" if inherited else None))
+        if not rounds:
+            next_action = "record an independent review"
+        elif rounds[-1]["status"] in ADVERSE:
+            next_action = "correct and resubmit"
+        elif review_binding == "inherited-pending-verification":
+            next_action = "verify the cleanup-only descendant"
+        elif review_binding in {"exact", "inherited"}:
+            next_action = "review complete"
+        else:
+            next_action = "record an independent review"
         return success(
             "review.status",
             f"{work_id} has {len(rounds)} review round(s) and {len(opened)} open finding(s).",
@@ -129,7 +177,8 @@ class ReviewService:
                 "latest_status": rounds[-1]["status"] if rounds else None,
                 "open_finding_ids": sorted(opened),
                 "open_blocking_finding_ids": blocking,
-                "next_action": "record an independent review" if not rounds else ("correct and resubmit" if rounds[-1]["status"] in ADVERSE else "review complete"),
+                "review_binding": review_binding,
+                "next_action": next_action,
             },
         )
 
@@ -169,8 +218,9 @@ class ReviewService:
         blocking = sorted(identifier for identifier, item in opened.items() if item.get("blocking"))
         if status == "accepted" and blocking:
             raise ControlError("review.blocking-findings-open", "An accepted disposition cannot leave blocking findings open.", {"open_blocking_finding_ids": blocking}, ["Record explicit closure evidence on a corrected descendant."])
-        if status in ADVERSE and not validated_findings:
-            raise ControlError("review.adverse-without-finding", "An adverse disposition requires at least one reproducible finding.", {}, ["Record the violated criterion and evidence."])
+        new_blocking = [item["finding_id"] for item in validated_findings if item.get("blocking") and item.get("finding_class") == "substantive"]
+        if status in ADVERSE and not new_blocking:
+            raise ControlError("review.adverse-without-blocking-finding", "An adverse disposition requires at least one new blocking substantive finding.", {}, ["Accept non-blocking cleanup findings or record the substantive invariant and direct evidence that actually blocks delivery."])
         if consecutive_adverse(rounds) >= 2 and not str(work["submission"].get("root_cause", "")).strip():
             raise ControlError("review.root-cause-required", "A third review round after repeated adverse results requires root-cause evidence on the corrected submission.", {}, ["Add root-cause evidence during corrected resubmission."])
         record = {
@@ -199,12 +249,28 @@ class ReviewService:
         declared_inputs: list[str] | None = None,
         expected_revision: int | None = None,
         root_cause: str | None = None,
+        cleanup_only: bool = False,
     ) -> dict[str, Any]:
         authority = self.project.require_delivery_authority(work_id)
         rounds = self.ledger.rounds(work_id)
-        if not rounds or rounds[-1].get("status") not in ADVERSE:
-            raise ControlError("review.resubmit-not-authorized", "Corrected resubmission requires the latest immutable review to be adverse.", {"latest_status": rounds[-1].get("status") if rounds else None}, ["Record the independent technical disposition first."])
-        if consecutive_adverse(rounds) >= 2 and not (root_cause or "").strip():
+        opened = open_findings(rounds)
+        cleanup_finding_ids = sorted(
+            identifier
+            for identifier, item in opened.items()
+            if item.get("finding_class", "substantive") == "cleanup" and not item.get("blocking")
+        )
+        cleanup_mode = bool(
+            cleanup_only
+            and rounds
+            and rounds[-1].get("status") == "accepted"
+            and cleanup_finding_ids
+            and len(cleanup_finding_ids) == len(opened)
+        )
+        if cleanup_only and not cleanup_mode:
+            raise ControlError("review.cleanup-resubmit-not-authorized", "Cleanup-only resubmission requires an accepted review with only open non-blocking cleanup findings.", {"latest_status": rounds[-1].get("status") if rounds else None, "open_finding_count": len(opened)}, ["Use the ordinary correction and re-review path for substantive findings, or record an accepted review containing explicit cleanup findings."])
+        if not cleanup_mode and (not rounds or rounds[-1].get("status") not in ADVERSE):
+            raise ControlError("review.resubmit-not-authorized", "Corrected resubmission requires the latest immutable review to be adverse.", {"latest_status": rounds[-1].get("status") if rounds else None}, ["Record the independent technical disposition first, or use --cleanup-only after accepted review when every open finding is cleanup."])
+        if not cleanup_mode and consecutive_adverse(rounds) >= 2 and not (root_cause or "").strip():
             raise ControlError("review.root-cause-required", "A third candidate after two adverse rounds requires root-cause evidence.", {}, ["Pass concise root-cause evidence with the corrected resubmission."])
         projection = self.project.projection(work_id)
 
@@ -218,6 +284,13 @@ class ReviewService:
             if not self.candidate.is_strict_descendant(prior_candidate, str(submission["candidate"])):
                 raise ControlError("review.not-strict-descendant", "A corrected candidate must be a strict descendant of the reviewed candidate.", {"reviewed_candidate": prior_candidate, "candidate": submission["candidate"]}, ["Create and submit a clean descendant preserving prior history."])
             successor_work = resubmit_work(work, owner=owner, claim_id=claim_id, submission=submission, expected_revision=expected_revision, root_cause=(root_cause or "").strip() or None)
+            if cleanup_mode:
+                successor_work["submission"]["review_inheritance"] = {
+                    "schema_version": "cleanup-review-inheritance-v1",
+                    "basis_candidate": prior_candidate,
+                    "basis_round_id": str(rounds[-1]["round_id"]),
+                    "addressed_cleanup_finding_ids": cleanup_finding_ids,
+                }
             successor = copy.deepcopy(envelope)
             successor["revision"] = int(envelope["revision"]) + 1
             successor["work_items"][work_id] = successor_work
@@ -225,4 +298,6 @@ class ReviewService:
 
         envelope, recovered = self.state.mutate(projection, transition)
         work = envelope["work_items"][work_id]
-        return success("review.corrected-descendant-submitted", f"Recorded corrected descendant for {work_id}; fresh verification is required.", revision=envelope["revision"], data={"work_id": work_id, "candidate": work["submission"]["candidate"], "parent_candidate": work["submission"]["parent_candidate"], "fresh_verification_required": True, "transaction_recovered": recovered})
+        code = "review.cleanup-descendant-submitted" if cleanup_mode else "review.corrected-descendant-submitted"
+        message = f"Recorded {'cleanup-only ' if cleanup_mode else ''}corrected descendant for {work_id}; fresh verification is required."
+        return success(code, message, revision=envelope["revision"], data={"work_id": work_id, "candidate": work["submission"]["candidate"], "parent_candidate": work["submission"]["parent_candidate"], "fresh_verification_required": True, "review_inherited_after_verification": cleanup_mode, "transaction_recovered": recovered})

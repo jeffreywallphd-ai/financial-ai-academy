@@ -177,6 +177,10 @@ class ReceiptStore:
             raise
         return path
 
+    def paths(self, work_id: str, candidate: str) -> list[Path]:
+        directory = self._directory(work_id, candidate)
+        return sorted(directory.glob("*.json")) if directory.is_dir() else []
+
     def load(self, path: Path) -> dict[str, Any]:
         resolved = path.resolve()
         try:

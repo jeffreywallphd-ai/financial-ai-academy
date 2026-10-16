@@ -85,6 +85,7 @@ python dev-tools/control-plane/control_plane.py validate-receipt <ignored-receip
 python dev-tools/control-plane/control_plane.py review-status WRK-0010
 python dev-tools/control-plane/control_plane.py record-review WRK-0010 --reviewer-label <independent-label> --from .local-codex/review-request.json
 python dev-tools/control-plane/control_plane.py resubmit WRK-0010 --owner <owner> --claim-id <claim-id>
+python dev-tools/control-plane/control_plane.py resubmit WRK-0010 --owner <owner> --claim-id <claim-id> --cleanup-only
 python dev-tools/control-plane/control_plane.py policy-check --profile local --report-path artifacts/control-plane/policy.json
 python dev-tools/control-plane/control_plane.py operator-status [WRK-0010]
 python dev-tools/control-plane/control_plane.py packet-start WRK-0010
@@ -186,7 +187,13 @@ evidence.
 Review tests cover independent one-round acceptance, self-review denial,
 immutable candidate rounds, blocking findings, explicit closure, stale-receipt
 denial, strict-descendant corrections, fresh-verification requirements,
-root-cause escalation, and append-only ignored-ledger storage.
+root-cause escalation, append-only ignored-ledger storage, and proportionate
+cleanup findings. Cleanup cannot cause an adverse disposition. A strict
+cleanup-only descendant of an accepted candidate inherits that review only
+after its own qualifying affected-verification receipt, so formatting or
+cosmetic corrections do not require a redundant review round while substantive
+functionality, semantics, accessibility, security, data, contract, policy, and
+evidence findings retain the full correction and re-review path.
 Policy/status tests cover local/CI rule parity, explicit unavailable evidence,
 report confinement and privacy, stale-local reconciliation, one-command
 read-only status, bounded remediation, and absence of approval or full-suite
