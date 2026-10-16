@@ -1,7 +1,7 @@
 ---
 id: WRK-0077
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/lesson-reading/KnowledgeCheck.tsx", "apps/web/tests/component/knowledgeCheck.test.tsx", "apps/web/README.md", "docs/planning/work-packets/WRK-0077-clarify-knowledge-check-and-saved-completion.md", "docs/planning/vertical-slices/SLI-0124-understand-lesson-check-and-completion.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 71f119456985eec6601e41b6eb50e26f072c2b87
+claim_id: WRK-0077:2d2b96a5-f196-4f7e-b076-4887c7002cec
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T10:41:48Z
 ---
 
 # Agent Work Packet: Clarify Knowledge Check and Saved Completion

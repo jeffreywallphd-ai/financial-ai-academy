@@ -146,7 +146,7 @@ each packet starts. The planned dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0076 | Clarify lesson loading, publication context, and bounded route recovery with focused component evidence | none | none | complete |
-| WRK-0077 | Clarify knowledge-check result, retry, saved-completion summary, and technical records with focused component evidence | WRK-0076 | none | ready |
+| WRK-0077 | Clarify knowledge-check result, retry, saved-completion summary, and technical records with focused component evidence | WRK-0076 | none | active |
 | JIT-C | Qualify the complete lesson and saved-completion experience in Chromium, reconcile documentation, and close the slice | JIT-B | none | planned |
 
 ## Verification and Qualification
@@ -212,3 +212,6 @@ failures, assumptions, known gaps, and any residual decision gate.
 - 2026-10-16: Refined JIT-B as WRK-0077 around knowledge-check result and
   recovery, saved completion, complete accessible technical records, focused
   flexible evidence, and unchanged Assessment/Learner-model authority.
+- 2026-10-16: Activated WRK-0077 after validating its completed dependency,
+  exact component/test/documentation scope, closed semantic acceptance set,
+  current CAP authority, and absence of a decision gate or file collision.
