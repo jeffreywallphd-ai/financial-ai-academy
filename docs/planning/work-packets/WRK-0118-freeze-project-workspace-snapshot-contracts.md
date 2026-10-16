@@ -1,7 +1,7 @@
 ---
 id: WRK-0118
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -326,3 +326,8 @@ added.
 - 2026-10-16: Completed the cross-platform device-name boundary with the
   documented Windows superscript-digit COM/LPT aliases and mirrored denial
   evidence. No broader path or storage behavior changed.
+- 2026-10-16: Completed the packet at candidate
+  `e0f2e3c4b23cee5a4fdfac2ca96698077400a0f3` after exact-candidate review
+  accepted the closed contract boundary with no open findings. The qualifying
+  receipt is
+  `.local-codex/control-plane/receipts/WRK-0118/e0f2e3c4b23cee5a4fdfac2ca96698077400a0f3/20261016T230700Z-6b841032-9331-4b7c-a9fb-6460ab3decee.json`.
