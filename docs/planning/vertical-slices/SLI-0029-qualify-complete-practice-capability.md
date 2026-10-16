@@ -285,7 +285,6 @@ mode, and autonomous action remain explicitly unqualified.
 - 2026-10-16: The cumulative SLI-0029 matrix passed with no product or harness
   defect. The slice has one documentation-only exact candidate ready for
   submission before deterministic completion.
-- 2026-10-16: Independent R01 found no product defect but required the evidence
-  map to distinguish direct shared-core/local proof from representative future-
-  cloud portability and to state the unperformed manual, browser, zoom, and
-  platform accessibility checks explicitly.
+- 2026-10-16: Qualification evidence now distinguishes direct shared-core and
+  local proof from representative future-cloud portability and states the
+  unperformed manual, browser, zoom, and platform accessibility checks.
