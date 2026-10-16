@@ -182,7 +182,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | complete |
-| WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | active |
+| WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | verifying |
 | JIT-C | Generate the public client and deliver the accessible practice-opening browser route | JIT-B | none | captured |
 | JIT-D | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, and live local composition | JIT-C | none | captured |
 
