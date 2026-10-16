@@ -223,9 +223,10 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0102 | Freeze draft/retry/history/review-target contracts, deterministic policy and projection rules, and anti-rigidity corpora | SLI-0027 | none | complete |
 | WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | complete |
-| JIT-C | Implement Curriculum review-target resolution, Learner-model history rebuild/persistence, protected composed API, OpenAPI, and generated client | JIT-B | none | captured |
-| JIT-D | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-C | none | captured |
-| JIT-E | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-D | none | captured |
+| WRK-0104 | Implement an Assessment-safe history source, Curriculum review-target resolution, and Learner-model history rebuild/persistence | WRK-0103 | none | ready |
+| JIT-D | Expose the composed progress, review, and history operations through protected API, OpenAPI, and generated clients | WRK-0104 | none | captured |
+| JIT-E | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-D | none | captured |
+| JIT-F | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-E | none | captured |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. This preserves incremental planning and avoids freezing later file
@@ -319,4 +320,9 @@ mode, autonomous authority, provider, cloud, or external execution was added.
   conditional drafts, exact retry enforcement, stable attempt order, and
   provenance-correlated typed replay. The composed Curriculum, Learner-model,
   API, OpenAPI, and generated-client seam is dependency-ready for refinement.
+- 2026-10-16: Refined the former combined JIT-C seam as WRK-0104 for the
+  Assessment-safe history source, Curriculum exact review mapping, and
+  Learner-model rebuildable projection. Protected API/OpenAPI/generated-client
+  composition follows as its own packet so the core can be reviewed and reused
+  independently without changing the approved slice outcome.
 
