@@ -222,3 +222,7 @@ Leave JIT-B dependency-ready or return one bounded blocker.
   satisfy its declared operations contract. The same correction also closes
   navigation validation, prerelease package compatibility, and unsupported-
   kind precedence without expanding this packet's boundary.
+- 2026-10-16: R02 confirmed the original findings closed and found the same
+  unsupported-kind precedence needed to move in the independent compatibility
+  runner. The runner and its direct locked-assessment case were corrected in
+  the existing contract-test scope.

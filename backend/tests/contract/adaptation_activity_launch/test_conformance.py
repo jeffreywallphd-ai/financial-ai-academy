@@ -121,6 +121,10 @@ def test_denial_corpus_names_all_required_bounded_refusals() -> None:
         ("locked", "adaptation_activity_launch.activity_locked"),
         ("unavailable", "adaptation_activity_launch.activity_unavailable"),
         ("assessment", "adaptation_activity_launch.unsupported_activity"),
+        (
+            "locked_assessment",
+            "adaptation_activity_launch.unsupported_activity",
+        ),
         ("context", "adaptation_activity_launch.context_mismatch"),
         ("digest", "adaptation_activity_launch.navigation_mismatch"),
         ("fabricated", "adaptation_activity_launch.navigation_mismatch"),
@@ -136,8 +140,14 @@ def test_denials_are_deterministic_and_sanitized(mutation: str, expected_code: s
         navigation["activity_states"][0]["eligibility"] = mutation
         navigation["projection_digest"] = projection_digest(navigation)
         launch["navigation_projection_digest"] = navigation["projection_digest"]
-    elif mutation == "assessment":
+    elif mutation in {"assessment", "locked_assessment"}:
         launch["activity_id"] = "activity-risk-return-check"
+        if mutation == "locked_assessment":
+            navigation["activity_states"][1]["eligibility"] = "locked"
+            navigation["projection_digest"] = projection_digest(navigation)
+            launch["navigation_projection_digest"] = navigation[
+                "projection_digest"
+            ]
     elif mutation == "context":
         launch["curriculum_version"] = "2.0.0"
     elif mutation == "fabricated":

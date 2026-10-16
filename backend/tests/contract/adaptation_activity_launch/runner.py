@@ -216,6 +216,15 @@ class ActivityLaunchContractValidator:
                 launch["activity_id"],
                 "Activity is not part of this curriculum version.",
             )
+        reference = activity.get("reference", {})
+        if activity.get("kind") != "lesson" or reference.get(
+            "reference_kind"
+        ) != "lesson_placement":
+            reject(
+                "adaptation_activity_launch.unsupported_activity",
+                launch["activity_id"],
+                "This activity type cannot be opened here.",
+            )
         if state.get("availability") != "available" or state.get("completion") == "unavailable" or state.get("eligibility") == "unavailable":
             reject(
                 "adaptation_activity_launch.activity_unavailable",
@@ -233,13 +242,6 @@ class ActivityLaunchContractValidator:
                 "adaptation_activity_launch.navigation_mismatch",
                 launch["activity_id"],
                 "Activity launch navigation state does not match.",
-            )
-        reference = activity.get("reference", {})
-        if activity.get("kind") != "lesson" or reference.get("reference_kind") != "lesson_placement":
-            reject(
-                "adaptation_activity_launch.unsupported_activity",
-                launch["activity_id"],
-                "This activity type cannot be opened here.",
             )
         expected = {
             "placement_id": reference.get("placement_id"),
