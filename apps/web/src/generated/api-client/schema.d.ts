@@ -93,6 +93,24 @@ export interface paths {
       };
       readonly get: operations["getPlacedPractice"];
     };
+  readonly "/api/v1/curriculum/placements/{placement_id}/practice/draft": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly put: operations["savePlacedPracticeDraft"];
+    };
+  readonly "/api/v1/curriculum/placements/{placement_id}/practice/progress": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getPlacedPracticeProgress"];
+    };
   readonly "/api/v1/curriculum/placements/{placement_id}/practice/submissions": {
       readonly parameters: {
         readonly query?: never;
@@ -186,6 +204,16 @@ export interface components {
       readonly "alt_text": string;
       readonly "asset_id": string;
       readonly "kind"?: "asset_image";
+    };
+    readonly "AvailablePracticeReviewTargetModel": {
+      readonly "destination": components["schemas"]["PracticeReviewDestinationModel"];
+      readonly "practice_placement_id": string;
+      readonly "resource_digest": string;
+      readonly "resource_id": string;
+      readonly "resource_title": string;
+      readonly "resource_version": string;
+      readonly "schema_version": "1.0.0";
+      readonly "state": "available";
     };
     readonly "BulletListModel": {
       readonly "items": ReadonlyArray<components["schemas"]["ListItemModel"]>;
@@ -436,6 +464,17 @@ export interface components {
     readonly "ListItemModel": {
       readonly "blocks": ReadonlyArray<components["schemas"]["HeadingModel"] | components["schemas"]["ParagraphModel"] | components["schemas"]["CodeBlockModel"] | components["schemas"]["ThematicBreakModel"] | components["schemas"]["BulletListModel"] | components["schemas"]["OrderedListModel"]>;
     };
+    readonly "MultipleSelectPracticeHistoryItemModel": {
+      readonly "correct": boolean;
+      readonly "item_id": string;
+      readonly "item_type": "multiple_select";
+      readonly "item_version": "1.0.0";
+      readonly "max_score": 1;
+      readonly "review_reference_ids": ReadonlyArray<string>;
+      readonly "score": number;
+      readonly "scoring_policy_id": "multiple-select-exact-set";
+      readonly "scoring_policy_version": "1.0.0";
+    };
     readonly "MultipleSelectPracticeItemModel": {
       readonly "item_id": string;
       readonly "item_type": "multiple_select";
@@ -482,6 +521,17 @@ export interface components {
       readonly "projection_digest": string;
       readonly "schema_version": "1.0.0";
       readonly "source_set_digest": string;
+    };
+    readonly "NumericEntryPracticeHistoryItemModel": {
+      readonly "correct": boolean;
+      readonly "item_id": string;
+      readonly "item_type": "numeric_entry";
+      readonly "item_version": "1.0.0";
+      readonly "max_score": 1;
+      readonly "review_reference_ids": ReadonlyArray<string>;
+      readonly "score": number;
+      readonly "scoring_policy_id": "numeric-exact-or-inclusive-range";
+      readonly "scoring_policy_version": "1.0.0";
     };
     readonly "NumericEntryPracticeResponseModel": {
       readonly "entered_value": string;
@@ -542,10 +592,66 @@ export interface components {
       readonly "policy_version": "1.0.0";
       readonly "resume_allowed": true;
     };
+    readonly "PracticeDraftResponseModel": {
+      readonly "attempt_policy_id": "formative-retry";
+      readonly "attempt_policy_version": "1.0.0";
+      readonly "definition_digest": string;
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "placement_id": string;
+      readonly "practice_id": string;
+      readonly "practice_version": "1.0.0";
+      readonly "response_fingerprint": string;
+      readonly "responses": ReadonlyArray<components["schemas"]["SingleSelectPracticeResponseModel"] | components["schemas"]["MultipleSelectPracticeResponseModel"] | components["schemas"]["NumericEntryPracticeResponseModel"]>;
+      readonly "revision": number;
+      readonly "saved_at": string;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "PracticeDraftSaveRequestModel": {
+      readonly "attempt_policy_id": "formative-retry";
+      readonly "attempt_policy_version": "1.0.0";
+      readonly "definition_digest": string;
+      readonly "expected_revision": number;
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "placement_id": string;
+      readonly "practice_id": string;
+      readonly "practice_version": "1.0.0";
+      readonly "responses": ReadonlyArray<components["schemas"]["SingleSelectPracticeResponseModel"] | components["schemas"]["MultipleSelectPracticeResponseModel"] | components["schemas"]["NumericEntryPracticeResponseModel"]>;
+      readonly "schema_version": "1.0.0";
+    };
     readonly "PracticeFeedbackResultModel": {
       readonly "feedback_id": string;
       readonly "review_reference_ids": ReadonlyArray<string>;
       readonly "text": string;
+    };
+    readonly "PracticeHistoryAttemptModel": {
+      readonly "attempt_id": string;
+      readonly "attempt_order": number;
+      readonly "completed_at": string;
+      readonly "event_id": string;
+      readonly "evidence_id": string;
+      readonly "item_summaries": ReadonlyArray<components["schemas"]["SingleSelectPracticeHistoryItemModel"] | components["schemas"]["MultipleSelectPracticeHistoryItemModel"] | components["schemas"]["NumericEntryPracticeHistoryItemModel"]>;
+      readonly "max_score": number;
+      readonly "outcome": "all_correct" | "review_needed";
+      readonly "score": number;
+      readonly "submission_id": string;
+    };
+    readonly "PracticeHistoryResponseModel": {
+      readonly "attempt_policy_id": "formative-retry";
+      readonly "attempt_policy_version": "1.0.0";
+      readonly "attempts": ReadonlyArray<components["schemas"]["PracticeHistoryAttemptModel"]>;
+      readonly "definition_digest": string;
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "placement_id": string;
+      readonly "practice_id": string;
+      readonly "practice_version": "1.0.0";
+      readonly "schema_version": "1.0.0";
+      readonly "source_digest": string;
     };
     readonly "PracticeOptionModel": {
       readonly "label": string;
@@ -568,11 +674,43 @@ export interface components {
       readonly "source_references": ReadonlyArray<components["schemas"]["PracticeResourceReferenceModel"]>;
       readonly "title": string;
     };
+    readonly "PracticeProgressResponseModel": {
+      readonly "draft": components["schemas"]["PracticeDraftResponseModel"] | null;
+      readonly "history": components["schemas"]["PracticeHistoryResponseModel"];
+      readonly "placement_id": string;
+      readonly "retry_state": components["schemas"]["PracticeRetryStateResponseModel"];
+      readonly "review_targets": ReadonlyArray<components["schemas"]["AvailablePracticeReviewTargetModel"] | components["schemas"]["UnavailablePracticeReviewTargetModel"]>;
+      readonly "schema_version"?: "1.0.0";
+    };
     readonly "PracticeResourceReferenceModel": {
       readonly "resource_digest": string;
       readonly "resource_id": string;
       readonly "resource_version": string;
       readonly "title": string;
+    };
+    readonly "PracticeRetryStateResponseModel": {
+      readonly "attempt_policy_id": "formative-retry";
+      readonly "attempt_policy_version": "1.0.0";
+      readonly "attempts_remaining": number;
+      readonly "attempts_used": number;
+      readonly "can_retry": boolean;
+      readonly "definition_digest": string;
+      readonly "max_attempts": number;
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "placement_id": string;
+      readonly "practice_id": string;
+      readonly "practice_version": "1.0.0";
+      readonly "schema_version": "1.0.0";
+      readonly "state": "available" | "exhausted";
+    };
+    readonly "PracticeReviewDestinationModel": {
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "placement_id": string;
+      readonly "section_id"?: string | null;
     };
     readonly "PracticeSubmissionRequestModel": {
       readonly "attempt_policy_id": "formative-retry";
@@ -623,6 +761,17 @@ export interface components {
       readonly "expires_at": string;
       readonly "status"?: "ready";
     };
+    readonly "SingleSelectPracticeHistoryItemModel": {
+      readonly "correct": boolean;
+      readonly "item_id": string;
+      readonly "item_type": "single_select";
+      readonly "item_version": "1.0.0";
+      readonly "max_score": 1;
+      readonly "review_reference_ids": ReadonlyArray<string>;
+      readonly "score": number;
+      readonly "scoring_policy_id": "single-select-exact-match";
+      readonly "scoring_policy_version": "1.0.0";
+    };
     readonly "SingleSelectPracticeItemModel": {
       readonly "item_id": string;
       readonly "item_type": "single_select";
@@ -668,6 +817,16 @@ export interface components {
     };
     readonly "ThematicBreakModel": {
       readonly "kind"?: "thematic_break";
+    };
+    readonly "UnavailablePracticeReviewTargetModel": {
+      readonly "practice_placement_id": string;
+      readonly "resource_digest": string;
+      readonly "resource_id": string;
+      readonly "resource_title": string;
+      readonly "resource_version": string;
+      readonly "schema_version": "1.0.0";
+      readonly "state": "unavailable";
+      readonly "unavailable_reason": "mapping_not_found" | "destination_not_available" | "version_mismatch";
     };
     readonly "ValidationError": {
       readonly "ctx"?: Record<string, unknown>;
@@ -1271,6 +1430,120 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly savePlacedPracticeDraft: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "placement_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PracticeDraftSaveRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PracticeDraftResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getPlacedPracticeProgress: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "placement_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PracticeProgressResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
           };
         };
         readonly 503: {

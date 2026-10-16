@@ -201,6 +201,15 @@ available under accessible `Technical record` disclosures. The reviewed POST
 remains independently usable by command-line, service, and future headless
 clients. The page does not define a second contract or a separate AI mode.
 
+The generated client also exposes `getPlacedPracticeProgress` and
+`savePlacedPracticeDraft`. The protected read returns the nullable server draft,
+deterministic retry state, rebuildable attempt history, and latest targeted
+review destinations; the protected write conditionally replaces one complete
+partial-response snapshot. These operations use the same opaque session and
+same-origin boundary for browser and headless clients. Browser resume, retry,
+targeted-review, and attempt-comparison presentation remains the next packet;
+the current page does not yet call these operations.
+
 The browser never selects the learner, reads the HttpOnly cookie, imports
 backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference

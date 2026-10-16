@@ -170,7 +170,8 @@ completion-history API behavior remain outside the lesson-read seam.
 - Assessment exposes transport-neutral typed operations to read/save the exact
   draft, derive retry state, and replay validated ordered practice completion
   events. These operations contain no HTTP, browser, AI-specific, or cross-
-  module persistence behavior and are ready for later protected composition.
+  module persistence behavior. The protected API host composes them through
+  public operations and never reads Assessment persistence.
 - Assessment's safe practice-history source correlates immutable events with
   retained results and the exact definition inside Assessment, then exposes
   only provenance, scores, correctness, and incorrect-item review references.
@@ -178,6 +179,12 @@ completion-history API behavior remain outside the lesson-read seam.
 - Curriculum owns append-only exact review-target mappings and resolves them in
   declaration order. Missing mappings remain explicit; Curriculum does not
   inspect Assessment evidence or rank destinations.
+- The protected practice-progress GET composes the nullable Assessment draft,
+  deterministic retry state, complete Learner-model history, and exact
+  Curriculum targets selected from the latest attempt's incorrect items. The
+  conditional draft PUT accepts only the reviewed versioned snapshot and binds
+  learner identity on the server. OpenAPI and the generated TypeScript client
+  expose both operations equally to browser and headless consumers.
 - `assessment.knowledge-check.completed@1.0.0` refers to its durable evidence
   and excludes private answers, selected responses, and feedback. A synchronous
   validated replay source now feeds the implemented Learner-model and Audit

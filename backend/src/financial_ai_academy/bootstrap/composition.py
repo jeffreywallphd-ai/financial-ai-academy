@@ -34,6 +34,9 @@ from financial_ai_academy.modules.assessment.adapters.postgres_repository import
 from financial_ai_academy.modules.assessment.adapters.practice_contract import (
     ContractPracticeDefinitionAdapter,
 )
+from financial_ai_academy.modules.assessment.adapters.practice_progress_contract import (
+    ContractPracticeProgressAdapter,
+)
 from financial_ai_academy.modules.assessment.adapters import (
     practice_submission_contract,
 )
@@ -157,6 +160,7 @@ def build_application_services(
         practice_submission_contract.ContractPracticeSubmissionAdapter(
             settings.practice_schema_dir
         ),
+        ContractPracticeProgressAdapter(settings.practice_schema_dir),
     )
     learner_model = LearnerModelService(
         AssessmentCompletionEvidenceSource(assessment),

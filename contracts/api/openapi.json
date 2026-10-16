@@ -392,6 +392,67 @@
         "title": "AssetImageModel",
         "type": "object"
       },
+      "AvailablePracticeReviewTargetModel": {
+        "additionalProperties": false,
+        "properties": {
+          "destination": {
+            "$ref": "#/components/schemas/PracticeReviewDestinationModel"
+          },
+          "practice_placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Practice Placement Id",
+            "type": "string"
+          },
+          "resource_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Resource Digest",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Resource Title",
+            "type": "string"
+          },
+          "resource_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "state": {
+            "const": "available",
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "practice_placement_id",
+          "resource_id",
+          "resource_version",
+          "resource_digest",
+          "resource_title",
+          "state",
+          "destination"
+        ],
+        "title": "AvailablePracticeReviewTargetModel",
+        "type": "object"
+      },
       "BulletListModel": {
         "additionalProperties": false,
         "properties": {
@@ -2115,6 +2176,78 @@
         "title": "ListItemModel",
         "type": "object"
       },
+      "MultipleSelectPracticeHistoryItemModel": {
+        "additionalProperties": false,
+        "properties": {
+          "correct": {
+            "title": "Correct",
+            "type": "boolean"
+          },
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_type": {
+            "const": "multiple_select",
+            "title": "Item Type",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "review_reference_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Review Reference Ids",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "scoring_policy_id": {
+            "const": "multiple-select-exact-set",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_version",
+          "scoring_policy_version",
+          "score",
+          "max_score",
+          "correct",
+          "review_reference_ids",
+          "item_type",
+          "scoring_policy_id"
+        ],
+        "title": "MultipleSelectPracticeHistoryItemModel",
+        "type": "object"
+      },
       "MultipleSelectPracticeItemModel": {
         "additionalProperties": false,
         "properties": {
@@ -2430,6 +2563,78 @@
           "projection_digest"
         ],
         "title": "NavigationStateResponseModel",
+        "type": "object"
+      },
+      "NumericEntryPracticeHistoryItemModel": {
+        "additionalProperties": false,
+        "properties": {
+          "correct": {
+            "title": "Correct",
+            "type": "boolean"
+          },
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_type": {
+            "const": "numeric_entry",
+            "title": "Item Type",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "review_reference_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Review Reference Ids",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "scoring_policy_id": {
+            "const": "numeric-exact-or-inclusive-range",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_version",
+          "scoring_policy_version",
+          "score",
+          "max_score",
+          "correct",
+          "review_reference_ids",
+          "item_type",
+          "scoring_policy_id"
+        ],
+        "title": "NumericEntryPracticeHistoryItemModel",
         "type": "object"
       },
       "NumericEntryPracticeResponseModel": {
@@ -2833,6 +3038,234 @@
         "title": "PracticeAttemptPolicyModel",
         "type": "object"
       },
+      "PracticeDraftResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_policy_id": {
+            "const": "formative-retry",
+            "title": "Attempt Policy Id",
+            "type": "string"
+          },
+          "attempt_policy_version": {
+            "const": "1.0.0",
+            "title": "Attempt Policy Version",
+            "type": "string"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "practice_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Practice Id",
+            "type": "string"
+          },
+          "practice_version": {
+            "const": "1.0.0",
+            "title": "Practice Version",
+            "type": "string"
+          },
+          "response_fingerprint": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Response Fingerprint",
+            "type": "string"
+          },
+          "responses": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "multiple_select": "#/components/schemas/MultipleSelectPracticeResponseModel",
+                  "numeric_entry": "#/components/schemas/NumericEntryPracticeResponseModel",
+                  "single_select": "#/components/schemas/SingleSelectPracticeResponseModel"
+                },
+                "propertyName": "item_type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SingleSelectPracticeResponseModel"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleSelectPracticeResponseModel"
+                },
+                {
+                  "$ref": "#/components/schemas/NumericEntryPracticeResponseModel"
+                }
+              ]
+            },
+            "maxItems": 20,
+            "title": "Responses",
+            "type": "array"
+          },
+          "revision": {
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "saved_at": {
+            "format": "date-time",
+            "title": "Saved At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "definition_digest",
+          "practice_id",
+          "practice_version",
+          "attempt_policy_id",
+          "attempt_policy_version",
+          "responses",
+          "revision",
+          "saved_at",
+          "response_fingerprint"
+        ],
+        "title": "PracticeDraftResponseModel",
+        "type": "object"
+      },
+      "PracticeDraftSaveRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_policy_id": {
+            "const": "formative-retry",
+            "title": "Attempt Policy Id",
+            "type": "string"
+          },
+          "attempt_policy_version": {
+            "const": "1.0.0",
+            "title": "Attempt Policy Version",
+            "type": "string"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "expected_revision": {
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "practice_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Practice Id",
+            "type": "string"
+          },
+          "practice_version": {
+            "const": "1.0.0",
+            "title": "Practice Version",
+            "type": "string"
+          },
+          "responses": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "multiple_select": "#/components/schemas/MultipleSelectPracticeResponseModel",
+                  "numeric_entry": "#/components/schemas/NumericEntryPracticeResponseModel",
+                  "single_select": "#/components/schemas/SingleSelectPracticeResponseModel"
+                },
+                "propertyName": "item_type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SingleSelectPracticeResponseModel"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleSelectPracticeResponseModel"
+                },
+                {
+                  "$ref": "#/components/schemas/NumericEntryPracticeResponseModel"
+                }
+              ]
+            },
+            "maxItems": 20,
+            "title": "Responses",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "definition_digest",
+          "practice_id",
+          "practice_version",
+          "attempt_policy_id",
+          "attempt_policy_version",
+          "expected_revision",
+          "responses"
+        ],
+        "title": "PracticeDraftSaveRequestModel",
+        "type": "object"
+      },
       "PracticeFeedbackResultModel": {
         "additionalProperties": false,
         "properties": {
@@ -2870,6 +3303,193 @@
           "review_reference_ids"
         ],
         "title": "PracticeFeedbackResultModel",
+        "type": "object"
+      },
+      "PracticeHistoryAttemptModel": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "format": "uuid",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "attempt_order": {
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Attempt Order",
+            "type": "integer"
+          },
+          "completed_at": {
+            "format": "date-time",
+            "title": "Completed At",
+            "type": "string"
+          },
+          "event_id": {
+            "format": "uuid",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "evidence_id": {
+            "format": "uuid",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "item_summaries": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "multiple_select": "#/components/schemas/MultipleSelectPracticeHistoryItemModel",
+                  "numeric_entry": "#/components/schemas/NumericEntryPracticeHistoryItemModel",
+                  "single_select": "#/components/schemas/SingleSelectPracticeHistoryItemModel"
+                },
+                "propertyName": "item_type"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/SingleSelectPracticeHistoryItemModel"
+                },
+                {
+                  "$ref": "#/components/schemas/MultipleSelectPracticeHistoryItemModel"
+                },
+                {
+                  "$ref": "#/components/schemas/NumericEntryPracticeHistoryItemModel"
+                }
+              ]
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Item Summaries",
+            "type": "array"
+          },
+          "max_score": {
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "outcome": {
+            "enum": [
+              "all_correct",
+              "review_needed"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "score": {
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "submission_id": {
+            "format": "uuid",
+            "title": "Submission Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_order",
+          "event_id",
+          "attempt_id",
+          "evidence_id",
+          "submission_id",
+          "score",
+          "max_score",
+          "outcome",
+          "item_summaries",
+          "completed_at"
+        ],
+        "title": "PracticeHistoryAttemptModel",
+        "type": "object"
+      },
+      "PracticeHistoryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_policy_id": {
+            "const": "formative-retry",
+            "title": "Attempt Policy Id",
+            "type": "string"
+          },
+          "attempt_policy_version": {
+            "const": "1.0.0",
+            "title": "Attempt Policy Version",
+            "type": "string"
+          },
+          "attempts": {
+            "items": {
+              "$ref": "#/components/schemas/PracticeHistoryAttemptModel"
+            },
+            "maxItems": 10,
+            "title": "Attempts",
+            "type": "array"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "practice_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Practice Id",
+            "type": "string"
+          },
+          "practice_version": {
+            "const": "1.0.0",
+            "title": "Practice Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "definition_digest",
+          "practice_id",
+          "practice_version",
+          "attempt_policy_id",
+          "attempt_policy_version",
+          "source_digest",
+          "attempts"
+        ],
+        "title": "PracticeHistoryResponseModel",
         "type": "object"
       },
       "PracticeOptionModel": {
@@ -3036,6 +3656,71 @@
         "title": "PracticePresentationResponseModel",
         "type": "object"
       },
+      "PracticeProgressResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "draft": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PracticeDraftResponseModel"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "history": {
+            "$ref": "#/components/schemas/PracticeHistoryResponseModel"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "retry_state": {
+            "$ref": "#/components/schemas/PracticeRetryStateResponseModel"
+          },
+          "review_targets": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "available": "#/components/schemas/AvailablePracticeReviewTargetModel",
+                  "unavailable": "#/components/schemas/UnavailablePracticeReviewTargetModel"
+                },
+                "propertyName": "state"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AvailablePracticeReviewTargetModel"
+                },
+                {
+                  "$ref": "#/components/schemas/UnavailablePracticeReviewTargetModel"
+                }
+              ]
+            },
+            "maxItems": 8,
+            "title": "Review Targets",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "default": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "placement_id",
+          "draft",
+          "retry_state",
+          "history",
+          "review_targets"
+        ],
+        "title": "PracticeProgressResponseModel",
+        "type": "object"
+      },
       "PracticeResourceReferenceModel": {
         "additionalProperties": false,
         "properties": {
@@ -3071,6 +3756,167 @@
           "title"
         ],
         "title": "PracticeResourceReferenceModel",
+        "type": "object"
+      },
+      "PracticeRetryStateResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_policy_id": {
+            "const": "formative-retry",
+            "title": "Attempt Policy Id",
+            "type": "string"
+          },
+          "attempt_policy_version": {
+            "const": "1.0.0",
+            "title": "Attempt Policy Version",
+            "type": "string"
+          },
+          "attempts_remaining": {
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Attempts Remaining",
+            "type": "integer"
+          },
+          "attempts_used": {
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Attempts Used",
+            "type": "integer"
+          },
+          "can_retry": {
+            "title": "Can Retry",
+            "type": "boolean"
+          },
+          "definition_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Definition Digest",
+            "type": "string"
+          },
+          "max_attempts": {
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Max Attempts",
+            "type": "integer"
+          },
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "practice_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Practice Id",
+            "type": "string"
+          },
+          "practice_version": {
+            "const": "1.0.0",
+            "title": "Practice Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "available",
+              "exhausted"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest",
+          "definition_digest",
+          "practice_id",
+          "practice_version",
+          "attempt_policy_id",
+          "attempt_policy_version",
+          "attempts_used",
+          "max_attempts",
+          "attempts_remaining",
+          "can_retry",
+          "state"
+        ],
+        "title": "PracticeRetryStateResponseModel",
+        "type": "object"
+      },
+      "PracticeReviewDestinationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 3,
+                "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Id"
+          }
+        },
+        "required": [
+          "placement_id",
+          "package_id",
+          "package_version",
+          "package_digest"
+        ],
+        "title": "PracticeReviewDestinationModel",
         "type": "object"
       },
       "PracticeSubmissionRequestModel": {
@@ -3419,6 +4265,78 @@
         "title": "SessionBootstrapResponseModel",
         "type": "object"
       },
+      "SingleSelectPracticeHistoryItemModel": {
+        "additionalProperties": false,
+        "properties": {
+          "correct": {
+            "title": "Correct",
+            "type": "boolean"
+          },
+          "item_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Item Id",
+            "type": "string"
+          },
+          "item_type": {
+            "const": "single_select",
+            "title": "Item Type",
+            "type": "string"
+          },
+          "item_version": {
+            "const": "1.0.0",
+            "title": "Item Version",
+            "type": "string"
+          },
+          "max_score": {
+            "const": 1,
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "review_reference_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Review Reference Ids",
+            "type": "array",
+            "uniqueItems": true
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "integer"
+          },
+          "scoring_policy_id": {
+            "const": "single-select-exact-match",
+            "title": "Scoring Policy Id",
+            "type": "string"
+          },
+          "scoring_policy_version": {
+            "const": "1.0.0",
+            "title": "Scoring Policy Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item_id",
+          "item_version",
+          "scoring_policy_version",
+          "score",
+          "max_score",
+          "correct",
+          "review_reference_ids",
+          "item_type",
+          "scoring_policy_id"
+        ],
+        "title": "SingleSelectPracticeHistoryItemModel",
+        "type": "object"
+      },
       "SingleSelectPracticeItemModel": {
         "additionalProperties": false,
         "properties": {
@@ -3760,6 +4678,73 @@
           }
         },
         "title": "ThematicBreakModel",
+        "type": "object"
+      },
+      "UnavailablePracticeReviewTargetModel": {
+        "additionalProperties": false,
+        "properties": {
+          "practice_placement_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Practice Placement Id",
+            "type": "string"
+          },
+          "resource_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Resource Digest",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$",
+            "title": "Resource Title",
+            "type": "string"
+          },
+          "resource_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "state": {
+            "const": "unavailable",
+            "title": "State",
+            "type": "string"
+          },
+          "unavailable_reason": {
+            "enum": [
+              "mapping_not_found",
+              "destination_not_available",
+              "version_mismatch"
+            ],
+            "title": "Unavailable Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "practice_placement_id",
+          "resource_id",
+          "resource_version",
+          "resource_digest",
+          "resource_title",
+          "state",
+          "unavailable_reason"
+        ],
+        "title": "UnavailablePracticeReviewTargetModel",
         "type": "object"
       },
       "ValidationError": {
@@ -5060,6 +6045,217 @@
         "summary": "Get Placed Practice",
         "tags": [
           "assessment"
+        ]
+      }
+    },
+    "/api/v1/curriculum/placements/{placement_id}/practice/draft": {
+      "put": {
+        "operationId": "savePlacedPracticeDraft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "placement_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Placement Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PracticeDraftSaveRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeDraftResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Save Placed Practice Draft",
+        "tags": [
+          "assessment"
+        ]
+      }
+    },
+    "/api/v1/curriculum/placements/{placement_id}/practice/progress": {
+      "get": {
+        "operationId": "getPlacedPracticeProgress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "placement_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Placement Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PracticeProgressResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Placed Practice Progress",
+        "tags": [
+          "assessment",
+          "learner-model"
         ]
       }
     },

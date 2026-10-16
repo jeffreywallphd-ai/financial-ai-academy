@@ -12,8 +12,12 @@ from financial_ai_academy.modules.assessment.public import (
     KnowledgeCheckResult,
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
+    PracticeDraft,
     PracticePresentation,
     PracticeResult,
+    PracticeRetryState,
+    ReadPlacedPracticeProgressRequest,
+    SavePlacedPracticeDraftRequest,
     SubmitPlacedKnowledgeCheckRequest,
     SubmitPlacedPracticeRequest,
 )
@@ -29,6 +33,8 @@ from financial_ai_academy.modules.audit.public import (
 from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
     OpenLessonCompletionRequest,
+    OpenPracticeHistoryRequest,
+    PracticeHistoryView,
 )
 from financial_ai_academy.modules.curriculum.public import (
     BrowseLearningOpportunitiesRequest,
@@ -36,7 +42,9 @@ from financial_ai_academy.modules.curriculum.public import (
     LearningOpportunityBrowse,
     LearningOpportunityQueryPage,
     OpenCurriculumGraphRequest,
+    PracticeReviewTarget,
     QueryLearningOpportunitiesRequest,
+    ResolvePracticeReviewTargetsRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
@@ -85,6 +93,11 @@ class _SchemaCurriculum:
     ) -> LearningOpportunityQueryPage:
         raise NotImplementedError
 
+    def resolve_practice_review_targets(
+        self, request: ResolvePracticeReviewTargetsRequest
+    ) -> tuple[PracticeReviewTarget, ...]:
+        raise NotImplementedError
+
 
 class _SchemaAssessment:
     def open_placed_knowledge_check(
@@ -100,6 +113,21 @@ class _SchemaAssessment:
     def submit_placed_practice(
         self, request: SubmitPlacedPracticeRequest
     ) -> PracticeResult:
+        raise NotImplementedError
+
+    def read_placed_practice_draft(
+        self, request: ReadPlacedPracticeProgressRequest
+    ) -> PracticeDraft | None:
+        raise NotImplementedError
+
+    def save_placed_practice_draft(
+        self, request: SavePlacedPracticeDraftRequest
+    ) -> PracticeDraft:
+        raise NotImplementedError
+
+    def read_placed_practice_retry_state(
+        self, request: ReadPlacedPracticeProgressRequest
+    ) -> PracticeRetryState:
         raise NotImplementedError
 
     def submit_placed_knowledge_check(
@@ -119,6 +147,11 @@ class _SchemaLearnerModel:
     def open_lesson_completion(
         self, request: OpenLessonCompletionRequest
     ) -> LessonCompletionView:
+        raise NotImplementedError
+
+    def open_practice_history(
+        self, request: OpenPracticeHistoryRequest
+    ) -> PracticeHistoryView:
         raise NotImplementedError
 
 

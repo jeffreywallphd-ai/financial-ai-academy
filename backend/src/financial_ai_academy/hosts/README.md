@@ -75,3 +75,20 @@ feedback fields, unchanged Assessment and learner-state counts, bounded denial,
 and stable meaning after a normal host restart without reseeding. This preserves
 the API for future headless consumers without defining a separate AI mode.
 
+Practice resume and comparison state is available at
+`GET /api/v1/curriculum/placements/{placement_id}/practice/progress`. The host
+uses the opaque session learner, composes the current Assessment draft and
+retry state with the Learner-model history, and resolves only the latest
+attempt's incorrect-item review references through Curriculum. Repeated
+references deduplicate in stable item/reference order. Empty or all-correct
+history returns no review targets, and an absent exact mapping remains an
+explicit unavailable target rather than a ranked substitute.
+
+`PUT /api/v1/curriculum/placements/{placement_id}/practice/draft` conditionally
+saves one complete accepted draft snapshot. The route and body placement must
+match, and the same-origin boundary supplies the learner rather than accepting
+identity, revision, or time authority from a client. Both operations use the
+reviewed OpenAPI/generated-client seam and are directly callable by browser or
+headless clients. The host does not read module tables, score responses, infer
+mastery, or create a separate AI mode.
+

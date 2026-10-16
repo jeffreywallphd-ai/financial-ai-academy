@@ -41,11 +41,30 @@ assert.match(
 assert.match(schema, /operations\["submitPlacedPractice"\]/);
 assert.match(schema, /PracticeSubmissionRequestModel/);
 assert.match(schema, /PracticeSubmissionResultResponseModel/);
+assert.match(
+  schema,
+  /\/api\/v1\/curriculum\/placements\/\{placement_id\}\/practice\/progress/,
+);
+assert.match(schema, /operations\["getPlacedPracticeProgress"\]/);
+assert.match(schema, /PracticeProgressResponseModel/);
+assert.match(
+  schema,
+  /\/api\/v1\/curriculum\/placements\/\{placement_id\}\/practice\/draft/,
+);
+assert.match(schema, /operations\["savePlacedPracticeDraft"\]/);
+assert.match(schema, /PracticeDraftSaveRequestModel/);
+assert.match(schema, /PracticeDraftResponseModel/);
 assert.doesNotMatch(
   schema.match(
     /readonly "PracticeSubmissionResultResponseModel": \{[\s\S]*?^    \};/m,
   )?.[0] ?? "",
   /learner_id|request_fingerprint/,
+);
+assert.doesNotMatch(
+  schema.match(
+    /readonly "PracticeProgressResponseModel": \{[\s\S]*?^    \};/m,
+  )?.[0] ?? "",
+  /learner_id|correct_answer|evaluator|request_fingerprint/,
 );
 assert.match(client, /createClient<paths>/);
 assert.match(client, /credentials: "same-origin"/);

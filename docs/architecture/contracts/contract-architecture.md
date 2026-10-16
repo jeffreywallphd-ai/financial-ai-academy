@@ -71,9 +71,10 @@ and simulated values and cannot expose provider payloads as platform meaning.
   contracts; Curriculum owns exact practice-review targets; Learner model owns
   rebuildable practice-history projections. Their shared provenance does not
   transfer table access or policy authority between modules.
-- Browser and non-browser clients consume the same reviewed public APIs when
-  those APIs are implemented. Contract families do not create a separate AI
-  domain core or grant a client authority over identity, scoring, retry,
+- Browser and non-browser clients consume the same reviewed public APIs. The
+  protected practice-progress read and conditional draft save now expose the
+  accepted draft, retry, exact review-target, and history meanings without a
+  separate AI domain core or client authority over identity, scoring, retry,
   eligibility, or durable state.
 
 ## Generation

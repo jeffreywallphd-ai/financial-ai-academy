@@ -37,6 +37,9 @@ from financial_ai_academy.modules.assessment.public import (
     AssessmentOperations,
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
+    PracticePresentation,
+    ReadPlacedPracticeProgressRequest,
+    SavePlacedPracticeDraftRequest,
     SubmitPlacedKnowledgeCheckRequest,
     SubmitPlacedPracticeRequest,
 )
@@ -63,7 +66,11 @@ from financial_ai_academy.modules.curriculum.public import (
     OpportunityKind,
     OpportunityLevel,
     OpportunityQuerySort,
+    PracticeReviewError,
+    PracticeReviewErrorCode,
+    PracticeReviewResource,
     QueryLearningOpportunitiesRequest,
+    ResolvePracticeReviewTargetsRequest,
 )
 from financial_ai_academy.modules.identity.public import (
     IdentityError,
@@ -77,6 +84,8 @@ from financial_ai_academy.modules.learner_model.public import (
     LearnerModelErrorCode,
     LearnerModelOperations,
     OpenLessonCompletionRequest,
+    OpenPracticeHistoryRequest,
+    PracticeHistoryView,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     RequestPolicyViolation,
@@ -98,6 +107,9 @@ from .models import (
     LessonReadingResponseModel,
     NavigationStateResponseModel,
     PracticePresentationResponseModel,
+    PracticeDraftResponseModel,
+    PracticeDraftSaveRequestModel,
+    PracticeProgressResponseModel,
     PracticeSubmissionRequestModel,
     PracticeSubmissionResultResponseModel,
     SessionBootstrapRequestModel,
@@ -112,6 +124,8 @@ from .models import (
     lesson_response,
     navigation_state_response,
     practice_presentation_response,
+    practice_draft_response,
+    practice_progress_response,
     practice_submission_result_response,
 )
 
@@ -311,6 +325,28 @@ def create_app(services: ApiServices) -> FastAPI:
             request.state.correlation_id,
         )
 
+    @app.exception_handler(PracticeReviewError)
+    async def practice_review_error_handler(
+        request: Request, error: PracticeReviewError
+    ) -> JSONResponse:
+        http_status = {
+            PracticeReviewErrorCode.INVALID_RECORD: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            PracticeReviewErrorCode.IMMUTABLE_CONFLICT: (
+                status.HTTP_409_CONFLICT
+            ),
+            PracticeReviewErrorCode.UNAVAILABLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.message,
+            request.state.correlation_id,
+        )
+
     @app.exception_handler(AssessmentError)
     async def assessment_error_handler(
         request: Request, error: AssessmentError
@@ -330,6 +366,9 @@ def create_app(services: ApiServices) -> FastAPI:
             AssessmentErrorCode.UNKNOWN_OPTION: status.HTTP_400_BAD_REQUEST,
             AssessmentErrorCode.CONFLICT: status.HTTP_409_CONFLICT,
             AssessmentErrorCode.ALREADY_COMPLETED: (
+                status.HTTP_409_CONFLICT
+            ),
+            AssessmentErrorCode.ATTEMPT_LIMIT_REACHED: (
                 status.HTTP_409_CONFLICT
             ),
             AssessmentErrorCode.UNAUTHORIZED_CONTEXT: (
@@ -860,6 +899,115 @@ def create_app(services: ApiServices) -> FastAPI:
         )
         return practice_submission_result_response(result)
 
+    @app.get(
+        "/api/v1/curriculum/placements/{placement_id}/practice/progress",
+        response_model=PracticeProgressResponseModel,
+        operation_id="getPlacedPracticeProgress",
+        responses=_ERROR_RESPONSES,
+        tags=["assessment", "learner-model"],
+    )
+    def get_placed_practice_progress(
+        request: Request,
+        placement_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        context: LearnerContext = Depends(lesson_context),
+    ) -> PracticeProgressResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Practice progress does not accept query input.",
+                reference="query",
+            )
+        assessment = _assessment_service(services.assessment)
+        learner_model = _learner_model_service(services.learner_model)
+        presentation = assessment.open_placed_practice(
+            OpenPlacedPracticeRequest(placement_id)
+        )
+        progress_request = ReadPlacedPracticeProgressRequest(
+            learner_id=context.learner_id,
+            placement_id=placement_id,
+        )
+        draft = assessment.read_placed_practice_draft(progress_request)
+        retry_state = assessment.read_placed_practice_retry_state(
+            progress_request
+        )
+        history = learner_model.open_practice_history(
+            OpenPracticeHistoryRequest(
+                learner_id=context.learner_id,
+                placement_id=placement_id,
+            )
+        )
+        resources = _latest_practice_review_resources(
+            presentation,
+            history,
+        )
+        review_targets = (
+            services.curriculum.resolve_practice_review_targets(
+                ResolvePracticeReviewTargetsRequest(
+                    practice_placement_id=placement_id,
+                    resources=resources,
+                )
+            )
+            if resources
+            else ()
+        )
+        return practice_progress_response(
+            placement_id=placement_id,
+            draft=draft,
+            retry_state=retry_state,
+            history=history,
+            review_targets=review_targets,
+        )
+
+    @app.put(
+        "/api/v1/curriculum/placements/{placement_id}/practice/draft",
+        response_model=PracticeDraftResponseModel,
+        operation_id="savePlacedPracticeDraft",
+        responses=_ERROR_RESPONSES,
+        tags=["assessment"],
+    )
+    def save_placed_practice_draft(
+        request: Request,
+        request_model: PracticeDraftSaveRequestModel,
+        placement_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        context: LearnerContext = Depends(lesson_context),
+    ) -> PracticeDraftResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Saving practice progress does not accept query input.",
+                reference="query",
+            )
+        if request_model.placement_id != placement_id:
+            raise AssessmentError(
+                AssessmentErrorCode.STALE_REFERENCE,
+                "Practice version references do not match.",
+                reference="placement_id",
+            )
+        document = json.dumps(
+            request_model.model_dump(mode="json"),
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        draft = _assessment_service(
+            services.assessment
+        ).save_placed_practice_draft(
+            SavePlacedPracticeDraftRequest(
+                learner_id=context.learner_id,
+                placement_id=placement_id,
+                draft=document,
+            )
+        )
+        return practice_draft_response(draft)
+
     @app.post(
         "/api/v1/curriculum/placements/{placement_id}/knowledge-check/submissions",
         response_model=KnowledgeCheckResultResponseModel,
@@ -968,6 +1116,14 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/curriculum/placements/{placement_id}/practice/submissions"
             ]["post"]
             practice_submission_operation["responses"].pop("422", None)
+            practice_progress_operation = schema["paths"][
+                "/api/v1/curriculum/placements/{placement_id}/practice/progress"
+            ]["get"]
+            practice_progress_operation["responses"].pop("422", None)
+            practice_draft_operation = schema["paths"][
+                "/api/v1/curriculum/placements/{placement_id}/practice/draft"
+            ]["put"]
+            practice_draft_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 
@@ -1021,6 +1177,43 @@ def _learner_model_service(
             "The completion view is unavailable.",
         )
     return learner_model
+
+
+def _latest_practice_review_resources(
+    presentation: PracticePresentation,
+    history: PracticeHistoryView,
+) -> tuple[PracticeReviewResource, ...]:
+    if not history.attempts:
+        return ()
+    references = {
+        reference.resource_id: reference
+        for reference in presentation.review_references
+    }
+    selected: list[PracticeReviewResource] = []
+    seen: set[str] = set()
+    for item in history.attempts[-1].item_summaries:
+        if item.correct:
+            continue
+        for resource_id in item.review_reference_ids:
+            if resource_id in seen:
+                continue
+            reference = references.get(resource_id)
+            if reference is None:
+                raise AssessmentError(
+                    AssessmentErrorCode.UNAVAILABLE,
+                    "Practice review information is unavailable.",
+                    reference=resource_id,
+                )
+            seen.add(resource_id)
+            selected.append(
+                PracticeReviewResource(
+                    resource_id=reference.resource_id,
+                    resource_version=reference.resource_version,
+                    resource_digest=reference.resource_digest,
+                    resource_title=reference.title,
+                )
+            )
+    return tuple(selected)
 
 
 def _adaptation_service(

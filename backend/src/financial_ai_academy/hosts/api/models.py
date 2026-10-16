@@ -18,7 +18,9 @@ from financial_ai_academy.modules.adaptation.public import (
 from financial_ai_academy.modules.assessment.public import (
     KnowledgeCheckPresentation,
     KnowledgeCheckResult,
+    PracticeDraft,
     PracticePresentation,
+    PracticeRetryState,
 )
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import (
@@ -28,10 +30,12 @@ from financial_ai_academy.modules.curriculum.public import (
     LearningOpportunityQueryPage,
     LearningOpportunityRecord,
     LessonReadingResult,
+    PracticeReviewTarget,
     curriculum_graph_payload,
 )
 from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
+    PracticeHistoryView,
 )
 
 
@@ -1009,6 +1013,184 @@ class PracticeSubmissionResultResponseModel(ApiModel):
         return value
 
 
+class PracticeProgressScopeModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    placement_id: PracticeIdentifier
+    package_id: PracticeIdentifier
+    package_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    )
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    definition_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    practice_id: PracticeIdentifier
+    practice_version: Literal["1.0.0"]
+    attempt_policy_id: Literal["formative-retry"]
+    attempt_policy_version: Literal["1.0.0"]
+
+
+class PracticeDraftSaveRequestModel(PracticeProgressScopeModel):
+    expected_revision: int = Field(ge=0)
+    responses: list[PracticeSubmissionItemModel] = Field(max_length=20)
+
+
+class PracticeDraftResponseModel(PracticeProgressScopeModel):
+    responses: list[PracticeSubmissionItemModel] = Field(max_length=20)
+    revision: int = Field(ge=1)
+    saved_at: datetime
+    response_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+class PracticeRetryStateResponseModel(PracticeProgressScopeModel):
+    attempts_used: int = Field(ge=0, le=10)
+    max_attempts: int = Field(ge=1, le=10)
+    attempts_remaining: int = Field(ge=0, le=10)
+    can_retry: bool
+    state: Literal["available", "exhausted"]
+
+
+class PracticeHistoryItemSummaryBaseModel(ApiModel):
+    item_id: PracticeIdentifier
+    item_version: Literal["1.0.0"]
+    scoring_policy_version: Literal["1.0.0"]
+    score: int = Field(ge=0, le=1)
+    max_score: Literal[1]
+    correct: bool
+    review_reference_ids: list[PracticeIdentifier] = Field(
+        max_length=8,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+    @field_validator("review_reference_ids")
+    @classmethod
+    def history_review_references_are_unique(
+        cls, value: list[str]
+    ) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("review reference identifiers must be unique")
+        return value
+
+
+class SingleSelectPracticeHistoryItemModel(
+    PracticeHistoryItemSummaryBaseModel
+):
+    item_type: Literal["single_select"]
+    scoring_policy_id: Literal["single-select-exact-match"]
+
+
+class MultipleSelectPracticeHistoryItemModel(
+    PracticeHistoryItemSummaryBaseModel
+):
+    item_type: Literal["multiple_select"]
+    scoring_policy_id: Literal["multiple-select-exact-set"]
+
+
+class NumericEntryPracticeHistoryItemModel(
+    PracticeHistoryItemSummaryBaseModel
+):
+    item_type: Literal["numeric_entry"]
+    scoring_policy_id: Literal["numeric-exact-or-inclusive-range"]
+
+
+PracticeHistoryItemSummaryModel = Annotated[
+    Union[
+        SingleSelectPracticeHistoryItemModel,
+        MultipleSelectPracticeHistoryItemModel,
+        NumericEntryPracticeHistoryItemModel,
+    ],
+    Field(discriminator="item_type"),
+]
+
+
+class PracticeHistoryAttemptModel(ApiModel):
+    attempt_order: int = Field(ge=1, le=10)
+    event_id: UUID
+    attempt_id: UUID
+    evidence_id: UUID
+    submission_id: UUID
+    score: int = Field(ge=0, le=20)
+    max_score: int = Field(ge=1, le=20)
+    outcome: Literal["all_correct", "review_needed"]
+    item_summaries: list[PracticeHistoryItemSummaryModel] = Field(
+        min_length=1,
+        max_length=20,
+    )
+    completed_at: datetime
+
+
+class PracticeHistoryResponseModel(PracticeProgressScopeModel):
+    source_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    attempts: list[PracticeHistoryAttemptModel] = Field(max_length=10)
+
+
+class PracticeReviewDestinationModel(ApiModel):
+    placement_id: PracticeIdentifier
+    package_id: PracticeIdentifier
+    package_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    )
+    package_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    section_id: PracticeIdentifier | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
+
+
+class PracticeReviewTargetBaseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    practice_placement_id: PracticeIdentifier
+    resource_id: PracticeIdentifier
+    resource_version: str = Field(
+        pattern=(
+            r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+            r"(0|[1-9][0-9]*)$"
+        )
+    )
+    resource_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    resource_title: str = Field(
+        min_length=1,
+        max_length=240,
+        pattern=r"^[^<>&\u0000-\u001f\u007f]+$",
+    )
+
+
+class AvailablePracticeReviewTargetModel(PracticeReviewTargetBaseModel):
+    state: Literal["available"]
+    destination: PracticeReviewDestinationModel
+
+
+class UnavailablePracticeReviewTargetModel(PracticeReviewTargetBaseModel):
+    state: Literal["unavailable"]
+    unavailable_reason: Literal[
+        "mapping_not_found",
+        "destination_not_available",
+        "version_mismatch",
+    ]
+
+
+PracticeReviewTargetModel = Annotated[
+    Union[
+        AvailablePracticeReviewTargetModel,
+        UnavailablePracticeReviewTargetModel,
+    ],
+    Field(discriminator="state"),
+]
+
+
+class PracticeProgressResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"] = "1.0.0"
+    placement_id: PracticeIdentifier
+    draft: PracticeDraftResponseModel | None
+    retry_state: PracticeRetryStateResponseModel
+    history: PracticeHistoryResponseModel
+    review_targets: list[PracticeReviewTargetModel] = Field(max_length=8)
+
+
 class KnowledgeCheckSubmissionRequestModel(ApiModel):
     schema_version: Literal["1.0.0"]
     submission_id: UUID
@@ -1373,6 +1555,60 @@ def practice_submission_result_response(
             "review_reference_ids": list(result.review_reference_ids),
             "item_results": item_results,
             "submitted_at": result.submitted_at,
+        }
+    )
+
+
+def practice_draft_response(
+    draft: PracticeDraft,
+) -> PracticeDraftResponseModel:
+    value = asdict(draft)
+    scope = value.pop("scope")
+    if not isinstance(scope, dict):
+        raise ValueError("Practice draft scope is invalid.")
+    return PracticeDraftResponseModel.model_validate(
+        {"schema_version": "1.0.0", **scope, **value}
+    )
+
+
+def practice_progress_response(
+    *,
+    placement_id: str,
+    draft: PracticeDraft | None,
+    retry_state: PracticeRetryState,
+    history: PracticeHistoryView,
+    review_targets: tuple[PracticeReviewTarget, ...],
+) -> PracticeProgressResponseModel:
+    retry_value = asdict(retry_state)
+    retry_scope = retry_value.pop("scope")
+    if not isinstance(retry_scope, dict):
+        raise ValueError("Practice retry scope is invalid.")
+    history_value = asdict(history)
+    history_value.pop("rebuilt_at", None)
+    target_values: list[dict[str, object]] = []
+    for target in review_targets:
+        target_value = asdict(target)
+        if target.state == "available":
+            target_value.pop("unavailable_reason", None)
+        else:
+            target_value.pop("destination", None)
+        target_values.append(target_value)
+    return PracticeProgressResponseModel.model_validate(
+        {
+            "schema_version": "1.0.0",
+            "placement_id": placement_id,
+            "draft": (
+                practice_draft_response(draft).model_dump(mode="json")
+                if draft is not None
+                else None
+            ),
+            "retry_state": {
+                "schema_version": "1.0.0",
+                **retry_scope,
+                **retry_value,
+            },
+            "history": history_value,
+            "review_targets": target_values,
         }
     )
 

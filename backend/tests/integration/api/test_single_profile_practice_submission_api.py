@@ -324,6 +324,7 @@ def test_missing_session_query_input_and_duplicate_selection_fail_closed() -> No
         (AssessmentErrorCode.STALE_REFERENCE, 409),
         (AssessmentErrorCode.CONFLICT, 409),
         (AssessmentErrorCode.ALREADY_COMPLETED, 409),
+        (AssessmentErrorCode.ATTEMPT_LIMIT_REACHED, 409),
         (AssessmentErrorCode.INVALID_DEFINITION, 503),
         (AssessmentErrorCode.UNAVAILABLE, 503),
     ],
