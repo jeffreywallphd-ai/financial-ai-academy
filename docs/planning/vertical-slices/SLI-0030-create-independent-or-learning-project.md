@@ -198,7 +198,7 @@ each packet starts.
 | --- | --- | --- | --- | --- |
 | WRK-0109 | Freeze learning-project-brief and Project-shell contracts, origin semantics, compatibility fixtures, and pure Project domain values | none | none | complete |
 | WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | complete |
-| WRK-0111 | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | WRK-0110 | none | ready |
+| WRK-0111 | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | WRK-0110 | none | active |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | JIT-C | none | pending just-in-time refinement |
 
 ## Verification and Qualification

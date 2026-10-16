@@ -1,7 +1,7 @@
 ---
 id: WRK-0111
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityDetailPage.tsx", "apps/web/src/features/learning-catalog/model.ts", "apps/web/src/features/project-workspace", "apps/web/src/generated/api-client", "apps/web/src/styles/app.css", "apps/web/src/styles/project-workspace.css", "apps/web/tests/browser/project-workspace", "apps/web/tests/component/learningOpportunityDetail.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/unit/learningCatalogModel.test.ts", "apps/web/tests/unit/projectWorkspaceModel.test.ts", "backend/src/financial_ai_academy/hosts/api", "backend/src/financial_ai_academy/modules/project", "backend/tests/architecture", "backend/tests/integration/api/test_single_profile_project_api.py", "backend/tests/unit/project", "contracts/api/openapi.json", "deployments/local/README.md", "deployments/local/serve.py", "docs/architecture/contracts/project-workspace-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0030-create-independent-or-learning-project.md", "docs/planning/work-packets/WRK-0111-deliver-project-browser-flow.md", "tests/architecture"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: e8a85b83daf969da83abcf9dd7fcae99abeed494
+claim_id: WRK-0111:02e7f1b5-af4f-447c-bb66-e56f6ba8ebe0
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-16T20:25:15Z
 ---
 
 # Agent Work Packet: Deliver the Project Browser Flow
