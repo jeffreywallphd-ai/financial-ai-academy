@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -123,6 +124,112 @@ def practice() -> dict[str, Any]:
             {"item_id": "many", "item_type": "multiple_select"},
             {"item_id": "number", "item_type": "numeric_entry"},
         ],
+    }
+
+
+def practice_submission() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0.0",
+        "submission_id": "22222222-2222-4222-8222-222222222222",
+        "placement_id": runner.PRACTICE_PLACEMENT_ID,
+        "package_id": "intro-risk-return",
+        "package_version": "2.0.0",
+        "package_digest": "a" * 64,
+        "definition_digest": "b" * 64,
+        "practice_id": "risk-return-practice",
+        "practice_version": "1.0.0",
+        "attempt_policy_id": "formative-retry",
+        "attempt_policy_version": "1.0.0",
+        "responses": [
+            {
+                "item_id": "one",
+                "item_version": "1.0.0",
+                "item_type": "single_select",
+                "scoring_policy_id": "single-select-exact-match",
+                "scoring_policy_version": "1.0.0",
+                "selected_option_id": "uncertainty",
+            },
+            {
+                "item_id": "many",
+                "item_version": "1.0.0",
+                "item_type": "multiple_select",
+                "scoring_policy_id": "multiple-select-exact-set",
+                "scoring_policy_version": "1.0.0",
+                "selected_option_ids": ["more-issuers", "same-copy"],
+            },
+            {
+                "item_id": "number",
+                "item_version": "1.0.0",
+                "item_type": "numeric_entry",
+                "scoring_policy_id": "numeric-exact-or-inclusive-range",
+                "scoring_policy_version": "1.0.0",
+                "entered_value": "105.00",
+            },
+        ],
+    }
+
+
+def practice_result() -> dict[str, Any]:
+    submission = practice_submission()
+    return {
+        "schema_version": "1.0.0",
+        "attempt_id": "33333333-3333-4333-8333-333333333333",
+        "evidence_id": "44444444-4444-4444-8444-444444444444",
+        **{
+            key: submission[key]
+            for key in (
+                "submission_id",
+                "placement_id",
+                "package_id",
+                "package_version",
+                "package_digest",
+                "definition_digest",
+                "practice_id",
+                "practice_version",
+                "attempt_policy_id",
+                "attempt_policy_version",
+            )
+        },
+        "score": 2,
+        "max_score": 3,
+        "outcome": "review_needed",
+        "review_reference_ids": ["risk-return-review"],
+        "item_results": [
+            {
+                **submission["responses"][0],
+                "score": 1,
+                "max_score": 1,
+                "correct": True,
+                "feedback": {
+                    "feedback_id": "risk-correct",
+                    "text": "Correct.",
+                    "review_reference_ids": ["risk-return-review"],
+                },
+            },
+            {
+                **submission["responses"][1],
+                "score": 0,
+                "max_score": 1,
+                "correct": False,
+                "feedback": {
+                    "feedback_id": "diversification-review",
+                    "text": "Review this example.",
+                    "review_reference_ids": ["risk-return-review"],
+                },
+            },
+            {
+                **submission["responses"][2],
+                "score": 1,
+                "max_score": 1,
+                "correct": True,
+                "feedback": {
+                    "feedback_id": "growth-correct",
+                    "text": "Correct.",
+                    "review_reference_ids": ["risk-return-review"],
+                },
+            },
+        ],
+        "submitted_at": "2026-10-16T16:00:00.123456Z",
     }
 
 
@@ -370,6 +477,168 @@ def test_practice_restart_requires_exact_stable_public_meaning() -> None:
         runner.assert_practice_restart_result(
             before_restart=practice(),
             after_restart=changed,
+        )
+
+
+def test_practice_submission_capture_is_closed_correlated_and_confined(
+    tmp_path: Path,
+) -> None:
+    capture = tmp_path / "practice-submission-capture.json"
+    capture.write_text(
+        json.dumps(
+            {
+                "request": practice_submission(),
+                "result": practice_result(),
+            }
+        ),
+        encoding="utf-8",
+    )
+    request, result = runner.load_practice_submission_capture(
+        capture,
+        data_root=tmp_path,
+    )
+    assert request == practice_submission()
+    assert result == practice_result()
+
+    leaked = practice_result()
+    leaked["learner_id"] = "private-learner"
+    capture.write_text(
+        json.dumps({"request": practice_submission(), "result": leaked}),
+        encoding="utf-8",
+    )
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner.load_practice_submission_capture(capture, data_root=tmp_path)
+
+    changed = practice_result()
+    changed["package_version"] = "2.0.1"
+    capture.write_text(
+        json.dumps({"request": practice_submission(), "result": changed}),
+        encoding="utf-8",
+    )
+    with pytest.raises(RuntimeError, match="changed the submitted"):
+        runner.load_practice_submission_capture(capture, data_root=tmp_path)
+
+    outside = tmp_path.parent / "outside-practice-capture.json"
+    outside.write_text(
+        json.dumps(
+            {"request": practice_submission(), "result": practice_result()}
+        ),
+        encoding="utf-8",
+    )
+    try:
+        with pytest.raises(RuntimeError, match="escaped its bounded root"):
+            runner.load_practice_submission_capture(outside, data_root=tmp_path)
+    finally:
+        outside.unlink()
+
+
+def test_headless_submission_uses_only_public_session_and_post(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    success_calls: list[tuple[str, str, dict[str, object] | None]] = []
+    denial_calls: list[tuple[str, dict[str, object]]] = []
+
+    def request_json(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert origin == "http://127.0.0.1:8123"
+        success_calls.append((method, path, payload))
+        if path == "/api/v1/session/single-profile":
+            return {"expires_at": "later"}
+        return practice_result()
+
+    statuses = iter(
+        (
+            (401, {"code": "unauthorized", "message": "Session required."}),
+            (409, {"code": "conflict", "message": "Request changed."}),
+            (
+                409,
+                {
+                    "code": "already_completed",
+                    "message": "A completed attempt is already saved.",
+                },
+            ),
+        )
+    )
+
+    def request_status(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str,
+        payload: dict[str, object],
+    ) -> tuple[int, dict[str, Any]]:
+        assert origin == "http://127.0.0.1:8123"
+        assert method == "POST"
+        denial_calls.append((path, payload))
+        return next(statuses)
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+    monkeypatch.setattr(runner, "_request_json_status", request_status)
+
+    assert runner.observe_headless_practice_submission(
+        origin="http://127.0.0.1:8123",
+        submission=practice_submission(),
+        expected_result=practice_result(),
+    ) == practice_result()
+    submission_path = (
+        "/api/v1/curriculum/placements/intro-risk-return-practice"
+        "/practice/submissions"
+    )
+    assert success_calls == [
+        (
+            "POST",
+            "/api/v1/session/single-profile",
+            {"limitation_acknowledged": True},
+        ),
+        ("POST", submission_path, practice_submission()),
+    ]
+    assert [path for path, _payload in denial_calls] == [submission_path] * 3
+    assert denial_calls[0][1] == practice_submission()
+    assert denial_calls[1][1]["submission_id"] == practice_submission()[
+        "submission_id"
+    ]
+    assert denial_calls[1][1] != practice_submission()
+    assert denial_calls[2][1]["submission_id"] != practice_submission()[
+        "submission_id"
+    ]
+
+
+def test_practice_submission_restart_preserves_result_and_evidence() -> None:
+    snapshot = {
+        "attempts": 1,
+        "responses": 3,
+        "scores": 3,
+        "completion_evidence": 1,
+        "outbox_events": 1,
+        "submission_id": practice_submission()["submission_id"],
+        "attempt_id": practice_result()["attempt_id"],
+        "evidence_id": practice_result()["evidence_id"],
+    }
+    runner.assert_practice_submission_storage(
+        snapshot,
+        submission=practice_submission(),
+        result=practice_result(),
+    )
+    runner.assert_practice_submission_restart_result(
+        before_result=practice_result(),
+        after_result=practice_result(),
+        before_storage=snapshot,
+        after_storage=snapshot.copy(),
+    )
+    changed = snapshot | {"responses": 4}
+    with pytest.raises(RuntimeError, match="evidence changed"):
+        runner.assert_practice_submission_restart_result(
+            before_result=practice_result(),
+            after_result=practice_result(),
+            before_storage=snapshot,
+            after_storage=changed,
         )
 
 

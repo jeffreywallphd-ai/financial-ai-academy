@@ -209,3 +209,19 @@ external execution was added. Leave SLI-0027 ready for deterministic closure.
 - 2026-10-16: Claimed from base revision `7c2ad06` after the implementation
   gate confirmed current CAP authority, completed dependency, decision
   readiness, exact qualification scope, and no active ownership collision.
+- 2026-10-16: Implemented the qualification-only extension. One generated-
+  client Chromium submission now supplies a closed public request/result
+  capture that an ordinary cookie-backed HTTP client replays before and after
+  a normal host restart. The harness proves one atomic PostgreSQL aggregate,
+  exact replay identity, bounded conflict and completed-attempt refusals,
+  unchanged row counts, confidential denials, and no private answer or learner
+  fields in retained qualification artifacts or reporting.
+- 2026-10-16: Pre-review evidence passed: 104 focused Assessment contract/unit
+  tests, 16 protected API integration tests, 36 runner/architecture tests plus
+  four subtests, the full 202-test web suite, typecheck, lint, static build,
+  generated-client reproduction, architecture, security, learner-language,
+  design, documentation, planning, whitespace, and the 29-check aggregate
+  readiness gate. The isolated live PostgreSQL/Python/Chromium run passed all
+  ten scenarios and demonstrated all three response types, browser/headless
+  public-API parity, atomic evidence, exact replay, confidential refusals, and
+  restart durability without reseeding.

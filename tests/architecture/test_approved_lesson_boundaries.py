@@ -17,6 +17,7 @@ WEB_PACKAGE = REPOSITORY / "apps" / "web" / "package.json"
 WEB_DIST = REPOSITORY / "apps" / "web" / "dist"
 SETUP_SCRIPT = REPOSITORY / "deployments" / "local" / "setup-dev.mjs"
 LOCAL_SERVER = REPOSITORY / "deployments" / "local" / "serve.py"
+LIVE_RUNNER = REPOSITORY / "tests" / "e2e" / "approved-lesson" / "run.py"
 PLACEMENT_ID = "intro-risk-return-primary"
 
 
@@ -623,6 +624,28 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         self.assertIn("postgres:18.4", compose)
         self.assertIn("127.0.0.1:", compose)
         self.assertNotIn("0.0.0.0", compose)
+
+    def test_live_practice_submission_reuses_public_api_without_core_imports(
+        self,
+    ) -> None:
+        source = LIVE_RUNNER.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        imported = {
+            node.module or ""
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+        }
+        self.assertTrue(
+            all(
+                not module.startswith("financial_ai_academy")
+                for module in imported
+            )
+        )
+        self.assertIn('"/practice/submissions"', source)
+        self.assertIn("FINANCIAL_AI_ACADEMY_PRACTICE_CAPTURE", source)
+        self.assertIn("exact_headless_replay", source)
+        self.assertNotIn("contracts/compatibility/assessment-practice", source)
+        self.assertNotIn("ContractPracticeDefinitionAdapter", source)
 
     def test_static_build_contains_only_browser_artifacts_when_present(
         self,

@@ -39,17 +39,20 @@ returns exact package/practice provenance, public prompts and choices, numeric
 response constraints, attempt-policy metadata, and resource references. It
 never returns correct option IDs, accepted numeric values/ranges, or feedback.
 Practice submission/scoring contracts, the transport-neutral application
-operation, and atomic evidence persistence are implemented. The operation
-accepts server-resolved learner context, a route-bound placement ID, and the
-exact versioned submission bytes; it supplies time and durable IDs itself. The
-public HTTP POST, generated client, and browser result flow are not yet
-implemented. Browser, command-line, and future headless clients must map this
-same operation rather than create another scoring or persistence path.
+operation, atomic evidence persistence, protected HTTP POST, generated client,
+and accessible browser result flow are implemented. The operation accepts
+server-resolved learner context, a route-bound placement ID, and the exact
+versioned submission bytes; it supplies time and durable IDs itself. Browser,
+command-line, and future headless clients use this same operation rather than a
+second scoring or persistence path.
 The isolated local qualification admits the exact three-shape package through
-Content, creates its placement through Curriculum, and reads this same operation
-from non-browser and generated-browser clients. Repeated reads leave attempt,
-response, score, completion, outbox, and learner projection/history counts
-unchanged and retain identical answer-safe meaning after a normal restart.
+Content, creates its placement through Curriculum, lets the generated browser
+client save one mixed result, and replays that exact captured public document
+from a fresh non-browser session before and after normal restart. It proves one
+atomic definition-ordered evidence aggregate and outbox event, stable server
+IDs/time/result, distinct conflict and completed-attempt denials, and unchanged
+row counts after replay or refusal. No separate AI mode or autonomous action
+authority is part of this qualification.
 
 ## Persistence
 

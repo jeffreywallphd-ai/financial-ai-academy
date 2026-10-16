@@ -358,3 +358,10 @@ or autonomous authority was planned or implemented.
   current CAP authority, completed WRK-0099 dependency, resolved decisions,
   exact qualification-only scope, and collision-free ownership. No lower-level
   approval was requested.
+- 2026-10-16: WRK-0100 completed implementation and pre-review qualification.
+  A live generated-browser write and the same captured public document replayed
+  through a non-browser client now prove the shared API boundary, one atomic
+  PostgreSQL evidence aggregate, conflict and attempt-limit refusal, answer
+  confidentiality, accessibility, and unchanged results across a normal host
+  restart without reseeding. No product contract, scoring policy, migration,
+  separate AI mode, or autonomous authority changed.

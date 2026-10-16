@@ -70,8 +70,9 @@ then recreates a clean disposable database and starts the Python API on
 exact approved lesson action. The seeded successor package includes the exact
 Assessment-owned single-choice knowledge check and deterministic feedback path.
 The independently addressable practice fixture opens at
-`/learn/placements/intro-risk-return-practice/practice`; it is answer-safe and
-does not submit, score, or retain responses.
+`/learn/placements/intro-risk-return-practice/practice`; its generated-client
+form saves the first complete three-response attempt through the same public
+POST available to non-browser clients.
 
 Press Ctrl+C once to stop both development processes and tear down only the
 runner's uniquely named Compose project and ignored synthetic data root. Node
@@ -118,7 +119,12 @@ and axe accessibility. It also opens the exact three-shape practice through a
 cookie-backed non-browser HTTP client and the generated browser client, checks
 all three controls and bounded denials, compares storage counts across repeated
 reads, and proves the same presentation survives a normal restart without
-reseeding. The companion isolated browser fixture, rather than the
+reseeding. The browser then saves one mixed result through the generated POST.
+The runner replays that exact captured public request through a fresh
+non-browser session, proves conflict and completed-attempt refusals append
+nothing, verifies one atomic attempt/response/score/completion/outbox aggregate,
+and repeats the exact result and count checks after normal restart. The
+companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.
 
@@ -178,8 +184,9 @@ unavailability, filter/pagination/cursor-denial, exact detail, ordered
 comparison, changed/malformed selection, and
 catalog-to-exact-lesson Chromium paths, architecture and security scans, axe
 accessibility, safe teardown, API-only graph/state/launch consumption, exact
-three-shape practice opening from both headless and browser clients, repeated-
-read storage invariance, bounded practice denial, practice restart parity, and
+three-shape practice opening, generated-browser submission, exact non-browser
+replay, atomic Assessment evidence/outbox counts, conflict and completed-attempt
+refusal, bounded practice denial, practice restart parity, and
 application-restart reconstruction of derived Learner-model state from
 unchanged Assessment evidence without fixture reseeding.
 
@@ -188,8 +195,12 @@ learners, remote/public binding, worker and analytics composition, passive
 asset delivery, backup/restore, upgrade procedures beyond the tested slice
 migrations, non-Chromium browsers, non-Windows visual baselines, managed
 cloud, production distribution, and any RPO/RTO or availability claim.
-Practice submission, scoring, feedback selection, attempt enforcement,
-resume/history behavior, and completion evidence also remain unqualified.
+Additional-attempt execution, resume/history behavior, result comparison,
+review navigation, and downstream practice-event consumption remain
+unqualified. The first deterministic three-shape submission, feedback result,
+one-completion enforcement, atomic evidence/outbox append, exact replay,
+conflict refusal, and normal-restart durability are qualified only in this
+local single-profile fixture.
 The qualification also does not define a headless AI mode, agent protocol,
 model provider, or autonomous action authority; it preserves the public API
 surface that such a separately planned consumer could use later.

@@ -6,7 +6,15 @@
 - Canonical-document metadata/status checks outside the governed planning artifacts
 - Agent routing scenarios outside the governed planning-skill approval and authority paths
 - Python module dependency and public-surface checks beyond the directly covered first-loop Content, Curriculum, Assessment, Learner model, Audit, and Identity seams
-- Assessment background outbox delivery, recovery, production-role, additional item/scoring-family, practice submission/scoring/history, built-in/OIDC, and managed-cloud behavior beyond the directly covered v1 contracts, deterministic knowledge-check scoring/evidence, typed synchronous replay, Learner-model/Audit consumption, protected HTTP/generated client, accessible UI, private-host live close/reopen path, and side-effect-free three-shape practice opening through headless/browser clients across normal restart
+- Assessment background outbox delivery, practice-event consumption, recovery,
+  production-role, additional item/scoring-family, practice retry/resume/history,
+  built-in/OIDC, and managed-cloud behavior beyond the directly covered v1
+  contracts, deterministic knowledge-check and three-shape practice
+  scoring/evidence, typed synchronous knowledge-check replay,
+  Learner-model/Audit consumption, protected HTTP/generated client, accessible
+  UI, private-host live close/reopen path, side-effect-free practice opening,
+  and one exact browser/headless practice submission with atomic evidence and
+  replay across normal restart
 - OpenAPI compatibility and version-change policy checks beyond the directly covered deterministic snapshot and generated-client drift evidence
 - ADR-0009 multi-platform clean-install/build qualification, non-Chromium browser compatibility, and managed-cloud deployment-manifest parity beyond the directly covered Windows/CI-targeted Node 24 static build, no-Node-server source/artifact checks, exact lockfiles, generated client, dependency/license/vulnerability inspection, and loopback Python same-origin runtime
 - Provider conformance suites

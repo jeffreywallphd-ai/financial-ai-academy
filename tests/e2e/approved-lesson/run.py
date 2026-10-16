@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 import copy
+from datetime import datetime
 import hashlib
 import http.cookiejar
 import json
 import os
+import re
 import shutil
 import socket
 import subprocess
@@ -18,7 +20,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import psycopg
 
@@ -58,6 +60,20 @@ PRACTICE_OPEN_STORAGE_COUNTS = """
         (SELECT count(*)
            FROM learner_model.lesson_completion_history)
 """
+PRACTICE_SUBMISSION_STORAGE = """
+    SELECT
+        (SELECT count(*) FROM assessment.practice_attempts),
+        (SELECT count(*) FROM assessment.practice_responses),
+        (SELECT count(*) FROM assessment.practice_scores),
+        (SELECT count(*) FROM assessment.practice_completion_evidence),
+        (SELECT count(*) FROM assessment.practice_outbox),
+        COALESCE((SELECT min(submission_id::text)
+                    FROM assessment.practice_attempts), ''),
+        COALESCE((SELECT min(attempt_id::text)
+                    FROM assessment.practice_attempts), ''),
+        COALESCE((SELECT min(evidence_id::text)
+                    FROM assessment.practice_completion_evidence), '')
+"""
 PRIVATE_PRACTICE_FIELDS = frozenset(
     {
         "answer",
@@ -69,6 +85,72 @@ PRIVATE_PRACTICE_FIELDS = frozenset(
 )
 SUPPORTED_PRACTICE_ITEM_TYPES = frozenset(
     {"single_select", "multiple_select", "numeric_entry"}
+)
+PRACTICE_SUBMISSION_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "submission_id",
+        "placement_id",
+        "package_id",
+        "package_version",
+        "package_digest",
+        "definition_digest",
+        "practice_id",
+        "practice_version",
+        "attempt_policy_id",
+        "attempt_policy_version",
+        "responses",
+    }
+)
+PRACTICE_RESULT_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "attempt_id",
+        "evidence_id",
+        "submission_id",
+        "placement_id",
+        "package_id",
+        "package_version",
+        "package_digest",
+        "definition_digest",
+        "practice_id",
+        "practice_version",
+        "attempt_policy_id",
+        "attempt_policy_version",
+        "score",
+        "max_score",
+        "outcome",
+        "review_reference_ids",
+        "item_results",
+        "submitted_at",
+    }
+)
+PRACTICE_RESPONSE_COMMON_KEYS = frozenset(
+    {
+        "item_id",
+        "item_version",
+        "item_type",
+        "scoring_policy_id",
+        "scoring_policy_version",
+    }
+)
+PRACTICE_RESULT_COMMON_KEYS = PRACTICE_RESPONSE_COMMON_KEYS | frozenset(
+    {"score", "max_score", "correct", "feedback"}
+)
+PRIVATE_PRACTICE_RESULT_FIELDS = frozenset(
+    {
+        "answer",
+        "correct_option_id",
+        "correct_option_ids",
+        "evaluator",
+        "learner_id",
+        "request_fingerprint",
+        "scoring_policy",
+    }
+)
+UTC_TIMESTAMP = re.compile(
+    r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+    r"(?:\.[0-9]{1,6})?Z$"
 )
 
 
@@ -331,6 +413,42 @@ def _request_json(
             f"Headless API request returned a non-object: {method} {path}."
         )
     return document
+
+
+def _request_json_status(
+    opener: urllib.request.OpenerDirector,
+    *,
+    origin: str,
+    path: str,
+    method: str,
+    payload: dict[str, object],
+) -> tuple[int, dict[str, Any]]:
+    request = urllib.request.Request(
+        f"{origin}{path}",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Origin": origin,
+            "Sec-Fetch-Site": "same-origin",
+        },
+        method=method,
+    )
+    try:
+        response = opener.open(request, timeout=10)
+    except urllib.error.HTTPError as error:
+        status = error.code
+        raw = error.read()
+    else:
+        with response:
+            status = response.status
+            raw = response.read()
+    document = json.loads(raw.decode("utf-8"))
+    if not isinstance(document, dict):
+        raise RuntimeError(
+            f"Headless API request returned a non-object: {method} {path}."
+        )
+    return status, document
 
 
 def stable_navigation_semantics(
@@ -638,6 +756,349 @@ def assert_practice_restart_result(
         raise RuntimeError("Practice presentation changed after normal restart.")
 
 
+def _exact_keys(
+    value: dict[str, Any],
+    expected: frozenset[str],
+    label: str,
+) -> None:
+    if set(value) != expected:
+        raise RuntimeError(f"{label} does not match the closed public contract.")
+
+
+def _practice_response_keys(item_type: str) -> frozenset[str]:
+    if item_type == "single_select":
+        return PRACTICE_RESPONSE_COMMON_KEYS | {"selected_option_id"}
+    if item_type == "multiple_select":
+        return PRACTICE_RESPONSE_COMMON_KEYS | {"selected_option_ids"}
+    if item_type == "numeric_entry":
+        return PRACTICE_RESPONSE_COMMON_KEYS | {"entered_value"}
+    raise RuntimeError("Practice submission contains an unsupported response type.")
+
+
+def stable_practice_submission(document: dict[str, Any]) -> dict[str, Any]:
+    _exact_keys(document, PRACTICE_SUBMISSION_ROOT_KEYS, "Practice submission")
+    if document["placement_id"] != PRACTICE_PLACEMENT_ID:
+        raise RuntimeError("Practice submission does not match the exact placement.")
+    try:
+        UUID(str(document["submission_id"]))
+    except (TypeError, ValueError, AttributeError):
+        raise RuntimeError("Practice submission has an invalid public ID.") from None
+    responses = document["responses"]
+    if not isinstance(responses, list) or not 1 <= len(responses) <= 20:
+        raise RuntimeError("Practice submission has an invalid response collection.")
+    item_ids: set[str] = set()
+    for response in responses:
+        if not isinstance(response, dict):
+            raise RuntimeError("Practice submission response is not an object.")
+        item_type = response.get("item_type")
+        if not isinstance(item_type, str):
+            raise RuntimeError("Practice submission response type is missing.")
+        _exact_keys(
+            response,
+            _practice_response_keys(item_type),
+            "Practice submission response",
+        )
+        item_id = response.get("item_id")
+        if not isinstance(item_id, str) or item_id in item_ids:
+            raise RuntimeError("Practice submission item IDs are invalid or duplicated.")
+        item_ids.add(item_id)
+        if item_type == "multiple_select":
+            selected = response["selected_option_ids"]
+            if (
+                not isinstance(selected, list)
+                or not selected
+                or len(selected) != len(set(selected))
+            ):
+                raise RuntimeError("Practice submission selection set is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_practice_submission_result(
+    document: dict[str, Any],
+    submission: dict[str, Any],
+) -> dict[str, Any]:
+    _exact_keys(document, PRACTICE_RESULT_ROOT_KEYS, "Practice result")
+    leaked = PRIVATE_PRACTICE_RESULT_FIELDS & _nested_mapping_keys(document)
+    if leaked:
+        raise RuntimeError(
+            "Practice result exposed private fields: "
+            + ", ".join(sorted(leaked))
+            + "."
+        )
+    for identifier in ("attempt_id", "evidence_id", "submission_id"):
+        try:
+            UUID(str(document[identifier]))
+        except (TypeError, ValueError, AttributeError):
+            raise RuntimeError(f"Practice result has an invalid {identifier}.") from None
+    timestamp = document["submitted_at"]
+    if not isinstance(timestamp, str) or not UTC_TIMESTAMP.fullmatch(timestamp):
+        raise RuntimeError("Practice result timestamp is not canonical UTC.")
+    try:
+        datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError:
+        raise RuntimeError("Practice result timestamp is not a real date.") from None
+    for selector in (
+        "submission_id",
+        "placement_id",
+        "package_id",
+        "package_version",
+        "package_digest",
+        "definition_digest",
+        "practice_id",
+        "practice_version",
+        "attempt_policy_id",
+        "attempt_policy_version",
+    ):
+        if document[selector] != submission[selector]:
+            raise RuntimeError(f"Practice result changed the submitted {selector}.")
+    submitted = {
+        str(response["item_id"]): response for response in submission["responses"]
+    }
+    item_results = document["item_results"]
+    if not isinstance(item_results, list) or len(item_results) != len(submitted):
+        raise RuntimeError("Practice result does not close every submitted item.")
+    result_ids: set[str] = set()
+    score = 0
+    maximum = 0
+    for result in item_results:
+        if not isinstance(result, dict):
+            raise RuntimeError("Practice item result is not an object.")
+        item_type = result.get("item_type")
+        if not isinstance(item_type, str):
+            raise RuntimeError("Practice item result type is missing.")
+        _exact_keys(
+            result,
+            PRACTICE_RESULT_COMMON_KEYS
+            | (_practice_response_keys(item_type) - PRACTICE_RESPONSE_COMMON_KEYS),
+            "Practice item result",
+        )
+        item_id = result.get("item_id")
+        if not isinstance(item_id, str) or item_id in result_ids:
+            raise RuntimeError("Practice result item IDs are invalid or duplicated.")
+        result_ids.add(item_id)
+        original = submitted.get(item_id)
+        if original is None:
+            raise RuntimeError("Practice result contains an unknown item.")
+        for key in _practice_response_keys(item_type):
+            if result[key] != original[key]:
+                raise RuntimeError("Practice result changed a submitted response.")
+        feedback = result["feedback"]
+        if not isinstance(feedback, dict):
+            raise RuntimeError("Practice result feedback is not an object.")
+        _exact_keys(
+            feedback,
+            frozenset({"feedback_id", "text", "review_reference_ids"}),
+            "Practice result feedback",
+        )
+        if type(result["score"]) is not int or type(result["max_score"]) is not int:
+            raise RuntimeError("Practice item scores are not integers.")
+        score += result["score"]
+        maximum += result["max_score"]
+    if result_ids != set(submitted):
+        raise RuntimeError("Practice result omitted a submitted item.")
+    if document["score"] != score or document["max_score"] != maximum:
+        raise RuntimeError("Practice result totals do not match item results.")
+    expected_outcome = "all_correct" if score == maximum else "review_needed"
+    if document["outcome"] != expected_outcome:
+        raise RuntimeError("Practice result outcome does not match its score.")
+    return copy.deepcopy(document)
+
+
+def load_practice_submission_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded practice submission capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 262_144:
+        raise RuntimeError("Practice submission capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict) or set(capture) != {"request", "result"}:
+        raise RuntimeError("Practice submission capture has an invalid shape.")
+    request = capture["request"]
+    result = capture["result"]
+    if not isinstance(request, dict) or not isinstance(result, dict):
+        raise RuntimeError("Practice submission capture documents must be objects.")
+    stable_request = stable_practice_submission(request)
+    stable_result = stable_practice_submission_result(result, stable_request)
+    return stable_request, stable_result
+
+
+def _conflicting_practice_submission(
+    submission: dict[str, Any],
+) -> dict[str, Any]:
+    changed = copy.deepcopy(submission)
+    for response in changed["responses"]:
+        if response["item_type"] == "single_select":
+            response["selected_option_id"] = (
+                "guarantee"
+                if response["selected_option_id"] != "guarantee"
+                else "uncertainty"
+            )
+            return changed
+    raise RuntimeError("Qualification needs one single-select response.")
+
+
+def _assert_safe_practice_denial(
+    status: int,
+    document: dict[str, Any],
+    *,
+    expected_status: int,
+    expected_code: str,
+) -> None:
+    if status != expected_status or document.get("code") != expected_code:
+        raise RuntimeError(
+            f"Practice denial changed: expected {expected_status} {expected_code}."
+        )
+    leaked = PRIVATE_PRACTICE_RESULT_FIELDS & _nested_mapping_keys(document)
+    if leaked:
+        raise RuntimeError("Practice denial exposed private fields.")
+
+
+def observe_headless_practice_submission(
+    *,
+    origin: str,
+    submission: dict[str, Any],
+    expected_result: dict[str, Any],
+) -> dict[str, Any]:
+    request = stable_practice_submission(submission)
+    expected = stable_practice_submission_result(expected_result, request)
+    submission_path = (
+        f"/api/v1/curriculum/placements/{PRACTICE_PLACEMENT_ID}"
+        "/practice/submissions"
+    )
+    unauthenticated = urllib.request.build_opener()
+    status, denial = _request_json_status(
+        unauthenticated,
+        origin=origin,
+        path=submission_path,
+        method="POST",
+        payload=request,
+    )
+    _assert_safe_practice_denial(
+        status,
+        denial,
+        expected_status=401,
+        expected_code="unauthorized",
+    )
+
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPCookieProcessor(cookies)
+    )
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    replay = stable_practice_submission_result(
+        _request_json(
+            opener,
+            origin=origin,
+            path=submission_path,
+            method="POST",
+            payload=request,
+        ),
+        request,
+    )
+    if replay != expected:
+        raise RuntimeError("Headless exact replay changed the saved result.")
+
+    status, denial = _request_json_status(
+        opener,
+        origin=origin,
+        path=submission_path,
+        method="POST",
+        payload=_conflicting_practice_submission(request),
+    )
+    _assert_safe_practice_denial(
+        status,
+        denial,
+        expected_status=409,
+        expected_code="conflict",
+    )
+    second = copy.deepcopy(request)
+    second["submission_id"] = str(uuid4())
+    status, denial = _request_json_status(
+        opener,
+        origin=origin,
+        path=submission_path,
+        method="POST",
+        payload=second,
+    )
+    _assert_safe_practice_denial(
+        status,
+        denial,
+        expected_status=409,
+        expected_code="already_completed",
+    )
+    return replay
+
+
+def practice_submission_storage_snapshot(
+    postgres_dsn: str,
+) -> dict[str, int | str]:
+    with psycopg.connect(postgres_dsn) as connection:
+        row = connection.execute(PRACTICE_SUBMISSION_STORAGE).fetchone()
+    if row is None or len(row) != 8:
+        raise RuntimeError("Practice submission storage snapshot is unavailable.")
+    labels = (
+        "attempts",
+        "responses",
+        "scores",
+        "completion_evidence",
+        "outbox_events",
+    )
+    snapshot: dict[str, int | str] = {
+        label: int(row[index]) for index, label in enumerate(labels)
+    }
+    snapshot.update(
+        {
+            "submission_id": str(row[5]),
+            "attempt_id": str(row[6]),
+            "evidence_id": str(row[7]),
+        }
+    )
+    return snapshot
+
+
+def assert_practice_submission_storage(
+    snapshot: dict[str, int | str],
+    *,
+    submission: dict[str, Any],
+    result: dict[str, Any],
+) -> None:
+    expected = {
+        "attempts": 1,
+        "responses": len(submission["responses"]),
+        "scores": len(submission["responses"]),
+        "completion_evidence": 1,
+        "outbox_events": 1,
+        "submission_id": submission["submission_id"],
+        "attempt_id": result["attempt_id"],
+        "evidence_id": result["evidence_id"],
+    }
+    if snapshot != expected:
+        raise RuntimeError("Practice submission evidence is incomplete or uncorrelated.")
+
+
+def assert_practice_submission_restart_result(
+    *,
+    before_result: dict[str, Any],
+    after_result: dict[str, Any],
+    before_storage: dict[str, int | str],
+    after_storage: dict[str, int | str],
+) -> None:
+    if after_result != before_result:
+        raise RuntimeError("Practice result changed after normal restart.")
+    if after_storage != before_storage:
+        raise RuntimeError("Practice evidence changed after replay or restart.")
+
+
 def _storage_counts(connection: psycopg.Connection[Any]) -> dict[str, int]:
     row = connection.execute(COMPLETION_STORAGE_COUNTS).fetchone()
     if row is None or len(row) != 4:
@@ -801,6 +1262,7 @@ def main() -> int:
     container_name: str | None = None
     application: subprocess.Popen[str] | None = None
     application_log = data_root / "python-application.log"
+    practice_capture = data_root / "practice-submission-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -828,7 +1290,33 @@ def main() -> int:
 
         environment = os.environ.copy()
         environment["FINANCIAL_AI_ACADEMY_E2E_BASE_URL"] = origin
+        environment["FINANCIAL_AI_ACADEMY_PRACTICE_CAPTURE"] = str(
+            practice_capture
+        )
         run_checked(npm_e2e_command(), env=environment)
+
+        practice_submission, practice_result = load_practice_submission_capture(
+            practice_capture,
+            data_root=data_root,
+        )
+        practice_storage_before_restart = practice_submission_storage_snapshot(
+            postgres_dsn
+        )
+        assert_practice_submission_storage(
+            practice_storage_before_restart,
+            submission=practice_submission,
+            result=practice_result,
+        )
+        headless_practice_result = observe_headless_practice_submission(
+            origin=origin,
+            submission=practice_submission,
+            expected_result=practice_result,
+        )
+        practice_storage_after_replay = practice_submission_storage_snapshot(
+            postgres_dsn
+        )
+        if practice_storage_after_replay != practice_storage_before_restart:
+            raise RuntimeError("Practice replay or refusal appended duplicate evidence.")
 
         before_observation = observe_headless_navigation(origin)
         stop_application(application)
@@ -851,6 +1339,20 @@ def main() -> int:
         assert_practice_restart_result(
             before_restart=practice_before_restart,
             after_restart=practice_after_restart,
+        )
+        practice_result_after_restart = observe_headless_practice_submission(
+            origin=origin,
+            submission=practice_submission,
+            expected_result=practice_result,
+        )
+        practice_storage_after_restart = practice_submission_storage_snapshot(
+            postgres_dsn
+        )
+        assert_practice_submission_restart_result(
+            before_result=headless_practice_result,
+            after_result=practice_result_after_restart,
+            before_storage=practice_storage_before_restart,
+            after_storage=practice_storage_after_restart,
         )
         after_rebuild = completion_storage_counts(postgres_dsn)
         assert_replay_result(
@@ -905,6 +1407,15 @@ def main() -> int:
                 "generated browser client with storage-count invariance "
                 "and normal-restart stability"
             ),
+            "practice_submission": {
+                "atomic_evidence": True,
+                "browser_generated_client": True,
+                "confidential_denials": True,
+                "exact_headless_replay": True,
+                "normal_restart_without_reseeding": True,
+                "public_api_shared": True,
+                "three_response_types": True,
+            },
             "projection_replay": {
                 "assessment_source_preserved": True,
                 "headless_public_api": True,

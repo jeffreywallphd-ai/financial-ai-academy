@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { writeFile } from "node:fs/promises";
 
 import type { PracticePresentation } from "../../../src/features/practice-activity/model";
 
@@ -8,6 +9,7 @@ const PLACEMENT_ID = "intro-risk-return-practice";
 const PRACTICE_PATH = `/learn/placements/${PLACEMENT_ID}/practice`;
 const PRACTICE_API =
   `/api/v1/curriculum/placements/${PLACEMENT_ID}/practice`;
+const SUBMISSION_API = `${PRACTICE_API}/submissions`;
 
 function nestedKeys(value: unknown): Set<string> {
   if (Array.isArray(value)) {
@@ -31,11 +33,17 @@ test("opens the same exact three-shape practice through the live public API", as
   context,
   page,
 }) => {
-  const practiceRequests: Array<{ method: string; body: string | null }> = [];
+  const practiceRequests: Array<{
+    method: string;
+    path: string;
+    body: string | null;
+  }> = [];
   page.on("request", (request) => {
-    if (new URL(request.url()).pathname === PRACTICE_API) {
+    const path = new URL(request.url()).pathname;
+    if (path === PRACTICE_API || path === SUBMISSION_API) {
       practiceRequests.push({
         method: request.method(),
+        path,
         body: request.postData(),
       });
     }
@@ -87,8 +95,7 @@ test("opens the same exact three-shape practice through the live public API", as
       element.checkValidity(),
     ),
   ).toBe(true);
-  await expect(page.getByRole("button", { name: /check|submit|save/i })).toHaveCount(0);
-  await expect(page.getByText(/does not check or save them yet/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Check answers" })).toBeVisible();
 
   await page.getByText("Technical record", { exact: true }).click();
   for (const exactFact of [
@@ -121,10 +128,62 @@ test("opens the same exact three-shape practice through the live public API", as
   }));
   expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
 
-  expect(practiceRequests.length).toBeGreaterThan(0);
-  expect(practiceRequests).toEqual(
-    practiceRequests.map(() => ({ method: "GET", body: null })),
+  await page.getByLabel("Outcomes can differ from what was expected.").check();
+  await page.getByLabel("Hold assets from more than one issuer.").check();
+  await page.getByLabel("Count the same position twice.").check();
+  await numeric.fill("105.00");
+  const submissionResponsePromise = page.waitForResponse(
+    (submissionResponse) =>
+      new URL(submissionResponse.url()).pathname === SUBMISSION_API &&
+      submissionResponse.request().method() === "POST",
   );
+  await page.getByRole("button", { name: "Check answers" }).click();
+  const submissionResponse = await submissionResponsePromise;
+  expect(submissionResponse.status()).toBe(200);
+  const requestBody = submissionResponse.request().postDataJSON();
+  const resultBody = await submissionResponse.json();
+
+  const resultHeading = page.getByRole("heading", { name: "Your result" });
+  await expect(resultHeading).toBeVisible();
+  await expect(page.getByText("Some answers need review.")).toBeVisible();
+  await expect(page.getByText("2 of 3", { exact: true })).toBeVisible();
+  expect(
+    await resultHeading.evaluate((element) =>
+      document.activeElement?.contains(element),
+    ),
+  ).toBe(true);
+  await expect(page.getByText("Question 1: Correct")).toBeVisible();
+  await expect(page.getByText("Question 2: Review this question")).toBeVisible();
+  await expect(page.getByText("Question 3: Correct")).toBeVisible();
+  expect(
+    [...nestedKeys(resultBody)].filter((key) =>
+      /^(answer|correct_option_ids?|learner_id|request_fingerprint|scoring_policy)$/.test(
+        key,
+      ),
+    ),
+  ).toEqual([]);
+  await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "none" });
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  const capturePath = process.env.FINANCIAL_AI_ACADEMY_PRACTICE_CAPTURE;
+  if (capturePath) {
+    await writeFile(
+      capturePath,
+      `${JSON.stringify({ request: requestBody, result: resultBody }, null, 2)}\n`,
+      { encoding: "utf-8", flag: "wx" },
+    );
+  }
+
+  expect(practiceRequests.length).toBeGreaterThan(0);
+  expect(
+    practiceRequests.filter((request) => request.path === SUBMISSION_API),
+  ).toEqual([
+    {
+      method: "POST",
+      path: SUBMISSION_API,
+      body: JSON.stringify(requestBody),
+    },
+  ]);
 });
 
 test("keeps live practice denials bounded and confidential", async ({
