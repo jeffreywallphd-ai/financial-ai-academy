@@ -1,7 +1,7 @@
 ---
 id: CAP-0030
 kind: capability
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16

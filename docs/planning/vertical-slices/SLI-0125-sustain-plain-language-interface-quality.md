@@ -1,7 +1,7 @@
 ---
 id: SLI-0125
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
