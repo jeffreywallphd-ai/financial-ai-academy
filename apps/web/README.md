@@ -177,12 +177,15 @@ single-profile session and opens one exact practice activity through the
 generated public API client. The browser validates the complete answer-safe
 presentation before showing the title, purpose, instructions, attempt-policy
 meaning, learning and review material, and ordered single-select,
-multiple-select, or fixed-decimal response controls. The learner can now check
-one complete response set through generated `submitPlacedPractice`. The
-browser copies exact presentation selectors, creates one stable submission
-UUID, and sends no learner, score, time, evidence, or policy override. An
-uncertain transport retry reuses the identical prepared document and UUID
-rather than reading changed form state.
+multiple-select, or fixed-decimal response controls. It also validates the
+complete `getPlacedPracticeProgress` response before restoring any partial
+answers, retry status, review destination, or attempt history. The learner can
+save a valid empty or partial answer snapshot through generated
+`savePlacedPracticeDraft`, or check one complete response set through generated
+`submitPlacedPractice`. The browser copies exact presentation selectors,
+creates one stable submission UUID, and sends no learner, score, time, evidence,
+or policy override. An uncertain submission retry reuses the identical prepared
+document and UUID rather than reading changed form state.
 
 The page validates and correlates the complete closed result before it shows
 the server-returned score, outcome, submitted values, applicable feedback,
@@ -191,9 +194,12 @@ answer with an answer key or calculates correctness. Invalid or private-field-
 bearing results fail closed without partial feedback. Incomplete input focuses
 the first question to fix; session, stale-version, conflicting, completed,
 unavailable, and unexpected outcomes have bounded learner-focused recovery
-copy. The current application saves the first completed attempt; additional
-attempts, pause-and-return, and earlier-attempt review remain deferred to the
-next slice.
+copy. A conditional draft save uses the current server revision; stale saves do
+not replace newer work, and uncertain saves can retry the same snapshot. A
+confirmed result refreshes the server-owned progress view before another
+attempt is offered. The page shows ordered answer-free attempt summaries,
+available internal review lessons, explicit unavailable review material, and
+attempt exhaustion without inferring mastery or recommendation meaning.
 
 Exact placement, package, practice, definition, question, policy, choice,
 resource, result, attempt, evidence, version, digest, and time facts remain
@@ -201,14 +207,13 @@ available under accessible `Technical record` disclosures. The reviewed POST
 remains independently usable by command-line, service, and future headless
 clients. The page does not define a second contract or a separate AI mode.
 
-The generated client also exposes `getPlacedPracticeProgress` and
-`savePlacedPracticeDraft`. The protected read returns the nullable server draft,
-deterministic retry state, rebuildable attempt history, and latest targeted
-review destinations; the protected write conditionally replaces one complete
-partial-response snapshot. These operations use the same opaque session and
-same-origin boundary for browser and headless clients. Browser resume, retry,
-targeted-review, and attempt-comparison presentation remains the next packet;
-the current page does not yet call these operations.
+The protected progress read returns the nullable server draft, deterministic
+retry state, rebuildable attempt history, and latest targeted review
+destinations; the protected write conditionally replaces one complete partial-
+response snapshot. These operations use the same opaque session and same-origin
+boundary for browser and headless clients. The browser adds no competing policy
+or browser-only domain core: command-line, service, and future headless clients
+can use the same operations without rendering this interface.
 
 The browser never selects the learner, reads the HttpOnly cookie, imports
 backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a

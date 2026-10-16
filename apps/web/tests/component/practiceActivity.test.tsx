@@ -4,21 +4,44 @@ import { describe, expect, it, vi } from "vitest";
 
 import { PracticeActivityPage } from "../../src/features/practice-activity/PracticeActivityPage";
 import { PracticeActivityRouteView } from "../../src/features/practice-activity/PracticeActivityRoute";
+import { practiceProgressIsSafe } from "../../src/features/practice-activity/model";
 import type {
+  PracticeDraftSaver,
+  PracticeProgress,
+  PracticeProgressReader,
   PracticeSubmissionResult,
   PracticeSubmitter,
 } from "../../src/features/practice-activity/model";
-import { practiceFixture, practiceResultFixture } from "./practiceFixture";
+import {
+  practiceFixture,
+  practiceProgressFixture,
+  practiceResultFixture,
+} from "./practiceFixture";
 
 
 const idleSubmitter: PracticeSubmitter = async () => ({ status: "unexpected" });
+const idleProgressReader: PracticeProgressReader = async () => ({
+  status: "progress",
+  progress: structuredClone(practiceProgressFixture),
+});
+const idleDraftSaver: PracticeDraftSaver = async (_practice, save) => ({
+  status: "saved",
+  draft: {
+    ...structuredClone(practiceProgressFixture.draft!),
+    responses: save.body.responses,
+    revision: save.body.expected_revision + 1,
+    saved_at: "2026-10-16T17:00:00Z",
+  },
+});
 
 async function answerEveryQuestion(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("radio", { name: /Outcomes can differ/i }));
   for (const checkbox of screen.getAllByRole("checkbox")) {
     await user.click(checkbox);
   }
-  await user.type(screen.getByLabelText("Your answer (percent)"), "5.00");
+  const number = screen.getByLabelText("Your answer (percent)");
+  await user.clear(number);
+  await user.type(number, "5.00");
 }
 
 function resultFor(submissionId: string): PracticeSubmissionResult {
@@ -31,6 +54,9 @@ describe("practice activity page", () => {
     render(
       <PracticeActivityPage
         practice={practiceFixture}
+        progress={structuredClone(practiceProgressFixture)}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
         submitPractice={idleSubmitter}
       />,
     );
@@ -45,7 +71,10 @@ describe("practice activity page", () => {
       "decimal",
     );
     expect(screen.getByRole("button", { name: "Check answers" })).toBeVisible();
-    expect(screen.getByText(/saves your first completed attempt/i)).toBeVisible();
+    expect(screen.getByText(/save partial answers to continue later/i)).toBeVisible();
+    expect(screen.getByRole("radio", { name: /Outcomes can differ/i })).toBeChecked();
+    expect(screen.getByLabelText("Your answer (percent)")).toHaveValue("4.50");
+    expect(screen.getByRole("heading", { name: "Your saved attempts" })).toBeVisible();
 
     await user.click(screen.getByText("Technical record", { exact: true }));
     const technicalRecord = screen.getByText("Technical record", { exact: true }).closest("details");
@@ -67,6 +96,9 @@ describe("practice activity page", () => {
     render(
       <PracticeActivityPage
         practice={practiceFixture}
+        progress={structuredClone(practiceProgressFixture)}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
         submitPractice={submitPractice}
       />,
     );
@@ -75,7 +107,7 @@ describe("practice activity page", () => {
     await user.click(screen.getByRole("button", { name: "Check answers" }));
 
     expect(await screen.findByRole("heading", { name: "Your result" })).toBeVisible();
-    expect(screen.getByText("2 of 3")).toBeVisible();
+    expect(screen.getAllByText("2 of 3")).toHaveLength(2);
     expect(screen.getByRole("heading", { name: /Question 3: Review this question/i })).toBeVisible();
     expect(screen.getByText(practiceResultFixture.item_results[2]!.feedback.text)).toBeVisible();
     expect(screen.getByText(/does not show mastery, certification/i)).toBeVisible();
@@ -108,6 +140,9 @@ describe("practice activity page", () => {
     render(
       <PracticeActivityPage
         practice={practiceFixture}
+        progress={structuredClone(practiceProgressFixture)}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
         submitPractice={submitPractice}
       />,
     );
@@ -115,7 +150,7 @@ describe("practice activity page", () => {
     await user.click(screen.getByRole("button", { name: "Check answers" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent(/Complete this question/i);
-    expect(screen.getByRole("radio", { name: /Outcomes can differ/i })).toHaveFocus();
+    expect(screen.getByRole("checkbox", { name: "Time horizon" })).toHaveFocus();
     expect(submitPractice).not.toHaveBeenCalled();
   });
 
@@ -131,6 +166,9 @@ describe("practice activity page", () => {
     render(
       <PracticeActivityPage
         practice={practiceFixture}
+        progress={structuredClone(practiceProgressFixture)}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
         submitPractice={submitPractice}
       />,
     );
@@ -149,6 +187,129 @@ describe("practice activity page", () => {
     );
   });
 
+  it("saves a valid partial snapshot with the current server revision", async () => {
+    const user = userEvent.setup();
+    const progress: PracticeProgress = {
+      ...structuredClone(practiceProgressFixture),
+      draft: null,
+    };
+    const saveDraft = vi.fn<PracticeDraftSaver>(idleDraftSaver);
+    render(
+      <PracticeActivityPage
+        practice={practiceFixture}
+        progress={progress}
+        readProgress={idleProgressReader}
+        saveDraft={saveDraft}
+        submitPractice={idleSubmitter}
+      />,
+    );
+
+    await user.click(screen.getByRole("radio", { name: /Outcomes can differ/i }));
+    await user.click(screen.getByRole("button", { name: "Save progress" }));
+
+    expect(await screen.findByRole("heading", { name: "Progress saved" })).toBeVisible();
+    expect(saveDraft).toHaveBeenCalledOnce();
+    const preparedSave = saveDraft.mock.calls[0]![1];
+    expect(preparedSave.body.expected_revision).toBe(0);
+    expect(preparedSave.body.responses).toEqual([
+      expect.objectContaining({
+        item_id: "risk-meaning",
+        selected_option_id: "uncertainty",
+      }),
+    ]);
+    expect("learner_id" in preparedSave.body).toBe(false);
+  });
+
+  it("does not overwrite a stale draft and offers the latest saved progress", async () => {
+    const user = userEvent.setup();
+    const saveDraft = vi.fn<PracticeDraftSaver>(async () => ({ status: "conflict" }));
+    render(
+      <PracticeActivityPage
+        practice={practiceFixture}
+        progress={structuredClone(practiceProgressFixture)}
+        readProgress={idleProgressReader}
+        saveDraft={saveDraft}
+        submitPractice={idleSubmitter}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Save progress" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/newer progress is already saved/i);
+    expect(screen.getByRole("button", { name: "Load saved progress" })).toBeVisible();
+    expect(saveDraft.mock.calls[0]![1].body.expected_revision).toBe(1);
+  });
+
+  it("keeps completed history visible while starting a distinct retry", async () => {
+    const user = userEvent.setup();
+    const submitPractice = vi.fn<PracticeSubmitter>(
+      async (_practice, submission) => ({
+        status: "result",
+        result: resultFor(submission.body.submission_id),
+      }),
+    );
+    render(
+      <PracticeActivityPage
+        practice={practiceFixture}
+        progress={structuredClone(practiceProgressFixture)}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
+        submitPractice={submitPractice}
+      />,
+    );
+
+    await answerEveryQuestion(user);
+    await user.click(screen.getByRole("button", { name: "Check answers" }));
+    await user.click(await screen.findByRole("button", { name: "Try another attempt" }));
+
+    expect(screen.getByRole("heading", { name: "Your saved attempts" })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Attempt 1" })).toBeVisible();
+    expect(screen.getByRole("radio", { name: /Outcomes can differ/i })).not.toBeChecked();
+    expect(screen.getByLabelText("Your answer (percent)")).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Check answers" })).toBeEnabled();
+  });
+
+  it("removes mutation controls when the server says attempts are exhausted", () => {
+    const progress: PracticeProgress = {
+      ...structuredClone(practiceProgressFixture),
+      draft: null,
+      retry_state: {
+        ...structuredClone(practiceProgressFixture.retry_state),
+        attempts_used: 3,
+        attempts_remaining: 0,
+        can_retry: false,
+        state: "exhausted",
+      },
+    };
+    render(
+      <PracticeActivityPage
+        practice={practiceFixture}
+        progress={progress}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
+        submitPractice={idleSubmitter}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "All attempts are complete" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Save progress" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Check answers" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "Attempt 1" })).toBeVisible();
+  });
+
+  it("fails progress closed for extra authority or mismatched exact chains", () => {
+    const extra = {
+      ...structuredClone(practiceProgressFixture),
+      learner_id: "private-learner",
+    };
+    const mismatched = structuredClone(practiceProgressFixture);
+    mismatched.history.package_version = "9.9.9";
+
+    expect(practiceProgressIsSafe(extra, practiceFixture)).toBe(false);
+    expect(practiceProgressIsSafe(mismatched, practiceFixture)).toBe(false);
+    expect(practiceProgressIsSafe(practiceProgressFixture, practiceFixture)).toBe(true);
+  });
+
   it("renders variable item and reference counts without a fixed fixture assumption", () => {
     const practice = structuredClone(practiceFixture);
     practice.items = [practice.items[2]!, practice.items[0]!];
@@ -159,7 +320,26 @@ describe("practice activity page", () => {
       title: "Another review resource",
     });
     render(
-      <PracticeActivityPage practice={practice} submitPractice={idleSubmitter} />,
+      <PracticeActivityPage
+        practice={practice}
+        progress={{
+          ...structuredClone(practiceProgressFixture),
+          draft: null,
+          history: {
+            ...structuredClone(practiceProgressFixture.history),
+            attempts: [],
+          },
+          review_targets: [],
+          retry_state: {
+            ...structuredClone(practiceProgressFixture.retry_state),
+            attempts_used: 0,
+            attempts_remaining: 3,
+          },
+        }}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
+        submitPractice={idleSubmitter}
+      />,
     );
 
     const questions = screen.getAllByText(/Question [12]/);
@@ -175,6 +355,8 @@ describe("practice activity page", () => {
     const { rerender } = render(
       <PracticeActivityRouteView
         onRetry={onRetry}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
         state={{ status: "unavailable" }}
         submitPractice={idleSubmitter}
       />,
@@ -186,6 +368,8 @@ describe("practice activity page", () => {
     rerender(
       <PracticeActivityRouteView
         onRetry={onRetry}
+        readProgress={idleProgressReader}
+        saveDraft={idleDraftSaver}
         state={{ status: "invalid-content" }}
         submitPractice={idleSubmitter}
       />,

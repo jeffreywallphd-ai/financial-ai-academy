@@ -144,14 +144,24 @@
 }
 
 .practice-submit {
+  margin: 0;
+}
+
+.practice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--faa-space-3);
   margin-top: var(--faa-space-6);
 }
 
+.practice-draft-status,
 .practice-submission-status {
   margin-top: var(--faa-space-6);
 }
 
+.practice-draft-status > p,
 .practice-submission-status > p,
+.practice-save-confirmation,
 .practice-submission-error,
 .practice-result {
   padding: var(--faa-space-5);
@@ -165,12 +175,19 @@
   background: var(--faa-color-warning-surface);
 }
 
+.practice-save-confirmation {
+  border-color: var(--faa-color-success);
+  background: var(--faa-color-success-surface);
+}
+
+.practice-save-confirmation h2,
 .practice-submission-error h2,
 .practice-result h2 {
   margin-top: 0;
 }
 
 .practice-submission-error:focus-visible,
+.practice-save-confirmation:focus-visible,
 .practice-submission-status > div:focus-visible {
   outline: 3px solid var(--faa-color-focus-ring);
   outline-offset: 2px;
@@ -237,6 +254,65 @@
 }
 
 .practice-result details code {
+  font-family: var(--faa-font-mono);
+}
+
+.practice-review,
+.practice-history {
+  margin-top: var(--faa-space-8);
+  padding: var(--faa-space-5);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-card);
+  background: var(--faa-color-surface-subtle);
+}
+
+.practice-review h2,
+.practice-history h2,
+.practice-history h3 {
+  margin-top: 0;
+}
+
+.practice-review ul,
+.practice-history > ol,
+.practice-history-items {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.practice-history > ol {
+  padding-left: var(--faa-space-6);
+}
+
+.practice-history article {
+  padding: var(--faa-space-4);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+  background: var(--faa-color-surface);
+}
+
+.practice-history-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--faa-space-4);
+}
+
+.practice-history-summary dt {
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-caption);
+}
+
+.practice-history-summary dd,
+.practice-history details dd {
+  margin: var(--faa-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.practice-history details dl {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.practice-history code {
   font-family: var(--faa-font-mono);
 }
 
@@ -331,6 +407,10 @@
   .practice-resource-groups {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .practice-history-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (forced-colors: active) {
@@ -338,6 +418,10 @@
   .practice-item,
   .practice-notice,
   .practice-result,
+  .practice-review,
+  .practice-history,
+  .practice-history article,
+  .practice-save-confirmation,
   .practice-submission-error {
     border-color: CanvasText;
   }

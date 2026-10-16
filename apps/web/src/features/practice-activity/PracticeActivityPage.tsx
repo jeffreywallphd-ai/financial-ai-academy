@@ -4,14 +4,22 @@ import { Icon } from "../../components/Icon";
 import type {
   PracticeItem,
   PracticePresentation,
+  PracticeProgress,
+  PracticeProgressReader,
+  PracticeDraft,
+  PracticeDraftSaver,
+  PracticeResponse,
   PracticeSubmissionOutcome,
   PracticeSubmissionResult,
   PracticeSubmitter,
   PreparedPracticeSubmission,
+  PreparedPracticeDraftSave,
 } from "./model";
 import {
   canonicalDecimalPattern,
+  preparePracticeDraftSave,
   preparePracticeSubmission,
+  savedResponseForItem,
 } from "./model";
 
 
@@ -20,6 +28,22 @@ type SubmissionViewState =
   | { status: "invalid-input"; itemId: string }
   | { status: "submitting" }
   | PracticeSubmissionOutcome;
+
+type DraftViewState =
+  | { status: "idle" }
+  | { status: "invalid-input"; itemId: string }
+  | { status: "saving" }
+  | { status: "saved"; draft: PracticeDraft }
+  | { status: "invalid-request" }
+  | { status: "unauthorized" }
+  | { status: "forbidden" }
+  | { status: "not-found" }
+  | { status: "conflict" }
+  | { status: "unavailable"; prepared: PreparedPracticeDraftSave }
+  | { status: "invalid-result" }
+  | { status: "unexpected" };
+
+type ProgressRefreshState = "idle" | "loading" | "unavailable";
 
 const DATE_TIME_FORMAT = new Intl.DateTimeFormat("en", {
   dateStyle: "long",
@@ -43,11 +67,13 @@ function PracticeResponseControl({
   index,
   invalid,
   item,
+  savedResponse,
 }: {
   disabled: boolean;
   index: number;
   invalid: boolean;
   item: PracticeItem;
+  savedResponse: PracticeResponse | undefined;
 }) {
   const descriptionId = `practice-item-${item.item_id}-description`;
   const errorId = `practice-item-${item.item_id}-error`;
@@ -71,6 +97,11 @@ function PracticeResponseControl({
           aria-describedby={describedBy}
           aria-invalid={invalid || undefined}
           autoComplete="off"
+          defaultValue={
+            savedResponse?.item_type === "numeric_entry"
+              ? savedResponse.entered_value
+              : ""
+          }
           disabled={disabled}
           id={`practice-item-${item.item_id}`}
           inputMode="decimal"
@@ -100,6 +131,13 @@ function PracticeResponseControl({
           <label key={option.option_id}>
             <input
               aria-invalid={invalid || undefined}
+              defaultChecked={
+                savedResponse?.item_type === "single_select"
+                  ? savedResponse.selected_option_id === option.option_id
+                  : savedResponse?.item_type === "multiple_select"
+                    ? savedResponse.selected_option_ids.includes(option.option_id)
+                    : false
+              }
               disabled={disabled}
               name={item.item_id}
               type={item.item_type === "single_select" ? "radio" : "checkbox"}
@@ -265,6 +303,110 @@ function ResultPanel({
   );
 }
 
+function ReviewTargets({ progress }: { progress: PracticeProgress }) {
+  if (progress.review_targets.length === 0) {
+    return null;
+  }
+  return (
+    <section aria-labelledby="practice-review-title" className="practice-review">
+      <h2 id="practice-review-title">Review before another attempt</h2>
+      <p>
+        These lessons match the review material named by your latest saved
+        result. They are not personalized recommendations.
+      </p>
+      <ul>
+        {progress.review_targets.map((target) => (
+          <li key={target.resource_id}>
+            {target.state === "available" ? (
+              <a
+                href={`/learn/placements/${encodeURIComponent(target.destination.placement_id)}`}
+              >
+                Open {target.resource_title}
+              </a>
+            ) : (
+              <span>
+                {target.resource_title} is not available in this learning path.
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function AttemptHistory({
+  practice,
+  progress,
+}: {
+  practice: PracticePresentation;
+  progress: PracticeProgress;
+}) {
+  const attempts = progress.history.attempts;
+  return (
+    <section aria-labelledby="practice-history-title" className="practice-history">
+      <h2 id="practice-history-title">Your saved attempts</h2>
+      {attempts.length === 0 ? (
+        <p>No completed attempts are saved yet.</p>
+      ) : (
+        <ol>
+          {attempts.map((attempt) => (
+            <li key={attempt.attempt_id}>
+              <article>
+                <h3>Attempt {attempt.attempt_order}</h3>
+                <dl className="practice-history-summary">
+                  <div>
+                    <dt>Score</dt>
+                    <dd>{attempt.score} of {attempt.max_score}</dd>
+                  </div>
+                  <div>
+                    <dt>Result</dt>
+                    <dd>
+                      {attempt.outcome === "all_correct"
+                        ? "All answers correct"
+                        : "Review needed"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Saved</dt>
+                    <dd>
+                      <time dateTime={attempt.completed_at}>
+                        {DATE_TIME_FORMAT.format(new Date(attempt.completed_at))} UTC
+                      </time>
+                    </dd>
+                  </div>
+                </dl>
+                <ul className="practice-history-items">
+                  {attempt.item_summaries.map((summary, index) => (
+                    <li key={summary.item_id}>
+                      Question {index + 1}: {summary.correct ? "Correct" : "Review needed"}
+                    </li>
+                  ))}
+                </ul>
+                <details>
+                  <summary>Technical record for attempt {attempt.attempt_order}</summary>
+                  <dl>
+                    <div><dt>Attempt reference</dt><dd><code>{attempt.attempt_id}</code></dd></div>
+                    <div><dt>Evidence reference</dt><dd><code>{attempt.evidence_id}</code></dd></div>
+                    <div><dt>Event reference</dt><dd><code>{attempt.event_id}</code></dd></div>
+                    <div><dt>Submission reference</dt><dd><code>{attempt.submission_id}</code></dd></div>
+                    <div><dt>Evidence-source integrity code</dt><dd><code>{progress.history.source_digest}</code></dd></div>
+                    <div><dt>Practice activity</dt><dd>{practice.practice_id} version {practice.practice_version}</dd></div>
+                  </dl>
+                </details>
+              </article>
+            </li>
+          ))}
+        </ol>
+      )}
+      <p>
+        These records show results for this practice activity. They do not show
+        mastery, certification, investment suitability, or investment advice.
+      </p>
+    </section>
+  );
+}
+
 function statusMessage(status: SubmissionViewState["status"]): {
   title: string;
   body: string;
@@ -284,7 +426,9 @@ function statusMessage(status: SubmissionViewState["status"]): {
     case "conflict":
       return { title: "These answers don't match the first request", body: "No duplicate result was recorded. Reload the activity before continuing." };
     case "already-completed":
-      return { title: "A completed attempt is already saved", body: "No second result was recorded. Additional attempts and earlier-attempt review will be added in a later step." };
+      return { title: "A completed attempt is already saved", body: "No duplicate result was recorded. Reload this activity to see your saved attempts and current retry status." };
+    case "attempt-limit":
+      return { title: "No attempts remain", body: "No new result was recorded. Your earlier attempts are still available below." };
     case "unavailable":
       return { title: "We couldn't confirm the saved result", body: "Try again. We will reuse the same answers and submission reference to avoid a duplicate result." };
     case "invalid-result":
@@ -296,20 +440,74 @@ function statusMessage(status: SubmissionViewState["status"]): {
   }
 }
 
+function draftStatusMessage(status: DraftViewState["status"]): {
+  title: string;
+  body: string;
+} | null {
+  switch (status) {
+    case "invalid-input":
+      return { title: "Check this answer", body: "Correct the answer format before saving your progress." };
+    case "saved":
+      return { title: "Progress saved", body: "You can leave this activity and continue these answers later." };
+    case "invalid-request":
+      return { title: "We couldn't save this progress", body: "Reload the activity before trying again. Your saved progress was not replaced." };
+    case "unauthorized":
+      return { title: "Your learner session ended", body: "We couldn't save this progress. Reload the activity to start a new session." };
+    case "forbidden":
+      return { title: "You don't have access to save this progress", body: "Your saved progress was not changed." };
+    case "not-found":
+      return { title: "This activity is no longer available", body: "Your saved progress was not changed. Return to your learning path." };
+    case "conflict":
+      return { title: "Newer progress is already saved", body: "We did not replace it. Reload the activity to continue from the latest saved answers." };
+    case "unavailable":
+      return { title: "We couldn't confirm the save", body: "Your progress may have been saved. Try the same save again, or reload before changing these answers." };
+    case "invalid-result":
+      return { title: "We couldn't safely confirm the save", body: "We did not show partial save details. Reload the activity before continuing." };
+    case "unexpected":
+      return { title: "We couldn't finish saving", body: "Your progress may have been saved. Reload the activity before continuing." };
+    default:
+      return null;
+  }
+}
+
 export function PracticeActivityPage({
   practice,
+  progress: initialProgress,
+  readProgress,
+  saveDraft,
   submitPractice,
 }: {
   practice: PracticePresentation;
+  progress: PracticeProgress;
+  readProgress: PracticeProgressReader;
+  saveDraft: PracticeDraftSaver;
   submitPractice: PracticeSubmitter;
 }) {
+  const [progress, setProgress] = useState(initialProgress);
+  const [resumeDraft, setResumeDraft] = useState(initialProgress.draft);
+  const [formKey, setFormKey] = useState(0);
   const [prepared, setPrepared] = useState<PreparedPracticeSubmission | null>(null);
   const [submission, setSubmission] = useState<SubmissionViewState>({ status: "idle" });
+  const [draft, setDraft] = useState<DraftViewState>({ status: "idle" });
+  const [progressRefresh, setProgressRefresh] =
+    useState<ProgressRefreshState>("idle");
+  const formRef = useRef<HTMLFormElement | null>(null);
   const statusRef = useRef<HTMLElement | null>(null);
-  const inFlight = useRef(false);
-  const abortController = useRef<AbortController | null>(null);
+  const draftStatusRef = useRef<HTMLElement | null>(null);
+  const submissionInFlight = useRef(false);
+  const draftInFlight = useRef(false);
+  const submitAbortController = useRef<AbortController | null>(null);
+  const draftAbortController = useRef<AbortController | null>(null);
+  const progressAbortController = useRef<AbortController | null>(null);
 
-  useEffect(() => () => abortController.current?.abort(), []);
+  useEffect(
+    () => () => {
+      submitAbortController.current?.abort();
+      draftAbortController.current?.abort();
+      progressAbortController.current?.abort();
+    },
+    [],
+  );
   useEffect(() => {
     if (
       submission.status !== "idle" &&
@@ -319,27 +517,104 @@ export function PracticeActivityPage({
       statusRef.current?.focus();
     }
   }, [submission.status]);
+  useEffect(() => {
+    if (
+      draft.status !== "idle" &&
+      draft.status !== "saving" &&
+      draft.status !== "invalid-input"
+    ) {
+      draftStatusRef.current?.focus();
+    }
+  }, [draft.status]);
+
+  async function refreshProgress(options?: { restoreDraft?: boolean }) {
+    progressAbortController.current?.abort();
+    const controller = new AbortController();
+    progressAbortController.current = controller;
+    setProgressRefresh("loading");
+    try {
+      const outcome = await readProgress(practice, controller.signal);
+      if (controller.signal.aborted) {
+        return false;
+      }
+      if (outcome.status !== "progress") {
+        setProgressRefresh("unavailable");
+        return false;
+      }
+      setProgress(outcome.progress);
+      if (options?.restoreDraft) {
+        setResumeDraft(outcome.progress.draft);
+        setPrepared(null);
+        setSubmission({ status: "idle" });
+        setDraft({ status: "idle" });
+        setFormKey((value) => value + 1);
+      }
+      setProgressRefresh("idle");
+      return true;
+    } catch {
+      if (!controller.signal.aborted) {
+        setProgressRefresh("unavailable");
+      }
+      return false;
+    }
+  }
 
   async function send(value: PreparedPracticeSubmission) {
-    if (inFlight.current) {
+    if (submissionInFlight.current) {
       return;
     }
-    inFlight.current = true;
-    abortController.current?.abort();
+    submissionInFlight.current = true;
+    submitAbortController.current?.abort();
     const controller = new AbortController();
-    abortController.current = controller;
+    submitAbortController.current = controller;
     setSubmission({ status: "submitting" });
     try {
       const outcome = await submitPractice(practice, value, controller.signal);
       if (!controller.signal.aborted) {
         setSubmission(outcome);
+        if (outcome.status === "result") {
+          setResumeDraft(null);
+          await refreshProgress();
+        }
       }
     } catch {
       if (!controller.signal.aborted) {
         setSubmission({ status: "unexpected" });
       }
     } finally {
-      inFlight.current = false;
+      submissionInFlight.current = false;
+    }
+  }
+
+  async function savePreparedDraft(value: PreparedPracticeDraftSave) {
+    if (draftInFlight.current) {
+      return;
+    }
+    draftInFlight.current = true;
+    draftAbortController.current?.abort();
+    const controller = new AbortController();
+    draftAbortController.current = controller;
+    setDraft({ status: "saving" });
+    try {
+      const outcome = await saveDraft(practice, value, controller.signal);
+      if (controller.signal.aborted) {
+        return;
+      }
+      if (outcome.status === "saved") {
+        setProgress((current) => ({ ...current, draft: outcome.draft }));
+        setResumeDraft(outcome.draft);
+        setDraft({ status: "saved", draft: outcome.draft });
+      } else if (outcome.status === "unavailable") {
+        setDraft({ status: "unavailable", prepared: value });
+      } else {
+        setDraft(outcome);
+      }
+    } catch {
+      if (!controller.signal.aborted) {
+        setDraft({ status: "unexpected" });
+      }
+    } finally {
+      draftInFlight.current = false;
     }
   }
 
@@ -357,8 +632,51 @@ export function PracticeActivityPage({
     }
   }
 
-  const locked = prepared !== null;
+  function saveCurrentProgress() {
+    const form = formRef.current;
+    if (form === null || prepared !== null || !progress.retry_state.can_retry) {
+      return;
+    }
+    const preparation = preparePracticeDraftSave(
+      practice,
+      new FormData(form),
+      progress.draft?.revision ?? 0,
+    );
+    if (preparation.status === "invalid") {
+      setDraft({ status: "invalid-input", itemId: preparation.itemId });
+      focusItem(preparation.itemId, form);
+      return;
+    }
+    void savePreparedDraft(preparation.save);
+  }
+
+  function beginAnotherAttempt() {
+    if (!progress.retry_state.can_retry) {
+      return;
+    }
+    setPrepared(null);
+    setSubmission({ status: "idle" });
+    setDraft({ status: "idle" });
+    setResumeDraft(null);
+    setFormKey((value) => value + 1);
+    requestAnimationFrame(() => {
+      const first = formRef.current?.elements.namedItem(
+        practice.items[0]?.item_id ?? "",
+      );
+      if (first instanceof HTMLElement) {
+        first.focus();
+      } else if (first instanceof RadioNodeList) {
+        const control = first.item(0);
+        if (control instanceof HTMLElement) {
+          control.focus();
+        }
+      }
+    });
+  }
+
+  const locked = prepared !== null || !progress.retry_state.can_retry;
   const message = statusMessage(submission.status);
+  const draftMessage = draftStatusMessage(draft.status);
 
   return (
     <div className="practice-layout">
@@ -374,20 +692,35 @@ export function PracticeActivityPage({
         </header>
 
         <section aria-labelledby="practice-response-status" className="practice-notice">
-          <h2 id="practice-response-status">Answer every question</h2>
-          <p>Check your answers when you are ready. This step saves your first completed attempt.</p>
+          <h2 id="practice-response-status">
+            {progress.retry_state.can_retry
+              ? resumeDraft
+                ? "Continue your saved answers"
+                : "Answer every question"
+              : "All attempts are complete"}
+          </h2>
+          <p>
+            {progress.retry_state.can_retry
+              ? "Save partial answers to continue later, or check every answer when you are ready."
+              : "Review your saved attempts and learning material below."}
+          </p>
         </section>
 
         <form
+          key={formKey}
           noValidate
+          ref={formRef}
           onChange={() => {
             if (submission.status === "invalid-input") {
               setSubmission({ status: "idle" });
             }
+            if (draft.status === "invalid-input" || draft.status === "saved") {
+              setDraft({ status: "idle" });
+            }
           }}
           onSubmit={(event) => {
             event.preventDefault();
-            if (locked || inFlight.current) {
+            if (locked || submissionInFlight.current) {
               return;
             }
             const preparation = preparePracticeSubmission(
@@ -414,20 +747,70 @@ export function PracticeActivityPage({
                   invalid={submission.status === "invalid-input" && submission.itemId === item.item_id}
                   item={item}
                   key={item.item_id}
+                  savedResponse={savedResponseForItem(resumeDraft, item.item_id)}
                 />
               ))}
             </div>
           </section>
           {!locked ? (
-            <button className="button practice-submit" type="submit">Check answers</button>
+            <div className="practice-actions">
+              <button
+                className="button button--secondary"
+                disabled={draft.status === "saving"}
+                onClick={saveCurrentProgress}
+                type="button"
+              >
+                Save progress
+              </button>
+              <button className="button practice-submit" type="submit">Check answers</button>
+            </div>
           ) : null}
         </form>
+
+        <div aria-atomic="true" aria-live="polite" className="practice-draft-status">
+          {draft.status === "saving" ? <p role="status">Saving your progress…</p> : null}
+          {draftMessage ? (
+            <section
+              className={draft.status === "saved" ? "practice-save-confirmation" : "practice-submission-error"}
+              ref={(element) => { draftStatusRef.current = element; }}
+              role={draft.status === "saved" ? "status" : "alert"}
+              tabIndex={-1}
+            >
+              <h2>{draftMessage.title}</h2>
+              <p>{draftMessage.body}</p>
+              {draft.status === "saved" ? (
+                <p>
+                  Saved <time dateTime={draft.draft.saved_at}>{DATE_TIME_FORMAT.format(new Date(draft.draft.saved_at))} UTC</time>
+                </p>
+              ) : null}
+              {draft.status === "unavailable" ? (
+                <button className="button button--secondary" onClick={() => void savePreparedDraft(draft.prepared)} type="button">
+                  Try same save again
+                </button>
+              ) : null}
+              {draft.status === "conflict" ? (
+                <button className="button button--secondary" onClick={() => void refreshProgress({ restoreDraft: true })} type="button">
+                  Load saved progress
+                </button>
+              ) : null}
+            </section>
+          ) : null}
+        </div>
 
         <div aria-atomic="true" aria-live="polite" className="practice-submission-status">
           {submission.status === "submitting" ? <p role="status">Checking your answers…</p> : null}
           {submission.status === "result" ? (
             <div ref={(element) => { statusRef.current = element; }} tabIndex={-1}>
               <ResultPanel practice={practice} result={submission.result} />
+              {progressRefresh === "loading" ? <p role="status">Updating your saved attempts…</p> : null}
+              {progressRefresh === "unavailable" ? (
+                <p>Reload this activity to see the latest saved attempt and retry status.</p>
+              ) : null}
+              {progressRefresh === "idle" && progress.retry_state.can_retry ? (
+                <button className="button" onClick={beginAnotherAttempt} type="button">
+                  Try another attempt
+                </button>
+              ) : null}
             </div>
           ) : null}
           {message ? (
@@ -447,6 +830,9 @@ export function PracticeActivityPage({
             </section>
           ) : null}
         </div>
+
+        <ReviewTargets progress={progress} />
+        <AttemptHistory practice={practice} progress={progress} />
 
         <section aria-labelledby="practice-resources" className="practice-resources">
           <h2 id="practice-resources">Learning and review material</h2>
@@ -469,9 +855,21 @@ export function PracticeActivityPage({
             <Icon className="faa-icon--success" name="shield-check" />
             How attempts work now
           </h2>
-          <p>This page can save your first completed attempt.</p>
-          <p>The lesson version allows up to {practice.attempt_policy.max_attempts} attempts.</p>
-          <p>Additional attempts, pause-and-return, and earlier-attempt review will be added in a later step.</p>
+          <p>
+            {progress.retry_state.attempts_used} of {progress.retry_state.max_attempts} attempts completed.
+          </p>
+          <p>
+            {progress.retry_state.attempts_remaining === 1
+              ? "1 attempt remains."
+              : `${progress.retry_state.attempts_remaining} attempts remain.`}
+          </p>
+          {progress.draft ? (
+            <p>
+              Saved progress is available from <time dateTime={progress.draft.saved_at}>{DATE_TIME_FORMAT.format(new Date(progress.draft.saved_at))} UTC</time>.
+            </p>
+          ) : (
+            <p>No partial answers are currently saved.</p>
+          )}
         </section>
         <section aria-labelledby="practice-evidence" className="context-card">
           <h2 id="practice-evidence">Activity details</h2>

@@ -35,6 +35,8 @@ import {
 import {
   createPracticeActivityLoader,
   createPracticeActivitySubmitter,
+  createPracticeDraftSaver,
+  createPracticeProgressReader,
 } from "../features/practice-activity/api";
 import {
   PracticeActivityLoadingState,
@@ -55,6 +57,8 @@ const learningOpportunityComparisonLoader =
 const lessonLoader = createLessonLoader(client, session);
 const practiceActivityLoader = createPracticeActivityLoader(client, session);
 const practiceActivitySubmitter = createPracticeActivitySubmitter(client, session);
+const practiceDraftSaver = createPracticeDraftSaver(client, session);
+const practiceProgressReader = createPracticeProgressReader(client, session);
 const curriculumGraphLoader = createCurriculumGraphLoader(client, session);
 const curriculumActivityLauncher = createCurriculumActivityLauncher(
   client,
@@ -68,7 +72,13 @@ function CurriculumGraphRouteWithDependencies() {
 }
 
 function PracticeActivityRouteWithDependencies() {
-  return <PracticeActivityRoute submitPractice={practiceActivitySubmitter} />;
+  return (
+    <PracticeActivityRoute
+      readProgress={practiceProgressReader}
+      saveDraft={practiceDraftSaver}
+      submitPractice={practiceActivitySubmitter}
+    />
+  );
 }
 
 function UnexpectedRouteError() {

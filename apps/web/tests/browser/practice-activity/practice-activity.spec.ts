@@ -4,8 +4,10 @@ import type { Page, Route } from "@playwright/test";
 
 import {
   practiceFixture,
+  practiceProgressFixture,
   practiceResultFixture,
 } from "../../component/practiceFixture";
+import type { PracticeProgress } from "../../../src/features/practice-activity/model";
 
 
 const PRACTICE_PATH = "/learn/placements/intro-risk-return-primary/practice";
@@ -13,6 +15,10 @@ const SESSION_PATTERN = "**/api/v1/session/single-profile";
 const PRACTICE_PATTERN = "**/api/v1/curriculum/placements/*/practice";
 const SUBMISSION_PATTERN =
   "**/api/v1/curriculum/placements/*/practice/submissions";
+const PROGRESS_PATTERN =
+  "**/api/v1/curriculum/placements/*/practice/progress";
+const DRAFT_PATTERN =
+  "**/api/v1/curriculum/placements/*/practice/draft";
 
 function json(route: Route, status: number, body: unknown) {
   return route.fulfill({
@@ -25,6 +31,20 @@ function json(route: Route, status: number, body: unknown) {
 async function mockReadyPractice(
   page: Page,
   practice: unknown = practiceFixture,
+  progress: unknown = {
+    ...structuredClone(practiceProgressFixture),
+    draft: null,
+    retry_state: {
+      ...structuredClone(practiceProgressFixture.retry_state),
+      attempts_used: 0,
+      attempts_remaining: 3,
+    },
+    history: {
+      ...structuredClone(practiceProgressFixture.history),
+      attempts: [],
+    },
+    review_targets: [],
+  },
 ) {
   await page.route(SESSION_PATTERN, (route) =>
     json(route, 201, {
@@ -34,6 +54,17 @@ async function mockReadyPractice(
     }),
   );
   await page.route(PRACTICE_PATTERN, (route) => json(route, 200, practice));
+  await page.route(PROGRESS_PATTERN, (route) => json(route, 200, progress));
+  await page.route(DRAFT_PATTERN, (route) => {
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    return json(route, 200, {
+      ...body,
+      expected_revision: undefined,
+      revision: Number(body.expected_revision) + 1,
+      saved_at: "2026-10-16T17:00:00Z",
+      response_fingerprint: "e".repeat(64),
+    });
+  });
 }
 
 async function answerEveryQuestion(page: Page) {
@@ -129,6 +160,88 @@ test("requires a complete response and focuses the first question", async ({ pag
   expect(submitted).toBe(false);
 });
 
+test("resumes, saves, reviews, and compares through the public progress API", async ({
+  page,
+}) => {
+  let savedBody: Record<string, unknown> | null = null;
+  await mockReadyPractice(page, practiceFixture, practiceProgressFixture);
+  await page.unroute(DRAFT_PATTERN);
+  await page.route(DRAFT_PATTERN, (route) => {
+    savedBody = route.request().postDataJSON() as Record<string, unknown>;
+    const { expected_revision: expectedRevision, ...scope } = savedBody;
+    return json(route, 200, {
+      ...scope,
+      revision: Number(expectedRevision) + 1,
+      saved_at: "2026-10-16T17:00:00Z",
+      response_fingerprint: "e".repeat(64),
+    });
+  });
+
+  await page.goto(PRACTICE_PATH);
+
+  await expect(page.getByRole("radio", { name: /Outcomes can differ/i })).toBeChecked();
+  await expect(page.getByLabel("Your answer (percent)")).toHaveValue("4.50");
+  await expect(page.getByRole("heading", { name: "Attempt 1" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open Review risk and return" })).toHaveAttribute(
+    "href",
+    "/learn/placements/intro-risk-return-primary",
+  );
+
+  await page.getByRole("button", { name: "Save progress" }).click();
+  await expect(page.getByRole("heading", { name: "Progress saved" })).toBeVisible();
+  expect(savedBody).not.toBeNull();
+  expect(savedBody).toMatchObject({
+    expected_revision: 1,
+    placement_id: practiceFixture.placement_id,
+  });
+  expect(savedBody).not.toHaveProperty("learner_id");
+  const capturedSave = savedBody as unknown as { responses: unknown[] };
+  expect(capturedSave.responses).toHaveLength(2);
+
+  await page.getByText("Technical record for attempt 1").click();
+  await expect(page.getByText(practiceProgressFixture.history.attempts[0]!.evidence_id)).toBeVisible();
+  await expect(page.getByText("answer key", { exact: false })).toHaveCount(0);
+});
+
+test("shows retained history without mutation controls when attempts are exhausted", async ({
+  page,
+}) => {
+  const exhausted: PracticeProgress = {
+    ...structuredClone(practiceProgressFixture),
+    draft: null,
+    retry_state: {
+      ...structuredClone(practiceProgressFixture.retry_state),
+      attempts_used: 3,
+      attempts_remaining: 0,
+      can_retry: false,
+      state: "exhausted",
+    },
+  };
+  await mockReadyPractice(page, practiceFixture, exhausted);
+
+  await page.goto(PRACTICE_PATH);
+
+  await expect(page.getByRole("heading", { name: "All attempts are complete" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save progress" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Check answers" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Attempt 1" })).toBeVisible();
+});
+
+test("fails the whole opening closed when progress includes private authority", async ({
+  page,
+}) => {
+  await mockReadyPractice(page, practiceFixture, {
+    ...structuredClone(practiceProgressFixture),
+    learner_id: "private-learner",
+  });
+
+  await page.goto(PRACTICE_PATH);
+
+  await expect(page.getByRole("heading", { name: "We couldn't show this activity safely" })).toBeVisible();
+  await expect(page.getByText("private-learner")).toHaveCount(0);
+  await expect(page.getByText(practiceFixture.title)).toHaveCount(0);
+});
+
 test("retries one exact prepared request after an uncertain failure", async ({ page }) => {
   const bodies: string[] = [];
   await mockReadyPractice(page);
@@ -173,6 +286,9 @@ test("renews an expired session once and keeps the exact submission", async ({ p
     });
   });
   await page.route(PRACTICE_PATTERN, (route) => json(route, 200, practiceFixture));
+  await page.route(PROGRESS_PATTERN, (route) =>
+    json(route, 200, practiceProgressFixture),
+  );
   await page.route(SUBMISSION_PATTERN, (route) => {
     const body = route.request().postData() ?? "";
     bodies.push(body);

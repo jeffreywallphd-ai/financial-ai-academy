@@ -1,7 +1,12 @@
 import { useLoaderData, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
-import type { PracticeActivityRouteState, PracticeSubmitter } from "./model";
+import type {
+  PracticeActivityRouteState,
+  PracticeDraftSaver,
+  PracticeProgressReader,
+  PracticeSubmitter,
+} from "./model";
 import { PracticeActivityPage } from "./PracticeActivityPage";
 
 
@@ -24,10 +29,14 @@ export function PracticeActivityLoadingState() {
 
 export function PracticeActivityRouteView({
   onRetry,
+  readProgress,
+  saveDraft,
   state,
   submitPractice,
 }: {
   onRetry: () => void;
+  readProgress: PracticeProgressReader;
+  saveDraft: PracticeDraftSaver;
   state: PracticeActivityRouteState;
   submitPractice: PracticeSubmitter;
 }) {
@@ -38,6 +47,9 @@ export function PracticeActivityRouteView({
       return (
         <PracticeActivityPage
           practice={state.practice}
+          progress={state.progress}
+          readProgress={readProgress}
+          saveDraft={saveDraft}
           submitPractice={submitPractice}
         />
       );
@@ -105,8 +117,12 @@ export function PracticeActivityRouteView({
 }
 
 export function PracticeActivityRoute({
+  readProgress,
+  saveDraft,
   submitPractice,
 }: {
+  readProgress: PracticeProgressReader;
+  saveDraft: PracticeDraftSaver;
   submitPractice: PracticeSubmitter;
 }) {
   const state = useLoaderData<PracticeActivityRouteState>();
@@ -118,6 +134,8 @@ export function PracticeActivityRoute({
   return (
     <PracticeActivityRouteView
       onRetry={() => revalidator.revalidate()}
+      readProgress={readProgress}
+      saveDraft={saveDraft}
       state={displayedState}
       submitPractice={submitPractice}
     />
