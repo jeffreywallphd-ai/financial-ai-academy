@@ -46,10 +46,11 @@ export function LearningOpportunityDetailPage({
   returnTo: string;
 }) {
   const canOpen = opportunityCanOpen(opportunity);
+  const opportunityKind = label(opportunity.kind);
   return (
     <section className="opportunity-detail">
       <header className="opportunity-detail__header">
-        <p className="eyebrow">Current learning opportunity</p>
+        <p className="eyebrow">Learning opportunity</p>
         <div className="opportunity-detail__badges">
           <span className="catalog-badge">{label(opportunity.kind)}</span>
           <span
@@ -63,29 +64,23 @@ export function LearningOpportunityDetailPage({
         <h1>{opportunity.title}</h1>
         <p>{opportunity.summary}</p>
         <p className="opportunity-detail__context">
-          Catalog updated{" "}
+          Learning library updated{" "}
           <time dateTime={projection.projected_at}>
             {readableDateTime(projection.projected_at)}
           </time>
-          . This view uses current deterministic catalog facts, not a
-          personalized recommendation or eligibility decision.
+          . These are current published details, not a personalized
+          recommendation or a decision about what you can study next.
         </p>
       </header>
 
       <div className="opportunity-detail__layout">
         <div className="opportunity-detail__primary">
           <section className="opportunity-detail__panel">
-            <h2>Opportunity overview</h2>
+            <h2>About this opportunity</h2>
             <dl className="opportunity-detail__facts">
               <div>
-                <dt>Opportunity ID</dt>
-                <dd>
-                  <code>{opportunity.opportunity_id}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Kind</dt>
-                <dd>{label(opportunity.kind)}</dd>
+                <dt>Type</dt>
+                <dd>{opportunityKind}</dd>
               </div>
               <div>
                 <dt>Level</dt>
@@ -103,18 +98,14 @@ export function LearningOpportunityDetailPage({
                 <dd>{opportunity.prerequisite_summary}</dd>
               </div>
               <div>
-                <dt>Exact package</dt>
-                <dd>
-                  <code>
-                    {opportunity.package_id}@{opportunity.package_version}
-                  </code>
-                </dd>
+                <dt>{opportunityKind} version</dt>
+                <dd>{opportunity.package_version}</dd>
               </div>
             </dl>
           </section>
 
           <section className="opportunity-detail__panel">
-            <h2>Topics and learning objectives</h2>
+            <h2>Topics and learning goals</h2>
             <ul
               aria-label={`${opportunity.title} topics`}
               className="catalog-topics"
@@ -123,7 +114,7 @@ export function LearningOpportunityDetailPage({
                 <li key={topic}>{label(topic)}</li>
               ))}
             </ul>
-            <h3>Learning objectives</h3>
+            <h3>What you will learn</h3>
             <ul className="opportunity-detail__objectives">
               {opportunity.objectives.map((objective) => (
                 <li key={objective}>{objective}</li>
@@ -132,7 +123,7 @@ export function LearningOpportunityDetailPage({
           </section>
 
           <section className="opportunity-detail__panel">
-            <h2>Publication and provenance</h2>
+            <h2>Publication details</h2>
             <p>
               Published by {opportunity.provenance.published_by} on{" "}
               <time dateTime={opportunity.provenance.published_at}>
@@ -145,32 +136,49 @@ export function LearningOpportunityDetailPage({
               .
             </p>
             <p>{opportunity.provenance.educational_use_notice}</p>
-            <dl className="opportunity-detail__technical">
-              <div>
-                <dt>Package digest</dt>
-                <dd>
-                  <code>{opportunity.package_digest}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Source fingerprint</dt>
-                <dd>
-                  <code>{opportunity.source_fingerprint}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Projection generation</dt>
-                <dd>
-                  <code>{projection.projection_generation}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Discovery schema</dt>
-                <dd>
-                  <code>{projection.schema_version}</code>
-                </dd>
-              </div>
-            </dl>
+            <details>
+              <summary>Technical record</summary>
+              <dl className="opportunity-detail__technical">
+                <div>
+                  <dt>Opportunity ID</dt>
+                  <dd>
+                    <code>{opportunity.opportunity_id}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>{opportunityKind} package</dt>
+                  <dd>
+                    <code>
+                      {opportunity.package_id}@{opportunity.package_version}
+                    </code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Package digest</dt>
+                  <dd>
+                    <code>{opportunity.package_digest}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Source fingerprint</dt>
+                  <dd>
+                    <code>{opportunity.source_fingerprint}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Library record generation</dt>
+                  <dd>
+                    <code>{projection.projection_generation}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Discovery schema</dt>
+                  <dd>
+                    <code>{projection.schema_version}</code>
+                  </dd>
+                </div>
+              </dl>
+            </details>
           </section>
         </div>
 
@@ -192,11 +200,11 @@ export function LearningOpportunityDetailPage({
                   to={opportunity.destination}
                 >
                   <Icon name="learn" />
-                  Open exact lesson
+                  Open lesson
                 </Link>
               ) : null}
               <Link className="button button--secondary" to={returnTo}>
-                Return to catalog
+                Return to learning library
               </Link>
             </div>
           </section>

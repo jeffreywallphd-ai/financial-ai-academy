@@ -434,6 +434,19 @@
   color: var(--faa-color-text-secondary);
 }
 
+.opportunity-detail__panel details summary,
+.opportunity-comparison details summary {
+  min-height: var(--faa-target-min);
+  color: var(--faa-color-link);
+  cursor: pointer;
+}
+
+.opportunity-detail__panel details[open],
+.opportunity-comparison details[open] {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
 .opportunity-detail__facts,
 .opportunity-detail__technical {
   display: grid;

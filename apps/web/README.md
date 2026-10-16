@@ -88,7 +88,10 @@ the complete current queryless discovery snapshot passes envelope, record,
 fingerprint, order, and generation validation. It presents exact
 classification, topics, objectives, level, duration, prerequisites,
 availability, package identity/digest, publication facts, source fingerprint,
-and projection context. A cursor-free, same-origin `/learn` return reference
+and projection context. Primary headings, labels, loading states, failures, and
+actions use learner-focused language; package identity, digests, fingerprints,
+generation, and schema remain complete under the accessible `Technical record`.
+A cursor-free, same-origin `/learn` return reference
 may preserve canonical query state. Only a validated available lesson exposes
 its exact placement destination; malformed, changed, denied, unavailable, or
 invalid responses show bounded states without partial or substituted facts.
@@ -98,10 +101,12 @@ opportunity identities, resolves them only after the complete current queryless
 snapshot passes validation, and presents exact educational, availability,
 package, publication, and provenance facts in learner selection order. It does
 not score, rank, recommend a winner, infer eligibility, or retain a saved
-comparison. A missing current identity fails the whole view rather than showing
-partial records. Every record keeps its detail link; only a validated available
-lesson exposes its exact placement destination. The return reference preserves
-canonical `/learn` query state without a transient cursor.
+comparison. Learner-facing comparison and recovery language stays task-focused,
+while exact package and projection facts remain reachable in accessible
+`Technical record` disclosures. A missing current identity fails the whole view
+rather than showing partial records. Every record keeps its detail link; only a
+validated available lesson exposes its exact placement destination. The return
+reference preserves canonical `/learn` query state without a transient cursor.
 
 `/learn/curricula/:curriculumId/versions/:curriculumVersion` opens one exact
 approved curriculum graph. Its accessible list view is the default; a peer map

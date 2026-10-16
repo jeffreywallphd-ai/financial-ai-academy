@@ -20,12 +20,9 @@ export function LearningOpportunityDetailLoadingState() {
       className="catalog-loading"
       role="status"
     >
-      <p className="eyebrow">Current learning opportunity</p>
-      <h1>Loading opportunity details</h1>
-      <p>
-        Establishing the private learner session and checking the current
-        catalog generation.
-      </p>
+      <p className="eyebrow">Learning opportunity</p>
+      <h1>Loading this opportunity</h1>
+      <p>Starting your learner session and checking the current details.</p>
       <div aria-hidden="true" className="loading-placeholder" />
       <span className="visually-hidden">Opportunity loading in progress.</span>
     </section>
@@ -53,11 +50,11 @@ export function LearningOpportunityDetailRouteView({
       ) {
         return (
           <StatusPanel
-            actionLabel="Return to catalog"
-            description="The selected opportunity did not have a valid detail shape, so no partial record was displayed."
+            actionLabel="Return to learning library"
+            description="We couldn't safely show this opportunity. No incomplete details were shown."
             icon="error-circle"
             onAction={onReturn}
-            title="Opportunity response unavailable"
+            title="We couldn't show this opportunity"
             tone="danger"
           />
         );
@@ -73,22 +70,22 @@ export function LearningOpportunityDetailRouteView({
     case "invalid-selection":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="The opportunity link is not valid. No catalog record or client-supplied detail was displayed."
+          actionLabel="Return to learning library"
+          description="This link doesn't identify a learning opportunity. No learning details were shown."
           icon="info-circle"
           onAction={onReturn}
-          title="Opportunity link unavailable"
+          title="This opportunity link isn't available"
           tone="info"
         />
       );
     case "selection-changed":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="This opportunity is not in the current catalog generation. A different or partial record was not substituted."
+          actionLabel="Return to learning library"
+          description="This opportunity is no longer in the current learning library. No replacement or incomplete details were shown."
           icon="info-circle"
           onAction={onReturn}
-          title="Opportunity changed"
+          title="This opportunity has changed"
           tone="info"
         />
       );
@@ -96,21 +93,21 @@ export function LearningOpportunityDetailRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="A private learner session could not be established. No opportunity details were shown."
+          description="We couldn't start your learner session. No private learning details were shown."
           icon="lock"
           onAction={onRetry}
-          title="Learner session required"
+          title="We couldn't start your learner session"
           tone="warning"
         />
       );
     case "forbidden":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="This local learner profile is not permitted to inspect the selected opportunity."
+          actionLabel="Return to learning library"
+          description="Your learner profile can't open these details. Return to the learning library to choose another opportunity."
           icon="lock"
           onAction={onReturn}
-          title="Opportunity access unavailable"
+          title="You can't open this opportunity"
           tone="warning"
         />
       );
@@ -118,21 +115,21 @@ export function LearningOpportunityDetailRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The current opportunity could not be loaded right now. No stale or partial record was displayed."
+          description="We couldn't load this opportunity. No old or incomplete details were shown. Try again."
           icon="warning-triangle"
           onAction={onRetry}
-          title="Opportunity temporarily unavailable"
+          title="Opportunity details are unavailable"
           tone="warning"
         />
       );
     case "invalid-response":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="The catalog response did not pass its safety checks, so no partial opportunity was displayed."
+          actionLabel="Return to learning library"
+          description="We couldn't safely show these opportunity details. No incomplete details were shown."
           icon="error-circle"
           onAction={onReturn}
-          title="Opportunity response unavailable"
+          title="We couldn't show this opportunity"
           tone="danger"
         />
       );
@@ -140,7 +137,7 @@ export function LearningOpportunityDetailRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The opportunity could not be completed safely. No technical or private details were displayed."
+          description="We couldn't load this opportunity. No technical or private details were shown. Try again."
           icon="error-circle"
           onAction={onRetry}
           title="Something went wrong"

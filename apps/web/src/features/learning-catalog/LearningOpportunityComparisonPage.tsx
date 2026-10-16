@@ -46,6 +46,7 @@ function ComparisonCard({
   returnTo: string;
 }) {
   const canOpen = opportunityCanOpen(opportunity);
+  const opportunityKind = label(opportunity.kind);
   const detailParameters = new URLSearchParams({ return_to: returnTo });
   return (
     <article className="opportunity-comparison__card">
@@ -53,9 +54,7 @@ function ComparisonCard({
       <div className="opportunity-detail__badges">
         <span className="catalog-badge">{label(opportunity.kind)}</span>
         <span
-          className={
-            "catalog-badge catalog-badge--" + opportunity.availability
-          }
+          className={"catalog-badge catalog-badge--" + opportunity.availability}
         >
           {label(opportunity.availability)}
         </span>
@@ -66,12 +65,6 @@ function ComparisonCard({
       <section>
         <h3>Educational facts</h3>
         <dl className="opportunity-comparison__facts">
-          <div>
-            <dt>Opportunity ID</dt>
-            <dd>
-              <code>{opportunity.opportunity_id}</code>
-            </dd>
-          </div>
           <div>
             <dt>Level</dt>
             <dd>{label(opportunity.level)}</dd>
@@ -88,18 +81,14 @@ function ComparisonCard({
             <dd>{opportunity.prerequisite_summary}</dd>
           </div>
           <div>
-            <dt>Exact package</dt>
-            <dd>
-              <code>
-                {opportunity.package_id}@{opportunity.package_version}
-              </code>
-            </dd>
+            <dt>{opportunityKind} version</dt>
+            <dd>{opportunity.package_version}</dd>
           </div>
         </dl>
       </section>
 
       <section>
-        <h3>Topics and learning objectives</h3>
+        <h3>Topics and learning goals</h3>
         <ul
           aria-label={`${opportunity.title} topics`}
           className="catalog-topics"
@@ -116,7 +105,7 @@ function ComparisonCard({
       </section>
 
       <section>
-        <h3>Publication and provenance</h3>
+        <h3>Publication details</h3>
         <p>
           Published by {opportunity.provenance.published_by} on{" "}
           <time dateTime={opportunity.provenance.published_at}>
@@ -129,20 +118,37 @@ function ComparisonCard({
           .
         </p>
         <p>{opportunity.provenance.educational_use_notice}</p>
-        <dl className="opportunity-comparison__technical">
-          <div>
-            <dt>Package digest</dt>
-            <dd>
-              <code>{opportunity.package_digest}</code>
-            </dd>
-          </div>
-          <div>
-            <dt>Source fingerprint</dt>
-            <dd>
-              <code>{opportunity.source_fingerprint}</code>
-            </dd>
-          </div>
-        </dl>
+        <details>
+          <summary>Technical record</summary>
+          <dl className="opportunity-comparison__technical">
+            <div>
+              <dt>Opportunity ID</dt>
+              <dd>
+                <code>{opportunity.opportunity_id}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>{opportunityKind} package</dt>
+              <dd>
+                <code>
+                  {opportunity.package_id}@{opportunity.package_version}
+                </code>
+              </dd>
+            </div>
+            <div>
+              <dt>Package digest</dt>
+              <dd>
+                <code>{opportunity.package_digest}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Source fingerprint</dt>
+              <dd>
+                <code>{opportunity.source_fingerprint}</code>
+              </dd>
+            </div>
+          </dl>
+        </details>
       </section>
 
       <section className="opportunity-comparison__availability">
@@ -161,9 +167,12 @@ function ComparisonCard({
             View details
           </Link>
           {canOpen ? (
-            <Link className="button catalog-open-link" to={opportunity.destination}>
+            <Link
+              className="button catalog-open-link"
+              to={opportunity.destination}
+            >
               <Icon name="learn" />
-              Open exact lesson
+              Open lesson
             </Link>
           ) : null}
         </div>
@@ -184,22 +193,37 @@ export function LearningOpportunityComparisonPage({
   return (
     <section className="opportunity-comparison">
       <header className="opportunity-comparison__header">
-        <p className="eyebrow">Current learning opportunities</p>
-        <h1>Compare educational facts</h1>
+        <p className="eyebrow">Learning opportunities</p>
+        <h1>Compare learning opportunities</h1>
         <p>
-          Review exact current facts in your selection order. This comparison
-          does not rank opportunities, recommend a winner, or decide eligibility.
+          Review current facts in your selection order. This comparison does not
+          rank opportunities, recommend a winner, or decide eligibility.
         </p>
         <p className="opportunity-comparison__context">
-          Catalog updated{" "}
+          Learning library updated{" "}
           <time dateTime={projection.projected_at}>
             {readableDateTime(projection.projected_at)}
           </time>
-          {" · "}Generation <code>{projection.projection_generation}</code>
-          {" · "}Schema <code>{projection.schema_version}</code>
         </p>
+        <details>
+          <summary>Technical record</summary>
+          <dl className="opportunity-comparison__technical">
+            <div>
+              <dt>Library record generation</dt>
+              <dd>
+                <code>{projection.projection_generation}</code>
+              </dd>
+            </div>
+            <div>
+              <dt>Discovery schema</dt>
+              <dd>
+                <code>{projection.schema_version}</code>
+              </dd>
+            </div>
+          </dl>
+        </details>
         <Link className="button button--secondary" to={returnTo}>
-          Return to catalog
+          Return to learning library
         </Link>
       </header>
 

@@ -10,8 +10,7 @@ import { LearningOpportunityComparisonPage } from "./LearningOpportunityComparis
 import type { LearningOpportunitySelectionRouteState } from "./model";
 
 type ComparisonRouteState =
-  | LearningOpportunitySelectionRouteState
-  | { status: "loading" };
+  LearningOpportunitySelectionRouteState | { status: "loading" };
 
 export function LearningOpportunityComparisonLoadingState() {
   return (
@@ -21,12 +20,9 @@ export function LearningOpportunityComparisonLoadingState() {
       className="catalog-loading"
       role="status"
     >
-      <p className="eyebrow">Current learning opportunities</p>
-      <h1>Loading comparison</h1>
-      <p>
-        Establishing the private learner session and checking the complete
-        current catalog generation.
-      </p>
+      <p className="eyebrow">Learning opportunities</p>
+      <h1>Loading your comparison</h1>
+      <p>Starting your learner session and checking the current details.</p>
       <div aria-hidden="true" className="loading-placeholder" />
       <span className="visually-hidden">Comparison loading in progress.</span>
     </section>
@@ -58,11 +54,11 @@ export function LearningOpportunityComparisonRouteView({
       if (!shapeIsValid) {
         return (
           <StatusPanel
-            actionLabel="Return to catalog"
-            description="The selected opportunities did not have a valid comparison shape, so no partial records were displayed."
+            actionLabel="Return to learning library"
+            description="We couldn't safely compare these opportunities. No incomplete details were shown."
             icon="error-circle"
             onAction={onReturn}
-            title="Comparison response unavailable"
+            title="We couldn't show this comparison"
             tone="danger"
           />
         );
@@ -78,22 +74,22 @@ export function LearningOpportunityComparisonRouteView({
     case "invalid-selection":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="Select two through four distinct current opportunities. No catalog record or client-supplied fact was displayed."
+          actionLabel="Return to learning library"
+          description="Choose two to four different opportunities from the current learning library. No learning details were shown."
           icon="info-circle"
           onAction={onReturn}
-          title="Comparison link unavailable"
+          title="This comparison link isn't available"
           tone="info"
         />
       );
     case "selection-changed":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="At least one selection is not in the current catalog generation. A partial comparison was not substituted."
+          actionLabel="Return to learning library"
+          description="At least one selection is no longer in the current learning library. No incomplete comparison was shown."
           icon="info-circle"
           onAction={onReturn}
-          title="Comparison changed"
+          title="Your comparison has changed"
           tone="info"
         />
       );
@@ -101,21 +97,21 @@ export function LearningOpportunityComparisonRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="A private learner session could not be established. No comparison details were shown."
+          description="We couldn't start your learner session. No private learning details were shown."
           icon="lock"
           onAction={onRetry}
-          title="Learner session required"
+          title="We couldn't start your learner session"
           tone="warning"
         />
       );
     case "forbidden":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="This local learner profile is not permitted to compare the selected opportunities."
+          actionLabel="Return to learning library"
+          description="Your learner profile can't compare these opportunities. Return to the learning library to choose others."
           icon="lock"
           onAction={onReturn}
-          title="Comparison access unavailable"
+          title="You can't open this comparison"
           tone="warning"
         />
       );
@@ -123,21 +119,21 @@ export function LearningOpportunityComparisonRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The current comparison could not be loaded right now. No stale or partial records were displayed."
+          description="We couldn't load this comparison. No old or incomplete details were shown. Try again."
           icon="warning-triangle"
           onAction={onRetry}
-          title="Comparison temporarily unavailable"
+          title="Comparison details are unavailable"
           tone="warning"
         />
       );
     case "invalid-response":
       return (
         <StatusPanel
-          actionLabel="Return to catalog"
-          description="The catalog response did not pass its safety checks, so no partial comparison was displayed."
+          actionLabel="Return to learning library"
+          description="We couldn't safely show this comparison. No incomplete details were shown."
           icon="error-circle"
           onAction={onReturn}
-          title="Comparison response unavailable"
+          title="We couldn't show this comparison"
           tone="danger"
         />
       );
@@ -145,7 +141,7 @@ export function LearningOpportunityComparisonRouteView({
       return (
         <StatusPanel
           actionLabel="Try again"
-          description="The comparison could not be completed safely. No technical or private details were displayed."
+          description="We couldn't load this comparison. No technical or private details were shown. Try again."
           icon="error-circle"
           onAction={onRetry}
           title="Something went wrong"

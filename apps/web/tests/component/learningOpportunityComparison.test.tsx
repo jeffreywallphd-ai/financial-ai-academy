@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
@@ -33,7 +34,8 @@ function comparisonState(
 }
 
 describe("LearningOpportunityComparisonPage", () => {
-  it("presents exact records in selection order without ranking or substitution", () => {
+  it("presents records in selection order and keeps exact evidence accessible", async () => {
+    const user = userEvent.setup();
     render(
       <MemoryRouter>
         <LearningOpportunityComparisonPage
@@ -58,6 +60,11 @@ describe("LearningOpportunityComparisonPage", () => {
     expect(within(second).getByRole("heading", { level: 2 })).toHaveTextContent(
       "Cash Flow Basics",
     );
+    expect(within(first).getByText("Project version")).toBeVisible();
+    expect(within(second).getByText("Lesson version")).toBeVisible();
+    const technicalRecords = screen.getAllByText("Technical record");
+    expect(technicalRecords).toHaveLength(3);
+    for (const record of technicalRecords) await user.click(record);
     expect(
       within(first).getByText(plannedOpportunity.package_digest),
     ).toBeVisible();
@@ -65,10 +72,9 @@ describe("LearningOpportunityComparisonPage", () => {
       within(second).getByText(availableOpportunity.source_fingerprint),
     ).toBeVisible();
     expect(screen.getByText(projection.projection_generation)).toBeVisible();
-    expect(screen.getByRole("link", { name: "Return to catalog" })).toHaveAttribute(
-      "href",
-      "/learn?query=project",
-    );
+    expect(
+      screen.getByRole("link", { name: "Return to learning library" }),
+    ).toHaveAttribute("href", "/learn?query=project");
     expect(document.body.textContent).toContain(
       "does not rank opportunities, recommend a winner, or decide eligibility",
     );
@@ -99,10 +105,10 @@ describe("LearningOpportunityComparisonPage", () => {
       "/learn/opportunities/portfolio-project-planned?return_to=%2Flearn",
     );
     expect(
-      within(planned).queryByRole("link", { name: "Open exact lesson" }),
+      within(planned).queryByRole("link", { name: "Open lesson" }),
     ).toBeNull();
     expect(
-      within(available).getByRole("link", { name: "Open exact lesson" }),
+      within(available).getByRole("link", { name: "Open lesson" }),
     ).toHaveAttribute("href", availableOpportunity.destination);
   });
 });
@@ -120,17 +126,26 @@ describe("LearningOpportunityComparisonRouteView", () => {
     );
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Compare educational facts" }),
+      screen.queryByRole("heading", {
+        level: 1,
+        name: "Compare educational facts",
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Compare learning opportunities",
+      }),
     ).toBeVisible();
   });
 
   it.each([
-    ["invalid-selection", "Comparison link unavailable"],
-    ["selection-changed", "Comparison changed"],
-    ["unauthorized", "Learner session required"],
-    ["forbidden", "Comparison access unavailable"],
-    ["unavailable", "Comparison temporarily unavailable"],
-    ["invalid-response", "Comparison response unavailable"],
+    ["invalid-selection", "This comparison link isn't available"],
+    ["selection-changed", "Your comparison has changed"],
+    ["unauthorized", "We couldn't start your learner session"],
+    ["forbidden", "You can't open this comparison"],
+    ["unavailable", "Comparison details are unavailable"],
+    ["invalid-response", "We couldn't show this comparison"],
     ["unexpected", "Something went wrong"],
   ] as const)("renders bounded %s state", (status, heading) => {
     render(
@@ -164,9 +179,26 @@ describe("LearningOpportunityComparisonRouteView", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Comparison response unavailable",
+        name: "We couldn't show this comparison",
       }),
     ).toBeVisible();
     expect(screen.queryByText("Cash Flow Basics")).not.toBeInTheDocument();
+  });
+
+  it("describes loading without implementation vocabulary", () => {
+    render(
+      <LearningOpportunityComparisonRouteView
+        onReturn={vi.fn()}
+        onRetry={vi.fn()}
+        state={{ status: "loading" }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Loading your comparison" }),
+    ).toBeVisible();
+    expect(document.body.textContent).not.toMatch(
+      /establishing|catalog generation|projection|schema/i,
+    );
   });
 });

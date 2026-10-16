@@ -1,4 +1,5 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
@@ -36,12 +37,16 @@ function renderDetail(
 }
 
 describe("LearningOpportunityDetailPage", () => {
-  it("presents exact current facts, provenance, limitations, and destinations", () => {
+  it("presents learner facts and keeps exact evidence in a technical record", async () => {
+    const user = userEvent.setup();
     renderDetail();
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Cash Flow Basics" }),
     ).toBeVisible();
+    expect(screen.getByText("Lesson version")).toBeVisible();
+    expect(screen.getByText("1.2.0")).toBeVisible();
+    await user.click(screen.getByText("Technical record"));
     expect(screen.getByText("cash-flow-basics-primary")).toBeVisible();
     expect(screen.getByText("cash-flow-basics@1.2.0")).toBeVisible();
     expect(screen.getByText(availableOpportunity.package_digest)).toBeVisible();
@@ -57,11 +62,12 @@ describe("LearningOpportunityDetailPage", () => {
     expect(
       screen.getByText(availableOpportunity.availability_reason),
     ).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open lesson" })).toHaveAttribute(
+      "href",
+      availableOpportunity.destination,
+    );
     expect(
-      screen.getByRole("link", { name: "Open exact lesson" }),
-    ).toHaveAttribute("href", availableOpportunity.destination);
-    expect(
-      screen.getByRole("link", { name: "Return to catalog" }),
+      screen.getByRole("link", { name: "Return to learning library" }),
     ).toHaveAttribute("href", "/learn?query=cash");
     expect(document.body.textContent).not.toMatch(/recommended for you/i);
     expect(document.body.textContent).not.toMatch(/eligible/i);
@@ -77,11 +83,12 @@ describe("LearningOpportunityDetailPage", () => {
       within(actions).getByText(plannedOpportunity.availability_reason),
     ).toBeVisible();
     expect(
-      within(actions).queryByRole("link", { name: "Open exact lesson" }),
+      within(actions).queryByRole("link", { name: "Open lesson" }),
     ).toBeNull();
     expect(
-      within(actions).getByRole("link", { name: "Return to catalog" }),
+      within(actions).getByRole("link", { name: "Return to learning library" }),
     ).toHaveAttribute("href", "/learn");
+    expect(screen.getByText("Project version")).toBeVisible();
   });
 });
 
@@ -114,12 +121,12 @@ describe("LearningOpportunityDetailRouteView", () => {
   });
 
   it.each([
-    ["invalid-selection", "Opportunity link unavailable"],
-    ["selection-changed", "Opportunity changed"],
-    ["unauthorized", "Learner session required"],
-    ["forbidden", "Opportunity access unavailable"],
-    ["unavailable", "Opportunity temporarily unavailable"],
-    ["invalid-response", "Opportunity response unavailable"],
+    ["invalid-selection", "This opportunity link isn't available"],
+    ["selection-changed", "This opportunity has changed"],
+    ["unauthorized", "We couldn't start your learner session"],
+    ["forbidden", "You can't open this opportunity"],
+    ["unavailable", "Opportunity details are unavailable"],
+    ["invalid-response", "We couldn't show this opportunity"],
     ["unexpected", "Something went wrong"],
   ] as const)("renders bounded %s state", (status, heading) => {
     render(
@@ -161,9 +168,26 @@ describe("LearningOpportunityDetailRouteView", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Opportunity response unavailable",
+        name: "We couldn't show this opportunity",
       }),
     ).toBeVisible();
     expect(screen.queryByText("Cash Flow Basics")).not.toBeInTheDocument();
+  });
+
+  it("describes loading without implementation vocabulary", () => {
+    render(
+      <LearningOpportunityDetailRouteView
+        onReturn={vi.fn()}
+        onRetry={vi.fn()}
+        state={{ status: "loading" }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Loading this opportunity" }),
+    ).toBeVisible();
+    expect(document.body.textContent).not.toMatch(
+      /establishing|catalog generation|projection|schema/i,
+    );
   });
 });
