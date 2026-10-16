@@ -137,7 +137,7 @@ each packet starts. The planned dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0073 | Clarify the learning-path page, connections, activity-state presentation, and technical records | none | none | complete |
-| JIT-B | Clarify loading and bounded recovery states while preserving fail-closed behavior | JIT-A | none | captured |
+| WRK-0074 | Clarify loading and bounded recovery states while preserving fail-closed behavior | WRK-0073 | none | ready |
 | JIT-C | Qualify the complete learning-path experience in Chromium, reconcile documentation, and close the slice | JIT-B | none | captured |
 
 ## Verification and Qualification
@@ -197,3 +197,6 @@ contracts/semantics, assumptions, residual gaps, and any decision gate.
   focused flexible-shape evidence; a qualifying affected-verification receipt;
   and accepted independent review after two substantive provenance/state
   findings were corrected. JIT-B is dependency-ready.
+- 2026-10-16: Refined JIT-B as WRK-0074 around route-owned loading, bounded
+  recovery, existing safe actions, fail-closed meaning, and focused component
+  evidence without reopening ready-page presentation.
