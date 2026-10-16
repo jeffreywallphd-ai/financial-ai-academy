@@ -172,7 +172,7 @@ patterns, module READMEs, architecture verification, and known gaps.
 | Missing, stale, tampered, cross-context, and unauthorized requests fail closed | Backend denial and confidentiality coverage, mocked browser denial paths, approved-lesson security's 10 control groups, and live denial scenarios |
 | Learners choose eligible branches and the application rechecks exact launch authority | Protected launch API tests and the live exact lesson launch/return journey |
 | Version changes preserve evidence meaning and do not silently substitute completion | Coexisting `investing-foundations@1.0.0` and `@1.1.0` live evidence plus exact-source completion reuse without changed-placement inheritance |
-| Projection rebuild reproduces current navigation state without source mutation | Public-API-only restart/replay: Assessment sources preserved, semantic state stable, three projections and one history row rebuilt after seed-free restart |
+| Projection rebuild reproduces current navigation state without source mutation | Public API observation before and after an isolated test-only reset of two derived Learner-model tables: Assessment sources preserved, semantic state stable, three projections and one history row rebuilt after seed-free restart |
 | Local and future cloud profiles share core semantics without a deployment fork | Fifteen architecture/import-boundary tests and deployment-neutral domain, application, contract, and provider-port checks |
 | Map/list, keyboard, focus, labels, non-color state, reflow, reduced motion, forced colors, and themes remain equivalent | 151 web tests, 27 mocked Chromium scenarios, eight live scenarios, and design validation of 125 tokens and 56 icons |
 
@@ -200,5 +200,6 @@ checks. No product behavior or public contract changed in the closure packet.
   package drift or unresolved decision.
 - 2026-10-16: Completed the CAP-0005 cumulative qualification matrix through
   WRK-0091. Every acceptance statement has direct evidence, including a public-
-  API-only headless restart/replay path; the capability is ready for governed
-  slice and CAP closure without a separate AI-mode plan.
+  API headless observation around an isolated test-only derived-state reset and
+  seed-free restart; the capability is ready for governed slice and CAP closure
+  without a separate AI-mode plan or production recovery API.

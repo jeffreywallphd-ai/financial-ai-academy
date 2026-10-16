@@ -15,12 +15,14 @@ decision_gates: []
 ## Outcome and User Scenario
 
 An authorized learner can complete the full exact-version curriculum journey
-from graph inspection through deterministic eligibility, lesson launch,
-completion, and return. After the application restarts and the rebuildable
-Learner-model projection is reconstructed from retained Assessment evidence,
-the same public API reports the same semantic navigation state. A headless
-client can perform and verify this journey without depending on browser-only
-state or UI implementation details.
+through the browser from graph inspection through deterministic eligibility,
+lesson launch, completion, and return. After the application restarts and the
+rebuildable Learner-model projection is reconstructed from retained Assessment
+evidence, the same public API reports the same semantic navigation state. A
+headless client independently establishes a supported session and reads the
+exact graph, Navigation state, and eligible activity launch without depending
+on browser-only state or UI implementation details. This slice does not claim
+that the headless client submits lesson completion or performs the return flow.
 
 This final capability slice assembles evidence for the complete CAP-0005
 contract. It does not add recommendation ranking, model inference, a cloud
@@ -164,7 +166,7 @@ identical when a legitimate replay time changes.
 
 | Scenario | Expected observable result | Owning verification layer |
 | --- | --- | --- |
-| Headless complete path | An HTTP-only client establishes an authorized session, reads the exact graph and Navigation state, and resolves an eligible exact lesson launch without browser state | Live API qualification |
+| Headless navigation path | An HTTP-only client establishes an authorized session, reads the exact graph and Navigation state, and resolves an eligible exact lesson launch without browser state; browser qualification separately creates completion and exercises return | Live API and browser qualification |
 | Restart and replay | After stopping the app and clearing only derived Learner-model rows, restart plus a normal API read rebuilds them from unchanged Assessment evidence and returns the same semantic activity states | Live PostgreSQL/application/API qualification |
 | Source preservation | Assessment event count and exact source references remain unchanged across replay; Curriculum graph identity/version/digest remain exact | Live database/API provenance checks |
 | Invalid graph | Missing references, duplicates, unsupported versions, forbidden cycles, and ambiguous rules remain rejected before learner visibility | Contract/domain/integration tests |
@@ -238,11 +240,14 @@ plan remain out of scope.
 All SLI-0025 scenarios have direct passing evidence. Fourteen focused tests
 qualify semantic replay, source preservation, exact derived-row reset,
 restart/cleanup behavior, and anti-rigidity. The isolated PostgreSQL 18.4 live
-run passes eight Chromium scenarios and a distinct public-API-only phase that
-establishes a supported session, reads the exact graph and Navigation state,
-opens an eligible exact activity, restarts without reseeding, preserves
-Assessment evidence, reproduces stable navigation semantics, and rebuilds
-three completion projections plus one history row.
+run passes eight Chromium scenarios and a distinct headless observation phase
+that uses only public APIs to establish a supported session and read the exact
+graph, Navigation state, and eligible launch. The test orchestrator separately
+stops the application, deletes only two derived Learner-model tables in its
+isolated database, and restarts without reseeding. Public API observation then
+confirms preserved Assessment evidence, stable navigation semantics, and three
+rebuilt completion projections plus one history row. No production reset or
+recovery API is implied.
 
 The broader matrix passes 426 backend tests with 34 non-live PostgreSQL skips,
 151 web tests, 27 mocked Chromium scenarios, TypeScript typecheck, zero-warning
@@ -268,7 +273,7 @@ was planned or qualified.
 - 2026-10-16: Activated WRK-0090 after revalidating CAP membership, completed
   dependencies, decision readiness, exact write scope, and collision-free
   ownership.
-- 2026-10-16: WRK-0090 implemented a public-API-only headless observation,
+- 2026-10-16: WRK-0090 implemented a headless public-API observation,
   seed-free host restart, isolated derived-projection reset, source-preserving
   replay proof, and direct anti-rigidity coverage without changing product
   contracts or planning a separate AI mode.
@@ -296,3 +301,7 @@ was planned or qualified.
 - 2026-10-16: Submitted exact documentation-only candidate `2ff1d0e` for
   affected verification and independent review after cumulative qualification
   passed. Public API and headless-client evidence are frozen in the candidate.
+- 2026-10-16: Independent R01 found two evidence-meaning overstatements. The
+  bounded correction now distinguishes the browser completion/return journey
+  from the headless session/graph/state/launch observation and distinguishes
+  public API observation from the isolated test-only derived-row reset.

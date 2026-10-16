@@ -48,7 +48,8 @@ READMEs.
   application is one generated-client consumer; a non-browser client must be
   able to establish the supported session and complete the observable graph,
   Navigation-state, and activity-launch path without browser-only authority.
-- WRK-0090 supplies the isolated headless restart/replay observation. This
+- WRK-0090 supplies the headless public-API observation around the isolated
+  test-only reset and restart. This
   packet consumes that evidence and reruns cumulative checks; it does not add a
   meta-runner, new product route, or duplicate live scenario.
 - Existing CAP-0005 approval and the selected SLI-0025 manifest govern this
@@ -63,8 +64,9 @@ READMEs.
   Navigation-state, activity-launch, generated-client, browser, accessibility,
   security, architecture, documentation, planning, build, and aggregate
   readiness checks that cover CAP-0005.
-- Run the isolated approved-lesson qualifier, including its public-API-only
-  headless observation, browser journey, restart, projection rebuild, source
+- Run the isolated approved-lesson qualifier, including its headless
+  public-API observation, separate browser completion/return journey,
+  test-only derived-row reset, restart, projection rebuild, source
   preservation, and exact cleanup behavior.
 - Verify the reviewed OpenAPI snapshot and generated TypeScript client remain
   current and that no browser-only product operation is required for the
@@ -207,11 +209,15 @@ acceptance sets and are ready for deterministic closure and main fast-forward.
   lesson, denial, accessibility, responsive, forced-color, reduced-motion, and
   theme scenarios.
 - The isolated PostgreSQL/Python/public-API/generated-client/Chromium
-  qualification passes all eight live scenarios. Its API-only phase reports a
-  supported headless session and exact graph, Navigation-state, and launch
-  path; a normal seed-free restart; unchanged Assessment source evidence;
-  stable semantic navigation state; and reconstruction of three Learner-model
-  projection rows plus one history row.
+  qualification passes all eight live scenarios. Its headless observation
+  phase uses only public APIs for the supported session, exact graph,
+  Navigation-state, and launch path. The test orchestrator separately stops the
+  application, deletes only two derived Learner-model tables in the isolated
+  database, and performs a normal seed-free restart. Public API observation
+  then confirms unchanged Assessment source evidence, stable semantic
+  navigation state, and reconstruction of three Learner-model projection rows
+  plus one history row. The browser scenarios, not the headless client, create
+  lesson completion and exercise return.
 - Architecture passes 15 tests; the approved-lesson security checker passes 10
   control groups; design-system validation passes with 125 light/global tokens
   and 56 reviewed icons; documentation validates 312 Markdown files plus the
@@ -234,10 +240,17 @@ acceptance sets and are ready for deterministic closure and main fast-forward.
   dependency completion, current CAP conformance, and exact-scope collision
   checks passed. Packet-start selected the bounded cumulative evidence route.
 - 2026-10-16: Cumulative qualification passed across backend, web, generated-
-  client, mocked and live browser, headless API replay, architecture, security,
+  client, mocked and live browser, headless API observation and isolated test-
+  only replay, architecture, security,
   design, documentation, planning, and all 29 aggregate readiness checks. The
   documentation-only result is ready for exact-candidate submission.
 - 2026-10-16: Submitted exact candidate
   `2ff1d0eae77b2ac63aa0cb5bc8d1460abe961179` for affected verification and
   independent review. The candidate changes only the declared planning and
   completion-evidence files.
+- 2026-10-16: Independent R01 identified two substantive evidence-meaning
+  issues. The bounded correction narrows the headless claim to the directly
+  exercised session/graph/state/launch operations, attributes completion and
+  return to the browser scenarios, and describes the database reset as
+  isolated test orchestration rather than a public API or product recovery
+  operation. No implementation or public contract changed.
