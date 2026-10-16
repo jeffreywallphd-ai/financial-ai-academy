@@ -4,6 +4,14 @@ Assessment owns private definition interpretation, answer-safe presentation,
 response validation, deterministic scoring, reviewed feedback selection,
 attempt/response/score/completion evidence, and the bounded completion event.
 
+The additive practice-v1 parser/projector accepts single-select,
+multiple-select exact-set, and fixed-decimal numeric definitions and produces
+an immutable answer-safe presentation. It is transport-neutral and has no
+persistence, clock, network, scoring, or learner-state side effect. The
+protected public operation and API that will compose Content and Curriculum
+are introduced in a later packet; browser and headless clients must use that
+same operation rather than importing this adapter.
+
 ## Public operations
 
 - `open_placed_knowledge_check(OpenPlacedKnowledgeCheckRequest) -> KnowledgeCheckPresentation`

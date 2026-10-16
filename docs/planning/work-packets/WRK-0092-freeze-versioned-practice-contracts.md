@@ -219,6 +219,38 @@ Confirm that no package admission, placement, public operation, API, generated
 client, UI, persistence, migration, evidence, AI mode, model authority, or
 external execution changed, then leave JIT-B dependency-ready.
 
+## Implementation Evidence
+
+- Added an independent `assessment/practice/v1` Draft 2020-12 contract family
+  and compatibility corpus without changing any Assessment knowledge-check-v1
+  schema, fixture, digest, parser, or public operation.
+- The private definition closes meaning to 1-20 ordered items: single select
+  with 2-8 options, multiple select with 3-12 options and exact-set scoring,
+  and canonical fixed-decimal numeric entry at scale 0-6 with an exact value or
+  inclusive range. Every item has maximum score one.
+- The presentation schema and production projector correlate item type to its
+  exact policy and recursively omit correct option IDs/sets, numeric answers or
+  ranges, private feedback, and private policy objects. A dedicated denial
+  proves mismatched public item/policy pairs fail schema validation.
+- Added immutable Assessment domain values plus a transport-neutral parser and
+  projector port/adapter. The adapter performs no persistence, clock, network,
+  identity, API, scoring, attempt, evidence, event, or learner-state action.
+  Its JSON-compatible output is suitable for the later protected API shared by
+  browser and non-browser clients.
+- The new focused contract and unit suites pass 25 tests. The combined new and
+  existing Assessment suites pass 59 tests, preserving the accepted
+  knowledge-check family. Architecture passes 15 tests; work-packet,
+  documentation, and planning validation pass; whitespace integrity is clean;
+  and aggregate readiness passes all 29 checks.
+- The canonical definition digest is
+  `82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527`.
+  Numeric meaning rejects exponent syntax, noncanonical scale, negative zero,
+  disallowed negatives, and inverted ranges without echoing private values.
+- No package admission, Content/Curriculum placement, public operation, HTTP,
+  OpenAPI, generated client, browser UI, persistence, migration, scoring,
+  feedback selection, retry enforcement, evidence, event, AI mode, model
+  authority, dependency, or external execution changed.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after SLI-0026 selection. The packet uses a
@@ -228,3 +260,8 @@ external execution changed, then leave JIT-B dependency-ready.
 - 2026-10-16: Claimed from base revision `4aeec17` after packet validation,
   current CAP conformance, dependency, decision, and exact-file collision
   checks passed. Packet-start selected the affected contract/domain route.
+- 2026-10-16: Implemented and qualified the additive contract/domain boundary.
+  Direct compatibility, anti-rigidity, answer-secrecy, decimal, policy-pair,
+  legacy-regression, architecture, documentation, planning, whitespace, and
+  aggregate-readiness checks pass; the result is ready for exact-candidate
+  submission and independent technical review.

@@ -1,0 +1,14 @@
+[
+  {"id": "unsupported-schema", "target": "definition", "op": "set", "path": ["schema_version"], "value": "2.0.0", "expected_code": "assessment.practice.unsupported_version"},
+  {"id": "unknown-item-type", "target": "definition", "op": "set", "path": ["practice", "items", 0, "item_type"], "value": "free_text", "refresh_definition_digest": true, "expected_code": "assessment.practice.unsupported_item_type"},
+  {"id": "unknown-policy", "target": "definition", "op": "set", "path": ["practice", "items", 0, "scoring_policy", "policy_id"], "value": "model-grade", "refresh_definition_digest": true, "expected_code": "assessment.practice.unsupported_policy"},
+  {"id": "duplicate-item-id", "target": "definition", "op": "set", "path": ["practice", "items", 1, "item_id"], "value": "risk-meaning", "refresh_definition_digest": true, "expected_code": "assessment.practice.invalid_definition"},
+  {"id": "unknown-single-answer", "target": "definition", "op": "set", "path": ["practice", "items", 0, "correct_option_id"], "value": "not-declared", "refresh_definition_digest": true, "expected_code": "assessment.practice.invalid_definition"},
+  {"id": "duplicate-multiple-answer", "target": "definition", "op": "set", "path": ["practice", "items", 1, "correct_option_ids", 1], "value": "more-issuers", "refresh_definition_digest": true, "expected_code": "assessment.practice.schema_invalid"},
+  {"id": "numeric-scale-mismatch", "target": "definition", "op": "set", "path": ["practice", "items", 2, "answer", "value"], "value": "105.0", "refresh_definition_digest": true, "expected_code": "assessment.practice.invalid_decimal"},
+  {"id": "numeric-negative-zero", "target": "definition", "op": "set", "path": ["practice", "items", 2, "answer", "value"], "value": "-0.00", "refresh_definition_digest": true, "expected_code": "assessment.practice.invalid_decimal"},
+  {"id": "definition-digest-mismatch", "target": "definition", "op": "set", "path": ["definition_digest"], "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "expected_code": "assessment.practice.definition_digest_mismatch"},
+  {"id": "presentation-answer-leak", "target": "presentation", "op": "set", "path": ["items", 0, "correct_option_id"], "value": "uncertainty", "expected_code": "assessment.practice.presentation_leak"},
+  {"id": "presentation-mismatched-policy", "target": "presentation", "op": "set", "path": ["items", 0, "scoring_policy_id"], "value": "multiple-select-exact-set", "expected_code": "assessment.practice.schema_invalid"},
+  {"id": "presentation-stale-definition", "target": "presentation", "op": "set", "path": ["definition_digest"], "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "expected_code": "assessment.practice.stale_reference"}
+]

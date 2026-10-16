@@ -37,6 +37,23 @@ uv run --project backend pytest backend/tests/contract/assessment
 This is direct contract evidence only; application scoring and persistence are
 introduced separately.
 
+## Assessment Practice v1
+
+[`assessment/practice/v1/`](assessment/practice/v1/README.md) defines an
+additive multi-item formative-practice definition and answer-safe presentation
+for single select, multiple select exact set, and canonical fixed-decimal
+numeric entry. Its compatibility corpus lives in
+[`../compatibility/assessment-practice/v1/`](../compatibility/assessment-practice/v1/README.md).
+
+```powershell
+uv run --project backend pytest backend/tests/contract/assessment_practice
+```
+
+This family is transport-neutral so a protected API can serve browser and
+headless clients through the same Assessment operation. The contract and pure
+parser/projector do not yet admit packages, resolve placements, expose HTTP,
+score responses, or retain learner evidence.
+
 ## Learning Discovery v1
 
 [`discovery/v1/`](discovery/v1/README.md) defines the portable approved

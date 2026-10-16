@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/learning/assessment/practice/v1/presentation.schema.json",
+  "title": "Answer-safe practice presentation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "placement_id", "package_id", "package_version", "package_digest", "definition_digest", "practice_id", "practice_version", "title", "purpose", "instructions", "attempt_policy", "source_references", "review_references", "items"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "placement_id": {"$ref": "#/$defs/id"},
+    "package_id": {"$ref": "#/$defs/id"},
+    "package_version": {"$ref": "#/$defs/semanticVersion"},
+    "package_digest": {"$ref": "#/$defs/digest"},
+    "definition_digest": {"$ref": "#/$defs/digest"},
+    "practice_id": {"$ref": "#/$defs/id"},
+    "practice_version": {"const": "1.0.0"},
+    "title": {"$ref": "#/$defs/label"},
+    "purpose": {"$ref": "#/$defs/longText"},
+    "instructions": {"$ref": "#/$defs/longText"},
+    "attempt_policy": {"$ref": "#/$defs/attemptPolicy"},
+    "source_references": {"$ref": "#/$defs/references"},
+    "review_references": {"$ref": "#/$defs/references"},
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {
+        "oneOf": [
+          {"$ref": "#/$defs/singleSelectItem"},
+          {"$ref": "#/$defs/multipleSelectItem"},
+          {"$ref": "#/$defs/numericItem"}
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "semanticVersion": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "plainText": {"type": "string", "minLength": 1, "pattern": "^[^<>&\\u0000-\\u001f\\u007f]+$"},
+    "label": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 160}]},
+    "longText": {"allOf": [{"$ref": "#/$defs/plainText"}, {"maxLength": 600}]},
+    "attemptPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_id", "policy_version", "max_attempts", "resume_allowed", "history_visible"],
+      "properties": {
+        "policy_id": {"const": "formative-retry"},
+        "policy_version": {"const": "1.0.0"},
+        "max_attempts": {"type": "integer", "minimum": 1, "maximum": 10},
+        "resume_allowed": {"const": true},
+        "history_visible": {"const": true}
+      }
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resource_id", "resource_version", "resource_digest", "title"],
+      "properties": {
+        "resource_id": {"$ref": "#/$defs/id"},
+        "resource_version": {"$ref": "#/$defs/semanticVersion"},
+        "resource_digest": {"$ref": "#/$defs/digest"},
+        "title": {"$ref": "#/$defs/label"}
+      }
+    },
+    "references": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"$ref": "#/$defs/reference"}},
+    "option": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["option_id", "label"],
+      "properties": {"option_id": {"$ref": "#/$defs/id"}, "label": {"$ref": "#/$defs/label"}}
+    },
+    "selectItemBase": {
+      "type": "object",
+      "required": ["item_id", "item_version", "prompt", "scoring_policy_version", "max_score", "options"],
+      "properties": {
+        "item_id": {"$ref": "#/$defs/id"},
+        "item_version": {"const": "1.0.0"},
+        "prompt": {"$ref": "#/$defs/longText"},
+        "scoring_policy_version": {"const": "1.0.0"},
+        "max_score": {"const": 1},
+        "options": {"type": "array", "minItems": 2, "maxItems": 12, "items": {"$ref": "#/$defs/option"}}
+      }
+    },
+    "singleSelectItem": {
+      "allOf": [
+        {"$ref": "#/$defs/selectItemBase"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["item_id", "item_version", "item_type", "prompt", "scoring_policy_id", "scoring_policy_version", "max_score", "options"],
+          "properties": {
+            "item_id": true,
+            "item_version": true,
+            "item_type": {"const": "single_select"},
+            "prompt": true,
+            "scoring_policy_id": {"const": "single-select-exact-match"},
+            "scoring_policy_version": true,
+            "max_score": true,
+            "options": {"type": "array", "minItems": 2, "maxItems": 8}
+          }
+        }
+      ]
+    },
+    "multipleSelectItem": {
+      "allOf": [
+        {"$ref": "#/$defs/selectItemBase"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["item_id", "item_version", "item_type", "prompt", "scoring_policy_id", "scoring_policy_version", "max_score", "options"],
+          "properties": {
+            "item_id": true,
+            "item_version": true,
+            "item_type": {"const": "multiple_select"},
+            "prompt": true,
+            "scoring_policy_id": {"const": "multiple-select-exact-set"},
+            "scoring_policy_version": true,
+            "max_score": true,
+            "options": {"type": "array", "minItems": 3, "maxItems": 12}
+          }
+        }
+      ]
+    },
+    "numericItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_id", "item_version", "item_type", "prompt", "scoring_policy_id", "scoring_policy_version", "max_score", "scale", "unit_label", "allow_negative"],
+      "properties": {
+        "item_id": {"$ref": "#/$defs/id"},
+        "item_version": {"const": "1.0.0"},
+        "item_type": {"const": "numeric_entry"},
+        "prompt": {"$ref": "#/$defs/longText"},
+        "scoring_policy_id": {"const": "numeric-exact-or-inclusive-range"},
+        "scoring_policy_version": {"const": "1.0.0"},
+        "max_score": {"const": 1},
+        "scale": {"type": "integer", "minimum": 0, "maximum": 6},
+        "unit_label": {"$ref": "#/$defs/label"},
+        "allow_negative": {"type": "boolean"}
+      }
+    }
+  }
+}

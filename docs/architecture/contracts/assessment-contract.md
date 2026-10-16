@@ -6,6 +6,8 @@
 - Executable learning schemas: [Assessment v1](../../../contracts/learning/assessment/v1/README.md)
 - Executable event schema: [Assessment completion event v1](../../../contracts/events/assessment/v1/README.md)
 - Compatibility evidence: [Assessment v1 corpus](../../../contracts/compatibility/assessment/v1/README.md)
+- Additive practice schemas: [Assessment practice v1](../../../contracts/learning/assessment/practice/v1/README.md)
+- Additive practice evidence: [Assessment practice v1 corpus](../../../contracts/compatibility/assessment-practice/v1/README.md)
 
 ## Boundary and Authority
 
@@ -24,6 +26,14 @@ and reviewed correct feedback; every other declared option produces `0/1` and
 reviewed corrective feedback. There is no partial credit, retake, mastery,
 manual review, AI grading, randomization, or client-side scoring authority.
 
+The additive practice-v1 family extends Assessment ownership without changing
+the knowledge-check-v1 shapes. One immutable practice carries 1 through 20
+ordered items. It closes response meaning to single-select exact match (2-8
+options), multiple-select exact set (3-12 options, no partial credit), and
+numeric exact value or inclusive range over canonical fixed-decimal strings at
+scale 0 through 6. Every item is worth one point. The attempt policy is visible
+metadata only until later application packets enforce it.
+
 ## Immutable Identity and Safe Presentation
 
 The private definition identifies its assessment, semantic version, item and
@@ -39,6 +49,15 @@ ordered option IDs/labels. It excludes the correct option, feedback, and the
 private scoring-policy object. Plain-text prompts, labels, and feedback reject
 HTML-significant characters and control characters and have explicit length
 and count limits.
+
+Practice presentation repeats its exact placement, package, definition,
+practice, item, policy, source, and review-reference provenance. It excludes
+correct option identities, accepted numeric values/ranges, the private policy
+object, and all feedback branches. The pure parser/projector returns immutable
+typed values and performs no persistence, network, clock, API, or scoring side
+effect. Its presentation value is transport-neutral: later HTTP and other
+supported clients must map the same public operation rather than create a
+browser-owned contract.
 
 ## Submission and Evidence
 
@@ -84,6 +103,15 @@ successor, and stable bounded denial codes:
 - `assessment.unknown_option`
 - `assessment.inconsistent_evidence`
 - `assessment.inconsistent_event`
+- `assessment.practice.unsupported_version`
+- `assessment.practice.unsupported_item_type`
+- `assessment.practice.unsupported_policy`
+- `assessment.practice.schema_invalid`
+- `assessment.practice.definition_digest_mismatch`
+- `assessment.practice.invalid_definition`
+- `assessment.practice.invalid_decimal`
+- `assessment.practice.presentation_leak`
+- `assessment.practice.stale_reference`
 
 Diagnostics identify only a bounded field/reference and stable code. They do
 not echo learner responses, correct answers, fixture bytes, paths, stack
@@ -109,6 +137,16 @@ HTTP/generated-client path, answer-safe browser submission, Learner-model
 rebuild, Audit reconciliation, and private-host live close/reopen path are also
 directly covered. Background delivery, recovery, managed cloud, built-in/OIDC,
 production database roles, and broader Assessment families remain gaps.
+
+Practice v1 currently has executable private-definition and safe-presentation
+schemas, a canonical compatibility corpus, and a production parser/projector.
+Package admission, exact placement resolution, public application operations,
+protected HTTP/OpenAPI, generated clients, browser rendering, response
+submission, scoring, feedback, retry enforcement, evidence, events, and
+persistence remain unqualified until their owning packets deliver them. No
+separate AI/headless mode is defined; retaining the shared public API boundary
+keeps a future non-browser consumer possible without creating another domain
+core.
 
 Assessment now also exposes a typed, read-only completion-event replay query
 for one server-supplied learner and exact placement. It validates retained

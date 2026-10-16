@@ -1,0 +1,96 @@
+{
+  "schema_version": "1.0.0",
+  "definition_digest": "82cdc82c402aacdb0070fb19671d896ae22a4c16d338ccbf27f02a51a396d527",
+  "practice": {
+    "practice_id": "risk-return-practice",
+    "practice_version": "1.0.0",
+    "title": "Practice risk and return basics",
+    "purpose": "Check your understanding with three formative items. Results are learning evidence, not a mastery or investment judgment.",
+    "instructions": "Answer every item. Use the listed unit for the numeric exercise. You can review the approved resources before trying again.",
+    "attempt_policy": {
+      "policy_id": "formative-retry",
+      "policy_version": "1.0.0",
+      "max_attempts": 3,
+      "resume_allowed": true,
+      "history_visible": true
+    },
+    "source_references": [
+      {
+        "resource_id": "risk-return-reading",
+        "resource_version": "1.0.0",
+        "resource_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "title": "Risk and return reading"
+      }
+    ],
+    "review_references": [
+      {
+        "resource_id": "risk-return-review",
+        "resource_version": "1.0.0",
+        "resource_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "title": "Review risk and return"
+      }
+    ],
+    "items": [
+      {
+        "item_id": "risk-meaning",
+        "item_version": "1.0.0",
+        "item_type": "single_select",
+        "prompt": "Which statement best describes investment risk?",
+        "scoring_policy": {
+          "policy_id": "single-select-exact-match",
+          "policy_version": "1.0.0",
+          "max_score": 1
+        },
+        "options": [
+          {"option_id": "uncertainty", "label": "Outcomes can differ from what was expected."},
+          {"option_id": "guarantee", "label": "Every investment has a guaranteed return."},
+          {"option_id": "price-only", "label": "Risk means only that a price changed today."}
+        ],
+        "correct_option_id": "uncertainty",
+        "feedback": {
+          "correct": {"feedback_id": "risk-correct", "text": "Correct. Risk includes uncertainty about future outcomes.", "review_reference_ids": ["risk-return-review"]},
+          "incorrect": {"feedback_id": "risk-review", "text": "Review how uncertainty affects possible outcomes.", "review_reference_ids": ["risk-return-review"]}
+        }
+      },
+      {
+        "item_id": "diversification-actions",
+        "item_version": "1.0.0",
+        "item_type": "multiple_select",
+        "prompt": "Which choices can increase diversification in a simple example?",
+        "scoring_policy": {
+          "policy_id": "multiple-select-exact-set",
+          "policy_version": "1.0.0",
+          "max_score": 1
+        },
+        "options": [
+          {"option_id": "more-issuers", "label": "Hold assets from more than one issuer."},
+          {"option_id": "more-types", "label": "Use more than one asset type."},
+          {"option_id": "one-position", "label": "Put the entire example in one position."},
+          {"option_id": "same-copy", "label": "Count the same position twice."}
+        ],
+        "correct_option_ids": ["more-issuers", "more-types"],
+        "feedback": {
+          "correct": {"feedback_id": "diversification-correct", "text": "Correct. The example spreads exposure across issuers and asset types.", "review_reference_ids": ["risk-return-review"]},
+          "incorrect": {"feedback_id": "diversification-review", "text": "Review what changes exposure instead of merely relabeling one position.", "review_reference_ids": ["risk-return-review"]}
+        }
+      },
+      {
+        "item_id": "simple-growth",
+        "item_version": "1.0.0",
+        "item_type": "numeric_entry",
+        "prompt": "In a simplified exercise, 100.00 units increase by 5 percent. Enter the resulting amount.",
+        "scoring_policy": {
+          "policy_id": "numeric-exact-or-inclusive-range",
+          "policy_version": "1.0.0",
+          "max_score": 1
+        },
+        "response": {"scale": 2, "unit_label": "units", "allow_negative": false},
+        "answer": {"mode": "exact", "value": "105.00"},
+        "feedback": {
+          "correct": {"feedback_id": "growth-correct", "text": "Correct. Five percent of 100.00 is 5.00.", "review_reference_ids": ["risk-return-review"]},
+          "incorrect": {"feedback_id": "growth-review", "text": "Review the percentage calculation and keep two decimal places.", "review_reference_ids": ["risk-return-review"]}
+        }
+      }
+    ]
+  }
+}
