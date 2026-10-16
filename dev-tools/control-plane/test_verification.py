@@ -20,6 +20,7 @@ if str(HERE) not in sys.path:
 from contracts import ControlError  # noqa: E402
 from check_approved_lesson import (  # noqa: E402
     WebRuntime,
+    child_environment,
     copy_tracked_candidate,
     execute as execute_web_check,
 )
@@ -205,6 +206,47 @@ class SelectionTests(unittest.TestCase):
                 "web:lint",
                 "roadmap-review:browser",
             ],
+            "dev-tools/roadmap-review-site/src/app.ts": [
+                "roadmap-review:qualification",
+                "roadmap-review:typecheck",
+                "roadmap-review:unit",
+                "roadmap-review:browser",
+            ],
+            "dev-tools/roadmap-review-site/index.html": [
+                "roadmap-review:qualification",
+                "roadmap-review:server",
+                "roadmap-review:browser",
+            ],
+            "dev-tools/roadmap-review-site/server.py": [
+                "roadmap-review:qualification",
+                "roadmap-review:server",
+                "roadmap-review:browser",
+            ],
+            "dev-tools/roadmap-review-site/styles.css": [
+                "roadmap-review:qualification",
+                "roadmap-review:server",
+                "roadmap-review:browser",
+            ],
+            "dev-tools/roadmap-review-site/tests/app.test.ts": [
+                "roadmap-review:qualification",
+                "roadmap-review:unit",
+            ],
+            "dev-tools/roadmap-review-site/test_server.py": [
+                "roadmap-review:qualification",
+                "roadmap-review:server",
+            ],
+            "dev-tools/roadmap-review-site/test_qualification.py": [
+                "roadmap-review:qualification",
+            ],
+            "dev-tools/roadmap-review-site/tsconfig.json": [
+                "roadmap-review:qualification",
+                "roadmap-review:typecheck",
+                "roadmap-review:unit",
+                "roadmap-review:browser",
+            ],
+            "dev-tools/roadmap-review-site/README.md": [
+                "documentation:integrity",
+            ],
             "apps/web/README.md": ["documentation:integrity"],
             "deployments/local/README.md": ["documentation:integrity"],
             "deployments/local/serve.py": [
@@ -367,6 +409,18 @@ class RepositoryWebCheckTests(unittest.TestCase):
             self.assertEqual(
                 "worktree-index", dist.joinpath("index.html").read_text(encoding="utf-8")
             )
+
+    def test_explicit_runtime_is_available_to_child_processes(self) -> None:
+        runtime = WebRuntime(
+            node=r"C:\prepared-node\node.exe",
+            npm=(r"C:\prepared-node\node.exe", r"C:\prepared-npm\npm-cli.js"),
+        )
+        source = {"Path": r"C:\Windows\System32", "UNCHANGED": "true"}
+        child = child_environment(runtime, source)
+        self.assertEqual(source, {"Path": r"C:\Windows\System32", "UNCHANGED": "true"})
+        self.assertEqual(sys.executable, child["PYTHON"])
+        self.assertTrue(child["Path"].startswith(r"C:\prepared-node" + os.pathsep))
+        self.assertEqual("true", child["UNCHANGED"])
 
     def test_candidate_snapshot_exports_commit_bytes_and_omits_tracked_build(self) -> None:
         with tempfile.TemporaryDirectory(prefix="candidate-export-") as directory:

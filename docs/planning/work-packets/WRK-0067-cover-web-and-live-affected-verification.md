@@ -147,3 +147,10 @@ verification contracts did not change.
   from an isolated ephemeral-port snapshot and refreshes the fixture to assert
   one current governed capability, one refined slice, and one honestly
   unrefined declared slice.
+- 2026-10-16: R03 review accepted the ephemeral-port and current-hierarchy
+  corrections, then found that roadmap implementation paths still selected
+  only structural qualification and that nested processes could bypass the
+  explicitly selected runtime. The bounded repository adapter now selects
+  server, typecheck, DOM-unit, and Chromium evidence by owning roadmap boundary
+  and propagates the prepared Node directory and exact Python executable to
+  child processes. Documentation-only and test-only routing stays narrow.

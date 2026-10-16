@@ -48,6 +48,34 @@ def catalog() -> CheckCatalog:
         "apps/web/tests/browser/roadmap-review/**",
         "apps/web/tests/browser/roadmap-review.config.ts",
     )
+    roadmap_source_paths = (
+        "dev-tools/roadmap-review-site/src/**",
+        "dev-tools/roadmap-review-site/tsconfig.json",
+    )
+    roadmap_document_paths = (
+        "dev-tools/roadmap-review-site/README.md",
+    )
+    roadmap_server_paths = (
+        "dev-tools/roadmap-review-site/index.html",
+        "dev-tools/roadmap-review-site/server.py",
+        "dev-tools/roadmap-review-site/styles.css",
+        "dev-tools/roadmap-review-site/test_server.py",
+    )
+    roadmap_unit_paths = (
+        *roadmap_source_paths,
+        "dev-tools/roadmap-review-site/tests/**",
+    )
+    roadmap_behavior_paths = (
+        *roadmap_source_paths,
+        *roadmap_server_paths[:3],
+    )
+    roadmap_qualification_paths = (
+        *roadmap_behavior_paths,
+        "dev-tools/roadmap-review-site/test_server.py",
+        "dev-tools/roadmap-review-site/test_qualification.py",
+        "dev-tools/roadmap-review-site/tests/**",
+        *roadmap_browser_paths,
+    )
     live_runtime_paths = (
         "tests/e2e/approved-lesson/**",
         "deployments/local/serve.py",
@@ -65,6 +93,7 @@ def catalog() -> CheckCatalog:
         "apps/web/README.md",
         "deployments/local/README.md",
         "dev-tools/control-plane/README.md",
+        *roadmap_document_paths,
     )
     return CheckCatalog(
         "financial-ai-academy-v3",
@@ -74,7 +103,10 @@ def catalog() -> CheckCatalog:
             CheckDefinition("planning:tools", (python, "dev-tools/planning/test_planning_tools.py"), ("dev-tools/planning/**", "docs/planning/**"), "medium", 20, description="Planning-tool behavior"),
             CheckDefinition("planning:integrity", (python, "dev-tools/planning/check_planning.py"), ("dev-tools/planning/**", "docs/planning/**"), "low", 30, description="Planning artifact integrity"),
             CheckDefinition("documentation:integrity", (python, "dev-tools/documentation/check_docs.py"), ("docs/**", "AGENTS.md", *documentation_paths), "low", 40, description="Documentation and context integrity"),
-            CheckDefinition("roadmap-review:qualification", (python, "dev-tools/roadmap-review-site/test_qualification.py"), ("dev-tools/roadmap-review-site/**", *roadmap_browser_paths), "medium", 45, description="Roadmap review projection and site contract"),
+            CheckDefinition("roadmap-review:qualification", (python, "dev-tools/roadmap-review-site/test_qualification.py"), roadmap_qualification_paths, "medium", 45, description="Roadmap review projection and site contract"),
+            CheckDefinition("roadmap-review:server", (python, "dev-tools/roadmap-review-site/test_server.py"), roadmap_server_paths, "medium", 46, description="Roadmap review read-only server behavior"),
+            CheckDefinition("roadmap-review:typecheck", (*web_check, "--mode", "roadmap-typecheck"), roadmap_source_paths, "medium", 47, description="Roadmap review TypeScript boundary"),
+            CheckDefinition("roadmap-review:unit", (*web_check, "--mode", "roadmap-unit"), roadmap_unit_paths, "medium", 48, description="Roadmap review DOM and view-model behavior"),
             CheckDefinition("architecture:integrity", (python, "dev-tools/architecture/check_architecture.py"), ("backend/**", "contracts/**", "docs/architecture/**"), "high", 50, description="Architecture boundary checks"),
             CheckDefinition("local:architecture", (python, "tests/architecture/test_approved_lesson_boundaries.py"), local_composition_paths, "medium", 51, description="Local composition and approved-lesson boundary checks"),
             CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_source_paths, *mocked_browser_paths, *approved_browser_paths, *roadmap_browser_paths, "apps/web/tsconfig.json"), "medium", 52, description="Web TypeScript boundary"),
@@ -84,7 +116,7 @@ def catalog() -> CheckCatalog:
             CheckDefinition("design:integrity", (python, "dev-tools/design/check_design_system.py"), ("apps/web/src/design-system/**", "docs/design/**"), "medium", 60, description="Design-system integrity"),
             CheckDefinition("web:build", (*web_check, "--mode", "build"), web_build_paths, "medium", 62, description="Static web production build"),
             CheckDefinition("web:generated-client", (*web_check, "--mode", "generated"), generated_client_paths, "high", 64, description="Reviewed OpenAPI generated-client reproduction"),
-            CheckDefinition("roadmap-review:browser", (*web_check, "--mode", "roadmap"), roadmap_browser_paths, "medium", 66, timeout_seconds=120, description="Roadmap review Chromium behavior"),
+            CheckDefinition("roadmap-review:browser", (*web_check, "--mode", "roadmap"), (*roadmap_behavior_paths, *roadmap_browser_paths), "medium", 66, timeout_seconds=120, description="Roadmap review Chromium behavior"),
             CheckDefinition("local:node-syntax", (*web_check, "--mode", "local-scripts"), local_script_paths, "medium", 68, description="Local Node runner syntax"),
             CheckDefinition("approved-lesson:live", (*web_check, "--mode", "live"), (*approved_browser_paths, *live_runtime_paths, "dev-tools/control-plane/check_approved_lesson.py"), "high", 70, timeout_seconds=300, description="Live PostgreSQL, Python, static browser, and pinned Chromium qualification"),
             CheckDefinition("agent:readiness", (python, "dev-tools/agent/check_ready.py"), ("dev-tools/agent/**", ".github/workflows/**", "docs/planning/skills/**"), "high", 90, timeout_seconds=180, description="Shared agent-support readiness suite"),

@@ -83,8 +83,18 @@ def require_versions(
         )
 
 
-def run_checked(command: Sequence[str], *, root: Path) -> None:
-    completed = subprocess.run(list(command), cwd=root, check=False)
+def run_checked(
+    command: Sequence[str],
+    *,
+    root: Path,
+    environment: Mapping[str, str] | None = None,
+) -> None:
+    completed = subprocess.run(
+        list(command),
+        cwd=root,
+        env=None if environment is None else dict(environment),
+        check=False,
+    )
     if completed.returncode != 0:
         raise RuntimeError(
             f"Affected check failed with exit code {completed.returncode}."
@@ -98,6 +108,24 @@ def npm_command(runtime: WebRuntime, root: Path, *arguments: str) -> tuple[str, 
         str(root / "apps" / "web"),
         *arguments,
     )
+
+
+def child_environment(
+    runtime: WebRuntime,
+    environment: Mapping[str, str],
+) -> dict[str, str]:
+    child = dict(environment)
+    path_name = next(
+        (name for name in child if name.casefold() == "path"),
+        "PATH",
+    )
+    resolved_node = Path(shutil.which(runtime.node) or runtime.node).resolve()
+    existing_path = child.get(path_name, "")
+    child[path_name] = str(resolved_node.parent) + (
+        os.pathsep + existing_path if existing_path else ""
+    )
+    child["PYTHON"] = sys.executable
+    return child
 
 
 def copy_tracked_candidate(source_root: Path, target_root: Path) -> None:
@@ -258,12 +286,36 @@ def execute(
 ) -> None:
     runtime = resolve_runtime(environment)
     require_versions(runtime, root=root, version_reader=version_reader)
+    execution_environment = child_environment(runtime, environment)
+
+    def invoke(command: Sequence[str], *, root: Path) -> None:
+        if command_runner is run_checked:
+            run_checked(command, root=root, environment=execution_environment)
+            return
+        command_runner(command, root=root)
+
     commands = {
         "typecheck": npm_command(runtime, root, "run", "typecheck"),
         "lint": npm_command(runtime, root, "run", "lint"),
         "unit": npm_command(runtime, root, "test", "--", "--run"),
         "generated": npm_command(
             runtime, root, "run", "generate:api", "--", "--check"
+        ),
+        "roadmap-typecheck": (
+            runtime.node,
+            str(root / "apps" / "web" / "node_modules" / "typescript" / "bin" / "tsc"),
+            "-p",
+            str(root / "dev-tools" / "roadmap-review-site" / "tsconfig.json"),
+            "--noEmit",
+        ),
+        "roadmap-unit": (
+            runtime.node,
+            str(root / "apps" / "web" / "node_modules" / "vitest" / "vitest.mjs"),
+            "run",
+            "--globals",
+            "--environment",
+            "jsdom",
+            str(root / "dev-tools" / "roadmap-review-site" / "tests"),
         ),
         "browser": npm_command(
             runtime,
@@ -278,7 +330,7 @@ def execute(
         run_build_in_snapshot(
             runtime,
             root=root,
-            command_runner=command_runner,
+            command_runner=invoke,
             snapshot_preparer=snapshot_preparer,
         )
         return
@@ -286,7 +338,7 @@ def execute(
         run_live_in_snapshot(
             runtime,
             root=root,
-            command_runner=command_runner,
+            command_runner=invoke,
             snapshot_preparer=snapshot_preparer,
         )
         return
@@ -294,14 +346,14 @@ def execute(
         run_roadmap_in_snapshot(
             runtime,
             root=root,
-            command_runner=command_runner,
+            command_runner=invoke,
             snapshot_preparer=snapshot_preparer,
             port_selector=port_selector,
         )
         return
     if mode == "local-scripts":
         for script in ("dev.mjs", "setup-dev.mjs"):
-            command_runner(
+            invoke(
                 (runtime.node, "--check", str(root / "deployments" / "local" / script)),
                 root=root,
             )
@@ -310,7 +362,7 @@ def execute(
         command = commands[mode]
     except KeyError as error:
         raise ValueError(f"Unsupported web check mode: {mode}") from error
-    command_runner(command, root=root)
+    invoke(command, root=root)
 
 
 def main() -> int:
@@ -323,6 +375,8 @@ def main() -> int:
             "unit",
             "build",
             "generated",
+            "roadmap-typecheck",
+            "roadmap-unit",
             "browser",
             "roadmap",
             "local-scripts",

@@ -161,6 +161,16 @@ PostgreSQL/Python/static-browser qualification; documentation-only and
 Python-only changes do not inherit unrelated TypeScript or aggregate-readiness
 work.
 
+Roadmap-review implementation paths are also divided by their owning boundary:
+TypeScript source selects qualification, typecheck, DOM unit, and Chromium
+behavior; server/static-shell changes select the server and Chromium checks;
+test-only changes select their owning suite; and the roadmap README remains a
+documentation-only impact. When the web wrapper is given explicit
+`FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE` and `FINANCIAL_AI_ACADEMY_NPM_CLI`
+values, it prepends that Node directory and exports the current Python
+executable to child processes. Nested compilation and test servers therefore
+use the prepared runtime without requiring a global Node or Python command.
+
 The production-build and live wrappers copy the exact tracked candidate into an
 isolated temporary snapshot, omit any tracked `apps/web/dist` output, and link
 the already prepared web dependencies. Production build and live qualification
