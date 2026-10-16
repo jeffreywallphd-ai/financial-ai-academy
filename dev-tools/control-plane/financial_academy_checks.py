@@ -104,7 +104,7 @@ def catalog() -> CheckCatalog:
             CheckDefinition("planning:integrity", (python, "dev-tools/planning/check_planning.py"), ("dev-tools/planning/**", "docs/planning/**"), "low", 30, description="Planning artifact integrity"),
             CheckDefinition("documentation:integrity", (python, "dev-tools/documentation/check_docs.py"), ("docs/**", "AGENTS.md", *documentation_paths), "low", 40, description="Documentation and context integrity"),
             CheckDefinition("roadmap-review:qualification", (python, "dev-tools/roadmap-review-site/test_qualification.py"), roadmap_qualification_paths, "medium", 45, description="Roadmap review projection and site contract"),
-            CheckDefinition("roadmap-review:server", (python, "dev-tools/roadmap-review-site/test_server.py"), roadmap_server_paths, "medium", 46, description="Roadmap review read-only server behavior"),
+            CheckDefinition("roadmap-review:server", (*web_check, "--mode", "roadmap-server"), roadmap_server_paths, "medium", 46, description="Roadmap review read-only server behavior"),
             CheckDefinition("roadmap-review:typecheck", (*web_check, "--mode", "roadmap-typecheck"), roadmap_source_paths, "medium", 47, description="Roadmap review TypeScript boundary"),
             CheckDefinition("roadmap-review:unit", (*web_check, "--mode", "roadmap-unit"), roadmap_unit_paths, "medium", 48, description="Roadmap review DOM and view-model behavior"),
             CheckDefinition("architecture:integrity", (python, "dev-tools/architecture/check_architecture.py"), ("backend/**", "contracts/**", "docs/architecture/**"), "high", 50, description="Architecture boundary checks"),

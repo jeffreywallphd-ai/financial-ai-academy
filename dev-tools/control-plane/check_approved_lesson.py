@@ -317,6 +317,10 @@ def execute(
             "jsdom",
             str(root / "dev-tools" / "roadmap-review-site" / "tests"),
         ),
+        "roadmap-server": (
+            sys.executable,
+            str(root / "dev-tools" / "roadmap-review-site" / "test_server.py"),
+        ),
         "browser": npm_command(
             runtime,
             root,
@@ -377,6 +381,7 @@ def main() -> int:
             "generated",
             "roadmap-typecheck",
             "roadmap-unit",
+            "roadmap-server",
             "browser",
             "roadmap",
             "local-scripts",

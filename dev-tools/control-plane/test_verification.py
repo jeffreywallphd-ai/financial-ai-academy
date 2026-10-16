@@ -277,6 +277,22 @@ class SelectionTests(unittest.TestCase):
                     [item["check_id"] for item in plan["selected"]],
                 )
 
+    def test_roadmap_server_check_uses_prepared_runtime_wrapper(self) -> None:
+        definition = next(
+            check
+            for check in repository_catalog().checks
+            if check.check_id == "roadmap-review:server"
+        )
+        self.assertEqual(
+            (
+                sys.executable,
+                "dev-tools/control-plane/check_approved_lesson.py",
+                "--mode",
+                "roadmap-server",
+            ),
+            definition.argv,
+        )
+
     def test_unclassified_path_refuses_instead_of_arbitrary_or_full_fallback(self) -> None:
         with self.assertRaises(ControlError) as refused:
             select_checks(repository_catalog(), "a" * 40, ["unknown/new-boundary.xyz"])

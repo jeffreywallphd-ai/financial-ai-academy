@@ -154,3 +154,8 @@ verification contracts did not change.
   server, typecheck, DOM-unit, and Chromium evidence by owning roadmap boundary
   and propagates the prepared Node directory and exact Python executable to
   child processes. Documentation-only and test-only routing stays narrow.
+- 2026-10-16: R04 review accepted the complete path classification but found
+  the separately selected roadmap server suite still bypassed the prepared
+  runtime wrapper. The server check now enters through that wrapper, so its
+  nested TypeScript compilation receives the same explicit Node path and exact
+  Python executable as roadmap browser execution.
