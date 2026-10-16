@@ -162,7 +162,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0092 | Work packet | [Freeze Versioned Practice Contracts](work-packets/WRK-0092-freeze-versioned-practice-contracts.md) | complete | SLI-0026 | none | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0093 | Work packet | [Compose Protected Practice Opening API](work-packets/WRK-0093-compose-protected-practice-opening-api.md) | complete | SLI-0026 | WRK-0092 | none | codex-cap-0006 | 2026-10-16 |
 | WRK-0094 | Work packet | [Deliver Practice Opening Browser Route](work-packets/WRK-0094-deliver-practice-opening-browser-route.md) | complete | SLI-0026 | WRK-0093 | none | codex-cap-0006 | 2026-10-16 |
-| WRK-0095 | Work packet | [Qualify Live Practice Opening](work-packets/WRK-0095-qualify-live-practice-opening.md) | ready | SLI-0026 | WRK-0094 | none | codex-cap-0006 | 2026-10-16 |
+| WRK-0095 | Work packet | [Qualify Live Practice Opening](work-packets/WRK-0095-qualify-live-practice-opening.md) | active | SLI-0026 | WRK-0094 | none | codex-cap-0006 | 2026-10-16 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

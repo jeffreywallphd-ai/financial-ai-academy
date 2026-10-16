@@ -1,7 +1,7 @@
 ---
 id: WRK-0095
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/practice-activity.e2e.ts", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/modules/assessment/README.md", "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice/manifest.json", "contracts/compatibility/lesson-package/v1/approved/intro-risk-return-practice/practices/practice-1.json", "deployments/local/README.md", "deployments/local/serve.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0026-open-versioned-practice-activity.md", "docs/planning/work-packets/WRK-0095-qualify-live-practice-opening.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 09713e065a51780a9de86e468f3b6641a5bba819
+claim_id: WRK-0095:794985f1-3344-4bf3-b378-0bfca600845f
+claimed_by: codex-cap-0006
+claimed_at: 2026-10-16T15:12:27Z
 ---
 
 # Agent Work Packet: Qualify Live Practice Opening
@@ -204,3 +204,5 @@ for deterministic closure or return one bounded blocker.
   the already-frozen three-type definition, and makes browser-independent
   public API access plus side-effect-free restart behavior first-class live
   evidence without planning or implementing a separate AI mode.
+- 2026-10-16: Claimed from base revision `09713e0` after dependency,
+  authority, decision, exact-scope, and file-collision checks passed.

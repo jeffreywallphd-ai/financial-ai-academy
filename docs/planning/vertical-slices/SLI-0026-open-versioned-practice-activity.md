@@ -184,7 +184,7 @@ each packet starts.
 | WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | complete |
 | WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | complete |
 | WRK-0094 | Deliver the accessible practice-opening browser route from the generated public client | WRK-0093 | none | complete |
-| WRK-0095 | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, restart stability, and live local composition | WRK-0094 | none | ready |
+| WRK-0095 | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, restart stability, and live local composition | WRK-0094 | none | active |
 
 ## Verification and Qualification
 
@@ -295,3 +295,6 @@ cloud, and recovery behavior.
   same public API from non-browser and generated-browser clients, including
   repeated-read storage invariance and restart stability. Submission, scoring,
   evidence, adaptive/model authority, and a separate AI mode remain deferred.
+- 2026-10-16: Activated WRK-0095 after revalidating WRK-0094 completion,
+  current CAP authority, decision readiness, exact qualification-only scope,
+  and collision-free ownership. No lower-level approval was requested.
