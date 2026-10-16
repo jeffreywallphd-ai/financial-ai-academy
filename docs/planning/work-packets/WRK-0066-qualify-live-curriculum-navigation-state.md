@@ -1,9 +1,9 @@
 ---
 id: WRK-0066
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0005
 updated: 2026-10-16
 parent: SLI-0023
 capability: CAP-0005
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/approved-lesson.e2e.ts", "apps/web/tests/browser/approved-lesson/curriculum-graph.e2e.ts", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "docs/planning/work-packets/WRK-0066-qualify-live-curriculum-navigation-state.md", "docs/planning/vertical-slices/SLI-0023-explain-deterministic-curriculum-state.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: ef4ca5aed16b68af76a11a1f7cb1b02182a99c46
+claim_id: WRK-0066:cddf5dc3-73b8-43a6-9818-ce10ef67cca5
+claimed_by: codex-cap-0005
+claimed_at: 2026-10-16T01:12:55Z
 ---
 
 # Agent Work Packet: Qualify Live Curriculum Navigation State
