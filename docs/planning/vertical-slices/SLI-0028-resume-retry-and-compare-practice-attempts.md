@@ -222,7 +222,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0102 | Freeze draft/retry/history/review-target contracts, deterministic policy and projection rules, and anti-rigidity corpora | SLI-0027 | none | complete |
-| WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | verifying |
+| WRK-0103 | Implement Assessment conditional drafts, atomic retry enforcement, attempt ordering, compatible migration, and practice-event replay | WRK-0102 | none | complete |
 | JIT-C | Implement Curriculum review-target resolution, Learner-model history rebuild/persistence, protected composed API, OpenAPI, and generated client | JIT-B | none | captured |
 | JIT-D | Deliver accessible browser resume, saved-progress, targeted-review, retry, and attempt-comparison behavior through generated clients | JIT-C | none | captured |
 | JIT-E | Qualify contracts, real PostgreSQL concurrency/rollback/rebuild, API/headless and browser parity, restart durability, confidentiality, accessibility, and live local composition | JIT-D | none | captured |
@@ -314,4 +314,9 @@ mode, autonomous authority, provider, cloud, or external execution was added.
   `5d869b8df0896dd1ddb248559bde5d233ee0ddba`; additive contracts and
   dependency-light evidence now make the Assessment persistence/retry seam
   eligible for just-in-time packet authoring.
+- 2026-10-16: Completed WRK-0103 at exact candidate
+  `0745422d1e742937a0c97fde817bf1d0e2d62235`; Assessment now owns durable
+  conditional drafts, exact retry enforcement, stable attempt order, and
+  provenance-correlated typed replay. The composed Curriculum, Learner-model,
+  API, OpenAPI, and generated-client seam is dependency-ready for refinement.
 

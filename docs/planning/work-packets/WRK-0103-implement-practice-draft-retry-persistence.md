@@ -1,7 +1,7 @@
 ---
 id: WRK-0103
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -195,7 +195,28 @@ work was added.
 
 ## Completion Evidence
 
-- Pending implementation and verification.
+- Exact candidate `0745422d1e742937a0c97fde817bf1d0e2d62235` implements the
+  Assessment-owned draft, retry, attempt-order, and validated completion-replay
+  seam. The qualifying affected-check receipt has logical digest
+  `sha256:4a83facda10de6e7853e683a998901a01a492979c0d6fe0a28c4cb0c4b4c279f`.
+- The additive migration preserves retained result and event documents while
+  adding exact-scope draft, retry-lock, and stable attempt-order state. Draft
+  clearing remains atomic with the complete evidence/outbox transaction.
+- Replay now correlates validated event-envelope identities with authoritative
+  event, attempt, evidence, and submission columns, rejects item-type/policy
+  mismatches, and returns no raw response, answer, feedback, or evaluator data.
+- Focused Assessment unit, contract, and real-PostgreSQL verification passed
+  208 tests. The progress suite passed 17 real-database scenarios, including
+  each supported maximum from 1 through 10, exact replay at the limit, stable
+  ordering, concurrent final-slot protection, denied-submission draft
+  preservation, restart, rollback, and migration byte preservation.
+- Backend architecture passed 15 tests, aggregate readiness passed all 29
+  checks, whitespace integrity passed, and the independent technical-review
+  requirement is satisfied in the ignored local control-plane ledger.
+- This packet changed no HTTP route, OpenAPI document, generated client,
+  browser surface, mastery/adaptive authority, provider, cloud-recovery, or
+  external-execution boundary. The public application operations remain
+  transport-neutral for browser and non-browser/headless composition.
 
 ## Planning History
 
@@ -203,3 +224,7 @@ work was added.
   froze additive draft, retry, review-target, and history contract meanings.
   No durable decision gate is open; implementation stays inside the approved
   CAP-0006 package and preserves the reusable public application boundary.
+- 2026-10-16: Completed at exact candidate
+  `0745422d1e742937a0c97fde817bf1d0e2d62235`. Bounded correction closed replay
+  provenance, item-policy correlation, and real-PostgreSQL variable-limit
+  evidence without changing the accepted contract or CAP scope.
