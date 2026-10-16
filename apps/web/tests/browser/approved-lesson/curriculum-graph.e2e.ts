@@ -16,6 +16,18 @@ const GRAPH_API =
   `/api/v1/curriculum/graphs/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}`;
 const NAVIGATION_API =
   `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}/navigation-state`;
+const LESSON_ACTIVITY_ID = "activity-risk-return-lesson";
+const ASSESSMENT_ACTIVITY_ID = "activity-risk-return-check";
+
+function launchApi(
+  activityId: string,
+  version = CURRICULUM_VERSION,
+): string {
+  return (
+    `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/${version}` +
+    `/activities/${activityId}/launch`
+  );
+}
 
 function displayLabel(value: string): string {
   return value
@@ -290,9 +302,35 @@ test("opens the live exact graph with peer views, provenance, and flexible group
       relationshipItem.getByText(relationship.kind, { exact: true }),
     ).toBeVisible();
   }
-  await expect(page.getByRole("link", { name: /open|start|launch/i })).toHaveCount(
-    0,
-  );
+  let expectedStartActions = 0;
+  let expectedReviewActions = 0;
+  for (const activity of graph.activities) {
+    const state = navigationState.activity_states.find(
+      (candidate) => candidate.activity_id === activity.activity_id,
+    );
+    if (
+      activity.kind !== "lesson" ||
+      state?.availability !== "available" ||
+      state.eligibility !== "eligible"
+    ) {
+      continue;
+    }
+    const branchOccurrences = graph.branches.filter((branch) =>
+      branch.activity_ids.includes(activity.activity_id),
+    ).length;
+    const renderedOccurrences = Math.max(1, branchOccurrences);
+    if (state.completion === "completed") {
+      expectedReviewActions += renderedOccurrences;
+    } else {
+      expectedStartActions += renderedOccurrences;
+    }
+  }
+  await expect(
+    list.getByRole("button", { name: "Start lesson" }),
+  ).toHaveCount(expectedStartActions);
+  await expect(
+    list.getByRole("button", { name: "Review lesson" }),
+  ).toHaveCount(expectedReviewActions);
   await expect(page.getByText(/you are eligible|you have completed|mastered/i)).toHaveCount(
     0,
   );
@@ -306,6 +344,16 @@ test("opens the live exact graph with peer views, provenance, and flexible group
   expect(await page.getByTestId("curriculum-graph-map").innerText()).toBe(
     listFacts,
   );
+  await expect(
+    page
+      .getByTestId("curriculum-graph-map")
+      .getByRole("button", { name: "Start lesson" }),
+  ).toHaveCount(expectedStartActions);
+  await expect(
+    page
+      .getByTestId("curriculum-graph-map")
+      .getByRole("button", { name: "Review lesson" }),
+  ).toHaveCount(expectedReviewActions);
 
   const baseline = await page.locator("main").innerText();
   for (const theme of ["light", "dark", "system"] as const) {
@@ -383,6 +431,11 @@ test("denies graph facts without context and never substitutes a missing version
   expect(navigationDenial).not.toMatch(
     /graph_digest|source_set_digest|projection_digest|activity_states|actor_id|learner_id/i,
   );
+  const unauthorizedLaunch = await request.get(launchApi(LESSON_ACTIVITY_ID));
+  expect(unauthorizedLaunch.status()).toBe(401);
+  expect(await unauthorizedLaunch.text()).not.toMatch(
+    /destination|graph_digest|projection_digest|package_id|placement_id|actor_id|learner_id/i,
+  );
 
   await page.goto(GRAPH_PATH);
   await expect(
@@ -400,6 +453,27 @@ test("denies graph facts without context and never substitutes a missing version
   expect(selectorDenial).not.toMatch(
     /source_set_digest|projection_digest|activity_states|learner_id/i,
   );
+  const rejectedLaunchSelector = await context.request.get(
+    `${launchApi(LESSON_ACTIVITY_ID)}?destination=%2Flearn%2Fplacements%2Fother`,
+  );
+  expect(rejectedLaunchSelector.status()).toBe(400);
+  expect(await rejectedLaunchSelector.text()).not.toMatch(
+    /destination|graph_digest|projection_digest|package_id|placement_id|learner_id/i,
+  );
+  const assessmentLaunch = await context.request.get(
+    launchApi(ASSESSMENT_ACTIVITY_ID),
+  );
+  expect(assessmentLaunch.status()).toBe(409);
+  expect(await assessmentLaunch.text()).not.toMatch(
+    /destination|graph_digest|projection_digest|package_id|placement_id|learner_id/i,
+  );
+  const unknownLaunch = await context.request.get(
+    launchApi("activity-not-present"),
+  );
+  expect(unknownLaunch.status()).toBe(404);
+  expect(await unknownLaunch.text()).not.toMatch(
+    /destination|graph_digest|projection_digest|package_id|placement_id|learner_id/i,
+  );
   const missingNavigation = await context.request.get(
     `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/9.9.9/navigation-state`,
   );
@@ -408,6 +482,13 @@ test("denies graph facts without context and never substitutes a missing version
   expect(missingNavigationBody).not.toContain("Investing Foundations");
   expect(missingNavigationBody).not.toMatch(
     /graph_digest|source_set_digest|projection_digest|activity_states|activity_id|completion|eligibility|requirement|learner_id/i,
+  );
+  const missingLaunch = await context.request.get(
+    launchApi(LESSON_ACTIVITY_ID, "9.9.9"),
+  );
+  expect(missingLaunch.status()).toBe(404);
+  expect(await missingLaunch.text()).not.toMatch(
+    /destination|graph_digest|projection_digest|package_id|placement_id|learner_id/i,
   );
 
   await page.goto(`/learn/curricula/${CURRICULUM_ID}/versions/9.9.9`);

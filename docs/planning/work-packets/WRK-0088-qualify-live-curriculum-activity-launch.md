@@ -196,6 +196,36 @@ model/recommendation/mastery behavior, migration, provider, or separate AI mode
 was added. Leave SLI-0024 ready for deterministic closure or return a bounded
 blocker.
 
+## Implementation Evidence
+
+- The explicit approved-fixture path now publishes
+  `investing-foundations@1.0.0` and `@1.1.0` through the existing Curriculum
+  public operation. The second version changes the primary lesson placement and
+  adds one optional activity that deliberately reuses the original exact
+  placement/package source. Ordinary startup without the fixture flag remains
+  unchanged.
+- The isolated PostgreSQL 18.4, loopback Python/static host, and pinned Chromium
+  runner passed all 8 live scenarios. Direct API and generated-client/browser
+  evidence covered exact launch correlation, learner start/review, completion,
+  return context, fresh complete/current display, list/map parity, bounded
+  assessment/unknown/query/version denials without destination leakage, two
+  exact routes, reused-source completion, changed-placement non-inheritance,
+  accessibility, responsive display, security headers, and exact cleanup.
+- The complete backend regression passed 426 tests with 34 environment-bounded
+  skips; the focused activity-launch contract/policy/application/API suite
+  passed 56 tests. Architecture fitness passed 15 checks and the approved
+  lesson security gate passed 10 control groups.
+- The complete web unit/component regression passed 151 tests; focused mocked
+  curriculum/lesson Chromium qualification passed 13 tests. TypeScript
+  typecheck, lint, production build, OpenAPI snapshot, generated client,
+  learner-language, design-system, documentation, planning, and whitespace
+  checks passed.
+- No product domain/application/API shape, OpenAPI or generated-client source,
+  persistence schema, migration, package dependency, browser-only authority,
+  durable launch/current state, model, recommendation, mastery, provider,
+  cloud, or separate headless-AI plan changed. The same public API remains
+  available to UI and non-UI clients.
+
 ## Planning History
 
 - 2026-10-16: Authored just in time after WRK-0087 completion. The packet

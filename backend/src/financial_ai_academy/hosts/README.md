@@ -41,3 +41,11 @@ curriculum version, and activity to Adaptation. Missing activities map to 404,
 locked or unsupported activities to 409, and unavailable current sources to
 503. Every refusal omits a destination.
 
+The isolated approved-lesson qualification calls this launch operation
+directly and through the generated browser client across two exact curriculum
+versions. It verifies the server-derived same-origin lesson destination,
+complete return context, completion/current-state refresh, bounded refusal
+confidentiality, explicit exact-source reuse, and changed-placement isolation.
+The host remains usable without the browser; no UI-only policy or durable launch
+state is introduced.
+

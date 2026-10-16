@@ -53,10 +53,10 @@ references, policy identity, and provenance without recomputing policy or
 digests. Composed live qualification covers the exact retained-completion
 transition, complete graph/API/UI parity, bounded missing-version and
 authorization responses, accessible peer views, and isolated
-PostgreSQL/Python/static-browser execution. Durable recommendations, model
-ranking, experiments, managed-cloud adapters, and assessment completion remain
-outside this implemented boundary. Application composition, HTTP,
-The protected launch GET and generated client now expose this application seam
-behind both existing navigation-read and lesson-read permissions. Browser
-actions, return navigation, and current-position presentation remain separate
-SLI-0024 work.
+PostgreSQL/Python/static-browser execution. The protected launch GET and
+generated client are exercised both as a headless public API and through
+learner start/review controls, exact lesson return, and fresh current-position
+presentation. Two coexisting exact graph versions prove explicit source reuse
+and changed-placement isolation without inferred equivalence. Durable
+recommendations, model ranking, experiments, managed-cloud adapters, and
+assessment completion remain outside this implemented boundary.

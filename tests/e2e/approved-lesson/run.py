@@ -281,16 +281,24 @@ def main() -> int:
             "filesystem": "isolated temporary data root",
             "fixture": "intro-risk-return@1.1.0 with risk-return-check-1@1.0.0",
             "curriculum_graph": (
-                "investing-foundations@1.0.0 published through public "
-                "Curriculum operations and qualified through exact API, "
-                "list, map, provenance, denial, and missing-version paths"
+                "investing-foundations@1.0.0 and @1.1.0 published through "
+                "public Curriculum operations and qualified through exact "
+                "API, list, map, provenance, denial, coexistence, and "
+                "missing-version paths"
+            ),
+            "activity_launch": (
+                "protected exact-version API and generated browser client "
+                "qualified for start, review, exact lesson destination, "
+                "return context, bounded denial, and current-position display"
             ),
             "navigation_state": (
                 "deterministic-prerequisite-baseline@1.0.0 qualified "
                 "through the protected exact-version API, same-context "
                 "lesson-completion transition, complete graph-ordered "
                 "activity closure, list/map parity, bounded assessment "
-                "unavailability, selector denial, and provenance digests"
+                "unavailability, selector denial, provenance digests, and "
+                "exact-source completion reuse without changed-placement "
+                "inheritance"
             ),
             "http_origin": origin,
             "production_application_process": Path(sys.executable).name,

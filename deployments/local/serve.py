@@ -52,6 +52,9 @@ from financial_ai_academy.platform.security.single_profile_policy import (  # no
 
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 PLACEMENT_ID = "intro-risk-return-primary"
+UPDATED_CURRICULUM_VERSION = "1.1.0"
+UPDATED_PLACEMENT_ID = "intro-risk-return-revised"
+REUSED_ACTIVITY_ID = "activity-risk-return-review"
 APPROVED_FIXTURE = (
     REPOSITORY
     / "contracts"
@@ -159,6 +162,87 @@ def qualification_graph(
     )
 
 
+def qualification_graph_versions(
+    *,
+    package_id: str,
+    package_version: str,
+    package_digest: str,
+) -> tuple[CurriculumGraph, CurriculumGraph]:
+    """Build two exact qualification versions with explicit evidence seams."""
+    current = qualification_graph(
+        package_id=package_id,
+        package_version=package_version,
+        package_digest=package_digest,
+    )
+    primary = next(
+        activity
+        for activity in current.activities
+        if activity.activity_id == "activity-risk-return-lesson"
+    )
+    if not isinstance(primary.reference, LessonActivityReference):
+        raise ValueError("The qualification lesson must remain a lesson reference.")
+    changed_primary = replace(
+        primary,
+        reference=replace(
+            primary.reference,
+            placement_id=UPDATED_PLACEMENT_ID,
+        ),
+    )
+    reused_primary = replace(
+        primary,
+        activity_id=REUSED_ACTIVITY_ID,
+        title="Review risk and return",
+    )
+    activities = tuple(
+        changed_primary
+        if activity.activity_id == primary.activity_id
+        else activity
+        for activity in current.activities
+    ) + (reused_primary,)
+    branches = tuple(
+        replace(
+            branch,
+            activity_ids=(*branch.activity_ids, REUSED_ACTIVITY_ID),
+        )
+        if branch.branch_id == "branch-explore"
+        else branch
+        for branch in current.branches
+    )
+    presentation_order = (
+        replace(
+            current.presentation_order,
+            activity_ids=(
+                *current.presentation_order.activity_ids,
+                REUSED_ACTIVITY_ID,
+            ),
+        )
+        if current.presentation_order is not None
+        else None
+    )
+    updated_candidate = replace(
+        current,
+        curriculum_version=UPDATED_CURRICULUM_VERSION,
+        source_references=tuple(
+            (
+                f"curriculum:{current.curriculum_id}"
+                f"@{UPDATED_CURRICULUM_VERSION}"
+            )
+            if source.startswith("curriculum:")
+            else source
+            for source in current.source_references
+        ),
+        activities=activities,
+        branches=branches,
+        presentation_order=presentation_order,
+        graph_digest="0" * 64,
+    )
+    updated = replace(
+        updated_candidate,
+        graph_digest=curriculum_graph_digest(updated_candidate),
+    )
+    return current, updated
+
+
 def build_local_app(
     *,
     postgres_dsn: str,
@@ -216,52 +300,60 @@ def build_local_app(
         accepted = services.content.admit_lesson_package(
             AdmitLessonPackageRequest(APPROVED_FIXTURE)
         )
-        graph = qualification_graph(
+        graphs = qualification_graph_versions(
             package_id=accepted.package_id,
             package_version=accepted.package_version,
             package_digest=accepted.package_digest,
         )
         placement_ids: set[str] = set()
-        for activity in graph.activities:
-            reference = activity.reference
-            if reference.placement_id in placement_ids:
-                continue
-            services.curriculum.create_lesson_placement(
-                CreateLessonPlacementRequest(
-                    placement_id=reference.placement_id,
-                    package_id=accepted.package_id,
-                    package_version=accepted.package_version,
-                    package_digest=accepted.package_digest,
+        for graph in graphs:
+            for activity in graph.activities:
+                reference = activity.reference
+                if reference.placement_id in placement_ids:
+                    continue
+                services.curriculum.create_lesson_placement(
+                    CreateLessonPlacementRequest(
+                        placement_id=reference.placement_id,
+                        package_id=accepted.package_id,
+                        package_version=accepted.package_version,
+                        package_digest=accepted.package_digest,
+                    )
                 )
-            )
-            placement_ids.add(reference.placement_id)
-        for activity in graph.activities:
-            reference = activity.reference
-            if not isinstance(reference, AssessmentActivityReference):
-                continue
-            primary = reference.assessment_id == ASSESSMENT_ID
-            services.curriculum.create_assessment_placement(
-                CreateAssessmentPlacementRequest(
-                    placement_id=reference.placement_id,
-                    package_id=accepted.package_id,
-                    package_version=accepted.package_version,
-                    package_digest=accepted.package_digest,
-                    assessment_id=reference.assessment_id,
-                    assessment_version=reference.assessment_version,
-                    definition_digest=reference.definition_digest,
-                    item_id=(
-                        "risk-return-tradeoff"
-                        if primary
-                        else f"{reference.assessment_id}-item"
-                    ),
-                    item_version="1.0.0",
-                    scoring_policy_id="single-select-exact-match",
-                    scoring_policy_version="1.0.0",
+                placement_ids.add(reference.placement_id)
+        assessment_placement_ids: set[str] = set()
+        for graph in graphs:
+            for activity in graph.activities:
+                reference = activity.reference
+                if (
+                    not isinstance(reference, AssessmentActivityReference)
+                    or reference.placement_id in assessment_placement_ids
+                ):
+                    continue
+                primary = reference.assessment_id == ASSESSMENT_ID
+                services.curriculum.create_assessment_placement(
+                    CreateAssessmentPlacementRequest(
+                        placement_id=reference.placement_id,
+                        package_id=accepted.package_id,
+                        package_version=accepted.package_version,
+                        package_digest=accepted.package_digest,
+                        assessment_id=reference.assessment_id,
+                        assessment_version=reference.assessment_version,
+                        definition_digest=reference.definition_digest,
+                        item_id=(
+                            "risk-return-tradeoff"
+                            if primary
+                            else f"{reference.assessment_id}-item"
+                        ),
+                        item_version="1.0.0",
+                        scoring_policy_id="single-select-exact-match",
+                        scoring_policy_version="1.0.0",
+                    )
                 )
+                assessment_placement_ids.add(reference.placement_id)
+        for graph in graphs:
+            services.curriculum.publish_curriculum_graph(
+                PublishCurriculumGraphRequest(graph=graph)
             )
-        services.curriculum.publish_curriculum_graph(
-            PublishCurriculumGraphRequest(graph=graph)
-        )
         services.curriculum.register_lesson_opportunity(
             RegisterLessonOpportunityRequest(
                 opportunity_id=PLACEMENT_ID,

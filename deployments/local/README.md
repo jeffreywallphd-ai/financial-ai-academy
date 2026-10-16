@@ -99,11 +99,13 @@ The runner chooses unused loopback ports, creates a uniquely named
 `postgres:18.4` container with an ephemeral data mount, creates an isolated
 filesystem root below ignored `artifacts/tmp/`, waits for readiness, starts the
 Python host, opts into three deterministic discovery classifications, and runs
-the live browser checks for the exact curriculum graph and protected
-navigation-state APIs, complete graph-ordered activity closure, same-context
+the live browser checks for two exact curriculum versions and the protected
+navigation-state and activity-launch APIs, complete graph-ordered activity
+closure, generated-client start/review and exact return, same-context
 before/after lesson completion, API/list/map state and reason parity, bounded
 assessment-source unavailability, provenance, unbranched activity grouping,
-selector and missing-version denial, responsive and adaptive display behavior,
+selector, launch, and missing-version denial, changed-placement isolation,
+reused exact-source evidence, responsive and adaptive display behavior,
 combined filters,
 three-page ordering, cursor-query mismatch denial, exact current-opportunity
 detail, ordered two-record comparison, changed and malformed selection, exact
@@ -127,7 +129,8 @@ uv run --project backend python deployments/local/serve.py --postgres-dsn "postg
 Open `http://127.0.0.1:8000/learn`, then follow the exact approved lesson action
 to `/learn/placements/intro-risk-return-primary`. The independently addressable
 graph is available at
-`/learn/curricula/investing-foundations/versions/1.0.0`. Stop the Python
+`/learn/curricula/investing-foundations/versions/1.0.0`; its qualification-only
+successor is independently available at version `1.1.0`. Stop the Python
 process, then tear down only this qualification composition:
 
 ```powershell
@@ -141,14 +144,16 @@ database for retained learner data.
 
 ## Qualified and Unqualified Claims
 
-Direct evidence covers one approved fixture plus its exact immutable curriculum
-graph and opt-in three-classification query corpus, real PostgreSQL migrations
+Direct evidence covers one approved fixture plus two exact immutable curriculum
+versions and an opt-in three-classification query corpus, real PostgreSQL migrations
 and repositories, restrictive local filesystem storage, loopback request
 policy, opaque HttpOnly session cookie, public-operation graph publication,
 discovery registration and one atomic projection rebuild, reviewed
-OpenAPI/generated client, static same-origin Python serving, exact graph and
-navigation-state API/list/map/provenance/denial paths, same-context retained
-completion transition, complete ordered activity closure, bounded assessment
+OpenAPI/generated client, static same-origin Python serving, exact graph,
+navigation-state, and activity-launch API/list/map/provenance/denial paths,
+generated-client lesson launch and exact return, same-context retained
+completion transition, exact reused-source versus changed-placement behavior,
+complete ordered activity closure, bounded assessment
 unavailability, filter/pagination/cursor-denial, exact detail, ordered
 comparison, changed/malformed selection, and
 catalog-to-exact-lesson Chromium paths, architecture and security scans, axe

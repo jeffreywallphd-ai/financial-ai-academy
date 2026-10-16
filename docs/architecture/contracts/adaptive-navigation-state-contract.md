@@ -124,3 +124,12 @@ URL. Returning reloads the exact graph and current Navigation state; a selected
 activity is marked in visible text plus `aria-current` only when the fresh graph
 contains it. That URL state is disposable presentation context, not a durable
 position, evidence record, launch grant, or source of authorization.
+
+The isolated composed qualification exercises the same public launch operation
+both directly and through the generated browser client. It proves exact lesson
+opening, return after retained completion, fresh complete/current display,
+bounded denial confidentiality, and two coexisting graph versions. An activity
+that deliberately reuses the exact placement/package source may observe its
+retained completion; an activity whose version changes the placement remains
+incomplete. This is exact source identity, not inferred equivalence or a
+cross-version migration.

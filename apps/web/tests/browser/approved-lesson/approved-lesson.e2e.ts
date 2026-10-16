@@ -6,7 +6,11 @@ import type {
   LearningCatalog,
   LearningOpportunity,
 } from "../../../src/features/learning-catalog/model";
-import type { NavigationState } from "../../../src/features/curriculum-graph/model";
+import type {
+  ActivityLaunch,
+  CurriculumGraph,
+  NavigationState,
+} from "../../../src/features/curriculum-graph/model";
 
 const PLACEMENT_ID = "intro-risk-return-primary";
 const GUIDED_PRACTICE_ID = "intro-risk-return-guided-practice";
@@ -18,12 +22,26 @@ const LESSON_API =
   `/api/v1/curriculum/placements/${PLACEMENT_ID}/lesson`;
 const CURRICULUM_ID = "investing-foundations";
 const CURRICULUM_VERSION = "1.0.0";
+const UPDATED_CURRICULUM_VERSION = "1.1.0";
 const GRAPH_PATH =
   `/learn/curricula/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}`;
+const UPDATED_GRAPH_PATH =
+  `/learn/curricula/${CURRICULUM_ID}/versions/${UPDATED_CURRICULUM_VERSION}`;
+const GRAPH_API =
+  `/api/v1/curriculum/graphs/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}`;
+const UPDATED_GRAPH_API =
+  `/api/v1/curriculum/graphs/${CURRICULUM_ID}/versions/${UPDATED_CURRICULUM_VERSION}`;
 const NAVIGATION_API =
   `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}/navigation-state`;
+const UPDATED_NAVIGATION_API =
+  `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/${UPDATED_CURRICULUM_VERSION}/navigation-state`;
 const LESSON_ACTIVITY_ID = "activity-risk-return-lesson";
+const REUSED_LESSON_ACTIVITY_ID = "activity-risk-return-review";
+const UPDATED_PLACEMENT_ID = "intro-risk-return-revised";
 const ASSESSMENT_ACTIVITY_ID = "activity-risk-return-check";
+const LAUNCH_API =
+  `/api/v1/adaptation/curricula/${CURRICULUM_ID}/versions/${CURRICULUM_VERSION}` +
+  `/activities/${LESSON_ACTIVITY_ID}/launch`;
 const DIGEST =
   "7cf84bc2f7483d9131db315260b3812f3ea29821bf296571c0c7e38f05b536bc";
 const DEFINITION_DIGEST =
@@ -240,8 +258,55 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   });
   expect(approvedOpportunity.source_fingerprint).toMatch(/^[a-f0-9]{64}$/);
   expect(approvedOpportunity.projected_at).toBe(catalog.projected_at);
-  await lessonAction.click();
-  await expect(page).toHaveURL(new RegExp(`${LESSON_PATH}$`));
+
+  const graphResponse = await context.request.get(GRAPH_API);
+  expect(graphResponse.status()).toBe(200);
+  const graph = (await graphResponse.json()) as CurriculumGraph;
+  const lessonActivity = graph.activities.find(
+    (activity) => activity.activity_id === LESSON_ACTIVITY_ID,
+  );
+  expect(lessonActivity?.reference).toMatchObject({
+    reference_kind: "lesson_placement",
+    placement_id: PLACEMENT_ID,
+    package_id: "intro-risk-return",
+    package_version: "1.1.0",
+    package_digest: DIGEST,
+  });
+
+  const launchResponse = await context.request.get(LAUNCH_API);
+  expect(launchResponse.status()).toBe(200);
+  const launch = (await launchResponse.json()) as ActivityLaunch;
+  expect(launch).toMatchObject({
+    curriculum_id: CURRICULUM_ID,
+    curriculum_version: CURRICULUM_VERSION,
+    graph_digest: graph.graph_digest,
+    activity_id: LESSON_ACTIVITY_ID,
+    placement_id: PLACEMENT_ID,
+    package_id: "intro-risk-return",
+    package_version: "1.1.0",
+    package_digest: DIGEST,
+    destination: LESSON_PATH,
+  });
+  expect(launch.navigation_projection_digest).toMatch(/^[a-f0-9]{64}$/);
+  expect(launch.evaluated_at).toMatch(/Z$/);
+
+  await page.goto(GRAPH_PATH);
+  const launchCard = page.getByRole("article").filter({
+    has: page.getByRole("heading", {
+      level: 4,
+      name: "Read about risk and return",
+    }),
+  });
+  await expect(launchCard).toHaveCount(1);
+  await launchCard.getByRole("button", { name: "Start lesson" }).click();
+  await expect(page).toHaveURL((url) => {
+    return (
+      url.pathname === LESSON_PATH &&
+      url.searchParams.get("curriculum_id") === CURRICULUM_ID &&
+      url.searchParams.get("curriculum_version") === CURRICULUM_VERSION &&
+      url.searchParams.get("activity_id") === LESSON_ACTIVITY_ID
+    );
+  });
 
   await expect(
     page.getByRole("heading", {
@@ -407,7 +472,17 @@ test("browses the live catalog and opens the approved exact lesson", async ({
     "completion_source_unavailable",
   );
 
-  await page.goto(GRAPH_PATH);
+  const returnAction = page.getByRole("link", {
+    name: "Return to learning path",
+  });
+  await expect(returnAction).toHaveAttribute(
+    "href",
+    `${GRAPH_PATH}?activity=${LESSON_ACTIVITY_ID}`,
+  );
+  await returnAction.click();
+  await expect(page).toHaveURL(
+    `${GRAPH_PATH}?activity=${LESSON_ACTIVITY_ID}`,
+  );
   await expect(
     page.getByRole("heading", { level: 1, name: "Investing Foundations" }),
   ).toBeVisible();
@@ -420,6 +495,13 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   await expect(lessonStateCard).toHaveCount(1);
   await expect(
     lessonStateCard.getByText("Finished", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    lessonStateCard.getByText("Current activity", { exact: true }),
+  ).toBeVisible();
+  await expect(lessonStateCard).toHaveAttribute("aria-current", "step");
+  await expect(
+    lessonStateCard.getByRole("button", { name: "Review lesson" }),
   ).toBeVisible();
   await expect(
     lessonStateCard.getByText(
@@ -435,8 +517,109 @@ test("browses the live catalog and opens the approved exact lesson", async ({
   await page.getByRole("button", { name: "Map view" }).click();
   expect(await lessonStateCard.innerText()).toBe(listStateFacts);
   await expect(
-    page.getByRole("link", { name: /open|start|launch/i }),
-  ).toHaveCount(0);
+    lessonStateCard.getByRole("button", { name: "Review lesson" }),
+  ).toBeVisible();
+
+  const updatedGraphResponse = await context.request.get(UPDATED_GRAPH_API);
+  expect(updatedGraphResponse.status()).toBe(200);
+  const updatedGraph = (await updatedGraphResponse.json()) as CurriculumGraph;
+  const updatedPrimary = updatedGraph.activities.find(
+    (activity) => activity.activity_id === LESSON_ACTIVITY_ID,
+  );
+  const reusedPrimary = updatedGraph.activities.find(
+    (activity) => activity.activity_id === REUSED_LESSON_ACTIVITY_ID,
+  );
+  expect(updatedGraph).toMatchObject({
+    curriculum_id: CURRICULUM_ID,
+    curriculum_version: UPDATED_CURRICULUM_VERSION,
+  });
+  expect(updatedPrimary?.reference).toMatchObject({
+    reference_kind: "lesson_placement",
+    placement_id: UPDATED_PLACEMENT_ID,
+    package_id: "intro-risk-return",
+    package_version: "1.1.0",
+    package_digest: DIGEST,
+  });
+  expect(reusedPrimary?.reference).toMatchObject({
+    reference_kind: "lesson_placement",
+    placement_id: PLACEMENT_ID,
+    package_id: "intro-risk-return",
+    package_version: "1.1.0",
+    package_digest: DIGEST,
+  });
+
+  const updatedNavigationResponse = await context.request.get(
+    UPDATED_NAVIGATION_API,
+  );
+  expect(updatedNavigationResponse.status()).toBe(200);
+  const updatedNavigation =
+    (await updatedNavigationResponse.json()) as NavigationState;
+  expect(updatedNavigation).toMatchObject({
+    curriculum_id: CURRICULUM_ID,
+    curriculum_version: UPDATED_CURRICULUM_VERSION,
+    graph_digest: updatedGraph.graph_digest,
+  });
+  expect(
+    updatedNavigation.activity_states.find(
+      (state) => state.activity_id === LESSON_ACTIVITY_ID,
+    ),
+  ).toMatchObject({
+    completion: "incomplete",
+    eligibility: "eligible",
+    requirement: "required",
+  });
+  expect(
+    updatedNavigation.activity_states.find(
+      (state) => state.activity_id === REUSED_LESSON_ACTIVITY_ID,
+    ),
+  ).toMatchObject({
+    completion: "completed",
+    eligibility: "eligible",
+    requirement: "optional",
+  });
+
+  const updatedLaunchResponse = await context.request.get(
+    `/api/v1/adaptation/curricula/${CURRICULUM_ID}` +
+      `/versions/${UPDATED_CURRICULUM_VERSION}` +
+      `/activities/${REUSED_LESSON_ACTIVITY_ID}/launch`,
+  );
+  expect(updatedLaunchResponse.status()).toBe(200);
+  await expect(updatedLaunchResponse.json()).resolves.toMatchObject({
+    curriculum_id: CURRICULUM_ID,
+    curriculum_version: UPDATED_CURRICULUM_VERSION,
+    graph_digest: updatedGraph.graph_digest,
+    activity_id: REUSED_LESSON_ACTIVITY_ID,
+    placement_id: PLACEMENT_ID,
+    destination: LESSON_PATH,
+  });
+
+  await page.goto(UPDATED_GRAPH_PATH);
+  const changedVersionCard = page.getByRole("article").filter({
+    has: page.getByRole("heading", {
+      level: 4,
+      name: "Read about risk and return",
+    }),
+  });
+  const reusedVersionCards = page.getByRole("article").filter({
+    has: page.getByRole("heading", {
+      level: 4,
+      name: "Review risk and return",
+    }),
+  });
+  await expect(changedVersionCard.getByText("Not finished", { exact: true })).toBeVisible();
+  await expect(
+    changedVersionCard.getByRole("button", { name: "Start lesson" }),
+  ).toBeVisible();
+  expect(await reusedVersionCards.count()).toBeGreaterThan(0);
+  for (let index = 0; index < (await reusedVersionCards.count()); index += 1) {
+    const card = reusedVersionCards.nth(index);
+    await expect(card.getByText("Finished", { exact: true })).toBeVisible();
+    await expect(card.getByText("Optional", { exact: true })).toBeVisible();
+    await expect(
+      card.getByRole("button", { name: "Review lesson" }),
+    ).toBeVisible();
+  }
+  await expect(page.getByText("Current activity", { exact: true })).toHaveCount(0);
 
   const cookies = await context.cookies();
   const session = cookies.find(

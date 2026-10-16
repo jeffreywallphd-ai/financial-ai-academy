@@ -134,46 +134,96 @@ def exercise_local_composition(
         "SingleProfileSecuritySettings": Record,
         "build_application_services": MagicMock(return_value=services),
         "create_app": application_factory,
-        "qualification_graph": MagicMock(
-            return_value=SimpleNamespace(
-                activities=(
-                    Record(
-                        activity_id="activity-risk-return-lesson",
-                        reference=LessonReference(
-                            placement_id=PLACEMENT_ID,
+        "qualification_graph_versions": MagicMock(
+            return_value=(
+                SimpleNamespace(
+                    curriculum_version="1.0.0",
+                    activities=(
+                        Record(
+                            activity_id="activity-risk-return-lesson",
+                            reference=LessonReference(
+                                placement_id=PLACEMENT_ID,
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-risk-return-check",
+                            reference=AssessmentReference(
+                                placement_id=PLACEMENT_ID,
+                                assessment_id="risk-return-check-1",
+                                assessment_version="1.0.0",
+                                definition_digest="b" * 64,
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-diversification-reading",
+                            reference=LessonReference(
+                                placement_id="diversification-reading",
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-diversification-check",
+                            reference=AssessmentReference(
+                                placement_id="diversification-check",
+                                assessment_id="diversification-check",
+                                assessment_version="1.0.0",
+                                definition_digest="c" * 64,
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-terms-glossary",
+                            reference=LessonReference(
+                                placement_id="investing-terms-glossary",
+                            ),
                         ),
                     ),
-                    Record(
-                        activity_id="activity-risk-return-check",
-                        reference=AssessmentReference(
-                            placement_id=PLACEMENT_ID,
-                            assessment_id="risk-return-check-1",
-                            assessment_version="1.0.0",
-                            definition_digest="b" * 64,
+                ),
+                SimpleNamespace(
+                    curriculum_version="1.1.0",
+                    activities=(
+                        Record(
+                            activity_id="activity-risk-return-lesson",
+                            reference=LessonReference(
+                                placement_id="intro-risk-return-revised",
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-risk-return-check",
+                            reference=AssessmentReference(
+                                placement_id=PLACEMENT_ID,
+                                assessment_id="risk-return-check-1",
+                                assessment_version="1.0.0",
+                                definition_digest="b" * 64,
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-diversification-reading",
+                            reference=LessonReference(
+                                placement_id="diversification-reading",
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-diversification-check",
+                            reference=AssessmentReference(
+                                placement_id="diversification-check",
+                                assessment_id="diversification-check",
+                                assessment_version="1.0.0",
+                                definition_digest="c" * 64,
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-terms-glossary",
+                            reference=LessonReference(
+                                placement_id="investing-terms-glossary",
+                            ),
+                        ),
+                        Record(
+                            activity_id="activity-risk-return-review",
+                            reference=LessonReference(
+                                placement_id=PLACEMENT_ID,
+                            ),
                         ),
                     ),
-                    Record(
-                        activity_id="activity-diversification-reading",
-                        reference=LessonReference(
-                            placement_id="diversification-reading",
-                        ),
-                    ),
-                    Record(
-                        activity_id="activity-diversification-check",
-                        reference=AssessmentReference(
-                            placement_id="diversification-check",
-                            assessment_id="diversification-check",
-                            assessment_version="1.0.0",
-                            definition_digest="c" * 64,
-                        ),
-                    ),
-                    Record(
-                        activity_id="activity-terms-glossary",
-                        reference=LessonReference(
-                            placement_id="investing-terms-glossary",
-                        ),
-                    ),
-                )
+                ),
             )
         ),
     }
@@ -331,8 +381,10 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
                 "lesson-placement:diversification-reading",
                 "lesson-placement:diversification-check",
                 "lesson-placement:investing-terms-glossary",
+                "lesson-placement:intro-risk-return-revised",
                 "assessment-placement:risk-return-check-1",
                 "assessment-placement:diversification-check",
+                "publish-graph",
                 "publish-graph",
                 "register-opportunity",
                 "rebuild-projection",

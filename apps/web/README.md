@@ -254,8 +254,8 @@ The cross-system runner requires the static build, starts an isolated
 PostgreSQL 18.4 container when no explicitly acknowledged external test
 database is supplied, starts `deployments/local/serve.py` as the only
 application process, seeds the approved fixture through public Content and
-Curriculum operations, publishes the exact immutable curriculum graph, rebuilds
-its discovery projection, and runs the live Chromium checks from the protected
+Curriculum operations, publishes two exact immutable curriculum versions,
+rebuilds its discovery projection, and runs the live Chromium checks from the protected
 graph and `/learn` catalog through the exact lesson, assessment, and retained
 completion against that same-origin Python host. The live graph and navigation
 checks cover direct API/UI fact parity, complete graph-ordered activity state,
@@ -266,6 +266,12 @@ unsupported-selector and missing-version denial, themes, adaptive display
 conditions, and accessibility. Browser assertions use learner-facing labels
 first and open `Technical record` disclosures before comparing exact IDs,
 state values, reason evidence, schema, policy, time, sources, and digests. The
+same live run calls the protected launch API directly and through the generated
+browser client, opens the server-derived lesson path, retains exact return
+context through completion and reload, and shows fresh complete/current state
+on return. Its two versions prove that an explicitly reused exact placement may
+reuse retained evidence while a changed placement remains incomplete; neither
+case uses inferred equivalence or browser policy. The
 separate pinned browser fixture preserves
 the wider same-kind shared-branch and variable-reference anti-rigidity cases;
 the live approved graph does not invent those shapes for qualification.
@@ -287,7 +293,9 @@ static-serving, three-classification query corpus, combined filters,
 multi-page duration order, cursor-query mismatch denial, exact current detail,
 ordered comparison, changed/malformed selection, approved catalog projection
 and exact navigation, exact curriculum graph and protected navigation-state
-API/list/map/provenance, complete activity-state closure, same-context
+and activity-launch API/list/map/provenance, two exact coexisting curriculum
+versions, generated-client lesson start/review and return, complete
+activity-state closure, same-context
 completion transition, bounded assessment unavailability, shared/unbranched
 fixture grouping, selector and missing-version denial, submission, repeated
 retained-completion reopen, missing-context, stale-placement, security-header,
