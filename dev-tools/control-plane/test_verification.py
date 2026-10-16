@@ -351,6 +351,19 @@ class SelectionTests(unittest.TestCase):
                 "web:lint",
                 "web:browser",
             ],
+            "apps/web/tests/browser/project-workspace/example.spec.ts": [
+                "web:typecheck",
+                "web:lint",
+                "project:browser",
+            ],
+            "apps/web/src/features/project-workspace/ProjectCreatePage.tsx": [
+                "learner-language:changed",
+                "web:typecheck",
+                "web:lint",
+                "web:unit",
+                "project:browser",
+                "web:build",
+            ],
             "apps/web/tests/browser/approved-lesson/example.e2e.ts": [
                 "web:typecheck",
                 "web:lint",
@@ -596,6 +609,28 @@ class RepositoryWebCheckTests(unittest.TestCase):
             self.assertEqual(
                 "worktree-index", dist.joinpath("index.html").read_text(encoding="utf-8")
             )
+
+    def test_project_browser_check_runs_only_the_project_suite(self) -> None:
+        commands: list[tuple[str, ...]] = []
+
+        def runner(command: tuple[str, ...], *, root: Path) -> None:
+            del root
+            commands.append(command)
+
+        with tempfile.TemporaryDirectory(prefix="project-browser-check-") as directory:
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+            ):
+                execute_web_check(
+                    "project-browser",
+                    root=Path(directory),
+                    command_runner=runner,
+                    version_reader=self.versions,
+                )
+
+        self.assertEqual(1, len(commands))
+        self.assertIn("apps/web/tests/browser/project-workspace", commands[0])
+        self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
 
     def test_explicit_runtime_is_available_to_child_processes(self) -> None:
         runtime = WebRuntime(

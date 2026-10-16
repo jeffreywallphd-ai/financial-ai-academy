@@ -139,7 +139,7 @@ class GitCandidateAdapter:
                 {"base_revision": base_revision, "candidate": exact_candidate},
                 ["Reconcile ancestry on the intended branch and create a descendant candidate."],
             )
-        changed_output = self._required("diff", "--name-only", "--diff-filter=ACMRTUXB", base_revision, exact_candidate)
+        changed_output = self._required("diff", "--name-only", "--diff-filter=ACMDRTUXB", base_revision, exact_candidate)
         changed = sorted({self._normalized(line) for line in changed_output.splitlines() if line.strip()})
         outside = [path for path in changed if not self._allowed(path, allowed_paths)]
         if outside:

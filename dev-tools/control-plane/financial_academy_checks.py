@@ -40,6 +40,10 @@ def catalog() -> CheckCatalog:
         "apps/web/tests/browser/support/**",
         "apps/web/tests/browser/playwright.config.ts",
     )
+    project_browser_paths = (
+        "apps/web/src/features/project-workspace/**",
+        "apps/web/tests/browser/project-workspace/**",
+    )
     approved_browser_paths = (
         "apps/web/tests/browser/approved-lesson/**",
         "apps/web/tests/browser/approved-lesson.config.ts",
@@ -110,7 +114,7 @@ def catalog() -> CheckCatalog:
         *roadmap_document_paths,
     )
     return CheckCatalog(
-        "financial-ai-academy-v5",
+        "financial-ai-academy-v6",
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
             CheckDefinition("control-plane:review", (python, "dev-tools/control-plane/test_review.py"), ("dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py"), "medium", 11, description="Technical review, corrected-descendant, and review-ledger behavior"),
@@ -127,10 +131,11 @@ def catalog() -> CheckCatalog:
             CheckDefinition("roadmap-review:unit", (*web_check, "--mode", "roadmap-unit"), roadmap_unit_paths, "medium", 48, description="Roadmap review DOM and view-model behavior"),
             CheckDefinition("architecture:integrity", (python, "dev-tools/architecture/check_architecture.py"), ("backend/**", "contracts/**", "docs/architecture/**"), "high", 50, description="Architecture boundary checks"),
             CheckDefinition("local:architecture", (python, "tests/architecture/test_approved_lesson_boundaries.py"), local_composition_paths, "medium", 51, description="Local composition and approved-lesson boundary checks"),
-            CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_source_paths, *mocked_browser_paths, *approved_browser_paths, *roadmap_browser_paths, "apps/web/tsconfig.json"), "medium", 52, description="Web TypeScript boundary"),
-            CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_source_paths, *mocked_browser_paths, *approved_browser_paths, *roadmap_browser_paths), "medium", 54, description="Web source and test lint"),
+            CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_source_paths, *mocked_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths, "apps/web/tsconfig.json"), "medium", 52, description="Web TypeScript boundary"),
+            CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_source_paths, *mocked_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths), "medium", 54, description="Web source and test lint"),
             CheckDefinition("web:unit", (*web_check, "--mode", "unit"), (*web_source_paths, "apps/web/scripts/generate-api-client.mjs"), "medium", 56, description="Web unit, component, and contract behavior"),
             CheckDefinition("web:browser", (*web_check, "--mode", "browser"), mocked_browser_paths, "medium", 58, timeout_seconds=120, description="Mocked Chromium application behavior"),
+            CheckDefinition("project:browser", (*web_check, "--mode", "project-browser"), project_browser_paths, "medium", 59, timeout_seconds=120, description="Focused Project Chromium behavior"),
             CheckDefinition("design:integrity", (python, "dev-tools/design/check_design_system.py"), ("apps/web/src/design-system/**", "docs/design/**"), "medium", 60, description="Design-system integrity"),
             CheckDefinition("web:build", (*web_check, "--mode", "build"), web_build_paths, "medium", 62, description="Static web production build"),
             CheckDefinition("web:generated-client", (*web_check, "--mode", "generated"), generated_client_paths, "high", 64, description="Reviewed OpenAPI generated-client reproduction"),

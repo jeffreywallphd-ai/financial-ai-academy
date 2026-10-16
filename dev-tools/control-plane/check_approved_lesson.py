@@ -25,6 +25,7 @@ MOCKED_BROWSER_SUITES = (
     "apps/web/tests/browser/learning-catalog",
     "apps/web/tests/browser/lesson-reading",
 )
+PROJECT_BROWSER_SUITE = "apps/web/tests/browser/project-workspace"
 
 
 @dataclass(frozen=True, slots=True)
@@ -362,6 +363,14 @@ def execute(
             "--",
             *MOCKED_BROWSER_SUITES,
         ),
+        "project-browser": npm_command(
+            runtime,
+            root,
+            "run",
+            "test:browser",
+            "--",
+            PROJECT_BROWSER_SUITE,
+        ),
     }
     if mode == "build":
         run_build_in_snapshot(
@@ -416,6 +425,7 @@ def main() -> int:
             "roadmap-unit",
             "roadmap-server",
             "browser",
+            "project-browser",
             "roadmap",
             "local-scripts",
             "live",

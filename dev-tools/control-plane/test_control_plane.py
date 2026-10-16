@@ -420,6 +420,35 @@ claimed_at: null
             self.assertEqual("git.scope-escape", outside.exception.code)
             self.assertIn("outside.txt", outside.exception.observed["outside_paths"])
 
+    def test_deleted_paths_are_recorded_and_enforced_against_scope(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="faa-control-plane-delete-in-") as directory:
+            root, plane = self.fixture(directory)
+            claimed = plane.claim("WRK-0001", owner="agent", lease_minutes=30)
+            claim_id = claimed["data"]["claim"]["claim_id"]
+            (root / "src" / "value.txt").unlink()
+            self.git(root, "add", "-A")
+            self.git(root, "commit", "-m", "delete in-scope source")
+
+            submitted = plane.submit("WRK-0001", owner="agent", claim_id=claim_id)
+
+            self.assertIn(
+                "src/value.txt", submitted["data"]["submission"]["changed_paths"]
+            )
+
+        with tempfile.TemporaryDirectory(prefix="faa-control-plane-delete-out-") as directory:
+            root, plane = self.fixture(directory)
+            claimed = plane.claim("WRK-0001", owner="agent", lease_minutes=30)
+            claim_id = claimed["data"]["claim"]["claim_id"]
+            (root / "AGENTS.md").unlink()
+            self.git(root, "add", "-A")
+            self.git(root, "commit", "-m", "delete out-of-scope source")
+
+            with self.assertRaises(ControlError) as outside:
+                plane.submit("WRK-0001", owner="agent", claim_id=claim_id)
+
+            self.assertEqual("git.scope-escape", outside.exception.code)
+            self.assertIn("AGENTS.md", outside.exception.observed["outside_paths"])
+
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()

@@ -165,6 +165,10 @@ python dev-tools/control-plane/test_roadmap_review.py
 Tests include a synthetic adapter with no Financial AI Academy vocabulary,
 interrupted publication recovery, Windows multi-process exclusion, exact Git
 scope checks, and anti-rigidity assertions for the two-command claim/submit path.
+Exact Git submission evidence treats deletions as first-class changed paths:
+an in-scope deletion appears in `changed_paths` and an out-of-scope deletion is
+refused like any other scope escape. Deleted paths are not declared inputs,
+because no candidate blob exists to fingerprint.
 Verification tests cover narrow-versus-full selection, deterministic plan
 digests, failed and timed-out attempts, append-only receipt chains, candidate
 drift, stale evidence, raw-output minimization, and disabled optimistic reuse.
@@ -176,6 +180,11 @@ impact. Approved-lesson browser and runner changes select the existing live
 PostgreSQL/Python/static-browser qualification; documentation-only and
 Python-only changes do not inherit unrelated TypeScript or aggregate-readiness
 work.
+
+Project workspace source and browser-spec changes select a focused Chromium
+check that runs only `apps/web/tests/browser/project-workspace`. This gives a
+Project packet direct browser evidence without making every web change run the
+Project suite or the broader live approved-lesson qualification.
 
 Roadmap-review implementation paths are also divided by their owning boundary:
 TypeScript source selects qualification, typecheck, DOM unit, and Chromium
