@@ -183,7 +183,7 @@ each packet starts.
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0090 | Add API-first application restart and isolated Learner-model projection-replay qualification with focused orchestration tests | WRK-0089 | none | complete |
-| WRK-0091 | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | active |
+| WRK-0091 | Run cumulative capability qualification, reconcile evidence and documentation, and close SLI-0025 and CAP-0005 | WRK-0090 | none | verifying |
 
 ## Verification and Qualification
 
@@ -293,3 +293,6 @@ was planned or qualified.
   SLI scenario now has passing focused, live, contract, browser, architecture,
   security, accessibility, documentation, planning, or readiness evidence;
   the documentation-only closure candidate is ready for submission.
+- 2026-10-16: Submitted exact documentation-only candidate `2ff1d0e` for
+  affected verification and independent review after cumulative qualification
+  passed. Public API and headless-client evidence are frozen in the candidate.

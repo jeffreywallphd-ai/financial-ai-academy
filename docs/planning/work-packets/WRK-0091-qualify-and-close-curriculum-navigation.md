@@ -1,7 +1,7 @@
 ---
 id: WRK-0091
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0005
 updated: 2026-10-16
@@ -237,3 +237,7 @@ acceptance sets and are ready for deterministic closure and main fast-forward.
   client, mocked and live browser, headless API replay, architecture, security,
   design, documentation, planning, and all 29 aggregate readiness checks. The
   documentation-only result is ready for exact-candidate submission.
+- 2026-10-16: Submitted exact candidate
+  `2ff1d0eae77b2ac63aa0cb5bc8d1460abe961179` for affected verification and
+  independent review. The candidate changes only the declared planning and
+  completion-evidence files.
