@@ -192,8 +192,9 @@ each packet starts.
 | --- | --- | --- | --- | --- |
 | WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | complete |
 | WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | complete |
-| JIT-C | Add the protected public POST, reviewed OpenAPI/generated client, and accessible browser submit/result flow with headless parity | JIT-B | none | candidate |
-| JIT-D | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-C | none | candidate |
+| WRK-0098 | Expose the protected public POST, reviewed OpenAPI, generated client, and direct non-browser/headless parity before UI integration | WRK-0097 | none | ready |
+| JIT-D | Add the accessible browser submit/result flow through the generated client without browser-owned scoring | WRK-0098 | none | candidate |
+| JIT-E | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-D | none | candidate |
 
 ## Verification and Qualification
 
@@ -304,3 +305,8 @@ or autonomous authority was planned or implemented.
 - 2026-10-16: Completed WRK-0097. The shared public application operation and
   atomic evidence core are dependency-ready for the protected HTTP/generated-
   client/browser packet; no separate AI mode or browser-only core was added.
+- 2026-10-16: Refined the former combined JIT-C boundary as WRK-0098 for the
+  protected POST, reviewed OpenAPI, generated TypeScript client, and direct
+  non-browser qualification. Browser integration remains a dependent packet,
+  preserving one API-first seam for web and future headless consumers without
+  planning a separate AI mode.
