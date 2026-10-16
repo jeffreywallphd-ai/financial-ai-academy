@@ -1,7 +1,7 @@
 ---
 id: WRK-0110
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-16
@@ -197,6 +197,36 @@ authorization/privacy, headless parity, no evidence side effects, exact checks,
 environment qualifications not performed, and residual risks. Keep exact
 receipts and technical dispositions only in ignored control-plane storage.
 
+## Completion Evidence
+
+Candidate `f38e55e4928918df726cb7d59e7a4d4a561d4af4` delivers the bounded
+backend and public-API seam. Content now admits and resolves one exact
+`project.brief.v1`; Curriculum records and revalidates its exact graph,
+activity, package, brief, version, and digest placement; and Project owns the
+learner-scoped shell, immutable accepted origin, idempotency, persistence, and
+public create/list/read operations. The reviewed OpenAPI snapshot and generated
+TypeScript client expose those same operations to browser and non-browser
+clients without a UI-only authority path.
+
+Verification completed with 809 backend tests, 210 web unit/component tests,
+14 focused real-PostgreSQL/API correction tests, all 16 architecture groups,
+all 10 security control groups, 337 documentation checks, 193 planning
+artifact checks, 11 exact-candidate affected checks, and all 29 aggregate
+readiness checks passing. OpenAPI currency, generated-client reproduction,
+client-usage typechecking, migration up/down behavior, restart-safe reads,
+concurrent idempotency, UTC projection, retained-data rollback refusal,
+authorization/privacy, headless access, and absence of Assessment or
+Learner-model side effects were also exercised. Whitespace integrity passed.
+
+Documentation now records Content, Curriculum, Project, Identity, migration,
+API, module, and workspace ownership and rollback boundaries. The work assumes
+the accepted single-profile local identity and PostgreSQL development profile.
+It does not qualify managed cloud, production recovery, organizations, or
+external providers. No browser Project interface, artifact, snapshot,
+submission, domain-resource or Portfolio link, execution surface, separate AI
+mode, or autonomous authority was added. The browser flow remains the next
+just-in-time packet in SLI-0030.
+
 ## Stop Conditions
 
 Stop for lesson-package breaking change; ambiguous source or Project ownership;
@@ -245,3 +275,8 @@ autonomous authority was added, then leave the UI packet dependency-ready.
   contract document was added to scope so the executable schema and its
   canonical description can be corrected together; product scope and
   authority remain unchanged.
+- 2026-10-16: Completed the API-first Project persistence seam at candidate
+  `f38e55e4928918df726cb7d59e7a4d4a561d4af4`. Exact source validation, UTC
+  projection, retained-data rollback refusal, public HTTP parity, generated
+  client reproduction, and the complete required verification set pass. The
+  browser interface remains intentionally deferred to the next packet.

@@ -197,7 +197,7 @@ each packet starts.
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0109 | Freeze learning-project-brief and Project-shell contracts, origin semantics, compatibility fixtures, and pure Project domain values | none | none | complete |
-| WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | active |
+| WRK-0110 | Compose Content/Curriculum learning-origin resolution, Project application/persistence, migrations, protected API, reviewed OpenAPI, and generated client | WRK-0109 | none | complete |
 | JIT-C | Deliver the plain-language accessible independent and learning-origin create/reopen browser flow from the generated client | JIT-B | none | pending just-in-time refinement |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, origin immutability, idempotency, authorization, evidence non-effects, restart, accessibility, and containment | JIT-C | none | pending just-in-time refinement |
 
@@ -277,3 +277,7 @@ not delivered or qualified.
   establishes the smallest API-first Project shell/origin flow without
   artifacts, snapshots, submissions, live domain links, execution, or another
   decision gate. The refinement conforms to the current CAP package.
+- 2026-10-16: Completed WRK-0110 with the exact Project source-resolution,
+  persistence, migration, protected API, reviewed OpenAPI, generated-client,
+  and non-browser access seam passing its required verification. SLI-0030
+  remains active for the learner-facing browser flow and final qualification.
