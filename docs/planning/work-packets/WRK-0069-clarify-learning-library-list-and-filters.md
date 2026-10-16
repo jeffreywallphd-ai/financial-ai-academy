@@ -1,7 +1,7 @@
 ---
 id: WRK-0069
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-plain-language-ui
 updated: 2026-10-16
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/learning-catalog/LearningCatalogPage.tsx", "apps/web/tests/component/learningCatalog.test.tsx", "apps/web/README.md", "docs/planning/work-packets/WRK-0069-clarify-learning-library-list-and-filters.md", "docs/planning/vertical-slices/SLI-0122-choose-learning-opportunities-in-plain-language.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: 9a480411663f19ccd56d05ecc047b20f686731bc
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 730ce3afb5dd9ee3d30796246027d7b46bea07d9
+claim_id: WRK-0069:6b96043b-1095-418b-8d50-3fced0a92e7a
+claimed_by: codex-plain-language-ui
+claimed_at: 2026-10-16T09:07:39Z
 ---
 
 # Agent Work Packet: Clarify Learning-Library List and Filters
