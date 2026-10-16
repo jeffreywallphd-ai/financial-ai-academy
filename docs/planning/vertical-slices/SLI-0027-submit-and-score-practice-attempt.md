@@ -192,7 +192,7 @@ each packet starts.
 | --- | --- | --- | --- | --- |
 | WRK-0096 | Freeze submission/result/completion-event contracts, canonical request identity, pure response validation, deterministic scoring, and compatibility corpus | SLI-0026 | none | complete |
 | WRK-0097 | Compose Assessment submission, atomic append-only persistence, migration, idempotency, concurrency, rollback, and outbox evidence | WRK-0096 | none | complete |
-| WRK-0098 | Expose the protected public POST, reviewed OpenAPI, generated client, and direct non-browser/headless parity before UI integration | WRK-0097 | none | verifying |
+| WRK-0098 | Expose the protected public POST, reviewed OpenAPI, generated client, and direct non-browser/headless parity before UI integration | WRK-0097 | none | complete |
 | JIT-D | Add the accessible browser submit/result flow through the generated client without browser-owned scoring | WRK-0098 | none | candidate |
 | JIT-E | Qualify contracts, real PostgreSQL transactions, API/headless and browser behavior, restart/replay, denials, confidentiality, accessibility, and live local composition | JIT-D | none | candidate |
 
@@ -320,3 +320,8 @@ or autonomous authority was planned or implemented.
   and live local qualification remain the next dependent packet boundaries.
 - 2026-10-16: Submitted exact WRK-0098 candidate `66348e7` for fresh affected
   verification and independent technical review after all packet checks passed.
+- 2026-10-16: Completed WRK-0098 at exact candidate `66348e7`. Its fresh
+  nine-check affected-verification receipt qualified and independent review R01
+  accepted it without findings. The public API is now stable for direct,
+  generated-client, browser, and future headless consumers; WRK-0099 may add
+  browser behavior without creating a second transport or scoring authority.
