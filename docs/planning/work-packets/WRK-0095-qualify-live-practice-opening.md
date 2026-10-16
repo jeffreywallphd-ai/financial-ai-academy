@@ -1,7 +1,7 @@
 ---
 id: WRK-0095
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16

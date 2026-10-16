@@ -1,7 +1,7 @@
 ---
 id: SLI-0026
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0006
 updated: 2026-10-16
@@ -184,7 +184,7 @@ each packet starts.
 | WRK-0092 | Freeze practice-definition and answer-safe presentation contracts, closed response semantics, compatibility fixtures, and Assessment domain values | none | none | complete |
 | WRK-0093 | Compose exact Content/Curriculum/Assessment storage and public operations plus the protected API | WRK-0092 | none | complete |
 | WRK-0094 | Deliver the accessible practice-opening browser route from the generated public client | WRK-0093 | none | complete |
-| WRK-0095 | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, restart stability, and live local composition | WRK-0094 | none | verifying |
+| WRK-0095 | Qualify contracts, API/headless access, browser behavior, denial confidentiality, side-effect-free open, accessibility, restart stability, and live local composition | WRK-0094 | none | complete |
 
 ## Verification and Qualification
 
@@ -228,14 +228,47 @@ or defer optional cleanup to CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Expected updates include the Assessment and content-package contracts, module
-READMEs, compatibility catalog, domain vocabulary, API/generated-client
-guidance, interface behavior, architecture verification, and local live
-qualification. Completion evidence must identify exact supported response
-types, API/headless and browser outcomes, denial/confidentiality paths,
-side-effect-free open behavior, contracts and migrations, checks and results,
-assumptions, residual risks, and deliberately unqualified submission, AI,
-cloud, and recovery behavior.
+- Delivered outcome and boundaries: an authorized learner, generated browser
+  client, or cookie-backed non-browser client can open the same exact placed
+  practice through the protected public GET. The answer-safe presentation
+  includes single-select, multiple-select, and canonical fixed-decimal input,
+  ordered public provenance, policy meaning, and review resources without
+  answers, scoring rules, feedback branches, or browser-owned authority.
+- Packet evidence: WRK-0092 froze the versioned private/public contract and
+  denial corpus; WRK-0093 composed package admission, immutable placement,
+  Assessment opening, protected OpenAPI, generated client, and migration;
+  WRK-0094 delivered closed validation and accessible browser rendering; and
+  WRK-0095 qualified the complete API/headless/browser path against real
+  PostgreSQL with repeated-read and normal-restart evidence.
+- Verification: the final exact candidate `f365632` passed the fresh affected
+  plan of planning tools/integrity, documentation, architecture, local
+  composition, TypeScript typecheck/lint, and isolated live qualification.
+  The live route passed all 10 Chromium scenarios; focused Python passed 112
+  tests plus 4 subtests, web unit/component passed 181 tests, OpenAPI and the
+  generated client reproduced exactly, security passed 10 control groups, and
+  aggregate readiness passed all 29 checks. Valid reordered/additional item
+  shapes remain accepted while unknown item types and private fields fail.
+- Contract, data, and migration impact: practice v1 and additive lesson-package
+  contracts remain versioned and compatible; the Curriculum practice-placement
+  migration has forward/down and real-PostgreSQL evidence. Practice opening is
+  read-only: attempts, responses, scores, completion evidence, outbox rows,
+  learner projections, and history remain unchanged across repeated reads.
+- Documentation impact: Assessment, Content, Curriculum, API, web, local
+  deployment, contract, architecture-verification, and known-gap guidance now
+  state the qualified boundary. No derived context conflict was found.
+- Qualification not performed: submission, scoring, feedback selection,
+  attempt enforcement, retry/resume/history, completion/mastery, adaptive or
+  model behavior, production/cloud deployment, managed recovery, non-Chromium
+  browsers, and real assistive-technology operation remain unqualified.
+- Assumptions and residual risk: the exact approved fixture is synthetic;
+  answer confidentiality depends on the closed server projection and host
+  security boundary. A future headless AI consumer can reuse this public API,
+  but no separate AI mode, protocol, autonomous authority, or model decision
+  has been planned or implemented.
+- CAP conformance: the slice stays inside the approved CAP-0006 opening
+  increment and leaves deterministic submission/scoring to SLI-0027, review and
+  history to SLI-0028, and cumulative qualification to SLI-0029. No material
+  CAP drift or unresolved durable decision remains.
 
 ## Planning History
 
@@ -298,3 +331,12 @@ cloud, and recovery behavior.
 - 2026-10-16: Activated WRK-0095 after revalidating WRK-0094 completion,
   current CAP authority, decision readiness, exact qualification-only scope,
   and collision-free ownership. No lower-level approval was requested.
+- 2026-10-16: Completed WRK-0095 at corrected exact candidate `f365632` after
+  fresh isolated PostgreSQL/API/headless/generated-browser qualification,
+  aggregate readiness, and closure of the fixture-order rigidity. The public
+  API remains the shared browser and future-headless boundary; no submission,
+  scoring, evidence, migration, model, or autonomous behavior was added.
+- 2026-10-16: Closed SLI-0026 after all four packets completed, the structural
+  completion gate passed, contracts and the generated client reproduced, and
+  focused plus aggregate evidence covered success, denial, confidentiality,
+  side-effect freedom, restart, accessibility, and anti-rigidity behavior.
