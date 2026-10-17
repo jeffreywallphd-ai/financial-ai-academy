@@ -463,9 +463,10 @@ education-boundary, exact headless/browser practice opening, progress, draft,
 and submission, three response shapes, conditional save, reload, exact replay,
 stale conflict, server-owned retry/history/review state, practice storage-count
 invariance, restart parity, bounded practice denial, generated-browser/headless
-Personal-workspace parity, ordered collection membership, exact replay,
-confidential changed-key and stale-revision denial, target-state isolation,
-Personal-workspace restart durability, and
+Personal-workspace parity, ordered collection membership, canonical Unicode
+query/digest correlation, record-only source checking, exact refresh and final-
+mutation replay, confidential changed-key and stale-revision denial, target-
+state isolation, Personal-workspace restart durability, and
 catalog/detail/comparison/graph/completion/practice axe paths.
 Repeated cards preserve heading/list
 semantics without creating redundant nested named landmarks. Real

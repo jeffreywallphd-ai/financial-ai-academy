@@ -466,7 +466,7 @@ def personal_workspace_capture() -> dict[str, Any]:
         "schema_version": "1.0.0",
         "workspace_id": "workspace-one",
         "learner_id": "single-profile-learner",
-        "revision": 11,
+        "revision": 12,
         "records": [bookmark, note, project_note, snapshot_bookmark, artifact_bookmark],
         "collections": [
             {
@@ -487,17 +487,51 @@ def personal_workspace_capture() -> dict[str, Any]:
         "updated_at": "2026-10-17T12:10:00Z",
         "workspace_digest": "b" * 64,
     }
+    query_request = {
+        "schema_version": "1.0.0",
+        "text": "σ",
+        "record_kinds": ["bookmark"],
+        "owner_modules": ["curriculum"],
+        "reference_kinds": ["placed_lesson"],
+        "target_statuses": ["available"],
+        "archived": False,
+        "collection_id": "collection-one",
+        "sort": "title_asc",
+        "limit": 50,
+    }
+    refresh_workspace = json.loads(json.dumps(workspace))
+    refresh_workspace["revision"] = 10
+    refresh_workspace["workspace_digest"] = "c" * 64
     return {
         "workspace": workspace,
         "exact_replay_request": {
             "schema_version": "1.0.0",
             "idempotency_key": "11111111-1111-4111-8111-111111111111",
-            "expected_revision": 10,
+            "expected_revision": 11,
             "mutation": {
                 "operation": "restore_record",
                 "record_id": "note-one",
             },
         },
+        "query_request": query_request,
+        "query_result": {
+            "schema_version": "1.0.0",
+            "workspace_revision": 9,
+            "query_digest": runner.personal_workspace_query_digest(query_request),
+            "applied_query": json.loads(json.dumps(query_request)),
+            "records": [json.loads(json.dumps(bookmark))],
+            "next_cursor": None,
+        },
+        "refresh_request": {
+            "schema_version": "1.0.0",
+            "idempotency_key": "99999999-9999-4999-8999-999999999999",
+            "expected_revision": 9,
+            "mutation": {
+                "operation": "refresh_reference",
+                "record_id": "note-project",
+            },
+        },
+        "refresh_workspace": refresh_workspace,
         "expected": {
             "note_title": note["title"],
             "note_body": note["body"],
@@ -1372,6 +1406,46 @@ def test_personal_workspace_capture_is_closed_correlated_and_private(
             path, data_root=tmp_path, project_capture=project_capture
         )
 
+    changed_digest = personal_workspace_capture()
+    changed_digest["query_result"]["query_digest"] = "f" * 64
+    path.write_text(json.dumps(changed_digest), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="query result correlation"):
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
+
+    changed_query = personal_workspace_capture()
+    changed_query["query_result"]["applied_query"]["text"] = "different"
+    path.write_text(json.dumps(changed_query), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="changed requested meaning"):
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
+
+    unowned_query_record = personal_workspace_capture()
+    unowned_query_record["query_result"]["records"][0]["record_id"] = "other-record"
+    path.write_text(json.dumps(unowned_query_record), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="unowned or changed record"):
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
+
+    widened_refresh = personal_workspace_capture()
+    widened_refresh["refresh_request"]["mutation"]["owner_module"] = "project"
+    path.write_text(json.dumps(widened_refresh), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="refresh mutation.*closed public contract"):
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
+
+    mismatched_refresh = personal_workspace_capture()
+    mismatched_refresh["refresh_workspace"]["revision"] = 11
+    path.write_text(json.dumps(mismatched_refresh), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="refresh revision is uncorrelated"):
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
+
     mismatched_project = json.loads(json.dumps(capture))
     mismatched_project["workspace"]["records"][-2]["target"]["project_id"] = (
         "project.other"
@@ -1405,7 +1479,7 @@ def test_personal_workspace_capture_binds_each_project_reference_class(
     path = tmp_path / "personal-workspace-capture.json"
     path.write_text(json.dumps(capture), encoding="utf-8")
 
-    with pytest.raises(RuntimeError, match="browser-observed meaning"):
+    with pytest.raises(RuntimeError, match="uncorrelated|browser-observed meaning"):
         runner.load_personal_workspace_capture(
             path,
             data_root=tmp_path,
@@ -1489,6 +1563,15 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
         calls.append((method, path, payload))
         if path == "/api/v1/session/single-profile":
             return {"expires_at": "later"}
+        if path == "/api/v1/personal-workspace/query":
+            return capture["query_result"] | {
+                "workspace_revision": capture["workspace"]["revision"]
+            }
+        if (
+            path == "/api/v1/personal-workspace/mutations"
+            and payload == capture["refresh_request"]
+        ):
+            return capture["refresh_workspace"]
         return capture["workspace"]
 
     denials = iter(("immutable_conflict", "stale_revision", "source_unavailable"))
@@ -1534,20 +1617,54 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
         "POST",
         "POST",
         "POST",
+        "POST",
+        "POST",
         "GET",
     ]
-    assert calls[2][2] == capture["exact_replay_request"]
-    assert calls[3][2]["idempotency_key"] == capture["exact_replay_request"][
+    assert calls[2][1:] == (
+        "/api/v1/personal-workspace/query",
+        capture["query_request"],
+    )
+    assert calls[3][2] == capture["refresh_request"]
+    assert calls[4][2] == capture["exact_replay_request"]
+    assert calls[5][2]["idempotency_key"] == capture["exact_replay_request"][
         "idempotency_key"
     ]
-    assert calls[3][2]["mutation"]["operation"] == "archive_record"
-    assert calls[4][2]["idempotency_key"] != capture["exact_replay_request"][
+    assert calls[5][2]["mutation"]["operation"] == "archive_record"
+    assert calls[6][2]["idempotency_key"] != capture["exact_replay_request"][
         "idempotency_key"
     ]
-    assert calls[5][2]["mutation"]["selector"] == {
+    assert calls[7][2]["mutation"]["selector"] == {
         "reference_kind": "project_workspace",
         "project_id": "project.missing-qualification",
     }
+
+
+def test_personal_workspace_query_evidence_is_canonical_and_shape_flexible() -> None:
+    capture = personal_workspace_capture()
+    query = capture["query_request"]
+    equivalent = {
+        **query,
+        "text": "  Σ\u0085",
+        "cursor": "opaque_page_2",
+    }
+    assert runner.personal_workspace_query_digest(equivalent) == capture[
+        "query_result"
+    ]["query_digest"]
+
+    continued = json.loads(json.dumps(capture["query_result"]))
+    continued["applied_query"] = runner.stable_personal_workspace_query(equivalent)
+    continued["next_cursor"] = "opaque_page_3"
+    assert runner.stable_personal_workspace_query_result(
+        continued,
+        requested=equivalent,
+        workspace=capture["workspace"],
+    )["next_cursor"] == "opaque_page_3"
+
+    changed = {**query, "owner_modules": ["project"]}
+    assert runner.personal_workspace_query_digest(changed) != capture["query_result"][
+        "query_digest"
+    ]
 
 
 def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:

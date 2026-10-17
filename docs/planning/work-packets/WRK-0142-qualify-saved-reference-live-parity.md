@@ -1,7 +1,7 @@
 ---
 id: WRK-0142
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -249,3 +249,6 @@ financial action changed, then leave SLI-0072 closure-ready.
 - 2026-10-17: Activated from recorded base `6c21643` after validating the
   completed dependency, current CAP authority, qualification-only scope,
   exact file ownership, and absence of an active coordination collision.
+- 2026-10-17: Moved to evidence verification after the focused replay,
+  generated-browser/headless parity, architecture, security, documentation,
+  planning, type, and lint checks passed without a product or contract change.

@@ -140,13 +140,15 @@ documents, and confirms immutable counts and the newer draft remain unchanged.
 The runner also exercises the generated Saved Learning browser against the
 same live host: it creates a Unicode note and bookmark for the exact approved
 lesson, reorders them, creates ordered collection membership, archives and
-restores a record, reloads the route, and captures only bounded public state.
-A fresh non-browser session reads the identical workspace, exactly replays the
-last accepted mutation, proves changed-key and stale-revision conflicts are
-confidential and side-effect free, and observes the same complete state after
-restart. Direct PostgreSQL correlation binds the public workspace ID,
-revision, accepted document, restore request key, and restore result to one
-Personal-workspace aggregate and its ten workspace-scoped mutation rows. The
+restores a record, runs one Unicode combined query, explicitly checks one
+current Project source, reloads the route, and captures only bounded public
+state. A fresh non-browser session reads and queries the identical workspace,
+reproduces the canonical applied query and digest, exactly replays the accepted
+record-only refresh and final restore, proves changed-key and stale-revision
+conflicts are confidential and side-effect free, and observes the same complete
+state after restart. Direct PostgreSQL correlation binds the public workspace
+ID, revision, accepted documents, request keys, and results to one Personal-
+workspace aggregate and its eleven workspace-scoped mutation rows. The
 Project browser journey runs before Saved Learning and contributes one exact
 workspace, immutable checkpoint, and inert-file manifest selector. The mixed
 collection survives headless replay and restart; an unavailable Project fails
@@ -223,8 +225,9 @@ submission, identical non-browser progress/draft use, exact replay, stale-save
 refusal, server-owned retry/history/review state, atomic Assessment
 evidence/outbox counts, bounded practice denial, practice restart parity, and
 generated-browser/headless Personal-workspace parity, ordered collections,
-confidential exact replay/conflict handling, source-state isolation, Personal-
-workspace restart durability,
+canonical Unicode query/digest correlation, record-only source checking,
+confidential exact refresh/restore replay and conflict handling, source-state
+isolation, Personal-workspace restart durability,
 application-restart reconstruction of derived Learner-model state from
 unchanged Assessment evidence without fixture reseeding.
 

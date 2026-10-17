@@ -2,7 +2,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { readFile, writeFile } from "node:fs/promises";
 
-import type { PersonalWorkspace } from "../../../src/features/personal-workspace/model";
+import type {
+  PersonalWorkspace,
+  PersonalWorkspaceQuery,
+  PersonalWorkspaceQueryResult,
+} from "../../../src/features/personal-workspace/model";
 import type {
   ProjectShell,
   ProjectSnapshot,
@@ -15,6 +19,7 @@ const SAVE_LESSON_PATH =
   `/saved-learning/new?kind=lesson&placement=${LESSON_PLACEMENT}` +
   `&return=%2Flearn%2Fplacements%2F${LESSON_PLACEMENT}`;
 const WORKSPACE_API = "/api/v1/personal-workspace";
+const QUERY_API = "/api/v1/personal-workspace/query";
 const MUTATION_API = "/api/v1/personal-workspace/mutations";
 const NOTE_TITLE = "Café risk and return notes";
 const NOTE_BODY = "Uncertainty and potential reward are related, but neither promises an outcome.";
@@ -172,6 +177,54 @@ test("preserves Saved learning through the live public API", async ({
   await collection.getByRole("button", { name: "Save collection items" }).click();
   expect((await collectionMembersResponse).status()).toBe(200);
 
+  const searchForm = page.locator("form.saved-learning-search__form");
+  await searchForm.locator('input[name="q"]').fill("Σ");
+  await searchForm.locator('select[name="record"]').selectOption("bookmark");
+  await searchForm.locator('select[name="source"]').selectOption("curriculum");
+  await searchForm.locator('select[name="kind"]').selectOption("placed_lesson");
+  await searchForm.locator('select[name="status"]').selectOption("available");
+  await searchForm.locator('select[name="archive"]').selectOption("active");
+  await searchForm.locator('select[name="collection"]').selectOption({ label: COLLECTION_TITLE });
+  await searchForm.locator('select[name="sort"]').selectOption("title_asc");
+  const queryResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === QUERY_API &&
+      response.request().method() === "POST",
+  );
+  await searchForm.getByRole("button", { name: "Show results" }).click();
+  const queryResponse = await queryResponsePromise;
+  expect(queryResponse.status()).toBe(200);
+  const queryRequest = queryResponse.request().postDataJSON() as PersonalWorkspaceQuery;
+  const queryResult = (await queryResponse.json()) as PersonalWorkspaceQueryResult;
+  await expect(page.getByRole("heading", { level: 3, name: BOOKMARK_LABEL })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 3, name: NOTE_TITLE })).toHaveCount(0);
+  await expect(page.getByText("Ready to open.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open saved source" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Move earlier" })).toHaveCount(0);
+
+  await page.goto("/saved-learning");
+  const projectNoteForRefresh = page
+    .getByRole("heading", { level: 3, name: PROJECT_NOTE_TITLE })
+    .locator("xpath=ancestor::li");
+  const refreshResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === MUTATION_API &&
+      response.request().method() === "POST",
+  );
+  await projectNoteForRefresh.getByRole("button", { name: "Check source" }).click();
+  const refreshResponse = await refreshResponsePromise;
+  expect(refreshResponse.status()).toBe(200);
+  const refreshRequest = refreshResponse.request().postDataJSON();
+  const refreshWorkspace = (await refreshResponse.json()) as PersonalWorkspace;
+  expect(refreshRequest.mutation).toEqual({
+    operation: "refresh_reference",
+    record_id: refreshWorkspace.records.find(
+      (record) => record.record_kind === "note" && record.title === PROJECT_NOTE_TITLE,
+    )?.record_id,
+  });
+  await expect(projectNoteForRefresh.getByText("Ready to open.", { exact: true })).toBeVisible();
+  await expect(projectNoteForRefresh.getByRole("link", { name: "Open saved source" })).toBeVisible();
+
   const noteCard = page
     .getByRole("heading", { level: 3, name: NOTE_TITLE })
     .locator("xpath=ancestor::li");
@@ -256,6 +309,10 @@ test("preserves Saved learning through the live public API", async ({
         {
           workspace: currentWorkspace,
           exact_replay_request: replayRequest,
+          query_request: queryRequest,
+          query_result: queryResult,
+          refresh_request: refreshRequest,
+          refresh_workspace: refreshWorkspace,
           expected: {
             note_title: NOTE_TITLE,
             note_body: NOTE_BODY,

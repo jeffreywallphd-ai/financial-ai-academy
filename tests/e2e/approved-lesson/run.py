@@ -286,7 +286,15 @@ PRIVATE_PROJECT_CAPTURE_KEYS = frozenset(
     }
 )
 PERSONAL_WORKSPACE_CAPTURE_ROOT_KEYS = frozenset(
-    {"exact_replay_request", "expected", "workspace"}
+    {
+        "exact_replay_request",
+        "expected",
+        "query_request",
+        "query_result",
+        "refresh_request",
+        "refresh_workspace",
+        "workspace",
+    }
 )
 PERSONAL_WORKSPACE_ROOT_KEYS = frozenset(
     {
@@ -1872,6 +1880,224 @@ def stable_personal_workspace(document: dict[str, Any]) -> dict[str, Any]:
     return copy.deepcopy(document)
 
 
+def stable_personal_workspace_query(document: object) -> dict[str, Any]:
+    if not isinstance(document, dict):
+        raise RuntimeError("Personal workspace query is not an object.")
+    allowed = frozenset(
+        {
+            "schema_version",
+            "text",
+            "record_kinds",
+            "owner_modules",
+            "reference_kinds",
+            "target_statuses",
+            "archived",
+            "collection_id",
+            "sort",
+            "limit",
+            "cursor",
+        }
+    )
+    if not set(document).issubset(allowed) or document.get("schema_version") != "1.0.0":
+        raise RuntimeError("Personal workspace query has an invalid shape.")
+    normalized = copy.deepcopy(document)
+    text = normalized.get("text")
+    if text is not None:
+        if not isinstance(text, str) or not 1 <= len(text) <= 240 or "\x00" in text:
+            raise RuntimeError("Personal workspace query text is invalid.")
+        text = " ".join(unicodedata.normalize("NFKC", text).casefold().split())
+        if not 1 <= len(text) <= 240:
+            raise RuntimeError("Personal workspace canonical query text is invalid.")
+        normalized["text"] = text
+    closed_arrays = {
+        "record_kinds": ({"note", "bookmark"}, 2),
+        "owner_modules": ({"curriculum", "project"}, 2),
+        "reference_kinds": (
+            {
+                "learning_opportunity",
+                "placed_lesson",
+                "project_workspace",
+                "project_snapshot",
+                "project_artifact",
+            },
+            5,
+        ),
+        "target_statuses": ({"available", "stale", "unavailable"}, 3),
+    }
+    for field, (accepted, maximum) in closed_arrays.items():
+        values = normalized.get(field)
+        if values is None:
+            continue
+        if (
+            not isinstance(values, list)
+            or not 1 <= len(values) <= maximum
+            or len(values) != len(set(values))
+            or any(value not in accepted for value in values)
+        ):
+            raise RuntimeError(f"Personal workspace query {field} is invalid.")
+        normalized[field] = sorted(values)
+    if "archived" in normalized and type(normalized["archived"]) is not bool:
+        raise RuntimeError("Personal workspace archive query is invalid.")
+    collection_id = normalized.get("collection_id")
+    if collection_id is not None and (
+        not isinstance(collection_id, str)
+        or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,127}", collection_id)
+    ):
+        raise RuntimeError("Personal workspace collection query is invalid.")
+    sort = normalized.get("sort", "workspace_order")
+    if sort not in {
+        "workspace_order",
+        "updated_desc",
+        "updated_asc",
+        "title_asc",
+        "source_asc",
+    }:
+        raise RuntimeError("Personal workspace query order is invalid.")
+    limit = normalized.get("limit", 50)
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise RuntimeError("Personal workspace query limit is invalid.")
+    cursor = normalized.get("cursor")
+    if cursor is not None and (
+        not isinstance(cursor, str)
+        or not re.fullmatch(r"[A-Za-z0-9_-]{1,512}", cursor)
+    ):
+        raise RuntimeError("Personal workspace query cursor is invalid.")
+    normalized["sort"] = sort
+    normalized["limit"] = limit
+    return normalized
+
+
+def personal_workspace_query_digest(query: dict[str, Any]) -> str:
+    normalized = stable_personal_workspace_query(query)
+    material = {
+        key: value
+        for key, value in normalized.items()
+        if key != "cursor"
+        and not (key == "sort" and value == "workspace_order")
+        and not (key == "limit" and value == 50)
+    }
+    return hashlib.sha256(
+        json.dumps(
+            material,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def stable_personal_workspace_query_result(
+    document: object,
+    *,
+    requested: dict[str, Any],
+    workspace: dict[str, Any],
+) -> dict[str, Any]:
+    if not isinstance(document, dict):
+        raise RuntimeError("Personal workspace query result is not an object.")
+    _exact_keys(
+        document,
+        frozenset(
+            {
+                "schema_version",
+                "workspace_revision",
+                "query_digest",
+                "applied_query",
+                "records",
+                "next_cursor",
+            }
+        ),
+        "Personal workspace query result",
+    )
+    applied = stable_personal_workspace_query(document.get("applied_query"))
+    expected_query = stable_personal_workspace_query(requested)
+    if applied != expected_query:
+        raise RuntimeError("Personal workspace applied query changed requested meaning.")
+    if (
+        document.get("schema_version") != "1.0.0"
+        or type(document.get("workspace_revision")) is not int
+        or not 1 <= document["workspace_revision"] <= workspace["revision"]
+        or document.get("query_digest") != personal_workspace_query_digest(applied)
+    ):
+        raise RuntimeError("Personal workspace query result correlation is invalid.")
+    records = document.get("records")
+    if (
+        not isinstance(records, list)
+        or len(records) > applied["limit"]
+        or len({record.get("record_id") for record in records if isinstance(record, dict)})
+        != len(records)
+    ):
+        raise RuntimeError("Personal workspace query records are invalid.")
+    stable_records = stable_personal_workspace(
+        {
+            "schema_version": "1.0.0",
+            "workspace_id": "workspace-query-validation",
+            "learner_id": "learner-query-validation",
+            "revision": 1,
+            "records": records,
+            "collections": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+            "workspace_digest": "0" * 64,
+        }
+    )["records"]
+    workspace_records = {
+        record["record_id"]: record for record in workspace["records"]
+    }
+    if any(workspace_records.get(record["record_id"]) != record for record in stable_records):
+        raise RuntimeError("Personal workspace query returned an unowned or changed record.")
+    next_cursor = document.get("next_cursor")
+    if next_cursor is not None and (
+        not stable_records
+        or not isinstance(next_cursor, str)
+        or not re.fullmatch(r"[A-Za-z0-9_-]{1,512}", next_cursor)
+    ):
+        raise RuntimeError("Personal workspace query continuation is invalid.")
+    return {
+        "schema_version": "1.0.0",
+        "workspace_revision": document["workspace_revision"],
+        "query_digest": document["query_digest"],
+        "applied_query": applied,
+        "records": copy.deepcopy(stable_records),
+        "next_cursor": next_cursor,
+    }
+
+
+def stable_personal_workspace_refresh_request(
+    document: object,
+    *,
+    workspace_revision: int,
+) -> dict[str, Any]:
+    if not isinstance(document, dict):
+        raise RuntimeError("Personal workspace refresh request is not an object.")
+    _exact_keys(
+        document,
+        frozenset({"schema_version", "idempotency_key", "expected_revision", "mutation"}),
+        "Personal workspace refresh request",
+    )
+    mutation = document.get("mutation")
+    if not isinstance(mutation, dict):
+        raise RuntimeError("Personal workspace refresh mutation is invalid.")
+    _exact_keys(
+        mutation,
+        frozenset({"operation", "record_id"}),
+        "Personal workspace refresh mutation",
+    )
+    try:
+        request_id = UUID(str(document.get("idempotency_key")))
+    except ValueError as error:
+        raise RuntimeError("Personal workspace refresh key is invalid.") from error
+    if (
+        document.get("schema_version") != "1.0.0"
+        or str(request_id) != document.get("idempotency_key")
+        or document.get("expected_revision") != workspace_revision
+        or mutation.get("operation") != "refresh_reference"
+        or not isinstance(mutation.get("record_id"), str)
+        or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,127}", mutation["record_id"])
+    ):
+        raise RuntimeError("Personal workspace refresh request is invalid.")
+    return copy.deepcopy(document)
+
+
 def _project_reference_expectations(
     project_capture: dict[str, Any],
 ) -> dict[str, dict[str, Any]]:
@@ -1973,10 +2199,57 @@ def load_personal_workspace_capture(
         raise RuntimeError("Personal workspace capture contains private runtime data.")
     workspace = capture.get("workspace")
     replay = capture.get("exact_replay_request")
+    query_request = capture.get("query_request")
+    query_result = capture.get("query_result")
+    refresh_request = capture.get("refresh_request")
+    refresh_workspace = capture.get("refresh_workspace")
     expected = capture.get("expected")
-    if not all(isinstance(value, dict) for value in (workspace, replay, expected)):
+    if not all(
+        isinstance(value, dict)
+        for value in (
+            workspace,
+            replay,
+            query_request,
+            query_result,
+            refresh_request,
+            refresh_workspace,
+            expected,
+        )
+    ):
         raise RuntimeError("Personal workspace capture documents must be objects.")
     stable = stable_personal_workspace(workspace)
+    stable_query_request = stable_personal_workspace_query(query_request)
+    stable_query_result = stable_personal_workspace_query_result(
+        query_result,
+        requested=stable_query_request,
+        workspace=stable,
+    )
+    stable_refresh_request = stable_personal_workspace_refresh_request(
+        refresh_request,
+        workspace_revision=stable_query_result["workspace_revision"],
+    )
+    stable_refresh_workspace = stable_personal_workspace(refresh_workspace)
+    if stable_refresh_workspace["revision"] != stable_query_result["workspace_revision"] + 1:
+        raise RuntimeError("Personal workspace refresh revision is uncorrelated.")
+    refresh_record_id = stable_refresh_request["mutation"]["record_id"]
+    refreshed_record = next(
+        (
+            record
+            for record in stable_refresh_workspace["records"]
+            if record["record_id"] == refresh_record_id
+        ),
+        None,
+    )
+    final_refreshed_record = next(
+        (record for record in stable["records"] if record["record_id"] == refresh_record_id),
+        None,
+    )
+    if (
+        refreshed_record is None
+        or final_refreshed_record != refreshed_record
+        or refreshed_record["target"].get("target_status") != "available"
+    ):
+        raise RuntimeError("Personal workspace refresh result is uncorrelated.")
     project_references = _project_reference_expectations(project_capture)
     _exact_keys(
         replay,
@@ -2110,6 +2383,8 @@ def load_personal_workspace_capture(
         or not _matches_reference_expectation(
             project_note["target"], project_references["project_workspace"]
         )
+        or stable_refresh_request["mutation"]["record_id"]
+        != project_note["record_id"]
         or curriculum_bookmark is None
         or curriculum_bookmark["target"].get("reference_kind") != "placed_lesson"
         or curriculum_bookmark["target"].get("placement_id")
@@ -2130,7 +2405,15 @@ def load_personal_workspace_capture(
         or mutation.get("record_id") != curriculum_note["record_id"]
     ):
         raise RuntimeError("Personal workspace capture changed browser-observed meaning.")
-    return {"workspace": stable, "exact_replay_request": copy.deepcopy(replay), "expected": copy.deepcopy(expected)}
+    return {
+        "workspace": stable,
+        "exact_replay_request": copy.deepcopy(replay),
+        "query_request": stable_query_request,
+        "query_result": stable_query_result,
+        "refresh_request": stable_refresh_request,
+        "refresh_workspace": stable_refresh_workspace,
+        "expected": copy.deepcopy(expected),
+    }
 
 
 def _assert_safe_personal_workspace_denial(
@@ -2239,6 +2522,40 @@ def observe_headless_personal_workspace(
     )
     if observed != expected:
         raise RuntimeError("Headless Personal workspace changed browser-observed meaning.")
+    query_observation = stable_personal_workspace_query_result(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/personal-workspace/query",
+            method="POST",
+            payload=capture["query_request"],
+        ),
+        requested=capture["query_request"],
+        workspace=expected,
+    )
+    browser_query = capture["query_result"]
+    if query_observation["workspace_revision"] != expected["revision"] or any(
+        query_observation[key] != browser_query[key]
+        for key in (
+            "schema_version",
+            "query_digest",
+            "applied_query",
+            "records",
+            "next_cursor",
+        )
+    ):
+        raise RuntimeError("Headless Personal workspace query changed browser meaning.")
+    refresh_replay = stable_personal_workspace(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/personal-workspace/mutations",
+            method="POST",
+            payload=capture["refresh_request"],
+        )
+    )
+    if refresh_replay != capture["refresh_workspace"]:
+        raise RuntimeError("Headless Personal workspace refresh replay changed meaning.")
     exact_request = capture["exact_replay_request"]
     replayed = stable_personal_workspace(
         _request_json(
@@ -4209,10 +4526,13 @@ def main() -> int:
                 "three_response_types": True,
             },
             "personal_workspace": {
+                "browser_headless_query_parity": True,
                 "browser_generated_client": True,
+                "canonical_query_digest": True,
                 "collection_order_preserved": True,
                 "confidential_conflicts": True,
                 "exact_headless_replay": True,
+                "exact_refresh_replay": True,
                 "headless_public_api": True,
                 "inert_artifact_bytes_excluded": True,
                 "mixed_curriculum_and_project_references": True,
@@ -4220,6 +4540,7 @@ def main() -> int:
                 "project_state_unchanged": True,
                 "project_workspace_snapshot_artifact_references": True,
                 "public_api_shared": True,
+                "record_only_refresh": True,
                 "source_and_learning_state_unchanged": True,
                 "unavailable_project_isolated": True,
                 "unicode_evidence_preserved": True,
