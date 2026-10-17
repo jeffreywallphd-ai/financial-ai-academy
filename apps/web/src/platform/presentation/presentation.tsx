@@ -85,6 +85,7 @@ export function PresentationProvider({
 }) {
   const acceptedProfile = useRef<PresentationPreferenceProfile | null>(null);
   const acceptedSettings = useRef<PresentationSettings>(BASELINE_PRESENTATION);
+  const startupReadSuperseded = useRef(false);
   const [accepted, setAccepted] = useState<PresentationSettings>(BASELINE_PRESENTATION);
   const [status, setStatus] = useState<PresentationContextValue["status"]>("loading");
 
@@ -96,7 +97,7 @@ export function PresentationProvider({
     applyPresentationSettings(settings);
   }, []);
 
-  const acceptProfile = useCallback((profile: PresentationPreferenceProfile) => {
+  const applyAcceptedProfile = useCallback((profile: PresentationPreferenceProfile) => {
     if (
       acceptedProfile.current &&
       profile.revision < acceptedProfile.current.revision
@@ -109,6 +110,11 @@ export function PresentationProvider({
     applyPresentationSettings(settings);
   }, []);
 
+  const acceptProfile = useCallback((profile: PresentationPreferenceProfile) => {
+    startupReadSuperseded.current = true;
+    applyAcceptedProfile(profile);
+  }, [applyAcceptedProfile]);
+
   useLayoutEffect(() => {
     applyPresentationSettings(BASELINE_PRESENTATION);
   }, []);
@@ -120,8 +126,8 @@ export function PresentationProvider({
       void readProfile(controller.signal)
         .then((profile) => {
           if (!active) return;
-          if (profile) {
-            acceptProfile(profile);
+          if (profile && !startupReadSuperseded.current) {
+            applyAcceptedProfile(profile);
           } else if (!acceptedProfile.current) {
             acceptedSettings.current = BASELINE_PRESENTATION;
             setAccepted(BASELINE_PRESENTATION);
@@ -140,7 +146,7 @@ export function PresentationProvider({
       active = false;
       window.clearTimeout(timer);
     };
-  }, [acceptProfile, readProfile]);
+  }, [applyAcceptedProfile, readProfile]);
 
   const value = useMemo<PresentationContextValue>(() => ({
     acceptProfile,

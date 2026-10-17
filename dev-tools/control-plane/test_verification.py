@@ -357,6 +357,19 @@ class SelectionTests(unittest.TestCase):
                 "web:lint",
                 "web:browser",
             ],
+            "apps/web/tests/browser/presentation-preferences/example.spec.ts": [
+                "web:typecheck",
+                "web:lint",
+                "web:browser",
+            ],
+            "apps/web/src/features/presentation-preferences/PresentationPreferencesPage.tsx": [
+                "learner-language:changed",
+                "web:typecheck",
+                "web:lint",
+                "web:unit",
+                "web:browser",
+                "web:build",
+            ],
             "apps/web/tests/browser/project-workspace/example.spec.ts": [
                 "web:typecheck",
                 "web:lint",
@@ -792,6 +805,30 @@ class RepositoryWebCheckTests(unittest.TestCase):
         self.assertEqual(1, len(commands))
         self.assertIn("apps/web/tests/browser/project-workspace", commands[0])
         self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
+
+    def test_mocked_browser_check_includes_presentation_preferences(self) -> None:
+        commands: list[tuple[str, ...]] = []
+
+        def runner(command: tuple[str, ...], *, root: Path) -> None:
+            del root
+            commands.append(command)
+
+        with tempfile.TemporaryDirectory(prefix="mocked-browser-check-") as directory:
+            with mock.patch(
+                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+            ):
+                execute_web_check(
+                    "browser",
+                    root=Path(directory),
+                    command_runner=runner,
+                    version_reader=self.versions,
+                )
+
+        self.assertEqual(1, len(commands))
+        self.assertIn(
+            "apps/web/tests/browser/presentation-preferences",
+            commands[0],
+        )
 
     def test_bound_current_wrapper_runs_new_mode_against_distinct_candidate_root(self) -> None:
         commands: list[tuple[tuple[str, ...], Path]] = []

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -96,27 +96,50 @@ describe("global presentation application", () => {
     expect(readProfile).toHaveBeenCalledOnce();
   });
 
-  it("does not let a slower older startup read replace a newer route profile", async () => {
+  it("does not let a delayed newer startup read desynchronize an accepted route profile", async () => {
     let resolveRead: (profile: PresentationPreferenceProfile | null) => void = () => undefined;
     const delayedRead = new Promise<PresentationPreferenceProfile | null>((resolve) => {
       resolveRead = resolve;
     });
-    const newer = { ...standardProfile, revision: 5, text_size: "default" as const };
+    const readProfile = vi.fn(() => delayedRead);
+    const routeProfile = {
+      ...standardProfile,
+      revision: 5,
+      motion: "system" as const,
+      reading_width: "standard" as const,
+      text_size: "default" as const,
+      text_spacing: "default" as const,
+    };
+    const delayedNewerProfile = { ...standardProfile, revision: 7 };
 
-    function AcceptNewer() {
+    function AcceptRouteProfile() {
       const presentation = usePresentation();
-      return <button onClick={() => presentation.acceptProfile(newer)} type="button">Accept newer</button>;
+      return (
+        <>
+          <button onClick={() => presentation.acceptProfile(routeProfile)} type="button">
+            Accept route profile
+          </button>
+          <button onClick={presentation.restore} type="button">Restore accepted</button>
+        </>
+      );
     }
 
     render(
-      <PresentationProvider readProfile={() => delayedRead}>
-        <AcceptNewer />
+      <PresentationProvider readProfile={readProfile}>
+        <AcceptRouteProfile />
       </PresentationProvider>,
     );
-    await userEvent.setup().click(screen.getByRole("button", { name: "Accept newer" }));
+    await waitFor(() => expect(readProfile).toHaveBeenCalledOnce());
+    await userEvent.setup().click(screen.getByRole("button", { name: "Accept route profile" }));
     expect(document.documentElement).toHaveAttribute("data-text-size", "default");
+    expect(document.documentElement).toHaveAttribute("data-motion", "system");
 
-    resolveRead(standardProfile);
-    await waitFor(() => expect(document.documentElement).toHaveAttribute("data-text-size", "default"));
+    await act(async () => {
+      resolveRead(delayedNewerProfile);
+      await delayedRead;
+    });
+    await userEvent.setup().click(screen.getByRole("button", { name: "Restore accepted" }));
+    expect(document.documentElement).toHaveAttribute("data-text-size", "default");
+    expect(document.documentElement).toHaveAttribute("data-motion", "system");
   });
 });

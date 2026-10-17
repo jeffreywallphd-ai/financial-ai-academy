@@ -265,6 +265,61 @@ describe("presentation preference generated-client adapters", () => {
     );
   });
 
+  it("rejects successful mutation profiles that do not match the requested save or reset", async () => {
+    const nonBaseline = {
+      motion: "reduce" as const,
+      reading_width: "focused" as const,
+      text_size: "larger" as const,
+      text_spacing: "increased" as const,
+    };
+    const cases = [
+      {
+        intent: "save",
+        fields: {
+          operation: "replace_preferences",
+          text_size: "larger",
+          text_spacing: "increased",
+          reading_width: "focused",
+          motion: "reduce",
+        },
+        returned: await profileFixture(undefined, 8),
+      },
+      {
+        intent: "reset",
+        fields: { operation: "reset_profile", confirm_reset: "reset" },
+        returned: await profileFixture(nonBaseline, 8),
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const post = vi.fn().mockResolvedValue({
+        data: testCase.returned,
+        response: new Response(null, { status: 200 }),
+      });
+      const action = createPresentationPreferencesAction(
+        { POST: post } as unknown as FinancialAcademyApiClient,
+        readySession(),
+      );
+      const form = new FormData();
+      form.set("form_intent", testCase.intent);
+      form.set("idempotency_key", "11111111-1111-4111-8111-111111111111");
+      form.set("expected_revision", "7");
+      for (const [name, value] of Object.entries(testCase.fields)) form.set(name, value);
+
+      await expect(action({
+        request: new Request("http://example.test/preferences/display", {
+          method: "POST",
+          body: form,
+        }),
+        params: {},
+      } as Parameters<typeof action>[0])).resolves.toEqual({
+        status: "error",
+        kind: "invalid-response",
+        intent: testCase.intent,
+      });
+    }
+  });
+
   it("rejects partial or extra browser fields before calling the API", async () => {
     const post = vi.fn();
     const action = createPresentationPreferencesAction(

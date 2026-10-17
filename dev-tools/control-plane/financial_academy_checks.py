@@ -49,9 +49,14 @@ def catalog() -> CheckCatalog:
         "contracts/api/openapi.json",
     )
     mocked_browser_paths = (
+        "apps/web/src/features/presentation-preferences/**",
+        "apps/web/src/platform/presentation/**",
+        "apps/web/src/design-system/tokens.css",
+        "apps/web/src/styles/presentation-preferences.css",
         "apps/web/tests/browser/curriculum-graph/**",
         "apps/web/tests/browser/learning-catalog/**",
         "apps/web/tests/browser/lesson-reading/**",
+        "apps/web/tests/browser/presentation-preferences/**",
         "apps/web/tests/browser/support/**",
         "apps/web/tests/browser/playwright.config.ts",
     )

@@ -7,8 +7,11 @@ import {
 import type { FinancialAcademyApiClient } from "../../generated/api-client";
 import type { SingleProfileSession } from "../../platform/auth/singleProfileSession";
 import {
+  BASELINE_PRESENTATION,
   presentationPreferenceExportIsSafe,
   presentationPreferenceProfileIsSafe,
+  presentationSettingsEqual,
+  presentationSettingsFromProfile,
   publicErrorCode,
   type PreparedPresentationPreferenceRequest,
   type PresentationPreferenceExport,
@@ -239,10 +242,22 @@ export function createPresentationPreferencesAction(
       }
       if (result.response.status === 200) {
         const profile = result.data as PresentationPreferenceProfile | undefined;
+        const expectedSettings = parsed.request.mutation.operation === "reset_profile"
+          ? BASELINE_PRESENTATION
+          : {
+              motion: parsed.request.mutation.motion,
+              reading_width: parsed.request.mutation.reading_width,
+              text_size: parsed.request.mutation.text_size,
+              text_spacing: parsed.request.mutation.text_spacing,
+            };
         if (
           !profile ||
           !(await presentationPreferenceProfileIsSafe(profile)) ||
-          profile.revision !== parsed.request.expected_revision + 1
+          profile.revision !== parsed.request.expected_revision + 1 ||
+          !presentationSettingsEqual(
+            presentationSettingsFromProfile(profile),
+            expectedSettings,
+          )
         ) return actionFailure("invalid-response", parsed.intent);
         return redirect("/preferences/display");
       }
