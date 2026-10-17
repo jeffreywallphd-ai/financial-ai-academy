@@ -240,3 +240,13 @@ def test_canonical_digest_translates_malformed_unicode_to_stable_failure(
     with pytest.raises(LearnerPreferenceContractFailure) as failure:
         adapter.canonical_digest({"value": "bad\ud800text"})
     assert failure.value.code == "learner_preferences.invalid_text"
+
+
+def test_export_parser_translates_nested_malformed_unicode_to_stable_failure(
+    adapter: ContractLearnerPreferenceAdapter,
+) -> None:
+    document = json.loads(_fixture("valid-export.json"))
+    document["profile"]["goals"][0]["title"] = "bad\ud800text"
+    with pytest.raises(LearnerPreferenceContractFailure) as failure:
+        adapter.parse_export(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "learner_preferences.invalid_text"

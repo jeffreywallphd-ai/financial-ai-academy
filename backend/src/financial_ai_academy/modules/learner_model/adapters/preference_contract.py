@@ -87,10 +87,10 @@ class ContractLearnerPreferenceAdapter:
     def parse_export(self, value: bytes) -> PreferenceExport:
         document = self._document(value, "export")
         profile_bytes = json.dumps(
-            document["profile"], ensure_ascii=False
+            document["profile"], ensure_ascii=True
         ).encode("utf-8")
         history_bytes = json.dumps(
-            document["history"], ensure_ascii=False
+            document["history"], ensure_ascii=True
         ).encode("utf-8")
         exported = PreferenceExport(
             schema_version=document["schema_version"],
