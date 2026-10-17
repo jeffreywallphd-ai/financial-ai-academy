@@ -216,7 +216,7 @@ packet starts. Proposed dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
-| JIT-B | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | JIT-A | none | captured |
+| WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | ready |
 | JIT-C | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | JIT-B | none | captured |
 | JIT-D | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | JIT-C | none | captured |
 
@@ -302,3 +302,6 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
   compatibility vectors, privacy and theme separation, safe-value denials,
   and 79 focused contract/domain checks. Persistence, public API, runtime
   application, and browser behavior remain later packet boundaries.
+- 2026-10-17: Authored WRK-0154 just in time for module-owned persistence,
+  protected public API, OpenAPI, and generated-client delivery using the
+  completed WRK-0153 contract without starting runtime or browser behavior.
