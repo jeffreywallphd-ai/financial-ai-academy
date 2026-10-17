@@ -1,10 +1,10 @@
 ---
 id: CAP-0018
 kind: capability
-planning_status: shaping
+planning_status: ready
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0001"]
 decision_gates: []
