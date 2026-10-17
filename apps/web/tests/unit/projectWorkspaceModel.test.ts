@@ -94,6 +94,48 @@ function response(status: number, data?: unknown) {
   return { data, error: undefined, response: new Response(null, { status }) };
 }
 
+function formDataStub(entries: Record<string, unknown>): FormData {
+  const values = new Map(Object.entries(entries));
+  return {
+    get: (name: string) => values.get(name) ?? null,
+    getAll: (name: string) => values.has(name) ? [values.get(name)] : [],
+    keys: () => values.keys(),
+  } as unknown as FormData;
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (typeof value === "object" && value !== null) {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).filter((key) => record[key] !== null && record[key] !== undefined).sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+async function canonicalDigest(value: unknown): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalJson(value)));
+  return [...new Uint8Array(digest)].map((item) => item.toString(16).padStart(2, "0")).join("");
+}
+
+function base64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes));
+}
+
+async function exportBundle(exportedWorkspace: ProjectWorkspace = workspace, content = new Map<string, Uint8Array>()) {
+  const noteReferences = await Promise.all(exportedWorkspace.notes.map(async (note) => ({ record_id: note.note_id, record_version: note.note_version, record_digest: await canonicalDigest(note) })));
+  const sourceReferences = await Promise.all(exportedWorkspace.references.map(async (reference) => ({ record_id: reference.reference_id, record_version: reference.reference_version, record_digest: await canonicalDigest(reference) })));
+  const artifactReferences = await Promise.all(exportedWorkspace.artifacts.map(async (artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: artifact.artifact_version, manifest_digest: await canonicalDigest(artifact), content_digest: artifact.content_digest, byte_count: artifact.byte_count })));
+  const linkReferences = await Promise.all(exportedWorkspace.domain_links.map(async (link) => ({ link_id: link.link_id, record_digest: await canonicalDigest(link), owner_reference_digest: link.owner_reference_digest })));
+  const snapshotMaterial = { project_id: project.project_id, learner_id: project.learner_id, project_revision: project.revision, project_shell_digest: "a".repeat(64), workspace_revision: exportedWorkspace.workspace_revision, workspace_created_at: exportedWorkspace.created_at, workspace_updated_at: exportedWorkspace.updated_at, notes: noteReferences, references: sourceReferences, artifacts: artifactReferences, domain_links: linkReferences };
+  const snapshotRecord = { schema_version: "1.0.0" as const, snapshot_id: snapshot.snapshot_id, snapshot_digest: await canonicalDigest(snapshotMaterial), closed_at: snapshot.closed_at, snapshot: snapshotMaterial };
+  const artifactFiles = await Promise.all(exportedWorkspace.artifacts.filter((artifact) => content.has(artifact.artifact_id)).map(async (artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: artifact.artifact_version, manifest_digest: await canonicalDigest(artifact), logical_path: artifact.logical_path, media_type: artifact.media_type, byte_count: artifact.byte_count, content_digest: artifact.content_digest })));
+  const excludedArtifacts = exportedWorkspace.artifacts.filter((artifact) => !content.has(artifact.artifact_id)).map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: artifact.artifact_version, reason: "content_unavailable" as const }));
+  const material = { format: "project-evidence-manifest-v1" as const, project_id: project.project_id, snapshot_id: snapshot.snapshot_id, snapshot_digest: snapshotRecord.snapshot_digest, snapshot_record: snapshotRecord, workspace_record: exportedWorkspace, artifact_files: artifactFiles, excluded_artifacts: excludedArtifacts };
+  const files = exportedWorkspace.artifacts.filter((artifact) => content.has(artifact.artifact_id)).map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: artifact.artifact_version, content_base64: base64(content.get(artifact.artifact_id)!), logical_path: artifact.logical_path }));
+  return { manifest: { schema_version: "1.0.0" as const, export_id: "export-one", export_digest: await canonicalDigest(material), generated_at: "2026-10-16T20:03:00Z", export: material }, files };
+}
+
 function session() {
   return {
     ensure: vi.fn().mockResolvedValue({ status: "ready" }),
@@ -142,8 +184,42 @@ describe("Project response validation", () => {
     ["wrong learner", { ...workspace, learner_id: "learner-other" }],
     ["duplicate notes", { ...workspace, notes: [workspace.notes[0], workspace.notes[0]] }],
     ["unsafe source address", { ...workspace, references: [{ ...workspace.references[0], url: "http://example.test" }] }],
+    ["credential-bearing source address", { ...workspace, references: [{ ...workspace.references[0], url: "https://user:secret@example.test" }] }],
   ])("rejects %s as a complete workspace", (_label, value) => {
     expect(projectWorkspaceIsSafe(value, project)).toBe(false);
+  });
+
+  it.each(["../evidence.txt", "notes//evidence.txt", "notes/COM¹.txt", "notes/evidence.", "notes/e\u0301vidence.txt"])(
+    "rejects noncanonical artifact path %s",
+    (logicalPath) => {
+      const invalidArtifact = {
+        artifact_id: "artifact-one",
+        artifact_version: 1,
+        artifact_kind: "supporting_file",
+        logical_path: logicalPath,
+        media_type: "text/plain",
+        inspection_mode: "plain_text",
+        byte_count: 8,
+        content_digest: "e".repeat(64),
+        provenance: { source_type: "learner_created", source_title: "Evidence" },
+        assumptions: [],
+        created_at: workspace.created_at,
+      };
+      expect(projectWorkspaceIsSafe({ ...workspace, artifacts: [invalidArtifact] }, project)).toBe(false);
+    },
+  );
+
+  it("enforces artifact inspection, classification, and provenance semantics on responses", () => {
+    const baseArtifact = {
+      artifact_id: "artifact-one", artifact_version: 1, artifact_kind: "supporting_file", logical_path: "evidence.json",
+      media_type: "application/json", inspection_mode: "metadata_only", byte_count: 2, content_digest: "e".repeat(64),
+      provenance: { source_type: "learner_created", source_title: "Evidence" }, assumptions: [], created_at: workspace.created_at,
+    };
+    expect(projectWorkspaceIsSafe({ ...workspace, artifacts: [baseArtifact] }, project)).toBe(true);
+    expect(projectWorkspaceIsSafe({ ...workspace, artifacts: [{ ...baseArtifact, inspection_mode: "plain_text" }] }, project)).toBe(false);
+    expect(projectWorkspaceIsSafe({ ...workspace, artifacts: [{ ...baseArtifact, artifact_kind: "result" }] }, project)).toBe(false);
+    expect(projectWorkspaceIsSafe({ ...workspace, artifacts: [{ ...baseArtifact, result_classification: "predicted" }] }, project)).toBe(false);
+    expect(projectWorkspaceIsSafe({ ...workspace, artifacts: [{ ...baseArtifact, provenance: { source_type: "external", source_title: "Evidence" } }] }, project)).toBe(false);
   });
 
   it("rejects a snapshot list that is duplicated, uncorrelated, or technically extended", () => {
@@ -272,6 +348,55 @@ describe("Project generated-client loaders and action", () => {
     expect(await action({ request: new Request(`http://localhost/projects/${project.project_id}`, { method: "POST", body: form }), params: { projectId: project.project_id } } as never)).toEqual({ status: "error", kind: "stale", intent: "note", idempotencyKey: "retry-key" });
   });
 
+  it("rejects source credentials before calling the workspace API", async () => {
+    const selectedSession = session();
+    const post = vi.fn();
+    const action = createProjectWorkspaceAction({ POST: post } as unknown as FinancialAcademyApiClient, selectedSession);
+    const form = new FormData();
+    form.set("intent", "add-reference");
+    form.set("idempotency_key", "11111111-1111-4111-8111-111111111111");
+    form.set("expected_workspace_revision", "3");
+    form.set("title", "Unsafe source");
+    form.set("url", "https://user:secret@example.test/research");
+    form.set("source_name", "Example publisher");
+
+    expect(await action({ request: new Request(`http://localhost/projects/${project.project_id}`, { method: "POST", body: form }), params: { projectId: project.project_id } } as never)).toEqual({ status: "error", kind: "invalid-input", intent: "reference", idempotencyKey: "11111111-1111-4111-8111-111111111111" });
+    expect(selectedSession.ensure).toHaveBeenCalledOnce();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("submits non-text files as metadata-only and enforces artifact evidence combinations", async () => {
+    const selectedSession = session();
+    const post = vi.fn().mockResolvedValue(response(200, workspace));
+    const action = createProjectWorkspaceAction({ POST: post } as unknown as FinancialAcademyApiClient, selectedSession);
+    const form = formDataStub({
+      intent: "add-artifact", idempotency_key: "11111111-1111-4111-8111-111111111111", expected_workspace_revision: "3",
+      file: { name: "result.json", size: 2, arrayBuffer: async () => new TextEncoder().encode("{}").buffer }, artifact_kind: "result", result_classification: "simulated",
+      source_type: "external", source_title: "Reviewed dataset", source_version: "2026.10", media_type: "application/json", assumptions: "Synthetic values",
+    });
+
+    const request = { formData: async () => form, signal: new AbortController().signal };
+    const result = await action({ request, params: { projectId: project.project_id } } as never);
+
+    expect(result).toEqual(expect.objectContaining({ status: 302 }));
+    const submitted = post.mock.calls[0]?.[1]?.body as { intent: { mutation: { artifact: Record<string, unknown> } } };
+    expect(submitted.intent.mutation.artifact).toEqual(expect.objectContaining({ inspection_mode: "metadata_only", result_classification: "simulated" }));
+
+    for (const [kind, resultClass, sourceType, sourceVersion] of [
+      ["result", "", "learner_created", ""],
+      ["dataset", "predicted", "learner_created", ""],
+      ["dataset", "", "supplied", ""],
+    ] as const) {
+      const invalid = formDataStub({
+        intent: "add-artifact", idempotency_key: "22222222-2222-4222-8222-222222222222", expected_workspace_revision: "3",
+        file: { name: "evidence.txt", size: 1, arrayBuffer: async () => new TextEncoder().encode("x").buffer }, artifact_kind: kind, result_classification: resultClass,
+        source_type: sourceType, source_title: "Evidence", source_version: sourceVersion, media_type: "text/plain", assumptions: "",
+      });
+      expect(await action({ request: { formData: async () => invalid, signal: new AbortController().signal }, params: { projectId: project.project_id } } as never)).toEqual(expect.objectContaining({ status: "error", kind: "invalid-input", intent: "artifact" }));
+    }
+    expect(post).toHaveBeenCalledTimes(1);
+  });
+
   it("checks downloaded inert bytes against the accepted count and fingerprint", async () => {
     const bytes = new TextEncoder().encode("evidence").buffer;
     const digest = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((value) => value.toString(16).padStart(2, "0")).join("");
@@ -285,13 +410,42 @@ describe("Project generated-client loaders and action", () => {
   });
 
   it("exports only a complete correlated checkpoint bundle", async () => {
-    const bundle = { manifest: { schema_version: "1.0.0", export_id: "export-one", export_digest: "a".repeat(64), generated_at: "2026-10-16T20:03:00Z", export: { format: "project-evidence-manifest-v1", project_id: project.project_id, snapshot_id: snapshot.snapshot_id, snapshot_digest: snapshot.snapshot_digest, snapshot_record: snapshot, workspace_record: workspace, artifact_files: [], excluded_artifacts: [] } }, files: [] };
+    const bundle = await exportBundle();
     const get = vi.fn().mockResolvedValue(response(200, bundle));
     const exportSnapshot = createProjectSnapshotExporter({ GET: get } as unknown as FinancialAcademyApiClient, session());
 
     const exported = await exportSnapshot(project.project_id, snapshot.snapshot_id);
     expect(exported).toEqual(expect.objectContaining({ status: "ready", fileName: `${project.project_id}-${snapshot.snapshot_id}-evidence.json` }));
     get.mockResolvedValueOnce(response(200, { ...bundle, private_storage_path: "hidden" }));
+    expect(await exportSnapshot(project.project_id, snapshot.snapshot_id)).toEqual({ status: "invalid-response" });
+  });
+
+  it("rejects substituted evidence and artifact metadata even when outer digests are updated", async () => {
+    const bytes = new TextEncoder().encode("evidence");
+    const contentDigest = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((item) => item.toString(16).padStart(2, "0")).join("");
+    const artifact: ProjectArtifact = { artifact_id: "artifact-one", artifact_version: 1, artifact_kind: "supporting_file", logical_path: "notes/evidence.txt", media_type: "text/plain", inspection_mode: "plain_text", byte_count: bytes.byteLength, content_digest: contentDigest, provenance: { source_type: "learner_created", source_title: "Evidence" }, assumptions: [], created_at: workspace.created_at };
+    const valid = await exportBundle({ ...workspace, artifacts: [artifact] }, new Map([[artifact.artifact_id, bytes]]));
+    const substitutedMaterial = {
+      ...valid.manifest.export,
+      workspace_record: {
+        ...valid.manifest.export.workspace_record,
+        notes: valid.manifest.export.workspace_record.notes.map((note, index) => index === 0 ? { ...note, body: "Substituted evidence" } : note),
+      },
+    };
+    const substituted = { ...valid, manifest: { ...valid.manifest, export: substitutedMaterial, export_digest: await canonicalDigest(substitutedMaterial) } };
+    const get = vi.fn().mockResolvedValue(response(200, substituted));
+    const exportSnapshot = createProjectSnapshotExporter({ GET: get } as unknown as FinancialAcademyApiClient, session());
+    expect(await exportSnapshot(project.project_id, snapshot.snapshot_id)).toEqual({ status: "invalid-response" });
+
+    const changedFileMaterial = {
+      ...valid.manifest.export,
+      artifact_files: valid.manifest.export.artifact_files.map((file, index) => index === 0 ? { ...file, logical_path: "notes/other.txt" } : file),
+    };
+    const changedFile = {
+      manifest: { ...valid.manifest, export: changedFileMaterial, export_digest: await canonicalDigest(changedFileMaterial) },
+      files: valid.files.map((file, index) => index === 0 ? { ...file, logical_path: "notes/other.txt" } : file),
+    };
+    get.mockResolvedValueOnce(response(200, changedFile));
     expect(await exportSnapshot(project.project_id, snapshot.snapshot_id)).toEqual({ status: "invalid-response" });
   });
 });

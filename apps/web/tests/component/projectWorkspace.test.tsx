@@ -1,5 +1,6 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
 
@@ -83,12 +84,14 @@ describe("Project learner pages", () => {
   });
 
   it("shows flexible workspace records, inert file limits, and snapshot continuation in plain language", async () => {
+    const user = userEvent.setup();
     const varied: ProjectWorkspace = {
       ...workspace,
       workspace_revision: 7,
       notes: [{ note_id: "note-cafe", note_version: 2, title: "Résumé", body: "Line one\nLine two", created_at: workspace.created_at, updated_at: workspace.updated_at }],
       references: [{ reference_id: "source-one", reference_version: 1, title: "Reviewed source", url: "https://example.test/source", source_name: "Example publisher", created_at: workspace.created_at, updated_at: workspace.updated_at }],
-      artifacts: [{ artifact_id: "artifact-one", artifact_version: 1, artifact_kind: "dataset", logical_path: "data/café.csv", media_type: "text/csv", inspection_mode: "plain_text", byte_count: 8, content_digest: "e".repeat(64), provenance: { source_type: "learner_created", source_title: "Learner table" }, assumptions: ["Educational example"], created_at: workspace.created_at }],
+      artifacts: [{ artifact_id: "artifact-one", artifact_version: 1, artifact_kind: "dataset", logical_path: "data/café.csv", media_type: "text/csv", inspection_mode: "plain_text", byte_count: 8, content_digest: "e".repeat(64), provenance: { source_type: "external", source_title: "Learner table", source_url: "https://example.test/data", source_version: "2026.10", source_digest: "c".repeat(64), license: "Research terms", use_constraints: "Educational analysis only" }, environment: { name: "External tool", version: "1.0", dependency_digest: "d".repeat(64) }, assumptions: ["Educational example"], created_at: workspace.created_at }],
+      domain_links: [{ link_id: "link-one", link_type: "context", owner_module: "portfolio", resource_type: "simulated_portfolio", resource_id: "portfolio-one", resource_version: "1.0.0", owner_reference_digest: "a".repeat(64), target_status: "available", provenance: "Validated by the owning module.", validated_at: workspace.created_at, created_at: workspace.created_at }],
     };
     const snapshot: ProjectSnapshot = { schema_version: "1.0.0", snapshot_id: "snapshot-one", snapshot_digest: "f".repeat(64), closed_at: workspace.updated_at, snapshot: { project_id: project.project_id, learner_id: project.learner_id, project_revision: 1, project_shell_digest: "a".repeat(64), workspace_revision: 6, workspace_created_at: workspace.created_at, workspace_updated_at: workspace.updated_at, notes: [], references: [], artifacts: [], domain_links: [] } };
     const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} snapshots={[snapshot]} workspace={varied} /> }], { initialEntries: [`/projects/${project.project_id}`] });
@@ -101,6 +104,37 @@ describe("Project learner pages", () => {
     expect(screen.getAllByText(/does not run, expand, or actively preview/i)).not.toHaveLength(0);
     expect(screen.getByText(/It contains 0 notes/)).toBeVisible();
     expect(screen.getByRole("button", { name: "Save checkpoint" })).toBeVisible();
+
+    const filePanel = screen.getByRole("heading", { name: "data/café.csv" }).closest("li")!;
+    await user.click(within(filePanel).getByText("Technical record"));
+    expect(within(filePanel).getByText("https://example.test/data")).toBeVisible();
+    expect(within(filePanel).getByText("Research terms")).toBeVisible();
+    expect(within(filePanel).getByText("Educational example")).toBeVisible();
+    expect(within(filePanel).getByText(/External tool@1.0/)).toBeVisible();
+    const linkPanel = screen.getByRole("heading", { name: "simulated_portfolio" }).closest("li")!;
+    await user.click(within(linkPanel).getByText("Technical record"));
+    expect(within(linkPanel).getByText("link-one")).toBeVisible();
+    expect(within(linkPanel).getByText(/portfolio-one/)).toBeVisible();
+  });
+
+  it("rotates checkpoint retry authority when its bound revisions change", async () => {
+    const user = userEvent.setup();
+    function RevisionHarness() {
+      const [revision, setRevision] = useState(1);
+      const [retryShown, setRetryShown] = useState(false);
+      return <><button onClick={() => setRetryShown(true)} type="button">Show retry</button><button onClick={() => setRevision(2)} type="button">Advance work</button><ProjectDetailPage actionState={retryShown ? { status: "error", kind: "unavailable", intent: "snapshot", idempotencyKey: "previous" } : undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} snapshots={[]} workspace={{ ...workspace, workspace_revision: revision }} /></>;
+    }
+    const router = createMemoryRouter([{ path: "/projects/:projectId", element: <RevisionHarness /> }], { initialEntries: [`/projects/${project.project_id}`] });
+    render(<RouterProvider router={router} />);
+    const checkpointForm = () => screen.getByRole("button", { name: "Save checkpoint" }).closest("form")!;
+    const keyInput = () => checkpointForm().querySelector<HTMLInputElement>('input[name="idempotency_key"]')!;
+    const initial = keyInput().value;
+
+    await user.click(screen.getByRole("button", { name: "Show retry" }));
+    expect(keyInput().value).toBe(initial);
+
+    await user.click(screen.getByRole("button", { name: "Advance work" }));
+    expect(keyInput().value).not.toBe(initial);
   });
 
   it("submits one bounded note intent and explains stale work without overwriting it", async () => {

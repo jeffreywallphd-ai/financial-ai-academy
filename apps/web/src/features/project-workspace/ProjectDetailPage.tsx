@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Form, Link } from "react-router";
 
 import type {
@@ -34,9 +34,10 @@ function IntentForm({
   projectRevision?: number;
   workspaceRevision: number;
 }) {
-  const [key, setKey] = useState(requestKey);
+  const [editVersion, setEditVersion] = useState(0);
+  const key = useMemo(requestKey, [editVersion, intent, projectRevision, workspaceRevision]);
   return (
-    <Form className={className} encType="multipart/form-data" method="post" onChange={() => setKey(requestKey())}>
+    <Form className={className} encType="multipart/form-data" method="post" onChange={() => setEditVersion((current) => current + 1)}>
       <input name="intent" type="hidden" value={intent} />
       <input name="idempotency_key" type="hidden" value={key} />
       <input name="expected_workspace_revision" type="hidden" value={workspaceRevision} />
@@ -139,7 +140,21 @@ const mediaTypeLabels = {
   "application/octet-stream": "Other supported file",
 } as const;
 
+function TechnicalFact({ children, label }: { children: ReactNode; label: string }) {
+  return <div><dt>{label}</dt><dd>{children}</dd></div>;
+}
+
+function ExactTime({ value }: { value: string }) {
+  return <time dateTime={value}><code>{value}</code></time>;
+}
+
+function supplied(value: string | null | undefined) {
+  return value ?? "Not provided";
+}
+
 function ArtifactForm({ busy, workspaceRevision }: { busy: boolean; workspaceRevision: number }) {
+  const [artifactKind, setArtifactKind] = useState("supporting_file");
+  const [sourceType, setSourceType] = useState("learner_created");
   return (
     <IntentForm busy={busy} intent="add-artifact" workspaceRevision={workspaceRevision}>
       <legend>Add a file</legend>
@@ -147,19 +162,19 @@ function ArtifactForm({ busy, workspaceRevision }: { busy: boolean; workspaceRev
       <label htmlFor="project-file">File</label>
       <input id="project-file" name="file" required type="file" />
       <label htmlFor="artifact-kind">What does this file contain?</label>
-      <select defaultValue="supporting_file" id="artifact-kind" name="artifact_kind">
+      <select id="artifact-kind" name="artifact_kind" onChange={(event) => setArtifactKind(event.target.value)} value={artifactKind}>
         {Object.entries(artifactKindLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select>
       <label htmlFor="media-type">File format</label>
       <select defaultValue="application/octet-stream" id="media-type" name="media_type">
         {Object.entries(mediaTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select>
-      <label htmlFor="result-classification">How was the result produced? <span className="project-optional">(optional)</span></label>
-      <select defaultValue="" id="result-classification" name="result_classification">
+      <label htmlFor="result-classification">How was the content produced? {artifactKind === "result" ? null : <span className="project-optional">(optional)</span>}</label>
+      <select defaultValue="" id="result-classification" name="result_classification" required={artifactKind === "result"}>
         <option value="">Not a result</option><option value="observed">Observed</option><option value="calculated">Calculated</option><option value="simulated">Simulated</option><option value="predicted">Predicted</option><option value="generated">Generated</option><option value="narrative">Written interpretation</option>
       </select>
       <label htmlFor="source-type">Where did it come from?</label>
-      <select defaultValue="learner_created" id="source-type" name="source_type">
+      <select id="source-type" name="source_type" onChange={(event) => setSourceType(event.target.value)} value={sourceType}>
         <option value="learner_created">I created it</option><option value="supplied">It came with learning material</option><option value="external">It came from another source</option>
       </select>
       <label htmlFor="artifact-source-title">Source title</label>
@@ -171,6 +186,7 @@ function ArtifactForm({ busy, workspaceRevision }: { busy: boolean; workspaceRev
         <input id="artifact-source-version" maxLength={128} name="source_version" />
         <label htmlFor="artifact-source-digest">Exact source fingerprint <span className="project-optional">(optional)</span></label>
         <input id="artifact-source-digest" maxLength={64} name="source_digest" pattern="[a-f0-9]{64}" />
+        {sourceType === "learner_created" ? null : <p className="project-form__help">Provide a source version, an exact source fingerprint, or both.</p>}
         <label htmlFor="artifact-license">License <span className="project-optional">(optional)</span></label>
         <input id="artifact-license" maxLength={160} name="license" />
         <label htmlFor="artifact-use">Limits on use <span className="project-optional">(optional)</span></label>
@@ -278,27 +294,107 @@ export function ProjectDetailPage({
 
       <section className="project-section" aria-labelledby="project-notes-heading">
         <div><p className="eyebrow">Working record</p><h2 id="project-notes-heading">Notes</h2></div>
-        {workspace.notes.length === 0 ? <p className="project-empty">No notes yet.</p> : <ul className="project-work-list">{workspace.notes.map((note) => <li className="project-panel" key={note.note_id}><h3>{note.title}</h3><p className="project-preserved-text">{note.body}</p><details><summary>Edit this note</summary><NoteForm busy={busy} note={note} workspaceRevision={workspace.workspace_revision} /></details></li>)}</ul>}
+        {workspace.notes.length === 0 ? <p className="project-empty">No notes yet.</p> : <ul className="project-work-list">{workspace.notes.map((note) => <li className="project-panel" key={note.note_id}>
+          <h3>{note.title}</h3><p className="project-preserved-text">{note.body}</p>
+          <details><summary>Note record and editing</summary>
+            <dl className="project-technical">
+              <TechnicalFact label="Note"><code>{note.note_id}@{note.note_version}</code></TechnicalFact>
+              <TechnicalFact label="Created"><ExactTime value={note.created_at} /></TechnicalFact>
+              <TechnicalFact label="Last updated"><ExactTime value={note.updated_at} /></TechnicalFact>
+            </dl>
+            <NoteForm busy={busy} note={note} workspaceRevision={workspace.workspace_revision} />
+          </details>
+        </li>)}</ul>}
         <NoteForm busy={busy} workspaceRevision={workspace.workspace_revision} />
       </section>
 
       <section className="project-section" aria-labelledby="project-sources-heading">
         <div><p className="eyebrow">Evidence trail</p><h2 id="project-sources-heading">Sources</h2></div>
-        {workspace.references.length === 0 ? <p className="project-empty">No sources yet.</p> : <ul className="project-work-list">{workspace.references.map((reference) => <li className="project-panel" key={reference.reference_id}><h3>{reference.title}</h3><p>{reference.source_name}</p><a href={reference.url} rel="noreferrer" target="_blank">Open source in a new tab</a><details><summary>Source details and editing</summary><dl className="project-facts"><div><dt>Version</dt><dd>{reference.source_version ?? "Not provided"}</dd></div><div><dt>License</dt><dd>{reference.license ?? "Not provided"}</dd></div><div><dt>Limits on use</dt><dd>{reference.use_constraints ?? "Not provided"}</dd></div></dl><ReferenceForm busy={busy} reference={reference} workspaceRevision={workspace.workspace_revision} /></details></li>)}</ul>}
+        {workspace.references.length === 0 ? <p className="project-empty">No sources yet.</p> : <ul className="project-work-list">{workspace.references.map((reference) => <li className="project-panel" key={reference.reference_id}>
+          <h3>{reference.title}</h3><p>{reference.source_name}</p><a href={reference.url} rel="noreferrer" target="_blank">Open source in a new tab</a>
+          <details><summary>Source record and editing</summary>
+            <dl className="project-technical">
+              <TechnicalFact label="Source"><code>{reference.reference_id}@{reference.reference_version}</code></TechnicalFact>
+              <TechnicalFact label="Secure web address"><code>{reference.url}</code></TechnicalFact>
+              <TechnicalFact label="Source version">{supplied(reference.source_version)}</TechnicalFact>
+              <TechnicalFact label="Source fingerprint"><code>{supplied(reference.source_digest)}</code></TechnicalFact>
+              <TechnicalFact label="License">{supplied(reference.license)}</TechnicalFact>
+              <TechnicalFact label="Limits on use">{supplied(reference.use_constraints)}</TechnicalFact>
+              <TechnicalFact label="Created"><ExactTime value={reference.created_at} /></TechnicalFact>
+              <TechnicalFact label="Last updated"><ExactTime value={reference.updated_at} /></TechnicalFact>
+            </dl>
+            <ReferenceForm busy={busy} reference={reference} workspaceRevision={workspace.workspace_revision} />
+          </details>
+        </li>)}</ul>}
         <ReferenceForm busy={busy} workspaceRevision={workspace.workspace_revision} />
       </section>
 
       <section className="project-section" aria-labelledby="project-files-heading">
         <div><p className="eyebrow">Saved evidence</p><h2 id="project-files-heading">Files</h2><p>The Academy stores files for safe download but does not run, expand, or actively preview them.</p></div>
-        {workspace.artifacts.length === 0 ? <p className="project-empty">No files yet.</p> : <ul className="project-work-list">{workspace.artifacts.map((artifact) => <li className="project-panel" key={`${artifact.artifact_id}-${artifact.artifact_version}`}><h3>{artifact.logical_path}</h3><dl className="project-facts"><div><dt>Kind</dt><dd>{artifactKindLabels[artifact.artifact_kind]}</dd></div><div><dt>Source</dt><dd>{artifact.provenance.source_title}</dd></div><div><dt>Size</dt><dd>{artifact.byte_count.toLocaleString()} bytes</dd></div>{artifact.result_classification ? <div><dt>Result type</dt><dd>{artifact.result_classification}</dd></div> : null}</dl><button className="button button--secondary" disabled={busy} onClick={() => void handleArtifactDownload(artifact)} type="button">Download original file</button><details><summary>Technical record</summary><dl className="project-technical"><div><dt>Artifact</dt><dd><code>{artifact.artifact_id}@{artifact.artifact_version}</code></dd></div><div><dt>Content fingerprint</dt><dd><code>{artifact.content_digest}</code></dd></div><div><dt>Media type</dt><dd><code>{artifact.media_type}</code></dd></div><div><dt>Inspection limit</dt><dd><code>{artifact.inspection_mode}</code></dd></div></dl></details></li>)}</ul>}
+        {workspace.artifacts.length === 0 ? <p className="project-empty">No files yet.</p> : <ul className="project-work-list">{workspace.artifacts.map((artifact) => <li className="project-panel" key={`${artifact.artifact_id}-${artifact.artifact_version}`}>
+          <h3>{artifact.logical_path}</h3><dl className="project-facts"><TechnicalFact label="Kind">{artifactKindLabels[artifact.artifact_kind]}</TechnicalFact><TechnicalFact label="Source">{artifact.provenance.source_title}</TechnicalFact><TechnicalFact label="Size">{artifact.byte_count.toLocaleString()} bytes</TechnicalFact>{artifact.result_classification ? <TechnicalFact label="Result type">{artifact.result_classification}</TechnicalFact> : null}</dl>
+          <button className="button button--secondary" disabled={busy} onClick={() => void handleArtifactDownload(artifact)} type="button">Download original file</button>
+          <details><summary>Technical record</summary><dl className="project-technical">
+            <TechnicalFact label="Artifact"><code>{artifact.artifact_id}@{artifact.artifact_version}</code></TechnicalFact>
+            <TechnicalFact label="Logical path"><code>{artifact.logical_path}</code></TechnicalFact>
+            <TechnicalFact label="Artifact kind"><code>{artifact.artifact_kind}</code></TechnicalFact>
+            <TechnicalFact label="Content fingerprint"><code>{artifact.content_digest}</code></TechnicalFact>
+            <TechnicalFact label="Media type"><code>{artifact.media_type}</code></TechnicalFact>
+            <TechnicalFact label="Inspection limit"><code>{artifact.inspection_mode}</code></TechnicalFact>
+            <TechnicalFact label="Exact size">{artifact.byte_count} bytes</TechnicalFact>
+            <TechnicalFact label="Result classification"><code>{supplied(artifact.result_classification)}</code></TechnicalFact>
+            <TechnicalFact label="Source type"><code>{artifact.provenance.source_type}</code></TechnicalFact>
+            <TechnicalFact label="Source title">{artifact.provenance.source_title}</TechnicalFact>
+            <TechnicalFact label="Source address"><code>{supplied(artifact.provenance.source_url)}</code></TechnicalFact>
+            <TechnicalFact label="Source version">{supplied(artifact.provenance.source_version)}</TechnicalFact>
+            <TechnicalFact label="Source fingerprint"><code>{supplied(artifact.provenance.source_digest)}</code></TechnicalFact>
+            <TechnicalFact label="License">{supplied(artifact.provenance.license)}</TechnicalFact>
+            <TechnicalFact label="Limits on use">{supplied(artifact.provenance.use_constraints)}</TechnicalFact>
+            <TechnicalFact label="Assumptions">{artifact.assumptions.length === 0 ? "None recorded" : <ul>{artifact.assumptions.map((assumption) => <li key={assumption}>{assumption}</li>)}</ul>}</TechnicalFact>
+            <TechnicalFact label="Environment">{artifact.environment ? <><code>{artifact.environment.name}@{artifact.environment.version}</code>{artifact.environment.dependency_digest ? <> — <code>{artifact.environment.dependency_digest}</code></> : null}</> : "Not provided"}</TechnicalFact>
+            <TechnicalFact label="Created"><ExactTime value={artifact.created_at} /></TechnicalFact>
+          </dl></details>
+        </li>)}</ul>}
         <ArtifactForm busy={busy} workspaceRevision={workspace.workspace_revision} />
       </section>
 
-      {workspace.domain_links.length === 0 ? null : <section className="project-section" aria-labelledby="project-links-heading"><div><p className="eyebrow">Connected records</p><h2 id="project-links-heading">Related Project records</h2></div><ul className="project-work-list">{workspace.domain_links.map((link) => <li className="project-panel" key={link.link_id}><h3>{link.resource_type}</h3><p>{link.provenance}</p><details><summary>Technical record</summary><dl className="project-technical"><div><dt>Owner</dt><dd><code>{link.owner_module}</code></dd></div><div><dt>Resource</dt><dd><code>{link.resource_id}</code></dd></div><div><dt>Reference fingerprint</dt><dd><code>{link.owner_reference_digest}</code></dd></div></dl></details></li>)}</ul></section>}
+      {workspace.domain_links.length === 0 ? null : <section className="project-section" aria-labelledby="project-links-heading"><div><p className="eyebrow">Connected records</p><h2 id="project-links-heading">Related Project records</h2></div><ul className="project-work-list">{workspace.domain_links.map((link) => <li className="project-panel" key={link.link_id}>
+        <h3>{link.resource_type}</h3><p>{link.provenance}</p><details><summary>Technical record</summary><dl className="project-technical">
+          <TechnicalFact label="Link ID"><code>{link.link_id}</code></TechnicalFact>
+          <TechnicalFact label="Link type"><code>{link.link_type}</code></TechnicalFact>
+          <TechnicalFact label="Owner"><code>{link.owner_module}</code></TechnicalFact>
+          <TechnicalFact label="Resource"><code>{link.resource_type}:{link.resource_id}</code></TechnicalFact>
+          <TechnicalFact label="Resource version"><code>{supplied(link.resource_version)}</code></TechnicalFact>
+          <TechnicalFact label="Resource date">{link.resource_as_of ? <ExactTime value={link.resource_as_of} /> : "Not provided"}</TechnicalFact>
+          <TechnicalFact label="Reference fingerprint"><code>{link.owner_reference_digest}</code></TechnicalFact>
+          <TechnicalFact label="Availability"><code>{link.target_status}</code></TechnicalFact>
+          <TechnicalFact label="Validated"><ExactTime value={link.validated_at} /></TechnicalFact>
+          <TechnicalFact label="Created"><ExactTime value={link.created_at} /></TechnicalFact>
+        </dl></details>
+      </li>)}</ul></section>}
 
       <section className="project-section" id="snapshots" aria-labelledby="project-snapshots-heading">
         <div><p className="eyebrow">Fixed evidence</p><h2 id="project-snapshots-heading">Saved checkpoints</h2><p>A checkpoint keeps one exact version of your Project evidence. You can keep working afterward without changing it.</p></div>
-        {snapshots.length === 0 ? <p className="project-empty">No saved checkpoints yet.</p> : <ol className="project-work-list">{snapshots.map((snapshot) => <li className="project-panel" key={snapshot.snapshot_id}><h3>Checkpoint from <time dateTime={snapshot.closed_at}>{readableProjectDate(snapshot.closed_at)}</time></h3><p>It contains {snapshot.snapshot.notes.length} notes, {snapshot.snapshot.references.length} sources, and {snapshot.snapshot.artifacts.length} files.</p><button className="button button--secondary" disabled={busy} onClick={() => void handleSnapshotExport(snapshot.snapshot_id)} type="button">Download evidence record</button><details><summary>Technical record</summary><dl className="project-technical"><div><dt>Snapshot ID</dt><dd><code>{snapshot.snapshot_id}</code></dd></div><div><dt>Snapshot fingerprint</dt><dd><code>{snapshot.snapshot_digest}</code></dd></div><div><dt>Project revision</dt><dd><code>{snapshot.snapshot.project_revision}</code></dd></div><div><dt>Workspace revision</dt><dd><code>{snapshot.snapshot.workspace_revision}</code></dd></div></dl></details></li>)}</ol>}
+        {snapshots.length === 0 ? <p className="project-empty">No saved checkpoints yet.</p> : <ol className="project-work-list">{snapshots.map((snapshot) => <li className="project-panel" key={snapshot.snapshot_id}>
+          <h3>Checkpoint from <time dateTime={snapshot.closed_at}>{readableProjectDate(snapshot.closed_at)}</time></h3><p>It contains {snapshot.snapshot.notes.length} notes, {snapshot.snapshot.references.length} sources, and {snapshot.snapshot.artifacts.length} files.</p>
+          <button className="button button--secondary" disabled={busy} onClick={() => void handleSnapshotExport(snapshot.snapshot_id)} type="button">Download evidence record</button>
+          <details><summary>Technical record</summary><dl className="project-technical">
+            <TechnicalFact label="Snapshot ID"><code>{snapshot.snapshot_id}</code></TechnicalFact>
+            <TechnicalFact label="Snapshot fingerprint"><code>{snapshot.snapshot_digest}</code></TechnicalFact>
+            <TechnicalFact label="Closed"><ExactTime value={snapshot.closed_at} /></TechnicalFact>
+            <TechnicalFact label="Project"><code>{snapshot.snapshot.project_id}</code></TechnicalFact>
+            <TechnicalFact label="Learner"><code>{snapshot.snapshot.learner_id}</code></TechnicalFact>
+            <TechnicalFact label="Project revision"><code>{snapshot.snapshot.project_revision}</code></TechnicalFact>
+            <TechnicalFact label="Project fingerprint"><code>{snapshot.snapshot.project_shell_digest}</code></TechnicalFact>
+            <TechnicalFact label="Workspace revision"><code>{snapshot.snapshot.workspace_revision}</code></TechnicalFact>
+            <TechnicalFact label="Workspace opened"><ExactTime value={snapshot.snapshot.workspace_created_at} /></TechnicalFact>
+            <TechnicalFact label="Workspace updated"><ExactTime value={snapshot.snapshot.workspace_updated_at} /></TechnicalFact>
+            <TechnicalFact label="Note records">{snapshot.snapshot.notes.length === 0 ? "None" : <ul>{snapshot.snapshot.notes.map((item) => <li key={item.record_id}><code>{item.record_id}@{item.record_version} — {item.record_digest}</code></li>)}</ul>}</TechnicalFact>
+            <TechnicalFact label="Source records">{snapshot.snapshot.references.length === 0 ? "None" : <ul>{snapshot.snapshot.references.map((item) => <li key={item.record_id}><code>{item.record_id}@{item.record_version} — {item.record_digest}</code></li>)}</ul>}</TechnicalFact>
+            <TechnicalFact label="File records">{snapshot.snapshot.artifacts.length === 0 ? "None" : <ul>{snapshot.snapshot.artifacts.map((item) => <li key={item.artifact_id}><code>{item.artifact_id}@{item.artifact_version} — {item.manifest_digest} — {item.content_digest} — {item.byte_count} bytes</code></li>)}</ul>}</TechnicalFact>
+            <TechnicalFact label="Related records">{snapshot.snapshot.domain_links.length === 0 ? "None" : <ul>{snapshot.snapshot.domain_links.map((item) => <li key={item.link_id}><code>{item.link_id} — {item.record_digest} — {item.owner_reference_digest}</code></li>)}</ul>}</TechnicalFact>
+          </dl></details>
+        </li>)}</ol>}
         <IntentForm busy={busy} intent="close-snapshot" projectRevision={project.revision} workspaceRevision={workspace.workspace_revision}>
           <legend>Save a fixed checkpoint</legend>
           <p className="project-form__help">This creates a fixed record of the current Project and files. Your live Project stays open for more work.</p>

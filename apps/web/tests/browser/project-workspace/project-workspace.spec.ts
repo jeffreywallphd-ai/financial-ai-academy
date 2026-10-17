@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
+import { createHash } from "node:crypto";
 
 const origin = {
   origin_type: "learning",
@@ -36,6 +37,20 @@ const independent = {
 
 function json(route: Route, status: number, body: unknown) {
   return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (typeof value === "object" && value !== null) {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).filter((key) => record[key] !== null && record[key] !== undefined).sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function canonicalDigest(value: unknown): string {
+  return createHash("sha256").update(canonicalJson(value), "utf8").digest("hex");
 }
 
 async function mockProjects(page: Page, postBodies: Record<string, unknown>[], options: {
@@ -100,7 +115,8 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
     if (request.method() === "POST" && snapshotCollectionMatch) {
       const body = request.postDataJSON() as Record<string, unknown>;
       postBodies.push(body);
-      const record = { schema_version: "1.0.0", snapshot_id: `snapshot-${snapshots.length + 1}`, snapshot_digest: "f".repeat(64), closed_at: "2026-10-16T20:03:00Z", snapshot: { project_id: snapshotCollectionMatch[1], learner_id: "learner-a", project_revision: 1, project_shell_digest: "e".repeat(64), workspace_revision: workspaceRevision, workspace_created_at: "2026-10-16T20:00:00Z", workspace_updated_at: workspace(snapshotCollectionMatch[1]!).updated_at, notes: notes.map((note, index) => ({ record_id: note.note_id, record_version: 1, record_digest: String(index + 1).repeat(64).slice(0, 64) })), references: [], artifacts: artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, manifest_digest: "a".repeat(64), content_digest: artifact.content_digest, byte_count: artifact.byte_count })), domain_links: [] } };
+      const snapshotMaterial = { project_id: snapshotCollectionMatch[1], learner_id: "learner-a", project_revision: 1, project_shell_digest: "e".repeat(64), workspace_revision: workspaceRevision, workspace_created_at: "2026-10-16T20:00:00Z", workspace_updated_at: workspace(snapshotCollectionMatch[1]!).updated_at, notes: notes.map((note) => ({ record_id: note.note_id, record_version: 1, record_digest: canonicalDigest(note) })), references: references.map((reference) => ({ record_id: reference.reference_id, record_version: 1, record_digest: canonicalDigest(reference) })), artifacts: artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, manifest_digest: canonicalDigest(artifact), content_digest: artifact.content_digest, byte_count: artifact.byte_count })), domain_links: [] };
+      const record = { schema_version: "1.0.0", snapshot_id: `snapshot-${snapshots.length + 1}`, snapshot_digest: canonicalDigest(snapshotMaterial), closed_at: "2026-10-16T20:03:00Z", snapshot: snapshotMaterial };
       snapshots.push(record);
       return json(route, 200, record);
     }
@@ -108,8 +124,9 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
     const exportMatch = /^\/api\/v1\/projects\/([^/]+)\/snapshots\/([^/]+)\/export$/.exec(url.pathname);
     if (request.method() === "GET" && exportMatch) {
       const snapshotRecord = snapshots.find((item) => item.snapshot_id === exportMatch[2]);
-      const artifactFiles = artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, byte_count: artifact.byte_count, content_digest: artifact.content_digest, logical_path: artifact.logical_path, manifest_digest: "a".repeat(64), media_type: artifact.media_type }));
-      return json(route, 200, { manifest: { schema_version: "1.0.0", export_id: "export-one", export_digest: "a".repeat(64), generated_at: "2026-10-16T20:04:00Z", export: { format: "project-evidence-manifest-v1", project_id: exportMatch[1], snapshot_id: exportMatch[2], snapshot_digest: snapshotRecord?.snapshot_digest, snapshot_record: snapshotRecord, workspace_record: workspace(exportMatch[1]!), artifact_files: artifactFiles, excluded_artifacts: [] } }, files: artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, content_base64: Buffer.from(artifactBytes).toString("base64"), logical_path: artifact.logical_path })) });
+      const artifactFiles = artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, byte_count: artifact.byte_count, content_digest: artifact.content_digest, logical_path: artifact.logical_path, manifest_digest: canonicalDigest(artifact), media_type: artifact.media_type }));
+      const exportMaterial = { format: "project-evidence-manifest-v1", project_id: exportMatch[1], snapshot_id: exportMatch[2], snapshot_digest: snapshotRecord?.snapshot_digest, snapshot_record: snapshotRecord, workspace_record: workspace(exportMatch[1]!), artifact_files: artifactFiles, excluded_artifacts: [] };
+      return json(route, 200, { manifest: { schema_version: "1.0.0", export_id: "export-one", export_digest: canonicalDigest(exportMaterial), generated_at: "2026-10-16T20:04:00Z", export: exportMaterial }, files: artifacts.map((artifact) => ({ artifact_id: artifact.artifact_id, artifact_version: 1, content_base64: Buffer.from(artifactBytes).toString("base64"), logical_path: artifact.logical_path })) });
     }
     if (url.pathname === "/api/v1/projects/start-options") return json(route, 200, { records: [option] });
     if (url.pathname === `/api/v1/projects/start-options/${origin.placement_id}`) return options.staleStartOption ? json(route, 400, { code: "stale_source" }) : json(route, 200, option);
@@ -254,9 +271,14 @@ test("saves Project work, keeps files inert, closes a snapshot, and continues wo
   await page.getByRole("button", { name: "Save note" }).click();
   await expect(page.getByRole("heading", { level: 3, name: "Continued work" })).toBeVisible();
   await expect(page.getByText(/It contains 1 notes/)).toBeVisible();
+  await page.getByRole("button", { name: "Save checkpoint" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: /Checkpoint from/ })).toHaveCount(2);
 
   const mutationBodies = posts.filter((body) => "mutation" in body);
   expect(mutationBodies).toHaveLength(2);
   for (const body of mutationBodies) expect(body).not.toHaveProperty("learner_id");
   expect(posts.some((body) => "content_base64" in body)).toBe(true);
+  const checkpointBodies = posts.filter((body) => "expected_project_revision" in body);
+  expect(checkpointBodies).toHaveLength(2);
+  expect(new Set(checkpointBodies.map((body) => body.idempotency_key)).size).toBe(2);
 });

@@ -5,8 +5,10 @@ import type { SingleProfileSession } from "../../platform/auth/singleProfileSess
 import {
   learningProjectStartOptionIsSafe,
   learningStartOptionListIsSafe,
+  logicalPathIsSafe,
   projectIdentifierIsSafe,
   projectListIsSafe,
+  projectEvidenceExportBindingsAreSafe,
   projectEvidenceExportBundleIsSafe,
   projectSnapshotListIsSafe,
   projectShellIsSafe,
@@ -290,7 +292,9 @@ function safeBody(value: string | null): value is string {
 function safeHttpsUrl(value: string | undefined): value is string {
   if (!value || value.length > 2048) return false;
   try {
-    return new URL(value).protocol === "https:";
+    const parsed = new URL(value);
+    const authority = value.slice(value.indexOf("//") + 2).split(/[/?#]/, 1)[0] ?? "";
+    return parsed.protocol === "https:" && parsed.hostname !== "" && !authority.includes("@");
   } catch {
     return false;
   }
@@ -387,12 +391,11 @@ export function createProjectWorkspaceAction(client: FinancialAcademyApiClient, 
         const sourceType = oneFormValue(form, "source_type");
         const sourceTitle = oneFormValue(form, "source_title")?.trim() ?? null;
         const mediaType = oneFormValue(form, "media_type");
-        if (typeof File === "undefined" || !(fileValue instanceof File) || fileValue.size > 10_485_760
-          || fileValue.name.length < 1 || fileValue.name.length > 240 || fileValue.name.includes("\\")
-          || fileValue.name.startsWith("/") || /^[A-Za-z]:/.test(fileValue.name)
+        if (!fileValue || typeof fileValue === "string" || fileValue.size > 10_485_760 || !logicalPathIsSafe(fileValue.name)
           || !artifactKind || !ARTIFACT_KINDS.has(artifactKind) || !sourceType || !SOURCE_TYPES.has(sourceType)
           || !safeSimpleText(sourceTitle, 160) || !mediaType || !MEDIA_TYPES.has(mediaType)
-          || (resultClass !== undefined && !RESULT_CLASSES.has(resultClass))) {
+          || (resultClass !== undefined && !RESULT_CLASSES.has(resultClass))
+          || (artifactKind === "result" ? resultClass === undefined : resultClass !== undefined && resultClass !== "narrative")) {
           return workspaceActionError("invalid-input", "artifact", idempotencyKey);
         }
         const sourceUrl = optionalFormValue(form, "source_url");
@@ -404,7 +407,8 @@ export function createProjectWorkspaceAction(client: FinancialAcademyApiClient, 
           || (sourceVersion !== undefined && !safeSimpleText(sourceVersion, 128))
           || (sourceDigest !== undefined && !/^[a-f0-9]{64}$/.test(sourceDigest))
           || (license !== undefined && !safeSimpleText(license, 160))
-          || (useConstraints !== undefined && !safeSimpleText(useConstraints, 1000))) {
+          || (useConstraints !== undefined && !safeSimpleText(useConstraints, 1000))
+          || (sourceType !== "learner_created" && sourceVersion === undefined && sourceDigest === undefined)) {
           return workspaceActionError("invalid-input", "artifact", idempotencyKey);
         }
         const assumptions = (oneFormValue(form, "assumptions") ?? "").split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
@@ -426,7 +430,7 @@ export function createProjectWorkspaceAction(client: FinancialAcademyApiClient, 
           assumptions,
           byte_count: content.byteLength,
           content_digest: await sha256(content),
-          inspection_mode: mediaType.startsWith("text/") || mediaType === "application/json" || mediaType === "application/x-ipynb+json" ? "plain_text" : "metadata_only",
+          inspection_mode: mediaType.startsWith("text/") ? "plain_text" : "metadata_only",
           logical_path: fileValue.name,
           media_type: mediaType as components["schemas"]["ProjectArtifactInputModel"]["media_type"],
           provenance,
@@ -553,7 +557,8 @@ export function createProjectSnapshotExporter(client: FinancialAcademyApiClient,
       }
       if (result.response.status !== 200) return exportFailure(result.response.status);
       const data = result.data as unknown;
-      if (!projectEvidenceExportBundleIsSafe(data, projectId, snapshotId)) return { status: "invalid-response" };
+      if (!projectEvidenceExportBundleIsSafe(data, projectId, snapshotId)
+        || !await projectEvidenceExportBindingsAreSafe(data)) return { status: "invalid-response" };
       const included = new Map(data.manifest.export.artifact_files.map((file) => [`${file.artifact_id}@${file.artifact_version}`, file]));
       for (const file of data.files) {
         const expected = included.get(`${file.artifact_id}@${file.artifact_version}`);
