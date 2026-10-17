@@ -2645,7 +2645,11 @@ def assert_personal_workspace_restart_result(
 ) -> None:
     if after_observation != before_observation:
         raise RuntimeError("Personal workspace changed after normal restart.")
-    if after_storage != before_storage:
+    personal_keys = ("personal_workspaces", "personal_mutations")
+    if any(
+        after_storage.get(key) != before_storage.get(key)
+        for key in personal_keys
+    ):
         raise RuntimeError("Personal workspace storage changed during restart replay.")
 
 

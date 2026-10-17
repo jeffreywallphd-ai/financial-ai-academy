@@ -26,5 +26,9 @@ has no provider, model, external-network, file, or execution dependency.
 The protected API/client delivery is the primary product boundary for browser
 and headless consumers. Source-bearing creates also require the owning
 Curriculum read permission; caller-selected learner query parameters are
-rejected before workspace access. A later CAP-0017 packet adds the browser
-experience without changing this ownership direction.
+rejected before workspace access. The generated-client Saved Learning browser
+flow and an ordinary authenticated non-browser client use these same
+operations. Isolated PostgreSQL/Python/static-browser qualification directly
+proves exact replay, changed-key and stale-revision denial, target-state
+isolation, normal restart without reseeding, and bounded cleanup without
+changing this ownership direction.

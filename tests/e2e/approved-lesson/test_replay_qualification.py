@@ -1285,6 +1285,12 @@ def test_personal_workspace_restart_preserves_state_and_target_counts() -> None:
         before_storage=after,
         after_storage=dict(after),
     )
+    runner.assert_personal_workspace_restart_result(
+        before_observation=personal_workspace_capture()["workspace"],
+        after_observation=personal_workspace_capture()["workspace"],
+        before_storage=after,
+        after_storage=after | {"assessment_attempts": 2},
+    )
     with pytest.raises(RuntimeError, match="target or learning evidence"):
         runner.assert_personal_workspace_target_state_unchanged(
             before_storage=before_target,

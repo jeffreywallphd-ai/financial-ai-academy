@@ -389,6 +389,11 @@ proves a different stale save cannot overwrite it, and observes the same state
 after normal restart. Exact submission replay preserves both immutable
 evidence counts and the newer draft. This proves confidentiality,
 accessibility, and restart durability without a browser-only API. The
+same live topology also exercises `/saved-learning` through the generated
+client, compares the resulting closed workspace with ordinary authenticated
+headless HTTP, proves exact replay plus changed-key and stale-revision denial,
+checks target-domain count invariance, and reopens the same notes, bookmark,
+ordered collection, provenance, and revision after a normal restart. The
 separate pinned browser fixture preserves
 the wider same-kind shared-branch and variable-reference anti-rigidity cases;
 the live approved graph does not invent those shapes for qualification.
@@ -419,7 +424,10 @@ retained-completion reopen, missing-context, stale-placement, security-header,
 education-boundary, exact headless/browser practice opening, progress, draft,
 and submission, three response shapes, conditional save, reload, exact replay,
 stale conflict, server-owned retry/history/review state, practice storage-count
-invariance, restart parity, bounded practice denial, and
+invariance, restart parity, bounded practice denial, generated-browser/headless
+Personal-workspace parity, ordered collection membership, exact replay,
+confidential changed-key and stale-revision denial, target-state isolation,
+Personal-workspace restart durability, and
 catalog/detail/comparison/graph/completion/practice axe paths.
 Repeated cards preserve heading/list
 semantics without creating redundant nested named landmarks. Real

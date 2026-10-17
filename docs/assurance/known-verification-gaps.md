@@ -24,10 +24,12 @@
 - Manual screen-reader operation, actual browser 200-percent zoom controls, non-Chromium browsers, and non-Windows visual baselines beyond the directly covered axe, keyboard/focus, narrow/zoom-equivalent reflow, reduced-motion, forced-color, and Chromium theme evidence
 - Community coordinated-backup, recovery-set validation, empty-target restore, projection reconciliation, restored-session/recovery revocation, failure-path, redaction, and supported-platform qualification
 - PostgreSQL integration and migration checks beyond the directly covered Content, Curriculum, single-profile Identity, Assessment, Learner-model, Audit, Project, and Personal-workspace streams with PostgreSQL 18.4 empty-database apply/reapply/teardown and focused rollback paths
-- Personal-workspace browser interaction, full live-topology restart, and
-  target-availability refresh beyond the directly covered portable contract,
-  pure mutation core, Curriculum public adapter, PostgreSQL persistence,
-  protected API, and generated-client/headless seam
+- Personal-workspace target-availability refresh, multiple learners,
+  import/export, and managed-cloud retention/recovery beyond the directly
+  covered portable contract, pure mutation core, Curriculum public adapter,
+  PostgreSQL persistence, protected API, generated-browser/headless Saved
+  Learning journey, exact replay/conflict denial, target-state isolation, and
+  full live-topology restart
 - Live domain-resource and Portfolio associations, external execution,
   collaboration, managed cloud, production recovery,
   import/restore, retention cleanup, and a separate headless AI mode beyond the

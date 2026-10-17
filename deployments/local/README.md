@@ -4,9 +4,10 @@ The intended complete local profile includes the static web application,
 Python API and worker, PostgreSQL, filesystem object storage, and DuckDB/Parquet
 analytics. Only the bounded approved-lesson, curriculum-graph, discovery-query,
 deterministic-navigation-state, deterministic assessment, answer-safe practice
-opening, retained-completion, Project list/create/reopen, and API-only Personal
-workspace `single_profile` path is qualified today. The Personal-workspace
-browser experience remains a later CAP-0017 packet.
+opening, retained-completion, Project list/create/reopen, and Personal-workspace
+Saved Learning `single_profile` path is qualified today. The Personal-workspace
+journey uses the same protected public API from generated-browser and ordinary
+headless clients and survives a normal host restart without reseeding.
 This is a development/CI qualification topology, not a production
 publication, backup, restore, availability, or remote-hosting claim.
 
@@ -136,8 +137,17 @@ cannot replace it, and verifies one atomic
 attempt/response/score/completion/outbox aggregate. After normal restart, the
 runner reopens the same progress and draft, exactly replays both accepted
 documents, and confirms immutable counts and the newer draft remain unchanged.
-The
-companion isolated browser fixture, rather than the
+The runner also exercises the generated Saved Learning browser against the
+same live host: it creates a Unicode note and bookmark for the exact approved
+lesson, reorders them, creates ordered collection membership, archives and
+restores a record, reloads the route, and captures only bounded public state.
+A fresh non-browser session reads the identical workspace, exactly replays the
+last accepted mutation, proves changed-key and stale-revision conflicts are
+confidential and side-effect free, and observes the same complete state after
+restart. Direct before/after PostgreSQL counts prove this journey creates only
+one Personal-workspace aggregate and its seven accepted mutation rows while
+leaving Content, Curriculum, Assessment, Learner model, and Project counts
+unchanged. The companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.
 
@@ -204,6 +214,9 @@ three-shape practice opening, generated-browser partial save/reload and
 submission, identical non-browser progress/draft use, exact replay, stale-save
 refusal, server-owned retry/history/review state, atomic Assessment
 evidence/outbox counts, bounded practice denial, practice restart parity, and
+generated-browser/headless Personal-workspace parity, ordered collections,
+confidential exact replay/conflict handling, source-state isolation, Personal-
+workspace restart durability,
 application-restart reconstruction of derived Learner-model state from
 unchanged Assessment evidence without fixture reseeding.
 
