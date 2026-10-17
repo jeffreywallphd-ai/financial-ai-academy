@@ -209,8 +209,8 @@ packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0139 | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | ready |
-| JIT-B | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | JIT-A | none | captured |
+| WRK-0139 | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | complete |
+| WRK-0140 | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | WRK-0139 | none | ready |
 | JIT-C | Deliver plain-language browser search, filters, status, per-record refresh, and accessible safe resume through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | JIT-C | none | captured |
 
@@ -299,3 +299,8 @@ approval is requested.
 - 2026-10-17: Activated WRK-0139 from the recorded base after confirming the
   current CAP approval, completed SLI-0071 dependency, exact pure-contract
   scope, resolved decision posture, and absence of a known write collision.
+- 2026-10-17: Completed WRK-0139 with authenticated learner/workspace-bound
+  continuations, deterministic query, exact stale/unavailable transitions, and
+  field-by-field immutable-reference drift evidence; refined JIT-B as WRK-0140
+  for application, persistence, protected API, OpenAPI, and generated-client
+  delivery without expanding into browser or live-qualification work.
