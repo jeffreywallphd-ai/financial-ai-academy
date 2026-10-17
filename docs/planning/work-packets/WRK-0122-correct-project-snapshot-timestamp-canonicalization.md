@@ -1,7 +1,7 @@
 ---
 id: WRK-0122
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -149,5 +149,10 @@ authority changed. Then return to WRK-0121.
   contract-projected workspace timestamp strings instead of independently
   rendering the same datetimes. The deterministic `123450` microsecond
   regression and the focused Project unit, contract, and API suites passed
-  138 tests with one environment-specific skip; exact-candidate verification
-  and independent review remain before completion.
+  138 tests with one environment-specific skip.
+- 2026-10-17: Completed at exact candidate `d41d40210ab2394fb7118c80ea94ac905f8b89fa`.
+  Exact-candidate verification recorded receipt digest
+  `sha256:94043cf878083e4e025c7bcfbefa8604699cf9a78939d099a758fb6a228f3a7f`,
+  and required independent technical evidence recorded no open findings. No
+  public contract, API, storage, browser, provider, Assessment, learner-model,
+  financial, or AI-authority boundary changed.

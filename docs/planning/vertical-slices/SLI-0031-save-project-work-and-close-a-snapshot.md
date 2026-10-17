@@ -237,7 +237,7 @@ refined just in time.
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
-| WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | ready |
+| WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | complete |
 | WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0122 | none | ready |
 
 ## Verification and Qualification
@@ -384,5 +384,6 @@ created, and no managed-cloud or production-recovery profile was qualified.
 - 2026-10-17: WRK-0122 reused the Project contract's canonical workspace
   timestamp strings for snapshot digest material and added a deterministic
   trailing-zero fractional-second regression. Focused Project unit, contract,
-  and API verification passed; candidate verification and review remain before
-  WRK-0121 resumes.
+  and API verification passed, and exact-candidate controls recorded complete
+  verification and independent technical evidence with no open findings.
+  WRK-0121 may now resume integrated qualification.
