@@ -1,7 +1,7 @@
 ---
 id: WRK-0155
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -273,3 +273,7 @@ action, or financial behavior changed.
   to JIT-D, and requires no lower-level approval inside CAP-0018.
 - 2026-10-17: Activated after deterministic validation and a collision-free
   claim on the current CAP-0018 branch.
+- 2026-10-17: Entered verification with the public-client display route,
+  complete accepted/draft/reset application seam, separate local theme,
+  shared presentation tokens, and focused unit/component/Chromium evidence in
+  place. Final live host and restart qualification remains in JIT-D.
