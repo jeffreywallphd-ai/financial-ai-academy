@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/assessment/project/v1/validation-result.schema.json",
+  "title": "Assessment Project Validation Result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "issues"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "status": { "enum": ["accepted", "refused"] },
+    "request_fingerprint": { "$ref": "#/$defs/digest" },
+    "issues": { "type": "array", "maxItems": 100, "items": { "$ref": "#/$defs/issue" } }
+  },
+  "oneOf": [
+    { "properties": { "status": { "const": "accepted" }, "issues": { "maxItems": 0 } }, "required": ["request_fingerprint"] },
+    { "properties": { "status": { "const": "refused" }, "issues": { "minItems": 1 } }, "not": { "required": ["request_fingerprint"] } }
+  ],
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "issue": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "reference", "message"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1, "maxLength": 96, "pattern": "^assessment\\.project\\.[a-z0-9_]+$" },
+        "reference": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^<>\\u0000\\r\\n]*$" },
+        "message": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000\\r\\n]*$" }
+      }
+    }
+  }
+}

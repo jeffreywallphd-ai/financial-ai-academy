@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "project_id": "project-retirement-plan",
+  "items": [
+    {
+      "evidence_id": "evidence-retirement-01",
+      "submission_id": "submission-retirement-01",
+      "snapshot_id": "snapshot-retirement-plan-01",
+      "snapshot_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+      "request_fingerprint": "a7370977f0ab71271f43926948496ab506f7f9da8032ef9b43b4ea70f752b730",
+      "occurrence": 1,
+      "submitted_at": "2026-10-17T03:30:00Z"
+    }
+  ]
+}

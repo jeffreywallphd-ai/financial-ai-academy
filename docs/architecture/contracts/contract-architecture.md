@@ -60,8 +60,10 @@ OpenAPI, and generated-client contracts. Workspace reads are side-effect free;
 the first authorized mutation or snapshot close creates the empty revision-one
 workspace when needed. Artifact upload has its own request shape and validates
 the supplied bytes before either acceptance or idempotent replay. Assessment
-submission by snapshot reference and production domain-owner adapters remain
-separate later seams.
+submission by snapshot reference now has an additive transport-neutral schema,
+pure validation, and evidence/event/history projection seam. Persistence,
+public API, generated clients, consumers, and browser behavior remain separate
+later seams.
 
 Portable financial methods, portfolio records, and simulation results
 additionally follow
@@ -89,8 +91,10 @@ and simulated values and cannot expose provider payloads as platform meaning.
   eligibility, or durable state.
 - Content owns approved learning-project brief meaning. Project owns accepted
   origin, Project identity, charter, lifecycle, and revision. Curriculum owns
-  exact placement and Assessment owns only a later exact submitted snapshot;
-  shared provenance transfers no persistence or policy authority.
+  exact placement and Assessment owns the exact submission, structural
+  closure policy, immutable evidence meaning, and safe completion event for a
+  submitted snapshot. Shared provenance transfers no persistence or policy
+  authority. Structural closure is not qualitative grading or mastery.
 - The implemented Project shell seam resolves learning references through
   public Content and Curriculum operations, persists only Project-owned state,
   and exposes one protected API to browser and headless clients. Independent

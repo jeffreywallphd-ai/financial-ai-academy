@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "event_id": "event-retirement-01",
+  "event_type": "assessment.project.completed",
+  "event_version": "1.0.0",
+  "occurred_at": "2026-10-17T03:30:01Z",
+  "payload": {
+    "evidence_id": "evidence-retirement-01",
+    "submission_id": "submission-retirement-01",
+    "project_id": "project-retirement-plan",
+    "snapshot_id": "snapshot-retirement-plan-01",
+    "snapshot_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+    "brief_id": "brief-retirement-plan",
+    "brief_version": "1.0.0",
+    "brief_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+    "placement_id": "placement-retirement-project",
+    "placement_version": "1.0.0",
+    "placement_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+    "policy_id": "assessment-project-closure",
+    "policy_version": "1.0.0",
+    "milestone_ids": ["identify-assumptions", "compare-scenarios"],
+    "request_fingerprint": "a7370977f0ab71271f43926948496ab506f7f9da8032ef9b43b4ea70f752b730",
+    "occurrence": 1,
+    "submitted_at": "2026-10-17T03:30:00Z"
+  }
+}

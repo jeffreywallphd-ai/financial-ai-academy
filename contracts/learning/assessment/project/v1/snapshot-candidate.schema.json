@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/assessment/project/v1/snapshot-candidate.schema.json",
+  "title": "Assessment Project Snapshot Candidate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project", "origin", "policy_id", "policy_version", "milestones", "resources"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "project": { "$ref": "#/$defs/project" },
+    "origin": { "$ref": "#/$defs/origin" },
+    "policy_id": { "const": "assessment-project-closure" },
+    "policy_version": { "const": "1.0.0" },
+    "milestones": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "$ref": "#/$defs/milestone" } },
+    "resources": { "type": "array", "minItems": 1, "maxItems": 200, "items": { "$ref": "#/$defs/resource" } }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "version": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "project": {
+      "type": "object", "additionalProperties": false,
+      "required": ["project_id", "project_revision", "project_shell_digest", "snapshot_id", "snapshot_digest", "workspace_revision", "closed_at"],
+      "properties": {
+        "project_id": { "$ref": "#/$defs/identifier" }, "project_revision": { "type": "integer", "minimum": 1 },
+        "project_shell_digest": { "$ref": "#/$defs/digest" }, "snapshot_id": { "$ref": "#/$defs/identifier" },
+        "snapshot_digest": { "$ref": "#/$defs/digest" }, "workspace_revision": { "type": "integer", "minimum": 1 },
+        "closed_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "origin": {
+      "type": "object", "additionalProperties": false,
+      "required": ["package_id", "package_version", "package_digest", "brief_id", "brief_version", "brief_digest", "curriculum_id", "curriculum_version", "curriculum_digest", "placement_id", "placement_version", "placement_digest"],
+      "properties": {
+        "package_id": { "$ref": "#/$defs/identifier" }, "package_version": { "$ref": "#/$defs/version" }, "package_digest": { "$ref": "#/$defs/digest" },
+        "brief_id": { "$ref": "#/$defs/identifier" }, "brief_version": { "$ref": "#/$defs/version" }, "brief_digest": { "$ref": "#/$defs/digest" },
+        "curriculum_id": { "$ref": "#/$defs/identifier" }, "curriculum_version": { "$ref": "#/$defs/version" }, "curriculum_digest": { "$ref": "#/$defs/digest" },
+        "placement_id": { "$ref": "#/$defs/identifier" }, "placement_version": { "$ref": "#/$defs/version" }, "placement_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "milestone": {
+      "type": "object", "additionalProperties": false,
+      "required": ["milestone_id", "milestone_version", "sequence", "title"],
+      "properties": {
+        "milestone_id": { "$ref": "#/$defs/identifier" }, "milestone_version": { "$ref": "#/$defs/version" },
+        "sequence": { "type": "integer", "minimum": 1, "maximum": 20 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000]*$" }
+      }
+    },
+    "versioned_resource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resource_kind", "resource_id", "resource_version", "record_digest"],
+      "properties": {
+        "resource_kind": { "enum": ["note", "source"] }, "resource_id": { "$ref": "#/$defs/identifier" },
+        "resource_version": { "type": "integer", "minimum": 1 }, "record_digest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "artifact_resource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resource_kind", "resource_id", "resource_version", "record_digest", "content_digest", "byte_count"],
+      "properties": {
+        "resource_kind": { "const": "artifact" }, "resource_id": { "$ref": "#/$defs/identifier" },
+        "resource_version": { "type": "integer", "minimum": 1 }, "record_digest": { "$ref": "#/$defs/digest" },
+        "content_digest": { "$ref": "#/$defs/digest" }, "byte_count": { "type": "integer", "minimum": 0, "maximum": 10485760 }
+      }
+    },
+    "domain_resource": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resource_kind", "resource_id", "record_digest", "owner_reference_digest"],
+      "properties": {
+        "resource_kind": { "const": "domain_resource" }, "resource_id": { "$ref": "#/$defs/identifier" },
+        "resource_version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+        "resource_as_of": { "$ref": "#/$defs/utc_time" }, "record_digest": { "$ref": "#/$defs/digest" },
+        "owner_reference_digest": { "$ref": "#/$defs/digest" }
+      },
+      "oneOf": [{ "required": ["resource_version"] }, { "required": ["resource_as_of"] }]
+    },
+    "resource": { "oneOf": [{ "$ref": "#/$defs/versioned_resource" }, { "$ref": "#/$defs/artifact_resource" }, { "$ref": "#/$defs/domain_resource" }] }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/assessment/project/v1/history.schema.json",
+  "title": "Assessment Project Completion History v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "items"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" }, "project_id": { "$ref": "#/$defs/identifier" },
+    "items": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "$ref": "#/$defs/item" } }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "item": {
+      "type": "object", "additionalProperties": false,
+      "required": ["evidence_id", "submission_id", "snapshot_id", "snapshot_digest", "request_fingerprint", "occurrence", "submitted_at"],
+      "properties": {
+        "evidence_id": { "$ref": "#/$defs/identifier" }, "submission_id": { "$ref": "#/$defs/identifier" },
+        "snapshot_id": { "$ref": "#/$defs/identifier" }, "snapshot_digest": { "$ref": "#/$defs/digest" },
+        "request_fingerprint": { "$ref": "#/$defs/digest" }, "occurrence": { "type": "integer", "minimum": 1 },
+        "submitted_at": { "$ref": "#/$defs/utc_time" }, "supersedes_submission_id": { "$ref": "#/$defs/identifier" }
+      }
+    }
+  }
+}

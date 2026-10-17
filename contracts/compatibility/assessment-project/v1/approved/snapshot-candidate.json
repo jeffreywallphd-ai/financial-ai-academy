@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "project": {
+    "project_id": "project-retirement-plan",
+    "project_revision": 3,
+    "project_shell_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+    "snapshot_id": "snapshot-retirement-plan-01",
+    "snapshot_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+    "workspace_revision": 7,
+    "closed_at": "2026-10-17T02:00:00Z"
+  },
+  "origin": {
+    "package_id": "package-retirement-foundations",
+    "package_version": "1.2.0",
+    "package_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+    "brief_id": "brief-retirement-plan",
+    "brief_version": "1.0.0",
+    "brief_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+    "curriculum_id": "curriculum-investing",
+    "curriculum_version": "2.0.0",
+    "curriculum_digest": "5555555555555555555555555555555555555555555555555555555555555555",
+    "placement_id": "placement-retirement-project",
+    "placement_version": "1.0.0",
+    "placement_digest": "6666666666666666666666666666666666666666666666666666666666666666"
+  },
+  "policy_id": "assessment-project-closure",
+  "policy_version": "1.0.0",
+  "milestones": [
+    { "milestone_id": "identify-assumptions", "milestone_version": "1.0.0", "sequence": 1, "title": "Identify the plan assumptions" },
+    { "milestone_id": "compare-scenarios", "milestone_version": "1.0.0", "sequence": 2, "title": "Compare two scenarios café" }
+  ],
+  "resources": [
+    { "resource_kind": "note", "resource_id": "note-assumptions", "resource_version": 2, "record_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+    { "resource_kind": "source", "resource_id": "source-plan-rules", "resource_version": 1, "record_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" },
+    { "resource_kind": "artifact", "resource_id": "artifact-scenarios", "resource_version": 3, "record_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "content_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "byte_count": 2048 },
+    { "resource_kind": "domain_resource", "resource_id": "observation-sample", "resource_version": "2026.10.0", "record_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "owner_reference_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+  ]
+}

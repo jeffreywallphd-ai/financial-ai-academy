@@ -1,0 +1,9 @@
+[
+  { "id": "source-snapshot-drift", "op": "replace", "target": "submission", "path": ["source", "snapshot_digest"], "value": "9999999999999999999999999999999999999999999999999999999999999999", "expected_code": "assessment.project.source_mismatch" },
+  { "id": "missing-milestone", "op": "delete_index", "target": "submission", "path": ["milestone_evidence", 1], "expected_code": "assessment.project.missing_milestone" },
+  { "id": "duplicate-milestone", "op": "copy_index", "target": "submission", "path": ["milestone_evidence", 0], "expected_code": "assessment.project.duplicate_milestone" },
+  { "id": "unknown-milestone", "op": "replace", "target": "submission", "path": ["milestone_evidence", 0, "milestone_id"], "value": "not-in-brief", "expected_code": "assessment.project.unknown_milestone" },
+  { "id": "stale-resource", "op": "replace", "target": "submission", "path": ["milestone_evidence", 0, "resources", 0, "resource_version"], "value": 99, "expected_code": "assessment.project.stale_resource" },
+  { "id": "unknown-resource", "op": "replace", "target": "submission", "path": ["milestone_evidence", 0, "resources", 0, "resource_id"], "value": "not-in-snapshot", "expected_code": "assessment.project.unknown_resource" },
+  { "id": "duplicate-resource", "op": "copy_index", "target": "submission", "path": ["milestone_evidence", 0, "resources", 0], "expected_code": "assessment.project.duplicate_resource" }
+]

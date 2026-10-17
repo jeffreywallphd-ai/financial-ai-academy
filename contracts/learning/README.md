@@ -33,10 +33,10 @@ backend/.venv/Scripts/python.exe -m pytest backend/tests/contract/project_worksp
 ```
 
 The family is transport-neutral and is intended for one future protected API
-used equally by browser and headless clients. It does not establish package
-admission, Curriculum placement, persistence, identity, authorization, HTTP,
-artifacts, snapshots, Assessment submissions, Portfolio links, execution, or
-AI authority.
+used equally by browser and headless clients. The delivered family includes
+bounded workspace records, inert artifact manifests, immutable snapshots, and
+a deterministic evidence-export manifest. It does not establish Assessment
+submission, Portfolio links, execution, or AI authority.
 
 ## Assessment v1
 
@@ -53,6 +53,23 @@ uv run --project backend pytest backend/tests/contract/assessment
 
 This is direct contract evidence only; application scoring and persistence are
 introduced separately.
+
+## Assessment Project Submission v1
+
+[`assessment/project/v1/`](assessment/project/v1/README.md) defines the closed
+snapshot candidate, submission intent, deterministic validation result,
+immutable evidence, safe completion event, and ordered history for one exact
+learning-started Project snapshot. Its compatibility corpus lives in
+[`../compatibility/assessment-project/v1/`](../compatibility/assessment-project/v1/README.md).
+
+```powershell
+backend/.venv/Scripts/python.exe -m pytest backend/tests/contract/assessment_project backend/tests/unit/assessment/test_project_submission_contract.py
+```
+
+The pure adapter checks exact source agreement, complete milestone closure,
+snapshot membership, and exact resource versions. It produces canonical
+request identity and bounded issues without persistence, identity resolution,
+HTTP, projection consumers, UI, execution, grading, mastery, or advice.
 
 ## Assessment Practice v1
 

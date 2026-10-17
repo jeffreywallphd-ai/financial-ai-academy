@@ -20,6 +20,18 @@ applicable reviewed feedback/references, and a safe correlated completion-event
 document from supplied server metadata. It performs no identity lookup, clock,
 persistence, publication, network, API, or UI action.
 
+The additive Project submission contract adapter accepts one learner-safe
+candidate assembled from exact Project snapshot, Content brief, and Curriculum
+placement facts plus one closed submission intent. Its pure policy requires
+every approved milestone exactly once and only exact immutable resource
+references already included in that snapshot. It canonicalizes permitted
+mapping/reference order, returns stable bounded correction issues, and can map
+an accepted result plus bounded server metadata to immutable evidence, a safe
+completion event, and ordered history. It does not resolve identity, read
+another module, persist, publish, expose HTTP, execute artifacts, grade
+quality, infer mastery, or provide advice. Those runtime seams remain later
+SLI-0032 packets.
+
 ## Public operations
 
 - `open_placed_knowledge_check(OpenPlacedKnowledgeCheckRequest) -> KnowledgeCheckPresentation`
@@ -32,6 +44,10 @@ persistence, publication, network, API, or UI action.
 - `read_practice_history_source(ReadCompletedPracticesRequest) -> PracticeHistorySource`
 - `submit_placed_knowledge_check(SubmitPlacedKnowledgeCheckRequest) -> KnowledgeCheckResult`
 - `read_completed_knowledge_checks(ReadCompletedKnowledgeChecksRequest) -> tuple[KnowledgeCheckCompletionEvent, ...]`
+
+No Project-submission public operation is implemented yet. The new
+transport-neutral port and values deliberately precede application,
+persistence, and API composition.
 
 The open operation resolves Curriculum and Content only through their public
 facades and returns no correct option, private scoring object, or feedback. The

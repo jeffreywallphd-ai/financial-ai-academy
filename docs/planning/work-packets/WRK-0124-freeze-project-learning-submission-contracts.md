@@ -228,3 +228,11 @@ advice, cloud profile, external action, or AI-specific authority was added.
 - 2026-10-17: Activated after the implementation gate passed and the exact
   write scope was durably claimed from the current base revision. No
   lower-level approval was requested or recorded.
+- 2026-10-17: Implemented six closed Assessment Project schemas, compatibility
+  records and vectors, immutable domain values, a transport-neutral port, and
+  pure source/milestone/resource validation plus evidence/event/history
+  projection. Focused Project submission checks passed 28/28; the combined
+  existing Assessment, practice, Project workspace, unit, and architecture
+  regression set passed 338/338. Documentation, planning, compilation,
+  security, architecture fitness, and whitespace checks passed. Exact-
+  candidate control and independent technical review remain before completion.

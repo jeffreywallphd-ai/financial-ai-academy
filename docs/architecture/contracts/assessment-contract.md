@@ -8,6 +8,8 @@
 - Compatibility evidence: [Assessment v1 corpus](../../../contracts/compatibility/assessment/v1/README.md)
 - Additive practice schemas: [Assessment practice v1](../../../contracts/learning/assessment/practice/v1/README.md)
 - Additive practice evidence: [Assessment practice v1 corpus](../../../contracts/compatibility/assessment-practice/v1/README.md)
+- Additive Project schemas: [Assessment Project v1](../../../contracts/learning/assessment/project/v1/README.md)
+- Additive Project evidence: [Assessment Project v1 corpus](../../../contracts/compatibility/assessment-project/v1/README.md)
 
 ## Boundary and Authority
 
@@ -34,6 +36,15 @@ numeric exact value or inclusive range over canonical fixed-decimal strings at
 scale 0 through 6. Every item is worth one point. The attempt policy is visible
 contract metadata; pure scoring does not enforce attempt counts, and later
 application packets retain that authority.
+
+The additive Assessment Project family consumes only an exact learner-safe
+snapshot candidate assembled through public Project, Content, and Curriculum
+operations. Assessment owns the submission intent, deterministic milestone-
+closure validation, immutable evidence meaning, and safe completion event.
+Project continues to own mutable work and immutable snapshot meaning; Content
+owns brief milestones; Curriculum owns placement. The contract cannot turn an
+independent Project into learning evidence or transfer a source module's
+persistence authority.
 
 ## Immutable Identity and Safe Presentation
 
@@ -144,6 +155,15 @@ correlation but does not persist, dispatch, publish, or make the event a
 mastery signal. Result and event timestamps use canonical UTC RFC 3339 text
 ending in `Z`; equivalent non-zero offsets are not accepted contract forms.
 
+`assessment.project.completed@1.0.0` is the additive Project structural-
+completion event. It carries exact evidence, submission, Project, snapshot,
+brief, placement, policy, milestone, occurrence, time, and fingerprint
+provenance while omitting learner identity and artifact-level mappings. It is
+not a quality, correctness, mastery, competency, reproducibility, suitability,
+performance, or advice signal. The current packet supplies contract and pure
+projection meaning only; persistence, replay, and consumers are not yet
+implemented.
+
 ## Practice Draft and Retry Contracts
 
 Assessment owns one mutable draft for a learner and exact placed-practice
@@ -214,6 +234,19 @@ successor, and stable bounded denial codes:
 - `assessment.practice.invalid_response`
 - `assessment.practice.result_leak`
 - `assessment.practice.invalid_server_metadata`
+- `assessment.project.schema_invalid`
+- `assessment.project.unsupported_version`
+- `assessment.project.unsupported_policy`
+- `assessment.project.invalid_candidate`
+- `assessment.project.source_mismatch`
+- `assessment.project.duplicate_milestone`
+- `assessment.project.unknown_milestone`
+- `assessment.project.missing_milestone`
+- `assessment.project.duplicate_resource`
+- `assessment.project.unknown_resource`
+- `assessment.project.stale_resource`
+- `assessment.project.invalid_server_metadata`
+- `assessment.project.invalid_history`
 
 Diagnostics identify only a bounded field/reference and stable code. They do
 not echo learner responses, correct answers, fixture bytes, paths, stack
@@ -276,3 +309,13 @@ and returns stable occurrence/event-ID ordering. Repeated reads do not mutate
 or acknowledge evidence. This is an application query for deterministic
 consumer replay; it does not choose a queue, dispatcher, worker, checkpoint,
 delivery guarantee, or managed-cloud topology.
+
+Assessment Project v1 now has six executable closed schemas, a compatibility
+corpus, immutable domain values, a transport-neutral port, and a pure adapter
+for exact source/milestone/resource validation, canonical fingerprinting,
+bounded issues, and evidence/event/history projection. Focused evidence covers
+all four resource kinds, one through twenty milestones, non-ASCII text,
+permitted ordering changes, stale and unknown facts, prohibited private or
+active fields, and immutable supersession history. It adds no repository,
+migration, application service, public API, generated client, Learner-model or
+Audit consumer, browser flow, provider, execution path, or AI authority.

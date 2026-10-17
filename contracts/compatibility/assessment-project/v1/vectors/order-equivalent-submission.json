@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "submission_id": "submission-retirement-01",
+  "source": {
+    "placement_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+    "placement_version": "1.0.0",
+    "placement_id": "placement-retirement-project",
+    "brief_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+    "brief_version": "1.0.0",
+    "brief_id": "brief-retirement-plan",
+    "snapshot_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+    "snapshot_id": "snapshot-retirement-plan-01",
+    "project_id": "project-retirement-plan"
+  },
+  "policy_version": "1.0.0",
+  "policy_id": "assessment-project-closure",
+  "milestone_evidence": [
+    {
+      "resources": [
+        { "owner_reference_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "record_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "resource_version": "2026.10.0", "resource_id": "observation-sample", "resource_kind": "domain_resource" },
+        { "byte_count": 2048, "content_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "record_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "resource_version": 3, "resource_id": "artifact-scenarios", "resource_kind": "artifact" }
+      ],
+      "milestone_id": "compare-scenarios"
+    },
+    {
+      "resources": [
+        { "record_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "resource_version": 1, "resource_id": "source-plan-rules", "resource_kind": "source" },
+        { "record_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "resource_version": 2, "resource_id": "note-assumptions", "resource_kind": "note" }
+      ],
+      "milestone_id": "identify-assumptions"
+    }
+  ]
+}

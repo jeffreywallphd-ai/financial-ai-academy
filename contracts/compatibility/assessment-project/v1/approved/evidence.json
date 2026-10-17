@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "evidence-retirement-01",
+  "learner_id": "local-learner",
+  "submission_id": "submission-retirement-01",
+  "project_id": "project-retirement-plan",
+  "snapshot_id": "snapshot-retirement-plan-01",
+  "snapshot_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+  "brief_id": "brief-retirement-plan",
+  "brief_version": "1.0.0",
+  "brief_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+  "placement_id": "placement-retirement-project",
+  "placement_version": "1.0.0",
+  "placement_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+  "policy_id": "assessment-project-closure",
+  "policy_version": "1.0.0",
+  "milestone_evidence": [
+    {
+      "milestone_id": "identify-assumptions",
+      "resources": [
+        { "resource_kind": "note", "resource_id": "note-assumptions", "resource_version": 2, "record_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" },
+        { "resource_kind": "source", "resource_id": "source-plan-rules", "resource_version": 1, "record_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }
+      ]
+    },
+    {
+      "milestone_id": "compare-scenarios",
+      "resources": [
+        { "resource_kind": "artifact", "resource_id": "artifact-scenarios", "resource_version": 3, "record_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "content_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "byte_count": 2048 },
+        { "resource_kind": "domain_resource", "resource_id": "observation-sample", "resource_version": "2026.10.0", "record_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "owner_reference_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }
+      ]
+    }
+  ],
+  "milestone_ids": ["identify-assumptions", "compare-scenarios"],
+  "request_fingerprint": "a7370977f0ab71271f43926948496ab506f7f9da8032ef9b43b4ea70f752b730",
+  "occurrence": 1,
+  "accepted_sequence": 41,
+  "submitted_at": "2026-10-17T03:30:00Z"
+}

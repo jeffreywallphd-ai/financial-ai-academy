@@ -1,0 +1,9 @@
+[
+  { "id": "candidate-private-learner", "target": "candidate", "path": ["learner_id"], "value": "another-learner" },
+  { "id": "candidate-artifact-bytes", "target": "candidate", "path": ["resources", 2, "content"], "value": "secret bytes" },
+  { "id": "candidate-storage-path", "target": "candidate", "path": ["resources", 2, "storage_path"], "value": "C:/private/file" },
+  { "id": "candidate-execution", "target": "candidate", "path": ["execute"], "value": true },
+  { "id": "submission-score", "target": "submission", "path": ["score"], "value": 100 },
+  { "id": "submission-mastery", "target": "submission", "path": ["mastery"], "value": "expert" },
+  { "id": "submission-network-callback", "target": "submission", "path": ["callback_url"], "value": "https://example.invalid/callback" }
+]
