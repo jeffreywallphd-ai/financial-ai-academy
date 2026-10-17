@@ -1,7 +1,7 @@
 ---
 id: WRK-0134
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -207,6 +207,38 @@ provider, managed-cloud profile, arbitrary file, external execution,
 Assessment/Learner-model effect, financial action, separate AI mode, or
 autonomous authority was added.
 
+## Completion Evidence
+
+Exact candidate `491febeaabe3e6b89fa7ce7142ba61c64e0cb3a6` has a fresh,
+stable, qualifying affected-check receipt with digest
+`sha256:5c09cb4dc53d6548b06ea72d972ab7d7a6c354d82f2d46eb9a9963c0e917724f`.
+The live PostgreSQL 18.4, Python API, reviewed static application, generated
+browser client, ordinary headless HTTP, restart, and cleanup topology passed.
+It proves ordered notes, bookmarks, and collections; archive/restore; exact
+retry; confidential changed-key and stale-revision denial; Unicode evidence;
+exact workspace/replay-row correlation; immediate target-state isolation; and
+normal restart without reseeding.
+
+Focused runner and architecture coverage passed `51` tests and `4` subtests.
+The full live browser suite passed its `10 + 1 + 1 + 1` scenarios on the
+successful cumulative run. Personal-workspace contract/application/API and
+real-PostgreSQL suites, reviewed OpenAPI/generated-client reproduction, full
+web unit/component checks, focused Chromium, typecheck, lint, production
+build, architecture, security, learner-language, design, documentation,
+planning, whitespace, Python compilation, offline dependency audit, and the
+29-check aggregate readiness gate passed. The earlier online dependency audit
+was not performed because external registry egress was not authorized; the
+offline advisory database reported zero vulnerabilities.
+
+No product contract, migration, generated client, browser behavior, provider,
+Project/domain adapter, Assessment or Learner-model effect, managed-cloud
+profile, arbitrary file, external execution, separate AI mode, financial
+action, or autonomous durable authority was added. Documentation now records
+direct live browser/headless/restart evidence and retains managed cloud,
+multi-learner, import/export, target refresh, recovery, collaboration, and
+external execution as explicit gaps. The packet remains within the current
+CAP-0017 package and introduced no durable decision or material scope drift.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0133 completed. The packet adds
@@ -224,3 +256,7 @@ autonomous authority was added.
 - 2026-10-17: Re-activated from base `cb489a7` after the refined packet passed
   validation and claim checks. The fresh claim owns the reproducible static
   build plus the unchanged evidence-only live qualification boundary.
+- 2026-10-17: Completed at exact candidate `491febe` after fresh live,
+  exact-candidate, failure/denial, correlation, restart, containment, cleanup,
+  documentation, and aggregate readiness evidence passed with no remaining
+  evidence gap.

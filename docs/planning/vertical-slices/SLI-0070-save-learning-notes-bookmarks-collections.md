@@ -1,7 +1,7 @@
 ---
 id: SLI-0070
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -206,7 +206,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0131 | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | complete |
 | WRK-0132 | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0131 | none | complete |
 | WRK-0133 | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | WRK-0132 | none | complete |
-| WRK-0134 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | WRK-0133 | none | active |
+| WRK-0134 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | WRK-0133 | none | complete |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. Dependent packets are not claimed until their predecessor is complete.
@@ -257,18 +257,58 @@ CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery will update Personal-workspace module, contract, migration, API,
-generated-client, web, architecture verification, security/recovery, local
-development, and known-gap documentation together with slice and packet
-evidence. Completion must record exact contract/migration compatibility,
-idempotency and revision behavior, authorization and privacy, source
-provenance, API/browser/headless parity, accessibility, restart/containment,
-exact checks, assumptions, unqualified environments, and residual risks.
+SLI-0070 delivers one focused Personal workspace owner from closed v1
+contracts through pure domain/application behavior, module-owned PostgreSQL,
+protected public API, reviewed OpenAPI and generated client, the accessible
+`Saved learning` browser flow, and direct browser/headless/restart
+qualification. WRK-0131 through WRK-0134 are complete and retain exact claim
+and base-revision evidence.
 
-Evidence must state that Project resources, broader domain adapters, arbitrary
-files, execution, collaboration, sharing, organizations, managed cloud,
-provider synchronization, semantic search, separate AI mode, and autonomous
-authority were not delivered or qualified.
+Every acceptance scenario has direct owning evidence. Contract and pure-core
+fixtures cover empty/populated workspaces, variable text and order, closed
+unions, bounds, exact source identity, provenance, lifecycle, revision, retry,
+and changed-key denial. Application, security, API, and PostgreSQL suites cover
+server-owned learner context, source resolution, authorization, empty-read
+behavior, atomic first materialization, interruption, concurrency, quotas,
+restart, and rollback. Component and Chromium suites cover the complete
+generated-client mutation surface, contextual entry, uncertain retry,
+malformed/denied responses, keyboard/focus order, reflow, themes, forced
+colors, reduced motion, technical records, and axe. The isolated live topology
+correlates the browser-captured workspace and replay key to one exact aggregate
+and seven workspace-scoped mutation rows, observes identical public state
+through ordinary HTTP, proves confidential conflicts, snapshots unrelated
+domain state immediately around replay, and reopens the same state after a
+normal restart without reseeding.
+
+Exact candidate `491febeaabe3e6b89fa7ce7142ba61c64e0cb3a6` has qualifying
+receipt digest
+`sha256:5c09cb4dc53d6548b06ea72d972ab7d7a6c354d82f2d46eb9a9963c0e917724f`.
+Focused closure coverage passed `51` tests and `4` subtests; the successful live
+run passed `10 + 1 + 1 + 1` Chromium scenarios plus headless HTTP, PostgreSQL
+correlation, restart, and cleanup. Personal-workspace contract/application/API
+and real-PostgreSQL suites, OpenAPI/client reproduction, the complete web
+suite, focused Chromium, build/typecheck/lint, architecture, security,
+learner-language, design, documentation, planning, whitespace, Python
+compilation, offline dependency audit, and all 29 aggregate readiness checks
+passed. External npm-registry audit egress was not authorized; the offline
+advisory database reported zero vulnerabilities.
+
+Canonical contract, module, browser, local-operation, architecture-assurance,
+known-gap, planning, and register documentation is synchronized. Additive
+Personal-workspace migration apply/reapply/development-down, retained-data
+rollback refusal, exact replay, and normal restart evidence passed against
+PostgreSQL 18.4. The shared API remains suitable for browser, command-line,
+service, and future headless-AI callers; no separate AI authority exists.
+
+Assumptions remain the accepted single-profile local identity, exact approved
+Curriculum references, and module-owned persistence. Managed cloud,
+multi-learner tenancy, cross-device synchronization, target-availability
+refresh, import/export, production backup/restore, Project/domain-resource
+adapters, arbitrary files, external execution, collaboration, sharing,
+semantic search, provider synchronization, separate AI mode, and autonomous
+authority were not delivered or qualified. These residual items remain later
+manifest slices or capabilities. The result conforms to the approved CAP-0017
+package without material drift; no lower-level completion approval is needed.
 
 ## Planning History
 
@@ -336,3 +376,9 @@ authority were not delivered or qualified.
   topology. No product contract, behavior, CAP boundary, or decision changed.
 - 2026-10-17: Re-activated WRK-0134 from base `cb489a7` with the refined static-
   build scope after packet validation and current CAP/dependency checks passed.
+- 2026-10-17: Moved SLI-0070 to deterministic completion verification after
+  all four packet seams delivered the accepted Personal-workspace contracts,
+  API, browser, and live restart path at exact candidate `491febe`.
+- 2026-10-17: Completed SLI-0070 after the four-packet completion structure,
+  cumulative acceptance evidence, canonical documentation, and current
+  CAP-package conformance passed without an unresolved decision or gap.
