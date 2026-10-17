@@ -217,8 +217,8 @@ packet starts. Proposed dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
 | WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | complete |
-| JIT-C | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | captured |
-| JIT-D | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | JIT-C | none | captured |
+| WRK-0155 | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | ready |
+| JIT-D | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155 | none | captured |
 
 Detailed packet plans will declare exact files, generated artifacts, checks,
 and stop conditions immediately before each packet starts. Packet identifiers
@@ -311,3 +311,7 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
   safe export, theme exclusion, and additive migration evidence. Runtime
   presentation and browser controls remain in the next dependency-ordered
   packet.
+- 2026-10-17: Authored WRK-0155 just in time for the global safe presentation
+  adapter and the plain-language display/settings browser flow using WRK-0154's
+  completed public API and generated client. Final production-host, restart,
+  and complete live profile qualification remain in JIT-D.
