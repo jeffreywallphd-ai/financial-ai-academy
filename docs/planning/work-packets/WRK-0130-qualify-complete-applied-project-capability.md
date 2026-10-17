@@ -229,6 +229,56 @@ provider, managed-cloud profile, external execution, financial action,
 separate AI mode, or autonomous authority was added. Leave CAP-0007 eligible
 for local main fast-forward when every deterministic closure condition passes.
 
+## Implementation Evidence
+
+- The focused backend matrix collected 223 Project contract, domain,
+  application, Assessment, Curriculum, Learner-model, Audit, and protected-API
+  cases. The non-API portion passed before the Windows sandbox blocked
+  TestClient's internal socket pair; the exact two API files then passed nine
+  tests with two expected PostgreSQL-only skips outside the sandbox. Combined
+  result: 221 passed and two skipped, with no assertion failure.
+- Current exact PostgreSQL 18.4 and live browser/headless evidence remains
+  ancestral and unchanged: WRK-0116 at
+  `62b60ca24196fded424f8de4896b8873f256ee13`, WRK-0121 at corrected candidate
+  `92c45e4`, and WRK-0129 at `b36a321` with qualifying receipt digest
+  `sha256:00f33304a7574507a9b6fa9bc38373efde13c74b4c60e366aca71d19cec64b01`.
+  Together those runs cover disposable PostgreSQL migrations and atomicity,
+  independent and learning origin, mutable workspace, inert resources, typed
+  links, immutable snapshots/exports, exact learning submission, replay and
+  conflict, supersession, projection/Audit correlation, authorization,
+  restart, and exact cleanup.
+- Under exact Node 24.14.0 and npm 10.8.2, reviewed generated-client
+  reproduction, TypeScript typecheck, zero-warning lint, 267 web tests across
+  17 files, the 126-module production build, and nine focused Project Chromium
+  journeys pass. Browser and ordinary non-browser clients retain one protected
+  API and server-owned identity/policy path.
+- The approved-lesson replay qualifier and local-composition boundary matrix
+  pass 45 tests; all 16 architecture fitness checks pass; security passes 10
+  control groups; learner-language, design-system, documentation, planning,
+  and whitespace checks pass; the JavaScript dependency audit reports zero
+  vulnerabilities; and the fixed readiness gate passes all 29 checks.
+- Initial sandbox attempts exposed only Windows environment constraints:
+  Python socket-pair creation and temporary-directory rename/create operations
+  were blocked before assertions. The exact commands passed outside the
+  sandbox with the bounded repository temporary root. No source correction or
+  weakened acceptance rule was needed.
+- Direct automated accessibility evidence covers keyboard/focus behavior,
+  associated status and errors, reflow-equivalent narrow views, reduced
+  motion, forced colors, light/dark/system themes, and axe-backed Chromium.
+  Manual screen-reader use, actual browser 200-percent zoom, non-Chromium
+  browsers, and non-Windows visual baselines were not performed.
+- Architecture evidence is direct for the shared domain/application core,
+  public API and provider ports, inert handling, and private-host restart. It
+  is representative only for future managed-cloud adapters; no managed-cloud
+  composition, tenancy, protection, or recovery was run.
+- No product implementation, contract, schema, migration, generated client,
+  browser behavior, test harness, provider, or deployment composition changed.
+  Existing architecture-verification and known-gap documentation remains
+  accurate. Live Portfolio integration, external providers, managed cloud,
+  production recovery, independent result reproduction, arbitrary execution,
+  collaboration, instructor workflows, public publishing, financial action, a
+  separate AI mode, and autonomous authority remain unqualified.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after the three CAP-0007 behavior slices
@@ -238,3 +288,7 @@ for local main fast-forward when every deterministic closure condition passes.
 - 2026-10-17: Claimed from base revision `695daed` after validating current
   CAP membership, completed focused-qualification dependencies, decision
   readiness, exact documentation-only scope, and exclusive edit ownership.
+- 2026-10-17: The cumulative acceptance matrix passed. Fresh focused/web/
+  architecture/security/dependency/readiness checks agree with the current
+  ancestral live PostgreSQL evidence, and no material product or harness gap
+  requires a corrective packet.

@@ -237,6 +237,60 @@ threat model; data provenance and license guidance; community protection;
 interface patterns; operations; module READMEs; architecture verification; and
 known gaps while preserving ADR-0011 and ADR-0012.
 
+## Qualification Result
+
+The complete CAP-0007 acceptance map is satisfied by the focused SLI-0030,
+SLI-0031, and SLI-0032 evidence plus the cumulative SLI-0033 matrix:
+
+- Project owns identity, origin, mutable workspace, resource manifests, typed
+  reference records, immutable snapshots, and exports. Content and Curriculum
+  own exact learning definitions and placements; Assessment owns immutable
+  submitted evidence; Learner model and Audit consume public evidence/events
+  for bounded projections and integrity references. Architecture and module-
+  boundary checks detect private or cross-schema dependency drift.
+- Independent and learning-started browser and ordinary HTTP clients traverse
+  the same protected Project API. Direct live evidence covers creation,
+  reopen, save/resume, inert resources, snapshot/export, continued live work,
+  exact learning submission, immutable history, supersession, restart, and
+  cleanup without a browser-only authority path.
+- Workspace and submission contracts bind origins, notes, sources, artifacts,
+  environments, typed owner references, snapshots, validations, evidence,
+  projections, and Audit references to exact versions or digests. Multiple
+  references remain owner-issued links, and stale, removed, unauthorized, or
+  unavailable status never becomes copied domain state or a live Portfolio
+  claim.
+- ADR-0011 confinement is direct: artifact bytes remain passive and bounded;
+  contracts and architecture exclude kernels, subprocesses, packages, network,
+  secrets, provider callbacks, runtime images, active rendering, and claims of
+  independently reproduced results. Observed, calculated, simulated,
+  predicted, AI-assisted, and learner-reflection provenance stays explicit
+  rather than becoming truth, advice, or execution authority.
+- Deterministic suites cover malformed, oversized, unsupported, stale,
+  unauthorized, cross-learner, duplicate, interrupted, partially persisted,
+  exact-replay, changed-conflict, and supersession behavior. Independent work
+  creates no completion state; authorized learning submission retains the
+  exact snapshot and learning requirements used for bounded completion.
+- Export and public evidence omit credentials, secrets, provider payloads,
+  host paths, and unauthorized source data. Direct private-host evidence covers
+  PostgreSQL migration/atomicity, normal restart, retained meaning, and bounded
+  cleanup. Shared-core ports and public contracts are direct; future managed-
+  cloud adapter portability is representative only.
+- Automated accessibility evidence covers keyboard/focus behavior, associated
+  status and errors, narrow reflow, light/dark/system themes, reduced motion,
+  forced colors, and axe-backed Chromium checks. Manual screen-reader use,
+  actual browser 200-percent zoom, non-Chromium browsers, and non-Windows visual
+  baselines remain explicit verification gaps.
+
+No product source, public contract, schema, migration, generated client,
+browser behavior, provider, or deployment composition changed during the final
+qualification. The current architecture-verification and known-gap maps already
+state the resulting truth and therefore need no timestamp-only rewrite.
+
+Live Portfolio integration, external providers, managed-cloud composition and
+recovery, independent result reproduction, arbitrary execution, collaboration,
+instructor workflows, public publishing, financial action, a separate AI mode,
+and autonomous authority remain outside CAP-0007 and unqualified.
+
 ## Planning History
 
 - 2026-10-15: Shaped from the catalog candidate “Complete applied projects” as
