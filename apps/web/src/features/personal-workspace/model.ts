@@ -592,8 +592,37 @@ export function personalWorkspaceQueryResultIsSafe(
   return new Set(recordIds).size === recordIds.length;
 }
 
-const PYTHON_SPLIT_WHITESPACE =
-  /[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/u;
+function pythonSplitWhitespace(character: string): boolean {
+  const codePoint = character.codePointAt(0)!;
+  return (
+    (codePoint >= 0x0009 && codePoint <= 0x000d) ||
+    (codePoint >= 0x001c && codePoint <= 0x0020) ||
+    codePoint === 0x0085 ||
+    codePoint === 0x00a0 ||
+    codePoint === 0x1680 ||
+    (codePoint >= 0x2000 && codePoint <= 0x200a) ||
+    codePoint === 0x2028 ||
+    codePoint === 0x2029 ||
+    codePoint === 0x202f ||
+    codePoint === 0x205f ||
+    codePoint === 0x3000
+  );
+}
+
+function collapsePythonWhitespace(value: string): string {
+  const parts: string[] = [];
+  let part = "";
+  for (const character of value) {
+    if (pythonSplitWhitespace(character)) {
+      if (part) parts.push(part);
+      part = "";
+    } else {
+      part += character;
+    }
+  }
+  if (part) parts.push(part);
+  return parts.join(" ");
+}
 
 function normalizedQueryText(value: string): string {
   const casefolded = Array.from(value.normalize("NFKC"), (character) => {
@@ -608,10 +637,7 @@ function normalizedQueryText(value: string): string {
     if (character === "ı") return character;
     return character.toUpperCase().toLowerCase().replaceAll("ß", "ss");
   }).join("");
-  return casefolded
-    .split(PYTHON_SPLIT_WHITESPACE)
-    .filter((part) => part.length > 0)
-    .join(" ");
+  return collapsePythonWhitespace(casefolded);
 }
 
 function normalizedWorkspaceQuery(
