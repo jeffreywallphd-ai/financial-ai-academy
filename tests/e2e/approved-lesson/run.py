@@ -25,6 +25,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import psycopg
+from psycopg import sql
 
 
 REPOSITORY = Path(__file__).resolve().parents[3]
@@ -322,17 +323,13 @@ PERSONAL_WORKSPACE_PRIVATE_CAPTURE_KEYS = frozenset(
         "token",
     }
 )
-PERSONAL_WORKSPACE_TARGET_COUNT_KEYS = (
-    "content_packages",
-    "curriculum_placements",
-    "curriculum_discovery_records",
-    "assessment_attempts",
-    "assessment_practice_attempts",
-    "assessment_project_submissions",
-    "learner_lesson_projections",
-    "learner_practice_projections",
-    "learner_project_projections",
-    "project_shells",
+PERSONAL_WORKSPACE_TARGET_SCHEMAS = (
+    "assessment",
+    "audit",
+    "content",
+    "curriculum",
+    "learner_model",
+    "project",
 )
 PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
     {
@@ -3396,6 +3393,46 @@ def assert_project_learning_restart_result(
         raise RuntimeError("Project learning storage changed during restart replay.")
 
 
+def _schema_state_fingerprint(
+    connection: psycopg.Connection[Any],
+    *,
+    schema: str,
+) -> dict[str, Any]:
+    tables = [
+        str(row[0])
+        for row in connection.execute(
+            """
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_schema = %s AND table_type = 'BASE TABLE'
+            ORDER BY table_name
+            """,
+            (schema,),
+        ).fetchall()
+    ]
+    digest = hashlib.sha256()
+    row_count = 0
+    for table in tables:
+        digest.update(f"{schema}.{table}\0".encode("utf-8"))
+        rows = connection.execute(
+            sql.SQL(
+                "SELECT to_jsonb(row_value)::text "
+                "FROM {}.{} AS row_value "
+                "ORDER BY to_jsonb(row_value)::text"
+            ).format(sql.Identifier(schema), sql.Identifier(table))
+        ).fetchall()
+        row_count += len(rows)
+        digest.update(f"{len(rows)}\0".encode("ascii"))
+        for row in rows:
+            digest.update(str(row[0]).encode("utf-8"))
+            digest.update(b"\0")
+    return {
+        "table_count": len(tables),
+        "row_count": row_count,
+        "sha256": digest.hexdigest(),
+    }
+
+
 def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
     query = """
         SELECT
@@ -3443,6 +3480,10 @@ def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
             ORDER BY accepted_revision, idempotency_key
             """
         ).fetchall()
+        target_state = {
+            schema: _schema_state_fingerprint(connection, schema=schema)
+            for schema in PERSONAL_WORKSPACE_TARGET_SCHEMAS
+        }
     if row is None or len(row) != len(labels):
         raise RuntimeError("Personal workspace storage snapshot is unavailable.")
     return {
@@ -3464,6 +3505,7 @@ def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
             }
             for item in mutation_rows
         ],
+        "target_state": target_state,
     }
 
 
@@ -3575,11 +3617,13 @@ def assert_personal_workspace_target_state_unchanged(
     before_storage: dict[str, Any],
     after_storage: dict[str, Any],
 ) -> None:
-    if any(
-        key not in before_storage
-        or key not in after_storage
-        or after_storage[key] != before_storage[key]
-        for key in PERSONAL_WORKSPACE_TARGET_COUNT_KEYS
+    before_state = before_storage.get("target_state")
+    after_state = after_storage.get("target_state")
+    if (
+        not isinstance(before_state, dict)
+        or set(before_state) != set(PERSONAL_WORKSPACE_TARGET_SCHEMAS)
+        or not isinstance(after_state, dict)
+        or after_state != before_state
     ):
         raise RuntimeError(
             "Personal workspace journey changed target or learning evidence state."
@@ -3592,10 +3636,17 @@ def assert_personal_workspace_restart_result(
     after_observation: dict[str, Any],
     before_storage: dict[str, Any],
     after_storage: dict[str, Any],
+    capture: dict[str, Any],
 ) -> None:
     if after_observation != before_observation:
         raise RuntimeError("Personal workspace changed after normal restart.")
-    personal_keys = ("personal_workspaces", "personal_mutations")
+    assert_personal_workspace_storage(after_storage, capture=capture)
+    personal_keys = (
+        "personal_workspaces",
+        "personal_mutations",
+        "workspace_rows",
+        "mutation_rows",
+    )
     if any(
         after_storage.get(key) != before_storage.get(key)
         for key in personal_keys
@@ -4513,6 +4564,7 @@ def main() -> int:
             after_observation=personal_after_restart,
             before_storage=personal_storage_before_restart,
             after_storage=personal_storage_after_restart,
+            capture=personal_capture,
         )
         assert_personal_workspace_target_state_unchanged(
             before_storage=personal_storage_before_restart_observation,

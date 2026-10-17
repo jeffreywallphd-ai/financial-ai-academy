@@ -154,9 +154,10 @@ workspace, immutable checkpoint, and inert-file manifest selector. The mixed
 collection survives headless replay and restart; an unavailable Project fails
 confidentially without changing unrelated records; and the saved file record
 contains no bytes, storage locator, download, preview, or execution seam.
-Bounded before/after snapshots also prove that the Saved Learning journey
-leaves the exact Project rows plus Content, Curriculum, Assessment, and Learner
-model state unchanged. The
+Bounded before/after snapshots also compare privacy-safe, schema-wide exact-row
+fingerprints and prove that the Saved Learning journey leaves Project workspace,
+checkpoint and inert-artifact facts plus Content, Curriculum, Assessment,
+Learner-model, and Audit state unchanged. The
 companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.

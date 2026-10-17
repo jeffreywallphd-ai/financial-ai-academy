@@ -611,6 +611,14 @@ def correlated_personal_workspace_storage() -> dict[str, Any]:
         "learner_practice_projections": 1,
         "learner_project_projections": 1,
         "project_shells": 2,
+        "target_state": {
+            schema: {
+                "table_count": index + 1,
+                "row_count": (index + 1) * 3,
+                "sha256": hashlib.sha256(schema.encode("utf-8")).hexdigest(),
+            }
+            for index, schema in enumerate(runner.PERSONAL_WORKSPACE_TARGET_SCHEMAS)
+        },
         "workspace_rows": [
             {
                 "workspace_id": workspace["workspace_id"],
@@ -1757,7 +1765,7 @@ def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:
         )
 
 
-def test_personal_workspace_restart_preserves_state_and_target_counts() -> None:
+def test_personal_workspace_restart_preserves_exact_state_and_target_facts() -> None:
     capture = personal_workspace_capture()
     after = correlated_personal_workspace_storage()
     before_target = after | {
@@ -1776,19 +1784,74 @@ def test_personal_workspace_restart_preserves_state_and_target_counts() -> None:
         after_observation=personal_workspace_capture()["workspace"],
         before_storage=after,
         after_storage=dict(after),
+        capture=capture,
     )
+    changed_target = json.loads(json.dumps(after))
+    changed_target["target_state"]["project"]["sha256"] = "f" * 64
     with pytest.raises(RuntimeError, match="target or learning evidence"):
         runner.assert_personal_workspace_target_state_unchanged(
             before_storage=after,
-            after_storage=after | {"assessment_attempts": 2},
+            after_storage=changed_target,
         )
+    changed_history = json.loads(json.dumps(after))
+    changed_history["mutation_rows"][0]["idempotency_key"] = "changed-same-count"
     with pytest.raises(RuntimeError, match="changed during restart"):
         runner.assert_personal_workspace_restart_result(
             before_observation=personal_workspace_capture()["workspace"],
             after_observation=personal_workspace_capture()["workspace"],
             before_storage=after,
-            after_storage=after | {"personal_mutations": 8},
+            after_storage=changed_history,
+            capture=capture,
         )
+
+
+def test_personal_workspace_qualification_accepts_safe_record_count_and_order_variation() -> None:
+    capture = personal_workspace_capture()
+    base = capture["workspace"]
+
+    smaller = json.loads(json.dumps(base))
+    smaller["records"] = smaller["records"][:2]
+    smaller_ids = {record["record_id"] for record in smaller["records"]}
+    smaller["collections"][0]["member_record_ids"] = [
+        record_id
+        for record_id in smaller["collections"][0]["member_record_ids"]
+        if record_id in smaller_ids
+    ]
+
+    larger = json.loads(json.dumps(base))
+    extra = json.loads(json.dumps(larger["records"][0]))
+    extra["record_id"] = "bookmark-extra"
+    extra["label"] = "Another safe saved lesson"
+    larger["records"].append(extra)
+    larger["collections"][0]["member_record_ids"].append(extra["record_id"])
+
+    reordered = json.loads(json.dumps(base))
+    reordered["records"] = list(reversed(reordered["records"]))
+
+    for workspace in (smaller, larger, reordered):
+        normalized = runner.stable_personal_workspace(workspace)
+        assert {record["record_id"] for record in normalized["records"]} == {
+            record["record_id"] for record in workspace["records"]
+        }
+        assert set(normalized["collections"][0]["member_record_ids"]).issubset(
+            {record["record_id"] for record in normalized["records"]}
+        )
+        query_record = next(
+            record
+            for record in normalized["records"]
+            if record["record_id"] == "bookmark-one"
+        )
+        result = json.loads(json.dumps(capture["query_result"]))
+        result["workspace_revision"] = normalized["revision"]
+        result["records"] = [query_record]
+        result["next_cursor"] = "opaque_next_page"
+        qualified = runner.stable_personal_workspace_query_result(
+            result,
+            requested=capture["query_request"],
+            workspace=normalized,
+        )
+        assert qualified["records"] == [query_record]
+        assert qualified["next_cursor"] == "opaque_next_page"
 
 
 def test_personal_workspace_storage_requires_exact_row_correlation() -> None:
