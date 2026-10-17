@@ -33,7 +33,7 @@
 - Use one human delivery approval for a complete CAP planning package containing every intended slice. Agents may record but never originate that approval. Durable decisions remain separately explicit and are not delivery-stage approvals.
 - Store approval and reviewer records only in the ignored local approval ledger. Tracked artifacts and registers contain public state and canonical links, never approval identity, decision, date, authority, scope, history, or summary.
 - Refine SLI and WRK plans immediately before they start without approval when they conform to the approved CAP package. Require current CAP binding, manifest membership, deterministic readiness, exact bounded `write_scope`, satisfied dependencies, and a collision-free claim before moving work to `active`. Material CAP drift requires renewed CAP approval.
-- Claim each approved packet against a base revision before implementation. Execute a slice bundle one dependency-ready packet at a time unless separately authorized for reviewed parallel work. Keep one owner and durable claim evidence from activation through handoff; concurrent active packets require reciprocal parallel-safety declarations and disjoint scopes.
+- Claim each CAP-authorized packet against a base revision before implementation. Execute a slice bundle one dependency-ready packet at a time unless its scopes are explicitly parallel-safe. Keep one owner and durable claim evidence from activation through handoff; concurrent active packets require reciprocal parallel-safety declarations and disjoint scopes.
 - Perform tracked work on a named `codex/*` branch, never directly on `main`. After the work is CAP-authorized, complete, verified, and approved for integration, merge or fast-forward that finished branch into local `main`; push to a remote only with explicit external-action authority.
 - Update planning lifecycle and completion evidence as part of the same change that advances the work.
 - Confine repository automation effects through stable command/action IDs,
@@ -61,7 +61,7 @@ Agents must not:
 - place business policy in routes, workers, UI components, adapters, or composition roots,
 - infer provider permission from API accessibility,
 - invent financial, legal, regulatory, privacy, licensing, tenancy, or model-authority policy,
-- self-approve planning, implementation, decisions, or completion, or infer a later approval from an earlier stage,
+- self-approve a CAP planning package, durable decision, or separately governed external or destructive action, or infer authority that was not explicitly granted,
 - allow AI output to mutate authoritative state without an owned application operation and deterministic validation,
 - weaken or delete a guardrail merely to make a check pass,
 - claim a command passed when it was not run successfully,

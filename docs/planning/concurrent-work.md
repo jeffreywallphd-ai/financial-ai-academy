@@ -5,7 +5,7 @@
 
 ## Principle
 
-Concurrency is permitted only across approved work packets whose dependencies,
+Concurrency is permitted only across CAP-authorized work packets whose dependencies,
 contracts, write scopes, and generated artifacts are independent. Conversation,
 branch names, or agent intent alone do not establish ownership.
 

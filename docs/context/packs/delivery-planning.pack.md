@@ -36,7 +36,7 @@ Work creates, reviews, sequences, or executes capabilities, vertical slices, age
 - Publish optional edit intent and acquire renewable exact-file leases only for
   bounded writes under an active packet claim; reads and unrelated files remain
   concurrent, and a file lease never broadens authority.
-- Execute an approved slice bundle one dependency-ready packet at a time, completing the current packet before claiming its successor unless separately authorized otherwise.
+- Execute CAP-authorized slice delivery one dependency-ready packet at a time, completing the current packet before claiming its successor unless its scopes are explicitly parallel-safe.
 
 ## Canonical Sources
 

@@ -88,6 +88,6 @@ When planning draws from this catalog:
 2. Confirm the outcome against the current product vision, domain meaning, risk posture, architecture, and decision-readiness register.
 3. Shape a new `CAP-*` artifact with explicit in-scope and out-of-scope boundaries, decision gates, risks, acceptance evidence, and proposed slices.
 4. Reserve formal planning identifiers through the repository planning tools and update the planning register with the artifact.
-5. Request capability-framing approval separately; catalog inclusion does not supply approval or implementation authority.
+5. Request the single complete CAP planning-package approval; catalog inclusion does not supply approval or implementation authority.
 
 The catalog intentionally does not assign priority or delivery order. Sequencing begins only after individual capabilities are shaped and approved.

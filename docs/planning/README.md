@@ -144,7 +144,7 @@ human approval stage for ordinary conforming copy work.
 
 ## Relationship to Roadmaps
 
-Planning artifacts answer what an outcome is, how it can be sliced, and what an agent must prove. [Implementation roadmaps](../roadmaps/README.md) record accepted sequencing for bounded approved work. A roadmap should link its source capability, slices, and packets; the planning records should link back once promoted.
+Planning artifacts answer what an outcome is, how it can be sliced, and what an agent must prove. [Implementation roadmaps](../roadmaps/README.md) record accepted sequencing for bounded CAP-authorized work. A roadmap should link its source capability, slices, and packets; the planning records should link back once promoted.
 
 No feature work is planned in this directory yet. The scaffold defines the method only.
 
