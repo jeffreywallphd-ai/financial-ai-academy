@@ -10,6 +10,11 @@ from typing import Any
 
 import pytest
 
+sys.path.insert(0, str(Path(__file__).parents[3] / "backend" / "src"))
+from financial_ai_academy.modules.personal_workspace.adapters.workspace_contract import (
+    ContractPersonalWorkspaceAdapter,
+)
+
 
 RUNNER_PATH = Path(__file__).with_name("run.py")
 SPEC = importlib.util.spec_from_file_location(
@@ -1808,6 +1813,29 @@ def test_personal_workspace_restart_preserves_exact_state_and_target_facts() -> 
 def test_personal_workspace_qualification_accepts_safe_record_count_and_order_variation() -> None:
     capture = personal_workspace_capture()
     base = capture["workspace"]
+    contract = ContractPersonalWorkspaceAdapter(
+        Path(__file__).parents[3]
+        / "contracts"
+        / "learning"
+        / "personal-workspace"
+        / "v1",
+        cursor_signing_key=b"qualification-only-cursor-key-32b",
+    )
+
+    def canonical_workspace(document: dict[str, Any]):
+        candidate = json.loads(json.dumps(document))
+        material = json.loads(json.dumps(candidate))
+        material.pop("workspace_digest")
+        candidate["workspace_digest"] = contract.canonical_digest(material)
+        parsed = contract.parse_workspace(
+            json.dumps(
+                candidate,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        )
+        return parsed, contract.workspace_document(parsed)
 
     smaller = json.loads(json.dumps(base))
     smaller["records"] = smaller["records"][:2]
@@ -1821,37 +1849,64 @@ def test_personal_workspace_qualification_accepts_safe_record_count_and_order_va
     larger = json.loads(json.dumps(base))
     extra = json.loads(json.dumps(larger["records"][0]))
     extra["record_id"] = "bookmark-extra"
-    extra["label"] = "Another safe saved lesson"
+    extra["label"] = "Another safe saved lesson Σ"
     larger["records"].append(extra)
     larger["collections"][0]["member_record_ids"].append(extra["record_id"])
 
-    reordered = json.loads(json.dumps(base))
+    reordered = json.loads(json.dumps(larger))
     reordered["records"] = list(reversed(reordered["records"]))
 
     for workspace in (smaller, larger, reordered):
-        normalized = runner.stable_personal_workspace(workspace)
+        parsed_workspace, canonical_document = canonical_workspace(workspace)
+        normalized = runner.stable_personal_workspace(canonical_document)
         assert {record["record_id"] for record in normalized["records"]} == {
             record["record_id"] for record in workspace["records"]
         }
         assert set(normalized["collections"][0]["member_record_ids"]).issubset(
             {record["record_id"] for record in normalized["records"]}
         )
-        query_record = next(
-            record
-            for record in normalized["records"]
-            if record["record_id"] == "bookmark-one"
+        query_request = json.loads(json.dumps(capture["query_request"]))
+        query_request["limit"] = 1
+        parsed_query = contract.parse_workspace_query(
+            json.dumps(query_request, ensure_ascii=False).encode("utf-8")
         )
-        result = json.loads(json.dumps(capture["query_result"]))
-        result["workspace_revision"] = normalized["revision"]
-        result["records"] = [query_record]
-        result["next_cursor"] = "opaque_next_page"
+        result = contract.workspace_query_result_document(
+            contract.query_workspace(parsed_workspace, parsed_query)
+        )
         qualified = runner.stable_personal_workspace_query_result(
             result,
-            requested=capture["query_request"],
+            requested=query_request,
             workspace=normalized,
         )
-        assert qualified["records"] == [query_record]
-        assert qualified["next_cursor"] == "opaque_next_page"
+        assert len(qualified["records"]) == 1
+        matching_records = [
+            record
+            for record in normalized["records"]
+            if record["record_kind"] == "bookmark"
+            and record["target"]["owner_module"] == "curriculum"
+            and "σ" in (record.get("label") or "").casefold()
+        ]
+        assert (qualified["next_cursor"] is not None) == (
+            len(matching_records) > 1
+        )
+        if qualified["next_cursor"] is not None:
+            continued_request = {
+                **query_request,
+                "cursor": qualified["next_cursor"],
+            }
+            continued_query = contract.parse_workspace_query(
+                json.dumps(continued_request, ensure_ascii=False).encode("utf-8")
+            )
+            continued_result = contract.workspace_query_result_document(
+                contract.query_workspace(parsed_workspace, continued_query)
+            )
+            continued = runner.stable_personal_workspace_query_result(
+                continued_result,
+                requested=continued_request,
+                workspace=normalized,
+            )
+            assert len(continued["records"]) == 1
+            assert continued["next_cursor"] is None
 
 
 def test_personal_workspace_storage_requires_exact_row_correlation() -> None:
