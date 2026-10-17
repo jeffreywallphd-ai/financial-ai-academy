@@ -1,7 +1,7 @@
 ---
 id: WRK-0151
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -168,3 +168,6 @@ WRK-0150 resume result.
   profile whose API timestamp was shortened after digest calculation. The
   WRK-0148 bounded correction route was recorded; no CAP scope or decision
   changed.
+- 2026-10-17: Completed after exact-candidate affected verification and
+  technical assessment confirmed canonical digest stability, unchanged API
+  shape, and bounded scope. WRK-0150 may resume its live qualification.
