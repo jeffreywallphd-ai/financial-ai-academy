@@ -1,7 +1,7 @@
 ---
 id: WRK-0134
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/personal-workspace.e2e.ts", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0134-qualify-saved-learning-live-flow.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: bc388b21b63ff761d4a6ec291914c771dac2778a
+claim_id: WRK-0134:512004ee-9a51-4c47-86c7-9ca63ee5c8a4
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T12:18:45Z
 ---
 
 # Agent Work Packet: Qualify the Saved Learning Live Flow
@@ -211,3 +211,6 @@ autonomous authority was added.
   qualifier, then closes SLI-0070 from direct browser, headless HTTP,
   PostgreSQL, restart, containment, and cleanup evidence. It changes no product
   contract or authority and exposes no new decision gate.
+- 2026-10-17: Activated from base `bc388b2` after deterministic implementation
+  gating confirmed the current CAP binding, completed dependencies, bounded
+  write scope, and absence of a decision or ownership conflict.
