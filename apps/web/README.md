@@ -246,16 +246,25 @@ anchor and never accepts a caller-supplied Project destination. Curriculum and
 Project records can be organized together without copying Project content or
 adding a browser-only policy path.
 
-The reviewed generated client additionally exposes the protected
-`queryPersonalWorkspace` operation and the additive `refresh_reference`
-mutation for browser, command-line, service, and future headless clients.
-Query requests contain only closed search/filter/sort/page fields and opaque
-continuations; refresh contains only the saved record ID inside the existing
-revision/idempotency envelope. The server remains authoritative for learner,
-owner access, selector, validation time, replacement facts, and status. The
-current Saved learning screen does not yet invoke these new operations;
-plain-language search, status, refresh, and safe-resume controls are the next
-SLI-0072 browser packet rather than a browser-only contract.
+The Saved learning screen and reviewed generated client use the protected
+`queryPersonalWorkspace` operation and additive `refresh_reference` mutation
+shared by browser, command-line, service, and future headless clients. The
+browser maps one closed URL state to text, saved-item, source-area, source-type,
+source-status, archive, collection, sort, page-size, and opaque-continuation
+fields. Unknown, repeated, malformed, or over-broad values fail before learner
+session or workspace access. Continuation links preserve the complete query
+meaning, and partial, filtered, or differently sorted pages cannot become
+record-reordering authority.
+
+Each record explains `Ready to open`, `Saved details changed`, or `Source
+unavailable` in plain language. Only a ready source exposes its retained
+destination; learner notes, bookmarks, collections, and technical history stay
+visible for stale and unavailable sources. `Check source` sends only the saved
+record ID inside the existing revision/idempotency envelope. The server remains
+authoritative for learner, owner access, selector, validation time, replacement
+facts, and status. The loader closes both the current workspace and query page,
+requires one matching workspace revision, and rejects query records that do not
+exactly match the opened workspace rather than mixing two states.
 
 `/projects` lists the learner's current Projects and reviewed learning-based
 starting points. `/projects/new` creates either an independent Project or one

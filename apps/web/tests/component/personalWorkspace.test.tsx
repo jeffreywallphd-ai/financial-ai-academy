@@ -12,8 +12,10 @@ import {
 } from "../../src/features/personal-workspace/PersonalWorkspacePage";
 import type {
   PersonalWorkspace,
+  PersonalWorkspaceQueryResult,
   SaveSelection,
   WorkspaceActionState,
+  WorkspaceSearchValues,
 } from "../../src/features/personal-workspace/model";
 
 
@@ -173,6 +175,8 @@ function renderWorkspace(
   submissions: FormData[] = [],
   actionState?: WorkspaceActionState,
   value: PersonalWorkspace = workspace,
+  result?: PersonalWorkspaceQueryResult,
+  search?: WorkspaceSearchValues,
 ) {
   const router = createMemoryRouter([{
     path: "/saved-learning",
@@ -180,7 +184,7 @@ function renderWorkspace(
       submissions.push(await request.formData());
       return null;
     },
-    element: <PersonalWorkspacePage actionState={actionState} busy={false} workspace={value} />,
+    element: <PersonalWorkspacePage actionState={actionState} busy={false} result={result} search={search} workspace={value} />,
   }], { initialEntries: ["/saved-learning"] });
   return render(<RouterProvider router={router} />);
 }
@@ -204,6 +208,108 @@ describe("Saved learning pages", () => {
     expect(within(note as HTMLElement).getByText("available")).toBeVisible();
     expect(within(note as HTMLElement).getByText("Educational content only.")).toBeVisible();
     expect(within(note as HTMLElement).getAllByText("2026-10-17T10:01:00Z", { selector: "time" })).toHaveLength(3);
+  });
+
+  it("shows closed search controls and plain source status without hiding exact facts", () => {
+    renderWorkspace();
+    expect(screen.getByRole("heading", { name: "Find saved learning" })).toBeVisible();
+    expect(screen.getByLabelText("Search words")).toBeVisible();
+    expect(screen.getByLabelText("Saved item")).toHaveValue("");
+    expect(screen.getByLabelText("Source area")).toHaveValue("");
+    expect(screen.getByLabelText("Source type")).toHaveValue("");
+    expect(screen.getByLabelText("Source status")).toHaveValue("");
+    expect(screen.getByLabelText("Saved status")).toHaveValue("");
+    expect(screen.getByLabelText("Collection")).toHaveValue("");
+    expect(screen.getByLabelText("Order")).toHaveValue("workspace_order");
+    expect(screen.getAllByText("Ready to open.")).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Open saved source" })).toHaveLength(2);
+  });
+
+  it("retains stale and unavailable records but suppresses unsafe resume and partial reorder", async () => {
+    const submissions: FormData[] = [];
+    const records = projectWorkspace.records.map((record, index) => ({
+      ...record,
+      target: {
+        ...record.target,
+        target_status: index === 0 ? "stale" as const : "unavailable" as const,
+      },
+    }));
+    const value: PersonalWorkspace = {
+      ...projectWorkspace,
+      records,
+      revision: 5,
+    };
+    const result: PersonalWorkspaceQueryResult = {
+      schema_version: "1.0.0",
+      workspace_revision: 5,
+      query_digest: "1".repeat(64),
+      applied_query: {
+        schema_version: "1.0.0",
+        target_statuses: ["stale"],
+        sort: "workspace_order",
+        limit: 50,
+      },
+      records: [records[0]!],
+      next_cursor: "next_cursor",
+    };
+    renderWorkspace(
+      submissions,
+      undefined,
+      value,
+      result,
+      { targetStatus: "stale" },
+    );
+    const user = userEvent.setup();
+    const card = screen.getByRole("heading", {
+      name: "Compare allocation assumptions",
+    }).closest("li") as HTMLElement;
+
+    expect(within(card).getByText("Saved details changed.")).toBeVisible();
+    expect(within(card).queryByRole("link", { name: "Open saved source" })).not.toBeInTheDocument();
+    expect(within(card).queryByRole("button", { name: "Move earlier" })).not.toBeInTheDocument();
+    expect(within(card).queryByRole("button", { name: "Move later" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Show more results" })).toHaveAttribute(
+      "href",
+      "/saved-learning?status=stale&cursor=next_cursor",
+    );
+
+    await user.click(within(card).getByRole("button", { name: "Check source" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(Object.fromEntries(submissions[0]!.entries())).toEqual(expect.objectContaining({
+      operation: "refresh_reference",
+      record_id: "project-workspace-one",
+      expected_revision: "5",
+    }));
+    expect(submissions[0]?.has("target_status")).toBe(false);
+    expect(submissions[0]?.has("owner_module")).toBe(false);
+    expect(submissions[0]?.has("project_id")).toBe(false);
+  });
+
+  it("explains a valid search with no matching items", () => {
+    renderWorkspace(
+      [],
+      undefined,
+      workspace,
+      {
+        schema_version: "1.0.0",
+        workspace_revision: workspace.revision,
+        query_digest: "1".repeat(64),
+        applied_query: {
+          schema_version: "1.0.0",
+          text: "missing",
+          sort: "workspace_order",
+          limit: 50,
+        },
+        records: [],
+        next_cursor: null,
+      },
+      { text: "missing" },
+    );
+    expect(screen.getByText(/No saved items match these filters/i)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Clear filters" })).toHaveAttribute(
+      "href",
+      "/saved-learning",
+    );
   });
 
   it("shows every safe Project reference kind without adding Project save controls", async () => {

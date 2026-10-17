@@ -99,11 +99,14 @@ creates a mutation or execution path into another module.
 
 ## Exclusions
 
-The protected API and generated client cover query and record-only refresh for
-Curriculum and Project references. The current `Saved learning` browser entry
-flow covers organization and source creation; query/status/refresh controls
-and complete live recovery qualification remain later CAP-0017 work. Project
-lifecycle-event handling also remains out of scope. The boundary has no collaboration, cloud
+The protected API, generated client, and `Saved learning` browser flow cover
+closed query, status-aware safe resume, and record-only explicit refresh for
+Curriculum and Project references. The browser rejects unknown or repeated URL
+fields before access, preserves page size and opaque query continuation, shows
+only exact records from the matching current workspace revision, and never
+turns a partial result page into reorder authority. Complete live browser plus
+headless recovery qualification and Project lifecycle-event handling remain
+later CAP-0017 work. The boundary has no collaboration, cloud
 synchronization, artifact preview/download/execution, Project mutation,
 Portfolio association, Assessment or Learner-model effect, AI authority, or
 personalized financial advice.

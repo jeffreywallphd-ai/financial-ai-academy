@@ -8,6 +8,10 @@ export type PersonalWorkspaceCollection =
   PersonalWorkspace["collections"][number];
 export type PersonalWorkspaceMutation =
   components["schemas"]["PersonalWorkspaceMutationRequestModel"]["mutation"];
+export type PersonalWorkspaceQuery =
+  components["schemas"]["PersonalWorkspaceQueryRequestModel"];
+export type PersonalWorkspaceQueryResult =
+  components["schemas"]["PersonalWorkspaceQueryResponseModel"];
 export type PreparedWorkspaceRequest = {
   schema_version: "1.0.0";
   idempotency_key: string;
@@ -18,6 +22,7 @@ export type PreparedWorkspaceRequest = {
 export type WorkspaceFailureKind =
   | "forbidden"
   | "invalid-response"
+  | "invalid-query"
   | "invalid-selection"
   | "not-found"
   | "unauthorized"
@@ -25,8 +30,37 @@ export type WorkspaceFailureKind =
   | "unexpected";
 
 export type WorkspaceRouteState =
-  | { status: "ready"; workspace: PersonalWorkspace }
+  | {
+      status: "ready";
+      workspace: PersonalWorkspace;
+      query: PersonalWorkspaceQuery;
+      result: PersonalWorkspaceQueryResult;
+      search: WorkspaceSearchValues;
+    }
   | { status: WorkspaceFailureKind };
+
+export type WorkspaceSearchValues = {
+  archived?: "active" | "archived";
+  collectionId?: string;
+  cursor?: string;
+  limit?: number;
+  ownerModule?: "curriculum" | "project";
+  recordKind?: "note" | "bookmark";
+  referenceKind?:
+    | "learning_opportunity"
+    | "placed_lesson"
+    | "project_workspace"
+    | "project_snapshot"
+    | "project_artifact";
+  sort?:
+    | "workspace_order"
+    | "updated_desc"
+    | "updated_asc"
+    | "title_asc"
+    | "source_asc";
+  targetStatus?: "available" | "stale" | "unavailable";
+  text?: string;
+};
 
 export type SaveSelection =
   | {
@@ -108,6 +142,7 @@ const PROJECT_MEDIA_TYPES = new Set([
   "text/x-python",
 ]);
 const PROJECT_INSPECTION_MODES = new Set(["metadata_only", "plain_text"]);
+const TARGET_STATUSES = new Set(["available", "stale", "unavailable"]);
 
 function hasNullCharacter(value: string): boolean {
   return value.includes("\u0000");
@@ -175,6 +210,10 @@ function positiveInteger(value: unknown): value is number {
   return Number.isSafeInteger(value) && Number(value) >= 1;
 }
 
+function targetStatusIsSafe(value: unknown): value is "available" | "stale" | "unavailable" {
+  return typeof value === "string" && TARGET_STATUSES.has(value);
+}
+
 function projectLogicalPathIsSafe(value: unknown): value is string {
   if (
     typeof value !== "string" ||
@@ -210,7 +249,7 @@ function projectReferenceBaseIsSafe(
   return (
     candidate.owner_module === "project" &&
     candidate.lifecycle === "active" &&
-    candidate.target_status === "available" &&
+    targetStatusIsSafe(candidate.target_status) &&
     workspaceIdentifierIsSafe(candidate.project_id) &&
     boundedString(candidate.title, 1, 240) &&
     positiveInteger(candidate.project_revision) &&
@@ -339,7 +378,7 @@ function referenceIsSafe(value: unknown): boolean {
       ? ["reference_kind", "owner_module", "opportunity_id", "placement_id", "package_id", "package_version", "package_digest", "source_fingerprint", "title", "destination", "target_status", "provenance", "validated_at"]
       : ["reference_kind", "owner_module", "placement_id", "package_id", "package_version", "package_digest", "title", "destination", "target_status", "provenance", "validated_at"]) ||
     candidate.owner_module !== "curriculum" ||
-    candidate.target_status !== "available" ||
+    !targetStatusIsSafe(candidate.target_status) ||
     !curriculumIdentifierIsSafe(candidate.placement_id) ||
     !curriculumIdentifierIsSafe(candidate.package_id) ||
     typeof candidate.package_version !== "string" ||
@@ -448,6 +487,208 @@ export function personalWorkspaceIsSafe(
       acceptedRecords.has(memberId),
     ),
   );
+}
+
+const RECORD_KINDS = new Set(["note", "bookmark"]);
+const OWNER_MODULES = new Set(["curriculum", "project"]);
+const REFERENCE_KINDS = new Set([
+  "learning_opportunity",
+  "placed_lesson",
+  "project_workspace",
+  "project_snapshot",
+  "project_artifact",
+]);
+const QUERY_SORTS = new Set([
+  "workspace_order",
+  "updated_desc",
+  "updated_asc",
+  "title_asc",
+  "source_asc",
+]);
+const CURSOR = /^[A-Za-z0-9_-]{1,512}$/;
+
+function closedArray(
+  value: unknown,
+  accepted: ReadonlySet<string>,
+  maximum: number,
+): value is readonly string[] {
+  return (
+    Array.isArray(value) &&
+    value.length >= 1 &&
+    value.length <= maximum &&
+    value.every((item) => typeof item === "string" && accepted.has(item)) &&
+    new Set(value).size === value.length
+  );
+}
+
+export function personalWorkspaceQueryIsSafe(
+  value: unknown,
+): value is PersonalWorkspaceQuery {
+  const candidate = record(value);
+  if (
+    !candidate ||
+    !hasOnlyKeys(candidate, [
+      "schema_version",
+      "text",
+      "record_kinds",
+      "owner_modules",
+      "reference_kinds",
+      "target_statuses",
+      "archived",
+      "collection_id",
+      "sort",
+      "limit",
+      "cursor",
+    ]) ||
+    candidate.schema_version !== "1.0.0"
+  ) {
+    return false;
+  }
+  return (
+    (candidate.text === undefined || boundedString(candidate.text, 1, 240)) &&
+    (candidate.record_kinds === undefined || closedArray(candidate.record_kinds, RECORD_KINDS, 2)) &&
+    (candidate.owner_modules === undefined || closedArray(candidate.owner_modules, OWNER_MODULES, 2)) &&
+    (candidate.reference_kinds === undefined || closedArray(candidate.reference_kinds, REFERENCE_KINDS, 5)) &&
+    (candidate.target_statuses === undefined || closedArray(candidate.target_statuses, TARGET_STATUSES, 3)) &&
+    (candidate.archived === undefined || typeof candidate.archived === "boolean") &&
+    (candidate.collection_id === undefined || workspaceIdentifierIsSafe(candidate.collection_id)) &&
+    (candidate.sort === undefined || (typeof candidate.sort === "string" && QUERY_SORTS.has(candidate.sort))) &&
+    (candidate.limit === undefined || (positiveInteger(candidate.limit) && Number(candidate.limit) <= 100)) &&
+    (candidate.cursor === undefined || (typeof candidate.cursor === "string" && CURSOR.test(candidate.cursor)))
+  );
+}
+
+export function personalWorkspaceQueryResultIsSafe(
+  value: unknown,
+): value is PersonalWorkspaceQueryResult {
+  const candidate = record(value);
+  if (
+    !candidate ||
+    !hasOnlyKeys(candidate, [
+      "schema_version",
+      "workspace_revision",
+      "query_digest",
+      "applied_query",
+      "records",
+      "next_cursor",
+    ]) ||
+    candidate.schema_version !== "1.0.0" ||
+    !positiveInteger(candidate.workspace_revision) ||
+    typeof candidate.query_digest !== "string" ||
+    !DIGEST.test(candidate.query_digest) ||
+    !personalWorkspaceQueryIsSafe(candidate.applied_query) ||
+    !Array.isArray(candidate.records) ||
+    candidate.records.length > 100 ||
+    !candidate.records.every(workspaceRecordIsSafe) ||
+    !(
+      candidate.next_cursor === null ||
+      (typeof candidate.next_cursor === "string" && CURSOR.test(candidate.next_cursor))
+    )
+  ) {
+    return false;
+  }
+  const recordIds = candidate.records.map((item) => item.record_id);
+  return new Set(recordIds).size === recordIds.length;
+}
+
+const BROWSER_QUERY_FIELDS = new Set([
+  "q",
+  "record",
+  "source",
+  "kind",
+  "status",
+  "archive",
+  "collection",
+  "sort",
+  "limit",
+  "cursor",
+]);
+
+function optionalBrowserValue(search: URLSearchParams, name: string): string | undefined {
+  const values = search.getAll(name);
+  if (values.length > 1) return undefined;
+  return values[0] || undefined;
+}
+
+export function parseWorkspaceSearch(
+  url: URL,
+): { query: PersonalWorkspaceQuery; search: WorkspaceSearchValues } | undefined {
+  for (const key of url.searchParams.keys()) {
+    if (!BROWSER_QUERY_FIELDS.has(key) || url.searchParams.getAll(key).length > 1) {
+      return undefined;
+    }
+  }
+  const text = optionalBrowserValue(url.searchParams, "q");
+  const recordKind = optionalBrowserValue(url.searchParams, "record");
+  const ownerModule = optionalBrowserValue(url.searchParams, "source");
+  const referenceKind = optionalBrowserValue(url.searchParams, "kind");
+  const targetStatus = optionalBrowserValue(url.searchParams, "status");
+  const archived = optionalBrowserValue(url.searchParams, "archive");
+  const collectionId = optionalBrowserValue(url.searchParams, "collection");
+  const sort = optionalBrowserValue(url.searchParams, "sort");
+  const limitValue = optionalBrowserValue(url.searchParams, "limit");
+  const cursor = optionalBrowserValue(url.searchParams, "cursor");
+  const limit = limitValue === undefined ? 50 : positiveQueryInteger(limitValue);
+  if (
+    (text !== undefined && !boundedString(text, 1, 240)) ||
+    (recordKind !== undefined && !RECORD_KINDS.has(recordKind)) ||
+    (ownerModule !== undefined && !OWNER_MODULES.has(ownerModule)) ||
+    (referenceKind !== undefined && !REFERENCE_KINDS.has(referenceKind)) ||
+    (targetStatus !== undefined && !TARGET_STATUSES.has(targetStatus)) ||
+    (archived !== undefined && archived !== "active" && archived !== "archived") ||
+    (collectionId !== undefined && !workspaceIdentifierIsSafe(collectionId)) ||
+    (sort !== undefined && !QUERY_SORTS.has(sort)) ||
+    limit === undefined ||
+    limit > 100 ||
+    (cursor !== undefined && !CURSOR.test(cursor))
+  ) {
+    return undefined;
+  }
+  const search: WorkspaceSearchValues = {
+    ...(text === undefined ? {} : { text }),
+    ...(recordKind === undefined ? {} : { recordKind: recordKind as NonNullable<WorkspaceSearchValues["recordKind"]> }),
+    ...(ownerModule === undefined ? {} : { ownerModule: ownerModule as NonNullable<WorkspaceSearchValues["ownerModule"]> }),
+    ...(referenceKind === undefined ? {} : { referenceKind: referenceKind as NonNullable<WorkspaceSearchValues["referenceKind"]> }),
+    ...(targetStatus === undefined ? {} : { targetStatus: targetStatus as NonNullable<WorkspaceSearchValues["targetStatus"]> }),
+    ...(archived === undefined ? {} : { archived: archived as NonNullable<WorkspaceSearchValues["archived"]> }),
+    ...(collectionId === undefined ? {} : { collectionId }),
+    ...(sort === undefined ? {} : { sort: sort as NonNullable<WorkspaceSearchValues["sort"]> }),
+    ...(limitValue === undefined ? {} : { limit }),
+    ...(cursor === undefined ? {} : { cursor }),
+  };
+  const query: PersonalWorkspaceQuery = {
+    schema_version: "1.0.0",
+    limit,
+    sort: search.sort ?? "workspace_order",
+    ...(search.text === undefined ? {} : { text: search.text }),
+    ...(search.recordKind === undefined ? {} : { record_kinds: [search.recordKind] }),
+    ...(search.ownerModule === undefined ? {} : { owner_modules: [search.ownerModule] }),
+    ...(search.referenceKind === undefined ? {} : { reference_kinds: [search.referenceKind] }),
+    ...(search.targetStatus === undefined ? {} : { target_statuses: [search.targetStatus] }),
+    ...(search.archived === undefined ? {} : { archived: search.archived === "archived" }),
+    ...(search.collectionId === undefined ? {} : { collection_id: search.collectionId }),
+    ...(search.cursor === undefined ? {} : { cursor: search.cursor }),
+  };
+  return { query, search };
+}
+
+export function workspaceSearchHref(
+  search: WorkspaceSearchValues,
+  cursor?: string,
+): string {
+  const values = new URLSearchParams();
+  if (search.text) values.set("q", search.text);
+  if (search.recordKind) values.set("record", search.recordKind);
+  if (search.ownerModule) values.set("source", search.ownerModule);
+  if (search.referenceKind) values.set("kind", search.referenceKind);
+  if (search.targetStatus) values.set("status", search.targetStatus);
+  if (search.archived) values.set("archive", search.archived);
+  if (search.collectionId) values.set("collection", search.collectionId);
+  if (search.sort) values.set("sort", search.sort);
+  if (search.limit) values.set("limit", String(search.limit));
+  if (cursor) values.set("cursor", cursor);
+  const query = values.toString();
+  return query ? `/saved-learning?${query}` : "/saved-learning";
 }
 
 function one(search: URLSearchParams, name: string): string | undefined {

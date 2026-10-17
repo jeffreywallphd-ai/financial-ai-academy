@@ -6,9 +6,12 @@ import {
   type PersonalWorkspace,
   type PersonalWorkspaceCollection,
   type PersonalWorkspaceMutation,
+  type PersonalWorkspaceQueryResult,
   type PersonalWorkspaceRecord,
   type SaveSelection,
+  type WorkspaceSearchValues,
   type WorkspaceActionState,
+  workspaceSearchHref,
 } from "./model";
 
 
@@ -174,6 +177,28 @@ function recordName(record: PersonalWorkspaceRecord): string {
   return record.label ?? record.target.title;
 }
 
+function sourceStatus(status: PersonalWorkspaceRecord["target"]["target_status"]): {
+  detail: string;
+  label: string;
+} {
+  if (status === "stale") {
+    return {
+      label: "Saved details changed",
+      detail: "The saved source has changed. Check it again before you open it.",
+    };
+  }
+  if (status === "unavailable") {
+    return {
+      label: "Source unavailable",
+      detail: "This source cannot be opened right now. Your note or bookmark is still saved.",
+    };
+  }
+  return {
+    label: "Ready to open",
+    detail: "This saved source was available when it was last checked.",
+  };
+}
+
 function TechnicalRecord({ record }: { record: PersonalWorkspaceRecord }) {
   const target = record.target;
   return (
@@ -247,6 +272,7 @@ function reordered(records: readonly PersonalWorkspaceRecord[], index: number, o
 
 function RecordCard({
   actionState,
+  allowReorder,
   busy,
   index,
   record,
@@ -254,6 +280,7 @@ function RecordCard({
   revision,
 }: {
   actionState?: WorkspaceActionState | undefined;
+  allowReorder: boolean;
   busy: boolean;
   index: number;
   record: PersonalWorkspaceRecord;
@@ -277,13 +304,26 @@ function RecordCard({
   const bookmarkMutation = record.record_kind === "bookmark"
     ? { operation: "update_bookmark", record_id: record.record_id, label: bookmarkLabel } as const
     : undefined;
+  const status = sourceStatus(record.target.target_status);
   return (
     <li className="saved-learning-card">
       <article aria-labelledby={`saved-record-${record.record_id}`}>
         <header className="saved-learning-card__header">
           <p className="saved-learning-meta">{record.record_kind === "note" ? "Note" : "Bookmark"}{record.archived ? " · Archived" : ""}</p>
           <h3 id={`saved-record-${record.record_id}`}>{recordName(record)}</h3>
-          <p>Saved for <Link to={record.target.destination}>{record.target.title}</Link>.</p>
+          <p>
+            Saved for {record.target.target_status === "available" ? (
+              <Link to={record.target.destination}>{record.target.title}</Link>
+            ) : (
+              <strong>{record.target.title}</strong>
+            )}.
+          </p>
+          <div className={`saved-learning-status saved-learning-status--${record.target.target_status}`}>
+            <p><strong>{status.label}.</strong> {status.detail}</p>
+            {record.target.target_status === "available" ? (
+              <Link className="button button--secondary" to={record.target.destination}>Open saved source</Link>
+            ) : null}
+          </div>
         </header>
 
         {record.record_kind === "note" ? (
@@ -306,7 +346,7 @@ function RecordCard({
         )}
 
         <div aria-label={`Order and status for ${recordName(record)}`} className="saved-learning-actions" role="group">
-          {([-1, 1] as const).map((offset) => {
+          {allowReorder ? ([-1, 1] as const).map((offset) => {
             const label = offset === -1 ? "Move earlier" : "Move later";
             const disabled = busy || (offset === -1 ? index === 0 : index === records.length - 1);
             const intent = `reorder:${record.record_id}:${offset}`;
@@ -319,7 +359,13 @@ function RecordCard({
                 <button className="button button--secondary" disabled={disabled} type="submit">{label}</button>
               </Form>
             );
-          })}
+          }) : null}
+          <Form method="post">
+            <MutationFields actionState={actionState} intent={`refresh:${record.record_id}`} mutation={{ operation: "refresh_reference", record_id: record.record_id }} revision={revision} />
+            <input name="operation" type="hidden" value="refresh_reference" />
+            <input name="record_id" type="hidden" value={record.record_id} />
+            <button className="button button--secondary" disabled={busy} type="submit"><Icon name="refresh" />Check source</button>
+          </Form>
           <Form method="post">
             <MutationFields actionState={actionState} intent={`${record.archived ? "restore" : "archive"}:${record.record_id}`} mutation={{ operation: record.archived ? "restore_record" : "archive_record", record_id: record.record_id }} revision={revision} />
             <input name="operation" type="hidden" value={record.archived ? "restore_record" : "archive_record"} />
@@ -476,10 +522,14 @@ function CollectionPanel({
 export function PersonalWorkspacePage({
   actionState,
   busy,
+  result,
+  search = {},
   workspace,
 }: {
   actionState?: WorkspaceActionState | undefined;
   busy: boolean;
+  result?: PersonalWorkspaceQueryResult | undefined;
+  search?: WorkspaceSearchValues | undefined;
   workspace: PersonalWorkspace;
 }) {
   const retryCollectionMutation = preparedMutation(actionState, "create-collection");
@@ -487,6 +537,21 @@ export function PersonalWorkspacePage({
     ? retryCollectionMutation
     : undefined;
   const [newCollectionTitle, setNewCollectionTitle] = useState(retryCollection?.title ?? "");
+  const visibleRecords = result?.records ?? workspace.records;
+  const hasSearch = Boolean(
+    search.text ||
+      search.recordKind ||
+      search.ownerModule ||
+      search.referenceKind ||
+      search.targetStatus ||
+      search.archived ||
+      search.collectionId ||
+      search.cursor ||
+      (search.sort && search.sort !== "workspace_order"),
+  );
+  const allowReorder = !hasSearch &&
+    !result?.next_cursor &&
+    visibleRecords.length === workspace.records.length;
   return (
     <section className="saved-learning-page">
       <header className="saved-learning-page__header">
@@ -497,17 +562,48 @@ export function PersonalWorkspacePage({
       </header>
       <WorkspaceActionNotice actionState={actionState} />
 
+      <section aria-labelledby="saved-search-heading" className="saved-learning-panel saved-learning-search">
+        <div className="saved-learning-search__heading">
+          <div>
+            <h2 id="saved-search-heading">Find saved learning</h2>
+            <p>Search your notes and bookmarks, then narrow the results when you need to.</p>
+          </div>
+        </div>
+        <Form className="saved-learning-form saved-learning-search__form" method="get">
+          <label className="saved-learning-search__text">Search words<input defaultValue={search.text ?? ""} maxLength={240} name="q" /></label>
+          <label>Saved item<select defaultValue={search.recordKind ?? ""} name="record"><option value="">All items</option><option value="note">Notes</option><option value="bookmark">Bookmarks</option></select></label>
+          <label>Source area<select defaultValue={search.ownerModule ?? ""} name="source"><option value="">All source areas</option><option value="curriculum">Learning</option><option value="project">Projects</option></select></label>
+          <label>Source type<select defaultValue={search.referenceKind ?? ""} name="kind"><option value="">All source types</option><option value="learning_opportunity">Learning opportunity</option><option value="placed_lesson">Lesson</option><option value="project_workspace">Project</option><option value="project_snapshot">Project checkpoint</option><option value="project_artifact">Project file</option></select></label>
+          <label>Source status<select defaultValue={search.targetStatus ?? ""} name="status"><option value="">All statuses</option><option value="available">Ready to open</option><option value="stale">Saved details changed</option><option value="unavailable">Source unavailable</option></select></label>
+          <label>Saved status<select defaultValue={search.archived ?? ""} name="archive"><option value="">Current and archived</option><option value="active">Current only</option><option value="archived">Archived only</option></select></label>
+          <label>Collection<select defaultValue={search.collectionId ?? ""} name="collection"><option value="">All collections</option>{workspace.collections.map((collection) => <option key={collection.collection_id} value={collection.collection_id}>{collection.title}</option>)}</select></label>
+          <label>Order<select defaultValue={search.sort ?? "workspace_order"} name="sort"><option value="workspace_order">Saved order</option><option value="updated_desc">Recently updated</option><option value="updated_asc">Oldest update first</option><option value="title_asc">Title</option><option value="source_asc">Source</option></select></label>
+          <div className="saved-learning-actions saved-learning-search__actions">
+            <button className="button saved-learning-button--primary" disabled={busy} type="submit">Show results</button>
+            <Link className="button button--secondary" to="/saved-learning">Clear filters</Link>
+          </div>
+        </Form>
+      </section>
+
       <div className="saved-learning-layout">
         <section aria-labelledby="saved-records-heading" className="saved-learning-section">
           <h2 id="saved-records-heading">Notes and bookmarks</h2>
           {workspace.records.length === 0 ? (
             <p className="saved-learning-empty">You have not saved any learning yet. Open a lesson or opportunity and choose “Save to Saved learning.”</p>
+          ) : visibleRecords.length === 0 ? (
+            <p className="saved-learning-empty">No saved items match these filters. Clear a filter or change the search words to see more results.</p>
           ) : (
-            <ol className="saved-learning-list">
-              {workspace.records.map((record, index) => (
-                <RecordCard actionState={actionState} busy={busy} index={index} key={`${record.record_id}:${record.updated_at}`} record={record} records={workspace.records} revision={workspace.revision} />
-              ))}
-            </ol>
+            <>
+              <p className="saved-learning-results" role="status">Showing {visibleRecords.length} saved {visibleRecords.length === 1 ? "item" : "items"}.</p>
+              <ol className="saved-learning-list">
+                {visibleRecords.map((record, index) => (
+                  <RecordCard actionState={actionState} allowReorder={allowReorder} busy={busy} index={index} key={`${record.record_id}:${record.updated_at}:${record.target.validated_at}`} record={record} records={visibleRecords} revision={workspace.revision} />
+                ))}
+              </ol>
+              {result?.next_cursor ? (
+                <Link className="button button--secondary saved-learning-more" to={workspaceSearchHref(search, result.next_cursor)}>Show more results</Link>
+              ) : null}
+            </>
           )}
         </section>
 

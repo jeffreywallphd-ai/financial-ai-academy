@@ -7,7 +7,10 @@ import {
 } from "../../src/features/personal-workspace/api";
 import {
   parseSaveSelection,
+  parseWorkspaceSearch,
   personalWorkspaceIsSafe,
+  personalWorkspaceQueryResultIsSafe,
+  workspaceSearchHref,
 } from "../../src/features/personal-workspace/model";
 import type { SingleProfileSession } from "../../src/platform/auth/singleProfileSession";
 
@@ -131,6 +134,25 @@ function workspaceWithTarget(target: Record<string, unknown>) {
   };
 }
 
+function queryResult(
+  records: readonly unknown[] = workspace.records,
+  revision = workspace.revision,
+  appliedQuery: Record<string, unknown> = {
+    schema_version: "1.0.0",
+    sort: "workspace_order",
+    limit: 50,
+  },
+) {
+  return {
+    schema_version: "1.0.0",
+    workspace_revision: revision,
+    query_digest: "1".repeat(64),
+    applied_query: appliedQuery,
+    records,
+    next_cursor: null,
+  };
+}
+
 function session(): SingleProfileSession {
   return {
     ensure: vi.fn().mockResolvedValue({ status: "ready" }),
@@ -167,6 +189,88 @@ describe("Personal workspace browser model", () => {
     ["Project artifact", projectArtifactTarget],
   ])("accepts a closed %s reference returned by the public API", (_name, target) => {
     expect(personalWorkspaceIsSafe(workspaceWithTarget(target))).toBe(true);
+  });
+
+  it.each(["stale", "unavailable"] as const)(
+    "accepts every closed reference family with %s status",
+    (targetStatus) => {
+      for (const target of [
+        { ...note.target, target_status: targetStatus },
+        { ...bookmark.target, target_status: targetStatus },
+        { ...projectWorkspaceTarget, target_status: targetStatus },
+        { ...projectSnapshotTarget, target_status: targetStatus },
+        { ...projectArtifactTarget, target_status: targetStatus },
+      ]) {
+        expect(personalWorkspaceIsSafe(workspaceWithTarget(target))).toBe(true);
+      }
+    },
+  );
+
+  it("maps one closed browser search into the generated query contract", () => {
+    const parsed = parseWorkspaceSearch(new URL(
+      "https://academy.test/saved-learning?q=Caf%C3%A9+risk&record=note&source=project&kind=project_artifact&status=stale&archive=active&collection=collection-one&sort=updated_desc&limit=25&cursor=cursor_1",
+    ));
+    expect(parsed).toEqual({
+      search: {
+        text: "Café risk",
+        recordKind: "note",
+        ownerModule: "project",
+        referenceKind: "project_artifact",
+        targetStatus: "stale",
+        archived: "active",
+        collectionId: "collection-one",
+        limit: 25,
+        sort: "updated_desc",
+        cursor: "cursor_1",
+      },
+      query: {
+        schema_version: "1.0.0",
+        text: "Café risk",
+        record_kinds: ["note"],
+        owner_modules: ["project"],
+        reference_kinds: ["project_artifact"],
+        target_statuses: ["stale"],
+        archived: false,
+        collection_id: "collection-one",
+        sort: "updated_desc",
+        limit: 25,
+        cursor: "cursor_1",
+      },
+    });
+    expect(workspaceSearchHref(parsed!.search, "next_cursor")).toBe(
+      "/saved-learning?q=Caf%C3%A9+risk&record=note&source=project&kind=project_artifact&status=stale&archive=active&collection=collection-one&sort=updated_desc&limit=25&cursor=next_cursor",
+    );
+  });
+
+  it.each([
+    "owner=learner-one",
+    "status=missing",
+    "record=note&record=bookmark",
+    "limit=0",
+    `cursor=${"a".repeat(513)}`,
+    `q=${encodeURIComponent("x".repeat(241))}`,
+  ])("rejects unsafe browser query %s before session or API access", async (query) => {
+    const profile = session();
+    const get = vi.fn();
+    const post = vi.fn();
+    const loader = createPersonalWorkspaceLoader(
+      { GET: get, POST: post } as unknown as FinancialAcademyApiClient,
+      profile,
+    );
+    expect(await loader({ request: new Request(`http://localhost/saved-learning?${query}`) } as never)).toEqual({ status: "invalid-query" });
+    expect(profile.ensure).not.toHaveBeenCalled();
+    expect(get).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("closes query results without accepting private, duplicate, or malformed data", () => {
+    expect(personalWorkspaceQueryResultIsSafe(queryResult())).toBe(true);
+    expect(personalWorkspaceQueryResultIsSafe({ ...queryResult(), actor_id: "private" })).toBe(false);
+    expect(personalWorkspaceQueryResultIsSafe(queryResult([note, note]))).toBe(false);
+    expect(personalWorkspaceQueryResultIsSafe({
+      ...queryResult(),
+      next_cursor: "not+a+cursor",
+    })).toBe(false);
   });
 
   it.each([
@@ -280,6 +384,7 @@ describe("Personal workspace browser model", () => {
     ["archive record", [["operation", "archive_record"], ["record_id", "note-one"]], { operation: "archive_record", record_id: "note-one" }],
     ["restore record", [["operation", "restore_record"], ["record_id", "bookmark-one"]], { operation: "restore_record", record_id: "bookmark-one" }],
     ["remove record", [["operation", "remove_record"], ["record_id", "note-one"]], { operation: "remove_record", record_id: "note-one" }],
+    ["check source", [["operation", "refresh_reference"], ["record_id", "note-one"]], { operation: "refresh_reference", record_id: "note-one" }],
   ] as const)("maps the %s form to the generated public mutation", async (_name, fields, mutation) => {
     const post = vi.fn().mockResolvedValue(accepted(workspace));
     const action = createPersonalWorkspaceAction({ POST: post } as unknown as FinancialAcademyApiClient, session());
@@ -363,14 +468,33 @@ describe("Personal workspace browser model", () => {
   it("accepts valid Project references through the real loader and action response guards", async () => {
     const projectWorkspace = workspaceWithTarget(projectSnapshotTarget);
     const get = vi.fn().mockResolvedValue(accepted(projectWorkspace));
+    const query = queryResult(projectWorkspace.records, projectWorkspace.revision);
+    const queryPost = vi.fn().mockResolvedValue(accepted(query));
     const loader = createPersonalWorkspaceLoader(
-      { GET: get } as unknown as FinancialAcademyApiClient,
+      { GET: get, POST: queryPost } as unknown as FinancialAcademyApiClient,
       session(),
     );
     expect(await loader({ request: new Request("http://localhost/saved-learning") } as never)).toEqual({
       status: "ready",
       workspace: projectWorkspace,
+      query: {
+        schema_version: "1.0.0",
+        sort: "workspace_order",
+        limit: 50,
+      },
+      result: query,
+      search: {},
     });
+    expect(queryPost).toHaveBeenCalledWith(
+      "/api/v1/personal-workspace/query",
+      expect.objectContaining({
+        body: {
+          schema_version: "1.0.0",
+          sort: "workspace_order",
+          limit: 50,
+        },
+      }),
+    );
 
     const post = vi.fn().mockResolvedValue(accepted(projectWorkspace));
     const action = createPersonalWorkspaceAction(
@@ -386,6 +510,37 @@ describe("Personal workspace browser model", () => {
     form.set("title", "Updated");
     form.set("body", "Updated body");
     expect(await action({ request: new Request("http://localhost/saved-learning", { method: "POST", body: form }) } as never)).toBeInstanceOf(Response);
+  });
+
+  it("rejects a query result from another workspace revision", async () => {
+    const profile = session();
+    const loader = createPersonalWorkspaceLoader(
+      {
+        GET: vi.fn().mockResolvedValue(accepted(workspace)),
+        POST: vi.fn().mockResolvedValue(accepted(queryResult(workspace.records, 5))),
+      } as unknown as FinancialAcademyApiClient,
+      profile,
+    );
+    expect(await loader({ request: new Request("http://localhost/saved-learning") } as never)).toEqual({ status: "invalid-response" });
+  });
+
+  it("rejects caller-supplied refresh authority fields", async () => {
+    const post = vi.fn();
+    const profile = session();
+    const action = createPersonalWorkspaceAction(
+      { POST: post } as unknown as FinancialAcademyApiClient,
+      profile,
+    );
+    const form = new FormData();
+    form.set("form_intent", "refresh:note-one");
+    form.set("idempotency_key", "refresh-note-one");
+    form.set("expected_revision", "4");
+    form.set("operation", "refresh_reference");
+    form.set("record_id", "note-one");
+    form.set("target_status", "available");
+    expect(await action({ request: new Request("http://localhost/saved-learning", { method: "POST", body: form }) } as never)).toEqual(expect.objectContaining({ kind: "invalid" }));
+    expect(profile.ensure).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
   });
 
   it("rejects private or malformed Project fields through the real loader and action response guards", async () => {

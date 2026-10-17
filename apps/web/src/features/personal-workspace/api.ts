@@ -11,11 +11,16 @@ import type { SingleProfileSession } from "../../platform/auth/singleProfileSess
 import {
   mutationErrorCode,
   parseSaveSelection,
+  parseWorkspaceSearch,
   personalWorkspaceIsSafe,
+  personalWorkspaceQueryResultIsSafe,
   curriculumIdentifierIsSafe,
   workspaceIdentifierIsSafe,
   type PersonalWorkspaceMutation,
   type PreparedWorkspaceRequest,
+  type PersonalWorkspace,
+  type PersonalWorkspaceQuery,
+  type PersonalWorkspaceQueryResult,
   type SaveLearningRouteState,
   type WorkspaceActionFailure,
   type WorkspaceActionState,
@@ -36,7 +41,10 @@ async function readWorkspace(
   session: SingleProfileSession,
   signal: AbortSignal,
   retryUnauthorized: boolean,
-): Promise<WorkspaceRouteState> {
+): Promise<
+  | { status: "ready"; workspace: PersonalWorkspace }
+  | Exclude<WorkspaceRouteState, { status: "ready" }>
+> {
   try {
     const result = await client.GET("/api/v1/personal-workspace", { signal });
     if (result.response.status === 200) {
@@ -57,14 +65,77 @@ async function readWorkspace(
   }
 }
 
+async function queryWorkspace(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  signal: AbortSignal,
+  body: PersonalWorkspaceQuery,
+  retryUnauthorized: boolean,
+): Promise<PersonalWorkspaceQueryResult | Exclude<WorkspaceRouteState, { status: "ready" }>> {
+  try {
+    const result = await client.POST("/api/v1/personal-workspace/query", {
+      body,
+      signal,
+    });
+    if (result.response.status === 200) {
+      return result.data && personalWorkspaceQueryResultIsSafe(result.data)
+        ? result.data
+        : { status: "invalid-response" };
+    }
+    if (result.response.status === 401 && retryUnauthorized) {
+      session.invalidate();
+      const renewed = await session.ensure(signal);
+      if (renewed.status === "error") return { status: renewed.kind };
+      return queryWorkspace(client, session, signal, body, false);
+    }
+    return loaderFailure(result.response.status);
+  } catch (error) {
+    if (signal.aborted) throw error;
+    return { status: "unavailable" };
+  }
+}
+
+function queryMatchesWorkspace(
+  workspace: PersonalWorkspace,
+  result: PersonalWorkspaceQueryResult,
+): boolean {
+  if (workspace.revision !== result.workspace_revision) return false;
+  const records = new Map(
+    workspace.records.map((record) => [record.record_id, JSON.stringify(record)]),
+  );
+  return result.records.every(
+    (record) => records.get(record.record_id) === JSON.stringify(record),
+  );
+}
+
 export function createPersonalWorkspaceLoader(
   client: FinancialAcademyApiClient,
   session: SingleProfileSession,
 ) {
   return async ({ request }: LoaderFunctionArgs): Promise<WorkspaceRouteState> => {
+    const parsed = parseWorkspaceSearch(new URL(request.url));
+    if (!parsed) return { status: "invalid-query" };
     const established = await session.ensure(request.signal);
     if (established.status === "error") return { status: established.kind };
-    return readWorkspace(client, session, request.signal, true);
+    const workspaceState = await readWorkspace(client, session, request.signal, true);
+    if (workspaceState.status !== "ready") return workspaceState;
+    const result = await queryWorkspace(
+      client,
+      session,
+      request.signal,
+      parsed.query,
+      true,
+    );
+    if ("status" in result) return result;
+    return queryMatchesWorkspace(workspaceState.workspace, result)
+      ? {
+          status: "ready",
+          workspace: workspaceState.workspace,
+          query: parsed.query,
+          result,
+          search: parsed.search,
+        }
+      : { status: "invalid-response" };
   };
 }
 
@@ -280,6 +351,18 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
   ) {
     const recordId = identifier(form, "record_id");
     return recordId ? { operation, record_id: recordId } : undefined;
+  }
+  if (operation === "refresh_reference") {
+    const recordId = identifier(form, "record_id");
+    return recordId && formFieldsAreExact(form, [
+      "form_intent",
+      "idempotency_key",
+      "expected_revision",
+      "operation",
+      "record_id",
+    ])
+      ? { operation, record_id: recordId }
+      : undefined;
   }
   return undefined;
 }

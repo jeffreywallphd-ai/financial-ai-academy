@@ -50,6 +50,9 @@ function Failure({
   if (status === "invalid-selection" || status === "not-found") {
     return <StatusPanel actionLabel={returnLabel} description="This item is not available to save. No other saved work was changed." icon="info-circle" onAction={onReturn} title="Item not available" tone="info" />;
   }
+  if (status === "invalid-query") {
+    return <StatusPanel actionLabel="Clear filters" description="These search filters could not be used safely. Clear them and try your search again." icon="warning-triangle" onAction={onReturn} title="Search could not be shown" tone="warning" />;
+  }
   if (status === "invalid-response") {
     return <StatusPanel actionLabel={returnLabel} description="We couldn't safely show this saved-learning response. No partial private details were displayed." icon="error-circle" onAction={onReturn} title="Saved learning could not be shown" tone="danger" />;
   }
@@ -69,9 +72,9 @@ export function PersonalWorkspaceRoute() {
     return <PersonalWorkspaceLoadingState />;
   }
   return state.status === "ready" ? (
-    <PersonalWorkspacePage actionState={actionState} busy={navigation.state === "submitting"} workspace={state.workspace} />
+    <PersonalWorkspacePage actionState={actionState} busy={navigation.state === "submitting"} result={state.result} search={state.search} workspace={state.workspace} />
   ) : (
-    <Failure onReturn={() => void navigate("/learn")} onRetry={() => revalidator.revalidate()} returnLabel="Return to learning library" status={state.status} />
+    <Failure onReturn={() => void navigate(state.status === "invalid-query" ? "/saved-learning" : "/learn")} onRetry={() => revalidator.revalidate()} returnLabel="Return to learning library" status={state.status} />
   );
 }
 

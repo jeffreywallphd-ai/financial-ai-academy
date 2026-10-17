@@ -38,14 +38,82 @@ function emptyWorkspace() {
   };
 }
 
+function projectWorkspace() {
+  const workspace = emptyWorkspace();
+  const target = {
+    reference_kind: "project_workspace",
+    owner_module: "project",
+    project_id: "project.research-1",
+    title: "Allocation research",
+    lifecycle: "active",
+    project_revision: 4,
+    workspace_revision: 7,
+    destination: "/projects/project.research-1#workspace",
+    target_status: "available",
+    validated_at: "2026-10-17T10:03:00Z",
+  };
+  return {
+    ...workspace,
+    revision: 4,
+    records: [
+      {
+        record_kind: "note",
+        record_id: "note-allocation",
+        title: "Allocation review",
+        body: "Review the allocation assumptions.",
+        archived: false,
+        created_at: "2026-10-17T10:01:00Z",
+        updated_at: "2026-10-17T10:01:00Z",
+        target: { ...target, target_status: "stale" },
+      },
+      {
+        record_kind: "bookmark",
+        record_id: "bookmark-file",
+        label: "Closed file",
+        archived: false,
+        created_at: "2026-10-17T10:02:00Z",
+        updated_at: "2026-10-17T10:02:00Z",
+        target: {
+          ...target,
+          reference_kind: "project_artifact",
+          artifact_id: "artifact.inputs-1",
+          artifact_version: 3,
+          artifact_kind: "dataset",
+          logical_path: "evidence/allocation-inputs.csv",
+          media_type: "text/csv",
+          inspection_mode: "plain_text",
+          byte_count: 4096,
+          content_digest: "f".repeat(64),
+          created_at: "2026-10-17T10:02:00Z",
+          destination: "/projects/project.research-1#artifact-artifact.inputs-1-v3",
+          target_status: "unavailable",
+        },
+      },
+      {
+        record_kind: "bookmark",
+        record_id: "bookmark-project",
+        label: "Project overview",
+        archived: true,
+        created_at: "2026-10-17T10:03:00Z",
+        updated_at: "2026-10-17T10:03:00Z",
+        target,
+      },
+    ],
+    updated_at: "2026-10-17T10:03:00Z",
+    workspace_digest: "4".padStart(64, "0"),
+  };
+}
+
 async function mockSavedLearning(page: Page, options: {
   applyFirstMutationBeforeFailure?: boolean;
   firstMutationCode?: string;
   firstMutationStatus?: number;
+  initialWorkspace?: ReturnType<typeof emptyWorkspace>;
   invalidRead?: boolean;
   readStatus?: number;
+  refreshStatus?: "available" | "stale" | "unavailable";
 } = {}) {
-  let workspace = emptyWorkspace();
+  let workspace = structuredClone(options.initialWorkspace ?? emptyWorkspace());
   let mutationCount = 0;
   const posts: Record<string, unknown>[] = [];
   const completed = new Map<string, ReturnType<typeof emptyWorkspace>>();
@@ -72,6 +140,64 @@ async function mockSavedLearning(page: Page, options: {
         });
       }
       return json(route, 200, workspace);
+    }
+    if (url.pathname === "/api/v1/personal-workspace/query" && request.method() === "POST") {
+      const body = request.postDataJSON() as Record<string, unknown>;
+      let records = [...workspace.records];
+      if (typeof body.text === "string") {
+        const text = body.text.toLocaleLowerCase();
+        records = records.filter((record) => {
+          const target = record.target as Record<string, unknown>;
+          return [record.title, record.body, record.label, target.title]
+            .some((value) => typeof value === "string" && value.toLocaleLowerCase().includes(text));
+        });
+      }
+      const matchOne = (record: Record<string, unknown>, key: "record_kind", values: unknown) =>
+        !Array.isArray(values) || values.includes(record[key]);
+      const matchTarget = (record: Record<string, unknown>, key: string, values: unknown) => {
+        const target = record.target as Record<string, unknown>;
+        return !Array.isArray(values) || values.includes(target[key]);
+      };
+      records = records.filter((record) =>
+        matchOne(record, "record_kind", body.record_kinds) &&
+        matchTarget(record, "owner_module", body.owner_modules) &&
+        matchTarget(record, "reference_kind", body.reference_kinds) &&
+        matchTarget(record, "target_status", body.target_statuses) &&
+        (typeof body.archived !== "boolean" || record.archived === body.archived));
+      if (typeof body.collection_id === "string") {
+        const collection = workspace.collections.find((item) => item.collection_id === body.collection_id);
+        const members = new Set(collection?.member_record_ids as string[] | undefined);
+        records = records.filter((record) => members.has(String(record.record_id)));
+      }
+      const sort = body.sort ?? "workspace_order";
+      const textValue = (record: Record<string, unknown>) =>
+        String(record.title ?? record.label ?? "").toLocaleLowerCase();
+      if (sort === "updated_desc" || sort === "updated_asc") {
+        const direction = sort === "updated_desc" ? -1 : 1;
+        records.sort((left, right) => direction * String(left.updated_at).localeCompare(String(right.updated_at)));
+      } else if (sort === "title_asc") {
+        records.sort((left, right) => textValue(left).localeCompare(textValue(right)));
+      } else if (sort === "source_asc") {
+        records.sort((left, right) => {
+          const leftTarget = left.target as Record<string, unknown>;
+          const rightTarget = right.target as Record<string, unknown>;
+          return String(leftTarget.title).localeCompare(String(rightTarget.title));
+        });
+      }
+      const offset = typeof body.cursor === "string"
+        ? Number.parseInt(body.cursor.replace(/^offset_/, ""), 10)
+        : 0;
+      const limit = Number(body.limit ?? 50);
+      const pageRecords = records.slice(offset, offset + limit);
+      const nextOffset = offset + pageRecords.length;
+      return json(route, 200, {
+        schema_version: "1.0.0",
+        workspace_revision: workspace.revision,
+        query_digest: "e".repeat(64),
+        applied_query: body,
+        records: pageRecords,
+        next_cursor: nextOffset < records.length ? `offset_${nextOffset}` : null,
+      });
     }
     if (url.pathname === "/api/v1/personal-workspace/mutations" && request.method() === "POST") {
       const body = request.postDataJSON() as Record<string, unknown>;
@@ -163,6 +289,20 @@ async function mockSavedLearning(page: Page, options: {
         workspace.records = (mutation.record_ids as string[]).flatMap((recordId) => {
           const record = byId.get(recordId);
           return record ? [record] : [];
+        });
+      } else if (mutation.operation === "refresh_reference") {
+        workspace.records = workspace.records.map((record) => {
+          if (record.record_id !== mutation.record_id) return record;
+          const target = record.target as Record<string, unknown>;
+          return {
+            ...record,
+            updated_at: now,
+            target: {
+              ...target,
+              target_status: options.refreshStatus ?? "available",
+              validated_at: now,
+            },
+          };
         });
       } else if (mutation.operation === "remove_record") {
         workspace.records = workspace.records.filter((record) => record.record_id !== mutation.record_id);
@@ -276,6 +416,59 @@ test("saves, edits, organizes, and reopens learning through the generated public
   expect(new Set(mocked.posts.map((body) => body.idempotency_key)).size).toBe(mocked.posts.length);
 });
 
+test("filters saved sources, suppresses unsafe links, and refreshes through the public API", async ({ page }) => {
+  const mocked = await mockSavedLearning(page, {
+    initialWorkspace: projectWorkspace(),
+    refreshStatus: "available",
+  });
+  await page.goto("/saved-learning?source=project&status=stale&limit=1");
+
+  await expect(page.getByLabel("Source area")).toHaveValue("project");
+  await expect(page.getByLabel("Source status")).toHaveValue("stale");
+  await expect(page.getByRole("heading", { name: "Allocation review" })).toBeVisible();
+  await expect(page.getByText("Saved details changed.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open saved source" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Move earlier" })).toHaveCount(0);
+
+  const refresh = page.waitForRequest((request) =>
+    request.method() === "POST" && new URL(request.url()).pathname.endsWith("/personal-workspace/mutations"));
+  await page.getByRole("button", { name: "Check source" }).click();
+  const refreshRequest = await refresh;
+  await expect(page).toHaveURL(/\/saved-learning$/);
+  await expect(page.getByRole("heading", { name: "Allocation review" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open saved source" }).first()).toBeVisible();
+  expect((refreshRequest.postDataJSON() as Record<string, unknown>).mutation).toEqual({
+    operation: "refresh_reference",
+    record_id: "note-allocation",
+  });
+  expect(mocked.workspace().records[0]?.target).toMatchObject({ target_status: "available" });
+});
+
+test("keeps page size with an opaque continuation and never reorders a partial result", async ({ page }) => {
+  await mockSavedLearning(page, { initialWorkspace: projectWorkspace() });
+  await page.goto("/saved-learning?source=project&limit=1");
+
+  await expect(page.getByRole("heading", { name: "Allocation review" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Closed file" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Move earlier" })).toHaveCount(0);
+  const more = page.getByRole("link", { name: "Show more results" });
+  await expect(more).toHaveAttribute("href", "/saved-learning?source=project&limit=1&cursor=offset_1");
+  await more.click();
+  await expect(page.getByRole("heading", { name: "Closed file" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Allocation review" })).toHaveCount(0);
+});
+
+test("rejects unknown browser filters before opening a learner session", async ({ page }) => {
+  let apiRequests = 0;
+  await page.route("**/api/v1/**", async (route) => {
+    apiRequests += 1;
+    return json(route, 500, { code: "should_not_be_called" });
+  });
+  await page.goto("/saved-learning?owner=learner-one");
+  await expect(page.getByRole("heading", { name: "Search could not be shown" })).toBeVisible();
+  expect(apiRequests).toBe(0);
+});
+
 test("reuses the complete original request after an accepted write loses its response", async ({ page }) => {
   const mocked = await mockSavedLearning(page, { firstMutationStatus: 503, applyFirstMutationBeforeFailure: true });
   await page.goto("/saved-learning/new?kind=lesson&placement=cash-flow-primary");
@@ -331,7 +524,7 @@ for (const [code, heading] of [
 for (const [status, heading] of [
   [401, "Learner session needed"],
   [403, "Saved learning unavailable"],
-  [404, "Learning item not found"],
+  [404, "Item not available"],
 ] as const) {
   test(`fails closed when workspace loading returns ${status}`, async ({ page }) => {
     await mockSavedLearning(page, { readStatus: status });
