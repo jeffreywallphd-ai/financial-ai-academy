@@ -10,7 +10,7 @@ capability: CAP-0018
 depends_on: [WRK-0155, WRK-0157]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/presentation-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0156-qualify-presentation-preferences-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/presentation-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "backend/src/financial_ai_academy/modules/learner_model/application/service.py", "backend/tests/integration/learner_model/test_postgres_preferences.py", "backend/tests/integration/learner_model/test_postgres_presentation_preferences.py", "backend/tests/unit/learner_model/test_preference_service.py", "backend/tests/unit/learner_model/test_presentation_preference_service.py", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0156-qualify-presentation-preferences-live-flow.md", "docs/planning/work-packets/WRK-0157-close-preference-exact-replay-race-window.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
 base_revision: 6594770baec80fa262b99601d1d2416b81d5a3ba
 claim_id: WRK-0156:ab94757e-96ba-48da-a2c2-aebd9c86fd35
@@ -309,3 +309,8 @@ changed, then leave SLI-0075 closure-ready.
   concurrent exact-replay split-read window for both preference families.
   The qualification remains limited to its original browser, headless API,
   PostgreSQL, restart, privacy, accessibility, and cleanup evidence.
+- 2026-10-17: Expanded the exact-candidate coordination scope only to include
+  WRK-0157's six completed correction paths. This lets the cumulative
+  qualification bind its dependency-complete descendant instead of treating
+  already verified dependency changes as an unrelated scope escape; it grants
+  no new product work and changes no packet objective or acceptance scenario.
