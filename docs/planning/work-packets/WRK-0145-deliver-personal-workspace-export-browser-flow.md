@@ -1,7 +1,7 @@
 ---
 id: WRK-0145
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/features/personal-workspace/api.ts", "apps/web/src/features/personal-workspace/model.ts", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/src/features/personal-workspace/PersonalWorkspaceRoutes.tsx", "apps/web/src/styles/personal-workspace.css", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/browser/personal-workspace/personal-workspace.spec.ts", "apps/web/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0073-qualify-personal-workspace-durability-boundaries.md", "docs/planning/work-packets/WRK-0145-deliver-personal-workspace-export-browser-flow.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d55878142b3ac8e21bd84fe705542ffc104818eb
+claim_id: WRK-0145:d39726bc-3261-4743-ac7e-b3921a334c88
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T17:26:24Z
 ---
 
 # Agent Work Packet: Deliver the Personal Workspace Export Browser Flow
@@ -221,3 +221,6 @@ recovery and slice-closure work.
 - 2026-10-17: Validated the bounded browser-only packet with resolved decisions,
   a completed WRK-0144 dependency, executable checks, and no active scope
   collision; advanced it to ready without changing the approved CAP package.
+- 2026-10-17: Activated from the recorded base after confirming the current CAP
+  binding, completed dependency, exact bounded scope, resolved decisions, and
+  no active coordination collision.
