@@ -205,7 +205,7 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0131 | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | complete |
 | WRK-0132 | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0131 | none | complete |
-| JIT-C | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | JIT-B | none | proposed |
+| WRK-0133 | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | WRK-0132 | none | ready |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | JIT-C | none | proposed |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
@@ -305,3 +305,7 @@ authority were not delivered or qualified.
   affected-path, documentation, planning, whitespace, and aggregate readiness
   checks passed. JIT-C is now dependency-ready; browser and cumulative live
   qualification remain pending.
+- 2026-10-17: Refined JIT-C as WRK-0133 around the generated-client-only
+  `Saved learning` route, contextual exact-resource save entry, complete
+  learner-owned mutation set, fail-closed browser validation, accessible
+  technical records, and plain-language/theme/anti-rigidity evidence.
