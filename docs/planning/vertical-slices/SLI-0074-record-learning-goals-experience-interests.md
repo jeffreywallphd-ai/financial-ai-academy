@@ -205,7 +205,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0147 | Freeze learner-preference v1 profile, mutation, history/export, compatibility, pure domain, transport-neutral parser/projector, privacy, and anti-rigidity contracts | none | none | ready |
-| JIT-B | Compose Learner-model application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0147 | none | captured |
+| WRK-0148 | Compose Learner-model application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0147 | none | ready |
 | JIT-C | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | JIT-C | none | captured |
 
@@ -278,3 +278,6 @@ approval history.
 - 2026-10-17: Activated through dependency-ready WRK-0147 after confirming the
   current CAP package, resolved decision posture, exact bounded write scope,
   and exclusive file-edit ownership. No lower-level approval is required.
+- 2026-10-17: Refined dependency-ready JIT-B as WRK-0148 after the exact
+  learner-preference contract and pure core completed. The packet keeps one
+  protected browser/headless API and adds no new durable decision.
