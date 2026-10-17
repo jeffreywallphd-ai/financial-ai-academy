@@ -1,7 +1,7 @@
 ---
 id: SLI-0033
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -280,3 +280,6 @@ AI mode, and autonomous authority were not planned or added.
   cumulative acceptance map and exact closure evidence. Product, contract,
   harness, provider, execution, and managed-cloud changes remain outside its
   bounded scope.
+- 2026-10-17: Activated WRK-0130 after the implementation gate confirmed the
+  current CAP binding, completed dependencies, resolved decisions, bounded
+  documentation-only scope, and collision-free ownership.

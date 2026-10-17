@@ -1,7 +1,7 @@
 ---
 id: WRK-0130
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0007-complete-applied-projects.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0033-qualify-complete-applied-project-capability.md", "docs/planning/work-packets/WRK-0130-qualify-complete-applied-project-capability.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 695daedd47242ed135b04940215794a5827ed195
+claim_id: WRK-0130:69ab219b-cc2f-4e1f-9f07-a9ed3e756e2e
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T05:39:10Z
 ---
 
 # Agent Work Packet: Qualify the Complete Applied Project Capability
@@ -235,3 +235,6 @@ for local main fast-forward when every deterministic closure condition passes.
   completed. The packet uses one documentation-only acceptance map and current
   focused evidence rather than a duplicate meta-runner. Any material product or
   harness defect stops this packet and routes to separately bounded work.
+- 2026-10-17: Claimed from base revision `695daed` after validating current
+  CAP membership, completed focused-qualification dependencies, decision
+  readiness, exact documentation-only scope, and exclusive edit ownership.
