@@ -1,7 +1,7 @@
 ---
 id: SLI-0032
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -236,7 +236,7 @@ scope is refined just in time.
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | ready |
+| WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | active |
 | JIT-B | Deliver Assessment-owned application/persistence, Project/Content/Curriculum public adapters, atomic evidence/event storage, replay, supersession, and protected API/generated client | JIT-A | none | captured |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
@@ -327,3 +327,6 @@ qualified.
   transport-neutral Assessment Project submission/evidence family and pure
   milestone-to-snapshot validation policy while persistence, API, projections,
   Audit consumption, browser behavior, and live qualification remain deferred.
+- 2026-10-17: Activated the slice and WRK-0124 after the CAP authority,
+  implementation gate, dependency state, bounded scope, and durable packet
+  claim were revalidated against the current repository revision.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0124
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_contract.py", "backend/src/financial_ai_academy/modules/assessment/domain/project_submission.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission.py", "backend/tests/contract/assessment_project/**", "backend/tests/unit/assessment/test_project_submission_contract.py", "contracts/compatibility/assessment-project/v1/**", "contracts/learning/README.md", "contracts/learning/assessment/project/v1/**", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0124-freeze-project-learning-submission-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 190980984006a8882890ed685c7215532b91aba1
+claim_id: WRK-0124:bf383a13-ffc2-4c93-8e62-743e43d5678d
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T03:09:19Z
 ---
 
 # Agent Work Packet: Freeze Project Learning-Submission Contracts
@@ -225,3 +225,6 @@ advice, cloud profile, external action, or AI-specific authority was added.
   deterministic closure policy before any stateful or user-interface layer can
   invent requirement, completion, or supersession meaning. The scope conforms
   to CAP-0007 and exposes no new decision gate.
+- 2026-10-17: Activated after the implementation gate passed and the exact
+  write scope was durably claimed from the current base revision. No
+  lower-level approval was requested or recorded.
