@@ -209,7 +209,7 @@ packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | captured |
+| WRK-0139 | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | ready |
 | JIT-B | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | JIT-A | none | captured |
 | JIT-C | Deliver plain-language browser search, filters, status, per-record refresh, and accessible safe resume through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | JIT-C | none | captured |
@@ -291,3 +291,8 @@ approval is requested.
   accepted Curriculum and Project reference kinds. Future adapters remain
   optional and separately gated; the refinement conforms to the approved CAP
   package and requires no lower-level approval.
+- 2026-10-17: Refined JIT-A as WRK-0139 around additive query/result,
+  continuation, three-state reference, and server-enriched refresh contracts,
+  pure deterministic search/status behavior, compatibility, confidentiality,
+  and anti-rigidity evidence. Application, persistence, API/client, browser,
+  and live behavior remain later packet seams.
