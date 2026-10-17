@@ -243,6 +243,13 @@ describe("Project response validation", () => {
         { ...baseArtifact, artifact_id: "artifact-two", logical_path: "data/STRASSE.csv" },
       ],
     }, project)).toBe(false);
+    expect(projectWorkspaceIsSafe({
+      ...workspace,
+      artifacts: [
+        { ...baseArtifact, logical_path: "data/ı.csv" },
+        { ...baseArtifact, artifact_id: "artifact-two", logical_path: "data/i.csv" },
+      ],
+    }, project)).toBe(true);
   });
 
   it("rejects a snapshot list that is duplicated, uncorrelated, or technically extended", () => {

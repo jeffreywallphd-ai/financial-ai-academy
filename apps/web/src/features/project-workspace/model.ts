@@ -1,4 +1,5 @@
 import type { components } from "../../generated/api-client";
+import { unicodeCaseFold16 } from "./unicodeCaseFold";
 
 export type ProjectShell = components["schemas"]["ProjectShellResponseModel"];
 export type LearningProjectStartOption =
@@ -290,10 +291,7 @@ function domainLinkIsSafe(value: unknown): boolean {
 }
 
 function logicalPathComparisonKey(value: string): string {
-  // The Project contract owns NFC plus Unicode case-folded path identity. The
-  // upper/lower expansion catches full folds such as ß/ss as well as ordinary
-  // case aliases without changing the displayed logical path.
-  return value.normalize("NFC").toLocaleUpperCase("und").toLocaleLowerCase("und");
+  return unicodeCaseFold16(value);
 }
 
 export function projectWorkspaceIsSafe(value: unknown, project?: ProjectShell): value is ProjectWorkspace {
