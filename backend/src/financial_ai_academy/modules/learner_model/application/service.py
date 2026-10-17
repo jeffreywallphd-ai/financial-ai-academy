@@ -22,26 +22,46 @@ from ..domain.preferences import (
     PreferenceHistory,
     validate_preference_history,
 )
+from ..domain.presentation_preferences import (
+    InvalidPresentationPreference,
+    PresentationPreferenceExport,
+    PresentationPreferenceHistory,
+    PresentationPreferenceProfile,
+    validate_presentation_preference_history,
+)
 from ..ports.gateways import CompletionEvidenceSourcePort
 from ..ports.preference_contract import (
     LearnerPreferenceContract,
     LearnerPreferenceContractFailure,
+)
+from ..ports.presentation_preference_contract import (
+    PresentationPreferenceContract,
+    PresentationPreferenceContractFailure,
 )
 from ..ports.repositories import (
     CompletionProjectionRepositoryPort,
     LearnerPreferenceIdempotencyConflict,
     LearnerPreferenceRepositoryPort,
     LearnerPreferenceRevisionConflict,
+    PresentationPreferenceRepositoryPort,
 )
-from ..ports.system import ClockPort, IdentifierPort, PreferenceSeedPort
+from ..ports.system import (
+    ClockPort,
+    IdentifierPort,
+    PreferenceSeedPort,
+    PresentationPreferenceSeedPort,
+)
 from ..public import (
+    ExportPresentationPreferencesRequest,
     ExportLearnerPreferencesRequest,
     LearnerModelError,
     LearnerModelErrorCode,
     LessonCompletionHistoryEntry,
     LessonCompletionView,
     MutateLearnerPreferencesRequest,
+    MutatePresentationPreferencesRequest,
     OpenLearnerPreferencesRequest,
+    OpenPresentationPreferencesRequest,
     OpenLessonCompletionRequest,
     OpenPracticeHistoryRequest,
     OpenProjectCompletionRequest,
@@ -51,6 +71,7 @@ from ..public import (
     ProjectCompletionHistoryEntry,
     ProjectCompletionView,
     ReadLearnerPreferenceHistoryRequest,
+    ReadPresentationPreferenceHistoryRequest,
 )
 
 
@@ -64,6 +85,13 @@ class LearnerModelService:
         preference_contract: LearnerPreferenceContract | None = None,
         preference_identifiers: IdentifierPort | None = None,
         preference_seeds: PreferenceSeedPort | None = None,
+        presentation_preference_repository: (
+            PresentationPreferenceRepositoryPort | None
+        ) = None,
+        presentation_preference_contract: (
+            PresentationPreferenceContract | None
+        ) = None,
+        presentation_preference_seeds: PresentationPreferenceSeedPort | None = None,
     ) -> None:
         self._source = source
         self._repository = repository
@@ -72,6 +100,9 @@ class LearnerModelService:
         self._preference_contract = preference_contract
         self._preference_identifiers = preference_identifiers
         self._preference_seeds = preference_seeds
+        self._presentation_preference_repository = presentation_preference_repository
+        self._presentation_preference_contract = presentation_preference_contract
+        self._presentation_preference_seeds = presentation_preference_seeds
 
     def open_lesson_completion(
         self, request: OpenLessonCompletionRequest
@@ -334,6 +365,198 @@ class LearnerModelService:
         except Exception as error:
             raise self._preference_unavailable("export") from error
 
+    def open_presentation_preferences(
+        self, request: OpenPresentationPreferencesRequest
+    ) -> PresentationPreferenceProfile:
+        self._validate_learner(request.learner_id)
+        repository, contract, seeds = self._presentation_preference_dependencies()
+        try:
+            stored = repository.get_presentation_preferences(request.learner_id)
+            return self._revalidate_presentation_preference(
+                stored
+                or self._default_presentation_preferences(
+                    request.learner_id, contract, seeds
+                ),
+                contract,
+            )
+        except LearnerModelError:
+            raise
+        except PresentationPreferenceContractFailure as error:
+            raise self._presentation_preference_integrity(error.reference) from error
+        except Exception as error:
+            raise self._presentation_preference_unavailable() from error
+
+    def mutate_presentation_preferences(
+        self, request: MutatePresentationPreferencesRequest
+    ) -> PresentationPreferenceProfile:
+        self._validate_learner(request.learner_id)
+        repository, contract, seeds = self._presentation_preference_dependencies()
+        intent = request.intent
+        try:
+            fingerprint = self._preference_fingerprint(
+                contract.mutation_intent_document(intent)
+            )
+            replay = repository.get_presentation_preference_replay(
+                request.learner_id, intent.idempotency_key
+            )
+            if replay is not None:
+                accepted_fingerprint, profile = replay
+                if accepted_fingerprint != fingerprint:
+                    raise LearnerModelError(
+                        LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                        "That request key already names a different display change.",
+                        reference=intent.idempotency_key,
+                    )
+                return self._revalidate_presentation_preference(profile, contract)
+            current = repository.get_presentation_preferences(request.learner_id)
+            current = self._revalidate_presentation_preference(
+                current
+                or self._default_presentation_preferences(
+                    request.learner_id, contract, seeds
+                ),
+                contract,
+            )
+            if intent.expected_revision != current.revision:
+                raise self._presentation_preference_stale(intent.idempotency_key)
+            accepted, change = contract.apply_mutation(
+                current, intent, occurred_at=self._clock.now()
+            )
+            stored = repository.save_presentation_preferences_if_revision(
+                idempotency_key=intent.idempotency_key,
+                request_fingerprint=fingerprint,
+                expected_revision=intent.expected_revision,
+                profile=accepted,
+                change=change,
+            )
+            return self._revalidate_presentation_preference(stored, contract)
+        except LearnerModelError:
+            raise
+        except LearnerPreferenceIdempotencyConflict as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                "That request key already names a different display change.",
+                reference=intent.idempotency_key,
+            ) from error
+        except LearnerPreferenceRevisionConflict as error:
+            raise self._presentation_preference_stale(intent.idempotency_key) from error
+        except PresentationPreferenceContractFailure as error:
+            raise self._presentation_preference_contract_error(error) from error
+        except Exception as error:
+            raise self._presentation_preference_unavailable(
+                intent.idempotency_key
+            ) from error
+
+    def read_presentation_preference_history(
+        self, request: ReadPresentationPreferenceHistoryRequest
+    ) -> PresentationPreferenceHistory:
+        self._validate_learner(request.learner_id)
+        repository, contract, seeds = self._presentation_preference_dependencies()
+        try:
+            profile = repository.get_presentation_preferences(request.learner_id)
+            current = self._revalidate_presentation_preference(
+                profile
+                or self._default_presentation_preferences(
+                    request.learner_id, contract, seeds
+                ),
+                contract,
+            )
+            history = repository.get_presentation_preference_history(
+                request.learner_id
+            )
+            if history is None:
+                history = PresentationPreferenceHistory(
+                    schema_version="1.0.0",
+                    profile_id=current.profile_id,
+                    current_revision=current.revision,
+                    changes=(),
+                )
+            validate_presentation_preference_history(history, current)
+            return history
+        except LearnerModelError:
+            raise
+        except (
+            PresentationPreferenceContractFailure,
+            InvalidPresentationPreference,
+        ) as error:
+            raise self._presentation_preference_integrity(
+                getattr(error, "reference", "history")
+            ) from error
+        except Exception as error:
+            raise self._presentation_preference_unavailable("history") from error
+
+    def export_presentation_preferences(
+        self, request: ExportPresentationPreferencesRequest
+    ) -> PresentationPreferenceExport:
+        self._validate_learner(request.learner_id)
+        _, contract, _ = self._presentation_preference_dependencies()
+        try:
+            profile = self.open_presentation_preferences(
+                OpenPresentationPreferencesRequest(request.learner_id)
+            )
+            history = self.read_presentation_preference_history(
+                ReadPresentationPreferenceHistoryRequest(request.learner_id)
+            )
+            exported = PresentationPreferenceExport(
+                schema_version="1.0.0",
+                purpose="A portable copy of the display choices you selected.",
+                limitations=(
+                    "These choices are not a diagnosis or learning assessment.",
+                    "Browser theme is stored separately and is not included.",
+                ),
+                exported_at=self._clock.now(),
+                profile=profile,
+                history=history,
+            )
+            return contract.parse_export(
+                self._json_bytes(contract.export_document(exported))
+            )
+        except LearnerModelError:
+            raise
+        except PresentationPreferenceContractFailure as error:
+            raise self._presentation_preference_integrity(error.reference) from error
+        except Exception as error:
+            raise self._presentation_preference_unavailable("export") from error
+
+    def _presentation_preference_dependencies(self) -> tuple[
+        PresentationPreferenceRepositoryPort,
+        PresentationPreferenceContract,
+        PresentationPreferenceSeedPort,
+    ]:
+        if (
+            self._presentation_preference_repository is None
+            or self._presentation_preference_contract is None
+            or self._presentation_preference_seeds is None
+        ):
+            raise self._presentation_preference_unavailable()
+        return (
+            self._presentation_preference_repository,
+            self._presentation_preference_contract,
+            self._presentation_preference_seeds,
+        )
+
+    @staticmethod
+    def _default_presentation_preferences(
+        learner_id: str,
+        contract: PresentationPreferenceContract,
+        seeds: PresentationPreferenceSeedPort,
+    ) -> PresentationPreferenceProfile:
+        seed = seeds.for_learner(learner_id)
+        return contract.default_profile(
+            profile_id=seed.profile_id,
+            learner_id=learner_id,
+            created_at=seed.created_at,
+        )
+
+    @classmethod
+    def _revalidate_presentation_preference(
+        cls,
+        profile: PresentationPreferenceProfile,
+        contract: PresentationPreferenceContract,
+    ) -> PresentationPreferenceProfile:
+        return contract.parse_profile(
+            cls._json_bytes(contract.profile_document(profile))
+        )
+
     def _preference_dependencies(self) -> tuple[
         LearnerPreferenceRepositoryPort,
         LearnerPreferenceContract,
@@ -464,6 +687,44 @@ class LearnerModelService:
         return LearnerModelError(
             LearnerModelErrorCode.UNAVAILABLE,
             "Learning preferences are temporarily unavailable.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _presentation_preference_contract_error(
+        error: PresentationPreferenceContractFailure,
+    ) -> LearnerModelError:
+        if error.code.endswith("stale_revision"):
+            return LearnerModelService._presentation_preference_stale(error.reference)
+        return LearnerModelError(
+            LearnerModelErrorCode.INVALID_REQUEST,
+            "The display preference change is not valid.",
+            reference=error.reference,
+        )
+
+    @staticmethod
+    def _presentation_preference_stale(reference: str) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.STALE_REVISION,
+            "Display choices changed. Refresh them before trying again.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _presentation_preference_integrity(reference: str) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.INTEGRITY_FAILURE,
+            "Saved display choices could not be verified.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _presentation_preference_unavailable(
+        reference: str = "learner-presentation-preferences",
+    ) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.UNAVAILABLE,
+            "Display choices are temporarily unavailable.",
             reference=reference,
         )
 

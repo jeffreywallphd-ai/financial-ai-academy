@@ -23,6 +23,9 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     project = contracts / "learning" / "project" / "v1"
     personal_workspace = contracts / "learning" / "personal-workspace" / "v1"
     learner_preferences = contracts / "learning" / "learner-preferences" / "v1"
+    learner_presentation_preferences = (
+        contracts / "learning" / "learner-presentation-preferences" / "v1"
+    )
     migrations = tmp_path / "migrations"
     for directory in (
         lesson,
@@ -33,6 +36,7 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
         project,
         personal_workspace,
         learner_preferences,
+        learner_presentation_preferences,
         migrations,
     ):
         directory.mkdir(parents=True, exist_ok=True)
@@ -58,4 +62,8 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     assert settings.assessment_project_schema_dir == assessment_project
     assert settings.personal_workspace_schema_dir == personal_workspace
     assert settings.learner_preference_schema_dir == learner_preferences
+    assert (
+        settings.learner_presentation_preference_schema_dir
+        == learner_presentation_preferences
+    )
     assert isinstance(settings.validate(), SingleProfileRequestPolicy)

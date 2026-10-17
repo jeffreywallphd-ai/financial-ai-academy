@@ -1,6 +1,6 @@
 # Learner Presentation Preferences Contract
 
-- Status: accepted for SLI-0075 contract core
+- Status: accepted and composed through the protected public API
 - Canonical for: explicit learner-owned presentation choices
 - Executable family: `contracts/learning/learner-presentation-preferences/v1/`
 
@@ -63,9 +63,25 @@ theme data.
 The profile digest is SHA-256 over compact sorted-key JSON encoded directly as
 UTF-8 with `profile_digest` omitted. The pure contract adapter issues no
 identity or time, persists nothing, and has no database, network, filesystem,
-provider, model, browser, design-token, or cross-module effect. A later public
-application boundary supplies identity, authorization, server facts, replay,
-and persistence for both browser and headless clients.
+provider, model, browser, design-token, or cross-module effect.
+
+## Persistence and Public API
+
+The application boundary supplies learner identity from the opaque server
+session, canonical time, deterministic profile identity, exact mutation
+fingerprinting, optimistic revision checks, and safe public errors. The
+Learner-model PostgreSQL adapter owns the current profile, replay records, and
+newest 100 summaries in additive `learner_model_0005` tables. An absent row is
+a side-effect-free virtual default. A per-learner advisory lock and one
+transaction keep the profile, summary, and replay atomic; exact retry resolves
+before revision comparison.
+
+The reviewed API exposes profile, mutation, history, and export operations
+under `learner_presentation_preferences.read|write`. All reject query-selected
+learner authority and closed models reject unknown fields and values. The
+OpenAPI-generated TypeScript client is the identical contract for browser,
+command-line, service, and future headless clients. Browser-local theme remains
+outside every public and stored learner-owned document.
 
 ## Failure and Compatibility
 

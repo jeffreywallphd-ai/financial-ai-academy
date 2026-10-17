@@ -247,6 +247,16 @@ and reopens the retained meaning after a normal host restart. The browser and
 headless paths therefore remain two clients of one protected API rather than
 separate authorities.
 
+The reviewed generated client also exposes the four learner-owned display-
+choice operations for profile, complete replacement or reset, bounded history,
+and export. They use server-owned learner identity and
+`learner_presentation_preferences.read|write` for browser and headless callers.
+The client accepts only the closed text-size, text-spacing, reading-width, and
+motion values. It does not carry arbitrary CSS, medical or inferred labels,
+evidence, policy, provider, or browser-local theme. The display settings UI and
+runtime token application are delivered separately; their absence does not
+remove this headless API boundary.
+
 `/saved-learning` opens the learner's private notes, bookmarks, and collections
 through the generated Personal-workspace client. Available opportunity-detail
 and lesson pages provide `Save to Saved learning` links that carry only the

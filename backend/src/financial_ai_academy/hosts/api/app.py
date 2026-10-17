@@ -86,16 +86,20 @@ from financial_ai_academy.modules.identity.public import (
 )
 from financial_ai_academy.modules.learner_model.public import (
     ExportLearnerPreferencesRequest,
+    ExportPresentationPreferencesRequest,
     LearnerModelError,
     LearnerModelErrorCode,
     LearnerModelOperations,
     MutateLearnerPreferencesRequest,
+    MutatePresentationPreferencesRequest,
     OpenLearnerPreferencesRequest,
+    OpenPresentationPreferencesRequest,
     OpenLessonCompletionRequest,
     OpenProjectCompletionRequest,
     OpenPracticeHistoryRequest,
     PracticeHistoryView,
     ReadLearnerPreferenceHistoryRequest,
+    ReadPresentationPreferenceHistoryRequest,
 )
 from financial_ai_academy.modules.project.public import (
     CloseProjectSnapshotRequest,
@@ -147,6 +151,10 @@ from .models import (
     LearnerPreferenceHistoryResponseModel,
     LearnerPreferenceMutationRequestModel,
     LearnerPreferenceProfileResponseModel,
+    PresentationPreferenceExportResponseModel,
+    PresentationPreferenceHistoryResponseModel,
+    PresentationPreferenceMutationRequestModel,
+    PresentationPreferenceProfileResponseModel,
     LessonCompletionResponseModel,
     LessonReadingResponseModel,
     NavigationStateResponseModel,
@@ -193,6 +201,10 @@ from .models import (
     learner_preference_history_response,
     learner_preference_mutation_intent,
     learner_preference_profile_response,
+    presentation_preference_export_response,
+    presentation_preference_history_response,
+    presentation_preference_mutation_intent,
+    presentation_preference_profile_response,
     navigation_state_response,
     practice_presentation_response,
     practice_draft_response,
@@ -801,6 +813,26 @@ def create_app(services: ApiServices) -> FastAPI:
             raise IdentityError(
                 IdentityErrorCode.FORBIDDEN,
                 "The learner session cannot change learning preferences.",
+            )
+        return context
+
+    def presentation_preferences_read_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "learner_presentation_preferences.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read display choices.",
+            )
+        return context
+
+    def presentation_preferences_write_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "learner_presentation_preferences.write" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot change display choices.",
             )
         return context
 
@@ -2011,6 +2043,110 @@ def create_app(services: ApiServices) -> FastAPI:
         )
         return learner_preference_export_response(export)
 
+    @app.get(
+        "/api/v1/learner-presentation-preferences",
+        response_model=PresentationPreferenceProfileResponseModel,
+        operation_id="getLearnerPresentationPreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def get_learner_presentation_preferences(
+        request: Request,
+        context: LearnerContext = Depends(presentation_preferences_read_context),
+    ) -> PresentationPreferenceProfileResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Display choices do not accept query input.",
+                reference="query",
+            )
+        profile = _learner_model_service(
+            services.learner_model
+        ).open_presentation_preferences(
+            OpenPresentationPreferencesRequest(learner_id=context.learner_id)
+        )
+        return presentation_preference_profile_response(profile)
+
+    @app.post(
+        "/api/v1/learner-presentation-preferences/mutations",
+        response_model=PresentationPreferenceProfileResponseModel,
+        operation_id="mutateLearnerPresentationPreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def mutate_learner_presentation_preferences(
+        request: Request,
+        request_model: PresentationPreferenceMutationRequestModel,
+        context: LearnerContext = Depends(presentation_preferences_write_context),
+    ) -> PresentationPreferenceProfileResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Display choice changes do not accept query input.",
+                reference="query",
+            )
+        profile = _learner_model_service(
+            services.learner_model
+        ).mutate_presentation_preferences(
+            MutatePresentationPreferencesRequest(
+                learner_id=context.learner_id,
+                intent=presentation_preference_mutation_intent(request_model),
+            )
+        )
+        return presentation_preference_profile_response(profile)
+
+    @app.get(
+        "/api/v1/learner-presentation-preferences/history",
+        response_model=PresentationPreferenceHistoryResponseModel,
+        operation_id="getLearnerPresentationPreferenceHistory",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def get_learner_presentation_preference_history(
+        request: Request,
+        context: LearnerContext = Depends(presentation_preferences_read_context),
+    ) -> PresentationPreferenceHistoryResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Display choice history does not accept query input.",
+                reference="query",
+            )
+        history = _learner_model_service(
+            services.learner_model
+        ).read_presentation_preference_history(
+            ReadPresentationPreferenceHistoryRequest(
+                learner_id=context.learner_id
+            )
+        )
+        return presentation_preference_history_response(history)
+
+    @app.get(
+        "/api/v1/learner-presentation-preferences/export",
+        response_model=PresentationPreferenceExportResponseModel,
+        operation_id="exportLearnerPresentationPreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def export_learner_presentation_preferences(
+        request: Request,
+        context: LearnerContext = Depends(presentation_preferences_read_context),
+    ) -> PresentationPreferenceExportResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Display choice export does not accept query input.",
+                reference="query",
+            )
+        exported = _learner_model_service(
+            services.learner_model
+        ).export_presentation_preferences(
+            ExportPresentationPreferencesRequest(
+                learner_id=context.learner_id
+            )
+        )
+        return presentation_preference_export_response(exported)
+
     def reviewed_openapi() -> dict[str, object]:
         if app.openapi_schema is None:
             schema = get_openapi(
@@ -2055,6 +2191,12 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/learner-preferences/mutations"
             ]["post"]
             preference_mutation_operation["responses"].pop("422", None)
+            presentation_preference_mutation_operation = schema["paths"][
+                "/api/v1/learner-presentation-preferences/mutations"
+            ]["post"]
+            presentation_preference_mutation_operation["responses"].pop(
+                "422", None
+            )
             app.openapi_schema = schema
         return app.openapi_schema
 

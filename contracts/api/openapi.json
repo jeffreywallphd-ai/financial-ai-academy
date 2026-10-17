@@ -6999,6 +6999,282 @@
         "title": "PracticeSubmissionResultResponseModel",
         "type": "object"
       },
+      "PresentationPreferenceChangeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "object_id": {
+            "title": "Object Id",
+            "type": "null"
+          },
+          "object_kind": {
+            "const": "profile",
+            "title": "Object Kind",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "replace_preferences",
+              "reset_profile"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "resulting_profile_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Resulting Profile Digest",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "revision",
+          "operation",
+          "object_kind",
+          "object_id",
+          "occurred_at",
+          "resulting_profile_digest"
+        ],
+        "title": "PresentationPreferenceChangeModel",
+        "type": "object"
+      },
+      "PresentationPreferenceExportResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "exported_at": {
+            "format": "date-time",
+            "title": "Exported At",
+            "type": "string"
+          },
+          "history": {
+            "$ref": "#/components/schemas/PresentationPreferenceHistoryResponseModel"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 320,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Limitations",
+            "type": "array"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/PresentationPreferenceProfileResponseModel"
+          },
+          "purpose": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "purpose",
+          "limitations",
+          "exported_at",
+          "profile",
+          "history"
+        ],
+        "title": "PresentationPreferenceExportResponseModel",
+        "type": "object"
+      },
+      "PresentationPreferenceHistoryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/PresentationPreferenceChangeModel"
+            },
+            "maxItems": 100,
+            "title": "Changes",
+            "type": "array"
+          },
+          "current_revision": {
+            "minimum": 1.0,
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "profile_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "profile_id",
+          "current_revision",
+          "changes"
+        ],
+        "title": "PresentationPreferenceHistoryResponseModel",
+        "type": "object"
+      },
+      "PresentationPreferenceMutationRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "mutation": {
+            "discriminator": {
+              "mapping": {
+                "replace_preferences": "#/components/schemas/ReplacePresentationPreferencesMutationModel",
+                "reset_profile": "#/components/schemas/ResetPresentationPreferencesMutationModel"
+              },
+              "propertyName": "operation"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReplacePresentationPreferencesMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/ResetPresentationPreferencesMutationModel"
+              }
+            ],
+            "title": "Mutation"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "idempotency_key",
+          "expected_revision",
+          "mutation"
+        ],
+        "title": "PresentationPreferenceMutationRequestModel",
+        "type": "object"
+      },
+      "PresentationPreferenceProfileResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "learner_id": {
+            "format": "uuid",
+            "title": "Learner Id",
+            "type": "string"
+          },
+          "motion": {
+            "enum": [
+              "system",
+              "reduce"
+            ],
+            "title": "Motion",
+            "type": "string"
+          },
+          "profile_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Profile Digest",
+            "type": "string"
+          },
+          "profile_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "reading_width": {
+            "enum": [
+              "standard",
+              "focused"
+            ],
+            "title": "Reading Width",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "text_size": {
+            "enum": [
+              "default",
+              "larger"
+            ],
+            "title": "Text Size",
+            "type": "string"
+          },
+          "text_spacing": {
+            "enum": [
+              "default",
+              "increased"
+            ],
+            "title": "Text Spacing",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "profile_id",
+          "learner_id",
+          "revision",
+          "text_size",
+          "text_spacing",
+          "reading_width",
+          "motion",
+          "created_at",
+          "updated_at",
+          "profile_digest"
+        ],
+        "title": "PresentationPreferenceProfileResponseModel",
+        "type": "object"
+      },
       "ProjectAcceptedValidationResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -9851,6 +10127,57 @@
         "title": "ReorderLearnerInterestsMutationModel",
         "type": "object"
       },
+      "ReplacePresentationPreferencesMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "motion": {
+            "enum": [
+              "system",
+              "reduce"
+            ],
+            "title": "Motion",
+            "type": "string"
+          },
+          "operation": {
+            "const": "replace_preferences",
+            "title": "Operation",
+            "type": "string"
+          },
+          "reading_width": {
+            "enum": [
+              "standard",
+              "focused"
+            ],
+            "title": "Reading Width",
+            "type": "string"
+          },
+          "text_size": {
+            "enum": [
+              "default",
+              "larger"
+            ],
+            "title": "Text Size",
+            "type": "string"
+          },
+          "text_spacing": {
+            "enum": [
+              "default",
+              "increased"
+            ],
+            "title": "Text Spacing",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "text_size",
+          "text_spacing",
+          "reading_width",
+          "motion"
+        ],
+        "title": "ReplacePresentationPreferencesMutationModel",
+        "type": "object"
+      },
       "ReplaceProjectNoteModel": {
         "additionalProperties": false,
         "properties": {
@@ -10005,6 +10332,21 @@
           "operation"
         ],
         "title": "ResetLearnerPreferenceProfileMutationModel",
+        "type": "object"
+      },
+      "ResetPresentationPreferencesMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "reset_profile",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "title": "ResetPresentationPreferencesMutationModel",
         "type": "object"
       },
       "SelectLearnerGoalMutationModel": {
@@ -12627,6 +12969,360 @@
           }
         ],
         "summary": "Mutate Learner Preferences",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-presentation-preferences": {
+      "get": {
+        "operationId": "getLearnerPresentationPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentationPreferenceProfileResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Learner Presentation Preferences",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-presentation-preferences/export": {
+      "get": {
+        "operationId": "exportLearnerPresentationPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentationPreferenceExportResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Export Learner Presentation Preferences",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-presentation-preferences/history": {
+      "get": {
+        "operationId": "getLearnerPresentationPreferenceHistory",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentationPreferenceHistoryResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Learner Presentation Preference History",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-presentation-preferences/mutations": {
+      "post": {
+        "operationId": "mutateLearnerPresentationPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresentationPreferenceMutationRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentationPreferenceProfileResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Mutate Learner Presentation Preferences",
         "tags": [
           "learner-model"
         ]

@@ -14,6 +14,10 @@ investment performance.
 - `mutate_preferences(MutateLearnerPreferencesRequest) -> LearnerPreferenceProfile`
 - `read_preference_history(ReadLearnerPreferenceHistoryRequest) -> PreferenceHistory`
 - `export_preferences(ExportLearnerPreferencesRequest) -> PreferenceExport`
+- `open_presentation_preferences(OpenPresentationPreferencesRequest) -> PresentationPreferenceProfile`
+- `mutate_presentation_preferences(MutatePresentationPreferencesRequest) -> PresentationPreferenceProfile`
+- `read_presentation_preference_history(ReadPresentationPreferenceHistoryRequest) -> PresentationPreferenceHistory`
+- `export_presentation_preferences(ExportPresentationPreferencesRequest) -> PresentationPreferenceExport`
 
 SLI-0074 adds a transport-neutral `learner-preferences/v1` contract core for
 explicit learner-entered goals, self-described experience, interests, closed
@@ -108,6 +112,23 @@ normal host restart without reseeding, and unchanged unrelated learning state.
 That evidence does not establish multiple real learners, managed-cloud
 deployment, backup/restore, import, or a separate autonomous AI authority.
 
+`learner_model_0005_presentation_preferences` owns the additive materialized
+display-choice profile, accepted mutation replays, and at most 100 newest
+non-content summaries. An absent row projects deterministic revision-one safe
+choices without a write. Per-learner advisory locking and one transaction keep
+replacement or reset, replay, and summary atomic; exact retry returns the
+accepted profile while changed-key reuse, stale revision, and interrupted
+writes preserve the current state. The migration has no cross-module foreign
+key and refuses a development down migration while retained data exists.
+
+The four protected presentation-preference operations use the server session
+as the only learner selector. Reads require
+`learner_presentation_preferences.read`; mutation requires
+`learner_presentation_preferences.write`. The reviewed OpenAPI and generated
+TypeScript client are the same boundary for browser and ordinary headless
+callers. Browser-local theme is excluded from the profile, mutation, history,
+digest, and exported state.
+
 ## Presentation preference contract core
 
 Learner model also owns the additive pure
@@ -120,8 +141,10 @@ limitations.
 
 These choices are not diagnoses, inferred accessibility needs, Assessment
 evidence, competency, eligibility, permission, recommendations, or financial
-signals. The pure domain and JSON Schema adapter issue no identity or time,
-persist nothing, and have no UI, browser, database, provider, model, or cross-
-module effect. Browser-local theme remains platform-owned and outside this
-contract. A later presentation adapter must preserve browser zoom, forced
-colors, and any more-protective reduced-motion behavior.
+signals. The pure domain and JSON Schema adapter issue no identity or time and
+have no UI, browser, database, provider, model, or cross-module effect. The
+application and PostgreSQL adapter supply server identity, time, optimistic
+replay, and durability without widening the pure core. Browser-local theme
+remains platform-owned and outside this contract. A later presentation adapter
+must preserve browser zoom, forced colors, and any more-protective reduced-
+motion behavior.

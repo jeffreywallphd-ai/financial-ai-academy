@@ -156,6 +156,42 @@ export interface paths {
       };
       readonly post: operations["mutateLearnerPreferences"];
     };
+  readonly "/api/v1/learner-presentation-preferences": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getLearnerPresentationPreferences"];
+    };
+  readonly "/api/v1/learner-presentation-preferences/export": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["exportLearnerPresentationPreferences"];
+    };
+  readonly "/api/v1/learner-presentation-preferences/history": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getLearnerPresentationPreferenceHistory"];
+    };
+  readonly "/api/v1/learner-presentation-preferences/mutations": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["mutateLearnerPresentationPreferences"];
+    };
   readonly "/api/v1/personal-workspace": {
       readonly parameters: {
         readonly query?: never;
@@ -1354,6 +1390,48 @@ export interface components {
       readonly "submission_id": string;
       readonly "submitted_at": string;
     };
+    readonly "PresentationPreferenceChangeModel": {
+      readonly "object_id": null;
+      readonly "object_kind": "profile";
+      readonly "occurred_at": string;
+      readonly "operation": "replace_preferences" | "reset_profile";
+      readonly "resulting_profile_digest": string;
+      readonly "revision": number;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "PresentationPreferenceExportResponseModel": {
+      readonly "exported_at": string;
+      readonly "history": components["schemas"]["PresentationPreferenceHistoryResponseModel"];
+      readonly "limitations": ReadonlyArray<string>;
+      readonly "profile": components["schemas"]["PresentationPreferenceProfileResponseModel"];
+      readonly "purpose": string;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "PresentationPreferenceHistoryResponseModel": {
+      readonly "changes": ReadonlyArray<components["schemas"]["PresentationPreferenceChangeModel"]>;
+      readonly "current_revision": number;
+      readonly "profile_id": string;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "PresentationPreferenceMutationRequestModel": {
+      readonly "expected_revision": number;
+      readonly "idempotency_key": string;
+      readonly "mutation": components["schemas"]["ReplacePresentationPreferencesMutationModel"] | components["schemas"]["ResetPresentationPreferencesMutationModel"];
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "PresentationPreferenceProfileResponseModel": {
+      readonly "created_at": string;
+      readonly "learner_id": string;
+      readonly "motion": "system" | "reduce";
+      readonly "profile_digest": string;
+      readonly "profile_id": string;
+      readonly "reading_width": "standard" | "focused";
+      readonly "revision": number;
+      readonly "schema_version": "1.0.0";
+      readonly "text_size": "default" | "larger";
+      readonly "text_spacing": "default" | "increased";
+      readonly "updated_at": string;
+    };
     readonly "ProjectAcceptedValidationResponseModel": {
       readonly "issues": ReadonlyArray<components["schemas"]["ProjectValidationIssueResponseModel"]>;
       readonly "request_fingerprint": string;
@@ -1769,6 +1847,13 @@ export interface components {
       readonly "operation": "reorder_interests";
       readonly "ordered_ids": ReadonlyArray<string>;
     };
+    readonly "ReplacePresentationPreferencesMutationModel": {
+      readonly "motion": "system" | "reduce";
+      readonly "operation": "replace_preferences";
+      readonly "reading_width": "standard" | "focused";
+      readonly "text_size": "default" | "larger";
+      readonly "text_spacing": "default" | "increased";
+    };
     readonly "ReplaceProjectNoteModel": {
       readonly "body": string;
       readonly "expected_note_version": number;
@@ -1789,6 +1874,9 @@ export interface components {
       readonly "use_constraints"?: string | null;
     };
     readonly "ResetLearnerPreferenceProfileMutationModel": {
+      readonly "operation": "reset_profile";
+    };
+    readonly "ResetPresentationPreferencesMutationModel": {
       readonly "operation": "reset_profile";
     };
     readonly "SelectLearnerGoalMutationModel": {
@@ -2844,6 +2932,222 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["LearnerPreferenceProfileResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getLearnerPresentationPreferences: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PresentationPreferenceProfileResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly exportLearnerPresentationPreferences: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PresentationPreferenceExportResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getLearnerPresentationPreferenceHistory: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PresentationPreferenceHistoryResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly mutateLearnerPresentationPreferences: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PresentationPreferenceMutationRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PresentationPreferenceProfileResponseModel"];
           };
         };
         readonly 400: {

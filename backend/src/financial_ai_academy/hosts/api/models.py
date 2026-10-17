@@ -60,11 +60,18 @@ from financial_ai_academy.modules.learner_model.public import (
     PreferenceExport,
     PreferenceHistory,
     PreferenceMutationIntent,
+    PresentationPreferenceExport,
+    PresentationPreferenceHistory,
+    PresentationPreferenceMutationIntent,
+    PresentationPreferenceProfile,
     PracticeHistoryView,
     ProjectCompletionView,
 )
 from financial_ai_academy.modules.learner_model.domain.preferences import (
     PreferenceMutation,
+)
+from financial_ai_academy.modules.learner_model.domain.presentation_preferences import (
+    PresentationPreferenceMutation,
 )
 from financial_ai_academy.modules.project.public import (
     IndependentProjectOrigin,
@@ -2748,6 +2755,77 @@ class LearnerPreferenceExportResponseModel(LearnerPreferenceTimestampModel):
     history: LearnerPreferenceHistoryResponseModel
 
 
+class PresentationPreferenceProfileResponseModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    profile_id: LearnerPreferenceIdentifier
+    learner_id: UUID
+    revision: int = Field(ge=1)
+    text_size: Literal["default", "larger"]
+    text_spacing: Literal["default", "increased"]
+    reading_width: Literal["standard", "focused"]
+    motion: Literal["system", "reduce"]
+    created_at: datetime
+    updated_at: datetime
+    profile_digest: LearnerPreferenceDigest
+
+
+class ReplacePresentationPreferencesMutationModel(ApiModel):
+    operation: Literal["replace_preferences"]
+    text_size: Literal["default", "larger"]
+    text_spacing: Literal["default", "increased"]
+    reading_width: Literal["standard", "focused"]
+    motion: Literal["system", "reduce"]
+
+
+class ResetPresentationPreferencesMutationModel(ApiModel):
+    operation: Literal["reset_profile"]
+
+
+PresentationPreferenceMutationModel = Annotated[
+    Union[
+        ReplacePresentationPreferencesMutationModel,
+        ResetPresentationPreferencesMutationModel,
+    ],
+    Field(discriminator="operation"),
+]
+
+
+class PresentationPreferenceMutationRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: LearnerPreferenceIdentifier
+    expected_revision: int = Field(ge=1)
+    mutation: PresentationPreferenceMutationModel
+
+
+class PresentationPreferenceChangeModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    revision: int = Field(ge=1)
+    operation: Literal["replace_preferences", "reset_profile"]
+    object_kind: Literal["profile"]
+    object_id: None
+    occurred_at: datetime
+    resulting_profile_digest: LearnerPreferenceDigest
+
+
+class PresentationPreferenceHistoryResponseModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    profile_id: LearnerPreferenceIdentifier
+    current_revision: int = Field(ge=1)
+    changes: list[PresentationPreferenceChangeModel] = Field(max_length=100)
+
+
+class PresentationPreferenceExportResponseModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    purpose: str = Field(min_length=1, max_length=240)
+    limitations: list[LearnerPreferenceLimitation] = Field(
+        min_length=1,
+        max_length=8,
+    )
+    exported_at: datetime
+    profile: PresentationPreferenceProfileResponseModel
+    history: PresentationPreferenceHistoryResponseModel
+
+
 class HealthResponseModel(ApiModel):
     status: Literal["ok", "ready", "not_ready"]
 
@@ -3186,6 +3264,46 @@ def learner_preference_export_response(
     export: PreferenceExport,
 ) -> LearnerPreferenceExportResponseModel:
     return LearnerPreferenceExportResponseModel.model_validate(asdict(export))
+
+
+def presentation_preference_mutation_intent(
+    model: PresentationPreferenceMutationRequestModel,
+) -> PresentationPreferenceMutationIntent:
+    values = model.mutation.model_dump()
+    return PresentationPreferenceMutationIntent(
+        schema_version=model.schema_version,
+        idempotency_key=model.idempotency_key,
+        expected_revision=model.expected_revision,
+        mutation=PresentationPreferenceMutation(
+            operation=values["operation"],
+            text_size=values.get("text_size"),
+            text_spacing=values.get("text_spacing"),
+            reading_width=values.get("reading_width"),
+            motion=values.get("motion"),
+        ),
+    )
+
+
+def presentation_preference_profile_response(
+    profile: PresentationPreferenceProfile,
+) -> PresentationPreferenceProfileResponseModel:
+    return PresentationPreferenceProfileResponseModel.model_validate(
+        asdict(profile)
+    )
+
+
+def presentation_preference_history_response(
+    history: PresentationPreferenceHistory,
+) -> PresentationPreferenceHistoryResponseModel:
+    return PresentationPreferenceHistoryResponseModel.model_validate(
+        asdict(history)
+    )
+
+
+def presentation_preference_export_response(
+    export: PresentationPreferenceExport,
+) -> PresentationPreferenceExportResponseModel:
+    return PresentationPreferenceExportResponseModel.model_validate(asdict(export))
 
 
 def _inline_node(node: content_public.InlineNode) -> InlineNodeModel:

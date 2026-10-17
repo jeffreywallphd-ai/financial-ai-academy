@@ -4,6 +4,24 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/learner-presentation-preferences`, `GET
+/api/v1/learner-presentation-preferences/history`, `GET
+/api/v1/learner-presentation-preferences/export`, and `POST
+/api/v1/learner-presentation-preferences/mutations` are the protected display-
+choice boundary. The reads require
+`learner_presentation_preferences.read`; mutation requires
+`learner_presentation_preferences.write`. The opaque server session supplies
+the learner and all routes reject query-selected authority. The POST accepts
+only complete closed replacement or reset with exact expected revision and
+idempotency key; arbitrary CSS, scales, theme, medical, evidence, policy,
+provider, and model fields fail closed. Empty storage returns deterministic
+safe revision-one choices without writing. Exact replay converges, while
+changed-key reuse and stale revision write nothing. History retains at most
+100 non-content summaries, and export contains the current profile, correlated
+history, purpose, limitations, and server export time. Browser, command-line,
+service, and future headless callers use the same reviewed OpenAPI operations.
+Browser-local `system|light|dark` theme is not API state.
+
 `GET /api/v1/learner-preferences`, `GET
 /api/v1/learner-preferences/history`, `GET
 /api/v1/learner-preferences/export`, and `POST

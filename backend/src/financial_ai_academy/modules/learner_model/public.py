@@ -13,6 +13,12 @@ from .domain.preferences import (
     PreferenceHistory,
     PreferenceMutationIntent,
 )
+from .domain.presentation_preferences import (
+    PresentationPreferenceExport,
+    PresentationPreferenceHistory,
+    PresentationPreferenceMutationIntent,
+    PresentationPreferenceProfile,
+)
 
 
 class LearnerModelErrorCode(StrEnum):
@@ -160,6 +166,27 @@ class ExportLearnerPreferencesRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class OpenPresentationPreferencesRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class MutatePresentationPreferencesRequest:
+    learner_id: str
+    intent: PresentationPreferenceMutationIntent
+
+
+@dataclass(frozen=True, slots=True)
+class ReadPresentationPreferenceHistoryRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ExportPresentationPreferencesRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectCompletionHistoryEntry:
     event_id: str
     evidence_id: str
@@ -221,3 +248,19 @@ class LearnerModelOperations(Protocol):
     def export_preferences(
         self, request: ExportLearnerPreferencesRequest
     ) -> PreferenceExport: ...
+
+    def open_presentation_preferences(
+        self, request: OpenPresentationPreferencesRequest
+    ) -> PresentationPreferenceProfile: ...
+
+    def mutate_presentation_preferences(
+        self, request: MutatePresentationPreferencesRequest
+    ) -> PresentationPreferenceProfile: ...
+
+    def read_presentation_preference_history(
+        self, request: ReadPresentationPreferenceHistoryRequest
+    ) -> PresentationPreferenceHistory: ...
+
+    def export_presentation_preferences(
+        self, request: ExportPresentationPreferencesRequest
+    ) -> PresentationPreferenceExport: ...

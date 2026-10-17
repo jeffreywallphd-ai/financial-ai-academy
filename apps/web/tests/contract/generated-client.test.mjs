@@ -75,6 +75,13 @@ assert.match(schema, /operations\["getLearnerPreferenceHistory"\]/);
 assert.match(schema, /operations\["exportLearnerPreferences"\]/);
 assert.match(schema, /LearnerPreferenceMutationRequestModel/);
 assert.match(schema, /LearnerPreferenceExportResponseModel/);
+assert.match(schema, /\/api\/v1\/learner-presentation-preferences/);
+assert.match(schema, /operations\["getLearnerPresentationPreferences"\]/);
+assert.match(schema, /operations\["mutateLearnerPresentationPreferences"\]/);
+assert.match(schema, /operations\["getLearnerPresentationPreferenceHistory"\]/);
+assert.match(schema, /operations\["exportLearnerPresentationPreferences"\]/);
+assert.match(schema, /PresentationPreferenceMutationRequestModel/);
+assert.match(schema, /PresentationPreferenceExportResponseModel/);
 assert.match(schema, /"available" \| "stale" \| "unavailable"/);
 for (const model of [
   "PersonalLearningOpportunityReferenceModel",

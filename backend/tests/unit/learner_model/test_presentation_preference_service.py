@@ -1,0 +1,231 @@
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import pytest
+
+from financial_ai_academy.modules.learner_model.adapters.presentation_preference_contract import (
+    ContractPresentationPreferenceAdapter,
+)
+from financial_ai_academy.modules.learner_model.adapters.system import (
+    StablePresentationPreferenceSeed,
+)
+from financial_ai_academy.modules.learner_model.application.service import (
+    LearnerModelService,
+)
+from financial_ai_academy.modules.learner_model.domain.presentation_preferences import (
+    PresentationPreferenceChange,
+    PresentationPreferenceHistory,
+    PresentationPreferenceMutation,
+    PresentationPreferenceMutationIntent,
+    PresentationPreferenceProfile,
+)
+from financial_ai_academy.modules.learner_model.ports.repositories import (
+    LearnerPreferenceIdempotencyConflict,
+    LearnerPreferenceRevisionConflict,
+)
+from financial_ai_academy.modules.learner_model.public import (
+    ExportPresentationPreferencesRequest,
+    LearnerModelError,
+    LearnerModelErrorCode,
+    MutatePresentationPreferencesRequest,
+    OpenPresentationPreferencesRequest,
+    ReadPresentationPreferenceHistoryRequest,
+)
+
+
+ROOT = Path(__file__).parents[4]
+SCHEMAS = (
+    ROOT / "contracts" / "learning" / "learner-presentation-preferences" / "v1"
+)
+LEARNER_ID = "11111111-1111-4111-8111-111111111111"
+START = datetime(2026, 10, 17, 22, 0, tzinfo=timezone.utc)
+
+
+class Source:
+    pass
+
+
+class Repository:
+    def __init__(self) -> None:
+        self.profile: PresentationPreferenceProfile | None = None
+        self.changes: list[PresentationPreferenceChange] = []
+        self.replays: dict[str, tuple[str, PresentationPreferenceProfile]] = {}
+        self.save_count = 0
+
+    def get_presentation_preferences(self, learner_id: str):
+        assert learner_id == LEARNER_ID
+        return self.profile
+
+    def get_presentation_preference_history(self, learner_id: str):
+        assert learner_id == LEARNER_ID
+        if self.profile is None:
+            return None
+        return PresentationPreferenceHistory(
+            schema_version="1.0.0",
+            profile_id=self.profile.profile_id,
+            current_revision=self.profile.revision,
+            changes=tuple(self.changes[-100:]),
+        )
+
+    def get_presentation_preference_replay(
+        self, learner_id: str, idempotency_key: str
+    ):
+        assert learner_id == LEARNER_ID
+        return self.replays.get(idempotency_key)
+
+    def save_presentation_preferences_if_revision(
+        self,
+        *,
+        idempotency_key: str,
+        request_fingerprint: str,
+        expected_revision: int,
+        profile: PresentationPreferenceProfile,
+        change: PresentationPreferenceChange,
+    ) -> PresentationPreferenceProfile:
+        replay = self.replays.get(idempotency_key)
+        if replay is not None:
+            if replay[0] != request_fingerprint:
+                raise LearnerPreferenceIdempotencyConflict()
+            return replay[1]
+        current_revision = self.profile.revision if self.profile else 1
+        if current_revision != expected_revision:
+            raise LearnerPreferenceRevisionConflict()
+        self.profile = profile
+        self.changes.append(change)
+        self.changes = self.changes[-100:]
+        self.replays[idempotency_key] = (request_fingerprint, profile)
+        self.save_count += 1
+        return profile
+
+
+class Clock:
+    def __init__(self) -> None:
+        self.minute = 0
+
+    def now(self) -> datetime:
+        self.minute += 1
+        return START + timedelta(minutes=self.minute)
+
+
+def service(repository: Repository | None = None):
+    values = repository or Repository()
+    contract = ContractPresentationPreferenceAdapter(SCHEMAS)
+    subject = LearnerModelService(
+        Source(),
+        values,
+        Clock(),
+        presentation_preference_repository=values,
+        presentation_preference_contract=contract,
+        presentation_preference_seeds=StablePresentationPreferenceSeed(),
+    )
+    return subject, values
+
+
+def intent(revision: int, *, adjusted: bool, key: str | None = None):
+    return PresentationPreferenceMutationIntent(
+        schema_version="1.0.0",
+        idempotency_key=key or f"intent.presentation-{revision}",
+        expected_revision=revision,
+        mutation=PresentationPreferenceMutation(
+            operation="replace_preferences",
+            text_size="larger" if adjusted else "default",
+            text_spacing="increased" if adjusted else "default",
+            reading_width="focused" if adjusted else "standard",
+            motion="reduce" if adjusted else "system",
+        ),
+    )
+
+
+def test_default_open_and_history_are_side_effect_free_and_stable() -> None:
+    subject, repository = service()
+    profile = subject.open_presentation_preferences(
+        OpenPresentationPreferencesRequest(LEARNER_ID)
+    )
+    reopened = subject.open_presentation_preferences(
+        OpenPresentationPreferencesRequest(LEARNER_ID)
+    )
+    history = subject.read_presentation_preference_history(
+        ReadPresentationPreferenceHistoryRequest(LEARNER_ID)
+    )
+    assert profile == reopened
+    assert profile.revision == 1
+    assert (profile.text_size, profile.motion) == ("default", "system")
+    assert history.current_revision == 1 and history.changes == ()
+    assert repository.save_count == 0
+
+
+def test_replace_retry_history_and_export_share_one_contract() -> None:
+    subject, repository = service()
+    command = intent(1, adjusted=True)
+    request = MutatePresentationPreferencesRequest(LEARNER_ID, command)
+    accepted = subject.mutate_presentation_preferences(request)
+    replayed = subject.mutate_presentation_preferences(request)
+    history = subject.read_presentation_preference_history(
+        ReadPresentationPreferenceHistoryRequest(LEARNER_ID)
+    )
+    exported = subject.export_presentation_preferences(
+        ExportPresentationPreferencesRequest(LEARNER_ID)
+    )
+    assert accepted == replayed
+    assert repository.save_count == 1
+    assert history.changes[0].operation == "replace_preferences"
+    assert exported.profile == accepted and exported.history == history
+    assert "theme" in exported.limitations[1].lower()
+
+
+def test_changed_key_and_stale_revision_write_nothing() -> None:
+    subject, repository = service()
+    first = intent(1, adjusted=True)
+    subject.mutate_presentation_preferences(
+        MutatePresentationPreferencesRequest(LEARNER_ID, first)
+    )
+    changed = intent(1, adjusted=False, key=first.idempotency_key)
+    with pytest.raises(LearnerModelError) as conflict:
+        subject.mutate_presentation_preferences(
+            MutatePresentationPreferencesRequest(LEARNER_ID, changed)
+        )
+    assert conflict.value.code is LearnerModelErrorCode.IMMUTABLE_CONFLICT
+    with pytest.raises(LearnerModelError) as stale:
+        subject.mutate_presentation_preferences(
+            MutatePresentationPreferencesRequest(
+                LEARNER_ID, intent(1, adjusted=False, key="intent.stale-display")
+            )
+        )
+    assert stale.value.code is LearnerModelErrorCode.STALE_REVISION
+    assert repository.save_count == 1
+
+
+def test_history_retains_newest_one_hundred_varied_revisions() -> None:
+    subject, repository = service()
+    for revision in range(1, 106):
+        subject.mutate_presentation_preferences(
+            MutatePresentationPreferencesRequest(
+                LEARNER_ID, intent(revision, adjusted=revision % 2 == 1)
+            )
+        )
+    history = subject.read_presentation_preference_history(
+        ReadPresentationPreferenceHistoryRequest(LEARNER_ID)
+    )
+    assert repository.save_count == 105
+    assert len(history.changes) == 100
+    assert history.changes[0].revision == 7
+    assert history.changes[-1].revision == 106
+
+
+def test_invalid_context_and_unconfigured_boundary_fail_safely() -> None:
+    subject, repository = service()
+    with pytest.raises(LearnerModelError) as invalid:
+        subject.open_presentation_preferences(
+            OpenPresentationPreferencesRequest("caller-selected")
+        )
+    assert invalid.value.code is LearnerModelErrorCode.INVALID_CONTEXT
+    assert repository.save_count == 0
+
+    unavailable = LearnerModelService(Source(), repository, Clock())
+    with pytest.raises(LearnerModelError) as failure:
+        unavailable.open_presentation_preferences(
+            OpenPresentationPreferencesRequest(LEARNER_ID)
+        )
+    assert failure.value.code is LearnerModelErrorCode.UNAVAILABLE

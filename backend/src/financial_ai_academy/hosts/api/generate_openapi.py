@@ -41,19 +41,26 @@ from financial_ai_academy.modules.audit.public import (
     ReconcileProjectCompletionAuditRequest,
 )
 from financial_ai_academy.modules.learner_model.public import (
+    ExportPresentationPreferencesRequest,
     ExportLearnerPreferencesRequest,
     LearnerPreferenceProfile,
     LessonCompletionView,
     MutateLearnerPreferencesRequest,
+    MutatePresentationPreferencesRequest,
     OpenLearnerPreferencesRequest,
+    OpenPresentationPreferencesRequest,
     OpenLessonCompletionRequest,
     OpenPracticeHistoryRequest,
     OpenProjectCompletionRequest,
     PreferenceExport,
     PreferenceHistory,
+    PresentationPreferenceExport,
+    PresentationPreferenceHistory,
+    PresentationPreferenceProfile,
     PracticeHistoryView,
     ProjectCompletionView,
     ReadLearnerPreferenceHistoryRequest,
+    ReadPresentationPreferenceHistoryRequest,
 )
 from financial_ai_academy.modules.curriculum.public import (
     BrowseLearningOpportunitiesRequest,
@@ -221,6 +228,26 @@ class _SchemaLearnerModel:
     def export_preferences(
         self, request: ExportLearnerPreferencesRequest
     ) -> PreferenceExport:
+        raise NotImplementedError
+
+    def open_presentation_preferences(
+        self, request: OpenPresentationPreferencesRequest
+    ) -> PresentationPreferenceProfile:
+        raise NotImplementedError
+
+    def mutate_presentation_preferences(
+        self, request: MutatePresentationPreferencesRequest
+    ) -> PresentationPreferenceProfile:
+        raise NotImplementedError
+
+    def read_presentation_preference_history(
+        self, request: ReadPresentationPreferenceHistoryRequest
+    ) -> PresentationPreferenceHistory:
+        raise NotImplementedError
+
+    def export_presentation_preferences(
+        self, request: ExportPresentationPreferencesRequest
+    ) -> PresentationPreferenceExport:
         raise NotImplementedError
 
 

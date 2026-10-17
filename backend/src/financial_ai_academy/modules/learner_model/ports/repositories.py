@@ -14,6 +14,11 @@ from ..domain.preferences import (
     PreferenceChange,
     PreferenceHistory,
 )
+from ..domain.presentation_preferences import (
+    PresentationPreferenceChange,
+    PresentationPreferenceHistory,
+    PresentationPreferenceProfile,
+)
 
 
 class LearnerPreferenceIdempotencyConflict(RuntimeError):
@@ -46,6 +51,30 @@ class LearnerPreferenceRepositoryPort(Protocol):
         profile: LearnerPreferenceProfile,
         change: PreferenceChange,
     ) -> LearnerPreferenceProfile: ...
+
+
+class PresentationPreferenceRepositoryPort(Protocol):
+    def get_presentation_preferences(
+        self, learner_id: str
+    ) -> PresentationPreferenceProfile | None: ...
+
+    def get_presentation_preference_history(
+        self, learner_id: str
+    ) -> PresentationPreferenceHistory | None: ...
+
+    def get_presentation_preference_replay(
+        self, learner_id: str, idempotency_key: str
+    ) -> tuple[str, PresentationPreferenceProfile] | None: ...
+
+    def save_presentation_preferences_if_revision(
+        self,
+        *,
+        idempotency_key: str,
+        request_fingerprint: str,
+        expected_revision: int,
+        profile: PresentationPreferenceProfile,
+        change: PresentationPreferenceChange,
+    ) -> PresentationPreferenceProfile: ...
 
 
 class CompletionProjectionRepositoryPort(Protocol):

@@ -63,7 +63,9 @@ def migrated_database() -> object:
     statuses = PostgresMigrationRunner(
         POSTGRES_DSN, LEARNER_MIGRATIONS
     ).apply_all()
-    assert statuses[-1].migration_id == "learner_model_0004_preferences"
+    assert statuses[-1].migration_id == (
+        "learner_model_0005_presentation_preferences"
+    )
     yield
     with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
         connection.execute("DROP SCHEMA IF EXISTS learner_model CASCADE")
