@@ -220,6 +220,14 @@ backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference
 persisted by this slice.
 
+The reviewed generated client also exposes queryless learning-preference
+profile, history, and export reads plus the closed mutation operation. These
+operations use server-owned learner identity and the same
+`learner_preferences.read` or `learner_preferences.write` authorization for
+browser and headless callers. This API availability does not imply that the
+browser learning-preference screen has been delivered; that user flow remains
+separate slice work.
+
 `/saved-learning` opens the learner's private notes, bookmarks, and collections
 through the generated Personal-workspace client. Available opportunity-detail
 and lesson pages provide `Save to Saved learning` links that carry only the

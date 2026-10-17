@@ -89,8 +89,13 @@ from financial_ai_academy.modules.learner_model.adapters.assessment_gateway impo
 from financial_ai_academy.modules.learner_model.adapters.postgres_repository import (
     PostgresCompletionProjectionRepository,
 )
+from financial_ai_academy.modules.learner_model.adapters.preference_contract import (
+    ContractLearnerPreferenceAdapter,
+)
 from financial_ai_academy.modules.learner_model.adapters.system import (
+    StablePreferenceSeed,
     UtcClock as LearnerModelUtcClock,
+    UuidGenerator as LearnerModelUuidGenerator,
 )
 from financial_ai_academy.modules.learner_model.application.service import (
     LearnerModelService,
@@ -260,10 +265,21 @@ def build_application_services(
         ),
         project_submission_contract,
     )
+    learner_preference_contract = ContractLearnerPreferenceAdapter(
+        settings.learner_preference_schema_dir
+    )
+    learner_model_repository = PostgresCompletionProjectionRepository(
+        settings.postgres_dsn,
+        preference_contract=learner_preference_contract,
+    )
     learner_model = LearnerModelService(
         AssessmentCompletionEvidenceSource(assessment),
-        PostgresCompletionProjectionRepository(settings.postgres_dsn),
+        learner_model_repository,
         LearnerModelUtcClock(),
+        learner_model_repository,
+        learner_preference_contract,
+        LearnerModelUuidGenerator(),
+        StablePreferenceSeed(),
     )
     adaptation = AdaptationService(
         PublicCurriculumNavigationGateway(curriculum),

@@ -34,6 +34,8 @@ type PersonalWorkspaceMutation =
   components["schemas"]["PersonalWorkspaceMutationRequestModel"];
 type PersonalWorkspaceQuery =
   components["schemas"]["PersonalWorkspaceQueryRequestModel"];
+type LearnerPreferenceMutation =
+  components["schemas"]["LearnerPreferenceMutationRequestModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -159,6 +161,23 @@ void client.POST("/api/v1/personal-workspace/query", {
 });
 void client.POST("/api/v1/personal-workspace/query", {
   body: { ...savedLearningQuery, cursor: "opaque_cursor" },
+});
+
+void client.GET("/api/v1/learner-preferences");
+void client.GET("/api/v1/learner-preferences/history");
+void client.GET("/api/v1/learner-preferences/export");
+const learnerPreferenceMutation: LearnerPreferenceMutation = {
+  schema_version: "1.0.0",
+  idempotency_key: "intent.goal-1",
+  expected_revision: 1,
+  mutation: {
+    operation: "create_goal",
+    title: "Explain investment risk with evidence",
+    detail: null,
+  },
+};
+void client.POST("/api/v1/learner-preferences/mutations", {
+  body: learnerPreferenceMutation,
 });
 
 const refreshSavedReference: PersonalWorkspaceMutation = {

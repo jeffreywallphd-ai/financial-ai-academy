@@ -63,9 +63,24 @@ Fixed ASCII and non-ASCII vectors protect this rule.
 The contract adapter and domain mutation rules are pure. They do not resolve
 identity or permission; issue time or IDs; persist state; call Curriculum,
 Assessment, Adaptation, a provider, or a model; access network or filesystem;
-or create another durable effect. The later application boundary supplies
-server facts and exact replay behavior under one protected public API for
-browser and supported headless clients.
+or create another durable effect. The application boundary supplies server
+facts and exact replay behavior under one protected public API for browser and
+supported headless clients.
+
+The public boundary consists of queryless profile, history, and export reads
+plus one closed mutation POST. Learner identity always comes from the opaque
+server session. `learner_preferences.read` protects the three reads and
+`learner_preferences.write` protects mutation. Caller-selected learner,
+permission, time, entry identity, revision outcome, digest, evidence, provider,
+model, recommendation, and storage fields are rejected.
+
+An absent database row projects a stable revision-one empty profile without a
+write. A first accepted mutation atomically creates revision two together with
+one replay record and one non-content summary. Exact retry returns the accepted
+profile; changed reuse and stale revision write nothing. Learner-scoped
+serialization, a 100-summary bound, restart reconstruction, rollback on
+interruption, and retained-data down-migration refusal are part of the
+persistence contract. Browser feature UI is not required to use this API.
 
 ## Failure and Compatibility
 

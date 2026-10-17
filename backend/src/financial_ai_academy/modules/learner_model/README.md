@@ -10,14 +10,20 @@ investment performance.
 - `open_lesson_completion(OpenLessonCompletionRequest) -> LessonCompletionView`
 - `open_practice_history(OpenPracticeHistoryRequest) -> PracticeHistoryView`
 - `open_project_completion(OpenProjectCompletionRequest) -> ProjectCompletionView`
+- `open_preferences(OpenLearnerPreferencesRequest) -> LearnerPreferenceProfile`
+- `mutate_preferences(MutateLearnerPreferencesRequest) -> LearnerPreferenceProfile`
+- `read_preference_history(ReadLearnerPreferenceHistoryRequest) -> PreferenceHistory`
+- `export_preferences(ExportLearnerPreferencesRequest) -> PreferenceExport`
 
 SLI-0074 adds a transport-neutral `learner-preferences/v1` contract core for
 explicit learner-entered goals, self-described experience, interests, closed
 revision-bound mutations, bounded non-content change summaries, reset, and
 portable export. The pure domain and JSON Schema adapter issue no learner
 identity, time, or ID; persist nothing; and call no provider, model, network,
-filesystem, or other module. Protected application, persistence, API,
-generated-client, and browser operations remain later packet work.
+filesystem, or other module. The application supplies those server facts and
+exposes the same public operations to the protected API, generated browser
+client, and authenticated headless clients. Browser feature UI remains
+separate slice work.
 
 Preferences are not evidence, competency or mastery state, Curriculum
 requirements, Adaptation eligibility, recommendations, permissions,
@@ -76,3 +82,20 @@ Assessment occurrences with two ordered history references and one rebuildable
 completion root. The exact public history, source digest, and bounded activity-
 completion meaning survive a normal application restart and deterministic
 replay without introducing a browser-owned projection path.
+
+`learner_model_0004_preferences` owns the materialized current profile,
+accepted mutation replays, and at most 100 newest non-content change summaries.
+An absent row projects a deterministic revision-one empty profile without a
+write. The first accepted mutation persists revision two. Per-learner advisory
+locking, exact idempotency replay before revision comparison, and one database
+transaction keep the profile, summary, and replay atomic. Stale revision and
+changed-key reuse preserve current state; an interrupted write rolls back all
+three records. The migration has no cross-module foreign key and refuses a
+development down migration while retained preference data exists.
+
+The protected HTTP boundary derives learner identity from the opaque session.
+Reads, history, and export require `learner_preferences.read`; mutation requires
+`learner_preferences.write`. The four reviewed operations accept no learner or
+query selector and share the generated OpenAPI client with browser and headless
+callers. Export contains the current closed profile and bounded history only;
+it is not an import, recovery, evidence, permission, or recommendation record.

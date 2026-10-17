@@ -60,15 +60,27 @@ def migrated_database() -> object:
     assert "learner_model_0001_completion_projection" in applied
     assert "learner_model_0002_practice_history" in applied
     assert "learner_model_0003_project_completion" in applied
+    assert "learner_model_0004_preferences" in applied
     assert {item.migration_id for item in learner.apply_all()} == {
         "0001_content_lesson_package_versions",
         "0002_curriculum_lesson_placements",
         "learner_model_0001_completion_projection",
         "learner_model_0002_practice_history",
         "learner_model_0003_project_completion",
+        "learner_model_0004_preferences",
     }
     yield
     with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            (
+                MIGRATIONS
+                / "learner_model/learner_model_0004_preferences.down.sql"
+            ).read_text(encoding="utf-8")
+        )
+        connection.execute(
+            "DELETE FROM platform.schema_migrations WHERE migration_id = %s",
+            ("learner_model_0004_preferences",),
+        )
         connection.execute(
             (
                 MIGRATIONS

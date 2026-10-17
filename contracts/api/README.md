@@ -4,6 +4,25 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/learner-preferences`, `GET
+/api/v1/learner-preferences/history`, `GET
+/api/v1/learner-preferences/export`, and `POST
+/api/v1/learner-preferences/mutations` are the protected Learner-model
+preference boundary. The three reads require `learner_preferences.read`; the
+mutation requires `learner_preferences.write`. All four bind learner identity
+only from the opaque server session and reject query-selected authority. The
+POST accepts the closed v1 expected-revision/idempotency envelope and one goal,
+experience, interest, ordering, or reset operation. Server time, entry IDs,
+next revision, digest, and result are not caller inputs. Exact replay returns
+the accepted profile; changed-key reuse, stale revision, limits, missing
+entries, integrity failure, and unavailability have stable safe errors. An
+absent stored profile returns a deterministic revision-one empty response
+without materializing it. History retains at most 100 non-content summaries;
+export contains only the current closed profile, bounded history, purpose,
+limitations, and server export time. Browser, command-line, service, and
+future headless-AI callers use this same reviewed contract; no separate
+authority or storage path exists.
+
 `GET /api/v1/personal-workspace`,
 `GET /api/v1/personal-workspace/export`, and
 `POST /api/v1/personal-workspace/query`, together with

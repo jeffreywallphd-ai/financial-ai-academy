@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from uuid import UUID
 
 from ..domain.models import (
@@ -13,14 +15,33 @@ from ..domain.models import (
     derive_project_completion,
     derive_lesson_completion,
 )
+from ..domain.preferences import (
+    InvalidLearnerPreference,
+    LearnerPreferenceProfile,
+    PreferenceExport,
+    PreferenceHistory,
+    validate_preference_history,
+)
 from ..ports.gateways import CompletionEvidenceSourcePort
-from ..ports.repositories import CompletionProjectionRepositoryPort
-from ..ports.system import ClockPort
+from ..ports.preference_contract import (
+    LearnerPreferenceContract,
+    LearnerPreferenceContractFailure,
+)
+from ..ports.repositories import (
+    CompletionProjectionRepositoryPort,
+    LearnerPreferenceIdempotencyConflict,
+    LearnerPreferenceRepositoryPort,
+    LearnerPreferenceRevisionConflict,
+)
+from ..ports.system import ClockPort, IdentifierPort, PreferenceSeedPort
 from ..public import (
+    ExportLearnerPreferencesRequest,
     LearnerModelError,
     LearnerModelErrorCode,
     LessonCompletionHistoryEntry,
     LessonCompletionView,
+    MutateLearnerPreferencesRequest,
+    OpenLearnerPreferencesRequest,
     OpenLessonCompletionRequest,
     OpenPracticeHistoryRequest,
     OpenProjectCompletionRequest,
@@ -29,6 +50,7 @@ from ..public import (
     PracticeHistoryView,
     ProjectCompletionHistoryEntry,
     ProjectCompletionView,
+    ReadLearnerPreferenceHistoryRequest,
 )
 
 
@@ -38,10 +60,18 @@ class LearnerModelService:
         source: CompletionEvidenceSourcePort,
         repository: CompletionProjectionRepositoryPort,
         clock: ClockPort,
+        preference_repository: LearnerPreferenceRepositoryPort | None = None,
+        preference_contract: LearnerPreferenceContract | None = None,
+        preference_identifiers: IdentifierPort | None = None,
+        preference_seeds: PreferenceSeedPort | None = None,
     ) -> None:
         self._source = source
         self._repository = repository
         self._clock = clock
+        self._preference_repository = preference_repository
+        self._preference_contract = preference_contract
+        self._preference_identifiers = preference_identifiers
+        self._preference_seeds = preference_seeds
 
     def open_lesson_completion(
         self, request: OpenLessonCompletionRequest
@@ -160,6 +190,282 @@ class LearnerModelService:
                 reference=request.project_id,
             ) from error
         return self._project_view(projection)
+
+    def open_preferences(
+        self, request: OpenLearnerPreferencesRequest
+    ) -> LearnerPreferenceProfile:
+        self._validate_learner(request.learner_id)
+        repository, contract, _, seeds = self._preference_dependencies()
+        try:
+            stored = repository.get_preferences(request.learner_id)
+            return self._revalidate_preference(
+                stored or self._empty_preferences(request.learner_id, contract, seeds),
+                contract,
+            )
+        except LearnerModelError:
+            raise
+        except LearnerPreferenceContractFailure as error:
+            raise self._preference_integrity(error.reference) from error
+        except Exception as error:
+            raise self._preference_unavailable() from error
+
+    def mutate_preferences(
+        self, request: MutateLearnerPreferencesRequest
+    ) -> LearnerPreferenceProfile:
+        self._validate_learner(request.learner_id)
+        repository, contract, identifiers, seeds = self._preference_dependencies()
+        intent = request.intent
+        try:
+            intent_document = contract.mutation_intent_document(intent)
+            fingerprint = self._preference_fingerprint(intent_document)
+            replay = repository.get_preference_replay(
+                request.learner_id, intent.idempotency_key
+            )
+            if replay is not None:
+                accepted_fingerprint, profile = replay
+                if accepted_fingerprint != fingerprint:
+                    raise LearnerModelError(
+                        LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                        "That request key already names a different change.",
+                        reference=intent.idempotency_key,
+                    )
+                return self._revalidate_preference(profile, contract)
+            stored = repository.get_preferences(request.learner_id)
+            current = self._revalidate_preference(
+                stored or self._empty_preferences(request.learner_id, contract, seeds),
+                contract,
+            )
+            if intent.expected_revision != current.revision:
+                raise self._preference_stale(intent.idempotency_key)
+            issued_id = self._issued_preference_id(
+                intent.mutation.operation, identifiers
+            )
+            accepted, change = contract.apply_mutation(
+                current,
+                intent,
+                occurred_at=self._clock.now(),
+                issued_id=issued_id,
+            )
+            stored = repository.save_preferences_if_revision(
+                idempotency_key=intent.idempotency_key,
+                request_fingerprint=fingerprint,
+                expected_revision=intent.expected_revision,
+                profile=accepted,
+                change=change,
+            )
+            return self._revalidate_preference(stored, contract)
+        except LearnerModelError:
+            raise
+        except LearnerPreferenceIdempotencyConflict as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                "That request key already names a different change.",
+                reference=intent.idempotency_key,
+            ) from error
+        except LearnerPreferenceRevisionConflict as error:
+            raise self._preference_stale(intent.idempotency_key) from error
+        except LearnerPreferenceContractFailure as error:
+            raise self._preference_contract_error(error) from error
+        except Exception as error:
+            raise self._preference_unavailable(intent.idempotency_key) from error
+
+    def read_preference_history(
+        self, request: ReadLearnerPreferenceHistoryRequest
+    ) -> PreferenceHistory:
+        self._validate_learner(request.learner_id)
+        repository, contract, _, seeds = self._preference_dependencies()
+        try:
+            profile = repository.get_preferences(request.learner_id)
+            current = self._revalidate_preference(
+                profile or self._empty_preferences(request.learner_id, contract, seeds),
+                contract,
+            )
+            history = repository.get_preference_history(request.learner_id)
+            if history is None:
+                history = PreferenceHistory(
+                    schema_version="1.0.0",
+                    profile_id=current.profile_id,
+                    current_revision=current.revision,
+                    changes=(),
+                )
+            validate_preference_history(history, current)
+            return history
+        except LearnerModelError:
+            raise
+        except (LearnerPreferenceContractFailure, InvalidLearnerPreference) as error:
+            raise self._preference_integrity(
+                getattr(error, "reference", "history")
+            ) from error
+        except Exception as error:
+            raise self._preference_unavailable("history") from error
+
+    def export_preferences(
+        self, request: ExportLearnerPreferencesRequest
+    ) -> PreferenceExport:
+        self._validate_learner(request.learner_id)
+        _, contract, _, _ = self._preference_dependencies()
+        try:
+            profile = self.open_preferences(
+                OpenLearnerPreferencesRequest(request.learner_id)
+            )
+            history = self.read_preference_history(
+                ReadLearnerPreferenceHistoryRequest(request.learner_id)
+            )
+            exported = PreferenceExport(
+                schema_version="1.0.0",
+                purpose=(
+                    "A portable copy of the learning goals and preferences you entered."
+                ),
+                limitations=(
+                    "These choices are not evidence of competency or mastery.",
+                    "These choices do not grant permission or change course requirements.",
+                ),
+                exported_at=self._clock.now(),
+                profile=profile,
+                history=history,
+            )
+            return contract.parse_export(
+                self._json_bytes(contract.export_document(exported))
+            )
+        except LearnerModelError:
+            raise
+        except LearnerPreferenceContractFailure as error:
+            raise self._preference_integrity(error.reference) from error
+        except Exception as error:
+            raise self._preference_unavailable("export") from error
+
+    def _preference_dependencies(self) -> tuple[
+        LearnerPreferenceRepositoryPort,
+        LearnerPreferenceContract,
+        IdentifierPort,
+        PreferenceSeedPort,
+    ]:
+        if (
+            self._preference_repository is None
+            or self._preference_contract is None
+            or self._preference_identifiers is None
+            or self._preference_seeds is None
+        ):
+            raise self._preference_unavailable()
+        return (
+            self._preference_repository,
+            self._preference_contract,
+            self._preference_identifiers,
+            self._preference_seeds,
+        )
+
+    @staticmethod
+    def _empty_preferences(
+        learner_id: str,
+        contract: LearnerPreferenceContract,
+        seeds: PreferenceSeedPort,
+    ) -> LearnerPreferenceProfile:
+        seed = seeds.for_learner(learner_id)
+        return contract.empty_profile(
+            profile_id=seed.profile_id,
+            learner_id=learner_id,
+            created_at=seed.created_at,
+        )
+
+    @classmethod
+    def _revalidate_preference(
+        cls,
+        profile: LearnerPreferenceProfile,
+        contract: LearnerPreferenceContract,
+    ) -> LearnerPreferenceProfile:
+        return contract.parse_profile(
+            cls._json_bytes(contract.profile_document(profile))
+        )
+
+    @staticmethod
+    def _preference_fingerprint(document: dict[str, object]) -> str:
+        return hashlib.sha256(
+            json.dumps(
+                document,
+                sort_keys=True,
+                separators=(",", ":"),
+                ensure_ascii=True,
+            ).encode("utf-8")
+        ).hexdigest()
+
+    @staticmethod
+    def _issued_preference_id(
+        operation: str, identifiers: IdentifierPort
+    ) -> str | None:
+        prefixes = {
+            "create_goal": "goal",
+            "create_experience": "experience",
+            "create_interest": "interest",
+        }
+        prefix = prefixes.get(operation)
+        return f"{prefix}.{identifiers.new()}" if prefix else None
+
+    @staticmethod
+    def _json_bytes(value: object) -> bytes:
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+        ).encode("utf-8")
+
+    @staticmethod
+    def _validate_learner(learner_id: str) -> None:
+        try:
+            UUID(learner_id)
+        except (ValueError, AttributeError) as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_CONTEXT,
+                "Learner context is not authorized.",
+                reference="learner",
+            ) from error
+
+    @staticmethod
+    def _preference_contract_error(
+        error: LearnerPreferenceContractFailure,
+    ) -> LearnerModelError:
+        if error.code.endswith("stale_revision"):
+            return LearnerModelService._preference_stale(error.reference)
+        if error.code.endswith(("goal_limit", "experience_limit", "interest_limit")):
+            return LearnerModelError(
+                LearnerModelErrorCode.PREFERENCE_LIMIT,
+                "This learning preference section is full. Remove an item before adding another.",
+                reference=error.reference,
+            )
+        if error.code.endswith("not_found"):
+            return LearnerModelError(
+                LearnerModelErrorCode.NOT_FOUND,
+                "That learning preference was not found.",
+                reference=error.reference,
+            )
+        return LearnerModelError(
+            LearnerModelErrorCode.INVALID_REQUEST,
+            "The learning preference change is not valid.",
+            reference=error.reference,
+        )
+
+    @staticmethod
+    def _preference_stale(reference: str) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.STALE_REVISION,
+            "Learning preferences changed. Refresh them before trying again.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _preference_integrity(reference: str) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.INTEGRITY_FAILURE,
+            "Saved learning preferences could not be verified.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _preference_unavailable(
+        reference: str = "learner-preferences",
+    ) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.UNAVAILABLE,
+            "Learning preferences are temporarily unavailable.",
+            reference=reference,
+        )
 
     @staticmethod
     def _validate_context(request: OpenLessonCompletionRequest) -> None:

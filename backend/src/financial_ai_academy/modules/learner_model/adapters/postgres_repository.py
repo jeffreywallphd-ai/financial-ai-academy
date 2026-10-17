@@ -3,14 +3,26 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import json
 
 import psycopg
+from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 from ..domain.models import (
     LessonCompletionProjection,
     PracticeHistoryProjection,
     ProjectCompletionProjection,
+)
+from ..domain.preferences import (
+    LearnerPreferenceProfile,
+    PreferenceChange,
+    PreferenceHistory,
+)
+from ..ports.preference_contract import LearnerPreferenceContract
+from ..ports.repositories import (
+    LearnerPreferenceIdempotencyConflict,
+    LearnerPreferenceRevisionConflict,
 )
 
 
@@ -22,11 +34,15 @@ class PostgresCompletionProjectionRepository:
         before_projection: Callable[[], None] | None = None,
         before_practice_projection: Callable[[], None] | None = None,
         before_project_projection: Callable[[], None] | None = None,
+        preference_contract: LearnerPreferenceContract | None = None,
+        before_preference_save: Callable[[], None] | None = None,
     ) -> None:
         self._dsn = dsn
         self._before_projection = before_projection
         self._before_practice_projection = before_practice_projection
         self._before_project_projection = before_project_projection
+        self._preference_contract = preference_contract
+        self._before_preference_save = before_preference_save
 
     def replace(self, projection: LessonCompletionProjection) -> None:
         lock_key = f"{projection.learner_id}:{projection.placement_id}"
@@ -361,3 +377,215 @@ class PostgresCompletionProjectionRepository:
                     )
                 if self._before_project_projection is not None:
                     self._before_project_projection()
+
+    def get_preferences(
+        self, learner_id: str
+    ) -> LearnerPreferenceProfile | None:
+        contract = self._preferences()
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT profile FROM learner_model.preference_profiles
+                WHERE learner_id = %s
+                """,
+                (learner_id,),
+            ).fetchone()
+        return self._parse_profile(contract, row["profile"]) if row else None
+
+    def get_preference_history(
+        self, learner_id: str
+    ) -> PreferenceHistory | None:
+        contract = self._preferences()
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            profile = connection.execute(
+                """
+                SELECT profile_id, revision
+                FROM learner_model.preference_profiles
+                WHERE learner_id = %s
+                """,
+                (learner_id,),
+            ).fetchone()
+            if profile is None:
+                return None
+            changes = connection.execute(
+                """
+                SELECT change FROM learner_model.preference_changes
+                WHERE learner_id = %s ORDER BY revision
+                """,
+                (learner_id,),
+            ).fetchall()
+        document = {
+            "schema_version": "1.0.0",
+            "profile_id": profile["profile_id"],
+            "current_revision": profile["revision"],
+            "changes": [row["change"] for row in changes],
+        }
+        return contract.parse_history(self._json_bytes(document))
+
+    def get_preference_replay(
+        self, learner_id: str, idempotency_key: str
+    ) -> tuple[str, LearnerPreferenceProfile] | None:
+        contract = self._preferences()
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT request_fingerprint, accepted_profile
+                FROM learner_model.preference_mutations
+                WHERE learner_id = %s AND idempotency_key = %s
+                """,
+                (learner_id, idempotency_key),
+            ).fetchone()
+        if row is None:
+            return None
+        return (
+            str(row["request_fingerprint"]),
+            self._parse_profile(contract, row["accepted_profile"]),
+        )
+
+    def save_preferences_if_revision(
+        self,
+        *,
+        idempotency_key: str,
+        request_fingerprint: str,
+        expected_revision: int,
+        profile: LearnerPreferenceProfile,
+        change: PreferenceChange,
+    ) -> LearnerPreferenceProfile:
+        contract = self._preferences()
+        profile_document = contract.profile_document(profile)
+        change_document = contract.history_document(
+            PreferenceHistory(
+                schema_version="1.0.0",
+                profile_id=profile.profile_id,
+                current_revision=profile.revision,
+                changes=(change,),
+            )
+        )["changes"][0]
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            with connection.transaction():
+                connection.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                    (f"learner-preferences:{profile.learner_id}",),
+                )
+                replay = connection.execute(
+                    """
+                    SELECT request_fingerprint, accepted_profile
+                    FROM learner_model.preference_mutations
+                    WHERE learner_id = %s AND idempotency_key = %s
+                    """,
+                    (profile.learner_id, idempotency_key),
+                ).fetchone()
+                if replay is not None:
+                    if str(replay["request_fingerprint"]) != request_fingerprint:
+                        raise LearnerPreferenceIdempotencyConflict()
+                    return self._parse_profile(contract, replay["accepted_profile"])
+                current = connection.execute(
+                    """
+                    SELECT profile_id, revision
+                    FROM learner_model.preference_profiles
+                    WHERE learner_id = %s FOR UPDATE
+                    """,
+                    (profile.learner_id,),
+                ).fetchone()
+                current_revision = int(current["revision"]) if current else 1
+                if (
+                    current_revision != expected_revision
+                    or profile.revision != expected_revision + 1
+                    or (current and current["profile_id"] != profile.profile_id)
+                ):
+                    raise LearnerPreferenceRevisionConflict()
+                if current is None:
+                    connection.execute(
+                        """
+                        INSERT INTO learner_model.preference_profiles (
+                            profile_id, learner_id, revision, profile,
+                            profile_digest, created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            profile.profile_id,
+                            profile.learner_id,
+                            profile.revision,
+                            Jsonb(profile_document),
+                            profile.profile_digest,
+                            profile.created_at,
+                            profile.updated_at,
+                        ),
+                    )
+                else:
+                    connection.execute(
+                        """
+                        UPDATE learner_model.preference_profiles
+                        SET revision = %s, profile = %s, profile_digest = %s,
+                            updated_at = %s
+                        WHERE learner_id = %s
+                        """,
+                        (
+                            profile.revision,
+                            Jsonb(profile_document),
+                            profile.profile_digest,
+                            profile.updated_at,
+                            profile.learner_id,
+                        ),
+                    )
+                connection.execute(
+                    """
+                    INSERT INTO learner_model.preference_changes (
+                        learner_id, revision, change, occurred_at,
+                        resulting_profile_digest
+                    ) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        profile.learner_id,
+                        change.revision,
+                        Jsonb(change_document),
+                        change.occurred_at,
+                        change.resulting_profile_digest,
+                    ),
+                )
+                connection.execute(
+                    """
+                    DELETE FROM learner_model.preference_changes
+                    WHERE learner_id = %s AND revision IN (
+                        SELECT revision
+                        FROM learner_model.preference_changes
+                        WHERE learner_id = %s
+                        ORDER BY revision DESC OFFSET 100
+                    )
+                    """,
+                    (profile.learner_id, profile.learner_id),
+                )
+                if self._before_preference_save is not None:
+                    self._before_preference_save()
+                connection.execute(
+                    """
+                    INSERT INTO learner_model.preference_mutations (
+                        learner_id, idempotency_key, request_fingerprint,
+                        accepted_profile, accepted_revision
+                    ) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        profile.learner_id,
+                        idempotency_key,
+                        request_fingerprint,
+                        Jsonb(profile_document),
+                        profile.revision,
+                    ),
+                )
+        return profile
+
+    def _preferences(self) -> LearnerPreferenceContract:
+        if self._preference_contract is None:
+            raise RuntimeError("Learner preference contract is unavailable.")
+        return self._preference_contract
+
+    @staticmethod
+    def _json_bytes(value: object) -> bytes:
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+        ).encode("utf-8")
+
+    def _parse_profile(
+        self, contract: LearnerPreferenceContract, value: object
+    ) -> LearnerPreferenceProfile:
+        return contract.parse_profile(self._json_bytes(value))

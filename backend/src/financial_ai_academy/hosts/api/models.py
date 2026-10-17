@@ -55,9 +55,16 @@ from financial_ai_academy.modules.curriculum.public import (
     curriculum_graph_payload,
 )
 from financial_ai_academy.modules.learner_model.public import (
+    LearnerPreferenceProfile,
     LessonCompletionView,
+    PreferenceExport,
+    PreferenceHistory,
+    PreferenceMutationIntent,
     PracticeHistoryView,
     ProjectCompletionView,
+)
+from financial_ai_academy.modules.learner_model.domain.preferences import (
+    PreferenceMutation,
 )
 from financial_ai_academy.modules.project.public import (
     IndependentProjectOrigin,
@@ -2502,6 +2509,221 @@ class ProjectActivityCompletionResponseModel(ApiModel):
     )
 
 
+LearnerPreferenceIdentifier = Annotated[
+    str,
+    Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    ),
+]
+LearnerPreferenceDigest = Annotated[
+    str,
+    Field(pattern=r"^[a-f0-9]{64}$"),
+]
+LearnerPreferenceDetail2000 = Annotated[
+    str,
+    Field(min_length=1, max_length=2_000),
+] | None
+LearnerPreferenceDetail1000 = Annotated[
+    str,
+    Field(min_length=1, max_length=1_000),
+] | None
+LearnerPreferenceLimitation = Annotated[
+    str,
+    Field(min_length=1, max_length=320),
+]
+LearnerPreferenceOperation = Literal[
+    "create_goal",
+    "update_goal",
+    "archive_goal",
+    "restore_goal",
+    "remove_goal",
+    "reorder_goals",
+    "create_experience",
+    "update_experience",
+    "remove_experience",
+    "reorder_experience",
+    "create_interest",
+    "rename_interest",
+    "remove_interest",
+    "reorder_interests",
+    "reset_profile",
+]
+
+
+class LearnerPreferenceGoalModel(ProjectTimestampModel):
+    goal_id: LearnerPreferenceIdentifier
+    title: str = Field(min_length=1, max_length=160)
+    detail: LearnerPreferenceDetail2000
+    archived: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class LearnerPreferenceExperienceModel(ProjectTimestampModel):
+    experience_id: LearnerPreferenceIdentifier
+    subject: str = Field(min_length=1, max_length=120)
+    level: Literal["new", "some_experience", "experienced"]
+    detail: LearnerPreferenceDetail1000
+    created_at: datetime
+    updated_at: datetime
+
+
+class LearnerPreferenceInterestModel(ProjectTimestampModel):
+    interest_id: LearnerPreferenceIdentifier
+    label: str = Field(min_length=1, max_length=120)
+    created_at: datetime
+    updated_at: datetime
+
+
+class LearnerPreferenceProfileResponseModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    profile_id: LearnerPreferenceIdentifier
+    learner_id: UUID
+    revision: int = Field(ge=1)
+    goals: list[LearnerPreferenceGoalModel] = Field(max_length=20)
+    experience: list[LearnerPreferenceExperienceModel] = Field(max_length=20)
+    interests: list[LearnerPreferenceInterestModel] = Field(max_length=50)
+    created_at: datetime
+    updated_at: datetime
+    profile_digest: LearnerPreferenceDigest
+
+
+class CreateLearnerGoalMutationModel(ApiModel):
+    operation: Literal["create_goal"]
+    title: str = Field(min_length=1, max_length=160)
+    detail: LearnerPreferenceDetail2000
+
+
+class UpdateLearnerGoalMutationModel(CreateLearnerGoalMutationModel):
+    operation: Literal["update_goal"]
+    entry_id: LearnerPreferenceIdentifier
+
+
+class SelectLearnerGoalMutationModel(ApiModel):
+    operation: Literal["archive_goal", "restore_goal", "remove_goal"]
+    entry_id: LearnerPreferenceIdentifier
+
+
+class ReorderLearnerGoalsMutationModel(ApiModel):
+    operation: Literal["reorder_goals"]
+    ordered_ids: list[LearnerPreferenceIdentifier] = Field(
+        max_length=20,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+
+class CreateLearnerExperienceMutationModel(ApiModel):
+    operation: Literal["create_experience"]
+    subject: str = Field(min_length=1, max_length=120)
+    level: Literal["new", "some_experience", "experienced"]
+    detail: LearnerPreferenceDetail1000
+
+
+class UpdateLearnerExperienceMutationModel(
+    CreateLearnerExperienceMutationModel
+):
+    operation: Literal["update_experience"]
+    entry_id: LearnerPreferenceIdentifier
+
+
+class RemoveLearnerExperienceMutationModel(ApiModel):
+    operation: Literal["remove_experience"]
+    entry_id: LearnerPreferenceIdentifier
+
+
+class ReorderLearnerExperienceMutationModel(ApiModel):
+    operation: Literal["reorder_experience"]
+    ordered_ids: list[LearnerPreferenceIdentifier] = Field(
+        max_length=20,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+
+class CreateLearnerInterestMutationModel(ApiModel):
+    operation: Literal["create_interest"]
+    label: str = Field(min_length=1, max_length=120)
+
+
+class RenameLearnerInterestMutationModel(CreateLearnerInterestMutationModel):
+    operation: Literal["rename_interest"]
+    entry_id: LearnerPreferenceIdentifier
+
+
+class RemoveLearnerInterestMutationModel(ApiModel):
+    operation: Literal["remove_interest"]
+    entry_id: LearnerPreferenceIdentifier
+
+
+class ReorderLearnerInterestsMutationModel(ApiModel):
+    operation: Literal["reorder_interests"]
+    ordered_ids: list[LearnerPreferenceIdentifier] = Field(
+        max_length=50,
+        json_schema_extra={"uniqueItems": True},
+    )
+
+
+class ResetLearnerPreferenceProfileMutationModel(ApiModel):
+    operation: Literal["reset_profile"]
+
+
+LearnerPreferenceMutationModel = Annotated[
+    Union[
+        CreateLearnerGoalMutationModel,
+        UpdateLearnerGoalMutationModel,
+        SelectLearnerGoalMutationModel,
+        ReorderLearnerGoalsMutationModel,
+        CreateLearnerExperienceMutationModel,
+        UpdateLearnerExperienceMutationModel,
+        RemoveLearnerExperienceMutationModel,
+        ReorderLearnerExperienceMutationModel,
+        CreateLearnerInterestMutationModel,
+        RenameLearnerInterestMutationModel,
+        RemoveLearnerInterestMutationModel,
+        ReorderLearnerInterestsMutationModel,
+        ResetLearnerPreferenceProfileMutationModel,
+    ],
+    Field(discriminator="operation"),
+]
+
+
+class LearnerPreferenceMutationRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: LearnerPreferenceIdentifier
+    expected_revision: int = Field(ge=1)
+    mutation: LearnerPreferenceMutationModel
+
+
+class LearnerPreferenceChangeModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    revision: int = Field(ge=1)
+    operation: LearnerPreferenceOperation
+    object_kind: Literal["goal", "experience", "interest", "profile"]
+    object_id: LearnerPreferenceIdentifier | None
+    occurred_at: datetime
+    resulting_profile_digest: LearnerPreferenceDigest
+
+
+class LearnerPreferenceHistoryResponseModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    profile_id: LearnerPreferenceIdentifier
+    current_revision: int = Field(ge=1)
+    changes: list[LearnerPreferenceChangeModel] = Field(max_length=100)
+
+
+class LearnerPreferenceExportResponseModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    purpose: str = Field(min_length=1, max_length=240)
+    limitations: list[LearnerPreferenceLimitation] = Field(
+        min_length=1,
+        max_length=8,
+    )
+    exported_at: datetime
+    profile: LearnerPreferenceProfileResponseModel
+    history: LearnerPreferenceHistoryResponseModel
+
+
 class HealthResponseModel(ApiModel):
     status: Literal["ok", "ready", "not_ready"]
 
@@ -2897,6 +3119,49 @@ def project_activity_completion_response(
             for entry in view.history
         ],
     )
+
+
+def learner_preference_mutation_intent(
+    model: LearnerPreferenceMutationRequestModel,
+) -> PreferenceMutationIntent:
+    values = model.mutation.model_dump()
+    return PreferenceMutationIntent(
+        schema_version=model.schema_version,
+        idempotency_key=model.idempotency_key,
+        expected_revision=model.expected_revision,
+        mutation=PreferenceMutation(
+            operation=str(values["operation"]),
+            entry_id=values.get("entry_id"),
+            title=values.get("title"),
+            detail=values.get("detail"),
+            subject=values.get("subject"),
+            level=values.get("level"),
+            label=values.get("label"),
+            ordered_ids=tuple(values.get("ordered_ids", ())),
+        ),
+    )
+
+
+def learner_preference_profile_response(
+    profile: LearnerPreferenceProfile,
+) -> LearnerPreferenceProfileResponseModel:
+    return LearnerPreferenceProfileResponseModel.model_validate(
+        asdict(profile)
+    )
+
+
+def learner_preference_history_response(
+    history: PreferenceHistory,
+) -> LearnerPreferenceHistoryResponseModel:
+    return LearnerPreferenceHistoryResponseModel.model_validate(
+        asdict(history)
+    )
+
+
+def learner_preference_export_response(
+    export: PreferenceExport,
+) -> LearnerPreferenceExportResponseModel:
+    return LearnerPreferenceExportResponseModel.model_validate(asdict(export))
 
 
 def _inline_node(node: content_public.InlineNode) -> InlineNodeModel:

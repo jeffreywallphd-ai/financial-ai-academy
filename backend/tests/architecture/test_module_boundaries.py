@@ -214,6 +214,20 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
     ):
         assert foreign_schema not in project_projection
 
+    learner_preferences = (
+        REPOSITORY
+        / "backend/migrations/learner_model/learner_model_0004_preferences.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    for foreign_schema in (
+        "references assessment.",
+        "references content.",
+        "references curriculum.",
+        "references identity.",
+        "references project.",
+        "references personal_workspace.",
+    ):
+        assert foreign_schema not in learner_preferences
+
     audit_records = (
         REPOSITORY
         / "backend/migrations/audit/audit_0001_assessment_completion_records.up.sql"

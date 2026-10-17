@@ -746,6 +746,110 @@
         "title": "CodeBlockModel",
         "type": "object"
       },
+      "CreateLearnerExperienceMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "level": {
+            "enum": [
+              "new",
+              "some_experience",
+              "experienced"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "operation": {
+            "const": "create_experience",
+            "title": "Operation",
+            "type": "string"
+          },
+          "subject": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "subject",
+          "level",
+          "detail"
+        ],
+        "title": "CreateLearnerExperienceMutationModel",
+        "type": "object"
+      },
+      "CreateLearnerGoalMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "operation": {
+            "const": "create_goal",
+            "title": "Operation",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "title",
+          "detail"
+        ],
+        "title": "CreateLearnerGoalMutationModel",
+        "type": "object"
+      },
+      "CreateLearnerInterestMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "operation": {
+            "const": "create_interest",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "label"
+        ],
+        "title": "CreateLearnerInterestMutationModel",
+        "type": "object"
+      },
       "CurriculumActivityResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -1902,6 +2006,498 @@
           "selected_option_id"
         ],
         "title": "KnowledgeCheckSubmissionRequestModel",
+        "type": "object"
+      },
+      "LearnerPreferenceChangeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "object_id": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "minLength": 3,
+                "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object Id"
+          },
+          "object_kind": {
+            "enum": [
+              "goal",
+              "experience",
+              "interest",
+              "profile"
+            ],
+            "title": "Object Kind",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "create_goal",
+              "update_goal",
+              "archive_goal",
+              "restore_goal",
+              "remove_goal",
+              "reorder_goals",
+              "create_experience",
+              "update_experience",
+              "remove_experience",
+              "reorder_experience",
+              "create_interest",
+              "rename_interest",
+              "remove_interest",
+              "reorder_interests",
+              "reset_profile"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "resulting_profile_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Resulting Profile Digest",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "revision",
+          "operation",
+          "object_kind",
+          "object_id",
+          "occurred_at",
+          "resulting_profile_digest"
+        ],
+        "title": "LearnerPreferenceChangeModel",
+        "type": "object"
+      },
+      "LearnerPreferenceExperienceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "experience_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Experience Id",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "new",
+              "some_experience",
+              "experienced"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "subject": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Subject",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "experience_id",
+          "subject",
+          "level",
+          "detail",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LearnerPreferenceExperienceModel",
+        "type": "object"
+      },
+      "LearnerPreferenceExportResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "exported_at": {
+            "format": "date-time",
+            "title": "Exported At",
+            "type": "string"
+          },
+          "history": {
+            "$ref": "#/components/schemas/LearnerPreferenceHistoryResponseModel"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 320,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Limitations",
+            "type": "array"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/LearnerPreferenceProfileResponseModel"
+          },
+          "purpose": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "purpose",
+          "limitations",
+          "exported_at",
+          "profile",
+          "history"
+        ],
+        "title": "LearnerPreferenceExportResponseModel",
+        "type": "object"
+      },
+      "LearnerPreferenceGoalModel": {
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "goal_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Goal Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "goal_id",
+          "title",
+          "detail",
+          "archived",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LearnerPreferenceGoalModel",
+        "type": "object"
+      },
+      "LearnerPreferenceHistoryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/LearnerPreferenceChangeModel"
+            },
+            "maxItems": 100,
+            "title": "Changes",
+            "type": "array"
+          },
+          "current_revision": {
+            "minimum": 1.0,
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "profile_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "profile_id",
+          "current_revision",
+          "changes"
+        ],
+        "title": "LearnerPreferenceHistoryResponseModel",
+        "type": "object"
+      },
+      "LearnerPreferenceInterestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "interest_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Interest Id",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "interest_id",
+          "label",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LearnerPreferenceInterestModel",
+        "type": "object"
+      },
+      "LearnerPreferenceMutationRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "mutation": {
+            "discriminator": {
+              "mapping": {
+                "archive_goal": "#/components/schemas/SelectLearnerGoalMutationModel",
+                "create_experience": "#/components/schemas/CreateLearnerExperienceMutationModel",
+                "create_goal": "#/components/schemas/CreateLearnerGoalMutationModel",
+                "create_interest": "#/components/schemas/CreateLearnerInterestMutationModel",
+                "remove_experience": "#/components/schemas/RemoveLearnerExperienceMutationModel",
+                "remove_goal": "#/components/schemas/SelectLearnerGoalMutationModel",
+                "remove_interest": "#/components/schemas/RemoveLearnerInterestMutationModel",
+                "rename_interest": "#/components/schemas/RenameLearnerInterestMutationModel",
+                "reorder_experience": "#/components/schemas/ReorderLearnerExperienceMutationModel",
+                "reorder_goals": "#/components/schemas/ReorderLearnerGoalsMutationModel",
+                "reorder_interests": "#/components/schemas/ReorderLearnerInterestsMutationModel",
+                "reset_profile": "#/components/schemas/ResetLearnerPreferenceProfileMutationModel",
+                "restore_goal": "#/components/schemas/SelectLearnerGoalMutationModel",
+                "update_experience": "#/components/schemas/UpdateLearnerExperienceMutationModel",
+                "update_goal": "#/components/schemas/UpdateLearnerGoalMutationModel"
+              },
+              "propertyName": "operation"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CreateLearnerGoalMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateLearnerGoalMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/SelectLearnerGoalMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/ReorderLearnerGoalsMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/CreateLearnerExperienceMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateLearnerExperienceMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/RemoveLearnerExperienceMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/ReorderLearnerExperienceMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/CreateLearnerInterestMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/RenameLearnerInterestMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/RemoveLearnerInterestMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/ReorderLearnerInterestsMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/ResetLearnerPreferenceProfileMutationModel"
+              }
+            ],
+            "title": "Mutation"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "idempotency_key",
+          "expected_revision",
+          "mutation"
+        ],
+        "title": "LearnerPreferenceMutationRequestModel",
+        "type": "object"
+      },
+      "LearnerPreferenceProfileResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "experience": {
+            "items": {
+              "$ref": "#/components/schemas/LearnerPreferenceExperienceModel"
+            },
+            "maxItems": 20,
+            "title": "Experience",
+            "type": "array"
+          },
+          "goals": {
+            "items": {
+              "$ref": "#/components/schemas/LearnerPreferenceGoalModel"
+            },
+            "maxItems": 20,
+            "title": "Goals",
+            "type": "array"
+          },
+          "interests": {
+            "items": {
+              "$ref": "#/components/schemas/LearnerPreferenceInterestModel"
+            },
+            "maxItems": 50,
+            "title": "Interests",
+            "type": "array"
+          },
+          "learner_id": {
+            "format": "uuid",
+            "title": "Learner Id",
+            "type": "string"
+          },
+          "profile_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Profile Digest",
+            "type": "string"
+          },
+          "profile_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "profile_id",
+          "learner_id",
+          "revision",
+          "goals",
+          "experience",
+          "interests",
+          "created_at",
+          "updated_at",
+          "profile_digest"
+        ],
+        "title": "LearnerPreferenceProfileResponseModel",
         "type": "object"
       },
       "LearningOpportunityBrowseResponseModel": {
@@ -9072,6 +9668,52 @@
         "title": "PublicationProvenanceModel",
         "type": "object"
       },
+      "RemoveLearnerExperienceMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "operation": {
+            "const": "remove_experience",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "entry_id"
+        ],
+        "title": "RemoveLearnerExperienceMutationModel",
+        "type": "object"
+      },
+      "RemoveLearnerInterestMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "operation": {
+            "const": "remove_interest",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "entry_id"
+        ],
+        "title": "RemoveLearnerInterestMutationModel",
+        "type": "object"
+      },
       "RemoveProjectDomainLinkModel": {
         "additionalProperties": false,
         "properties": {
@@ -9093,6 +9735,120 @@
           "link_id"
         ],
         "title": "RemoveProjectDomainLinkModel",
+        "type": "object"
+      },
+      "RenameLearnerInterestMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "operation": {
+            "const": "rename_interest",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "label",
+          "entry_id"
+        ],
+        "title": "RenameLearnerInterestMutationModel",
+        "type": "object"
+      },
+      "ReorderLearnerExperienceMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "reorder_experience",
+            "title": "Operation",
+            "type": "string"
+          },
+          "ordered_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Ordered Ids",
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "operation",
+          "ordered_ids"
+        ],
+        "title": "ReorderLearnerExperienceMutationModel",
+        "type": "object"
+      },
+      "ReorderLearnerGoalsMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "reorder_goals",
+            "title": "Operation",
+            "type": "string"
+          },
+          "ordered_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Ordered Ids",
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "operation",
+          "ordered_ids"
+        ],
+        "title": "ReorderLearnerGoalsMutationModel",
+        "type": "object"
+      },
+      "ReorderLearnerInterestsMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "reorder_interests",
+            "title": "Operation",
+            "type": "string"
+          },
+          "ordered_ids": {
+            "items": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "type": "string"
+            },
+            "maxItems": 50,
+            "title": "Ordered Ids",
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "operation",
+          "ordered_ids"
+        ],
+        "title": "ReorderLearnerInterestsMutationModel",
         "type": "object"
       },
       "ReplaceProjectNoteModel": {
@@ -9234,6 +9990,48 @@
           "expected_reference_version"
         ],
         "title": "ReplaceProjectReferenceModel",
+        "type": "object"
+      },
+      "ResetLearnerPreferenceProfileMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "reset_profile",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "title": "ResetLearnerPreferenceProfileMutationModel",
+        "type": "object"
+      },
+      "SelectLearnerGoalMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "archive_goal",
+              "restore_goal",
+              "remove_goal"
+            ],
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "entry_id"
+        ],
+        "title": "SelectLearnerGoalMutationModel",
         "type": "object"
       },
       "SessionBootstrapRequestModel": {
@@ -9758,6 +10556,104 @@
           "unavailable_reason"
         ],
         "title": "UnavailablePracticeReviewTargetModel",
+        "type": "object"
+      },
+      "UpdateLearnerExperienceMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "entry_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "level": {
+            "enum": [
+              "new",
+              "some_experience",
+              "experienced"
+            ],
+            "title": "Level",
+            "type": "string"
+          },
+          "operation": {
+            "const": "update_experience",
+            "title": "Operation",
+            "type": "string"
+          },
+          "subject": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "subject",
+          "level",
+          "detail",
+          "entry_id"
+        ],
+        "title": "UpdateLearnerExperienceMutationModel",
+        "type": "object"
+      },
+      "UpdateLearnerGoalMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "entry_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "operation": {
+            "const": "update_goal",
+            "title": "Operation",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "title",
+          "detail",
+          "entry_id"
+        ],
+        "title": "UpdateLearnerGoalMutationModel",
         "type": "object"
       },
       "ValidationError": {
@@ -11379,6 +12275,360 @@
         "summary": "Submit Placed Practice",
         "tags": [
           "assessment"
+        ]
+      }
+    },
+    "/api/v1/learner-preferences": {
+      "get": {
+        "operationId": "getLearnerPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerPreferenceProfileResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Learner Preferences",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-preferences/export": {
+      "get": {
+        "operationId": "exportLearnerPreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerPreferenceExportResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Export Learner Preferences",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-preferences/history": {
+      "get": {
+        "operationId": "getLearnerPreferenceHistory",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerPreferenceHistoryResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Learner Preference History",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-preferences/mutations": {
+      "post": {
+        "operationId": "mutateLearnerPreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearnerPreferenceMutationRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerPreferenceProfileResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Mutate Learner Preferences",
+        "tags": [
+          "learner-model"
         ]
       }
     },

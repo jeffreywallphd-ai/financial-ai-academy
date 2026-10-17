@@ -9,6 +9,43 @@ from ..domain.models import (
     PracticeHistoryProjection,
     ProjectCompletionProjection,
 )
+from ..domain.preferences import (
+    LearnerPreferenceProfile,
+    PreferenceChange,
+    PreferenceHistory,
+)
+
+
+class LearnerPreferenceIdempotencyConflict(RuntimeError):
+    pass
+
+
+class LearnerPreferenceRevisionConflict(RuntimeError):
+    pass
+
+
+class LearnerPreferenceRepositoryPort(Protocol):
+    def get_preferences(
+        self, learner_id: str
+    ) -> LearnerPreferenceProfile | None: ...
+
+    def get_preference_history(
+        self, learner_id: str
+    ) -> PreferenceHistory | None: ...
+
+    def get_preference_replay(
+        self, learner_id: str, idempotency_key: str
+    ) -> tuple[str, LearnerPreferenceProfile] | None: ...
+
+    def save_preferences_if_revision(
+        self,
+        *,
+        idempotency_key: str,
+        request_fingerprint: str,
+        expected_revision: int,
+        profile: LearnerPreferenceProfile,
+        change: PreferenceChange,
+    ) -> LearnerPreferenceProfile: ...
 
 
 class CompletionProjectionRepositoryPort(Protocol):

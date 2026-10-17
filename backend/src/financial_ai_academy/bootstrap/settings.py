@@ -59,6 +59,11 @@ class SingleProfileApplicationSettings:
         """Return the Personal workspace v1 schema directory."""
         return self.lesson_schema_dir.parents[1] / "personal-workspace" / "v1"
 
+    @property
+    def learner_preference_schema_dir(self) -> Path:
+        """Return the Learner-model preference v1 schema directory."""
+        return self.lesson_schema_dir.parents[1] / "learner-preferences" / "v1"
+
     def validate(self) -> SingleProfileRequestPolicy:
         if not self.postgres_dsn.startswith(
             ("postgresql://", "postgres://")
@@ -80,6 +85,8 @@ class SingleProfileApplicationSettings:
             )
         if not self.personal_workspace_schema_dir.is_dir():
             raise ValueError("Personal workspace schema directory is unavailable.")
+        if not self.learner_preference_schema_dir.is_dir():
+            raise ValueError("Learner preference schema directory is unavailable.")
         if not self.migrations_dir.is_dir():
             raise ValueError("Migration directory is unavailable.")
         return SingleProfileRequestPolicy(self.security)

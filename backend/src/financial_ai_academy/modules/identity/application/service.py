@@ -30,6 +30,8 @@ _READ_PERMISSIONS = (
     "curriculum.discovery.read",
     "curriculum.graph.read",
     "curriculum.lesson.read",
+    "learner_preferences.read",
+    "learner_preferences.write",
     "project.create",
     "project.read",
     "project.write",

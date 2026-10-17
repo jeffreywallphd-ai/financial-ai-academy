@@ -7,10 +7,23 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol
 
+from .domain.preferences import (
+    LearnerPreferenceProfile,
+    PreferenceExport,
+    PreferenceHistory,
+    PreferenceMutationIntent,
+)
+
 
 class LearnerModelErrorCode(StrEnum):
+    INVALID_REQUEST = "invalid_request"
     INVALID_CONTEXT = "invalid_context"
     INCONSISTENT_EVIDENCE = "inconsistent_evidence"
+    IMMUTABLE_CONFLICT = "immutable_conflict"
+    STALE_REVISION = "stale_revision"
+    NOT_FOUND = "not_found"
+    PREFERENCE_LIMIT = "preference_limit"
+    INTEGRITY_FAILURE = "integrity_failure"
     UNAVAILABLE = "unavailable"
 
 
@@ -126,6 +139,27 @@ class OpenProjectCompletionRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class OpenLearnerPreferencesRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class MutateLearnerPreferencesRequest:
+    learner_id: str
+    intent: PreferenceMutationIntent
+
+
+@dataclass(frozen=True, slots=True)
+class ReadLearnerPreferenceHistoryRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ExportLearnerPreferencesRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectCompletionHistoryEntry:
     event_id: str
     evidence_id: str
@@ -171,3 +205,19 @@ class LearnerModelOperations(Protocol):
     def open_project_completion(
         self, request: OpenProjectCompletionRequest
     ) -> ProjectCompletionView: ...
+
+    def open_preferences(
+        self, request: OpenLearnerPreferencesRequest
+    ) -> LearnerPreferenceProfile: ...
+
+    def mutate_preferences(
+        self, request: MutateLearnerPreferencesRequest
+    ) -> LearnerPreferenceProfile: ...
+
+    def read_preference_history(
+        self, request: ReadLearnerPreferenceHistoryRequest
+    ) -> PreferenceHistory: ...
+
+    def export_preferences(
+        self, request: ExportLearnerPreferencesRequest
+    ) -> PreferenceExport: ...

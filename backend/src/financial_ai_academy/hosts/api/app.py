@@ -85,13 +85,17 @@ from financial_ai_academy.modules.identity.public import (
     SingleProfileBootstrapRequest,
 )
 from financial_ai_academy.modules.learner_model.public import (
+    ExportLearnerPreferencesRequest,
     LearnerModelError,
     LearnerModelErrorCode,
     LearnerModelOperations,
+    MutateLearnerPreferencesRequest,
+    OpenLearnerPreferencesRequest,
     OpenLessonCompletionRequest,
     OpenProjectCompletionRequest,
     OpenPracticeHistoryRequest,
     PracticeHistoryView,
+    ReadLearnerPreferenceHistoryRequest,
 )
 from financial_ai_academy.modules.project.public import (
     CloseProjectSnapshotRequest,
@@ -139,6 +143,10 @@ from .models import (
     LearningOpportunityQueryPageResponseModel,
     LearningProjectStartOptionResponseModel,
     LearningProjectStartOptionListResponseModel,
+    LearnerPreferenceExportResponseModel,
+    LearnerPreferenceHistoryResponseModel,
+    LearnerPreferenceMutationRequestModel,
+    LearnerPreferenceProfileResponseModel,
     LessonCompletionResponseModel,
     LessonReadingResponseModel,
     NavigationStateResponseModel,
@@ -181,6 +189,10 @@ from .models import (
     lesson_response,
     learning_project_start_option_response,
     learning_project_start_option_list_response,
+    learner_preference_export_response,
+    learner_preference_history_response,
+    learner_preference_mutation_intent,
+    learner_preference_profile_response,
     navigation_state_response,
     practice_presentation_response,
     practice_draft_response,
@@ -556,10 +568,26 @@ def create_app(services: ApiServices) -> FastAPI:
         request: Request, error: LearnerModelError
     ) -> JSONResponse:
         http_status = {
+            LearnerModelErrorCode.INVALID_REQUEST: (
+                status.HTTP_400_BAD_REQUEST
+            ),
             LearnerModelErrorCode.INVALID_CONTEXT: (
                 status.HTTP_401_UNAUTHORIZED
             ),
             LearnerModelErrorCode.INCONSISTENT_EVIDENCE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            LearnerModelErrorCode.IMMUTABLE_CONFLICT: (
+                status.HTTP_409_CONFLICT
+            ),
+            LearnerModelErrorCode.STALE_REVISION: (
+                status.HTTP_409_CONFLICT
+            ),
+            LearnerModelErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
+            LearnerModelErrorCode.PREFERENCE_LIMIT: (
+                status.HTTP_409_CONFLICT
+            ),
+            LearnerModelErrorCode.INTEGRITY_FAILURE: (
                 status.HTTP_503_SERVICE_UNAVAILABLE
             ),
             LearnerModelErrorCode.UNAVAILABLE: (
@@ -755,6 +783,26 @@ def create_app(services: ApiServices) -> FastAPI:
                 "The personal workspace is unavailable.",
             )
         return services.personal_workspace
+
+    def learner_preferences_read_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "learner_preferences.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read learning preferences.",
+            )
+        return context
+
+    def learner_preferences_write_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "learner_preferences.write" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot change learning preferences.",
+            )
+        return context
 
     @app.get(
         "/health",
@@ -1859,6 +1907,110 @@ def create_app(services: ApiServices) -> FastAPI:
         )
         return lesson_completion_response(view)
 
+    @app.get(
+        "/api/v1/learner-preferences",
+        response_model=LearnerPreferenceProfileResponseModel,
+        operation_id="getLearnerPreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def get_learner_preferences(
+        request: Request,
+        context: LearnerContext = Depends(learner_preferences_read_context),
+    ) -> LearnerPreferenceProfileResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Learning preferences do not accept query input.",
+                reference="query",
+            )
+        profile = _learner_model_service(
+            services.learner_model
+        ).open_preferences(
+            OpenLearnerPreferencesRequest(learner_id=context.learner_id)
+        )
+        return learner_preference_profile_response(profile)
+
+    @app.post(
+        "/api/v1/learner-preferences/mutations",
+        response_model=LearnerPreferenceProfileResponseModel,
+        operation_id="mutateLearnerPreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def mutate_learner_preferences(
+        request: Request,
+        request_model: LearnerPreferenceMutationRequestModel,
+        context: LearnerContext = Depends(learner_preferences_write_context),
+    ) -> LearnerPreferenceProfileResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Learning preference changes do not accept query input.",
+                reference="query",
+            )
+        profile = _learner_model_service(
+            services.learner_model
+        ).mutate_preferences(
+            MutateLearnerPreferencesRequest(
+                learner_id=context.learner_id,
+                intent=learner_preference_mutation_intent(request_model),
+            )
+        )
+        return learner_preference_profile_response(profile)
+
+    @app.get(
+        "/api/v1/learner-preferences/history",
+        response_model=LearnerPreferenceHistoryResponseModel,
+        operation_id="getLearnerPreferenceHistory",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def get_learner_preference_history(
+        request: Request,
+        context: LearnerContext = Depends(learner_preferences_read_context),
+    ) -> LearnerPreferenceHistoryResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Learning preference history does not accept query input.",
+                reference="query",
+            )
+        history = _learner_model_service(
+            services.learner_model
+        ).read_preference_history(
+            ReadLearnerPreferenceHistoryRequest(
+                learner_id=context.learner_id
+            )
+        )
+        return learner_preference_history_response(history)
+
+    @app.get(
+        "/api/v1/learner-preferences/export",
+        response_model=LearnerPreferenceExportResponseModel,
+        operation_id="exportLearnerPreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def export_learner_preferences(
+        request: Request,
+        context: LearnerContext = Depends(learner_preferences_read_context),
+    ) -> LearnerPreferenceExportResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "Learning preference export does not accept query input.",
+                reference="query",
+            )
+        export = _learner_model_service(
+            services.learner_model
+        ).export_preferences(
+            ExportLearnerPreferencesRequest(
+                learner_id=context.learner_id
+            )
+        )
+        return learner_preference_export_response(export)
+
     def reviewed_openapi() -> dict[str, object]:
         if app.openapi_schema is None:
             schema = get_openapi(
@@ -1899,6 +2051,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/curriculum/placements/{placement_id}/practice/draft"
             ]["put"]
             practice_draft_operation["responses"].pop("422", None)
+            preference_mutation_operation = schema["paths"][
+                "/api/v1/learner-preferences/mutations"
+            ]["post"]
+            preference_mutation_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 

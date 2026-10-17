@@ -41,12 +41,19 @@ from financial_ai_academy.modules.audit.public import (
     ReconcileProjectCompletionAuditRequest,
 )
 from financial_ai_academy.modules.learner_model.public import (
+    ExportLearnerPreferencesRequest,
+    LearnerPreferenceProfile,
     LessonCompletionView,
+    MutateLearnerPreferencesRequest,
+    OpenLearnerPreferencesRequest,
     OpenLessonCompletionRequest,
     OpenPracticeHistoryRequest,
     OpenProjectCompletionRequest,
+    PreferenceExport,
+    PreferenceHistory,
     PracticeHistoryView,
     ProjectCompletionView,
+    ReadLearnerPreferenceHistoryRequest,
 )
 from financial_ai_academy.modules.curriculum.public import (
     BrowseLearningOpportunitiesRequest,
@@ -194,6 +201,26 @@ class _SchemaLearnerModel:
     def open_project_completion(
         self, request: OpenProjectCompletionRequest
     ) -> ProjectCompletionView:
+        raise NotImplementedError
+
+    def open_preferences(
+        self, request: OpenLearnerPreferencesRequest
+    ) -> LearnerPreferenceProfile:
+        raise NotImplementedError
+
+    def mutate_preferences(
+        self, request: MutateLearnerPreferencesRequest
+    ) -> LearnerPreferenceProfile:
+        raise NotImplementedError
+
+    def read_preference_history(
+        self, request: ReadLearnerPreferenceHistoryRequest
+    ) -> PreferenceHistory:
+        raise NotImplementedError
+
+    def export_preferences(
+        self, request: ExportLearnerPreferencesRequest
+    ) -> PreferenceExport:
         raise NotImplementedError
 
 

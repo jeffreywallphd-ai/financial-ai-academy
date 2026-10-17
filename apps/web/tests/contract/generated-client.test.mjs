@@ -68,6 +68,13 @@ assert.match(schema, /\/api\/v1\/personal-workspace\/export/);
 assert.match(schema, /operations\["exportPersonalWorkspace"\]/);
 assert.match(schema, /PersonalWorkspaceExportResponseModel/);
 assert.match(schema, /PersonalRefreshReferenceModel/);
+assert.match(schema, /\/api\/v1\/learner-preferences/);
+assert.match(schema, /operations\["getLearnerPreferences"\]/);
+assert.match(schema, /operations\["mutateLearnerPreferences"\]/);
+assert.match(schema, /operations\["getLearnerPreferenceHistory"\]/);
+assert.match(schema, /operations\["exportLearnerPreferences"\]/);
+assert.match(schema, /LearnerPreferenceMutationRequestModel/);
+assert.match(schema, /LearnerPreferenceExportResponseModel/);
 assert.match(schema, /"available" \| "stale" \| "unavailable"/);
 for (const model of [
   "PersonalLearningOpportunityReferenceModel",
