@@ -1,7 +1,7 @@
 ---
 id: WRK-0137
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/src/features/personal-workspace/api.ts", "apps/web/src/features/personal-workspace/model.ts", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "docs/architecture/contracts/personal-workspace-contract.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0137-deliver-project-saved-learning-browser-flow.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 2c408443c8adf95d8cb803d96d8b47a707d948dd
+claim_id: WRK-0137:cafa3d30-634c-464d-969a-a501cc8b5fae
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T13:41:53Z
 ---
 
 # Agent Work Packet: Deliver the Project Saved-Learning Browser Flow
@@ -227,3 +227,6 @@ leave WRK-0138 dependency-ready.
   browser entry, exact closed selector mapping, mixed organization, and mocked
   browser behavior. Isolated live PostgreSQL/backend qualification remains in
   JIT-D. No lower-level approval is required.
+- 2026-10-17: Activated from recorded base `2c40844` after validating the
+  completed dependency, exact write scope, design and language constraints,
+  current CAP authority, and absence of active coordination overlap.
