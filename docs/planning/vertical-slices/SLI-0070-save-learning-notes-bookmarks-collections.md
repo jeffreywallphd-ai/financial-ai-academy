@@ -204,7 +204,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0131 | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | complete |
-| JIT-B | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | JIT-A | none | proposed |
+| WRK-0132 | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0131 | none | ready |
 | JIT-C | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | JIT-B | none | proposed |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | JIT-C | none | proposed |
 
@@ -285,3 +285,7 @@ authority were not delivered or qualified.
   `79ba235c8efd8ca621508f031897cdb000cf75a7`. The contract and pure-core suite
   passed 81 tests; architecture, security, documentation, planning, whitespace,
   and aggregate readiness checks passed. JIT-B is now dependency-ready.
+- 2026-10-17: Refined JIT-B as WRK-0132 around a selector-based public command,
+  server-resolved Curriculum provenance, side-effect-free empty reads, atomic
+  first materialization, Personal-workspace-owned PostgreSQL persistence, and
+  protected generated-client access for browser and headless consumers.
