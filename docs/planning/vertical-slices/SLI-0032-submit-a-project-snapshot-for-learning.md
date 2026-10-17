@@ -237,7 +237,7 @@ scope is refined just in time.
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
-| WRK-0125 | Deliver safe Project snapshot facts, Assessment-owned application/persistence, public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | active |
+| WRK-0125 | Deliver safe Project snapshot facts, Assessment-owned application/persistence, public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | complete |
 | JIT-B2 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | captured |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B2 | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
@@ -360,3 +360,10 @@ qualified.
   changed.
 - 2026-10-17: Reactivated the fully bounded implementation and migration-
   regression scope from base `f66a0df` after all deterministic gates passed.
+- 2026-10-17: WRK-0125 completed at corrected candidate `31bf760` after a
+  qualifying affected-check receipt and accepted R02 review closed both R01
+  findings. Assessment now assembles candidates only through public operations,
+  persists immutable evidence and its safe event atomically, preserves exact
+  replay and supersession, serializes non-regressing occurrence time, and
+  refuses storage beyond the canonical 100-item complete-history bound. The
+  protected HTTP/OpenAPI/generated-client seam remains JIT-B2.

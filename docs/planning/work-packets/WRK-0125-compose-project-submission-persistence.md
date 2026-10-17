@@ -1,7 +1,7 @@
 ---
 id: WRK-0125
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -284,3 +284,14 @@ for just-in-time refinement.
   coverage. Focused Project PostgreSQL checks now pass 6/6 and the complete
   affected Assessment PostgreSQL set passes 37/37; fresh exact-candidate
   verification and R01 closure remain.
+- 2026-10-17: Completed at corrected candidate `31bf760`. Receipt
+  `20261017T034604Z-7b98cc89-271b-4fcb-bf39-df34406c8b11` with digest
+  `sha256:09c2a0c7ead723caaa447c8dd88063b79995e669869dd93c5e44985b35215d26`
+  passed all four selected planning, documentation, and architecture checks;
+  aggregate readiness passed 29/29. Independent R02 accepted the descendant
+  with no new finding and closed R01-F001/R01-F002 after focused contract/unit
+  checks passed 49/49, affected real-PostgreSQL checks passed 37/37, the wider
+  unit regression passed 263/263, architecture passed 16/16, and security
+  passed 10 control groups. HTTP/OpenAPI/generated client, typed consumers,
+  browser behavior, external providers, execution, and AI authority remain in
+  later SLI-0032 packets.
