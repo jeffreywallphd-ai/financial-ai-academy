@@ -169,3 +169,9 @@ return to WRK-0121.
   Project suite passed 141 tests with 10 environment-specific skips; focused
   HTTP verification passed 8 tests with one PostgreSQL skip; architecture and
   all 10 security control groups passed.
+- 2026-10-17: The first two governed verification attempts were non-qualifying
+  because the generated-client wrapper discovered Node 20 and then npm 11.9.0
+  instead of the repository-required Node 24 and npm 10.8.2. The unchanged
+  generated-client check passed when rerun with the repository's explicit,
+  prepared runtime pair. This descendant records that environmental correction
+  before fresh exact-candidate verification.
