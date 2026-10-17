@@ -1,7 +1,7 @@
 ---
 id: WRK-0135
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -10,33 +10,12 @@ capability: CAP-0017
 depends_on: []
 decision_gates: []
 parallel_safe_with: []
-write_scope:
-  - contracts/learning/personal-workspace/v1/learning-reference.schema.json
-  - contracts/learning/personal-workspace/v1/README.md
-  - contracts/compatibility/personal-workspace/v1/README.md
-  - contracts/compatibility/personal-workspace/v1/valid-project-workspace-note.json
-  - contracts/compatibility/personal-workspace/v1/valid-project-snapshot-bookmark.json
-  - contracts/compatibility/personal-workspace/v1/valid-project-artifact-bookmark.json
-  - backend/src/financial_ai_academy/modules/personal_workspace/README.md
-  - backend/src/financial_ai_academy/modules/personal_workspace/domain/workspace.py
-  - backend/src/financial_ai_academy/modules/personal_workspace/public.py
-  - backend/src/financial_ai_academy/modules/personal_workspace/ports/learning_reference.py
-  - backend/src/financial_ai_academy/modules/personal_workspace/adapters/workspace_contract.py
-  - backend/src/financial_ai_academy/modules/personal_workspace/adapters/project_reference.py
-  - backend/tests/contract/personal_workspace/test_personal_workspace_contract.py
-  - backend/tests/unit/personal_workspace/test_workspace_contract.py
-  - backend/tests/unit/personal_workspace/test_project_reference_gateway.py
-  - docs/architecture/contracts/personal-workspace-contract.md
-  - docs/architecture/contracts/project-workspace-contract.md
-  - docs/architecture/modules/module-map.md
-  - docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md
-  - docs/planning/work-packets/WRK-0135-freeze-personal-workspace-project-references.md
-  - docs/planning/register.md
+write_scope: ["contracts/learning/personal-workspace/v1/learning-reference.schema.json", "contracts/learning/personal-workspace/v1/README.md", "contracts/compatibility/personal-workspace/v1/README.md", "contracts/compatibility/personal-workspace/v1/valid-project-workspace-note.json", "contracts/compatibility/personal-workspace/v1/valid-project-snapshot-bookmark.json", "contracts/compatibility/personal-workspace/v1/valid-project-artifact-bookmark.json", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/domain/workspace.py", "backend/src/financial_ai_academy/modules/personal_workspace/public.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/workspace_contract.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/project_reference.py", "backend/tests/contract/personal_workspace/test_personal_workspace_contract.py", "backend/tests/unit/personal_workspace/test_workspace_contract.py", "backend/tests/unit/personal_workspace/test_project_reference_gateway.py", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0135-freeze-personal-workspace-project-references.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 5cdd5a05f705f848d1a54c524edaa6146576f1a5
+claim_id: WRK-0135:790d9795-6850-4e48-ab5c-2a2924f537e5
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T12:48:49Z
 ---
 
 # Agent Work Packet: Freeze Personal-Workspace Project References
