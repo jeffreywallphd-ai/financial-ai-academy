@@ -189,3 +189,18 @@ The contract derives a same-origin lesson destination and carries exact graph,
 projection, placement, and package provenance. It does not qualify an API,
 permission check, generated client, browser transition, persistence, or
 assessment launch.
+
+## Personal Workspace v1
+
+[`personal-workspace/v1/`](personal-workspace/v1/README.md) defines bounded
+learner notes, bookmarks, collections, typed Curriculum references, and closed
+revision-bound mutation intents. Its synthetic compatibility corpus lives in
+[`../compatibility/personal-workspace/v1/`](../compatibility/personal-workspace/v1/README.md).
+
+```powershell
+uv run --project backend pytest backend/tests/contract/personal_workspace backend/tests/unit/personal_workspace/test_workspace_contract.py
+```
+
+The pure adapter gives browser and future headless clients one canonical core.
+Persistence, authorization, HTTP, generated clients, target refresh, and UI
+remain later CAP-0017 packet boundaries.

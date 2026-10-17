@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/personal-workspace/v1/learning-reference.schema.json",
+  "title": "Personal Workspace Learning Reference v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "reference"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "reference": { "$ref": "#/$defs/reference" }
+  },
+  "$defs": {
+    "identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "safe_text": { "type": "string", "minLength": 1, "maxLength": 4000, "pattern": "^[^\\u0000]*$" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^\\u0000]*$" },
+    "destination": { "type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^/[^<>\\u0000]*$" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["published_by", "published_at", "content_reviewed_on", "educational_use_notice"],
+      "properties": {
+        "published_by": { "$ref": "#/$defs/title" },
+        "published_at": { "$ref": "#/$defs/utc_time" },
+        "content_reviewed_on": { "type": "string", "format": "date" },
+        "educational_use_notice": { "$ref": "#/$defs/safe_text" }
+      }
+    },
+    "common": {
+      "type": "object",
+      "required": ["reference_kind", "owner_module", "placement_id", "package_id", "package_version", "package_digest", "title", "destination", "target_status", "provenance", "validated_at"],
+      "properties": {
+        "reference_kind": { "enum": ["learning_opportunity", "placed_lesson"] },
+        "owner_module": { "const": "curriculum" },
+        "placement_id": { "$ref": "#/$defs/identifier" },
+        "package_id": { "$ref": "#/$defs/identifier" },
+        "package_version": { "$ref": "#/$defs/version" },
+        "package_digest": { "$ref": "#/$defs/digest" },
+        "title": { "$ref": "#/$defs/title" },
+        "destination": { "$ref": "#/$defs/destination" },
+        "target_status": { "const": "available" },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "validated_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "learning_opportunity": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reference_kind", "owner_module", "opportunity_id", "placement_id", "package_id", "package_version", "package_digest", "source_fingerprint", "title", "destination", "target_status", "provenance", "validated_at"],
+          "properties": {
+            "reference_kind": { "const": "learning_opportunity" },
+            "owner_module": { "const": "curriculum" },
+            "opportunity_id": { "$ref": "#/$defs/identifier" },
+            "placement_id": { "$ref": "#/$defs/identifier" },
+            "package_id": { "$ref": "#/$defs/identifier" },
+            "package_version": { "$ref": "#/$defs/version" },
+            "package_digest": { "$ref": "#/$defs/digest" },
+            "source_fingerprint": { "$ref": "#/$defs/digest" },
+            "title": { "$ref": "#/$defs/title" },
+            "destination": { "$ref": "#/$defs/destination" },
+            "target_status": { "const": "available" },
+            "provenance": { "$ref": "#/$defs/provenance" },
+            "validated_at": { "$ref": "#/$defs/utc_time" }
+          }
+        }
+      ]
+    },
+    "placed_lesson": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reference_kind", "owner_module", "placement_id", "package_id", "package_version", "package_digest", "title", "destination", "target_status", "provenance", "validated_at"],
+          "properties": {
+            "reference_kind": { "const": "placed_lesson" },
+            "owner_module": { "const": "curriculum" },
+            "placement_id": { "$ref": "#/$defs/identifier" },
+            "package_id": { "$ref": "#/$defs/identifier" },
+            "package_version": { "$ref": "#/$defs/version" },
+            "package_digest": { "$ref": "#/$defs/digest" },
+            "title": { "$ref": "#/$defs/title" },
+            "destination": { "$ref": "#/$defs/destination" },
+            "target_status": { "const": "available" },
+            "provenance": { "$ref": "#/$defs/provenance" },
+            "validated_at": { "$ref": "#/$defs/utc_time" }
+          }
+        }
+      ]
+    },
+    "reference": {
+      "oneOf": [
+        { "$ref": "#/$defs/learning_opportunity" },
+        { "$ref": "#/$defs/placed_lesson" }
+      ]
+    }
+  }
+}

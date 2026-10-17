@@ -75,6 +75,12 @@ business state or grants target permission. Owner-specific adapters use public
 application operations and degrade independently. Browser and headless clients
 share the same protected versioned API and server-owned mutation authority.
 
+The implemented `personal-workspace-v1` family fixes bounded portable records,
+exact Curriculum reference provenance, canonical digests, and closed
+revision-bound mutation intents behind a pure contract port. It adds no
+persistence, identity binding, API, browser, target refresh, or cross-module
+mutation.
+
 Portable financial methods, portfolio records, and simulation results
 additionally follow
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the
