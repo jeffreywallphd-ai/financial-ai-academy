@@ -1,7 +1,7 @@
 ---
 id: WRK-0140
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/public.py", "backend/src/financial_ai_academy/modules/personal_workspace/application/service.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/postgres_repository.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/unit/personal_workspace/test_personal_workspace_service.py", "backend/tests/integration/personal_workspace/test_postgres_personal_workspace.py", "backend/tests/integration/api/test_single_profile_personal_workspace_api.py", "contracts/api/openapi.json", "contracts/api/README.md", "apps/web/README.md", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/planning/vertical-slices/SLI-0072-search-and-refresh-saved-references.md", "docs/planning/work-packets/WRK-0140-deliver-saved-reference-query-refresh-api.md", "docs/planning/register.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 53ae2789993a6d1de89f9dc5b24ec4d7fec81a14
+claim_id: WRK-0140:808c1345-90ff-4338-983f-5ae0d4bb26bd
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T15:09:20Z
 ---
 
 # Agent Work Packet: Deliver Saved-Reference Query and Refresh API
