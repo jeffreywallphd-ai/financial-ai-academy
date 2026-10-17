@@ -1,7 +1,7 @@
 ---
 id: CAP-0016
 kind: capability
-planning_status: shaping
+planning_status: ready
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-16

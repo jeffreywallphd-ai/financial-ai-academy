@@ -1,7 +1,7 @@
 ---
 id: CAP-0031
 kind: capability
-planning_status: shaping
+planning_status: ready
 authority: noncanonical
 owner: codex-final-cleanup
 updated: 2026-10-16
