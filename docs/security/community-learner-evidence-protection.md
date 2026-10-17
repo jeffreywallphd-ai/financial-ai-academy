@@ -81,10 +81,13 @@ The threat boundary is accepted. One disposable stopped-source, empty-target
 PostgreSQL 18.4 exercise now proves that Personal-workspace aggregate/replay
 state and the bounded application-data root survive logical capture and
 restore, that a populated target is refused before mutation, that restored
-sessions are revoked before a fresh protected read, and that the source and
-referenced domain state remain unchanged. Evidence contains only bounded
-counts, digests, phases, and booleans, and the runner removes both targets and
-all temporary material.
+sessions are revoked before startup, that the pre-restore cookie is denied
+before a fresh protected read, and that the source and referenced domain state
+remain unchanged. Restore accepts only a regular dump inside the unique
+runner-owned root; database comparison covers row data and deterministic
+structural catalog facts. Evidence contains only bounded counts, digests,
+phases, and booleans, and the runner removes both targets and all temporary
+material.
 
 That exercise is not a backup or restore tool, permission profile, recovery-
 set manifest, compatibility matrix, supported-platform drill, or recovery

@@ -82,12 +82,15 @@ the runner-owned local topology. It stops the source application, creates a
 logical PostgreSQL dump, copies and hashes the bounded application-data root,
 refuses a marked populated target before restore, restores to a separate empty
 inactive PostgreSQL 18.4 target, compares the complete pre-revocation database
-and copied file evidence, revokes restored sessions, and starts the ordinary
-application without seed flags. A fresh protected headless session reproduces
-the accepted Personal-workspace read, query, export, exact replay, mutation
-rows, and target-state fingerprints. The source remains unchanged, evidence is
-redacted to counts/digests/booleans, and all temporary recovery material is
-removed in bounded cleanup.
+row data plus deterministic columns, types, defaults, constraints, indexes,
+sequences, routines, triggers, and copied-file evidence. Restore input is
+confined to the unique runner-owned root. The exercise revokes at least one
+restored session, starts the ordinary application without seed flags, proves
+the pre-restore cookie is denied, then uses a fresh protected headless session
+to reproduce the accepted Personal-workspace read, query, export, exact replay,
+mutation rows, and target-state fingerprints. The source remains unchanged,
+evidence is redacted to allowlisted counts, digests, phases, and booleans, and
+all temporary recovery material is removed in bounded cleanup.
 
 This closes only Personal-workspace inclusion and one controlled empty-target
 path for the disposable Windows/CI-targeted community topology. It does not

@@ -168,12 +168,14 @@ application, creates one logical PostgreSQL dump, and copies the exact bounded
 application-data root inside its ignored temporary directory. A second unique
 PostgreSQL 18.4 container first receives a harmless marker: the recovery guard
 refuses that populated target without applying the dump and leaves the marker
-unchanged. The runner then empties the target, restores the database, compares
-privacy-safe schema fingerprints and file-tree digests, revokes restored
-sessions, and starts the ordinary application without seed flags against the
-restored database and copied data root. A fresh headless session reproduces the
-same Personal-workspace read, query, export, exact replay, mutation rows, and
-target-state fingerprints. The stopped source remains byte- and row-stable;
+unchanged. The runner then empties the target, restores only the dump inside
+the unique runner-owned root, compares privacy-safe row plus structural-catalog
+fingerprints and file-tree digests, and revokes at least one restored session.
+The ordinary application starts without seed flags against the restored
+database and copied data root; the pre-restore cookie is denied before a fresh
+headless session reproduces the same Personal-workspace read, query, export,
+exact replay, mutation rows, and target-state fingerprints. The stopped source
+remains byte- and row-stable;
 both containers, the dump, copied data, and captures are removed in bounded
 cleanup. An acknowledged external database never enters or claims this drill.
 

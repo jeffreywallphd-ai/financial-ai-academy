@@ -65,7 +65,8 @@ canonical conflict or unresolved decision gate was found.
   results; it must not log the dump, DSN, cookies, learner-authored text,
   absolute temporary paths, credentials, or raw database rows.
 - The restored host starts only after database and object-root comparison,
-  uses a fresh session, and remains loopback-only with jobs, providers, and
+  revokes at least one restored session, denies the pre-restore cookie, then
+  uses a fresh session. It remains loopback-only with jobs, providers, and
   external network absent. The qualifier does not claim complete identity
   recovery or supported recovery tooling.
 - The complete live recovery route runs only when the runner owns its default
@@ -93,9 +94,10 @@ canonical conflict or unresolved decision gate was found.
   and files remain unchanged throughout target refusal and restore.
 - Start an independent empty target, prove a populated-target marker is
   refused before restore, return the same target to a verified empty state,
-  restore the logical dump, compare privacy-safe schema-wide fingerprints and
-  bounded file-tree digests, then start the normal application without seed
-  flags against that restored target.
+  accept restore input only from the unique runner-owned root, restore the
+  logical dump, compare privacy-safe schema-wide row and structural-catalog
+  fingerprints plus bounded file-tree digests, then start the normal
+  application without seed flags against that restored target.
 - Through a fresh protected headless session, compare the restored Personal
   workspace, export, exact replay, query meaning, target-state fingerprints,
   and mutation-row counts to the accepted source evidence.

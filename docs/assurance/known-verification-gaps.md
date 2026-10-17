@@ -29,7 +29,8 @@
   reconciliation beyond retained exact rows, and supported-platform
   qualification beyond the directly covered disposable stopped-source logical
   PostgreSQL plus bounded-data copy, populated-target refusal, empty-target
-  Personal-workspace restore, restored-session revocation, redacted evidence,
+  Personal-workspace restore, row-plus-structural-catalog comparison,
+  restored-session revocation, pre-restore-cookie denial, redacted evidence,
   source isolation, fresh-session replay, and bounded cleanup
 - PostgreSQL integration and migration checks beyond the directly covered Content, Curriculum, single-profile Identity, Assessment, Learner-model, Audit, Project, and Personal-workspace streams with PostgreSQL 18.4 empty-database apply/reapply/teardown and focused rollback paths
 - Personal-workspace live stale/unavailable source transitions, multiple

@@ -2765,6 +2765,75 @@ def observe_headless_personal_workspace(
     return observed
 
 
+def open_personal_workspace_session(
+    *,
+    origin: str,
+    expected_workspace: dict[str, Any],
+) -> urllib.request.OpenerDirector:
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    observed = stable_personal_workspace(
+        _request_json(opener, origin=origin, path="/api/v1/personal-workspace")
+    )
+    if observed != expected_workspace:
+        raise RuntimeError("Recovery session did not observe accepted source state.")
+    return opener
+
+
+def assert_restored_session_denied(
+    *,
+    opener: urllib.request.OpenerDirector,
+    origin: str,
+) -> None:
+    status, document = _request_json_read_status(
+        opener,
+        origin=origin,
+        path="/api/v1/personal-workspace",
+    )
+    _exact_keys(
+        document,
+        frozenset({"error_version", "code", "message", "correlation_id"}),
+        "Revoked restored session denial",
+    )
+    correlation_id = document.get("correlation_id")
+    try:
+        parsed_correlation = UUID(str(correlation_id))
+    except ValueError as error:
+        raise RuntimeError("Revoked session denial correlation is invalid.") from error
+    serialized = json.dumps(
+        document,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).casefold()
+    if (
+        status != 401
+        or document.get("error_version") != "1.0"
+        or document.get("code") != "unauthorized"
+        or document.get("message") != "A valid learner session is required."
+        or str(parsed_correlation) != correlation_id
+        or any(
+            marker in serialized
+            for marker in (
+                "session_cookie",
+                "session_id",
+                "token_hash",
+                "workspace_id",
+                "learner_id",
+                "postgresql",
+            )
+        )
+    ):
+        raise RuntimeError("Restored session was not denied safely.")
+
+
 def load_project_workspace_capture(
     path: Path,
     *,
@@ -3530,6 +3599,93 @@ def _schema_state_fingerprint(
     }
 
 
+def _schema_catalog_fingerprint(
+    connection: psycopg.Connection[Any],
+    *,
+    schema: str,
+) -> dict[str, Any]:
+    catalog_queries = {
+        "columns": """
+            SELECT table_name, ordinal_position, column_name, data_type,
+                   udt_schema, udt_name, is_nullable,
+                   COALESCE(column_default, ''), is_identity,
+                   COALESCE(identity_generation, '')
+            FROM information_schema.columns
+            WHERE table_schema = %s
+            ORDER BY table_name, ordinal_position
+        """,
+        "constraints": """
+            SELECT relation.relname, constraint_record.conname,
+                   constraint_record.contype,
+                   pg_get_constraintdef(constraint_record.oid, true)
+            FROM pg_constraint AS constraint_record
+            JOIN pg_class AS relation
+              ON relation.oid = constraint_record.conrelid
+            JOIN pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE namespace.nspname = %s
+            ORDER BY relation.relname, constraint_record.conname
+        """,
+        "indexes": """
+            SELECT tablename, indexname, indexdef
+            FROM pg_indexes
+            WHERE schemaname = %s
+            ORDER BY tablename, indexname
+        """,
+        "sequences": """
+            SELECT sequencename, data_type, start_value, min_value, max_value,
+                   increment_by, cycle
+            FROM pg_sequences
+            WHERE schemaname = %s
+            ORDER BY sequencename
+        """,
+        "routines": """
+            SELECT procedure_record.proname, procedure_record.prokind,
+                   pg_get_function_identity_arguments(procedure_record.oid),
+                   pg_get_function_result(procedure_record.oid),
+                   pg_get_functiondef(procedure_record.oid)
+            FROM pg_proc AS procedure_record
+            JOIN pg_namespace AS namespace
+              ON namespace.oid = procedure_record.pronamespace
+            WHERE namespace.nspname = %s
+              AND procedure_record.prokind IN ('f', 'p')
+            ORDER BY procedure_record.proname,
+                     pg_get_function_identity_arguments(procedure_record.oid)
+        """,
+        "triggers": """
+            SELECT relation.relname, trigger_record.tgname,
+                   pg_get_triggerdef(trigger_record.oid, true)
+            FROM pg_trigger AS trigger_record
+            JOIN pg_class AS relation
+              ON relation.oid = trigger_record.tgrelid
+            JOIN pg_namespace AS namespace
+              ON namespace.oid = relation.relnamespace
+            WHERE namespace.nspname = %s
+              AND NOT trigger_record.tgisinternal
+            ORDER BY relation.relname, trigger_record.tgname
+        """,
+    }
+    digest = hashlib.sha256()
+    object_counts: dict[str, int] = {}
+    for kind, query in catalog_queries.items():
+        rows = connection.execute(query, (schema,)).fetchall()
+        object_counts[kind] = len(rows)
+        digest.update(f"{kind}\0{len(rows)}\0".encode("utf-8"))
+        for row in rows:
+            canonical = json.dumps(
+                list(row),
+                ensure_ascii=False,
+                separators=(",", ":"),
+                default=str,
+            )
+            digest.update(canonical.encode("utf-8"))
+            digest.update(b"\0")
+    return {
+        "object_counts": object_counts,
+        "sha256": digest.hexdigest(),
+    }
+
+
 def application_database_fingerprint(
     postgres_dsn: str,
     *,
@@ -3551,9 +3707,24 @@ def application_database_fingerprint(
             if str(row[0]) not in exclude_schemas
         ]
         return {
-            schema: _schema_state_fingerprint(connection, schema=schema)
+            schema: {
+                "catalog": _schema_catalog_fingerprint(connection, schema=schema),
+                "data": _schema_state_fingerprint(connection, schema=schema),
+            }
             for schema in schemas
         }
+
+
+def database_fingerprint_digest(
+    fingerprint: dict[str, dict[str, Any]],
+) -> str:
+    material = json.dumps(
+        fingerprint,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(material).hexdigest()
 
 
 def application_table_count(postgres_dsn: str) -> int:
@@ -3618,12 +3789,23 @@ def restore_logical_backup(
     container_name: str,
     postgres_dsn: str,
     source: Path,
+    owned_root: Path,
 ) -> None:
     if not container_name.startswith(RECOVERY_CONTAINER_PREFIX):
         raise RuntimeError("Recovery restore requires the runner-owned target database.")
+    bounded_root = ARTIFACT_ROOT.resolve()
+    owned_resolved = owned_root.resolve()
+    if (
+        owned_root.is_symlink()
+        or not owned_root.is_dir()
+        or owned_resolved.parent != bounded_root
+        or source.is_symlink()
+        or source.resolve().parent != owned_resolved
+    ):
+        raise RuntimeError("Recovery restore source escaped its runner-owned root.")
     if application_table_count(postgres_dsn) != 0:
         raise RuntimeError("Recovery target is populated; restore was refused.")
-    if source.is_symlink() or not source.is_file() or source.stat().st_size == 0:
+    if not source.is_file() or source.stat().st_size == 0:
         raise RuntimeError("Recovery restore source is invalid.")
     with source.open("rb") as input_stream:
         completed = subprocess.run(
@@ -3656,6 +3838,7 @@ def assert_populated_target_refusal(
     container_name: str,
     postgres_dsn: str,
     source: Path,
+    owned_root: Path,
 ) -> None:
     with psycopg.connect(postgres_dsn) as connection:
         connection.execute(
@@ -3669,6 +3852,7 @@ def assert_populated_target_refusal(
             container_name=container_name,
             postgres_dsn=postgres_dsn,
             source=source,
+            owned_root=owned_root,
         )
     except RuntimeError as error:
         if str(error) != "Recovery target is populated; restore was refused.":
@@ -3696,9 +3880,86 @@ def revoke_restored_sessions(postgres_dsn: str) -> int:
         after = connection.execute(
             "SELECT count(*) FROM identity.sessions WHERE revoked_at IS NULL"
         ).fetchone()
-    if before is None or after != (0,):
+    if before is None or int(before[0]) < 1 or after != (0,):
         raise RuntimeError("Restored session revocation could not be proven.")
     return int(before[0])
+
+
+RECOVERY_PHASES = (
+    "source_stopped",
+    "source_fingerprinted",
+    "backup_created",
+    "data_copied",
+    "source_unchanged_after_capture",
+    "populated_target_refused",
+    "empty_target_restored",
+    "catalog_and_data_matched",
+    "restored_sessions_revoked",
+    "old_session_denied",
+    "fresh_session_verified",
+    "source_and_target_unchanged",
+)
+
+
+def assert_recovery_phase_order(phases: list[str]) -> None:
+    if tuple(phases) != RECOVERY_PHASES:
+        raise RuntimeError("Recovery qualification phase order is invalid.")
+
+
+def stable_recovery_report(report: dict[str, Any]) -> dict[str, Any]:
+    expected_keys = {
+        "backup_byte_count",
+        "backup_sha256",
+        "database_catalog_and_data_sha256",
+        "database_schema_count",
+        "data_file_count",
+        "data_sha256",
+        "empty_target_restored",
+        "fresh_session_public_api",
+        "old_session_denied",
+        "phases",
+        "populated_target_refused",
+        "qualified",
+        "restored_sessions_revoked",
+        "source_unchanged",
+    }
+    if set(report) != expected_keys:
+        raise RuntimeError("Recovery qualification report has an invalid shape.")
+    if (
+        not isinstance(report["backup_byte_count"], int)
+        or report["backup_byte_count"] < 1
+        or not isinstance(report["database_schema_count"], int)
+        or report["database_schema_count"] < 1
+        or not isinstance(report["data_file_count"], int)
+        or report["data_file_count"] < 0
+        or not isinstance(report["restored_sessions_revoked"], int)
+        or report["restored_sessions_revoked"] < 1
+        or any(
+            not isinstance(report[key], str)
+            or re.fullmatch(r"[a-f0-9]{64}", report[key]) is None
+            for key in (
+                "backup_sha256",
+                "database_catalog_and_data_sha256",
+                "data_sha256",
+            )
+        )
+        or any(
+            report[key] is not True
+            for key in (
+                "empty_target_restored",
+                "fresh_session_public_api",
+                "old_session_denied",
+                "populated_target_refused",
+                "qualified",
+                "source_unchanged",
+            )
+        )
+        or not isinstance(report["phases"], list)
+        or any(not isinstance(phase, str) for phase in report["phases"])
+    ):
+        raise RuntimeError("Recovery qualification report has invalid evidence.")
+    assert_recovery_phase_order(report["phases"])
+    return copy.deepcopy(report)
 
 
 def bounded_file_tree_fingerprint(root: Path) -> dict[str, Any]:
@@ -4894,8 +5155,14 @@ def main() -> int:
         )
 
         if container_name is not None:
+            restored_credential_opener = open_personal_workspace_session(
+                origin=origin,
+                expected_workspace=personal_capture["workspace"],
+            )
+            recovery_phases: list[str] = []
             stop_application(application)
             application = None
+            recovery_phases.append("source_stopped")
             source_application_data = data_root / "application-data"
             recovered_application_data = data_root / "recovery-target-data"
             logical_backup = data_root / "recovery-source.dump"
@@ -4910,11 +5177,14 @@ def main() -> int:
             source_files_before = bounded_file_tree_fingerprint(
                 source_application_data
             )
+            recovery_phases.append("source_fingerprinted")
             backup_evidence = create_logical_backup(container_name, logical_backup)
+            recovery_phases.append("backup_created")
             copied_files = copy_bounded_data_root(
                 source_application_data,
                 recovered_application_data,
             )
+            recovery_phases.append("data_copied")
             if (
                 application_database_fingerprint(postgres_dsn)
                 != source_database_before
@@ -4924,6 +5194,7 @@ def main() -> int:
                 != source_files_before
             ):
                 raise RuntimeError("Recovery capture changed the stopped source.")
+            recovery_phases.append("source_unchanged_after_capture")
 
             recovery_container_name, recovery_dsn = start_postgres(
                 prefix=RECOVERY_CONTAINER_PREFIX
@@ -4932,15 +5203,21 @@ def main() -> int:
                 container_name=recovery_container_name,
                 postgres_dsn=recovery_dsn,
                 source=logical_backup,
+                owned_root=data_root,
             )
+            recovery_phases.append("populated_target_refused")
             restore_logical_backup(
                 container_name=recovery_container_name,
                 postgres_dsn=recovery_dsn,
                 source=logical_backup,
+                owned_root=data_root,
             )
+            recovery_phases.append("empty_target_restored")
             if application_database_fingerprint(recovery_dsn) != source_database_before:
                 raise RuntimeError("Recovered database changed accepted source state.")
+            recovery_phases.append("catalog_and_data_matched")
             revoked_sessions = revoke_restored_sessions(recovery_dsn)
+            recovery_phases.append("restored_sessions_revoked")
             if (
                 application_database_fingerprint(
                     recovery_dsn,
@@ -4959,10 +5236,16 @@ def main() -> int:
                 application_log=data_root / "recovery-application.log",
                 seed_fixture=False,
             )
+            assert_restored_session_denied(
+                opener=restored_credential_opener,
+                origin=origin,
+            )
+            recovery_phases.append("old_session_denied")
             restored_personal = observe_headless_personal_workspace(
                 origin=origin,
                 capture=personal_capture,
             )
+            recovery_phases.append("fresh_session_verified")
             restored_storage = personal_workspace_storage_snapshot(recovery_dsn)
             assert_personal_workspace_restart_result(
                 before_observation=personal_before_restart,
@@ -4993,19 +5276,25 @@ def main() -> int:
                 raise RuntimeError(
                     "Recovered public use changed source, target, or copied data state."
                 )
-            recovery_report = {
+            recovery_phases.append("source_and_target_unchanged")
+            recovery_report = stable_recovery_report({
                 "backup_byte_count": backup_evidence["byte_count"],
                 "backup_sha256": backup_evidence["sha256"],
+                "database_catalog_and_data_sha256": database_fingerprint_digest(
+                    source_database_before
+                ),
                 "database_schema_count": len(source_database_before),
                 "data_file_count": copied_files["file_count"],
                 "data_sha256": copied_files["sha256"],
                 "empty_target_restored": True,
                 "fresh_session_public_api": True,
+                "old_session_denied": True,
+                "phases": recovery_phases,
                 "populated_target_refused": True,
                 "qualified": True,
                 "restored_sessions_revoked": revoked_sessions,
                 "source_unchanged": True,
-            }
+            })
 
         report = {
             "browser": "Playwright pinned Chromium",

@@ -5,6 +5,8 @@ import hashlib
 import importlib.util
 import json
 import sys
+from copy import deepcopy
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +15,20 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[3] / "backend" / "src"))
 from financial_ai_academy.modules.personal_workspace.adapters.workspace_contract import (
     ContractPersonalWorkspaceAdapter,
+)
+from financial_ai_academy.modules.personal_workspace.domain.workspace import (
+    CreateBookmarkMutation,
+    CreateCollectionMutation,
+    RemoveCollectionMutation,
+    RemoveRecordMutation,
+    RenameCollectionMutation,
+    SetCollectionMembersMutation,
+    UpdateNoteMutation,
+    WorkspaceMutationIntent,
+    WorkspaceQuery,
+)
+from financial_ai_academy.modules.personal_workspace.ports.workspace_contract import (
+    PersonalWorkspaceContractFailure,
 )
 
 
@@ -1990,11 +2006,227 @@ def test_personal_workspace_storage_requires_exact_row_correlation() -> None:
         )
 
 
+def test_capacity_refusal_keeps_query_export_removal_and_unrelated_work_available() -> None:
+    root = Path(__file__).parents[3]
+    fixture_path = (
+        root
+        / "contracts"
+        / "compatibility"
+        / "personal-workspace"
+        / "v1"
+        / "valid-populated-workspace.json"
+    )
+    adapter = ContractPersonalWorkspaceAdapter(
+        root / "contracts" / "learning" / "personal-workspace" / "v1",
+        cursor_signing_key=b"qualification-only-cursor-key-32b",
+    )
+
+    def parse(document: dict[str, Any]):
+        candidate = deepcopy(document)
+        material = deepcopy(candidate)
+        material.pop("workspace_digest", None)
+        candidate["workspace_digest"] = adapter.canonical_digest(material)
+        return adapter.parse_workspace(
+            json.dumps(candidate, ensure_ascii=False).encode("utf-8")
+        )
+
+    def intent(revision: int, key: str, mutation: object) -> WorkspaceMutationIntent:
+        return WorkspaceMutationIntent(
+            schema_version="1.0.0",
+            idempotency_key=key,
+            expected_revision=revision,
+            mutation=mutation,  # type: ignore[arg-type]
+        )
+
+    base = json.loads(fixture_path.read_text(encoding="utf-8"))
+    at = lambda minute: datetime(2026, 10, 17, 13, minute, tzinfo=timezone.utc)
+
+    record_document = deepcopy(base)
+    bookmark_template = deepcopy(record_document["records"][1])
+    record_document["records"] = []
+    record_document["collections"] = []
+    for index in range(199):
+        record = deepcopy(bookmark_template)
+        record["record_id"] = f"bookmark.{index:03d}"
+        record["label"] = None if index % 3 == 0 else f"Saved {index}"
+        record_document["records"].append(record)
+    record_workspace = parse(record_document)
+    target = record_workspace.records[0].target
+    record_full = adapter.apply_mutation(
+        record_workspace,
+        intent(
+            record_workspace.revision,
+            "capacity.record.accept",
+            CreateBookmarkMutation(target, "Two hundred"),
+        ),
+        occurred_at=at(0),
+        issued_id="bookmark.199",
+    )
+    with pytest.raises(PersonalWorkspaceContractFailure) as record_failure:
+        adapter.apply_mutation(
+            record_full,
+            intent(
+                record_full.revision,
+                "capacity.record.refuse",
+                CreateBookmarkMutation(target, "Too many"),
+            ),
+            occurred_at=at(1),
+            issued_id="bookmark.200",
+        )
+    assert record_failure.value.code == "personal_workspace.contract.record_limit"
+    assert adapter.query_workspace(record_full, WorkspaceQuery(limit=5)).records
+    assert adapter.export_workspace(record_full, generated_at=at(1)).workspace == record_full
+    record_reduced = adapter.apply_mutation(
+        record_full,
+        intent(
+            record_full.revision,
+            "capacity.record.remove",
+            RemoveRecordMutation("bookmark.000"),
+        ),
+        occurred_at=at(2),
+    )
+    record_continued = adapter.apply_mutation(
+        record_reduced,
+        intent(
+            record_reduced.revision,
+            "capacity.record.unrelated",
+            CreateCollectionMutation("Continue learning"),
+        ),
+        occurred_at=at(3),
+        issued_id="collection.after-record-limit",
+    )
+    assert len(record_continued.records) == 199
+    assert record_continued.collections[0].title == "Continue learning"
+
+    collection_document = deepcopy(base)
+    collection_template = deepcopy(collection_document["collections"][0])
+    collection_document["collections"] = []
+    for index in range(49):
+        collection = deepcopy(collection_template)
+        collection["collection_id"] = f"collection.{index:03d}"
+        collection["title"] = f"Collection {index}"
+        collection["member_record_ids"] = []
+        collection_document["collections"].append(collection)
+    collection_workspace = parse(collection_document)
+    collection_full = adapter.apply_mutation(
+        collection_workspace,
+        intent(
+            collection_workspace.revision,
+            "capacity.collection.accept",
+            CreateCollectionMutation("Fiftieth"),
+        ),
+        occurred_at=at(4),
+        issued_id="collection.049",
+    )
+    with pytest.raises(PersonalWorkspaceContractFailure) as collection_failure:
+        adapter.apply_mutation(
+            collection_full,
+            intent(
+                collection_full.revision,
+                "capacity.collection.refuse",
+                CreateCollectionMutation("Too many"),
+            ),
+            occurred_at=at(5),
+            issued_id="collection.050",
+        )
+    assert collection_failure.value.code == (
+        "personal_workspace.contract.collection_limit"
+    )
+    assert adapter.query_workspace(collection_full, WorkspaceQuery(limit=2)).records
+    assert (
+        adapter.export_workspace(collection_full, generated_at=at(5)).workspace
+        == collection_full
+    )
+    collection_reduced = adapter.apply_mutation(
+        collection_full,
+        intent(
+            collection_full.revision,
+            "capacity.collection.remove",
+            RemoveCollectionMutation("collection.000"),
+        ),
+        occurred_at=at(6),
+    )
+    collection_continued = adapter.apply_mutation(
+        collection_reduced,
+        intent(
+            collection_reduced.revision,
+            "capacity.collection.unrelated",
+            UpdateNoteMutation("note.one", "Still available", "Continue safely."),
+        ),
+        occurred_at=at(7),
+    )
+    assert len(collection_continued.collections) == 49
+    assert collection_continued.records[0].title == "Still available"
+
+    member_document = deepcopy(base)
+    member_document["records"] = []
+    for index in range(101):
+        record = deepcopy(bookmark_template)
+        record["record_id"] = f"bookmark.{index:03d}"
+        member_document["records"].append(record)
+    member_document["collections"][0]["member_record_ids"] = []
+    member_workspace = parse(member_document)
+    first_hundred = tuple(f"bookmark.{index:03d}" for index in range(100))
+    member_full = adapter.apply_mutation(
+        member_workspace,
+        intent(
+            member_workspace.revision,
+            "capacity.members.accept",
+            SetCollectionMembersMutation(
+                "collection.foundations",
+                first_hundred,
+            ),
+        ),
+        occurred_at=at(8),
+    )
+    with pytest.raises(PersonalWorkspaceContractFailure) as member_failure:
+        adapter.apply_mutation(
+            member_full,
+            intent(
+                member_full.revision,
+                "capacity.members.refuse",
+                SetCollectionMembersMutation(
+                    "collection.foundations",
+                    first_hundred + ("bookmark.100",),
+                ),
+            ),
+            occurred_at=at(9),
+        )
+    assert member_failure.value.code == (
+        "personal_workspace.contract.collection_member_limit"
+    )
+    assert adapter.query_workspace(member_full, WorkspaceQuery(limit=3)).records
+    assert adapter.export_workspace(member_full, generated_at=at(9)).workspace == member_full
+    member_reduced = adapter.apply_mutation(
+        member_full,
+        intent(
+            member_full.revision,
+            "capacity.members.remove",
+            RemoveRecordMutation("bookmark.000"),
+        ),
+        occurred_at=at(10),
+    )
+    member_continued = adapter.apply_mutation(
+        member_reduced,
+        intent(
+            member_reduced.revision,
+            "capacity.members.unrelated",
+            RenameCollectionMutation("collection.foundations", "Review safely"),
+        ),
+        occurred_at=at(11),
+    )
+    assert len(member_continued.collections[0].member_record_ids) == 99
+    assert member_continued.collections[0].title == "Review safely"
+
+
 def test_recovery_restore_refuses_populated_target_before_process(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    backup = tmp_path / "source.dump"
+    bounded = tmp_path / "bounded"
+    owned = bounded / "run"
+    owned.mkdir(parents=True)
+    backup = owned / "source.dump"
     backup.write_bytes(b"bounded-backup")
     invoked = False
 
@@ -2003,6 +2235,7 @@ def test_recovery_restore_refuses_populated_target_before_process(
         invoked = True
         raise AssertionError("restore process must not start")
 
+    monkeypatch.setattr(runner, "ARTIFACT_ROOT", bounded)
     monkeypatch.setattr(runner, "application_table_count", lambda _dsn: 1)
     monkeypatch.setattr(runner.subprocess, "run", run_process)
     with pytest.raises(RuntimeError, match="populated; restore was refused"):
@@ -2010,6 +2243,7 @@ def test_recovery_restore_refuses_populated_target_before_process(
             container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}test",
             postgres_dsn="postgresql://isolated-target",
             source=backup,
+            owned_root=owned,
         )
     assert invoked is False
 
@@ -2018,7 +2252,10 @@ def test_recovery_restore_streams_only_to_empty_owned_target(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    backup = tmp_path / "source.dump"
+    bounded = tmp_path / "bounded"
+    owned = bounded / "run"
+    owned.mkdir(parents=True)
+    backup = owned / "source.dump"
     backup.write_bytes(b"bounded-backup")
     observed: dict[str, Any] = {}
 
@@ -2032,12 +2269,14 @@ def test_recovery_restore_streams_only_to_empty_owned_target(
         assert kwargs["stderr"] is runner.subprocess.DEVNULL
         return Completed()
 
+    monkeypatch.setattr(runner, "ARTIFACT_ROOT", bounded)
     monkeypatch.setattr(runner, "application_table_count", lambda _dsn: 0)
     monkeypatch.setattr(runner.subprocess, "run", run_process)
     runner.restore_logical_backup(
         container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}test",
         postgres_dsn="postgresql://isolated-target",
         source=backup,
+        owned_root=owned,
     )
     assert observed["content"] == b"bounded-backup"
     assert observed["command"][0:4] == [
@@ -2047,6 +2286,181 @@ def test_recovery_restore_streams_only_to_empty_owned_target(
         f"{runner.RECOVERY_CONTAINER_PREFIX}test",
     ]
     assert "--exit-on-error" in observed["command"]
+
+
+def test_recovery_restore_refuses_outside_root_and_symlink_before_process(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    bounded = tmp_path / "bounded"
+    owned = bounded / "run"
+    owned.mkdir(parents=True)
+    outside = tmp_path / "outside.dump"
+    outside.write_bytes(b"outside")
+    invoked = False
+
+    def run_process(*_args, **_kwargs):
+        nonlocal invoked
+        invoked = True
+        raise AssertionError("restore process must not start")
+
+    monkeypatch.setattr(runner, "ARTIFACT_ROOT", bounded)
+    monkeypatch.setattr(runner, "application_table_count", lambda _dsn: 0)
+    monkeypatch.setattr(runner.subprocess, "run", run_process)
+    with pytest.raises(RuntimeError, match="escaped its runner-owned root"):
+        runner.restore_logical_backup(
+            container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}test",
+            postgres_dsn="postgresql://isolated-target",
+            source=outside,
+            owned_root=owned,
+        )
+
+    linked = owned / "linked.dump"
+    linked.write_bytes(b"linked")
+    original_is_symlink = Path.is_symlink
+    monkeypatch.setattr(
+        Path,
+        "is_symlink",
+        lambda path: path == linked or original_is_symlink(path),
+    )
+    with pytest.raises(RuntimeError, match="escaped its runner-owned root"):
+        runner.restore_logical_backup(
+            container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}test",
+            postgres_dsn="postgresql://isolated-target",
+            source=linked,
+            owned_root=owned,
+        )
+    assert invoked is False
+
+
+def test_recovery_subprocess_failures_are_bounded_and_capture_is_removed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    bounded = tmp_path / "bounded"
+    owned = bounded / "run"
+    owned.mkdir(parents=True)
+    capture = owned / "capture.dump"
+
+    class Failed:
+        returncode = 1
+
+    monkeypatch.setattr(runner, "ARTIFACT_ROOT", bounded)
+    monkeypatch.setattr(runner.subprocess, "run", lambda *_args, **_kwargs: Failed())
+    with pytest.raises(RuntimeError, match="logical database capture failed"):
+        runner.create_logical_backup(
+            f"{runner.CONTAINER_PREFIX}source",
+            capture,
+        )
+    assert not capture.exists()
+
+    source = owned / "recovery-source.dump"
+    source.write_bytes(b"bounded-backup")
+    monkeypatch.setattr(runner, "application_table_count", lambda _dsn: 0)
+    with pytest.raises(RuntimeError, match="logical database restore failed") as failure:
+        runner.restore_logical_backup(
+            container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}target",
+            postgres_dsn="postgresql://isolated-target",
+            source=source,
+            owned_root=owned,
+        )
+    assert "postgresql://" not in str(failure.value)
+    assert str(source) not in str(failure.value)
+
+
+def test_recovery_report_is_ordered_correlated_and_redacted() -> None:
+    valid = {
+        "backup_byte_count": 512,
+        "backup_sha256": "a" * 64,
+        "database_catalog_and_data_sha256": "b" * 64,
+        "database_schema_count": 9,
+        "data_file_count": 2,
+        "data_sha256": "c" * 64,
+        "empty_target_restored": True,
+        "fresh_session_public_api": True,
+        "old_session_denied": True,
+        "phases": list(runner.RECOVERY_PHASES),
+        "populated_target_refused": True,
+        "qualified": True,
+        "restored_sessions_revoked": 1,
+        "source_unchanged": True,
+    }
+    assert runner.stable_recovery_report(valid) == valid
+
+    reordered = deepcopy(valid)
+    reordered["phases"][2:4] = reversed(reordered["phases"][2:4])
+    with pytest.raises(RuntimeError, match="phase order"):
+        runner.stable_recovery_report(reordered)
+
+    uncorrelated = deepcopy(valid)
+    uncorrelated["database_catalog_and_data_sha256"] = "not-a-digest"
+    with pytest.raises(RuntimeError, match="invalid evidence"):
+        runner.stable_recovery_report(uncorrelated)
+
+    leaked = deepcopy(valid)
+    leaked["postgres_dsn"] = "postgresql://private"
+    with pytest.raises(RuntimeError, match="invalid shape"):
+        runner.stable_recovery_report(leaked)
+
+
+def test_restored_session_revocation_requires_active_session_and_old_token_denial(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Result:
+        def __init__(self, row: tuple[int] | None) -> None:
+            self._row = row
+
+        def fetchone(self) -> tuple[int] | None:
+            return self._row
+
+    class Connection:
+        def __init__(self, rows: list[tuple[int] | None]) -> None:
+            self._rows = iter(rows)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args) -> None:
+            return None
+
+        def execute(self, _query: str) -> Result:
+            if "UPDATE" in _query:
+                return Result(None)
+            return Result(next(self._rows))
+
+    monkeypatch.setattr(
+        runner.psycopg,
+        "connect",
+        lambda _dsn: Connection([(0,), (0,)]),
+    )
+    with pytest.raises(RuntimeError, match="could not be proven"):
+        runner.revoke_restored_sessions("postgresql://isolated-target")
+
+    denial = {
+        "error_version": "1.0",
+        "code": "unauthorized",
+        "message": "A valid learner session is required.",
+        "correlation_id": "11111111-1111-4111-8111-111111111111",
+    }
+    monkeypatch.setattr(
+        runner,
+        "_request_json_read_status",
+        lambda *_args, **_kwargs: (401, denial),
+    )
+    runner.assert_restored_session_denied(opener=object(), origin="http://127.0.0.1")
+
+    leaked = deepcopy(denial)
+    leaked["message"] = "A valid learner session is required. workspace_id"
+    monkeypatch.setattr(
+        runner,
+        "_request_json_read_status",
+        lambda *_args, **_kwargs: (401, leaked),
+    )
+    with pytest.raises(RuntimeError, match="not denied safely"):
+        runner.assert_restored_session_denied(
+            opener=object(),
+            origin="http://127.0.0.1",
+        )
 
 
 def test_recovery_data_root_copy_preserves_unicode_bytes_and_order_independence(
