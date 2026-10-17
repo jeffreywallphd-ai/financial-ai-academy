@@ -1,7 +1,7 @@
 ---
 id: SLI-0071
 kind: vertical-slice
-planning_status: ready
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -210,7 +210,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0135 | Freeze additive Project-reference contracts, reuse Project public reads through a Personal-workspace Project adapter, and prove pure core and anti-rigidity behavior | SLI-0070, CAP-0007 | none | complete |
 | WRK-0136 | Deliver Personal-workspace persistence/API/OpenAPI/generated-client support and authorization revalidation for all Project reference variants | WRK-0135 | none | complete |
 | WRK-0137 | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | WRK-0136 | none | complete |
-| WRK-0138 | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | WRK-0137 | none | ready |
+| WRK-0138 | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | WRK-0137 | none | complete |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. Dependent packets are not claimed until their predecessor is complete.
@@ -276,6 +276,54 @@ cumulative check results, independent review outcome, browser/headless/restart
 evidence, unchanged unrelated-domain observations, anti-rigidity coverage,
 migration/rollback evidence where applicable, assumptions, known gaps, and any
 decision still requiring approval. No lower-level completion approval exists.
+
+### Completion Evidence
+
+- All four dependency-ordered packets are complete at exact candidates
+  `d97d40567181be2eba02339beaef635f8ba312f5` (WRK-0135),
+  `8570856d04da5085ba777233d5252ce84928f876` (WRK-0136),
+  `703349c2e6703dc73abedd849d73d1286a563b15` (WRK-0137), and
+  `49b1502a9a6306a49c8fe8f7430d2caf18536e00` (WRK-0138).
+- The delivered contract and implementation retain closed Project-workspace,
+  immutable-checkpoint, and inert-file reference variants, resolve them only
+  through learner-bound Project public operations, persist them in the existing
+  Personal-workspace aggregate, and expose the same protected API to the
+  generated browser client and ordinary non-browser HTTP callers.
+- Focused packet evidence covers 189 contract/application tests in WRK-0135,
+  215 corrected backend/API/architecture tests and 55 browser-boundary tests in
+  WRK-0136, 80 web tests plus 11 mocked Project Chromium scenarios in WRK-0137,
+  and 49 live-runner unit tests plus 15 architecture checks in WRK-0138.
+- WRK-0137's exact 10-check affected receipt qualified with digest
+  `sha256:240e77941c6876b97e9dfa347699d86b47d09c7576880f76d54238f0c1f983f0`.
+  WRK-0138's fresh stable eight-check receipt qualified with digest
+  `sha256:dddff2019144251e5c4b6374f08fc0ece7742ec24608e989d4c3d572d068c372`.
+- The isolated live journey exercised a reviewed static browser, the same
+  protected headless HTTP API, PostgreSQL correlation, and normal restart. It
+  proved exact Project/checkpoint/file meaning, deterministic replay, stale and
+  changed-key conflict behavior, canonical denial messages, unrelated-domain
+  non-mutation, inert containment, and bounded cleanup. All browser mutations
+  await their public responses before dependent observations.
+- Denial checks cover malformed, missing, guessed, unavailable, and
+  unauthorized selectors without leaking nested Project identity, title,
+  checkpoint, artifact, path, digest, guessed-selector, or arbitrary existence
+  facts. Path and chronology checks mirror the canonical Project profile and
+  reject unsafe Unicode, whitespace, dot, control, forbidden-character,
+  reserved-device, and future-material cases while admitting valid NFC paths.
+- Exact-candidate affected verification and the fixed 29-check aggregate agent
+  readiness gate passed. Independent technical review closed the three initial
+  evidence findings and identified no new substantive finding. Reviewer and
+  receipt records remain only in ignored local control-plane storage.
+- Existing learning references remain compatible and no data migration was
+  required. Rollback may remove unreferenced entry points or adapters but must
+  not reinterpret or delete accepted learner records; unknown later variants
+  continue to fail closed.
+- Managed cloud, collaboration, later domain/provider adapters, separate AI
+  mode, artifact rendering/download/execution, and arbitrary external files
+  were not qualified. These are explicit later-capability boundaries, not gaps
+  in this slice's accepted outcome.
+- The result conforms to the approved CAP-0017 package without material drift.
+  No Project ownership, permission, provider, model authority, financial
+  action, or durable decision changed, and no lower-level approval is needed.
 
 ## Planning History
 
@@ -348,3 +396,7 @@ decision still requiring approval. No lower-level completion approval exists.
   exact PostgreSQL correlation, restart, denial, target non-mutation, inert
   containment, cleanup, and slice closure. Product contracts and authority
   remain frozen.
+- 2026-10-17: Verified the complete slice at the four exact packet candidates.
+  Contract, browser, headless HTTP, PostgreSQL restart, denial, containment,
+  cleanup, affected-plan, aggregate-readiness, and independent technical
+  evidence passed with no open functional gap or material CAP-package drift.

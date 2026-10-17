@@ -1,7 +1,7 @@
 ---
 id: WRK-0138
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -219,6 +219,45 @@ ownership, artifact execution, Portfolio/domain adapter, provider,
 managed-cloud profile, arbitrary external file, Assessment/Learner-model
 effect, financial action, separate AI mode, or autonomous authority was added.
 
+## Completion Evidence
+
+- Exact reviewed candidate:
+  `49b1502a9a6306a49c8fe8f7430d2caf18536e00`, a strict descendant of the
+  recorded base revision. Its fresh, qualifying, post-run-stable receipt has
+  digest `sha256:dddff2019144251e5c4b6374f08fc0ece7742ec24608e989d4c3d572d068c372`.
+- The isolated topology ran PostgreSQL, the Python API, the reviewed static
+  browser, an ordinary non-browser HTTP observer, normal application restart,
+  and exact cleanup. The live journey retained workspace, checkpoint, and
+  inert-file references together with Curriculum records and correlated every
+  safe Project fact against the independently validated Project capture.
+- Exact replay, changed-key reuse, stale revision, malformed and guessed
+  selectors, unavailable and unauthorized targets, unrelated-domain
+  non-mutation, PostgreSQL row correlation, restart persistence, and inert-file
+  containment passed. Denials require canonical code-specific public messages
+  and scan nested Project facts as well as guessed selectors for disclosure.
+- Canonical Project path and real UTC chronology validation reject decomposed
+  Unicode, unsafe whitespace or dots, control and forbidden characters,
+  reserved device names, and future material while admitting valid NFC paths.
+  Browser response waiters are installed before each mutation and awaited
+  before any dependent state observation, eliminating the prior live race.
+- Focused runner correction tests passed 49 tests and the focused architecture
+  suite passed 15 tests. The receipt's eight selected checks all passed,
+  including planning integrity, documentation, architecture integrity, local
+  architecture, TypeScript typecheck and zero-warning lint, and the full live
+  qualification. The fixed aggregate readiness gate passed all 29 checks.
+- Independent technical review closed the three initial correlation,
+  confidentiality-scan, and path/chronology findings and reported no new
+  substantive finding. Review records remain ignored local state and are not
+  copied into tracked artifacts.
+- This packet changed qualification and assurance evidence only. It introduced
+  no product behavior, public contract, OpenAPI shape, generated client,
+  migration, Project mutation, artifact bytes or execution, provider, managed
+  cloud, separate AI authority, or financial action.
+- Managed cloud, collaboration, later adapters, separate AI mode, and arbitrary
+  external-file profiles were not qualified. A mocked safe-404 copy difference
+  is optional cleanup and does not affect the canonical live denial or require
+  a re-review loop.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0137 completed. The packet adds
@@ -226,3 +265,8 @@ effect, financial action, separate AI mode, or autonomous authority was added.
   existing isolated live qualifier, then closes SLI-0071 from direct browser,
   headless HTTP, PostgreSQL, restart, containment, and cleanup evidence. It
   changes no product contract or authority and exposes no new decision gate.
+- 2026-10-17: Completed exact-candidate qualification after synchronizing live
+  browser mutations and strengthening independent Project correlation,
+  confidentiality scanning, canonical path validation, and UTC chronology.
+  The fresh receipt, focused checks, aggregate gate, and independent closure
+  review passed with no open substantive finding.
