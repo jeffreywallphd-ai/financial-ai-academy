@@ -1,7 +1,7 @@
 ---
 id: WRK-0141
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/features/personal-workspace/api.ts", "apps/web/src/features/personal-workspace/model.ts", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/src/features/personal-workspace/PersonalWorkspaceRoutes.tsx", "apps/web/src/styles/personal-workspace.css", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/browser/personal-workspace/personal-workspace.spec.ts", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/planning/vertical-slices/SLI-0072-search-and-refresh-saved-references.md", "docs/planning/work-packets/WRK-0141-deliver-saved-reference-browser-flow.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 96e6f10376e7e1d3c22febac8184905e0f4d6784
+claim_id: WRK-0141:f9f60968-15b4-4815-8b9c-0f23c0ae5c36
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T15:35:42Z
 ---
 
 # Agent Work Packet: Deliver the Saved-Reference Browser Flow
@@ -246,3 +246,6 @@ WRK-0142 dependency-ready.
 - 2026-10-17: Marked ready after packet, dependency, decision-readiness,
   generated-client, interface-authority, exact write-scope, documentation, and
   planning validation passed without material CAP or slice drift.
+- 2026-10-17: Activated from recorded base `96e6f10` after validating the
+  completed dependency, current CAP authority, closed browser/API boundary,
+  exact write scope, and absence of an active file collision.
