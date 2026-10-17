@@ -1,7 +1,7 @@
 ---
 id: WRK-0128
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -240,3 +240,15 @@ provider, queue, or external execution changed.
 - 2026-10-17: Claimed from base `ef68d72` after the current CAP package,
   completed dependency, bounded scope, implementation gate, decision readiness,
   and active ownership safety were revalidated.
+- 2026-10-17: Completed at corrected exact candidate `11b785c` with qualifying
+  receipt `sha256:ac3a73b17c041eb35d81eb4f9e7679aef9330d8e0ea81c8b6a5b0f7dba25a5c7`
+  and accepted independent follow-up review. The generated-client browser flow
+  now submits only learning-started Project snapshots, preserves exact resource
+  and retained-evidence provenance, reuses stable retry identities, exposes the
+  bounded server-derived Project completion view, and fails closed on malformed
+  or uncorrelated responses. Focused web, PostgreSQL API, Chromium,
+  accessibility, generated-client, OpenAPI, design, documentation, whitespace,
+  and aggregate readiness checks pass. Project/Assessment schema meaning,
+  persistence authority, mastery or AI authority, providers, queues, and
+  external execution did not change; cumulative slice qualification remains
+  in JIT-E.
