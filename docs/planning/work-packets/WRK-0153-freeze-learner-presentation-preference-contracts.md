@@ -1,7 +1,7 @@
 ---
 id: WRK-0153
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -265,3 +265,8 @@ behavior changed. Leave JIT-B dependency-ready.
   core while leaving persistence/API, runtime presentation, UI, and live
   qualification to dependency-ordered packets. It remains inside CAP-0018 and
   requires no lower-level approval.
+- 2026-10-17: Completed the additive contract and pure core with all 16 safe
+  value combinations, complete replacement and reset, fixed digests, bounded
+  non-content history/export, closed denials, theme exclusion, varied valid
+  identity/time/revision coverage, and no persistence, HTTP, generated client,
+  browser, runtime token, provider, model, evidence, or policy effect.

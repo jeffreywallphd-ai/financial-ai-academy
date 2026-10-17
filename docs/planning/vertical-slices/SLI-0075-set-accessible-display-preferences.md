@@ -215,7 +215,7 @@ packet starts. Proposed dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | verifying |
+| WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
 | JIT-B | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | JIT-A | none | captured |
 | JIT-C | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | JIT-B | none | captured |
 | JIT-D | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | JIT-C | none | captured |
@@ -297,3 +297,8 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
 - 2026-10-17: Authored WRK-0153 just in time to freeze the additive
   learner-owned presentation-preference contract and pure core before any
   persistence, API, browser, or runtime-presentation work starts.
+- 2026-10-17: Completed WRK-0153 with the closed four-choice contract family,
+  deterministic replacement and reset core, bounded history/export,
+  compatibility vectors, privacy and theme separation, safe-value denials,
+  and 79 focused contract/domain checks. Persistence, public API, runtime
+  application, and browser behavior remain later packet boundaries.
