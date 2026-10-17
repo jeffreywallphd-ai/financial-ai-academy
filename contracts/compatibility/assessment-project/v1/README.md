@@ -14,9 +14,10 @@ resource order do not change the request fingerprint. Changed source or
 resource meaning must produce a different fingerprint.
 
 The `cases/` records cover missing, repeated, unknown, stale, and cross-record
-meaning plus prohibited private, executable, active, scoring, mastery, path,
-byte, and callback expansions. Failures expose only bounded stable codes and
-safe references.
+meaning; malformed, oversized, and non-UTC timestamps; mixed-learner history;
+identity or ordering drift; and prohibited private, executable, active,
+scoring, mastery, path, byte, and callback expansions. Failures expose only
+bounded stable codes and safe references.
 
 Run from the repository root:
 

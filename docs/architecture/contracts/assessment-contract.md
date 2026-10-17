@@ -246,6 +246,7 @@ successor, and stable bounded denial codes:
 - `assessment.project.unknown_resource`
 - `assessment.project.stale_resource`
 - `assessment.project.invalid_server_metadata`
+- `assessment.project.inconsistent_evidence`
 - `assessment.project.invalid_history`
 
 Diagnostics identify only a bounded field/reference and stable code. They do

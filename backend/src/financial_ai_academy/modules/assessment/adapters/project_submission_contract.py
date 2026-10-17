@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, FormatChecker
 
 from ..domain.project_submission import (
     AcceptedProjectSubmission,
@@ -52,7 +52,9 @@ class ContractProjectSubmissionAdapter:
                 (schema_dir / f"{name}.schema.json").read_text(encoding="utf-8")
             )
             Draft202012Validator.check_schema(schema)
-            self._validators[name] = Draft202012Validator(schema)
+            self._validators[name] = Draft202012Validator(
+                schema, format_checker=FormatChecker()
+            )
 
     def parse_candidate(self, value: bytes) -> ProjectSnapshotCandidate:
         document = self._document(value, "snapshot_candidate")
@@ -69,7 +71,9 @@ class ContractProjectSubmissionAdapter:
                 snapshot_id=project["snapshot_id"],
                 snapshot_digest=project["snapshot_digest"],
                 workspace_revision=project["workspace_revision"],
-                closed_at=self._timestamp(project["closed_at"]),
+                closed_at=self._timestamp(
+                    project["closed_at"], "project.closed_at"
+                ),
             ),
             origin=LearningOrigin(**origin),
             policy_id=document["policy_id"],
@@ -222,6 +226,15 @@ class ContractProjectSubmissionAdapter:
         accepted: AcceptedProjectSubmission,
         metadata: ProjectEvidenceMetadata,
     ) -> ProjectCompletionEvidence:
+        validation = self.validate(accepted.candidate, accepted.submission)
+        if (
+            validation.accepted is None
+            or validation.request_fingerprint != accepted.request_fingerprint
+        ):
+            self._reject(
+                "assessment.project.inconsistent_evidence",
+                "request_fingerprint",
+            )
         self._metadata(metadata)
         evidence = ProjectCompletionEvidence(
             schema_version=VERSION,
@@ -263,13 +276,54 @@ class ContractProjectSubmissionAdapter:
         if not evidence:
             self._reject("assessment.project.invalid_history", "items")
         items = tuple(sorted(evidence, key=lambda item: item.occurrence))
+        for item in items:
+            validation = self.validate(
+                item.accepted.candidate, item.accepted.submission
+            )
+            if (
+                validation.accepted is None
+                or validation.request_fingerprint
+                != item.accepted.request_fingerprint
+            ):
+                self._reject(
+                    "assessment.project.inconsistent_evidence",
+                    "request_fingerprint",
+                )
+            self._metadata(
+                ProjectEvidenceMetadata(
+                    evidence_id=item.evidence_id,
+                    learner_id=item.learner_id,
+                    occurrence=item.occurrence,
+                    accepted_sequence=item.accepted_sequence,
+                    submitted_at=item.submitted_at,
+                    supersedes_submission_id=item.supersedes_submission_id,
+                )
+            )
+            self._shape("evidence", self.to_evidence_document(item))
         project_ids = {item.accepted.candidate.project.project_id for item in items}
         if len(project_ids) != 1:
             self._reject("assessment.project.invalid_history", "project_id")
+        learner_ids = {item.learner_id for item in items}
+        if len(learner_ids) != 1:
+            self._reject("assessment.project.invalid_history", "learner_id")
+        evidence_ids = [item.evidence_id for item in items]
+        submission_ids = [item.accepted.submission.submission_id for item in items]
+        if len(evidence_ids) != len(set(evidence_ids)):
+            self._reject("assessment.project.invalid_history", "evidence_id")
+        if len(submission_ids) != len(set(submission_ids)):
+            self._reject("assessment.project.invalid_history", "submission_id")
         ids: set[str] = set()
+        prior_sequence = 0
+        prior_time: datetime | None = None
         for expected_occurrence, item in enumerate(items, start=1):
             if item.occurrence != expected_occurrence:
                 self._reject("assessment.project.invalid_history", "occurrence")
+            if item.accepted_sequence <= prior_sequence:
+                self._reject(
+                    "assessment.project.invalid_history", "accepted_sequence"
+                )
+            if prior_time is not None and item.submitted_at < prior_time:
+                self._reject("assessment.project.invalid_history", "submitted_at")
             prior = item.supersedes_submission_id
             if expected_occurrence == 1 and prior is not None:
                 self._reject(
@@ -280,6 +334,8 @@ class ContractProjectSubmissionAdapter:
                     "assessment.project.invalid_history", "supersedes_submission_id"
                 )
             ids.add(item.accepted.submission.submission_id)
+            prior_sequence = item.accepted_sequence
+            prior_time = item.submitted_at
         history = ProjectHistory(VERSION, next(iter(project_ids)), items)
         self._shape("history", self.to_history_document(history))
         return history
@@ -520,7 +576,9 @@ class ContractProjectSubmissionAdapter:
             resource_id=value["resource_id"],
             resource_version=value.get("resource_version"),
             resource_as_of=(
-                ContractProjectSubmissionAdapter._timestamp(value["resource_as_of"])
+                ContractProjectSubmissionAdapter._timestamp(
+                    value["resource_as_of"], "resource_as_of"
+                )
                 if value.get("resource_as_of") is not None
                 else None
             ),
@@ -608,8 +666,13 @@ class ContractProjectSubmissionAdapter:
             self._reject("assessment.project.schema_invalid", reference or kind)
 
     @staticmethod
-    def _timestamp(value: str) -> datetime:
-        return datetime.fromisoformat(value.removesuffix("Z") + "+00:00")
+    def _timestamp(value: str, reference: str = "timestamp") -> datetime:
+        try:
+            return datetime.fromisoformat(value.removesuffix("Z") + "+00:00")
+        except (TypeError, ValueError) as error:
+            raise ProjectSubmissionContractFailure(
+                "assessment.project.schema_invalid", reference
+            ) from error
 
     @staticmethod
     def _aware_timestamp(value: datetime, reference: str) -> datetime:

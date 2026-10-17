@@ -33,7 +33,15 @@ can point forward from a new immutable record to a prior submission; they never
 rewrite or delete prior evidence. `completion-event.schema.json` is the
 learner-safe public signal `assessment.project.completed@1.0.0` and omits
 learner identity and artifact-level mappings. `history.schema.json` retains an
-ordered safe summary of every accepted occurrence.
+ordered safe summary of every accepted occurrence. Before learner identity is
+omitted, history validation requires one learner-bound Project stream, unique
+evidence and submission identities, increasing accepted sequence, non-
+regressing server time, contiguous occurrence, and valid forward supersession.
+
+All timestamps are bounded canonical UTC RFC 3339 strings ending in `Z`, with
+zero through six fractional digits. Format validation and parser fallback both
+return the stable bounded contract failure surface; raw date parser messages
+are never part of learner-facing diagnostics.
 
 All schemas are closed and versioned. No field requests execution, active
 rendering, package installation, networking, provider work, Portfolio

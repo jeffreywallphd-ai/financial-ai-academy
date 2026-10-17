@@ -1,0 +1,6 @@
+[
+  { "id": "malformed-closed-at", "target": "candidate", "path": ["project", "closed_at"], "value": "not-a-dateZ" },
+  { "id": "oversized-closed-at", "target": "candidate", "path": ["project", "closed_at"], "value": "2026-10-17T02:00:00.12345678901234567890Z" },
+  { "id": "non-utc-closed-at", "target": "candidate", "path": ["project", "closed_at"], "value": "2026-10-16T22:00:00-04:00" },
+  { "id": "malformed-domain-as-of", "target": "candidate", "path": ["resources", 3, "resource_version"], "delete": true, "add_path": ["resources", 3, "resource_as_of"], "value": "not-a-dateZ" }
+]

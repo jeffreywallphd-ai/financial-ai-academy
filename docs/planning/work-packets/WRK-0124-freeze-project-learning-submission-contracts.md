@@ -240,3 +240,11 @@ advice, cloud profile, external action, or AI-specific authority was added.
   controller's canonical directory-prefix form after the exact-candidate
   confinement check correctly refused the ambiguous spelling. The bounded
   files, implementation meaning, and acceptance evidence did not change.
+- 2026-10-17: Independent review of exact candidate `a5716a6` requested two
+  substantive corrections: enforce bounded canonical timestamp formats
+  through schema and parser failure surfaces, and reject mixed-learner,
+  duplicate-identity, or regressing history records before safe projection.
+  The correction adds direct malformed/oversized/non-UTC time vectors and
+  cross-record history cases. Focused checks now pass 39/39 and the cumulative
+  Assessment/Project/architecture regression set passes 350/350; exact-
+  descendant verification and follow-up review remain.

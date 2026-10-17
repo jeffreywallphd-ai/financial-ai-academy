@@ -132,6 +132,32 @@ def test_private_active_and_authority_expansions_fail_closed(
     assert len(captured.value.reference) <= 120
 
 
+@pytest.mark.parametrize(
+    "case",
+    load("cases/timestamp-denials.json"),
+    ids=lambda case: case["id"],
+)
+def test_malformed_oversized_and_noncanonical_times_fail_bounded(
+    case: dict[str, Any],
+) -> None:
+    document = load("approved/snapshot-candidate.json")
+    if case.get("delete"):
+        current: Any = document
+        for part in case["path"][:-1]:
+            current = current[part]
+        del current[case["path"][-1]]
+        _set_at(document, case["add_path"], case["value"])
+    else:
+        _set_at(document, case["path"], case["value"])
+    with pytest.raises(ProjectSubmissionContractFailure) as captured:
+        ContractProjectSubmissionAdapter(SCHEMAS).parse_candidate(
+            json.dumps(document).encode()
+        )
+    assert captured.value.code == "assessment.project.schema_invalid"
+    assert len(captured.value.reference) <= 120
+    assert str(case["value"]) not in str(captured.value)
+
+
 def test_cli_emits_only_bounded_summary() -> None:
     completed = subprocess.run(
         [sys.executable, "-m", "tests.contract.assessment_project.runner"],

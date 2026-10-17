@@ -49,7 +49,10 @@ An accepted pure result plus bounded server metadata produces immutable
 Assessment evidence. The server supplies learner/evidence identity, occurrence,
 accepted sequence, canonical UTC time, and any forward supersession reference.
 A later occurrence points to a prior submission without altering it. Ordered
-history requires contiguous occurrences and a valid prior reference.
+history requires one learner-bound Project stream, unique evidence/submission
+identities, increasing accepted sequence, non-regressing canonical UTC server
+time, contiguous occurrences, and a valid prior reference. Learner identity is
+removed only after those cross-record checks pass.
 
 The safe `assessment.project.completed@1.0.0` event omits learner identity and
 artifact-level mappings. It carries only exact correlation and provenance

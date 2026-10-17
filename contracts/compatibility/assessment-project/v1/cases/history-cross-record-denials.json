@@ -1,0 +1,7 @@
+[
+  { "id": "mixed-learner", "mutation": "learner_id", "value": "another-learner", "reference": "learner_id" },
+  { "id": "duplicate-evidence", "mutation": "evidence_id", "value": "evidence-retirement-01", "reference": "evidence_id" },
+  { "id": "duplicate-submission", "mutation": "submission_id", "value": "submission-retirement-01", "reference": "submission_id" },
+  { "id": "regressed-sequence", "mutation": "accepted_sequence", "value": 40, "reference": "accepted_sequence" },
+  { "id": "regressed-time", "mutation": "submitted_at", "value": "2026-10-17T03:00:00Z", "reference": "submitted_at" }
+]

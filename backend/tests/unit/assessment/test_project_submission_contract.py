@@ -13,6 +13,7 @@ from financial_ai_academy.modules.assessment.adapters.project_submission_contrac
 )
 from financial_ai_academy.modules.assessment.domain.project_submission import (
     AcceptedProjectSubmission,
+    ProjectCompletionEvidence,
     ProjectEvidenceMetadata,
 )
 from financial_ai_academy.modules.assessment.ports.project_submission import (
@@ -142,7 +143,11 @@ def test_validation_reports_safe_ordered_issues_without_echoing_payloads() -> No
     assert "C:/" not in serialized
 
 
-def test_server_metadata_is_bounded_and_history_is_append_only() -> None:
+def _history_pair() -> tuple[
+    ContractProjectSubmissionAdapter,
+    ProjectCompletionEvidence,
+    ProjectCompletionEvidence,
+]:
     adapter, accepted = _accepted()
     first = adapter.project_evidence(
         accepted,
@@ -173,6 +178,11 @@ def test_server_metadata_is_bounded_and_history_is_append_only() -> None:
             supersedes_submission_id="submission-retirement-01",
         ),
     )
+    return adapter, first, second
+
+
+def test_server_metadata_is_bounded_and_history_is_append_only() -> None:
+    adapter, first, second = _history_pair()
     history = adapter.project_history((second, first))
     assert [item.occurrence for item in history.items] == [1, 2]
     document = adapter.to_history_document(history)
@@ -182,7 +192,45 @@ def test_server_metadata_is_bounded_and_history_is_append_only() -> None:
     assert "learner_id" not in json.dumps(document)
 
 
-def test_server_metadata_rejects_client_like_time_and_broken_supersession() -> None:
+@pytest.mark.parametrize(
+    "case",
+    json.loads(
+        (CORPUS / "cases/history-cross-record-denials.json").read_text(
+            encoding="utf-8"
+        )
+    ),
+    ids=lambda case: case["id"],
+)
+def test_history_rejects_cross_record_identity_and_order_drift(
+    case: dict[str, object],
+) -> None:
+    adapter, first, second = _history_pair()
+    mutation = case["mutation"]
+    value = case["value"]
+    if mutation == "submission_id":
+        submission = replace(second.accepted.submission, submission_id=str(value))
+        accepted = replace(
+            second.accepted,
+            submission=submission,
+            request_fingerprint=adapter.submission_fingerprint(
+                second.accepted.candidate, submission
+            ),
+        )
+        changed = replace(second, accepted=accepted)
+    elif mutation == "submitted_at":
+        changed = replace(
+            second,
+            submitted_at=datetime.fromisoformat(str(value).replace("Z", "+00:00")),
+        )
+    else:
+        changed = replace(second, **{str(mutation): value})
+    with pytest.raises(ProjectSubmissionContractFailure) as captured:
+        adapter.project_history((first, changed))
+    assert captured.value.code == "assessment.project.invalid_history"
+    assert captured.value.reference == case["reference"]
+
+
+def test_server_metadata_rejects_naive_time() -> None:
     adapter, accepted = _accepted()
     with pytest.raises(ProjectSubmissionContractFailure) as captured:
         adapter.project_evidence(
@@ -193,7 +241,42 @@ def test_server_metadata_rejects_client_like_time_and_broken_supersession() -> N
                 occurrence=1,
                 accepted_sequence=1,
                 submitted_at=datetime(2026, 10, 17, 3, 30),
+            ),
+        )
+    assert captured.value.code == "assessment.project.invalid_server_metadata"
+    assert captured.value.reference == "submitted_at"
+
+
+def test_server_metadata_rejects_broken_first_supersession() -> None:
+    adapter, accepted = _accepted()
+    with pytest.raises(ProjectSubmissionContractFailure) as captured:
+        adapter.project_evidence(
+            accepted,
+            ProjectEvidenceMetadata(
+                evidence_id="evidence-retirement-01",
+                learner_id="local-learner",
+                occurrence=1,
+                accepted_sequence=1,
+                submitted_at=datetime(2026, 10, 17, 3, 30, tzinfo=timezone.utc),
                 supersedes_submission_id="earlier",
             ),
         )
     assert captured.value.code == "assessment.project.invalid_server_metadata"
+    assert captured.value.reference == "supersedes_submission_id"
+
+
+def test_evidence_rejects_a_forged_fingerprint() -> None:
+    adapter, accepted = _accepted()
+    forged = replace(accepted, request_fingerprint="9" * 64)
+    with pytest.raises(ProjectSubmissionContractFailure) as captured:
+        adapter.project_evidence(
+            forged,
+            ProjectEvidenceMetadata(
+                evidence_id="evidence-retirement-01",
+                learner_id="local-learner",
+                occurrence=1,
+                accepted_sequence=1,
+                submitted_at=datetime(2026, 10, 17, 3, 30, tzinfo=timezone.utc),
+            ),
+        )
+    assert captured.value.code == "assessment.project.inconsistent_evidence"
