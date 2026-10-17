@@ -10,7 +10,7 @@ capability: CAP-0007
 depends_on: []
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_contract.py", "backend/src/financial_ai_academy/modules/assessment/domain/project_submission.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission.py", "backend/tests/contract/assessment_project/**", "backend/tests/unit/assessment/test_project_submission_contract.py", "contracts/compatibility/assessment-project/v1/**", "contracts/learning/README.md", "contracts/learning/assessment/project/v1/**", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0124-freeze-project-learning-submission-contracts.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_contract.py", "backend/src/financial_ai_academy/modules/assessment/domain/project_submission.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission.py", "backend/tests/contract/assessment_project", "backend/tests/unit/assessment/test_project_submission_contract.py", "contracts/compatibility/assessment-project/v1", "contracts/learning/README.md", "contracts/learning/assessment/project/v1", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0124-freeze-project-learning-submission-contracts.md"]
 generated_artifacts: []
 base_revision: 190980984006a8882890ed685c7215532b91aba1
 claim_id: WRK-0124:bf383a13-ffc2-4c93-8e62-743e43d5678d
@@ -236,3 +236,7 @@ advice, cloud profile, external action, or AI-specific authority was added.
   regression set passed 338/338. Documentation, planning, compilation,
   security, architecture fitness, and whitespace checks passed. Exact-
   candidate control and independent technical review remain before completion.
+- 2026-10-17: Replaced three glob-like directory scope entries with the
+  controller's canonical directory-prefix form after the exact-candidate
+  confinement check correctly refused the ambiguous spelling. The bounded
+  files, implementation meaning, and acceptance evidence did not change.
