@@ -1,7 +1,7 @@
 ---
 id: WRK-0133
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/personal-workspace", "apps/web/src/styles/personal-workspace.css", "apps/web/tests/browser/personal-workspace", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0133-deliver-saved-learning-browser-flow.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b16b2bb6277eb3a84698d4e717589c66146379cb
+claim_id: WRK-0133:3ecf5452-7738-41c0-8d51-6ecf7af157cb
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T11:38:35Z
 ---
 
 # Agent Work Packet: Deliver the Saved Learning Browser Flow
@@ -260,3 +260,6 @@ changed.
 - 2026-10-17: Marked ready after packet, dependency, decision-readiness,
   generated-client, interface-authority, write-scope, and planning validation
   passed without material CAP drift.
+- 2026-10-17: Activated with a bounded claim and closed packet-start manifest
+  after verifying current CAP authority, dependency completion, exact web
+  ownership, and no overlapping active writer.
