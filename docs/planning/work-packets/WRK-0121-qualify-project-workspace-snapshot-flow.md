@@ -1,13 +1,13 @@
 ---
 id: WRK-0121
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
 parent: SLI-0031
 capability: CAP-0007
-depends_on: [WRK-0120]
+depends_on: [WRK-0122]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/project-workspace.e2e.ts", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0121-qualify-project-workspace-snapshot-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
@@ -196,3 +196,7 @@ autonomous authority was added.
   live qualifier, then closes SLI-0031 from direct browser, headless HTTP,
   PostgreSQL, restart, containment, and cleanup evidence. It changes no product
   contract or authority and exposes no new decision gate.
+- 2026-10-17: Released back to ready after the live journey reproduced a real
+  snapshot-digest defect outside this qualification-only write scope. WRK-0122
+  owns the bounded canonical-timestamp correction; this packet resumes after
+  that prerequisite completes.

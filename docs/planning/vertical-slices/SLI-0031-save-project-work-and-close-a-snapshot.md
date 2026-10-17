@@ -237,7 +237,8 @@ refined just in time.
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
-| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0120 | none | active |
+| WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | ready |
+| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0122 | none | ready |
 
 ## Verification and Qualification
 
@@ -376,3 +377,7 @@ created, and no managed-cloud or production-recovery profile was qualified.
   completed browser dependency, decision readiness, exact live-qualification
   scope, and absence of an active file collision. The packet adds evidence and
   qualifier coverage only; product authority remains unchanged.
+- 2026-10-17: Released WRK-0121 after its live qualifier exposed intermittent
+  checkpoint integrity failures. Direct service reproduction isolated two
+  timestamp spellings at the digest boundary. WRK-0122 is the bounded
+  correction prerequisite; no contract or durable decision changes.
