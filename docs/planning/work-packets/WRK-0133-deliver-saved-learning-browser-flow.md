@@ -1,16 +1,16 @@
 ---
 id: WRK-0133
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0017
+owner: unassigned
 updated: 2026-10-17
 parent: SLI-0070
 capability: CAP-0017
 depends_on: ["WRK-0132"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/personal-workspace", "apps/web/src/styles/personal-workspace.css", "apps/web/tests/browser/personal-workspace", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0133-deliver-saved-learning-browser-flow.md"]
+write_scope: ["apps/web/README.md", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/learning-catalog/LearningOpportunityDetailPage.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/features/personal-workspace", "apps/web/src/styles/personal-workspace.css", "apps/web/tests/browser/personal-workspace", "apps/web/tests/component/learningOpportunityDetail.test.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0133-deliver-saved-learning-browser-flow.md"]
 generated_artifacts: []
 base_revision: b16b2bb6277eb3a84698d4e717589c66146379cb
 claim_id: WRK-0133:3ecf5452-7738-41c0-8d51-6ecf7af157cb
@@ -263,3 +263,8 @@ changed.
 - 2026-10-17: Activated with a bounded claim and closed packet-start manifest
   after verifying current CAP authority, dependency completion, exact web
   ownership, and no overlapping active writer.
+- 2026-10-17: Released the unimplemented claim to ready after interface tracing
+  proved that existing opportunity-detail and lesson pages need bounded
+  contextual save links and focused regression coverage. Added only those
+  consumer/test files; outcome, contracts, risks, and CAP boundaries are
+  unchanged.
