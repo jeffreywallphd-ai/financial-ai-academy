@@ -238,7 +238,7 @@ scope is refined just in time.
 | --- | --- | --- | --- | --- |
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
 | WRK-0125 | Deliver safe Project snapshot facts, Assessment-owned application/persistence, public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | complete |
-| WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | verifying |
+| WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | complete |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B2 | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
 | JIT-E | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | JIT-D | none | captured |
@@ -379,3 +379,11 @@ qualified.
   domain-resource timestamp rejection, generated exact-selector types, and the
   focused API authorization and resource-shape matrix without changing the
   packet, slice, or CAP boundary.
+- 2026-10-17: WRK-0126 completed at exact candidate `b512386` with qualifying
+  affected-check receipt `sha256:7cb5488057b82cdca5221cdb8ccf7ae9ad1d6bd19bc625674f7c74890206976a`.
+  The protected shared API now covers candidate, submit, exact evidence, and
+  history; generated clients preserve exact domain-resource selectors; and
+  focused verification proves refusal without persistence, read-only and valid
+  cross-learner denial, independent-Project denial, replay, privacy, and note,
+  source, and artifact shapes. Projection, Audit, browser, and slice-wide live
+  qualification remain in the dependent JIT-C through JIT-E packets.

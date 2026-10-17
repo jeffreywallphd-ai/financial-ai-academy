@@ -1,7 +1,7 @@
 ---
 id: WRK-0126
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -214,3 +214,12 @@ JIT-C ready for just-in-time refinement.
   reviewed generated types, and completed the promised API denial and valid-
   resource matrix. The CAP, slice, public route, persistence, and decision
   boundaries remain unchanged.
+- 2026-10-17: Completed at exact candidate `b512386` with qualifying receipt
+  `sha256:7cb5488057b82cdca5221cdb8ccf7ae9ad1d6bd19bc625674f7c74890206976a`.
+  Eleven focused Project API tests, thirty Assessment submission checks, all
+  370 backend unit tests, architecture and security checks, reviewed OpenAPI
+  and generated-client checks, and the 29-check aggregate readiness gate pass.
+  The delivered boundary remains API-first and headless-capable; Project and
+  Assessment schema meaning, browser behavior, projections, Audit consumption,
+  dependencies, AI authority, provider behavior, and external execution did
+  not change.
