@@ -1,7 +1,7 @@
 ---
 id: WRK-0148
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -219,3 +219,11 @@ ready.
 - 2026-10-17: Activated from recorded base `69b78b8` after confirming the
   current CAP package, completed WRK-0147 dependency, resolved decision
   posture, exact bounded scope, and no active coordination collision.
+- 2026-10-17: Completed the shared browser/headless preference API, Learner-
+  model application and PostgreSQL persistence, additive migration, protected
+  permissions, OpenAPI snapshot, and generated TypeScript client. Focused,
+  real-PostgreSQL, migration, API, client, architecture, security, and
+  aggregate readiness checks passed. Explicit simultaneous-writer race
+  evidence remains assigned to the dependency-ordered live-qualification
+  packet; no UI, inference, evidence, recommendation, provider, external-
+  action, or financial behavior was added.
