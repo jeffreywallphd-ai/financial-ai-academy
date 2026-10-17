@@ -7,6 +7,10 @@ import {
   learningQueryPageFixture,
 } from "../../component/learningCatalogFixture";
 import { lessonFixture } from "../../component/lessonFixture";
+import {
+  personalWorkspaceQueryDigest,
+  type PersonalWorkspaceQuery,
+} from "../../../src/features/personal-workspace/model";
 
 
 const provenance = {
@@ -193,7 +197,7 @@ async function mockSavedLearning(page: Page, options: {
       return json(route, 200, {
         schema_version: "1.0.0",
         workspace_revision: workspace.revision,
-        query_digest: "e".repeat(64),
+        query_digest: await personalWorkspaceQueryDigest(body as PersonalWorkspaceQuery),
         applied_query: body,
         records: pageRecords,
         next_cursor: nextOffset < records.length ? `offset_${nextOffset}` : null,

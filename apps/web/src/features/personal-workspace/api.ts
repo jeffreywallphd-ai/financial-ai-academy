@@ -13,6 +13,8 @@ import {
   parseSaveSelection,
   parseWorkspaceSearch,
   personalWorkspaceIsSafe,
+  personalWorkspaceQueriesMatch,
+  personalWorkspaceQueryDigest,
   personalWorkspaceQueryResultIsSafe,
   curriculumIdentifierIsSafe,
   workspaceIdentifierIsSafe,
@@ -95,11 +97,20 @@ async function queryWorkspace(
   }
 }
 
-function queryMatchesWorkspace(
+async function queryMatchesWorkspace(
   workspace: PersonalWorkspace,
+  query: PersonalWorkspaceQuery,
   result: PersonalWorkspaceQueryResult,
-): boolean {
+): Promise<boolean> {
   if (workspace.revision !== result.workspace_revision) return false;
+  if (!personalWorkspaceQueriesMatch(query, result.applied_query)) return false;
+  try {
+    if (await personalWorkspaceQueryDigest(result.applied_query) !== result.query_digest) {
+      return false;
+    }
+  } catch {
+    return false;
+  }
   const records = new Map(
     workspace.records.map((record) => [record.record_id, JSON.stringify(record)]),
   );
@@ -127,7 +138,7 @@ export function createPersonalWorkspaceLoader(
       true,
     );
     if ("status" in result) return result;
-    return queryMatchesWorkspace(workspaceState.workspace, result)
+    return await queryMatchesWorkspace(workspaceState.workspace, parsed.query, result)
       ? {
           status: "ready",
           workspace: workspaceState.workspace,

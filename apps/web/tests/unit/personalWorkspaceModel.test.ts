@@ -9,7 +9,10 @@ import {
   parseSaveSelection,
   parseWorkspaceSearch,
   personalWorkspaceIsSafe,
+  personalWorkspaceQueriesMatch,
+  personalWorkspaceQueryDigest,
   personalWorkspaceQueryResultIsSafe,
+  type PersonalWorkspaceQuery,
   workspaceSearchHref,
 } from "../../src/features/personal-workspace/model";
 import type { SingleProfileSession } from "../../src/platform/auth/singleProfileSession";
@@ -137,7 +140,7 @@ function workspaceWithTarget(target: Record<string, unknown>) {
 function queryResult(
   records: readonly unknown[] = workspace.records,
   revision = workspace.revision,
-  appliedQuery: Record<string, unknown> = {
+  appliedQuery: PersonalWorkspaceQuery = {
     schema_version: "1.0.0",
     sort: "workspace_order",
     limit: 50,
@@ -150,6 +153,21 @@ function queryResult(
     applied_query: appliedQuery,
     records,
     next_cursor: null,
+  };
+}
+
+async function correlatedQueryResult(
+  records: readonly unknown[] = workspace.records,
+  revision = workspace.revision,
+  appliedQuery: PersonalWorkspaceQuery = {
+    schema_version: "1.0.0",
+    sort: "workspace_order",
+    limit: 50,
+  },
+) {
+  return {
+    ...queryResult(records, revision, appliedQuery),
+    query_digest: await personalWorkspaceQueryDigest(appliedQuery),
   };
 }
 
@@ -271,6 +289,38 @@ describe("Personal workspace browser model", () => {
       ...queryResult(),
       next_cursor: "not+a+cursor",
     })).toBe(false);
+  });
+
+  it("reproduces canonical query meaning and digest across Unicode normalization", async () => {
+    const requested: PersonalWorkspaceQuery = {
+      schema_version: "1.0.0",
+      text: "  Cafe\u0301   STRAẞE  ",
+      record_kinds: ["note", "bookmark"],
+      sort: "workspace_order",
+      limit: 1,
+      cursor: "cursor_1",
+    };
+    const applied: PersonalWorkspaceQuery = {
+      schema_version: "1.0.0",
+      text: "café strasse",
+      record_kinds: ["bookmark", "note"],
+      sort: "workspace_order",
+      limit: 1,
+      cursor: "cursor_1",
+    };
+    expect(personalWorkspaceQueriesMatch(requested, applied)).toBe(true);
+    expect(await personalWorkspaceQueryDigest({
+      schema_version: "1.0.0",
+      text: "risk",
+      limit: 1,
+    })).toBe("f0323a7ae326cc52e2ce9787f0aeebfda5edec9c835fe37d75c247514bfb06e5");
+    expect(await personalWorkspaceQueryDigest(requested)).toBe(
+      await personalWorkspaceQueryDigest(applied),
+    );
+    expect(personalWorkspaceQueriesMatch(
+      { schema_version: "1.0.0", text: "I ı ſ ꭰ" },
+      { schema_version: "1.0.0", text: "i ı s Ꭰ" },
+    )).toBe(true);
   });
 
   it.each([
@@ -468,7 +518,7 @@ describe("Personal workspace browser model", () => {
   it("accepts valid Project references through the real loader and action response guards", async () => {
     const projectWorkspace = workspaceWithTarget(projectSnapshotTarget);
     const get = vi.fn().mockResolvedValue(accepted(projectWorkspace));
-    const query = queryResult(projectWorkspace.records, projectWorkspace.revision);
+    const query = await correlatedQueryResult(projectWorkspace.records, projectWorkspace.revision);
     const queryPost = vi.fn().mockResolvedValue(accepted(query));
     const loader = createPersonalWorkspaceLoader(
       { GET: get, POST: queryPost } as unknown as FinancialAcademyApiClient,
@@ -517,11 +567,37 @@ describe("Personal workspace browser model", () => {
     const loader = createPersonalWorkspaceLoader(
       {
         GET: vi.fn().mockResolvedValue(accepted(workspace)),
-        POST: vi.fn().mockResolvedValue(accepted(queryResult(workspace.records, 5))),
+        POST: vi.fn().mockResolvedValue(accepted(await correlatedQueryResult(workspace.records, 5))),
       } as unknown as FinancialAcademyApiClient,
       profile,
     );
     expect(await loader({ request: new Request("http://localhost/saved-learning") } as never)).toEqual({ status: "invalid-response" });
+  });
+
+  it.each([
+    ["filter", { text: "other", sort: "updated_desc", limit: 1, cursor: "cursor_1" }, undefined],
+    ["sort", { text: "risk", sort: "title_asc", limit: 1, cursor: "cursor_1" }, undefined],
+    ["cursor", { text: "risk", sort: "updated_desc", limit: 1, cursor: "cursor_2" }, undefined],
+    ["digest", { text: "risk", sort: "updated_desc", limit: 1, cursor: "cursor_1" }, "f".repeat(64)],
+  ])("rejects a query response with mismatched %s meaning", async (_name, changed, digest) => {
+    const appliedQuery: PersonalWorkspaceQuery = {
+      schema_version: "1.0.0",
+      ...changed,
+    } as PersonalWorkspaceQuery;
+    const result = await correlatedQueryResult([note], workspace.revision, appliedQuery);
+    const loader = createPersonalWorkspaceLoader(
+      {
+        GET: vi.fn().mockResolvedValue(accepted(workspace)),
+        POST: vi.fn().mockResolvedValue(accepted({
+          ...result,
+          ...(digest === undefined ? {} : { query_digest: digest }),
+        })),
+      } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    expect(await loader({
+      request: new Request("http://localhost/saved-learning?q=risk&sort=updated_desc&limit=1&cursor=cursor_1"),
+    } as never)).toEqual({ status: "invalid-response" });
   });
 
   it("rejects caller-supplied refresh authority fields", async () => {

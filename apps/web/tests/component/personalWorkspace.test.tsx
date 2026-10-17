@@ -285,6 +285,28 @@ describe("Saved learning pages", () => {
     expect(submissions[0]?.has("project_id")).toBe(false);
   });
 
+  it("never turns a complete but permuted query page into reorder authority", () => {
+    renderWorkspace(
+      [],
+      undefined,
+      workspace,
+      {
+        schema_version: "1.0.0",
+        workspace_revision: workspace.revision,
+        query_digest: "1".repeat(64),
+        applied_query: {
+          schema_version: "1.0.0",
+          sort: "workspace_order",
+          limit: 50,
+        },
+        records: [...workspace.records].reverse(),
+        next_cursor: null,
+      },
+    );
+    expect(screen.queryByRole("button", { name: "Move earlier" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Move later" })).not.toBeInTheDocument();
+  });
+
   it("explains a valid search with no matching items", () => {
     renderWorkspace(
       [],

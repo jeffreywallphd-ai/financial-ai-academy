@@ -252,9 +252,11 @@ shared by browser, command-line, service, and future headless clients. The
 browser maps one closed URL state to text, saved-item, source-area, source-type,
 source-status, archive, collection, sort, page-size, and opaque-continuation
 fields. Unknown, repeated, malformed, or over-broad values fail before learner
-session or workspace access. Continuation links preserve the complete query
-meaning, and partial, filtered, or differently sorted pages cannot become
-record-reordering authority.
+session or workspace access. The loader reproduces the server's canonical
+Unicode query meaning and SHA-256 digest before it accepts a result. Continuation
+links preserve the complete query meaning, and only a complete default result
+whose record IDs exactly match canonical workspace order can expose record-
+reordering controls.
 
 Each record explains `Ready to open`, `Saved details changed`, or `Source
 unavailable` in plain language. Only a ready source exposes its retained

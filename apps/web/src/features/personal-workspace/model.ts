@@ -580,6 +580,7 @@ export function personalWorkspaceQueryResultIsSafe(
     !Array.isArray(candidate.records) ||
     candidate.records.length > 100 ||
     !candidate.records.every(workspaceRecordIsSafe) ||
+    candidate.records.length > Number(candidate.applied_query.limit ?? 50) ||
     !(
       candidate.next_cursor === null ||
       (typeof candidate.next_cursor === "string" && CURSOR.test(candidate.next_cursor))
@@ -589,6 +590,88 @@ export function personalWorkspaceQueryResultIsSafe(
   }
   const recordIds = candidate.records.map((item) => item.record_id);
   return new Set(recordIds).size === recordIds.length;
+}
+
+function normalizedQueryText(value: string): string {
+  const casefolded = Array.from(value.normalize("NFKC"), (character) => {
+    const codePoint = character.codePointAt(0)!;
+    if (
+      (codePoint >= 0x13a0 && codePoint <= 0x13f5) ||
+      (codePoint >= 0x13f8 && codePoint <= 0x13fd) ||
+      (codePoint >= 0xab70 && codePoint <= 0xabbf)
+    ) {
+      return character.toUpperCase();
+    }
+    if (character === "ı") return character;
+    return character.toUpperCase().toLowerCase().replaceAll("ß", "ss");
+  }).join("");
+  return casefolded
+    .trim()
+    .split(/\s+/u)
+    .join(" ");
+}
+
+function normalizedWorkspaceQuery(
+  query: PersonalWorkspaceQuery,
+): PersonalWorkspaceQuery {
+  return {
+    schema_version: "1.0.0",
+    ...(query.text === undefined ? {} : { text: normalizedQueryText(query.text) }),
+    ...(query.record_kinds === undefined ? {} : { record_kinds: [...query.record_kinds].sort() }),
+    ...(query.owner_modules === undefined ? {} : { owner_modules: [...query.owner_modules].sort() }),
+    ...(query.reference_kinds === undefined ? {} : { reference_kinds: [...query.reference_kinds].sort() }),
+    ...(query.target_statuses === undefined ? {} : { target_statuses: [...query.target_statuses].sort() }),
+    ...(query.archived === undefined ? {} : { archived: query.archived }),
+    ...(query.collection_id === undefined ? {} : { collection_id: query.collection_id }),
+    sort: query.sort ?? "workspace_order",
+    limit: query.limit ?? 50,
+    ...(query.cursor === undefined ? {} : { cursor: query.cursor }),
+  };
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalJson).join(",")}]`;
+  }
+  if (value !== null && typeof value === "object") {
+    const candidate = value as Record<string, unknown>;
+    return `{${Object.keys(candidate)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(candidate[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+export function personalWorkspaceQueriesMatch(
+  requested: PersonalWorkspaceQuery,
+  applied: PersonalWorkspaceQuery,
+): boolean {
+  return canonicalJson(normalizedWorkspaceQuery(requested)) ===
+    canonicalJson(normalizedWorkspaceQuery(applied));
+}
+
+export async function personalWorkspaceQueryDigest(
+  query: PersonalWorkspaceQuery,
+): Promise<string> {
+  const normalized = normalizedWorkspaceQuery(query);
+  const material: Record<string, unknown> = {
+    schema_version: normalized.schema_version,
+    ...(normalized.text === undefined ? {} : { text: normalized.text }),
+    ...(normalized.record_kinds === undefined ? {} : { record_kinds: normalized.record_kinds }),
+    ...(normalized.owner_modules === undefined ? {} : { owner_modules: normalized.owner_modules }),
+    ...(normalized.reference_kinds === undefined ? {} : { reference_kinds: normalized.reference_kinds }),
+    ...(normalized.target_statuses === undefined ? {} : { target_statuses: normalized.target_statuses }),
+    ...(normalized.archived === undefined ? {} : { archived: normalized.archived }),
+    ...(normalized.collection_id === undefined ? {} : { collection_id: normalized.collection_id }),
+    ...(normalized.sort === "workspace_order" ? {} : { sort: normalized.sort }),
+    ...(normalized.limit === 50 ? {} : { limit: normalized.limit }),
+  };
+  const digest = await globalThis.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(canonicalJson(material)),
+  );
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 const BROWSER_QUERY_FIELDS = new Set([

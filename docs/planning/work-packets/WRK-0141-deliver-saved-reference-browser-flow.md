@@ -249,3 +249,9 @@ WRK-0142 dependency-ready.
 - 2026-10-17: Activated from recorded base `96e6f10` after validating the
   completed dependency, current CAP authority, closed browser/API boundary,
   exact write scope, and absence of an active file collision.
+- 2026-10-17: Independent review of the first implementation candidate found
+  that the browser had not bound the returned applied query and digest to the
+  requested query, and that a complete but permuted result could expose record
+  reordering. The in-scope correction reproduces canonical Unicode query
+  meaning and digest, rejects mismatch, and requires exact canonical workspace
+  order before reordering controls appear.

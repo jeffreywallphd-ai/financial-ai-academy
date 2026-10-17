@@ -102,9 +102,10 @@ creates a mutation or execution path into another module.
 The protected API, generated client, and `Saved learning` browser flow cover
 closed query, status-aware safe resume, and record-only explicit refresh for
 Curriculum and Project references. The browser rejects unknown or repeated URL
-fields before access, preserves page size and opaque query continuation, shows
-only exact records from the matching current workspace revision, and never
-turns a partial result page into reorder authority. Complete live browser plus
+fields before access, preserves page size and opaque query continuation,
+reproduces canonical Unicode query meaning and its digest, shows only exact
+records from the matching current workspace revision, and requires exact
+canonical workspace order before exposing reorder authority. Complete live browser plus
 headless recovery qualification and Project lifecycle-event handling remain
 later CAP-0017 work. The boundary has no collaboration, cloud
 synchronization, artifact preview/download/execution, Project mutation,

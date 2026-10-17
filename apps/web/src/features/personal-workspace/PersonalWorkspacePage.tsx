@@ -551,7 +551,10 @@ export function PersonalWorkspacePage({
   );
   const allowReorder = !hasSearch &&
     !result?.next_cursor &&
-    visibleRecords.length === workspace.records.length;
+    visibleRecords.length === workspace.records.length &&
+    visibleRecords.every(
+      (record, index) => record.record_id === workspace.records[index]?.record_id,
+    );
   return (
     <section className="saved-learning-page">
       <header className="saved-learning-page__header">
