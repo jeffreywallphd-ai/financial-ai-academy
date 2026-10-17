@@ -477,6 +477,7 @@ class SelectionTests(unittest.TestCase):
             "dev-tools/control-plane/check_approved_lesson.py": [
                 "control-plane:unit",
                 "control-plane:verification",
+                "project:browser",
                 "approved-lesson:live",
             ],
             "dev-tools/control-plane/check_presentation_preferences.py": [
@@ -487,6 +488,7 @@ class SelectionTests(unittest.TestCase):
             "dev-tools/control-plane/financial_academy_checks.py": [
                 "control-plane:unit",
                 "control-plane:verification",
+                "project:browser",
             ],
         }
         for path, expected in cases.items():

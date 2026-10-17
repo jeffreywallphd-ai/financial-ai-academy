@@ -3,6 +3,11 @@ import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
 import { createHash } from "node:crypto";
 
+import {
+  personalWorkspaceQueryDigest,
+  type PersonalWorkspaceQuery,
+} from "../../../src/features/personal-workspace/model";
+
 const origin = {
   origin_type: "learning",
   project_brief_schema_version: "1.0.0",
@@ -113,11 +118,25 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
   await page.route("**/api/v1/session/single-profile", (route) => json(route, 201, {
     status: "ready", authentication_method: "single_profile", expires_at: "2026-10-16T22:00:00Z",
   }));
-  await page.route("**/api/v1/personal-workspace**", (route) => {
+  await page.route("**/api/v1/learner-presentation-preferences", (route) =>
+    json(route, 503, { code: "preference_service_unavailable" }),
+  );
+  await page.route("**/api/v1/personal-workspace**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     if (request.method() === "GET" && url.pathname === "/api/v1/personal-workspace") {
       return json(route, 200, personalWorkspace());
+    }
+    if (request.method() === "POST" && url.pathname === "/api/v1/personal-workspace/query") {
+      const body = request.postDataJSON() as PersonalWorkspaceQuery;
+      return json(route, 200, {
+        schema_version: "1.0.0",
+        workspace_revision: personalRevision,
+        query_digest: await personalWorkspaceQueryDigest(body),
+        applied_query: body,
+        records: personalRecords,
+        next_cursor: null,
+      });
     }
     if (request.method() === "POST" && url.pathname === "/api/v1/personal-workspace/mutations") {
       const body = request.postDataJSON() as { mutation: Record<string, unknown> } & Record<string, unknown>;

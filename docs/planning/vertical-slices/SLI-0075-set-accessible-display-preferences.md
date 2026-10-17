@@ -334,4 +334,5 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
   Project, and live suites retain their independent routes.
 - 2026-10-17: WRK-0155 returned to active delivery to retain the documented
   Project browser self-qualification route and make its presentation-profile
-  dependency deterministic without widening the product outcome.
+  and saved-learning query dependencies deterministic without widening the
+  product outcome.

@@ -85,7 +85,11 @@ def catalog() -> CheckCatalog:
         "apps/web/src/styles/project-workspace.css",
         "apps/web/tests/browser/project-workspace/**",
     )
-    project_browser_check_paths = project_browser_paths
+    project_browser_check_paths = (
+        *project_browser_paths,
+        "dev-tools/control-plane/check_approved_lesson.py",
+        "dev-tools/control-plane/financial_academy_checks.py",
+    )
     approved_browser_paths = (
         "apps/web/tests/browser/approved-lesson/**",
         "apps/web/tests/browser/approved-lesson.config.ts",

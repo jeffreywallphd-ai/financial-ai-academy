@@ -296,4 +296,5 @@ action, or financial behavior changed.
   browser paths.
 - 2026-10-17: Returned to active delivery to restore the documented Project
   browser check self-qualification triggers and give that existing browser
-  harness a deterministic safe response for the new global presentation read.
+  harness deterministic responses for the new global presentation read and
+  the current saved-learning query contract.
