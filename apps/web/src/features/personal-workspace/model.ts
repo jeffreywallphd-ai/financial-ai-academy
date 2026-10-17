@@ -592,6 +592,9 @@ export function personalWorkspaceQueryResultIsSafe(
   return new Set(recordIds).size === recordIds.length;
 }
 
+const PYTHON_SPLIT_WHITESPACE =
+  /[\u0009-\u000d\u001c-\u0020\u0085\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/u;
+
 function normalizedQueryText(value: string): string {
   const casefolded = Array.from(value.normalize("NFKC"), (character) => {
     const codePoint = character.codePointAt(0)!;
@@ -606,8 +609,8 @@ function normalizedQueryText(value: string): string {
     return character.toUpperCase().toLowerCase().replaceAll("ß", "ss");
   }).join("");
   return casefolded
-    .trim()
-    .split(/\s+/u)
+    .split(PYTHON_SPLIT_WHITESPACE)
+    .filter((part) => part.length > 0)
     .join(" ");
 }
 
@@ -712,8 +715,9 @@ export function parseWorkspaceSearch(
   const limitValue = optionalBrowserValue(url.searchParams, "limit");
   const cursor = optionalBrowserValue(url.searchParams, "cursor");
   const limit = limitValue === undefined ? 50 : positiveQueryInteger(limitValue);
+  const normalizedText = text === undefined ? undefined : normalizedQueryText(text);
   if (
-    (text !== undefined && !boundedString(text, 1, 240)) ||
+    (text !== undefined && (!boundedString(text, 1, 240) || normalizedText?.length === 0)) ||
     (recordKind !== undefined && !RECORD_KINDS.has(recordKind)) ||
     (ownerModule !== undefined && !OWNER_MODULES.has(ownerModule)) ||
     (referenceKind !== undefined && !REFERENCE_KINDS.has(referenceKind)) ||
@@ -743,7 +747,7 @@ export function parseWorkspaceSearch(
     schema_version: "1.0.0",
     limit,
     sort: search.sort ?? "workspace_order",
-    ...(search.text === undefined ? {} : { text: search.text }),
+    ...(normalizedText === undefined ? {} : { text: normalizedText }),
     ...(search.recordKind === undefined ? {} : { record_kinds: [search.recordKind] }),
     ...(search.ownerModule === undefined ? {} : { owner_modules: [search.ownerModule] }),
     ...(search.referenceKind === undefined ? {} : { reference_kinds: [search.referenceKind] }),

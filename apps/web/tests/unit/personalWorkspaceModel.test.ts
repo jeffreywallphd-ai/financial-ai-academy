@@ -243,7 +243,7 @@ describe("Personal workspace browser model", () => {
       },
       query: {
         schema_version: "1.0.0",
-        text: "Café risk",
+        text: "café risk",
         record_kinds: ["note"],
         owner_modules: ["project"],
         reference_kinds: ["project_artifact"],
@@ -267,6 +267,8 @@ describe("Personal workspace browser model", () => {
     "limit=0",
     `cursor=${"a".repeat(513)}`,
     `q=${encodeURIComponent("x".repeat(241))}`,
+    `q=${encodeURIComponent("\u0085\u001c\u001d\u001e\u001f")}`,
+    `q=${encodeURIComponent(" \t\n")}`,
   ])("rejects unsafe browser query %s before session or API access", async (query) => {
     const profile = session();
     const get = vi.fn();
@@ -321,6 +323,26 @@ describe("Personal workspace browser model", () => {
       { schema_version: "1.0.0", text: "I ı ſ ꭰ" },
       { schema_version: "1.0.0", text: "i ı s Ꭰ" },
     )).toBe(true);
+    for (const whitespace of ["\u0085", "\u001c", "\u001d", "\u001e", "\u001f"]) {
+      expect(personalWorkspaceQueriesMatch(
+        { schema_version: "1.0.0", text: `risk${whitespace}return` },
+        { schema_version: "1.0.0", text: "risk return" },
+      )).toBe(true);
+    }
+    expect(personalWorkspaceQueriesMatch(
+      { schema_version: "1.0.0", text: "risk\ufeffreturn" },
+      { schema_version: "1.0.0", text: "risk\ufeffreturn" },
+    )).toBe(true);
+    expect(personalWorkspaceQueriesMatch(
+      { schema_version: "1.0.0", text: "risk\ufeffreturn" },
+      { schema_version: "1.0.0", text: "risk return" },
+    )).toBe(false);
+    expect(parseWorkspaceSearch(new URL(
+      `https://academy.test/saved-learning?q=${encodeURIComponent("risk\u0085return")}`,
+    ))?.query.text).toBe("risk return");
+    expect(parseWorkspaceSearch(new URL(
+      `https://academy.test/saved-learning?q=${encodeURIComponent("risk\ufeffreturn")}`,
+    ))?.query.text).toBe("risk\ufeffreturn");
   });
 
   it.each([

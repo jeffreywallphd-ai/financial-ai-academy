@@ -255,3 +255,8 @@ WRK-0142 dependency-ready.
   reordering. The in-scope correction reproduces canonical Unicode query
   meaning and digest, rejects mismatch, and requires exact canonical workspace
   order before reordering controls appear.
+- 2026-10-17: Closure review accepted the reorder-authority correction and
+  narrowed the remaining query-correlation gap to JavaScript-versus-Python
+  whitespace classification. The follow-up uses the backend's exact split
+  whitespace profile, preserves U+FEFF as non-whitespace, and rejects
+  canonically empty browser search text before session or workspace access.
