@@ -1,7 +1,7 @@
 ---
 id: WRK-0125
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -10,7 +10,7 @@ capability: CAP-0007
 depends_on: ["WRK-0124"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/migrations/README.md", "backend/migrations/assessment/assessment_0004_project_submission_evidence.down.sql", "backend/migrations/assessment/assessment_0004_project_submission_evidence.up.sql", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/ports/repositories.py", "backend/src/financial_ai_academy/modules/assessment/public.py", "backend/tests/integration/assessment/test_postgres_project_submission.py", "backend/tests/unit/assessment/test_project_submission_service.py", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0125-compose-project-submission-persistence.md"]
+write_scope: ["backend/migrations/README.md", "backend/migrations/assessment/assessment_0004_project_submission_evidence.down.sql", "backend/migrations/assessment/assessment_0004_project_submission_evidence.up.sql", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/ports/repositories.py", "backend/src/financial_ai_academy/modules/assessment/public.py", "backend/src/financial_ai_academy/modules/project/README.md", "backend/src/financial_ai_academy/modules/project/application/service.py", "backend/src/financial_ai_academy/modules/project/public.py", "backend/tests/integration/assessment/test_postgres_project_submission.py", "backend/tests/unit/assessment/test_project_submission_service.py", "backend/tests/unit/project/test_project_learning_snapshot.py", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0125-compose-project-submission-persistence.md"]
 generated_artifacts: []
 base_revision: 4810c3a83d65b564342c50dd840df244e374cc92
 claim_id: WRK-0125:1d5e50e1-ab03-4e12-ae08-f4eda430527b
@@ -75,6 +75,11 @@ concurrent-work controls.
 
 - Define Assessment-local gateway ports and adapters over the existing Project,
   Content, and Curriculum public operations.
+- Add one Project-owned public operation that returns only immutable snapshot,
+  learning-origin, and exact safe resource-reference facts. Rehydrate domain-
+  link target version/as-of from the workspace document retained atomically
+  with that snapshot; never expose note bodies, URLs, artifact bytes, paths, or
+  current mutable workspace state.
 - Assemble the closed candidate from one authorized learning-origin Project,
   exact immutable snapshot, exact published brief, and exact placement without
   artifact bytes, private paths, or mutable workspace state.
@@ -110,15 +115,16 @@ deployment.
 | Area | Inspect | Allowed to change | Reason |
 | --- | --- | --- | --- |
 | Assessment public/application | existing practice and knowledge-check operations | additive project candidate, submit, evidence, and history requests/operations | Establish the shared transport-neutral API core |
-| Cross-module collaboration | Project snapshot and shell, Content brief, Curriculum placement public operations | Assessment-local gateway ports/adapters only | Assemble exact learner-safe facts without cross-module persistence access |
+| Project public/application | retained snapshot and workspace record | additive learner-safe learning-snapshot-facts operation | Preserve exact domain-link version/as-of without exposing stored workspace or crossing persistence ownership |
+| Cross-module collaboration | Project snapshot facts, Content brief, Curriculum placement public operations | Assessment-local gateway ports/adapters only | Assemble exact learner-safe facts without cross-module persistence access |
 | Assessment persistence | repository port/adapter and migration stream | additive Project evidence aggregate, replay, history, and outbox storage | Preserve atomic immutable evidence and deterministic ordering |
 | Verification | WRK-0124 contract tests and existing Assessment/PostgreSQL suites | focused unit and real-database tests | Prove refusal, replay, concurrency, supersession, restart, and isolation |
 | Canonical guidance | Assessment and Project submission contracts | listed documentation | Record runtime ownership and remaining host/consumer seams |
 | Planning | SLI-0032, WRK-0125, register | listed planning files | Keep JIT refinement and lifecycle synchronized |
 
 No WRK-0124 schema or compatibility record, Project/Content/Curriculum
-persistence, host, OpenAPI, generated client, web file, dependency, or lockfile
-may change.
+persistence schema or adapter, host, OpenAPI, generated client, web file,
+dependency, or lockfile may change.
 
 ## Contracts and Interfaces
 
@@ -242,3 +248,10 @@ for just-in-time refinement.
 - 2026-10-17: Claimed from base revision `4810c3a` after the implementation
   gate confirmed current CAP authority, dependency completion, decision
   readiness, exact scope, and no active ownership collision.
+- 2026-10-17: Returned to `ready` before implementation when revalidation found
+  that the existing Project snapshot projection intentionally omits a domain
+  link's exact target version/as-of. Refined the packet to add a Project-owned
+  safe snapshot-facts operation backed by the workspace record already retained
+  atomically with the snapshot. This prevents guessed values and cross-module
+  table access without changing the approved CAP/SLI outcome or persistence
+  schema.
