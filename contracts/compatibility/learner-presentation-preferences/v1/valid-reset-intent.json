@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "intent.presentation-reset",
+  "expected_revision": 2,
+  "mutation": {"operation": "reset_profile"}
+}

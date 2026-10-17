@@ -100,6 +100,20 @@ semantics. The pure adapter issues no identity or time, persists nothing, and
 has no provider, model, network, UI, or cross-module effect. Protected
 persistence/API and browser composition remain separate later delivery seams.
 
+Explicit text-size, text-spacing, reading-width, and motion choices additionally
+follow the
+[learner-presentation-preferences contract](learner-presentation-preferences-contract.md).
+Learner model owns the versioned explicit profile, complete replacement/reset,
+bounded non-content history, and export. The platform design system owns only
+the later semantic presentation mapping. Browser-local theme remains separate
+and has no learner-contract, evidence, policy, or headless meaning.
+
+The additive `learner-presentation-preferences-v1` family accepts only safe
+closed values that preserve or improve the accessible baseline. Browser zoom,
+forced colors, and more-protective reduced-motion behavior keep precedence. Its
+pure adapter issues no identity or time, persists nothing, and changes no
+runtime token, browser state, UI, provider, model, or other module.
+
 Portable financial methods, portfolio records, and simulation results
 additionally follow
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the

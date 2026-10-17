@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/learner-presentation-preferences/v1/profile.schema.json",
+  "title": "Learner presentation preference profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "learner_id", "revision", "text_size", "text_spacing", "reading_width", "motion", "created_at", "updated_at", "profile_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "profile_id": {"$ref": "#/$defs/id"},
+    "learner_id": {"type": "string", "format": "uuid"},
+    "revision": {"type": "integer", "minimum": 1},
+    "text_size": {"enum": ["default", "larger"]},
+    "text_spacing": {"enum": ["default", "increased"]},
+    "reading_width": {"enum": ["standard", "focused"]},
+    "motion": {"enum": ["system", "reduce"]},
+    "created_at": {"$ref": "#/$defs/time"},
+    "updated_at": {"$ref": "#/$defs/time"},
+    "profile_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "time": {"type": "string", "format": "date-time", "pattern": "Z$"}
+  }
+}

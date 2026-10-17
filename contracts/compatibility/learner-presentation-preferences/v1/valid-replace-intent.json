@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "intent.presentation-one",
+  "expected_revision": 1,
+  "mutation": {
+    "operation": "replace_preferences",
+    "text_size": "larger",
+    "text_spacing": "increased",
+    "reading_width": "focused",
+    "motion": "reduce"
+  }
+}

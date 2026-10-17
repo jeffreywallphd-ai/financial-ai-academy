@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "Portable display preference review",
+  "limitations": [
+    "These are explicit presentation choices, not a diagnosis or learning assessment.",
+    "Browser theme is stored separately and is not included."
+  ],
+  "exported_at": "2026-10-17T21:02:00Z",
+  "profile": {
+    "schema_version": "1.0.0",
+    "profile_id": "presentation.local-learner",
+    "learner_id": "11111111-1111-4111-8111-111111111111",
+    "revision": 2,
+    "text_size": "larger",
+    "text_spacing": "increased",
+    "reading_width": "focused",
+    "motion": "reduce",
+    "created_at": "2026-10-17T21:00:00Z",
+    "updated_at": "2026-10-17T21:01:00Z",
+    "profile_digest": "56ab301cb622e58c5cc57ced7885fc625ea02f747612fe1d0febaf47bd0d572d"
+  },
+  "history": {
+    "schema_version": "1.0.0",
+    "profile_id": "presentation.local-learner",
+    "current_revision": 2,
+    "changes": [
+      {
+        "schema_version": "1.0.0",
+        "revision": 2,
+        "operation": "replace_preferences",
+        "object_kind": "profile",
+        "object_id": null,
+        "occurred_at": "2026-10-17T21:01:00Z",
+        "resulting_profile_digest": "56ab301cb622e58c5cc57ced7885fc625ea02f747612fe1d0febaf47bd0d572d"
+      }
+    ]
+  }
+}

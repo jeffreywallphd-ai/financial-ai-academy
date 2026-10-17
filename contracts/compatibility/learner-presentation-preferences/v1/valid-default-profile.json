@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "presentation.local-learner",
+  "learner_id": "11111111-1111-4111-8111-111111111111",
+  "revision": 1,
+  "text_size": "default",
+  "text_spacing": "default",
+  "reading_width": "standard",
+  "motion": "system",
+  "created_at": "2026-10-17T21:00:00Z",
+  "updated_at": "2026-10-17T21:00:00Z",
+  "profile_digest": "63c2c146622f55b11fdbc0e6b1fe5c8321798dfbeee41d4d83d4edeca3e02f77"
+}

@@ -107,3 +107,21 @@ conflict races, stale-revision serialization, PostgreSQL row correlation,
 normal host restart without reseeding, and unchanged unrelated learning state.
 That evidence does not establish multiple real learners, managed-cloud
 deployment, backup/restore, import, or a separate autonomous AI authority.
+
+## Presentation preference contract core
+
+Learner model also owns the additive pure
+`learner-presentation-preferences/v1` family for four explicit presentation
+choices: text size, text spacing, reading width, and motion. The profile is
+complete and revision-bound; mutations replace all four values or reset them
+to the safe baseline. Bounded history carries no prior values, and export
+contains only the exact profile, correlated summaries, purpose, and
+limitations.
+
+These choices are not diagnoses, inferred accessibility needs, Assessment
+evidence, competency, eligibility, permission, recommendations, or financial
+signals. The pure domain and JSON Schema adapter issue no identity or time,
+persist nothing, and have no UI, browser, database, provider, model, or cross-
+module effect. Browser-local theme remains platform-owned and outside this
+contract. A later presentation adapter must preserve browser zoom, forced
+colors, and any more-protective reduced-motion behavior.

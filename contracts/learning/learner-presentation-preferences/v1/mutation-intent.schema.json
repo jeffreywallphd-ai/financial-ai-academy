@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/learner-presentation-preferences/v1/mutation-intent.schema.json",
+  "title": "Learner presentation preference mutation intent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "idempotency_key", "expected_revision", "mutation"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "idempotency_key": {"$ref": "#/$defs/id"},
+    "expected_revision": {"type": "integer", "minimum": 1},
+    "mutation": {
+      "oneOf": [
+        {"$ref": "#/$defs/replacePreferences"},
+        {"$ref": "#/$defs/resetProfile"}
+      ]
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "replacePreferences": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "text_size", "text_spacing", "reading_width", "motion"],
+      "properties": {
+        "operation": {"const": "replace_preferences"},
+        "text_size": {"enum": ["default", "larger"]},
+        "text_spacing": {"enum": ["default", "increased"]},
+        "reading_width": {"enum": ["standard", "focused"]},
+        "motion": {"enum": ["system", "reduce"]}
+      }
+    },
+    "resetProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation"],
+      "properties": {"operation": {"const": "reset_profile"}}
+    }
+  }
+}

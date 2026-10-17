@@ -224,3 +224,21 @@ The pure family preserves explicit learner input and creates no evidence,
 competency, eligibility, permission, recommendation, inferred trait, provider,
 or model authority. Persistence, protected API, generated client, browser, and
 live qualification remain later SLI-0074 packet seams.
+
+## Learner Presentation Preferences v1
+
+[`learner-presentation-preferences/v1/`](learner-presentation-preferences/v1/README.md)
+defines complete explicit choices for text size, text spacing, reading width,
+and motion, plus closed revision-bound replacement/reset, bounded non-content
+history, and portable export. Its synthetic compatibility corpus lives in
+[`../compatibility/learner-presentation-preferences/v1/`](../compatibility/learner-presentation-preferences/v1/README.md).
+
+```powershell
+backend/.venv/Scripts/python.exe -m pytest backend/tests/contract/learner_presentation_preferences backend/tests/unit/learner_model/test_presentation_preference_contract.py backend/tests/unit/learner_model/test_presentation_preferences.py
+```
+
+The pure family permits only safe values that preserve or improve the accepted
+presentation baseline. It excludes browser-local theme, arbitrary styling,
+diagnosis, inferred need, evidence, policy, recommendation, provider, and model
+authority. Persistence, public API, runtime application, browser UI, and live
+qualification remain later SLI-0075 packet seams.
