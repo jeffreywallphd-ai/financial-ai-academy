@@ -1,7 +1,7 @@
 ---
 id: SLI-0031
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -239,7 +239,7 @@ refined just in time.
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
 | WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | complete |
 | WRK-0123 | Preserve canonical Project timestamps through FastAPI response serialization and prove public export-digest parity | WRK-0122 | none | complete |
-| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0123 | none | active |
+| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0123 | none | complete |
 
 ## Verification and Qualification
 
@@ -316,6 +316,39 @@ Evidence must explicitly state that no artifact was executed or actively
 rendered, no result was independently reproduced, no live Portfolio or provider
 integration was delivered, no Assessment submission or learner projection was
 created, and no managed-cloud or production-recovery profile was qualified.
+
+### Completion record
+
+- WRK-0118 through WRK-0123 and WRK-0121 completed the additive Project
+  workspace contracts, deterministic policy, Project-owned PostgreSQL and
+  restrictive object persistence, protected generated-client API, accessible
+  browser flow, canonical snapshot/export boundary, and integrated evidence.
+- Exact corrected WRK-0121 candidate `92c45e4` has a fresh qualifying receipt
+  for all six selected planning, documentation, architecture, local-topology,
+  and isolated live checks. The focused qualifier passed 28/28 and the required
+  aggregate readiness gate passed 29/29.
+- The isolated PostgreSQL 18.4, Python/static, generated-client, ordinary
+  headless HTTP, and pinned-Chromium workflow passed ten non-Project scenarios
+  plus the separately bracketed Project scenario. It proved Unicode-safe work,
+  exact inert-byte download, immutable digest-bound snapshot and export,
+  continued live revision, normal restart, safe cleanup, and browser/headless
+  parity.
+- Direct table counts immediately before and after the Project-only browser
+  phase proved that Assessment and Learner-model persistence did not change.
+  Unit regressions fail on count drift or incomplete persistence evidence.
+- Contracts and migrations remain additive and compatible. No product schema,
+  OpenAPI shape, generated client, provider, identity, tenancy, or authority
+  changed in the qualification packet; exact retries and stale writes remain
+  server-owned and fail closed.
+- No artifact was executed, expanded, installed, actively rendered, given
+  network or secret access, or independently reproduced. No live Portfolio or
+  provider integration, Assessment submission, completion/mastery/competency
+  mutation, learner projection, managed-cloud profile, or production-recovery
+  claim was added.
+- Residual gaps remain the unsupported production domain owner, live Portfolio
+  associations, managed object storage/cloud recovery, import/restore and
+  retention cleanup, collaboration/public sharing, external execution, and a
+  separately planned headless AI mode.
 
 ## Planning History
 
@@ -414,3 +447,11 @@ created, and no managed-cloud or production-recovery profile was qualified.
   Python/static, generated-client, headless HTTP, and pinned-Chromium workflow
   passed all 11 browser scenarios, including the complete Project workspace,
   restart, immutable-snapshot, exact-export, and zero-learning-effect path.
+- 2026-10-17: Moved to verification after WRK-0121 completed at exact corrected
+  candidate `92c45e4`. Its fresh six-check receipt, 28 focused qualifier tests,
+  isolated 11-scenario live workflow, 29-check aggregate readiness gate, and
+  independent follow-up review all passed with no open finding.
+- 2026-10-17: Closed deterministically after the completion structure gate
+  accepted all six retained packet claims and the evidence review confirmed
+  every slice scenario, boundary, denial, compatibility, restart, cleanup, and
+  residual-gap statement. No completion approval was requested.
