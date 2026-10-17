@@ -238,7 +238,7 @@ refined just in time.
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
 | WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | complete |
-| WRK-0123 | Preserve canonical Project timestamps through FastAPI response serialization and prove public export-digest parity | WRK-0122 | none | verifying |
+| WRK-0123 | Preserve canonical Project timestamps through FastAPI response serialization and prove public export-digest parity | WRK-0122 | none | complete |
 | WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0123 | none | ready |
 
 ## Verification and Qualification
@@ -404,3 +404,8 @@ created, and no managed-cloud or production-recovery profile was qualified.
   serialization now preserves zero, trimmed, and full fractional UTC spellings;
   the public export material recomputes to the server digest; naive timestamps
   fail closed; and the reviewed OpenAPI remains unchanged.
+- 2026-10-17: Completed WRK-0123 at exact reviewed candidate `649cda7` after
+  the governed five-check verification passed with the repository's prepared
+  Node 24 and npm 10.8.2 runtimes. Independent review accepted the Project-only
+  serialization seam with no findings; OpenAPI and generated-client output
+  remain unchanged. WRK-0121 may resume integrated qualification.

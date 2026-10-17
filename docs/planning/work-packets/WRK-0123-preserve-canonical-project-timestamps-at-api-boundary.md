@@ -1,7 +1,7 @@
 ---
 id: WRK-0123
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -175,3 +175,8 @@ return to WRK-0121.
   generated-client check passed when rerun with the repository's explicit,
   prepared runtime pair. This descendant records that environmental correction
   before fresh exact-candidate verification.
+- 2026-10-17: Completed at exact candidate `649cda7`. The governed five-check
+  receipt qualified with the prepared Node 24 and npm 10.8.2 pair, and the
+  independent technical review accepted the correction with no findings.
+  Public OpenAPI and generated-client output remain unchanged; WRK-0121 owns
+  the resumed live end-to-end qualification.
