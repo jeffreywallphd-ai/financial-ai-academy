@@ -18,6 +18,9 @@ from .domain.workspace import (
     SetCollectionMembersMutation,
     UpdateBookmarkMutation,
     UpdateNoteMutation,
+    WorkspaceQuery,
+    WorkspaceQueryResult,
+    WorkspaceSort,
 )
 
 
@@ -178,5 +181,8 @@ __all__ = [
     "ProjectArtifactSelector",
     "ProjectSnapshotSelector",
     "ProjectWorkspaceSelector",
+    "WorkspaceQuery",
+    "WorkspaceQueryResult",
+    "WorkspaceSort",
     "WorkspaceCommandMutation",
 ]

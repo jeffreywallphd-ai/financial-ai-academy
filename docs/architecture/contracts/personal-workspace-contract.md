@@ -30,6 +30,18 @@ creates a mutation or execution path into another module.
   generation.
 - Canonical digests use compact sorted-key UTF-8 JSON so persistence and API
   adapters can detect changed meaning.
+- Reference status is exactly `available`, `stale`, or `unavailable`.
+  Historical safe source facts and learner-authored organization remain intact
+  for non-available references. Missing, removed, denied, adapter-absent, and
+  source-outage causes are not distinguished in stored or public status.
+- Record query is pure over one already-authorized workspace. Bounded normalized
+  text, closed record/source/reference/status/archive/collection filters,
+  stable sorts, record-ID tie-breaking, bounded pages, and opaque continuations
+  are versioned contracts. Continuations bind workspace revision and canonical
+  query digest and cannot switch query meaning or return partial stale data.
+- Search covers learner-authored note/bookmark text and already-retained safe
+  target labels and identifiers. It never calls a source owner, searches source
+  content, or depends on an optional adapter or external search service.
 - Records retain exact Curriculum/package/publication provenance and a last
   validation time. Learning routes use Curriculum's canonical same-origin
   `/learn/placements/{placement_id}` shape and must correlate with the exact
@@ -61,6 +73,11 @@ creates a mutation or execution path into another module.
 - Curriculum and Project records share the same ordering, archive, and
   collection operations. Mixing those reference kinds does not change the
   mutation contract or move target ownership into Personal workspace.
+- `refresh_reference` names only a workspace-owned record. The application must
+  derive learner, owner, selector, validation time, and exact trusted owner
+  result. Safe mutable Project-workspace facts may refresh; changed package,
+  snapshot, or artifact immutable meaning marks the retained reference stale
+  and cannot silently advance it. An exact later result may restore available.
 - Repeated empty reads project the same revision-one workspace without writing.
   The first accepted mutation atomically persists revision two. Exact retries
   return the accepted workspace; stale revisions and changed idempotency-key
@@ -78,7 +95,8 @@ creates a mutation or execution path into another module.
 
 The protected API, generated client, and `Saved learning` browser entry flow
 cover Curriculum and Project references. Project lifecycle-event handling
-remains later CAP-0017 work. The boundary has no collaboration, cloud
+and query/refresh API, client, browser, and live composition remain later
+CAP-0017 work. The boundary has no collaboration, cloud
 synchronization, artifact preview/download/execution, Project mutation,
 Portfolio association, Assessment or Learner-model effect, AI authority, or
 personalized financial advice.

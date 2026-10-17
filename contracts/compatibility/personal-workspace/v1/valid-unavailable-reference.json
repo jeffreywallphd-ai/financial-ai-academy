@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "reference": {
+    "reference_kind": "project_snapshot",
+    "owner_module": "project",
+    "project_id": "project.research-1",
+    "snapshot_id": "snapshot.baseline-1",
+    "title": "Compare allocation assumptions",
+    "lifecycle": "active",
+    "project_revision": 2,
+    "workspace_revision": 4,
+    "snapshot_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "closed_at": "2026-10-17T12:45:00Z",
+    "destination": "/projects/project.research-1#snapshot-snapshot.baseline-1",
+    "target_status": "unavailable",
+    "validated_at": "2026-10-17T13:00:00Z"
+  }
+}

@@ -8,9 +8,11 @@ mutation core.
 
 - immutable v1 domain values for records, references, collections, and intents;
 - `PersonalWorkspaceContractPort` for parsing, projection, canonical digests,
-  empty-workspace creation, and pure mutation;
+  empty-workspace creation, pure mutation, deterministic record query, and
+  trusted reference-refresh transitions;
 - `ContractPersonalWorkspaceAdapter`, which validates closed JSON Schema shapes
-  and semantic invariants.
+  and semantic invariants, stable query pages, query-bound continuations, and
+  current/stale/unavailable reference history;
 - `PersonalWorkspaceService`, which serves the same read and mutation
   operations to protected HTTP, generated-client, and future headless callers;
 - selector-based Curriculum resolution that keeps target facts under their
@@ -44,3 +46,13 @@ organization, exact Project correlation, artifact-byte exclusion, confidential
 unavailable-Project isolation, exact replay, changed-key and stale-revision
 denial, target-state isolation, normal restart without reseeding, and bounded
 cleanup without changing this ownership direction.
+
+The newest pure seam adds no host operation yet. It defines closed query and
+query-result documents over the learner's own bounded aggregate and a
+record-ID-only refresh intent. Querying never calls Curriculum or Project.
+Trusted refresh comparison preserves exact package/snapshot/artifact meaning,
+allows bounded mutable Project-workspace facts to advance, and collapses every
+missing, removed, denied, unavailable, or absent-adapter cause to one public
+`unavailable` status. Application orchestration, PostgreSQL replay, protected
+API/OpenAPI/generated-client, browser controls, and live recovery evidence
+remain the next SLI-0072 packets.

@@ -59,6 +59,8 @@ def test_all_v1_schemas_are_valid_draft_2020_12() -> None:
     assert names == {
         "learning-reference.schema.json",
         "mutation-intent.schema.json",
+        "workspace-query-result.schema.json",
+        "workspace-query.schema.json",
         "workspace.schema.json",
     }
     for path in SCHEMA_DIR.glob("*.schema.json"):
@@ -84,6 +86,104 @@ def test_create_note_intent_is_portable(
     fixture = (FIXTURE_DIR / "valid-create-note-intent.json").read_bytes()
     intent = adapter.parse_mutation_intent(fixture)
     assert adapter.mutation_intent_document(intent) == json.loads(fixture)
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    ["valid-stale-reference.json", "valid-unavailable-reference.json"],
+)
+def test_non_available_reference_fixtures_are_portable(
+    adapter: ContractPersonalWorkspaceAdapter,
+    fixture_name: str,
+) -> None:
+    fixture = (FIXTURE_DIR / fixture_name).read_bytes()
+    reference = adapter.parse_reference(fixture)
+    assert adapter.reference_document(reference) == json.loads(fixture)
+
+
+def test_query_and_result_fixtures_are_portable(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    query_fixture = (FIXTURE_DIR / "valid-workspace-query.json").read_bytes()
+    query = adapter.parse_workspace_query(query_fixture)
+    assert adapter.workspace_query_document(query) == json.loads(query_fixture)
+
+    result_fixture = (
+        FIXTURE_DIR / "valid-workspace-query-result.json"
+    ).read_bytes()
+    result = adapter.parse_workspace_query_result(result_fixture)
+    assert adapter.workspace_query_result_document(result) == json.loads(
+        result_fixture
+    )
+
+
+@pytest.mark.parametrize("change", ["digest", "over_limit", "duplicate_record"])
+def test_query_result_semantics_fail_closed(
+    adapter: ContractPersonalWorkspaceAdapter,
+    change: str,
+) -> None:
+    document = _fixture("valid-workspace-query-result.json")
+    if change == "digest":
+        document["query_digest"] = "f" * 64
+        expected = "personal_workspace.contract.query_digest_mismatch"
+    else:
+        document["records"].append(  # type: ignore[union-attr]
+            deepcopy(document["records"][0])  # type: ignore[index]
+        )
+        if change == "duplicate_record":
+            document["applied_query"]["limit"] = 2  # type: ignore[index]
+            document["query_digest"] = adapter.canonical_digest(  # type: ignore[assignment]
+                document["applied_query"]  # type: ignore[arg-type,index]
+            )
+            expected = "personal_workspace.contract.duplicate_id"
+        else:
+            expected = "personal_workspace.contract.invalid_query_result"
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_workspace_query_result(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == expected
+
+
+def test_query_and_refresh_private_fields_fail_closed(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    with pytest.raises(PersonalWorkspaceContractFailure) as query_failure:
+        adapter.parse_workspace_query(
+            (FIXTURE_DIR / "invalid-workspace-query-private-field.json").read_bytes()
+        )
+    assert query_failure.value.code == "personal_workspace.contract.invalid_shape"
+
+    with pytest.raises(PersonalWorkspaceContractFailure) as refresh_failure:
+        adapter.parse_mutation_intent(
+            (FIXTURE_DIR / "invalid-refresh-private-field.json").read_bytes()
+        )
+    assert refresh_failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["text", "record_kinds", "owner_modules", "reference_kinds", "target_statuses"],
+)
+def test_query_contract_rejects_empty_or_unknown_values(
+    adapter: ContractPersonalWorkspaceAdapter,
+    field: str,
+) -> None:
+    document: dict[str, object] = {"schema_version": "1.0.0"}
+    document[field] = "   " if field == "text" else []
+    with pytest.raises(PersonalWorkspaceContractFailure):
+        adapter.parse_workspace_query(json.dumps(document).encode("utf-8"))
+
+
+def test_refresh_intent_contains_only_workspace_record_identity(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = {
+        "schema_version": "1.0.0",
+        "idempotency_key": "intent.refresh-one",
+        "expected_revision": 4,
+        "mutation": {"operation": "refresh_reference", "record_id": "note.one"},
+    }
+    intent = adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assert adapter.mutation_intent_document(intent) == document
 
 
 @pytest.mark.parametrize(

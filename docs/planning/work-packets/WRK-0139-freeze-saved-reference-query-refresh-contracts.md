@@ -190,7 +190,7 @@ WRK-0140 cannot start until this packet freezes the exact seam.
 Run:
 
 ```text
-python -m pytest backend/tests/contract/personal_workspace/test_personal_workspace_contract.py backend/tests/unit/personal_workspace/test_workspace_contract.py -q
+uv run --project backend pytest backend/tests/contract/personal_workspace/test_personal_workspace_contract.py backend/tests/unit/personal_workspace/test_workspace_contract.py -q
 python dev-tools/architecture/check_architecture.py
 python dev-tools/security/check_slice_security.py
 python docs/planning/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0139-freeze-saved-reference-query-refresh-contracts.md

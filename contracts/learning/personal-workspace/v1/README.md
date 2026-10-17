@@ -3,12 +3,17 @@
 This family freezes portable records for a learner's private notes, bookmarks,
 collections, and exact learning or Project references.
 
-The three Draft 2020-12 schemas cover:
+The five Draft 2020-12 schemas cover:
 
 - `learning-reference.schema.json`: closed Curriculum-owned learning targets
   plus Project-owned workspace, immutable-snapshot, and inert-artifact targets;
 - `workspace.schema.json`: one bounded revisioned workspace projection;
-- `mutation-intent.schema.json`: closed, revision-bound mutation requests.
+- `mutation-intent.schema.json`: closed, revision-bound mutation requests,
+  including a record-ID-only reference refresh intent;
+- `workspace-query.schema.json`: bounded safe-text, closed filter, stable-sort,
+  page-size, and opaque-continuation query input; and
+- `workspace-query-result.schema.json`: workspace-revision and query-digest-
+  bound result pages containing only complete workspace-owned records.
 
 Curriculum references retain exact package, placement, publication, validation,
 and source provenance. Project references retain only safe shell/workspace
@@ -21,8 +26,19 @@ paths continue to satisfy Project's canonical confined-path profile; traversal,
 ambiguous, reserved, control-character, backslash, over-240-character, and
 non-NFC forms fail closed.
 
-Canonical workspace digests are SHA-256 over compact, sorted-key UTF-8 JSON
-after removing `workspace_digest`. The pure Personal workspace adapter applies
-the same rules for browser and headless callers. The Project adapter uses only
-learner-bound Project public reads; persistence/API/client/browser composition
-for the new selector variants remains the next delivery seam.
+Every reference has one of three public status meanings: `available`, `stale`,
+or `unavailable`. Historical safe facts remain retained when a source becomes
+stale or unavailable. The pure refresh operation accepts an exact trusted owner
+result or one confidential unavailable outcome; callers cannot supply status,
+owner, selector, replacement facts, learner identity, or validation time.
+
+Record queries normalize bounded Unicode text deterministically, compose only
+closed filters, use stable record-ID tie-breaking, and bind continuations to the
+workspace revision and canonical query digest. They search learner-authored
+text and already-retained safe target labels/identifiers, never source content.
+
+Canonical workspace and query digests are SHA-256 over compact, sorted-key
+UTF-8 JSON. The pure Personal workspace adapter applies the same contract rules
+for future browser and headless composition. Owner refresh orchestration,
+persistence replay, protected API/OpenAPI/client, browser, and live behavior
+remain the next delivery seams.

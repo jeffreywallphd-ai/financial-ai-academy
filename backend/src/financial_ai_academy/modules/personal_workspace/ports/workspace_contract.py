@@ -9,6 +9,8 @@ from ..domain.workspace import (
     LearningReference,
     PersonalWorkspace,
     WorkspaceMutationIntent,
+    WorkspaceQuery,
+    WorkspaceQueryResult,
 )
 
 
@@ -35,6 +37,10 @@ class PersonalWorkspaceContractPort(Protocol):
 
     def parse_mutation_intent(self, value: bytes) -> WorkspaceMutationIntent: ...
 
+    def parse_workspace_query(self, value: bytes) -> WorkspaceQuery: ...
+
+    def parse_workspace_query_result(self, value: bytes) -> WorkspaceQueryResult: ...
+
     def reference_document(self, value: LearningReference) -> dict[str, object]: ...
 
     def workspace_document(self, value: PersonalWorkspace) -> dict[str, object]: ...
@@ -42,6 +48,27 @@ class PersonalWorkspaceContractPort(Protocol):
     def mutation_intent_document(
         self, value: WorkspaceMutationIntent
     ) -> dict[str, object]: ...
+
+    def workspace_query_document(self, value: WorkspaceQuery) -> dict[str, object]: ...
+
+    def workspace_query_result_document(
+        self, value: WorkspaceQueryResult
+    ) -> dict[str, object]: ...
+
+    def query_workspace(
+        self,
+        workspace: PersonalWorkspace,
+        query: WorkspaceQuery,
+    ) -> WorkspaceQueryResult: ...
+
+    def apply_reference_refresh(
+        self,
+        workspace: PersonalWorkspace,
+        intent: WorkspaceMutationIntent,
+        *,
+        occurred_at: datetime,
+        resolved_reference: LearningReference | None,
+    ) -> PersonalWorkspace: ...
 
     def apply_mutation(
         self,

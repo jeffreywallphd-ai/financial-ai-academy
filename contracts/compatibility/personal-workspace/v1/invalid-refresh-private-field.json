@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "intent.refresh-private",
+  "expected_revision": 4,
+  "mutation": {
+    "operation": "refresh_reference",
+    "record_id": "note.one",
+    "target_status": "unavailable"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/personal-workspace/v1/workspace-query-result.schema.json",
+  "title": "Personal Workspace Record Query Result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "workspace_revision", "query_digest", "applied_query", "records", "next_cursor"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "workspace_revision": { "type": "integer", "minimum": 1 },
+    "query_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "applied_query": { "$ref": "workspace-query.schema.json" },
+    "records": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "workspace.schema.json#/$defs/record" }
+    },
+    "next_cursor": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 512,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0.0",
+  "reference": {
+    "reference_kind": "learning_opportunity",
+    "owner_module": "curriculum",
+    "opportunity_id": "opportunity.diversification",
+    "placement_id": "placement.diversification",
+    "package_id": "package.diversification",
+    "package_version": "1.0.0",
+    "package_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "title": "Introduction to diversification",
+    "destination": "/learn/placements/placement.diversification",
+    "target_status": "stale",
+    "provenance": {
+      "published_by": "Financial AI Academy",
+      "published_at": "2026-10-16T14:00:00Z",
+      "content_reviewed_on": "2026-10-16",
+      "educational_use_notice": "For education and research; not personalized financial advice."
+    },
+    "validated_at": "2026-10-17T13:00:00Z"
+  }
+}

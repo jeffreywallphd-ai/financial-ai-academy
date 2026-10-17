@@ -47,6 +47,23 @@ class PublicationProvenance:
     educational_use_notice: str
 
 
+TargetStatus: TypeAlias = Literal["available", "stale", "unavailable"]
+ReferenceKind: TypeAlias = Literal[
+    "learning_opportunity",
+    "placed_lesson",
+    "project_workspace",
+    "project_snapshot",
+    "project_artifact",
+]
+WorkspaceSort: TypeAlias = Literal[
+    "workspace_order",
+    "updated_desc",
+    "updated_asc",
+    "title_asc",
+    "source_asc",
+]
+
+
 @dataclass(frozen=True, slots=True)
 class LearningOpportunityReference:
     opportunity_id: str
@@ -57,7 +74,7 @@ class LearningOpportunityReference:
     source_fingerprint: str
     title: str
     destination: str
-    target_status: Literal["available"]
+    target_status: TargetStatus
     provenance: PublicationProvenance
     validated_at: datetime
     owner_module: Literal["curriculum"] = "curriculum"
@@ -72,7 +89,7 @@ class PlacedLessonReference:
     package_digest: str
     title: str
     destination: str
-    target_status: Literal["available"]
+    target_status: TargetStatus
     provenance: PublicationProvenance
     validated_at: datetime
     owner_module: Literal["curriculum"] = "curriculum"
@@ -87,7 +104,7 @@ class ProjectWorkspaceReference:
     project_revision: int
     workspace_revision: int
     destination: str
-    target_status: Literal["available"]
+    target_status: TargetStatus
     validated_at: datetime
     owner_module: Literal["project"] = "project"
     reference_kind: Literal["project_workspace"] = "project_workspace"
@@ -104,7 +121,7 @@ class ProjectSnapshotReference:
     snapshot_digest: str
     closed_at: datetime
     destination: str
-    target_status: Literal["available"]
+    target_status: TargetStatus
     validated_at: datetime
     owner_module: Literal["project"] = "project"
     reference_kind: Literal["project_snapshot"] = "project_snapshot"
@@ -135,7 +152,7 @@ class ProjectArtifactReference:
     content_digest: str
     created_at: datetime
     destination: str
-    target_status: Literal["available"]
+    target_status: TargetStatus
     validated_at: datetime
     owner_module: Literal["project"] = "project"
     reference_kind: Literal["project_artifact"] = "project_artifact"
@@ -196,6 +213,31 @@ class PersonalWorkspace:
     created_at: datetime
     updated_at: datetime
     workspace_digest: str
+
+
+@dataclass(frozen=True, slots=True)
+class WorkspaceQuery:
+    text: str | None = None
+    record_kinds: tuple[Literal["note", "bookmark"], ...] = ()
+    owner_modules: tuple[Literal["curriculum", "project"], ...] = ()
+    reference_kinds: tuple[ReferenceKind, ...] = ()
+    target_statuses: tuple[TargetStatus, ...] = ()
+    archived: bool | None = None
+    collection_id: str | None = None
+    sort: WorkspaceSort = "workspace_order"
+    limit: int = 50
+    cursor: str | None = None
+    schema_version: str = "1.0.0"
+
+
+@dataclass(frozen=True, slots=True)
+class WorkspaceQueryResult:
+    workspace_revision: int
+    query_digest: str
+    applied_query: WorkspaceQuery
+    records: tuple[WorkspaceRecord, ...]
+    next_cursor: str | None
+    schema_version: str = "1.0.0"
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,6 +320,12 @@ class RemoveRecordMutation:
     operation: Literal["remove_record"] = "remove_record"
 
 
+@dataclass(frozen=True, slots=True)
+class RefreshReferenceMutation:
+    record_id: str
+    operation: Literal["refresh_reference"] = "refresh_reference"
+
+
 WorkspaceMutation: TypeAlias = (
     CreateNoteMutation
     | UpdateNoteMutation
@@ -291,6 +339,7 @@ WorkspaceMutation: TypeAlias = (
     | ArchiveRecordMutation
     | RestoreRecordMutation
     | RemoveRecordMutation
+    | RefreshReferenceMutation
 )
 
 

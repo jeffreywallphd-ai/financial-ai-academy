@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 from dataclasses import asdict, is_dataclass, replace
 from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
 from typing import Any, Mapping, Never
+import unicodedata
 
 from jsonschema import Draft202012Validator, FormatChecker
+from referencing import Registry, Resource
 
 from ..domain.workspace import (
     ArchiveRecordMutation,
@@ -24,6 +28,7 @@ from ..domain.workspace import (
     ProjectSnapshotReference,
     ProjectWorkspaceReference,
     PublicationProvenance,
+    RefreshReferenceMutation,
     RemoveCollectionMutation,
     RemoveRecordMutation,
     RenameCollectionMutation,
@@ -36,6 +41,8 @@ from ..domain.workspace import (
     WorkspaceCollection,
     WorkspaceMutationIntent,
     WorkspaceNote,
+    WorkspaceQuery,
+    WorkspaceQueryResult,
     WorkspaceRecord,
     is_canonical_project_logical_path,
 )
@@ -49,15 +56,32 @@ class ContractPersonalWorkspaceAdapter:
     """Validate portable documents and return immutable workspace values."""
 
     def __init__(self, schema_dir: Path) -> None:
-        self._validators: dict[str, Draft202012Validator] = {}
-        for name in ("learning-reference", "workspace", "mutation-intent"):
-            schema = json.loads(
+        schemas = {
+            name: json.loads(
                 (schema_dir / f"{name}.schema.json").read_text(encoding="utf-8")
             )
+            for name in (
+                "learning-reference",
+                "workspace",
+                "mutation-intent",
+                "workspace-query",
+                "workspace-query-result",
+            )
+        }
+        registry = Registry().with_resources(
+            (
+                schema["$id"],
+                Resource.from_contents(schema),
+            )
+            for schema in schemas.values()
+        )
+        self._validators: dict[str, Draft202012Validator] = {}
+        for name, schema in schemas.items():
             Draft202012Validator.check_schema(schema)
             self._validators[name] = Draft202012Validator(
                 schema,
                 format_checker=FormatChecker(),
+                registry=registry,
             )
 
     def canonical_digest(self, value: Mapping[str, object]) -> str:
@@ -125,13 +149,57 @@ class ContractPersonalWorkspaceAdapter:
             parsed = ArchiveRecordMutation(record_id=mutation["record_id"])
         elif operation == "restore_record":
             parsed = RestoreRecordMutation(record_id=mutation["record_id"])
-        else:
+        elif operation == "remove_record":
             parsed = RemoveRecordMutation(record_id=mutation["record_id"])
+        else:
+            parsed = RefreshReferenceMutation(record_id=mutation["record_id"])
         return WorkspaceMutationIntent(
             schema_version=document["schema_version"],
             idempotency_key=document["idempotency_key"],
             expected_revision=document["expected_revision"],
             mutation=parsed,
+        )
+
+    def parse_workspace_query(self, value: bytes) -> WorkspaceQuery:
+        document = self._document(value, "workspace-query")
+        self._version(document)
+        return self._workspace_query(document)
+
+    def parse_workspace_query_result(self, value: bytes) -> WorkspaceQueryResult:
+        document = self._document(value, "workspace-query-result")
+        self._version(document)
+        query = self._workspace_query(document["applied_query"])
+        expected_digest = self._query_digest(query)
+        if document["query_digest"] != expected_digest:
+            self._reject(
+                "personal_workspace.contract.query_digest_mismatch",
+                "query_digest",
+            )
+        if document.get("next_cursor") is not None:
+            self._decode_cursor(
+                document["next_cursor"],
+                revision=document["workspace_revision"],
+                query_digest=expected_digest,
+            )
+        records = tuple(
+            self._workspace_record(record) for record in document["records"]
+        )
+        if len(records) > query.limit:
+            self._reject(
+                "personal_workspace.contract.invalid_query_result",
+                "records",
+            )
+        self._unique(
+            [record.record_id for record in records],
+            "records.record_id",
+        )
+        return WorkspaceQueryResult(
+            schema_version=document["schema_version"],
+            workspace_revision=document["workspace_revision"],
+            query_digest=document["query_digest"],
+            applied_query=query,
+            records=records,
+            next_cursor=document.get("next_cursor"),
         )
 
     def reference_document(self, value: LearningReference) -> dict[str, object]:
@@ -157,6 +225,99 @@ class ContractPersonalWorkspaceAdapter:
         self._shape("mutation-intent", document)
         self._validate_mutation_semantics(document)
         return document
+
+    def workspace_query_document(self, value: WorkspaceQuery) -> dict[str, object]:
+        document = self._query_mapping(self._normalized_query(value))
+        self._shape("workspace-query", document)
+        return document
+
+    def workspace_query_result_document(
+        self,
+        value: WorkspaceQueryResult,
+    ) -> dict[str, object]:
+        document = {
+            "schema_version": value.schema_version,
+            "workspace_revision": value.workspace_revision,
+            "query_digest": value.query_digest,
+            "applied_query": self._query_mapping(value.applied_query),
+            "records": self._portable(value.records),
+            "next_cursor": value.next_cursor,
+        }
+        self._shape("workspace-query-result", document)
+        parsed = self.parse_workspace_query_result(self._canonical_bytes(document))
+        if parsed != value:
+            self._reject(
+                "personal_workspace.contract.noncanonical_query_result",
+                "workspace-query-result",
+            )
+        return document
+
+    def query_workspace(
+        self,
+        workspace: PersonalWorkspace,
+        query: WorkspaceQuery,
+    ) -> WorkspaceQueryResult:
+        self.workspace_document(workspace)
+        normalized = self._normalized_query(query)
+        self.workspace_query_document(normalized)
+        query_digest = self._query_digest(normalized)
+        offset = 0
+        if normalized.cursor is not None:
+            offset = self._decode_cursor(
+                normalized.cursor,
+                revision=workspace.revision,
+                query_digest=query_digest,
+            )
+
+        known_collections = {
+            collection.collection_id: set(collection.member_record_ids)
+            for collection in workspace.collections
+        }
+        if (
+            normalized.collection_id is not None
+            and normalized.collection_id not in known_collections
+        ):
+            self._reject(
+                "personal_workspace.contract.collection_not_found",
+                normalized.collection_id,
+            )
+        collection_members = (
+            None
+            if normalized.collection_id is None
+            else known_collections[normalized.collection_id]
+        )
+        records = [
+            record
+            for record in workspace.records
+            if self._query_match(record, normalized, collection_members)
+        ]
+        records = self._query_sort(records, normalized.sort)
+        if offset > len(records):
+            self._reject(
+                "personal_workspace.contract.invalid_cursor",
+                "cursor",
+            )
+        selected = tuple(records[offset : offset + normalized.limit])
+        next_offset = offset + len(selected)
+        next_cursor = (
+            self._encode_cursor(
+                revision=workspace.revision,
+                query_digest=query_digest,
+                offset=next_offset,
+            )
+            if next_offset < len(records)
+            else None
+        )
+        result = WorkspaceQueryResult(
+            schema_version=VERSION,
+            workspace_revision=workspace.revision,
+            query_digest=query_digest,
+            applied_query=normalized,
+            records=selected,
+            next_cursor=next_cursor,
+        )
+        self.workspace_query_result_document(result)
+        return result
 
     def apply_mutation(
         self,
@@ -269,6 +430,11 @@ class ContractPersonalWorkspaceAdapter:
                 archived=isinstance(mutation, ArchiveRecordMutation),
                 updated_at=occurred_at,
             )
+        elif isinstance(mutation, RefreshReferenceMutation):
+            self._reject(
+                "personal_workspace.contract.refresh_resolution_required",
+                mutation.record_id,
+            )
         else:
             index, record = self._record(records, mutation.record_id)
             records.pop(index)
@@ -306,6 +472,75 @@ class ContractPersonalWorkspaceAdapter:
         self.workspace_document(completed)
         return completed
 
+    def apply_reference_refresh(
+        self,
+        workspace: PersonalWorkspace,
+        intent: WorkspaceMutationIntent,
+        *,
+        occurred_at: datetime,
+        resolved_reference: LearningReference | None,
+    ) -> PersonalWorkspace:
+        occurred_at = self._aware_timestamp(occurred_at, "occurred_at")
+        self.workspace_document(workspace)
+        self.mutation_intent_document(intent)
+        if not isinstance(intent.mutation, RefreshReferenceMutation):
+            self._reject(
+                "personal_workspace.contract.refresh_intent_required",
+                "mutation.operation",
+            )
+        if intent.schema_version != VERSION or workspace.schema_version != VERSION:
+            self._reject("personal_workspace.contract.unsupported_version", "schema_version")
+        if intent.expected_revision != workspace.revision:
+            self._reject("personal_workspace.contract.stale_revision", "expected_revision")
+        if occurred_at < workspace.updated_at:
+            self._reject("personal_workspace.contract.invalid_time", "occurred_at")
+
+        records = list(workspace.records)
+        index, record = self._record(records, intent.mutation.record_id)
+        original = record.target
+        if resolved_reference is None:
+            refreshed = replace(
+                original,
+                target_status="unavailable",
+                validated_at=occurred_at,
+            )
+        else:
+            self.reference_document(resolved_reference)
+            if (
+                resolved_reference.target_status != "available"
+                or resolved_reference.validated_at != occurred_at
+                or not self._same_selector(original, resolved_reference)
+            ):
+                self._reject(
+                    "personal_workspace.contract.invalid_refresh_result",
+                    intent.mutation.record_id,
+                )
+            if self._same_immutable_meaning(original, resolved_reference):
+                refreshed = resolved_reference
+            else:
+                refreshed = replace(
+                    original,
+                    target_status="stale",
+                    validated_at=occurred_at,
+                )
+        records[index] = replace(record, target=refreshed, updated_at=occurred_at)
+        result = PersonalWorkspace(
+            schema_version=VERSION,
+            workspace_id=workspace.workspace_id,
+            learner_id=workspace.learner_id,
+            revision=workspace.revision + 1,
+            records=tuple(records),
+            collections=workspace.collections,
+            created_at=workspace.created_at,
+            updated_at=occurred_at,
+            workspace_digest="0" * 64,
+        )
+        material = self._portable(result)
+        material.pop("workspace_digest")
+        completed = replace(result, workspace_digest=self.canonical_digest(material))
+        self.workspace_document(completed)
+        return completed
+
     def empty_workspace(
         self,
         *,
@@ -330,6 +565,343 @@ class ContractPersonalWorkspaceAdapter:
         completed = replace(value, workspace_digest=self.canonical_digest(material))
         self.workspace_document(completed)
         return completed
+
+    def _workspace_query(self, document: Mapping[str, Any]) -> WorkspaceQuery:
+        return self._normalized_query(
+            WorkspaceQuery(
+                schema_version=document["schema_version"],
+                text=document.get("text"),
+                record_kinds=tuple(document.get("record_kinds", ())),
+                owner_modules=tuple(document.get("owner_modules", ())),
+                reference_kinds=tuple(document.get("reference_kinds", ())),
+                target_statuses=tuple(document.get("target_statuses", ())),
+                archived=document.get("archived"),
+                collection_id=document.get("collection_id"),
+                sort=document.get("sort", "workspace_order"),
+                limit=document.get("limit", 50),
+                cursor=document.get("cursor"),
+            )
+        )
+
+    def _normalized_query(self, query: WorkspaceQuery) -> WorkspaceQuery:
+        if query.schema_version != VERSION:
+            self._reject(
+                "personal_workspace.contract.unsupported_version",
+                "schema_version",
+            )
+        text = None
+        if query.text is not None:
+            text = " ".join(
+                unicodedata.normalize("NFKC", query.text).casefold().split()
+            )
+            if not text:
+                self._reject(
+                    "personal_workspace.contract.invalid_query",
+                    "text",
+                )
+        return replace(
+            query,
+            text=text,
+            record_kinds=tuple(sorted(query.record_kinds)),
+            owner_modules=tuple(sorted(query.owner_modules)),
+            reference_kinds=tuple(sorted(query.reference_kinds)),
+            target_statuses=tuple(sorted(query.target_statuses)),
+        )
+
+    def _query_digest(self, query: WorkspaceQuery) -> str:
+        material = self._query_mapping(replace(query, cursor=None))
+        return self.canonical_digest(material)
+
+    def _query_mapping(
+        self,
+        query: WorkspaceQuery,
+    ) -> dict[str, object]:
+        document: dict[str, object] = {"schema_version": query.schema_version}
+        if query.text is not None:
+            document["text"] = query.text
+        if query.record_kinds:
+            document["record_kinds"] = list(query.record_kinds)
+        if query.owner_modules:
+            document["owner_modules"] = list(query.owner_modules)
+        if query.reference_kinds:
+            document["reference_kinds"] = list(query.reference_kinds)
+        if query.target_statuses:
+            document["target_statuses"] = list(query.target_statuses)
+        if query.archived is not None:
+            document["archived"] = query.archived
+        if query.collection_id is not None:
+            document["collection_id"] = query.collection_id
+        if query.sort != "workspace_order":
+            document["sort"] = query.sort
+        if query.limit != 50:
+            document["limit"] = query.limit
+        if query.cursor is not None:
+            document["cursor"] = query.cursor
+        return document
+
+    def _query_match(
+        self,
+        record: WorkspaceRecord,
+        query: WorkspaceQuery,
+        collection_members: set[str] | None,
+    ) -> bool:
+        target = record.target
+        if query.record_kinds and record.record_kind not in query.record_kinds:
+            return False
+        if query.owner_modules and target.owner_module not in query.owner_modules:
+            return False
+        if query.reference_kinds and target.reference_kind not in query.reference_kinds:
+            return False
+        if query.target_statuses and target.target_status not in query.target_statuses:
+            return False
+        if query.archived is not None and record.archived is not query.archived:
+            return False
+        if collection_members is not None and record.record_id not in collection_members:
+            return False
+        if query.text is None:
+            return True
+        haystack = " ".join(
+            self._normalized_search_value(value)
+            for value in self._searchable_values(record)
+            if value
+        )
+        return all(token in haystack for token in query.text.split())
+
+    def _query_sort(
+        self,
+        records: list[WorkspaceRecord],
+        sort: str,
+    ) -> list[WorkspaceRecord]:
+        if sort == "workspace_order":
+            return records
+        if sort == "updated_desc":
+            return sorted(
+                records,
+                key=lambda record: (-record.updated_at.timestamp(), record.record_id),
+            )
+        if sort == "updated_asc":
+            return sorted(records, key=lambda record: (record.updated_at, record.record_id))
+        if sort == "title_asc":
+            return sorted(
+                records,
+                key=lambda record: (
+                    self._normalized_search_value(self._record_title(record)),
+                    record.record_id,
+                ),
+            )
+        return sorted(
+            records,
+            key=lambda record: (
+                record.target.owner_module,
+                record.target.reference_kind,
+                self._normalized_search_value(record.target.title),
+                record.record_id,
+            ),
+        )
+
+    def _searchable_values(self, record: WorkspaceRecord) -> tuple[str, ...]:
+        target = record.target
+        values = [record.record_id, self._record_title(record), target.title]
+        if isinstance(record, WorkspaceNote):
+            values.append(record.body)
+        for name in (
+            "opportunity_id",
+            "placement_id",
+            "package_id",
+            "project_id",
+            "snapshot_id",
+            "artifact_id",
+            "logical_path",
+        ):
+            value = getattr(target, name, None)
+            if isinstance(value, str):
+                values.append(value)
+        return tuple(values)
+
+    def _record_title(self, record: WorkspaceRecord) -> str:
+        if isinstance(record, WorkspaceNote):
+            return record.title
+        return record.label or record.target.title
+
+    @staticmethod
+    def _normalized_search_value(value: str) -> str:
+        return " ".join(unicodedata.normalize("NFKC", value).casefold().split())
+
+    def _encode_cursor(
+        self,
+        *,
+        revision: int,
+        query_digest: str,
+        offset: int,
+    ) -> str:
+        material = {
+            "offset": offset,
+            "query_digest": query_digest,
+            "workspace_revision": revision,
+        }
+        payload = self._canonical_bytes(material)
+        checksum = hashlib.sha256(payload).hexdigest()
+        document = {**material, "checksum": checksum}
+        return base64.urlsafe_b64encode(self._canonical_bytes(document)).decode(
+            "ascii"
+        ).rstrip("=")
+
+    def _decode_cursor(
+        self,
+        cursor: str,
+        *,
+        revision: int,
+        query_digest: str,
+    ) -> int:
+        if not cursor or len(cursor) > 512:
+            self._reject("personal_workspace.contract.invalid_cursor", "cursor")
+        try:
+            padded = cursor + "=" * (-len(cursor) % 4)
+            decoded = base64.b64decode(
+                padded,
+                altchars=b"-_",
+                validate=True,
+            )
+            document = json.loads(decoded.decode("utf-8"))
+        except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError):
+            self._reject("personal_workspace.contract.invalid_cursor", "cursor")
+        if not isinstance(document, dict) or set(document) != {
+            "checksum",
+            "offset",
+            "query_digest",
+            "workspace_revision",
+        }:
+            self._reject("personal_workspace.contract.invalid_cursor", "cursor")
+        offset = document["offset"]
+        observed_revision = document["workspace_revision"]
+        observed_digest = document["query_digest"]
+        checksum = document["checksum"]
+        if (
+            not isinstance(offset, int)
+            or isinstance(offset, bool)
+            or offset < 0
+            or not isinstance(observed_revision, int)
+            or isinstance(observed_revision, bool)
+            or not isinstance(observed_digest, str)
+            or not isinstance(checksum, str)
+        ):
+            self._reject("personal_workspace.contract.invalid_cursor", "cursor")
+        material = {
+            "offset": offset,
+            "query_digest": observed_digest,
+            "workspace_revision": observed_revision,
+        }
+        if (
+            checksum != hashlib.sha256(self._canonical_bytes(material)).hexdigest()
+            or observed_revision != revision
+            or observed_digest != query_digest
+        ):
+            self._reject("personal_workspace.contract.invalid_cursor", "cursor")
+        return offset
+
+    @staticmethod
+    def _same_selector(
+        original: LearningReference,
+        resolved: LearningReference,
+    ) -> bool:
+        if type(original) is not type(resolved):
+            return False
+        if isinstance(original, LearningOpportunityReference):
+            return (
+                original.opportunity_id,
+                original.placement_id,
+            ) == (resolved.opportunity_id, resolved.placement_id)
+        if isinstance(original, PlacedLessonReference):
+            return original.placement_id == resolved.placement_id
+        if isinstance(original, ProjectWorkspaceReference):
+            return original.project_id == resolved.project_id
+        if isinstance(original, ProjectSnapshotReference):
+            return (
+                original.project_id,
+                original.snapshot_id,
+            ) == (resolved.project_id, resolved.snapshot_id)
+        return (
+            original.project_id,
+            original.artifact_id,
+            original.artifact_version,
+        ) == (
+            resolved.project_id,
+            resolved.artifact_id,
+            resolved.artifact_version,
+        )
+
+    @staticmethod
+    def _same_immutable_meaning(
+        original: LearningReference,
+        resolved: LearningReference,
+    ) -> bool:
+        if isinstance(original, LearningOpportunityReference) and isinstance(
+            resolved, LearningOpportunityReference
+        ):
+            return (
+                original.package_id,
+                original.package_version,
+                original.package_digest,
+                original.source_fingerprint,
+                original.provenance,
+            ) == (
+                resolved.package_id,
+                resolved.package_version,
+                resolved.package_digest,
+                resolved.source_fingerprint,
+                resolved.provenance,
+            )
+        if isinstance(original, PlacedLessonReference) and isinstance(
+            resolved, PlacedLessonReference
+        ):
+            return (
+                original.package_id,
+                original.package_version,
+                original.package_digest,
+                original.provenance,
+            ) == (
+                resolved.package_id,
+                resolved.package_version,
+                resolved.package_digest,
+                resolved.provenance,
+            )
+        if isinstance(original, ProjectWorkspaceReference) and isinstance(
+            resolved, ProjectWorkspaceReference
+        ):
+            return True
+        if isinstance(original, ProjectSnapshotReference) and isinstance(
+            resolved, ProjectSnapshotReference
+        ):
+            return (
+                original.workspace_revision,
+                original.snapshot_digest,
+                original.closed_at,
+            ) == (
+                resolved.workspace_revision,
+                resolved.snapshot_digest,
+                resolved.closed_at,
+            )
+        if isinstance(original, ProjectArtifactReference) and isinstance(
+            resolved, ProjectArtifactReference
+        ):
+            return (
+                original.artifact_kind,
+                original.logical_path,
+                original.media_type,
+                original.inspection_mode,
+                original.byte_count,
+                original.content_digest,
+                original.created_at,
+            ) == (
+                resolved.artifact_kind,
+                resolved.logical_path,
+                resolved.media_type,
+                resolved.inspection_mode,
+                resolved.byte_count,
+                resolved.content_digest,
+                resolved.created_at,
+            )
+        return False
 
     def _document(self, value: bytes, schema: str) -> dict[str, Any]:
         try:
