@@ -1,7 +1,7 @@
 ---
 id: WRK-0123
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/integration/api/test_single_profile_project_api.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0121-qualify-project-workspace-snapshot-flow.md", "docs/planning/work-packets/WRK-0123-preserve-canonical-project-timestamps-at-api-boundary.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: ff2423ea38ca4d871d716bb73d72a84f2d6d34ac
+claim_id: WRK-0123:86c273ff-4ba6-4f79-8e59-f20c091fb7f3
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T02:24:40Z
 ---
 
 # Agent Work Packet: Preserve Canonical Project Timestamps at the API Boundary
@@ -158,3 +158,6 @@ return to WRK-0121.
   the response no longer matched the exact JSON used for the server export
   digest. The packet is limited to Project response serialization and a
   deterministic transport regression.
+- 2026-10-17: Activated from clean base `ff2423e` after the implementation gate
+  confirmed current CAP authority, completed dependencies, bounded Project-only
+  response scope, and no lower-level approval requirement.

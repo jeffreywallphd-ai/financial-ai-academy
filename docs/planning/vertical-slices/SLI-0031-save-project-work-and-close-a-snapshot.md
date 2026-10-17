@@ -238,7 +238,7 @@ refined just in time.
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
 | WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | complete |
-| WRK-0123 | Preserve canonical Project timestamps through FastAPI response serialization and prove public export-digest parity | WRK-0122 | none | ready |
+| WRK-0123 | Preserve canonical Project timestamps through FastAPI response serialization and prove public export-digest parity | WRK-0122 | none | active |
 | WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0123 | none | ready |
 
 ## Verification and Qualification
@@ -396,3 +396,7 @@ created, and no managed-cloud or production-recovery profile was qualified.
   `.84748Z` to `.847480Z`, preserving the instant but changing the exact public
   JSON that clients hash. WRK-0123 is the bounded Project API response
   correction prerequisite; no schema or durable decision changes.
+- 2026-10-17: Activated WRK-0123 after revalidating the current CAP package,
+  completed dependencies, Project-only response scope, unchanged public schema,
+  and collision-free file ownership. The packet preserves one accepted
+  timestamp spelling through the API without adding authority.
