@@ -1,7 +1,7 @@
 ---
 id: SLI-0075
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -219,7 +219,7 @@ packet starts. Proposed dependency-ordered seams are:
 | WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | complete |
 | WRK-0155 | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | complete |
 | WRK-0157 | Close the shared learner and presentation exact-replay split-read race window | WRK-0155 | none | complete |
-| WRK-0156 | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155, WRK-0157 | none | verifying |
+| WRK-0156 | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155, WRK-0157 | none | complete |
 
 Detailed packet plans will declare exact files, generated artifacts, checks,
 and stop conditions immediately before each packet starts. Packet identifiers
@@ -281,13 +281,44 @@ CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery will document the new learner-owned presentation contract, safe value
-meaning, local theme boundary, precedence and fallback rules, purpose/privacy
-limitations, design-system application, protected API/headless access,
-accessible preview/settings flow, reset/export behavior, and exact qualification
-evidence. Completion records exact candidates and receipts, affected boundaries,
-checks/results, privacy and anti-rigidity results, assumptions, unsupported
-profiles, and residual gaps without tracked approval or reviewer metadata.
+SLI-0075 delivers one Learner-model-owned versioned presentation-preference
+contract, pure replacement/reset rules, atomic PostgreSQL persistence, bounded
+history and portable export, protected public API and reviewed generated
+client, global safe presentation application, accessible browser preview and
+controls, and a separate browser-local theme adapter. Browser and ordinary
+headless clients share the same server-owned learner, validation, replay,
+revision, permission, history, reset, and export behavior; theme has no API,
+evidence, policy, or headless meaning.
+
+WRK-0153 through WRK-0157 are complete. Contract/domain, application,
+PostgreSQL, protected API, generated-client, component, focused Chromium,
+security, architecture, design-system, documentation, planning, compilation,
+and whitespace evidence passed. The final exact candidate `7bc8daf` has a
+qualifying affected-check receipt, the complete disposable Chromium/headless/
+PostgreSQL workflow passed, and `python dev-tools/agent/check_ready.py` passed
+29 checks with the repository writable temporary root.
+
+Qualification covered all 16 valid preference combinations; immediate preview
+and cancel; safe baseline and malformed/unavailable fallback; local theme
+separation; keyboard, labels, focus, narrow reflow, enlarged text, forced
+colors, and reduced-motion precedence; browser/headless profile, history,
+reset, replay, and export parity; exact, changed-payload, and distinct-stale
+races; one durable revision/change/replay result; restart durability; exact
+newest-100 history retention; unrelated-state noninterference; confidential
+denials; source-state stability; and exact topology cleanup. Failure tests deny
+unknown fields and values, partial settings, arbitrary CSS/scales, unsafe
+choices, malformed provenance, duplicate/missing replay evidence, mismatched
+digests, duplicate/invalid keys, and uncorrelated retained history.
+
+The additive migration preserves rollback refusal when retained data exists;
+no destructive migration, provider, model, external action, identity, tenancy,
+managed-cloud recovery, or financial behavior was introduced. Local
+PostgreSQL, Node 24, npm 10.8.2, and pinned Chromium were qualified; remote
+cloud deployment, multi-browser certification, and production load remain
+outside this slice. Presentation choices remain explicit, reversible settings,
+not inferred traits, medical facts, assessment evidence, permissions,
+recommendations, or suitability signals. No CAP-package drift or unresolved
+decision gate remains, and no lower-level completion approval exists.
 
 ## Planning History
 
@@ -373,3 +404,8 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
 - 2026-10-17: WRK-0157 entered verification after refreshing committed replay
   before stale classification closed the shared split-read window in focused,
   real-PostgreSQL, and complete live browser/headless evidence.
+- 2026-10-17: WRK-0157 and WRK-0156 completed after exact-replay concurrency,
+  strict persisted-evidence correlation, bounded newest-100 history behavior,
+  all 16 profiles, browser/headless parity, restart, privacy, accessibility,
+  containment, cleanup, exact-candidate verification, and aggregate readiness
+  passed without CAP drift. SLI-0075 entered deterministic closure.
