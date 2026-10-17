@@ -233,7 +233,7 @@ packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | captured |
+| WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | ready |
 | JIT-B | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | JIT-A | none | captured |
 | JIT-C | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify cumulative browser/headless parity, maximum bounds, interruption, target isolation, restart, empty-target community database recovery, containment, cleanup, and CAP closure | JIT-C | none | captured |
@@ -324,3 +324,7 @@ records remain ignored; no slice or packet approval is requested.
   quota, durability, accessibility, and community-profile qualification.
   Multi-module portability remains CAP-0019, managed-cloud policy remains out
   of scope, and the refinement does not materially change the CAP package.
+- 2026-10-17: Refined JIT-A as WRK-0143 around the additive owner export
+  envelope, canonical digest, exact quota meanings, pure removal cleanup,
+  compatibility, privacy, and anti-rigidity evidence. Application, persistence,
+  API/client, browser, and live recovery behavior remain later packet seams.
