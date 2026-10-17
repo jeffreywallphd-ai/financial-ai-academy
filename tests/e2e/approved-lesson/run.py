@@ -6050,19 +6050,22 @@ def assert_presentation_preference_storage(
         for row in changes
     ):
         raise RuntimeError("Presentation preference stored history is uncorrelated.")
-    expected_revisions = list(range(2, profile["revision"] + 1))
+    expected_mutation_revisions = list(range(2, profile["revision"] + 1))
+    expected_history_revisions = list(
+        range(max(2, profile["revision"] - 99), profile["revision"] + 1)
+    )
     history_by_revision = {
         change["revision"]: change for change in history["changes"]
     }
     if (
         [change["revision"] for change in history["changes"]]
-        != expected_revisions
-        or len(history_by_revision) != len(expected_revisions)
+        != expected_history_revisions
+        or len(history_by_revision) != len(expected_history_revisions)
     ):
         raise RuntimeError("Presentation preference history revision coverage is invalid.")
     mutation_keys = [row[1] for row in mutations]
     if (
-        [row[2] for row in mutations] != expected_revisions
+        [row[2] for row in mutations] != expected_mutation_revisions
         or len(set(mutation_keys)) != len(mutation_keys)
         or not all(_preference_identifier(key) for key in mutation_keys)
     ):
@@ -6071,7 +6074,8 @@ def assert_presentation_preference_storage(
         row[0] != profile["learner_id"]
         or row[2] != row[3].get("revision")
         or stable_presentation_preference_profile(row[3]) != row[3]
-        or row[3]["profile_digest"]
+        or row[2] in history_by_revision
+        and row[3]["profile_digest"]
         != history_by_revision[row[2]]["resulting_profile_digest"]
         for row in mutations
     ):

@@ -1,7 +1,7 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -318,3 +318,8 @@ changed, then leave SLI-0075 closure-ready.
   to require unbounded history coverage even though the canonical contract
   retains only the newest 100 summaries. The bounded correction accepts the
   valid retained window while preserving complete mutation-row evidence.
+- 2026-10-17: Re-entered verification after separating complete mutation
+  revision coverage from the canonical newest-100 history window. Revision
+  101 retains revisions 2 through 101, revision 102 retains 3 through 102,
+  and replay digests bind every revision still present in retained history;
+  all 77 focused qualification tests and 15 architecture tests passed.

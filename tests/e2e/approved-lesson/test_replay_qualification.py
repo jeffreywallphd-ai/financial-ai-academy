@@ -3809,6 +3809,7 @@ def presentation_preference_profile(
     reading_width: str = "standard",
     motion: str = "system",
 ) -> dict[str, Any]:
+    updated_minute, updated_second = divmod(revision, 60)
     document: dict[str, Any] = {
         "schema_version": "1.0.0",
         "profile_id": "presentation.qualification",
@@ -3819,7 +3820,9 @@ def presentation_preference_profile(
         "reading_width": reading_width,
         "motion": motion,
         "created_at": "2026-10-17T18:00:00Z",
-        "updated_at": f"2026-10-17T18:00:{revision:02d}Z",
+        "updated_at": (
+            f"2026-10-17T18:{updated_minute:02d}:{updated_second:02d}Z"
+        ),
     }
     document["profile_digest"] = runner._canonical_sha256(document)
     return document
@@ -3833,14 +3836,18 @@ def presentation_preference_history(profile: dict[str, Any]) -> dict[str, Any]:
             "operation": "reset_profile" if revision == profile["revision"] else "replace_preferences",
             "object_kind": "profile",
             "object_id": None,
-            "occurred_at": f"2026-10-17T18:00:{revision:02d}Z",
+            "occurred_at": (
+                f"2026-10-17T18:{revision // 60:02d}:{revision % 60:02d}Z"
+            ),
             "resulting_profile_digest": (
                 profile["profile_digest"]
                 if revision == profile["revision"]
                 else presentation_preference_profile(revision)["profile_digest"]
             ),
         }
-        for revision in range(2, profile["revision"] + 1)
+        for revision in range(
+            max(2, profile["revision"] - 99), profile["revision"] + 1
+        )
     ]
     return {
         "schema_version": "1.0.0",
@@ -4143,3 +4150,54 @@ def test_presentation_preference_restart_requires_exact_rows() -> None:
             exact_replay_request=capture["exact_replay_request"],
             exact_replay_response=capture["exact_replay_response"],
         )
+
+
+@pytest.mark.parametrize(
+    ("revision", "first_retained_revision"),
+    ((101, 2), (102, 3)),
+)
+def test_presentation_preference_storage_accepts_bounded_history_window(
+    revision: int,
+    first_retained_revision: int,
+) -> None:
+    profile = presentation_preference_profile(revision)
+    history = presentation_preference_history(profile)
+    accepted_profiles = [
+        presentation_preference_profile(accepted_revision)
+        for accepted_revision in range(2, revision + 1)
+    ]
+    storage = {
+        "profiles": [[
+            profile["profile_id"],
+            profile["learner_id"],
+            profile["revision"],
+            profile,
+            profile["profile_digest"],
+        ]],
+        "changes": [
+            [
+                profile["learner_id"],
+                change["revision"],
+                change,
+                change["resulting_profile_digest"],
+            ]
+            for change in history["changes"]
+        ],
+        "mutations": [
+            [
+                profile["learner_id"],
+                f"presentation.boundary.{accepted['revision']}",
+                accepted["revision"],
+                accepted,
+            ]
+            for accepted in accepted_profiles
+        ],
+    }
+
+    assert history["changes"][0]["revision"] == first_retained_revision
+    assert len(history["changes"]) == 100
+    runner.assert_presentation_preference_storage(
+        storage,
+        profile=profile,
+        history=history,
+    )
