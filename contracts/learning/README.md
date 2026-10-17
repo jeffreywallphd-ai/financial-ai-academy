@@ -193,14 +193,17 @@ assessment launch.
 ## Personal Workspace v1
 
 [`personal-workspace/v1/`](personal-workspace/v1/README.md) defines bounded
-learner notes, bookmarks, collections, typed Curriculum references, and closed
-revision-bound mutation intents. Its synthetic compatibility corpus lives in
+learner notes, bookmarks, collections, typed Curriculum and Project references,
+closed revision-bound mutation/query intents, and a complete owner-level export
+view bound to the canonical workspace digest. Its synthetic compatibility corpus lives in
 [`../compatibility/personal-workspace/v1/`](../compatibility/personal-workspace/v1/README.md).
 
 ```powershell
 uv run --project backend pytest backend/tests/contract/personal_workspace backend/tests/unit/personal_workspace/test_workspace_contract.py
 ```
 
-The pure adapter gives browser and future headless clients one canonical core.
-Persistence, authorization, HTTP, generated clients, target refresh, and UI
-remain later CAP-0017 packet boundaries.
+The pure adapter gives browser and headless clients one canonical core and
+distinguishes exact record, collection, and membership capacity. The delivered
+application/API/browser boundary already supports protected workspace/query/
+mutation behavior; protected export composition and complete durability/
+recovery qualification remain SLI-0073 packet boundaries.

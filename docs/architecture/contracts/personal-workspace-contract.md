@@ -30,6 +30,16 @@ creates a mutation or execution path into another module.
   generation.
 - Canonical digests use compact sorted-key UTF-8 JSON so persistence and API
   adapters can detect changed meaning.
+- The owner export view is a closed v1 envelope containing one complete
+  validated workspace, its existing canonical workspace digest, and a server-
+  issued generation time no earlier than the workspace update. It excludes
+  replay rows, authorization state, credentials, sessions, storage keys,
+  target content, artifact bytes, provider payloads, and execution controls.
+  Its digest detects changed meaning but is not a signature or permission.
+- Capacity failures are distinct for a 201st record, 51st collection, and
+  101st unique collection member. The exact maxima remain valid, and removal
+  of a record cleans only Personal-workspace order and membership. Removing a
+  collection does not change any retained record or source target.
 - Reference status is exactly `available`, `stale`, or `unavailable`.
   Historical safe source facts and learner-authored organization remain intact
   for non-available references. Missing, removed, denied, adapter-absent, and
@@ -105,9 +115,10 @@ Curriculum and Project references. The browser rejects unknown or repeated URL
 fields before access, preserves page size and opaque query continuation,
 reproduces canonical Unicode query meaning and its digest, shows only exact
 records from the matching current workspace revision, and requires exact
-canonical workspace order before exposing reorder authority. Complete live browser plus
-headless recovery qualification and Project lifecycle-event handling remain
-later CAP-0017 work. The boundary has no collaboration, cloud
+canonical workspace order before exposing reorder authority. Live browser and
+headless query/refresh restart behavior is qualified. Protected export
+composition, public quota mapping, export UI, and the complete community
+recovery exercise remain later SLI-0073 work. The boundary has no collaboration, cloud
 synchronization, artifact preview/download/execution, Project mutation,
 Portfolio association, Assessment or Learner-model effect, AI authority, or
 personalized financial advice.

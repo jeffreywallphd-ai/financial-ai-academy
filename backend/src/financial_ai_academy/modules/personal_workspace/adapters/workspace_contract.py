@@ -41,6 +41,7 @@ from ..domain.workspace import (
     UpdateNoteMutation,
     WorkspaceBookmark,
     WorkspaceCollection,
+    WorkspaceExportView,
     WorkspaceMutationIntent,
     WorkspaceNote,
     WorkspaceQuery,
@@ -79,6 +80,7 @@ class ContractPersonalWorkspaceAdapter:
             for name in (
                 "learning-reference",
                 "workspace",
+                "workspace-export",
                 "mutation-intent",
                 "workspace-query",
                 "workspace-query-result",
@@ -114,6 +116,30 @@ class ContractPersonalWorkspaceAdapter:
         self._version(document)
         self._validate_workspace_semantics(document)
         return self._workspace(document)
+
+    def parse_workspace_export(self, value: bytes) -> WorkspaceExportView:
+        document = self._document(value, "workspace-export")
+        self._version(document)
+        workspace_document = document["workspace"]
+        self._validate_workspace_semantics(workspace_document)
+        workspace = self._workspace(workspace_document)
+        if document["workspace_digest"] != workspace.workspace_digest:
+            self._reject(
+                "personal_workspace.contract.export_digest_mismatch",
+                "workspace_digest",
+            )
+        generated_at = self._timestamp(document["generated_at"])
+        if generated_at < workspace.updated_at:
+            self._reject(
+                "personal_workspace.contract.invalid_time",
+                "generated_at",
+            )
+        return WorkspaceExportView(
+            schema_version=document["schema_version"],
+            workspace_digest=document["workspace_digest"],
+            generated_at=generated_at,
+            workspace=workspace,
+        )
 
     def parse_mutation_intent(self, value: bytes) -> WorkspaceMutationIntent:
         document = self._document(value, "mutation-intent")
@@ -251,6 +277,46 @@ class ContractPersonalWorkspaceAdapter:
         self._shape("workspace", document)
         self._validate_workspace_semantics(document)
         return document
+
+    def workspace_export_document(
+        self,
+        value: WorkspaceExportView,
+    ) -> dict[str, object]:
+        document = {
+            "schema_version": value.schema_version,
+            "workspace_digest": value.workspace_digest,
+            "generated_at": self._format_timestamp(value.generated_at),
+            "workspace": self.workspace_document(value.workspace),
+        }
+        self._shape("workspace-export", document)
+        if self.parse_workspace_export(self._canonical_bytes(document)) != value:
+            self._reject(
+                "personal_workspace.contract.noncanonical_export",
+                "workspace-export",
+            )
+        return document
+
+    def export_workspace(
+        self,
+        workspace: PersonalWorkspace,
+        *,
+        generated_at: datetime,
+    ) -> WorkspaceExportView:
+        self.workspace_document(workspace)
+        generated_at = self._aware_timestamp(generated_at, "generated_at")
+        if generated_at < workspace.updated_at:
+            self._reject(
+                "personal_workspace.contract.invalid_time",
+                "generated_at",
+            )
+        value = WorkspaceExportView(
+            schema_version=VERSION,
+            workspace_digest=workspace.workspace_digest,
+            generated_at=generated_at,
+            workspace=workspace,
+        )
+        self.workspace_export_document(value)
+        return value
 
     def mutation_intent_document(
         self,
@@ -991,11 +1057,46 @@ class ContractPersonalWorkspaceAdapter:
             ),
         )
         if errors:
-            path = ".".join(str(part) for part in errors[0].absolute_path)
+            first = errors[0]
+            path = ".".join(str(part) for part in first.absolute_path)
             self._reject(
-                "personal_workspace.contract.invalid_shape",
+                self._shape_failure_code(schema, document, first),
                 path or schema,
             )
+
+    @staticmethod
+    def _shape_failure_code(
+        schema: str,
+        document: Mapping[str, object],
+        error: Any,
+    ) -> str:
+        if error.validator == "maxItems":
+            path = tuple(str(part) for part in error.absolute_path)
+            if path and path[-1] == "records":
+                return "personal_workspace.contract.record_limit"
+            if path and path[-1] == "collections":
+                return "personal_workspace.contract.collection_limit"
+            if path and path[-1] == "member_record_ids":
+                return "personal_workspace.contract.collection_member_limit"
+        mutation = document.get("mutation")
+        if (
+            schema != "mutation-intent"
+            or not isinstance(mutation, Mapping)
+            or mutation.get("operation") != "set_collection_members"
+            or set(mutation) != {"operation", "collection_id", "member_record_ids"}
+            or not isinstance(mutation.get("collection_id"), str)
+            or not isinstance(mutation.get("member_record_ids"), list)
+        ):
+            return "personal_workspace.contract.invalid_shape"
+        pending = [error]
+        while pending:
+            current = pending.pop(0)
+            if current.validator == "maxItems":
+                path = tuple(str(part) for part in current.absolute_path)
+                if path and path[-1] == "member_record_ids":
+                    return "personal_workspace.contract.collection_member_limit"
+            pending.extend(current.context)
+        return "personal_workspace.contract.invalid_shape"
 
     def _version(self, document: Mapping[str, object]) -> None:
         if document.get("schema_version") != VERSION:

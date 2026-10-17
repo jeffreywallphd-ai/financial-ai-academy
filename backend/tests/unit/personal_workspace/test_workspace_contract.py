@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime, timezone
 import hashlib
@@ -33,6 +34,7 @@ from financial_ai_academy.modules.personal_workspace.domain.workspace import (
     ProjectArtifactReference,
     ProjectSnapshotReference,
     ProjectWorkspaceReference,
+    PersonalWorkspace,
 )
 from financial_ai_academy.modules.personal_workspace.ports.workspace_contract import (
     PersonalWorkspaceContractFailure,
@@ -75,6 +77,18 @@ def _project_reference(adapter: ContractPersonalWorkspaceAdapter, fixture: str):
     return intent.mutation.target  # type: ignore[union-attr]
 
 
+def _parse_workspace_document(
+    adapter: ContractPersonalWorkspaceAdapter,
+    document: dict[str, object],
+) -> PersonalWorkspace:
+    material = deepcopy(document)
+    material.pop("workspace_digest", None)
+    document["workspace_digest"] = adapter.canonical_digest(material)
+    return adapter.parse_workspace(
+        json.dumps(document, ensure_ascii=False).encode("utf-8")
+    )
+
+
 def test_empty_workspace_has_deterministic_digest(
     adapter: ContractPersonalWorkspaceAdapter,
 ) -> None:
@@ -88,6 +102,216 @@ def test_empty_workspace_has_deterministic_digest(
     material = adapter.workspace_document(first)
     digest = material.pop("workspace_digest")
     assert digest == adapter.canonical_digest(material)
+
+
+@pytest.mark.parametrize(
+    "fixture_name",
+    ["valid-empty-workspace.json", "valid-populated-workspace.json"],
+)
+def test_workspace_export_is_versioned_digest_bound_and_count_flexible(
+    adapter: ContractPersonalWorkspaceAdapter,
+    fixture_name: str,
+) -> None:
+    workspace = adapter.parse_workspace((FIXTURE_DIR / fixture_name).read_bytes())
+    exported = adapter.export_workspace(workspace, generated_at=T5)
+    document = adapter.workspace_export_document(exported)
+
+    assert document["workspace_digest"] == workspace.workspace_digest
+    assert document["workspace"] == adapter.workspace_document(workspace)
+    assert adapter.parse_workspace_export(
+        json.dumps(document, ensure_ascii=False).encode("utf-8")
+    ) == exported
+
+
+def test_workspace_export_rejects_time_before_current_workspace(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_bytes()
+    )
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.export_workspace(
+            workspace,
+            generated_at=datetime(2026, 10, 17, 12, 14, 59, tzinfo=timezone.utc),
+        )
+    assert failure.value.code == "personal_workspace.contract.invalid_time"
+
+
+def test_record_capacity_accepts_200_and_rejects_201_without_mutation(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = json.loads(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_text(encoding="utf-8")
+    )
+    template = document["records"][1]
+    document["collections"] = []
+    document["records"] = []
+    for index in range(199):
+        record = deepcopy(template)
+        record["record_id"] = f"bookmark.{index:03d}"
+        record["label"] = None if index % 3 == 0 else f"Saved {index}"
+        document["records"].append(record)
+    workspace = _parse_workspace_document(adapter, document)
+    target = workspace.records[0].target
+
+    full = adapter.apply_mutation(
+        workspace,
+        _intent(
+            workspace.revision,
+            CreateBookmarkMutation(target, "Two hundred"),
+        ),
+        occurred_at=T5,
+        issued_id="bookmark.199",
+    )
+    assert len(full.records) == 200
+
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.apply_mutation(
+            full,
+            _intent(
+                full.revision,
+                CreateBookmarkMutation(target, "Too many"),
+            ),
+            occurred_at=datetime(2026, 10, 17, 12, 30, tzinfo=timezone.utc),
+            issued_id="bookmark.200",
+        )
+    assert failure.value.code == "personal_workspace.contract.record_limit"
+    assert len(full.records) == 200
+
+
+def test_collection_capacity_accepts_50_and_rejects_51_without_mutation(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = json.loads(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_text(encoding="utf-8")
+    )
+    template = document["collections"][0]
+    document["collections"] = []
+    for index in range(49):
+        collection = deepcopy(template)
+        collection["collection_id"] = f"collection.{index:03d}"
+        collection["title"] = f"Collection {index}"
+        collection["member_record_ids"] = []
+        document["collections"].append(collection)
+    workspace = _parse_workspace_document(adapter, document)
+
+    full = adapter.apply_mutation(
+        workspace,
+        _intent(workspace.revision, CreateCollectionMutation("Fiftieth")),
+        occurred_at=T5,
+        issued_id="collection.049",
+    )
+    assert len(full.collections) == 50
+
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.apply_mutation(
+            full,
+            _intent(full.revision, CreateCollectionMutation("Too many")),
+            occurred_at=datetime(2026, 10, 17, 12, 30, tzinfo=timezone.utc),
+            issued_id="collection.050",
+        )
+    assert failure.value.code == "personal_workspace.contract.collection_limit"
+    assert len(full.collections) == 50
+
+
+def test_collection_membership_capacity_accepts_100_and_rejects_101(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = json.loads(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_text(encoding="utf-8")
+    )
+    template = document["records"][1]
+    document["records"] = []
+    for index in range(101):
+        record = deepcopy(template)
+        record["record_id"] = f"bookmark.{index:03d}"
+        document["records"].append(record)
+    document["collections"][0]["member_record_ids"] = []
+    workspace = _parse_workspace_document(adapter, document)
+    first_hundred = tuple(f"bookmark.{index:03d}" for index in range(100))
+
+    accepted = adapter.apply_mutation(
+        workspace,
+        _intent(
+            workspace.revision,
+            SetCollectionMembersMutation("collection.foundations", first_hundred),
+        ),
+        occurred_at=T5,
+    )
+    assert len(accepted.collections[0].member_record_ids) == 100
+
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.apply_mutation(
+            accepted,
+            _intent(
+                accepted.revision,
+                SetCollectionMembersMutation(
+                    "collection.foundations",
+                    first_hundred + ("bookmark.100",),
+                ),
+            ),
+            occurred_at=datetime(2026, 10, 17, 12, 30, tzinfo=timezone.utc),
+        )
+    assert failure.value.code == (
+        "personal_workspace.contract.collection_member_limit"
+    )
+    assert accepted.collections[0].member_record_ids == first_hundred
+
+
+def test_malformed_membership_shape_does_not_masquerade_as_capacity(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    malformed = {
+        "schema_version": "1.0.0",
+        "idempotency_key": "membership.malformed",
+        "expected_revision": 1,
+        "mutation": {
+            "operation": "not_a_workspace_operation",
+            "collection_id": "collection.one",
+            "member_record_ids": [f"record.{index:03d}" for index in range(101)],
+        },
+    }
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_mutation_intent(json.dumps(malformed).encode("utf-8"))
+    assert failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
+def test_removal_cleans_only_workspace_owned_order_and_membership(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = json.loads(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_text(encoding="utf-8")
+    )
+    second_collection = deepcopy(document["collections"][0])
+    second_collection["collection_id"] = "collection.follow-up"
+    second_collection["title"] = "Follow up"
+    second_collection["member_record_ids"] = ["note.one"]
+    document["collections"].append(second_collection)
+    workspace = _parse_workspace_document(adapter, document)
+    retained_record = workspace.records[1]
+
+    removed = adapter.apply_mutation(
+        workspace,
+        _intent(workspace.revision, RemoveRecordMutation("note.one")),
+        occurred_at=T5,
+    )
+    assert removed.records == (retained_record,)
+    assert removed.collections[0].member_record_ids == ("bookmark.one",)
+    assert removed.collections[1].member_record_ids == ()
+
+    records_before_collection_removal = removed.records
+    without_collection = adapter.apply_mutation(
+        removed,
+        _intent(
+            removed.revision,
+            RemoveCollectionMutation("collection.follow-up"),
+        ),
+        occurred_at=datetime(2026, 10, 17, 12, 30, tzinfo=timezone.utc),
+    )
+    assert without_collection.records == records_before_collection_removal
+    assert tuple(
+        collection.collection_id for collection in without_collection.collections
+    ) == ("collection.foundations",)
 
 
 def test_create_update_archive_restore_and_remove_note(

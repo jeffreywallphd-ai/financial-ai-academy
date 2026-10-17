@@ -23,6 +23,9 @@ from financial_ai_academy.modules.personal_workspace.domain.workspace import (
 ROOT = Path(__file__).parents[4]
 SCHEMA_DIR = ROOT / "contracts" / "learning" / "personal-workspace" / "v1"
 FIXTURE_DIR = ROOT / "contracts" / "compatibility" / "personal-workspace" / "v1"
+EXPORT_DENIALS = json.loads(
+    (FIXTURE_DIR / "workspace-export-denials.json").read_text(encoding="utf-8")
+)["cases"]
 
 
 @pytest.fixture
@@ -61,6 +64,7 @@ def test_all_v1_schemas_are_valid_draft_2020_12() -> None:
         "mutation-intent.schema.json",
         "workspace-query-result.schema.json",
         "workspace-query.schema.json",
+        "workspace-export.schema.json",
         "workspace.schema.json",
     }
     for path in SCHEMA_DIR.glob("*.schema.json"):
@@ -78,6 +82,36 @@ def test_workspace_compatibility_fixtures_are_canonical(
     fixture = (FIXTURE_DIR / fixture_name).read_bytes()
     workspace = adapter.parse_workspace(fixture)
     assert adapter.workspace_document(workspace) == json.loads(fixture)
+
+
+def test_workspace_export_fixture_is_canonical(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    fixture = (FIXTURE_DIR / "valid-workspace-export.json").read_bytes()
+    exported = adapter.parse_workspace_export(fixture)
+    assert adapter.workspace_export_document(exported) == json.loads(fixture)
+    assert exported.workspace_digest == exported.workspace.workspace_digest
+
+
+def _assign_path(document: object, path: list[object], value: object) -> None:
+    target = document
+    for part in path[:-1]:
+        target = target[part]  # type: ignore[index]
+    target[path[-1]] = value  # type: ignore[index]
+
+
+@pytest.mark.parametrize("case", EXPORT_DENIALS, ids=lambda case: case["id"])
+def test_workspace_export_denials_are_closed_and_bounded(
+    adapter: ContractPersonalWorkspaceAdapter,
+    case: dict[str, object],
+) -> None:
+    document = _fixture("valid-workspace-export.json")
+    _assign_path(document, case["path"], case["value"])  # type: ignore[arg-type]
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_workspace_export(
+            json.dumps(document, ensure_ascii=False).encode("utf-8")
+        )
+    assert failure.value.code == case["expected_code"]
 
 
 def test_create_note_intent_is_portable(
@@ -511,7 +545,9 @@ def test_collection_and_membership_edges_are_not_fixture_count_rigid(
         "bookmark.100"
     )
     _expect_workspace_failure(
-        adapter, too_many_members, "personal_workspace.contract.invalid_shape"
+        adapter,
+        too_many_members,
+        "personal_workspace.contract.collection_member_limit",
     )
 
     too_many_collections = deepcopy(base)
@@ -520,7 +556,9 @@ def test_collection_and_membership_edges_are_not_fixture_count_rigid(
     extra["member_record_ids"] = []
     too_many_collections["collections"].append(extra)  # type: ignore[union-attr]
     _expect_workspace_failure(
-        adapter, too_many_collections, "personal_workspace.contract.invalid_shape"
+        adapter,
+        too_many_collections,
+        "personal_workspace.contract.collection_limit",
     )
 
 
@@ -682,5 +720,5 @@ def test_record_count_accepts_200_and_rejects_201(
     extra["record_id"] = "bookmark.200"
     overflow["records"].append(extra)  # type: ignore[union-attr]
     _expect_workspace_failure(
-        adapter, overflow, "personal_workspace.contract.invalid_shape"
+        adapter, overflow, "personal_workspace.contract.record_limit"
     )

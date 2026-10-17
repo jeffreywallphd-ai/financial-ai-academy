@@ -14,6 +14,13 @@ mutation core.
   and semantic invariants, stable query pages, server-authenticated learner-
   and workspace-bound continuations, and current/stale/unavailable reference
   history;
+- one pure v1 owner export view containing a complete workspace projection,
+  its already verified canonical digest, and server-issued generation time,
+  while excluding replay, authorization, credential, storage, target-content,
+  artifact-byte, provider, and execution fields;
+- distinct pure-contract capacity outcomes for the accepted 200-record,
+  50-collection, and 100-member limits, with removal confined to workspace-
+  owned records, order, collections, and membership;
 - `PersonalWorkspaceService`, which serves the same read and mutation
   operations to protected HTTP, generated-client, and future headless callers;
 - selector-based Curriculum resolution that keeps target facts under their
@@ -59,5 +66,7 @@ targets, absent adapters, and source outages all persist the same confidential
 `unavailable` meaning. Trusted refresh preserves package/snapshot/artifact
 meaning, records immutable drift as `stale`, and can recover an exact later
 result to `available`. Existing JSON aggregate and replay persistence admits
-these additive states without a table migration. Browser controls and the
-complete isolated live recovery journey remain later SLI-0072 packets.
+these additive states without a table migration. Query/refresh browser controls
+and the isolated live browser/headless restart journey are implemented.
+Protected export composition, public quota mapping, export UI, and complete
+community recovery qualification remain later SLI-0073 packets.

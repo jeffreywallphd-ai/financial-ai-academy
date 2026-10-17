@@ -8,6 +8,7 @@ from typing import Mapping, Protocol
 from ..domain.workspace import (
     LearningReference,
     PersonalWorkspace,
+    WorkspaceExportView,
     WorkspaceMutationIntent,
     WorkspaceQuery,
     WorkspaceQueryResult,
@@ -35,6 +36,8 @@ class PersonalWorkspaceContractPort(Protocol):
 
     def parse_workspace(self, value: bytes) -> PersonalWorkspace: ...
 
+    def parse_workspace_export(self, value: bytes) -> WorkspaceExportView: ...
+
     def parse_mutation_intent(self, value: bytes) -> WorkspaceMutationIntent: ...
 
     def parse_workspace_query(self, value: bytes) -> WorkspaceQuery: ...
@@ -44,6 +47,17 @@ class PersonalWorkspaceContractPort(Protocol):
     def reference_document(self, value: LearningReference) -> dict[str, object]: ...
 
     def workspace_document(self, value: PersonalWorkspace) -> dict[str, object]: ...
+
+    def workspace_export_document(
+        self, value: WorkspaceExportView
+    ) -> dict[str, object]: ...
+
+    def export_workspace(
+        self,
+        workspace: PersonalWorkspace,
+        *,
+        generated_at: datetime,
+    ) -> WorkspaceExportView: ...
 
     def mutation_intent_document(
         self, value: WorkspaceMutationIntent

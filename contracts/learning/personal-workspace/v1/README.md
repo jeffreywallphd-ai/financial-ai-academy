@@ -3,11 +3,13 @@
 This family freezes portable records for a learner's private notes, bookmarks,
 collections, and exact learning or Project references.
 
-The five Draft 2020-12 schemas cover:
+The six Draft 2020-12 schemas cover:
 
 - `learning-reference.schema.json`: closed Curriculum-owned learning targets
   plus Project-owned workspace, immutable-snapshot, and inert-artifact targets;
 - `workspace.schema.json`: one bounded revisioned workspace projection;
+- `workspace-export.schema.json`: one closed owner-level export envelope bound
+  to the complete workspace projection and its canonical digest;
 - `mutation-intent.schema.json`: closed, revision-bound mutation requests,
   including a record-ID-only reference refresh intent;
 - `workspace-query.schema.json`: bounded safe-text, closed filter, stable-sort,
@@ -38,7 +40,14 @@ workspace revision and canonical query digest. They search learner-authored
 text and already-retained safe target labels/identifiers, never source content.
 
 Canonical workspace and query digests are SHA-256 over compact, sorted-key
-UTF-8 JSON. The pure Personal workspace adapter applies the same contract rules
-for future browser and headless composition. Owner refresh orchestration,
-persistence replay, protected API/OpenAPI/client, browser, and live behavior
-remain the next delivery seams.
+UTF-8 JSON. The export envelope repeats the embedded workspace's verified
+canonical digest and adds only its v1 schema version and server-issued
+generation time. It contains no mutation replay, authorization state,
+credentials, storage keys, target content, artifact bytes, or provider payload.
+The digest detects changed meaning; it is not a signature or permission grant.
+
+The pure adapter reports record, collection, and collection-membership capacity
+separately at the accepted maxima of 200, 50, and 100. Record and collection
+removal affects only workspace-owned order and membership. Protected export
+composition, public error mapping, persistence replay, API/OpenAPI/client,
+browser, and live recovery behavior remain later SLI-0073 delivery seams.

@@ -1,0 +1,46 @@
+{
+  "cases": [
+    {
+      "id": "changed-export-digest",
+      "path": ["workspace_digest"],
+      "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "expected_code": "personal_workspace.contract.export_digest_mismatch"
+    },
+    {
+      "id": "generation-before-workspace-update",
+      "path": ["generated_at"],
+      "value": "2026-10-17T12:14:59Z",
+      "expected_code": "personal_workspace.contract.invalid_time"
+    },
+    {
+      "id": "credential-field-is-closed",
+      "path": ["credential"],
+      "value": "synthetic-not-a-secret",
+      "expected_code": "personal_workspace.contract.invalid_shape"
+    },
+    {
+      "id": "mutation-replay-is-closed",
+      "path": ["mutation_replay"],
+      "value": [],
+      "expected_code": "personal_workspace.contract.invalid_shape"
+    },
+    {
+      "id": "target-storage-is-closed",
+      "path": ["workspace", "records", 0, "target", "storage_key"],
+      "value": "synthetic/private/object",
+      "expected_code": "personal_workspace.contract.invalid_shape"
+    },
+    {
+      "id": "artifact-bytes-are-closed",
+      "path": ["workspace", "records", 1, "target", "content_base64"],
+      "value": "c3ludGhldGlj",
+      "expected_code": "personal_workspace.contract.invalid_shape"
+    },
+    {
+      "id": "provider-payload-is-closed",
+      "path": ["workspace", "records", 0, "target", "provider_payload"],
+      "value": {},
+      "expected_code": "personal_workspace.contract.invalid_shape"
+    }
+  ]
+}

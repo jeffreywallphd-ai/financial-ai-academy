@@ -216,6 +216,14 @@ class PersonalWorkspace:
 
 
 @dataclass(frozen=True, slots=True)
+class WorkspaceExportView:
+    schema_version: str
+    workspace_digest: str
+    generated_at: datetime
+    workspace: PersonalWorkspace
+
+
+@dataclass(frozen=True, slots=True)
 class WorkspaceQuery:
     text: str | None = None
     record_kinds: tuple[Literal["note", "bookmark"], ...] = ()

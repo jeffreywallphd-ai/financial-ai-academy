@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/personal-workspace/v1/workspace-export.schema.json",
+  "title": "Personal Workspace Export View v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "workspace_digest", "generated_at", "workspace"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "workspace_digest": { "$ref": "#/$defs/digest" },
+    "generated_at": { "$ref": "#/$defs/utc_time" },
+    "workspace": { "$ref": "https://financial-ai-academy.local/contracts/learning/personal-workspace/v1/workspace.schema.json" }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" }
+  }
+}
