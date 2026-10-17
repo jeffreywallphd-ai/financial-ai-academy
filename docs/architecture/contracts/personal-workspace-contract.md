@@ -49,9 +49,10 @@ creates a mutation or execution path into another module.
   export, mutation, object storage, or persistence and maps missing, denied,
   unavailable, or mismatched targets to one confidential source-unavailable
   result.
-- The public create-note and create-bookmark requests accept only a closed
-  Curriculum selector. The server resolves title, destination, package,
-  publication, and validation provenance through Curriculum public operations.
+- The public create-note and create-bookmark requests accept only the closed
+  Curriculum and Project selectors. The server derives learner identity and
+  validation time, dispatches to the selector owner's learner-bound public
+  operations, and verifies exact returned identities before any write.
 - Repeated empty reads project the same revision-one workspace without writing.
   The first accepted mutation atomically persists revision two. Exact retries
   return the accepted workspace; stale revisions and changed idempotency-key
@@ -67,10 +68,9 @@ creates a mutation or execution path into another module.
 
 ## Exclusions
 
-The current protected API and `Saved learning` browser flow cover Curriculum
-references. Project-reference contracts and their public-only adapter are now
-implemented, but their application/API/client/browser composition remains the
-next CAP-0017 packet. The boundary has no collaboration, cloud synchronization,
-artifact preview/download/execution, Project mutation, Portfolio association,
-Assessment or Learner-model effect, AI authority, or personalized financial
-advice.
+The protected API and generated client cover Curriculum and Project references;
+the current `Saved learning` browser entry flow covers Curriculum references.
+Project browser entry points and lifecycle-event handling remain later CAP-0017
+packets. The boundary has no collaboration, cloud synchronization, artifact
+preview/download/execution, Project mutation, Portfolio association, Assessment
+or Learner-model effect, AI authority, or personalized financial advice.

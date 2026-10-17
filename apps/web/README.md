@@ -237,7 +237,10 @@ workspace, record, collection, package, publication, validation, version, and
 integrity facts remain available through accessible `Technical record`
 disclosures. The same protected API remains independently usable by
 command-line, service, and future headless clients; the UI adds no alternate
-policy, storage, or AI path.
+policy, storage, or AI path. Its generated types also expose the closed Project
+workspace, snapshot, and artifact selectors for headless clients. The current
+browser entry flow creates Curriculum references only; Project save controls
+remain later CAP-0017 work.
 
 `/projects` lists the learner's current Projects and reviewed learning-based
 starting points. `/projects/new` creates either an independent Project or one

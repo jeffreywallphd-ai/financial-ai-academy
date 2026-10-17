@@ -54,6 +54,24 @@ assert.match(
 assert.match(schema, /operations\["savePlacedPracticeDraft"\]/);
 assert.match(schema, /PracticeDraftSaveRequestModel/);
 assert.match(schema, /PracticeDraftResponseModel/);
+assert.match(schema, /PersonalProjectWorkspaceSelectorModel/);
+assert.match(schema, /PersonalProjectSnapshotSelectorModel/);
+assert.match(schema, /PersonalProjectArtifactSelectorModel/);
+assert.match(schema, /PersonalProjectWorkspaceReferenceModel/);
+assert.match(schema, /PersonalProjectSnapshotReferenceModel/);
+assert.match(schema, /PersonalProjectArtifactReferenceModel/);
+for (const model of [
+  "PersonalProjectWorkspaceReferenceModel",
+  "PersonalProjectSnapshotReferenceModel",
+  "PersonalProjectArtifactReferenceModel",
+]) {
+  assert.doesNotMatch(
+    schema.match(
+      new RegExp(`readonly "${model}": \\{[\\s\\S]*?^    \\};`, "m"),
+    )?.[0] ?? "",
+    /readonly "(?:content|content_base64|download_url|object_key|storage_key)"/,
+  );
+}
 assert.doesNotMatch(
   schema.match(
     /readonly "PracticeSubmissionResultResponseModel": \{[\s\S]*?^    \};/m,

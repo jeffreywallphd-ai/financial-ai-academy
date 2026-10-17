@@ -3543,7 +3543,10 @@
             "discriminator": {
               "mapping": {
                 "learning_opportunity": "#/components/schemas/PersonalLearningOpportunitySelectorModel",
-                "placed_lesson": "#/components/schemas/PersonalPlacedLessonSelectorModel"
+                "placed_lesson": "#/components/schemas/PersonalPlacedLessonSelectorModel",
+                "project_artifact": "#/components/schemas/PersonalProjectArtifactSelectorModel",
+                "project_snapshot": "#/components/schemas/PersonalProjectSnapshotSelectorModel",
+                "project_workspace": "#/components/schemas/PersonalProjectWorkspaceSelectorModel"
               },
               "propertyName": "reference_kind"
             },
@@ -3553,6 +3556,15 @@
               },
               {
                 "$ref": "#/components/schemas/PersonalPlacedLessonSelectorModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectWorkspaceSelectorModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectSnapshotSelectorModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectArtifactSelectorModel"
               }
             ],
             "title": "Selector"
@@ -3606,7 +3618,10 @@
             "discriminator": {
               "mapping": {
                 "learning_opportunity": "#/components/schemas/PersonalLearningOpportunitySelectorModel",
-                "placed_lesson": "#/components/schemas/PersonalPlacedLessonSelectorModel"
+                "placed_lesson": "#/components/schemas/PersonalPlacedLessonSelectorModel",
+                "project_artifact": "#/components/schemas/PersonalProjectArtifactSelectorModel",
+                "project_snapshot": "#/components/schemas/PersonalProjectSnapshotSelectorModel",
+                "project_workspace": "#/components/schemas/PersonalProjectWorkspaceSelectorModel"
               },
               "propertyName": "reference_kind"
             },
@@ -3616,6 +3631,15 @@
               },
               {
                 "$ref": "#/components/schemas/PersonalPlacedLessonSelectorModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectWorkspaceSelectorModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectSnapshotSelectorModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectArtifactSelectorModel"
               }
             ],
             "title": "Selector"
@@ -3856,6 +3880,411 @@
           "placement_id"
         ],
         "title": "PersonalPlacedLessonSelectorModel",
+        "type": "object"
+      },
+      "PersonalProjectArtifactReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_kind": {
+            "enum": [
+              "dataset",
+              "notebook",
+              "code",
+              "environment",
+              "result",
+              "reflection",
+              "supporting_file"
+            ],
+            "title": "Artifact Kind",
+            "type": "string"
+          },
+          "artifact_version": {
+            "minimum": 1.0,
+            "title": "Artifact Version",
+            "type": "integer"
+          },
+          "byte_count": {
+            "maximum": 10485760.0,
+            "minimum": 0.0,
+            "title": "Byte Count",
+            "type": "integer"
+          },
+          "content_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Digest",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "destination": {
+            "pattern": "^/projects/[a-z0-9][a-z0-9._-]{0,127}#artifact-[a-z0-9][a-z0-9._-]{0,127}-v[1-9][0-9]*$",
+            "title": "Destination",
+            "type": "string"
+          },
+          "inspection_mode": {
+            "enum": [
+              "metadata_only",
+              "plain_text"
+            ],
+            "title": "Inspection Mode",
+            "type": "string"
+          },
+          "lifecycle": {
+            "const": "active",
+            "title": "Lifecycle",
+            "type": "string"
+          },
+          "logical_path": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Logical Path",
+            "type": "string"
+          },
+          "media_type": {
+            "enum": [
+              "application/octet-stream",
+              "application/json",
+              "application/pdf",
+              "application/x-ipynb+json",
+              "text/csv",
+              "text/markdown",
+              "text/plain",
+              "text/x-python"
+            ],
+            "title": "Media Type",
+            "type": "string"
+          },
+          "owner_module": {
+            "const": "project",
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_revision": {
+            "minimum": 1.0,
+            "title": "Project Revision",
+            "type": "integer"
+          },
+          "reference_kind": {
+            "const": "project_artifact",
+            "title": "Reference Kind",
+            "type": "string"
+          },
+          "target_status": {
+            "const": "available",
+            "title": "Target Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "validated_at": {
+            "format": "date-time",
+            "title": "Validated At",
+            "type": "string"
+          },
+          "workspace_revision": {
+            "minimum": 1.0,
+            "title": "Workspace Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "owner_module",
+          "project_id",
+          "artifact_id",
+          "artifact_version",
+          "title",
+          "lifecycle",
+          "project_revision",
+          "workspace_revision",
+          "artifact_kind",
+          "logical_path",
+          "media_type",
+          "inspection_mode",
+          "byte_count",
+          "content_digest",
+          "created_at",
+          "destination",
+          "target_status",
+          "validated_at"
+        ],
+        "title": "PersonalProjectArtifactReferenceModel",
+        "type": "object"
+      },
+      "PersonalProjectArtifactSelectorModel": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "artifact_version": {
+            "minimum": 1.0,
+            "title": "Artifact Version",
+            "type": "integer"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reference_kind": {
+            "const": "project_artifact",
+            "title": "Reference Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "project_id",
+          "artifact_id",
+          "artifact_version"
+        ],
+        "title": "PersonalProjectArtifactSelectorModel",
+        "type": "object"
+      },
+      "PersonalProjectSnapshotReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "closed_at": {
+            "format": "date-time",
+            "title": "Closed At",
+            "type": "string"
+          },
+          "destination": {
+            "pattern": "^/projects/[a-z0-9][a-z0-9._-]{0,127}#snapshot-[a-z0-9][a-z0-9._-]{0,127}$",
+            "title": "Destination",
+            "type": "string"
+          },
+          "lifecycle": {
+            "const": "active",
+            "title": "Lifecycle",
+            "type": "string"
+          },
+          "owner_module": {
+            "const": "project",
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_revision": {
+            "minimum": 1.0,
+            "title": "Project Revision",
+            "type": "integer"
+          },
+          "reference_kind": {
+            "const": "project_snapshot",
+            "title": "Reference Kind",
+            "type": "string"
+          },
+          "snapshot_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Digest",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "target_status": {
+            "const": "available",
+            "title": "Target Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "validated_at": {
+            "format": "date-time",
+            "title": "Validated At",
+            "type": "string"
+          },
+          "workspace_revision": {
+            "minimum": 1.0,
+            "title": "Workspace Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "owner_module",
+          "project_id",
+          "snapshot_id",
+          "title",
+          "lifecycle",
+          "project_revision",
+          "workspace_revision",
+          "snapshot_digest",
+          "closed_at",
+          "destination",
+          "target_status",
+          "validated_at"
+        ],
+        "title": "PersonalProjectSnapshotReferenceModel",
+        "type": "object"
+      },
+      "PersonalProjectSnapshotSelectorModel": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reference_kind": {
+            "const": "project_snapshot",
+            "title": "Reference Kind",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "project_id",
+          "snapshot_id"
+        ],
+        "title": "PersonalProjectSnapshotSelectorModel",
+        "type": "object"
+      },
+      "PersonalProjectWorkspaceReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "destination": {
+            "pattern": "^/projects/[a-z0-9][a-z0-9._-]{0,127}#workspace$",
+            "title": "Destination",
+            "type": "string"
+          },
+          "lifecycle": {
+            "const": "active",
+            "title": "Lifecycle",
+            "type": "string"
+          },
+          "owner_module": {
+            "const": "project",
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "project_revision": {
+            "minimum": 1.0,
+            "title": "Project Revision",
+            "type": "integer"
+          },
+          "reference_kind": {
+            "const": "project_workspace",
+            "title": "Reference Kind",
+            "type": "string"
+          },
+          "target_status": {
+            "const": "available",
+            "title": "Target Status",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "validated_at": {
+            "format": "date-time",
+            "title": "Validated At",
+            "type": "string"
+          },
+          "workspace_revision": {
+            "minimum": 1.0,
+            "title": "Workspace Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "owner_module",
+          "project_id",
+          "title",
+          "lifecycle",
+          "project_revision",
+          "workspace_revision",
+          "destination",
+          "target_status",
+          "validated_at"
+        ],
+        "title": "PersonalProjectWorkspaceReferenceModel",
+        "type": "object"
+      },
+      "PersonalProjectWorkspaceSelectorModel": {
+        "additionalProperties": false,
+        "properties": {
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "reference_kind": {
+            "const": "project_workspace",
+            "title": "Reference Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_kind",
+          "project_id"
+        ],
+        "title": "PersonalProjectWorkspaceSelectorModel",
         "type": "object"
       },
       "PersonalRemoveCollectionModel": {
@@ -4132,7 +4561,10 @@
             "discriminator": {
               "mapping": {
                 "learning_opportunity": "#/components/schemas/PersonalLearningOpportunityReferenceModel",
-                "placed_lesson": "#/components/schemas/PersonalPlacedLessonReferenceModel"
+                "placed_lesson": "#/components/schemas/PersonalPlacedLessonReferenceModel",
+                "project_artifact": "#/components/schemas/PersonalProjectArtifactReferenceModel",
+                "project_snapshot": "#/components/schemas/PersonalProjectSnapshotReferenceModel",
+                "project_workspace": "#/components/schemas/PersonalProjectWorkspaceReferenceModel"
               },
               "propertyName": "reference_kind"
             },
@@ -4142,6 +4574,15 @@
               },
               {
                 "$ref": "#/components/schemas/PersonalPlacedLessonReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectWorkspaceReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectSnapshotReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectArtifactReferenceModel"
               }
             ],
             "title": "Target"
@@ -4334,7 +4775,10 @@
             "discriminator": {
               "mapping": {
                 "learning_opportunity": "#/components/schemas/PersonalLearningOpportunityReferenceModel",
-                "placed_lesson": "#/components/schemas/PersonalPlacedLessonReferenceModel"
+                "placed_lesson": "#/components/schemas/PersonalPlacedLessonReferenceModel",
+                "project_artifact": "#/components/schemas/PersonalProjectArtifactReferenceModel",
+                "project_snapshot": "#/components/schemas/PersonalProjectSnapshotReferenceModel",
+                "project_workspace": "#/components/schemas/PersonalProjectWorkspaceReferenceModel"
               },
               "propertyName": "reference_kind"
             },
@@ -4344,6 +4788,15 @@
               },
               {
                 "$ref": "#/components/schemas/PersonalPlacedLessonReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectWorkspaceReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectSnapshotReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalProjectArtifactReferenceModel"
               }
             ],
             "title": "Target"

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+import pytest
 
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.modules.identity.public import (
@@ -20,6 +21,9 @@ from financial_ai_academy.modules.personal_workspace.public import (
     OpenPersonalWorkspaceRequest,
     PersonalWorkspaceError,
     PersonalWorkspaceErrorCode,
+    ProjectArtifactSelector,
+    ProjectSnapshotSelector,
+    ProjectWorkspaceSelector,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
@@ -71,7 +75,7 @@ class Curriculum:
 
 
 class Workspaces:
-    def __init__(self) -> None:
+    def __init__(self, *, project_response: bool = False) -> None:
         contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
         self.empty = contract.parse_workspace(
             (FIXTURE_DIR / "valid-empty-workspace.json").read_bytes()
@@ -79,6 +83,25 @@ class Workspaces:
         self.populated = contract.parse_workspace(
             (FIXTURE_DIR / "valid-populated-workspace.json").read_bytes()
         )
+        if project_response:
+            workspace = self.empty
+            for index, fixture in enumerate(
+                (
+                    "valid-project-workspace-note.json",
+                    "valid-project-snapshot-bookmark.json",
+                    "valid-project-artifact-bookmark.json",
+                ),
+                start=1,
+            ):
+                workspace = contract.apply_mutation(
+                    workspace,
+                    contract.parse_mutation_intent(
+                        (FIXTURE_DIR / fixture).read_bytes()
+                    ),
+                    occurred_at=NOW,
+                    issued_id=f"record.project-{index}",
+                )
+            self.populated = workspace
         self.open_requests: list[OpenPersonalWorkspaceRequest] = []
         self.mutation_requests: list[MutatePersonalWorkspaceRequest] = []
 
@@ -136,6 +159,20 @@ def note_body() -> dict[str, object]:
             },
             "title": "Why diversification matters",
             "body": "Diversification can reduce concentration risk.",
+        },
+    }
+
+
+def project_note_body(selector: dict[str, object]) -> dict[str, object]:
+    return {
+        "schema_version": "1.0.0",
+        "idempotency_key": f"save-{selector['reference_kind']}",
+        "expected_revision": 1,
+        "mutation": {
+            "operation": "create_note",
+            "selector": selector,
+            "title": "Project evidence",
+            "body": "Keep this exact Project reference.",
         },
     }
 
@@ -270,6 +307,68 @@ def test_source_creation_requires_owning_curriculum_read_permission() -> None:
     assert len(lesson_workspaces.mutation_requests) == 1
 
 
+@pytest.mark.parametrize(
+    ("selector", "expected_type"),
+    [
+        (
+            {
+                "reference_kind": "project_workspace",
+                "project_id": "project.research-1",
+            },
+            ProjectWorkspaceSelector,
+        ),
+        (
+            {
+                "reference_kind": "project_snapshot",
+                "project_id": "project.research-1",
+                "snapshot_id": "snapshot.baseline-1",
+            },
+            ProjectSnapshotSelector,
+        ),
+        (
+            {
+                "reference_kind": "project_artifact",
+                "project_id": "project.research-1",
+                "artifact_id": "artifact.allocation-inputs",
+                "artifact_version": 3,
+            },
+            ProjectArtifactSelector,
+        ),
+    ],
+)
+def test_project_source_variants_require_project_read_and_map_closed_selectors(
+    selector: dict[str, object], expected_type: type
+) -> None:
+    denied_workspaces = Workspaces()
+    denied = client(
+        ("personal_workspace.write",), denied_workspaces
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json=project_note_body(selector),
+        headers={"origin": ORIGIN},
+    )
+    allowed_workspaces = Workspaces(project_response=True)
+    allowed = client(
+        ("personal_workspace.write", "project.read"), allowed_workspaces
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json=project_note_body(selector),
+        headers={"origin": ORIGIN},
+    )
+
+    assert denied.status_code == 403
+    assert denied_workspaces.mutation_requests == []
+    assert allowed.status_code == 200
+    assert [
+        record["target"]["reference_kind"]
+        for record in allowed.json()["records"]
+    ] == ["project_workspace", "project_snapshot", "project_artifact"]
+    request = allowed_workspaces.mutation_requests[0]
+    assert request.learner_id == "learner.demo"
+    assert isinstance(request.command.mutation, CreateNoteCommand)
+    assert isinstance(request.command.mutation.selector, expected_type)
+
+
 def test_non_source_mutation_needs_no_curriculum_permission() -> None:
     workspaces = Workspaces()
     body = {
@@ -324,6 +423,20 @@ def test_openapi_requires_nullable_bookmark_label() -> None:
         "PersonalWorkspaceBookmarkModel"
     ]
     assert "label" in bookmark["required"]
+    for model_name in (
+        "PersonalProjectWorkspaceReferenceModel",
+        "PersonalProjectSnapshotReferenceModel",
+        "PersonalProjectArtifactReferenceModel",
+    ):
+        assert model_name in schema["components"]["schemas"]
+        model = schema["components"]["schemas"][model_name]
+        assert not {
+            "content",
+            "content_base64",
+            "download_url",
+            "object_key",
+            "storage_key",
+        }.intersection(model.get("properties", {}))
 
 
 def test_missing_or_insufficient_session_denies_before_workspace_access() -> None:

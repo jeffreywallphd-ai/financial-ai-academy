@@ -16,7 +16,7 @@
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
-| Personal workspace | accepted; base contract, persistence, Curriculum adapter, protected API/browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference API/browser composition and lifecycle events remain CAP-0017 work |
+| Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -92,14 +92,17 @@ inert artifact manifest through Project's existing learner-bound public reads.
 Only bounded safe identity, revision, digest, time, manifest, and same-origin
 route facts enter Personal workspace. Project content, bytes, storage locators,
 permissions, mutation, download, export, and execution stay outside this
-module. Application/API/client/browser composition remains the next packet.
+module. Application/API/generated-client composition is implemented with the
+same server-owned learner context and owner permissions used by browser and
+headless callers. Project browser entry points remain the next packet.
 
 The implemented v1 contract and pure core admit exact Curriculum-owned learning
 references plus the closed safe Project reference variants, enforce bounded
 records and collection integrity, and apply closed revision-bound mutations
-with a canonical digest. The application
-service resolves selector-only create requests through Curriculum's public
-surface. Personal-workspace-owned PostgreSQL tables preserve the current
+with a canonical digest. The application service resolves selector-only create
+requests through Curriculum or Project public operations and rejects owner,
+learner, or exact-identity mismatch before write. Personal-workspace-owned
+PostgreSQL tables preserve the current
 aggregate and exact replay without cross-schema foreign keys, while the
 protected API binds learner identity from the server session and is shared by
 generated browser and headless clients. The seam has no provider, model,

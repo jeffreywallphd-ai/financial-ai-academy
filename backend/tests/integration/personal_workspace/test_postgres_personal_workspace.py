@@ -25,6 +25,7 @@ from financial_ai_academy.modules.personal_workspace.ports.learning_reference im
     PersonalWorkspaceSourceUnavailable,
 )
 from financial_ai_academy.modules.personal_workspace.public import (
+    CreateBookmarkCommand,
     CreateNoteCommand,
     LearningOpportunitySelector,
     MutatePersonalWorkspaceRequest,
@@ -32,6 +33,9 @@ from financial_ai_academy.modules.personal_workspace.public import (
     PersonalWorkspaceError,
     PersonalWorkspaceErrorCode,
     PersonalWorkspaceMutationCommand,
+    ProjectArtifactSelector,
+    ProjectSnapshotSelector,
+    ProjectWorkspaceSelector,
 )
 from financial_ai_academy.platform.database.migrations import (
     PostgresMigrationRunner,
@@ -90,21 +94,50 @@ class Identifier:
         return self.value
 
 
+class SequentialIdentifier:
+    def __init__(self, *values: str) -> None:
+        self.values = iter(values)
+
+    def new(self):
+        return next(self.values)
+
+
 class ReferenceGateway:
     def __init__(self, contract, *, unavailable: bool = False) -> None:
         intent = contract.parse_mutation_intent(
             (FIXTURES / "valid-create-note-intent.json").read_bytes()
         )
         self.reference = intent.mutation.target
+        self.project_references = {
+            fixture.removeprefix("valid-project-").removesuffix(".json"): (
+                contract.parse_mutation_intent((FIXTURES / fixture).read_bytes())
+                .mutation.target
+            )
+            for fixture in (
+                "valid-project-workspace-note.json",
+                "valid-project-snapshot-bookmark.json",
+                "valid-project-artifact-bookmark.json",
+            )
+        }
         self.calls = 0
+        self.learner_ids: list[str] = []
         self.unavailable = unavailable
 
-    def resolve(self, selector, *, validated_at):
+    def resolve(self, selector, *, learner_id, validated_at):
         self.calls += 1
+        self.learner_ids.append(learner_id)
         if self.unavailable:
             raise PersonalWorkspaceSourceUnavailable()
-        assert selector.opportunity_id == "opportunity.diversification"
-        return replace(self.reference, validated_at=validated_at)
+        if isinstance(selector, ProjectWorkspaceSelector):
+            reference = self.project_references["workspace-note"]
+        elif isinstance(selector, ProjectSnapshotSelector):
+            reference = self.project_references["snapshot-bookmark"]
+        elif isinstance(selector, ProjectArtifactSelector):
+            reference = self.project_references["artifact-bookmark"]
+        else:
+            assert selector.opportunity_id == "opportunity.diversification"
+            reference = self.reference
+        return replace(reference, validated_at=validated_at)
 
 
 def service(
@@ -170,6 +203,86 @@ def test_first_mutation_survives_restart_and_exact_retry_skips_source() -> None:
     assert accepted == reopened == replayed
     assert accepted.revision == 2
     assert gateway.calls == 1
+    assert restarted_gateway.calls == 0
+
+
+def test_project_reference_variants_survive_restart_and_exact_replay() -> None:
+    assert POSTGRES_DSN is not None
+    contract = ContractPersonalWorkspaceAdapter(SCHEMAS)
+    gateway = ReferenceGateway(contract)
+    subject = PersonalWorkspaceService(
+        PostgresPersonalWorkspaceRepository(POSTGRES_DSN, contract),
+        contract,
+        gateway,
+        Clock(),
+        SequentialIdentifier(
+            "record.project-workspace",
+            "record.project-snapshot",
+            "record.project-artifact",
+        ),
+        StableWorkspaceSeed(),
+    )
+    requests = (
+        MutatePersonalWorkspaceRequest(
+            "learner.project",
+            PersonalWorkspaceMutationCommand(
+                "1.0.0",
+                "project-workspace",
+                1,
+                CreateNoteCommand(
+                    ProjectWorkspaceSelector("project.research-1"),
+                    "Continue this Project",
+                    "Review the saved assumptions.",
+                ),
+            ),
+        ),
+        MutatePersonalWorkspaceRequest(
+            "learner.project",
+            PersonalWorkspaceMutationCommand(
+                "1.0.0",
+                "project-snapshot",
+                2,
+                CreateBookmarkCommand(
+                    ProjectSnapshotSelector(
+                        "project.research-1", "snapshot.baseline-1"
+                    ),
+                    "Baseline checkpoint",
+                ),
+            ),
+        ),
+        MutatePersonalWorkspaceRequest(
+            "learner.project",
+            PersonalWorkspaceMutationCommand(
+                "1.0.0",
+                "project-artifact",
+                3,
+                CreateBookmarkCommand(
+                    ProjectArtifactSelector(
+                        "project.research-1", "artifact.allocation-inputs", 3
+                    ),
+                    "Allocation inputs",
+                ),
+            ),
+        ),
+    )
+    accepted = None
+    for request in requests:
+        accepted = subject.mutate_workspace(request)
+
+    restarted, restarted_gateway = service("unused.identifier")
+    reopened = restarted.open_workspace(
+        OpenPersonalWorkspaceRequest("learner.project")
+    )
+    replayed = restarted.mutate_workspace(requests[-1])
+
+    assert accepted == reopened == replayed
+    assert reopened.revision == 4
+    assert tuple(record.target.reference_kind for record in reopened.records) == (
+        "project_workspace",
+        "project_snapshot",
+        "project_artifact",
+    )
+    assert gateway.learner_ids == ["learner.project"] * 3
     assert restarted_gateway.calls == 0
 
 

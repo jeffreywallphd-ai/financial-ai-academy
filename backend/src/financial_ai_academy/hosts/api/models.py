@@ -100,6 +100,7 @@ from financial_ai_academy.modules.personal_workspace.domain.workspace import (
     SetCollectionMembersMutation as PersonalSetCollectionMembersMutation,
     UpdateBookmarkMutation as PersonalUpdateBookmarkMutation,
     UpdateNoteMutation as PersonalUpdateNoteMutation,
+    is_canonical_project_logical_path,
 )
 from financial_ai_academy.modules.personal_workspace.public import (
     CreateBookmarkCommand as PersonalCreateBookmarkCommand,
@@ -108,6 +109,9 @@ from financial_ai_academy.modules.personal_workspace.public import (
     PersonalWorkspace,
     PersonalWorkspaceMutationCommand,
     PlacedLessonSelector as PersonalPlacedLessonSelector,
+    ProjectArtifactSelector as PersonalProjectArtifactSelector,
+    ProjectSnapshotSelector as PersonalProjectSnapshotSelector,
+    ProjectWorkspaceSelector as PersonalProjectWorkspaceSelector,
 )
 
 
@@ -468,10 +472,100 @@ class PersonalPlacedLessonReferenceModel(ProjectTimestampModel):
     validated_at: datetime
 
 
+class PersonalProjectWorkspaceReferenceModel(ProjectTimestampModel):
+    reference_kind: Literal["project_workspace"]
+    owner_module: Literal["project"]
+    project_id: Identifier
+    title: str = Field(min_length=1, max_length=240)
+    lifecycle: Literal["active"]
+    project_revision: int = Field(ge=1)
+    workspace_revision: int = Field(ge=1)
+    destination: str = Field(
+        pattern=r"^/projects/[a-z0-9][a-z0-9._-]{0,127}#workspace$"
+    )
+    target_status: Literal["available"]
+    validated_at: datetime
+
+
+class PersonalProjectSnapshotReferenceModel(ProjectTimestampModel):
+    reference_kind: Literal["project_snapshot"]
+    owner_module: Literal["project"]
+    project_id: Identifier
+    snapshot_id: Identifier
+    title: str = Field(min_length=1, max_length=240)
+    lifecycle: Literal["active"]
+    project_revision: int = Field(ge=1)
+    workspace_revision: int = Field(ge=1)
+    snapshot_digest: Digest
+    closed_at: datetime
+    destination: str = Field(
+        pattern=(
+            r"^/projects/[a-z0-9][a-z0-9._-]{0,127}"
+            r"#snapshot-[a-z0-9][a-z0-9._-]{0,127}$"
+        )
+    )
+    target_status: Literal["available"]
+    validated_at: datetime
+
+
+class PersonalProjectArtifactReferenceModel(ProjectTimestampModel):
+    reference_kind: Literal["project_artifact"]
+    owner_module: Literal["project"]
+    project_id: Identifier
+    artifact_id: Identifier
+    artifact_version: int = Field(ge=1)
+    title: str = Field(min_length=1, max_length=240)
+    lifecycle: Literal["active"]
+    project_revision: int = Field(ge=1)
+    workspace_revision: int = Field(ge=1)
+    artifact_kind: Literal[
+        "dataset",
+        "notebook",
+        "code",
+        "environment",
+        "result",
+        "reflection",
+        "supporting_file",
+    ]
+    logical_path: str = Field(min_length=1, max_length=240)
+    media_type: Literal[
+        "application/octet-stream",
+        "application/json",
+        "application/pdf",
+        "application/x-ipynb+json",
+        "text/csv",
+        "text/markdown",
+        "text/plain",
+        "text/x-python",
+    ]
+    inspection_mode: Literal["metadata_only", "plain_text"]
+    byte_count: int = Field(ge=0, le=10485760)
+    content_digest: Digest
+    created_at: datetime
+    destination: str = Field(
+        pattern=(
+            r"^/projects/[a-z0-9][a-z0-9._-]{0,127}"
+            r"#artifact-[a-z0-9][a-z0-9._-]{0,127}-v[1-9][0-9]*$"
+        )
+    )
+    target_status: Literal["available"]
+    validated_at: datetime
+
+    @field_validator("logical_path")
+    @classmethod
+    def validate_logical_path(cls, value: str) -> str:
+        if not is_canonical_project_logical_path(value):
+            raise ValueError("logical_path must be a canonical relative path")
+        return value
+
+
 PersonalLearningReferenceModel = Annotated[
     Union[
         PersonalLearningOpportunityReferenceModel,
         PersonalPlacedLessonReferenceModel,
+        PersonalProjectWorkspaceReferenceModel,
+        PersonalProjectSnapshotReferenceModel,
+        PersonalProjectArtifactReferenceModel,
     ],
     Field(discriminator="reference_kind"),
 ]
@@ -535,10 +629,31 @@ class PersonalPlacedLessonSelectorModel(ApiModel):
     placement_id: CurriculumIdentifier
 
 
+class PersonalProjectWorkspaceSelectorModel(ApiModel):
+    reference_kind: Literal["project_workspace"]
+    project_id: Identifier
+
+
+class PersonalProjectSnapshotSelectorModel(ApiModel):
+    reference_kind: Literal["project_snapshot"]
+    project_id: Identifier
+    snapshot_id: Identifier
+
+
+class PersonalProjectArtifactSelectorModel(ApiModel):
+    reference_kind: Literal["project_artifact"]
+    project_id: Identifier
+    artifact_id: Identifier
+    artifact_version: int = Field(ge=1)
+
+
 PersonalLearningReferenceSelectorModel = Annotated[
     Union[
         PersonalLearningOpportunitySelectorModel,
         PersonalPlacedLessonSelectorModel,
+        PersonalProjectWorkspaceSelectorModel,
+        PersonalProjectSnapshotSelectorModel,
+        PersonalProjectArtifactSelectorModel,
     ],
     Field(discriminator="reference_kind"),
 ]
@@ -648,7 +763,9 @@ def personal_workspace_source_permission(
         return None
     if isinstance(mutation.selector, PersonalLearningOpportunitySelectorModel):
         return "curriculum.discovery.read"
-    return "curriculum.lesson.read"
+    if isinstance(mutation.selector, PersonalPlacedLessonSelectorModel):
+        return "curriculum.lesson.read"
+    return "project.read"
 
 
 class ProjectSnapshotCloseRequestModel(ApiModel):
@@ -3078,7 +3195,20 @@ def _personal_reference_selector(
             opportunity_id=selector.opportunity_id,
             placement_id=selector.placement_id,
         )
-    return PersonalPlacedLessonSelector(placement_id=selector.placement_id)
+    if isinstance(selector, PersonalPlacedLessonSelectorModel):
+        return PersonalPlacedLessonSelector(placement_id=selector.placement_id)
+    if isinstance(selector, PersonalProjectWorkspaceSelectorModel):
+        return PersonalProjectWorkspaceSelector(project_id=selector.project_id)
+    if isinstance(selector, PersonalProjectSnapshotSelectorModel):
+        return PersonalProjectSnapshotSelector(
+            project_id=selector.project_id,
+            snapshot_id=selector.snapshot_id,
+        )
+    return PersonalProjectArtifactSelector(
+        project_id=selector.project_id,
+        artifact_id=selector.artifact_id,
+        artifact_version=selector.artifact_version,
+    )
 
 
 def personal_workspace_mutation_command(

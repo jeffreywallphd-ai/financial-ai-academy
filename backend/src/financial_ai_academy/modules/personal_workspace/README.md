@@ -23,18 +23,22 @@ mutation core.
 
 The v1 union admits exact Curriculum-owned learning opportunities and placed
 lessons plus safe Project workspace, snapshot, and artifact-manifest facts.
-Project application-service/API composition for the new selectors remains the
-next slice packet. The module stores references rather than target business
-state and cannot confer access to a target. Its adapters import only owner
-public surfaces and have no provider, model, external-network, file-content,
-or execution dependency.
+One closed dispatcher resolves every selector through its owner's public
+surface with server-owned learner and validation-time context. The application
+service, protected API, and generated client accept those same selector kinds;
+Project-backed creates require `project.read`. The module stores references
+rather than target business state and cannot confer access to a target. Its
+adapters have no provider, model, external-network, file-content, or execution
+dependency.
 
 The protected API/client delivery is the primary product boundary for browser
-and headless consumers. Source-bearing creates also require the owning
-Curriculum read permission; caller-selected learner query parameters are
-rejected before workspace access. The generated-client Saved Learning browser
-flow and an ordinary authenticated non-browser client use these same
-operations. Isolated PostgreSQL/Python/static-browser qualification directly
-proves exact replay, changed-key and stale-revision denial, target-state
-isolation, normal restart without reseeding, and bounded cleanup without
-changing this ownership direction.
+and headless consumers. Source-bearing creates also require the owning module's
+read permission; caller-selected learner query parameters are rejected before
+workspace access. The generated-client Saved Learning browser flow and an
+ordinary authenticated non-browser client use these same operations. The
+current browser creates Curriculum references; Project browser entry points
+remain a later packet, while headless clients can already use the reviewed
+Project selectors. Isolated PostgreSQL/Python/static-browser qualification
+directly proves exact replay, changed-key and stale-revision denial,
+target-state isolation, normal restart without reseeding, and bounded cleanup
+without changing this ownership direction.

@@ -88,6 +88,87 @@ const workspace: PersonalWorkspace = {
   workspace_digest: "d".repeat(64),
 };
 
+const projectWorkspace: PersonalWorkspace = {
+  ...workspace,
+  records: [
+    {
+      record_kind: "bookmark",
+      record_id: "project-workspace-one",
+      label: null,
+      archived: false,
+      created_at: "2026-10-17T13:00:00Z",
+      updated_at: "2026-10-17T13:00:00Z",
+      target: {
+        reference_kind: "project_workspace",
+        owner_module: "project",
+        project_id: "project.research-1",
+        title: "Compare allocation assumptions",
+        lifecycle: "active",
+        project_revision: 2,
+        workspace_revision: 4,
+        destination: "/projects/project.research-1#workspace",
+        target_status: "available",
+        validated_at: "2026-10-17T13:00:00Z",
+      },
+    },
+    {
+      record_kind: "bookmark",
+      record_id: "project-snapshot-one",
+      label: "Baseline checkpoint",
+      archived: false,
+      created_at: "2026-10-17T13:00:00Z",
+      updated_at: "2026-10-17T13:00:00Z",
+      target: {
+        reference_kind: "project_snapshot",
+        owner_module: "project",
+        project_id: "project.research-1",
+        snapshot_id: "snapshot.baseline-1",
+        title: "Compare allocation assumptions",
+        lifecycle: "active",
+        project_revision: 2,
+        workspace_revision: 4,
+        snapshot_digest: "e".repeat(64),
+        closed_at: "2026-10-17T12:45:00Z",
+        destination: "/projects/project.research-1#snapshot-snapshot.baseline-1",
+        target_status: "available",
+        validated_at: "2026-10-17T13:00:00Z",
+      },
+    },
+    {
+      record_kind: "bookmark",
+      record_id: "project-artifact-one",
+      label: "Allocation inputs",
+      archived: false,
+      created_at: "2026-10-17T13:00:00Z",
+      updated_at: "2026-10-17T13:00:00Z",
+      target: {
+        reference_kind: "project_artifact",
+        owner_module: "project",
+        project_id: "project.research-1",
+        artifact_id: "artifact.allocation-inputs",
+        artifact_version: 3,
+        title: "Compare allocation assumptions",
+        lifecycle: "active",
+        project_revision: 2,
+        workspace_revision: 4,
+        artifact_kind: "dataset",
+        logical_path: "evidence/allocation-inputs.csv",
+        media_type: "text/csv",
+        inspection_mode: "plain_text",
+        byte_count: 1842,
+        content_digest: "f".repeat(64),
+        created_at: "2026-10-17T12:30:00Z",
+        destination: "/projects/project.research-1#artifact-artifact.allocation-inputs-v3",
+        target_status: "available",
+        validated_at: "2026-10-17T13:00:00Z",
+      },
+    },
+  ],
+  collections: [],
+  updated_at: "2026-10-17T13:00:00Z",
+  workspace_digest: "9".repeat(64),
+};
+
 function renderWorkspace(
   submissions: FormData[] = [],
   actionState?: WorkspaceActionState,
@@ -123,6 +204,28 @@ describe("Saved learning pages", () => {
     expect(within(note as HTMLElement).getByText("available")).toBeVisible();
     expect(within(note as HTMLElement).getByText("Educational content only.")).toBeVisible();
     expect(within(note as HTMLElement).getAllByText("2026-10-17T10:01:00Z", { selector: "time" })).toHaveLength(3);
+  });
+
+  it("shows every safe Project reference kind without adding Project save controls", async () => {
+    renderWorkspace([], undefined, projectWorkspace);
+    const user = userEvent.setup();
+
+    for (const heading of [
+      "Compare allocation assumptions",
+      "Baseline checkpoint",
+      "Allocation inputs",
+    ]) {
+      const record = screen.getByRole("heading", { name: heading }).closest("li");
+      await user.click(within(record as HTMLElement).getByText("Technical record"));
+    }
+
+    expect(screen.getAllByText("project.research-1")).toHaveLength(3);
+    expect(screen.getByText("snapshot.baseline-1")).toBeVisible();
+    expect(screen.getByText("e".repeat(64))).toBeVisible();
+    expect(screen.getByText("artifact.allocation-inputs")).toBeVisible();
+    expect(screen.getByText("evidence/allocation-inputs.csv")).toBeVisible();
+    expect(screen.getByText("f".repeat(64))).toBeVisible();
+    expect(screen.queryByRole("button", { name: /save project/i })).not.toBeInTheDocument();
   });
 
   it("submits current revision, stable request authority, ordered records, and collection membership", async () => {

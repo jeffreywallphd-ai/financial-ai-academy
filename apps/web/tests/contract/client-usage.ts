@@ -112,6 +112,25 @@ void client.POST("/api/v1/personal-workspace/mutations", {
   body: savedLearningNote,
 });
 
+const savedProjectArtifact: PersonalWorkspaceMutation = {
+  schema_version: "1.0.0",
+  idempotency_key: "saved-project-artifact-1",
+  expected_revision: 2,
+  mutation: {
+    operation: "create_bookmark",
+    selector: {
+      reference_kind: "project_artifact",
+      project_id: "project-1",
+      artifact_id: "artifact-1",
+      artifact_version: 1,
+    },
+    label: "Allocation inputs",
+  },
+};
+void client.POST("/api/v1/personal-workspace/mutations", {
+  body: savedProjectArtifact,
+});
+
 const noteMutation: ProjectWorkspaceMutation = {
   schema_version: "1.0.0",
   idempotency_key: "note-1",

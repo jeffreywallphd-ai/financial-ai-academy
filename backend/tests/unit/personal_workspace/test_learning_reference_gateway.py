@@ -17,6 +17,7 @@ from financial_ai_academy.modules.curriculum.public import (
 )
 from financial_ai_academy.modules.personal_workspace.adapters.learning_reference import (
     PublicCurriculumLearningReferenceGateway,
+    PublicLearningReferenceGateway,
 )
 from financial_ai_academy.modules.personal_workspace.domain.workspace import (
     LearningOpportunityReference,
@@ -28,6 +29,9 @@ from financial_ai_academy.modules.personal_workspace.ports.learning_reference im
 from financial_ai_academy.modules.personal_workspace.public import (
     LearningOpportunitySelector,
     PlacedLessonSelector,
+    ProjectArtifactSelector,
+    ProjectSnapshotSelector,
+    ProjectWorkspaceSelector,
 )
 
 
@@ -113,6 +117,7 @@ def test_opportunity_resolution_retains_only_safe_current_public_facts() -> None
         LearningOpportunitySelector(
             "opportunity.diversification", "placement.diversification"
         ),
+        learner_id="learner.demo",
         validated_at=NOW,
     )
     assert isinstance(result, LearningOpportunityReference)
@@ -127,6 +132,7 @@ def test_lesson_resolution_does_not_copy_body_or_permission_state() -> None:
     curriculum = Curriculum()
     result = PublicCurriculumLearningReferenceGateway(curriculum).resolve(
         PlacedLessonSelector("placement.risk"),
+        learner_id="learner.demo",
         validated_at=NOW,
     )
     assert isinstance(result, PlacedLessonReference)
@@ -169,5 +175,59 @@ def test_missing_unavailable_or_future_opportunity_fails_closed(records, selecto
     with pytest.raises(PersonalWorkspaceSourceUnavailable):
         PublicCurriculumLearningReferenceGateway(Curriculum(records=records)).resolve(
             selector,
+            learner_id="learner.demo",
             validated_at=NOW,
         )
+
+
+class RecordingGateway:
+    def __init__(self, result: object) -> None:
+        self.result = result
+        self.calls: list[tuple[object, str, datetime]] = []
+
+    def resolve(self, selector, *, learner_id, validated_at):
+        self.calls.append((selector, learner_id, validated_at))
+        return self.result
+
+
+@pytest.mark.parametrize(
+    ("selector", "owner"),
+    [
+        (
+            LearningOpportunitySelector(
+                "opportunity.diversification", "placement.diversification"
+            ),
+            "curriculum",
+        ),
+        (PlacedLessonSelector("placement.risk"), "curriculum"),
+        (ProjectWorkspaceSelector("project.demo"), "project"),
+        (
+            ProjectSnapshotSelector("project.demo", "snapshot.demo"),
+            "project",
+        ),
+        (
+            ProjectArtifactSelector("project.demo", "artifact.demo", 3),
+            "project",
+        ),
+    ],
+)
+def test_closed_dispatch_forwards_server_context_to_exact_owner(
+    selector, owner: str
+) -> None:
+    curriculum_result = object()
+    project_result = object()
+    curriculum = RecordingGateway(curriculum_result)
+    project = RecordingGateway(project_result)
+    gateway = PublicLearningReferenceGateway(curriculum, project)
+
+    result = gateway.resolve(
+        selector,
+        learner_id="learner.demo",
+        validated_at=NOW,
+    )
+
+    expected = curriculum if owner == "curriculum" else project
+    other = project if owner == "curriculum" else curriculum
+    assert result is expected.result
+    assert expected.calls == [(selector, "learner.demo", NOW)]
+    assert other.calls == []

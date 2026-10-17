@@ -9,12 +9,14 @@ snapshot.
 workspace boundary. Reads and writes require the explicit
 `personal_workspace.read` and `personal_workspace.write` permissions and bind
 the learner only from the opaque server session. Create-note and
-create-bookmark inputs additionally require the owning Curriculum read
-permission: `curriculum.discovery.read` for a learning opportunity and
-`curriculum.lesson.read` for a placed lesson. They carry a closed Curriculum
-selector; title, route,
-package, publication, validation time, record identity, and other server-owned
-facts cannot be selected by a caller. Exact retry returns the accepted
+create-bookmark inputs additionally require the owning module's read
+permission: `curriculum.discovery.read` for a learning opportunity,
+`curriculum.lesson.read` for a placed lesson, and `project.read` for a Project
+workspace, immutable snapshot, or inert artifact manifest. They carry one
+closed selector; title, route, package, publication, lifecycle, revisions,
+digests, validation time, record identity, and other server-owned facts cannot
+be selected by a caller. Project selectors never accept content, download,
+storage, mutation, export, or execution fields. Exact retry returns the accepted
 workspace while stale revision and changed key reuse fail without overwrite.
 Both operations reject every query selector; workspace-owned missing records
 or collections return the bounded `not_found` result.

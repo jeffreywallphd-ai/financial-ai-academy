@@ -115,6 +115,10 @@ from financial_ai_academy.modules.project.adapters.system import (
 from financial_ai_academy.modules.project.application.service import ProjectService
 from financial_ai_academy.modules.personal_workspace.adapters.learning_reference import (
     PublicCurriculumLearningReferenceGateway,
+    PublicLearningReferenceGateway,
+)
+from financial_ai_academy.modules.personal_workspace.adapters.project_reference import (
+    PublicProjectLearningReferenceGateway,
 )
 from financial_ai_academy.modules.personal_workspace.adapters.postgres_repository import (
     PostgresPersonalWorkspaceRepository,
@@ -220,7 +224,10 @@ def build_application_services(
             settings.postgres_dsn, personal_workspace_contract
         ),
         personal_workspace_contract,
-        PublicCurriculumLearningReferenceGateway(curriculum),
+        PublicLearningReferenceGateway(
+            PublicCurriculumLearningReferenceGateway(curriculum),
+            PublicProjectLearningReferenceGateway(project),
+        ),
         PersonalWorkspaceUtcClock(),
         PersonalWorkspaceUuidGenerator(),
         StableWorkspaceSeed(),

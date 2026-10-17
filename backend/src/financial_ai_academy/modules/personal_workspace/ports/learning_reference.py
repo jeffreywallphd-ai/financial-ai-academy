@@ -18,5 +18,6 @@ class LearningReferenceGatewayPort(Protocol):
         self,
         selector: LearningReferenceSelector,
         *,
+        learner_id: str,
         validated_at: datetime,
     ) -> LearningReference: ...

@@ -15,6 +15,9 @@ from ..domain.workspace import (
     LearningOpportunityReference,
     PersonalWorkspace,
     PlacedLessonReference,
+    ProjectArtifactReference,
+    ProjectSnapshotReference,
+    ProjectWorkspaceReference,
     WorkspaceMutationIntent,
 )
 from ..ports.learning_reference import (
@@ -41,6 +44,9 @@ from ..public import (
     PersonalWorkspaceErrorCode,
     PersonalWorkspaceMutationCommand,
     PlacedLessonSelector,
+    ProjectArtifactSelector,
+    ProjectSnapshotSelector,
+    ProjectWorkspaceSelector,
 )
 
 
@@ -104,7 +110,11 @@ class PersonalWorkspaceService:
                 raise self._stale(command.idempotency_key)
 
             now = self._clock.now()
-            intent = self._intent(command, validated_at=now)
+            intent = self._intent(
+                command,
+                learner_id=request.learner_id,
+                validated_at=now,
+            )
             issued_id = (
                 self._identifiers.new()
                 if isinstance(
@@ -162,18 +172,23 @@ class PersonalWorkspaceService:
         self,
         command: PersonalWorkspaceMutationCommand,
         *,
+        learner_id: str,
         validated_at: datetime,
     ) -> WorkspaceMutationIntent:
         mutation = command.mutation
         if isinstance(mutation, CreateNoteCommand):
             resolved = CreateNoteMutation(
-                target=self._resolve_target(mutation.selector, validated_at),
+                target=self._resolve_target(
+                    mutation.selector, learner_id, validated_at
+                ),
                 title=mutation.title,
                 body=mutation.body,
             )
         elif isinstance(mutation, CreateBookmarkCommand):
             resolved = CreateBookmarkMutation(
-                target=self._resolve_target(mutation.selector, validated_at),
+                target=self._resolve_target(
+                    mutation.selector, learner_id, validated_at
+                ),
                 label=mutation.label,
             )
         else:
@@ -187,17 +202,48 @@ class PersonalWorkspaceService:
         self._contract.mutation_intent_document(intent)
         return intent
 
-    def _resolve_target(self, selector, validated_at: datetime):
-        target = self._references.resolve(selector, validated_at=validated_at)
+    def _resolve_target(
+        self, selector, learner_id: str, validated_at: datetime
+    ):
+        target = self._references.resolve(
+            selector,
+            learner_id=learner_id,
+            validated_at=validated_at,
+        )
         if isinstance(selector, LearningOpportunitySelector):
             if not isinstance(target, LearningOpportunityReference) or (
                 target.opportunity_id,
                 target.placement_id,
             ) != (selector.opportunity_id, selector.placement_id):
                 raise PersonalWorkspaceSourceUnavailable()
-        elif not isinstance(selector, PlacedLessonSelector) or not isinstance(
-            target, PlacedLessonReference
-        ) or target.placement_id != selector.placement_id:
+        elif isinstance(selector, PlacedLessonSelector):
+            if not isinstance(
+                target, PlacedLessonReference
+            ) or target.placement_id != selector.placement_id:
+                raise PersonalWorkspaceSourceUnavailable()
+        elif isinstance(selector, ProjectWorkspaceSelector):
+            if not isinstance(
+                target, ProjectWorkspaceReference
+            ) or target.project_id != selector.project_id:
+                raise PersonalWorkspaceSourceUnavailable()
+        elif isinstance(selector, ProjectSnapshotSelector):
+            if not isinstance(target, ProjectSnapshotReference) or (
+                target.project_id,
+                target.snapshot_id,
+            ) != (selector.project_id, selector.snapshot_id):
+                raise PersonalWorkspaceSourceUnavailable()
+        elif isinstance(selector, ProjectArtifactSelector):
+            if not isinstance(target, ProjectArtifactReference) or (
+                target.project_id,
+                target.artifact_id,
+                target.artifact_version,
+            ) != (
+                selector.project_id,
+                selector.artifact_id,
+                selector.artifact_version,
+            ):
+                raise PersonalWorkspaceSourceUnavailable()
+        else:
             raise PersonalWorkspaceSourceUnavailable()
         return target
 

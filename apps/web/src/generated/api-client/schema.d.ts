@@ -831,7 +831,7 @@ export interface components {
     readonly "PersonalCreateBookmarkModel": {
       readonly "label": string | null;
       readonly "operation": "create_bookmark";
-      readonly "selector": components["schemas"]["PersonalLearningOpportunitySelectorModel"] | components["schemas"]["PersonalPlacedLessonSelectorModel"];
+      readonly "selector": components["schemas"]["PersonalLearningOpportunitySelectorModel"] | components["schemas"]["PersonalPlacedLessonSelectorModel"] | components["schemas"]["PersonalProjectWorkspaceSelectorModel"] | components["schemas"]["PersonalProjectSnapshotSelectorModel"] | components["schemas"]["PersonalProjectArtifactSelectorModel"];
     };
     readonly "PersonalCreateCollectionModel": {
       readonly "operation": "create_collection";
@@ -840,7 +840,7 @@ export interface components {
     readonly "PersonalCreateNoteModel": {
       readonly "body": string;
       readonly "operation": "create_note";
-      readonly "selector": components["schemas"]["PersonalLearningOpportunitySelectorModel"] | components["schemas"]["PersonalPlacedLessonSelectorModel"];
+      readonly "selector": components["schemas"]["PersonalLearningOpportunitySelectorModel"] | components["schemas"]["PersonalPlacedLessonSelectorModel"] | components["schemas"]["PersonalProjectWorkspaceSelectorModel"] | components["schemas"]["PersonalProjectSnapshotSelectorModel"] | components["schemas"]["PersonalProjectArtifactSelectorModel"];
       readonly "title": string;
     };
     readonly "PersonalLearningOpportunityReferenceModel": {
@@ -879,6 +879,69 @@ export interface components {
     readonly "PersonalPlacedLessonSelectorModel": {
       readonly "placement_id": string;
       readonly "reference_kind": "placed_lesson";
+    };
+    readonly "PersonalProjectArtifactReferenceModel": {
+      readonly "artifact_id": string;
+      readonly "artifact_kind": "dataset" | "notebook" | "code" | "environment" | "result" | "reflection" | "supporting_file";
+      readonly "artifact_version": number;
+      readonly "byte_count": number;
+      readonly "content_digest": string;
+      readonly "created_at": string;
+      readonly "destination": string;
+      readonly "inspection_mode": "metadata_only" | "plain_text";
+      readonly "lifecycle": "active";
+      readonly "logical_path": string;
+      readonly "media_type": "application/octet-stream" | "application/json" | "application/pdf" | "application/x-ipynb+json" | "text/csv" | "text/markdown" | "text/plain" | "text/x-python";
+      readonly "owner_module": "project";
+      readonly "project_id": string;
+      readonly "project_revision": number;
+      readonly "reference_kind": "project_artifact";
+      readonly "target_status": "available";
+      readonly "title": string;
+      readonly "validated_at": string;
+      readonly "workspace_revision": number;
+    };
+    readonly "PersonalProjectArtifactSelectorModel": {
+      readonly "artifact_id": string;
+      readonly "artifact_version": number;
+      readonly "project_id": string;
+      readonly "reference_kind": "project_artifact";
+    };
+    readonly "PersonalProjectSnapshotReferenceModel": {
+      readonly "closed_at": string;
+      readonly "destination": string;
+      readonly "lifecycle": "active";
+      readonly "owner_module": "project";
+      readonly "project_id": string;
+      readonly "project_revision": number;
+      readonly "reference_kind": "project_snapshot";
+      readonly "snapshot_digest": string;
+      readonly "snapshot_id": string;
+      readonly "target_status": "available";
+      readonly "title": string;
+      readonly "validated_at": string;
+      readonly "workspace_revision": number;
+    };
+    readonly "PersonalProjectSnapshotSelectorModel": {
+      readonly "project_id": string;
+      readonly "reference_kind": "project_snapshot";
+      readonly "snapshot_id": string;
+    };
+    readonly "PersonalProjectWorkspaceReferenceModel": {
+      readonly "destination": string;
+      readonly "lifecycle": "active";
+      readonly "owner_module": "project";
+      readonly "project_id": string;
+      readonly "project_revision": number;
+      readonly "reference_kind": "project_workspace";
+      readonly "target_status": "available";
+      readonly "title": string;
+      readonly "validated_at": string;
+      readonly "workspace_revision": number;
+    };
+    readonly "PersonalProjectWorkspaceSelectorModel": {
+      readonly "project_id": string;
+      readonly "reference_kind": "project_workspace";
     };
     readonly "PersonalRemoveCollectionModel": {
       readonly "collection_id": string;
@@ -923,7 +986,7 @@ export interface components {
       readonly "label": string | null;
       readonly "record_id": string;
       readonly "record_kind": "bookmark";
-      readonly "target": components["schemas"]["PersonalLearningOpportunityReferenceModel"] | components["schemas"]["PersonalPlacedLessonReferenceModel"];
+      readonly "target": components["schemas"]["PersonalLearningOpportunityReferenceModel"] | components["schemas"]["PersonalPlacedLessonReferenceModel"] | components["schemas"]["PersonalProjectWorkspaceReferenceModel"] | components["schemas"]["PersonalProjectSnapshotReferenceModel"] | components["schemas"]["PersonalProjectArtifactReferenceModel"];
       readonly "updated_at": string;
     };
     readonly "PersonalWorkspaceCollectionModel": {
@@ -945,7 +1008,7 @@ export interface components {
       readonly "created_at": string;
       readonly "record_id": string;
       readonly "record_kind": "note";
-      readonly "target": components["schemas"]["PersonalLearningOpportunityReferenceModel"] | components["schemas"]["PersonalPlacedLessonReferenceModel"];
+      readonly "target": components["schemas"]["PersonalLearningOpportunityReferenceModel"] | components["schemas"]["PersonalPlacedLessonReferenceModel"] | components["schemas"]["PersonalProjectWorkspaceReferenceModel"] | components["schemas"]["PersonalProjectSnapshotReferenceModel"] | components["schemas"]["PersonalProjectArtifactReferenceModel"];
       readonly "title": string;
       readonly "updated_at": string;
     };

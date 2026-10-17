@@ -38,10 +38,8 @@ class PublicProjectLearningReferenceGateway:
         selector: LearningReferenceSelector,
         *,
         validated_at: datetime,
-        learner_id: str | None = None,
+        learner_id: str,
     ) -> LearningReference:
-        if learner_id is None:
-            raise PersonalWorkspaceSourceUnavailable()
         if not isinstance(
             selector,
             (

@@ -208,7 +208,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0135 | Freeze additive Project-reference contracts, reuse Project public reads through a Personal-workspace Project adapter, and prove pure core and anti-rigidity behavior | SLI-0070, CAP-0007 | none | complete |
-| WRK-0136 | Deliver Personal-workspace persistence/API/OpenAPI/generated-client support and authorization revalidation for all Project reference variants | WRK-0135 | none | active |
+| WRK-0136 | Deliver Personal-workspace persistence/API/OpenAPI/generated-client support and authorization revalidation for all Project reference variants | WRK-0135 | none | verifying |
 | JIT-C | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | JIT-C | none | captured |
 
@@ -308,3 +308,6 @@ decision still requiring approval. No lower-level completion approval exists.
 - 2026-10-17: Activated WRK-0136 from the recorded base after confirming the
   completed WRK-0135 dependency, exact API/generated-artifact scope, current CAP
   authority, resolved decision posture, and no active write collision.
+- 2026-10-17: Moved WRK-0136 to verification after the closed Project dispatcher,
+  API/generated client, PostgreSQL compatibility, and exhaustive safe-reference
+  display passed focused checks. Independent disposition remains required.

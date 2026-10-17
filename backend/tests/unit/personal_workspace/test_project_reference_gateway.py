@@ -356,9 +356,9 @@ def test_artifact_reference_varies_safe_manifest_facts_without_private_payload(
         ProjectArtifactSelector("project.demo", "artifact.inputs", 2),
     ],
 )
-def test_missing_server_owned_learner_context_fails_before_public_read(selector) -> None:
+def test_server_owned_learner_context_is_required_by_the_gateway(selector) -> None:
     projects = Projects()
-    with pytest.raises(PersonalWorkspaceSourceUnavailable):
+    with pytest.raises(TypeError):
         PublicProjectLearningReferenceGateway(projects).resolve(
             selector, validated_at=NOW
         )

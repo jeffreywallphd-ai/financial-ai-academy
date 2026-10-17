@@ -175,30 +175,62 @@ function recordName(record: PersonalWorkspaceRecord): string {
 }
 
 function TechnicalRecord({ record }: { record: PersonalWorkspaceRecord }) {
+  const target = record.target;
   return (
     <details>
       <summary>Technical record</summary>
       <dl className="saved-learning-technical">
         <div><dt>Saved record</dt><dd><code>{record.record_id}</code></dd></div>
-        <div><dt>Learning resource type</dt><dd><code>{record.target.reference_kind}</code></dd></div>
+        <div><dt>Learning resource type</dt><dd><code>{target.reference_kind}</code></dd></div>
         <div><dt>Saved record created</dt><dd><time dateTime={record.created_at}>{record.created_at}</time></dd></div>
         <div><dt>Saved record updated</dt><dd><time dateTime={record.updated_at}>{record.updated_at}</time></dd></div>
-        <div><dt>Source owner</dt><dd><code>{record.target.owner_module}</code></dd></div>
-        <div><dt>Source status</dt><dd>{record.target.target_status}</dd></div>
-        {record.target.reference_kind === "learning_opportunity" ? (
+        <div><dt>Source owner</dt><dd><code>{target.owner_module}</code></dd></div>
+        <div><dt>Source status</dt><dd>{target.target_status}</dd></div>
+        {target.owner_module === "curriculum" ? (
           <>
-            <div><dt>Learning opportunity</dt><dd><code>{record.target.opportunity_id}</code></dd></div>
-            <div><dt>Source integrity code</dt><dd><code>{record.target.source_fingerprint}</code></dd></div>
+            {target.reference_kind === "learning_opportunity" ? (
+              <>
+                <div><dt>Learning opportunity</dt><dd><code>{target.opportunity_id}</code></dd></div>
+                <div><dt>Source integrity code</dt><dd><code>{target.source_fingerprint}</code></dd></div>
+              </>
+            ) : null}
+            <div><dt>Learning placement</dt><dd><code>{target.placement_id}</code></dd></div>
+            <div><dt>Lesson package</dt><dd><code>{target.package_id}@{target.package_version}</code></dd></div>
+            <div><dt>Lesson integrity code</dt><dd><code>{target.package_digest}</code></dd></div>
+            <div><dt>Published by</dt><dd>{target.provenance.published_by}</dd></div>
+            <div><dt>Published</dt><dd><time dateTime={target.provenance.published_at}>{target.provenance.published_at}</time></dd></div>
+            <div><dt>Content reviewed</dt><dd><time dateTime={target.provenance.content_reviewed_on}>{target.provenance.content_reviewed_on}</time></dd></div>
+            <div><dt>Educational-use notice</dt><dd>{target.provenance.educational_use_notice}</dd></div>
           </>
-        ) : null}
-        <div><dt>Learning placement</dt><dd><code>{record.target.placement_id}</code></dd></div>
-        <div><dt>Lesson package</dt><dd><code>{record.target.package_id}@{record.target.package_version}</code></dd></div>
-        <div><dt>Lesson integrity code</dt><dd><code>{record.target.package_digest}</code></dd></div>
-        <div><dt>Source checked</dt><dd><time dateTime={record.target.validated_at}>{record.target.validated_at}</time></dd></div>
-        <div><dt>Published by</dt><dd>{record.target.provenance.published_by}</dd></div>
-        <div><dt>Published</dt><dd><time dateTime={record.target.provenance.published_at}>{record.target.provenance.published_at}</time></dd></div>
-        <div><dt>Content reviewed</dt><dd><time dateTime={record.target.provenance.content_reviewed_on}>{record.target.provenance.content_reviewed_on}</time></dd></div>
-        <div><dt>Educational-use notice</dt><dd>{record.target.provenance.educational_use_notice}</dd></div>
+        ) : (
+          <>
+            <div><dt>Project</dt><dd><code>{target.project_id}</code></dd></div>
+            <div><dt>Project revision</dt><dd>{target.project_revision}</dd></div>
+            <div><dt>Project workspace revision</dt><dd>{target.workspace_revision}</dd></div>
+            <div><dt>Project status</dt><dd>{target.lifecycle}</dd></div>
+            {target.reference_kind === "project_snapshot" ? (
+              <>
+                <div><dt>Saved checkpoint</dt><dd><code>{target.snapshot_id}</code></dd></div>
+                <div><dt>Checkpoint integrity code</dt><dd><code>{target.snapshot_digest}</code></dd></div>
+                <div><dt>Checkpoint saved</dt><dd><time dateTime={target.closed_at}>{target.closed_at}</time></dd></div>
+              </>
+            ) : null}
+            {target.reference_kind === "project_artifact" ? (
+              <>
+                <div><dt>Project file</dt><dd><code>{target.artifact_id}</code></dd></div>
+                <div><dt>File version</dt><dd>{target.artifact_version}</dd></div>
+                <div><dt>File kind</dt><dd>{target.artifact_kind}</dd></div>
+                <div><dt>File path</dt><dd><code>{target.logical_path}</code></dd></div>
+                <div><dt>File type</dt><dd><code>{target.media_type}</code></dd></div>
+                <div><dt>Inspection mode</dt><dd><code>{target.inspection_mode}</code></dd></div>
+                <div><dt>File size in bytes</dt><dd>{target.byte_count}</dd></div>
+                <div><dt>File integrity code</dt><dd><code>{target.content_digest}</code></dd></div>
+                <div><dt>File added</dt><dd><time dateTime={target.created_at}>{target.created_at}</time></dd></div>
+              </>
+            ) : null}
+          </>
+        )}
+        <div><dt>Source checked</dt><dd><time dateTime={target.validated_at}>{target.validated_at}</time></dd></div>
       </dl>
     </details>
   );

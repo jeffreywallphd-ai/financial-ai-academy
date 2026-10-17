@@ -43,13 +43,16 @@ from financial_ai_academy.modules.personal_workspace.public import (
     PersonalWorkspaceError,
     PersonalWorkspaceErrorCode,
     PersonalWorkspaceMutationCommand,
+    ProjectArtifactSelector,
+    ProjectSnapshotSelector,
+    ProjectWorkspaceSelector,
 )
 
 
 ROOT = Path(__file__).parents[4]
 SCHEMA_DIR = ROOT / "contracts" / "learning" / "personal-workspace" / "v1"
 FIXTURE_DIR = ROOT / "contracts" / "compatibility" / "personal-workspace" / "v1"
-NOW = datetime(2026, 10, 17, 12, 30, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 17, 13, 0, tzinfo=timezone.utc)
 
 
 class Repository:
@@ -97,16 +100,19 @@ class References:
         )
         self.reference = intent.mutation.target
         self.calls = 0
-        self.unavailable = unavailable
-
-    def resolve(self, selector, *, validated_at):
-        self.calls += 1
-        if self.unavailable:
-            raise PersonalWorkspaceSourceUnavailable()
-        assert selector == LearningOpportunitySelector(
+        self.learner_ids: list[str] = []
+        self.expected_selector = LearningOpportunitySelector(
             opportunity_id="opportunity.diversification",
             placement_id="placement.diversification",
         )
+        self.unavailable = unavailable
+
+    def resolve(self, selector, *, learner_id, validated_at):
+        self.calls += 1
+        self.learner_ids.append(learner_id)
+        if self.unavailable:
+            raise PersonalWorkspaceSourceUnavailable()
+        assert selector == self.expected_selector
         return replace(self.reference, validated_at=validated_at)
 
 
@@ -189,6 +195,107 @@ def test_create_note_resolves_source_and_materializes_revision_two() -> None:
     assert repository.workspace == accepted
     assert repository.writes == 1
     assert references.calls == 1
+    assert references.learner_ids == ["learner.one"]
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "selector"),
+    [
+        (
+            "valid-project-workspace-note.json",
+            ProjectWorkspaceSelector("project.research-1"),
+        ),
+        (
+            "valid-project-snapshot-bookmark.json",
+            ProjectSnapshotSelector("project.research-1", "snapshot.baseline-1"),
+        ),
+        (
+            "valid-project-artifact-bookmark.json",
+            ProjectArtifactSelector(
+                "project.research-1", "artifact.allocation-inputs", 3
+            ),
+        ),
+    ],
+)
+def test_project_selector_uses_server_learner_and_exact_target(
+    fixture_name: str, selector
+) -> None:
+    operations, repository, references = service()
+    contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
+    intent = contract.parse_mutation_intent(
+        (FIXTURE_DIR / fixture_name).read_bytes()
+    )
+    references.reference = intent.mutation.target
+    references.expected_selector = selector
+    command_value = PersonalWorkspaceMutationCommand(
+        schema_version="1.0.0",
+        idempotency_key=f"save.{selector.reference_kind}",
+        expected_revision=1,
+        mutation=CreateNoteCommand(
+            selector=selector,
+            title="Project evidence",
+            body="Keep this exact Project reference.",
+        ),
+    )
+
+    accepted = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.project", command_value)
+    )
+
+    assert accepted.records[0].target == replace(
+        references.reference, validated_at=NOW
+    )
+    assert references.learner_ids == ["learner.project"]
+    assert repository.writes == 1
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "selector", "mismatch"),
+    [
+        (
+            "valid-project-workspace-note.json",
+            ProjectWorkspaceSelector("project.research-1"),
+            {"project_id": "project.other"},
+        ),
+        (
+            "valid-project-snapshot-bookmark.json",
+            ProjectSnapshotSelector("project.research-1", "snapshot.baseline"),
+            {"snapshot_id": "snapshot.other"},
+        ),
+        (
+            "valid-project-artifact-bookmark.json",
+            ProjectArtifactSelector(
+                "project.research-1", "artifact.allocation-inputs", 3
+            ),
+            {"artifact_version": 4},
+        ),
+    ],
+)
+def test_project_result_mismatch_fails_before_workspace_write(
+    fixture_name: str, selector, mismatch: dict[str, object]
+) -> None:
+    operations, repository, references = service()
+    contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
+    intent = contract.parse_mutation_intent(
+        (FIXTURE_DIR / fixture_name).read_bytes()
+    )
+    references.reference = replace(intent.mutation.target, **mismatch)
+    references.expected_selector = selector
+    command_value = PersonalWorkspaceMutationCommand(
+        schema_version="1.0.0",
+        idempotency_key=f"mismatch.{selector.reference_kind}",
+        expected_revision=1,
+        mutation=CreateBookmarkCommand(selector=selector, label=None),
+    )
+
+    with pytest.raises(PersonalWorkspaceError) as failure:
+        operations.mutate_workspace(
+            MutatePersonalWorkspaceRequest("learner.project", command_value)
+        )
+
+    assert failure.value.code == PersonalWorkspaceErrorCode.SOURCE_UNAVAILABLE
+    assert repository.writes == 0
+    assert repository.workspace is None
 
 
 def test_exact_retry_precedes_source_resolution_and_changed_reuse_conflicts() -> None:

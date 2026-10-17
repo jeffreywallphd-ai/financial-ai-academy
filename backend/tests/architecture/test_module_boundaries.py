@@ -295,15 +295,16 @@ def test_modules_have_public_application_and_port_seams() -> None:
         assert (root / "adapters").is_dir()
 
 
-def test_personal_workspace_uses_only_curriculum_public_surface() -> None:
-    prefix = "financial_ai_academy.modules.curriculum"
-    imports = {
-        imported
-        for path in (MODULES / "personal_workspace").rglob("*.py")
-        for imported in imported_modules(path)
-        if imported.startswith(prefix)
-    }
-    assert imports == {f"{prefix}.public"}
+def test_personal_workspace_uses_only_owner_public_surfaces() -> None:
+    for owner in ("curriculum", "project"):
+        prefix = f"financial_ai_academy.modules.{owner}"
+        imports = {
+            imported
+            for path in (MODULES / "personal_workspace").rglob("*.py")
+            for imported in imported_modules(path)
+            if imported.startswith(prefix)
+        }
+        assert imports == {f"{prefix}.public"}
 
 
 def test_assessment_gateways_import_only_public_module_surfaces() -> None:

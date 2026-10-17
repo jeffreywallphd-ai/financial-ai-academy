@@ -18,7 +18,15 @@ from ..domain.workspace import (
     PublicationProvenance,
 )
 from ..ports.learning_reference import PersonalWorkspaceSourceUnavailable
-from ..public import LearningOpportunitySelector, LearningReferenceSelector
+from ..ports.learning_reference import LearningReferenceGatewayPort
+from ..public import (
+    LearningOpportunitySelector,
+    LearningReferenceSelector,
+    PlacedLessonSelector,
+    ProjectArtifactSelector,
+    ProjectSnapshotSelector,
+    ProjectWorkspaceSelector,
+)
 
 
 class PublicCurriculumLearningReferenceGateway:
@@ -29,6 +37,7 @@ class PublicCurriculumLearningReferenceGateway:
         self,
         selector: LearningReferenceSelector,
         *,
+        learner_id: str,
         validated_at: datetime,
     ) -> LearningReference:
         try:
@@ -73,6 +82,8 @@ class PublicCurriculumLearningReferenceGateway:
                     ),
                     validated_at=validated_at,
                 )
+            if not isinstance(selector, PlacedLessonSelector):
+                raise PersonalWorkspaceSourceUnavailable()
             lesson = self._curriculum.open_placed_lesson(
                 OpenPlacedLessonRequest(selector.placement_id)
             )
@@ -102,3 +113,43 @@ class PublicCurriculumLearningReferenceGateway:
             raise
         except Exception as error:
             raise PersonalWorkspaceSourceUnavailable() from error
+
+
+class PublicLearningReferenceGateway:
+    """Dispatch the closed selector union without weakening owner boundaries."""
+
+    def __init__(
+        self,
+        curriculum: LearningReferenceGatewayPort,
+        project: LearningReferenceGatewayPort,
+    ) -> None:
+        self._curriculum = curriculum
+        self._project = project
+
+    def resolve(
+        self,
+        selector: LearningReferenceSelector,
+        *,
+        learner_id: str,
+        validated_at: datetime,
+    ) -> LearningReference:
+        if isinstance(
+            selector, (LearningOpportunitySelector, PlacedLessonSelector)
+        ):
+            gateway = self._curriculum
+        elif isinstance(
+            selector,
+            (
+                ProjectWorkspaceSelector,
+                ProjectSnapshotSelector,
+                ProjectArtifactSelector,
+            ),
+        ):
+            gateway = self._project
+        else:
+            raise PersonalWorkspaceSourceUnavailable()
+        return gateway.resolve(
+            selector,
+            learner_id=learner_id,
+            validated_at=validated_at,
+        )

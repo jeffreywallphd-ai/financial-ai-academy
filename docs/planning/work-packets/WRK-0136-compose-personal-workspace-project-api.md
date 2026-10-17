@@ -1,7 +1,7 @@
 ---
 id: WRK-0136
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -10,7 +10,7 @@ capability: CAP-0017
 depends_on: [WRK-0135]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/application/service.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/project_reference.py", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/unit/personal_workspace/test_learning_reference_gateway.py", "backend/tests/unit/personal_workspace/test_project_reference_gateway.py", "backend/tests/unit/personal_workspace/test_personal_workspace_service.py", "backend/tests/integration/personal_workspace/test_postgres_personal_workspace.py", "backend/tests/integration/api/test_single_profile_personal_workspace_api.py", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/openapi.json", "contracts/api/README.md", "apps/web/README.md", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/modules/module-map.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0136-compose-personal-workspace-project-api.md", "docs/planning/register.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/application/service.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/project_reference.py", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/unit/personal_workspace/test_learning_reference_gateway.py", "backend/tests/unit/personal_workspace/test_project_reference_gateway.py", "backend/tests/unit/personal_workspace/test_personal_workspace_service.py", "backend/tests/integration/personal_workspace/test_postgres_personal_workspace.py", "backend/tests/integration/api/test_single_profile_personal_workspace_api.py", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/openapi.json", "contracts/api/README.md", "apps/web/README.md", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/modules/module-map.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0136-compose-personal-workspace-project-api.md", "docs/planning/register.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
 base_revision: d408affe1d01910c1ba8cd1b1c9554a11ec5393d
 claim_id: WRK-0136:427699ce-df74-4b69-bad6-b03efc4b68fb
@@ -29,9 +29,11 @@ closed reusable source dispatcher to learner-bound Project public reads, while
 browser, command-line, service, and future headless consumers receive the same
 Personal-workspace contract and authority.
 
-This packet does not add Project save controls or change the Saved Learning
-interface. Those presentation behaviors and the isolated live journey remain
-in the dependent JIT-C and JIT-D packets.
+This packet does not add Project save controls. It does keep the existing Saved
+Learning read surface compatible with the widened public response union by
+displaying closed Project-reference facts already created by an API client.
+Project entry actions and the isolated live journey remain in dependent JIT-C
+and JIT-D packets.
 
 ## Required Context
 
@@ -85,7 +87,8 @@ the nearest focused tests.
   guessed-target/confidentiality tests, and query-selected-learner refusal.
 - Regenerate and verify the reviewed OpenAPI snapshot and TypeScript client;
   add headless/client compile evidence for each Project selector and safe
-  response union without adding a browser feature.
+  response union, and keep the existing Saved Learning read surface exhaustive
+  over that widened union without adding Project save controls.
 - Update direct Personal-workspace API, contract, module, and architecture
   guidance plus SLI-0071, this packet, and the planning register.
 
@@ -94,7 +97,7 @@ the nearest focused tests.
 New database tables or columns unless existing JSON persistence fails direct
 qualification; destructive migration; Project mutation; artifact upload,
 download, content, preview, export, archive expansion, or execution; browser
-Project save entry points; Saved Learning rendering or interaction changes;
+Project save entry points or new Project interactions;
 live Docker/PostgreSQL/browser topology qualification; full accessibility or
 restart journey; Portfolio/domain resources; collaboration; search/filter;
 target refresh events; import/export; managed cloud; identity-mode or tenancy
@@ -108,7 +111,7 @@ dependency or lockfile change.
 | Application source seam | Existing port, Curriculum adapter, Project adapter, service and composition | Listed Personal-workspace application/port/adapter files and bootstrap composition | Carry server learner context and dispatch only the closed selector union |
 | Persistence compatibility | Existing JSON repository and PostgreSQL integration suite | Focused Personal-workspace PostgreSQL tests; repository code only if direct evidence proves a defect and scope is refined first | Prove additive variants need no migration and preserve replay/restart behavior |
 | Protected API | Current Personal-workspace models, permission helper and route contract | API models and focused API tests | Add closed Project selectors/references and require Project read authority |
-| Generated consumer contract | Current OpenAPI snapshot, generator and client checks | Snapshot, generated client files and listed client contract tests | Preserve one browser/headless public seam |
+| Generated consumer contract | Current OpenAPI snapshot, generator, Saved Learning reference display, and client checks | Snapshot, generated client files, exhaustive read-only reference display, and listed client/component tests | Preserve one browser/headless public seam without adding Project create controls |
 | Architecture guidance | Current API, Personal-workspace and module assurance | Listed README and architecture Markdown | Record public-only ownership, API parity and remaining UI/live gap |
 | Planning evidence | SLI-0071, WRK-0136, register | Listed planning files | Keep packet lifecycle and next seam synchronized |
 
@@ -203,7 +206,8 @@ Stop for direct Project/Curriculum internal or persistence import; learner ID
 accepted from the caller; reference granting permission; copied Project content
 or storage location; Project mutation/download/export/preview/execution;
 destructive or unplanned migration; new API route or identity model beyond the
-existing Personal-workspace operation; browser feature or styling work; active
+existing Personal-workspace operation; Project browser entry/action or styling
+work beyond exhaustive read compatibility; active
 scope collision; dependency/lockfile change; private-data leak; unresolved
 decision; conflicting canonical sources; or material CAP-0017/SLI-0071 drift.
 
@@ -230,3 +234,7 @@ ready.
   protected Personal-workspace API, preserves one generated browser/headless
   contract, and leaves browser entry points and live journey qualification to
   JIT-C/JIT-D. No lower-level approval is required.
+- 2026-10-17: Refined after client generation exposed a pre-existing Curriculum-
+  only read assumption. Added the existing Saved Learning reference display and
+  focused component test to scope solely for exhaustive safe rendering of API-
+  created Project references; Project save controls remain JIT-C work.
