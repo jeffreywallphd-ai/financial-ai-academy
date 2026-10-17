@@ -495,7 +495,13 @@ def test_source_time_equal_to_validation_is_accepted(
 
 @pytest.mark.parametrize(
     "logical_path",
-    ["../private.txt", "evidence/CON.txt", "evidence/cafe\u0301.csv"],
+    [
+        "../private.txt",
+        "evidence\\private.txt",
+        "evidence/CON.txt",
+        "evidence/cafe\u0301.csv",
+        "a" * 241,
+    ],
 )
 def test_noncanonical_project_artifact_path_fails_closed(logical_path: str) -> None:
     projects = Projects()
@@ -509,6 +515,21 @@ def test_noncanonical_project_artifact_path_fails_closed(logical_path: str) -> N
             learner_id="learner.demo",
             validated_at=NOW,
         )
+
+
+def test_project_artifact_path_accepts_exact_contract_length_boundary() -> None:
+    projects = Projects()
+    projects.workspace = workspace(
+        artifacts=(artifact(logical_path="a" * 240),)
+    )
+
+    result = PublicProjectLearningReferenceGateway(projects).resolve(
+        ProjectArtifactSelector("project.demo", "artifact.inputs", 2),
+        learner_id="learner.demo",
+        validated_at=NOW,
+    )
+    assert isinstance(result, ProjectArtifactReference)
+    assert result.logical_path == "a" * 240
 
 
 def test_project_public_failure_is_bounded_and_confidential() -> None:

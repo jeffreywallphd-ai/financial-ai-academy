@@ -18,7 +18,8 @@ snapshot material, artifact bytes, provenance URL, object key, download handle,
 permission, provider payload, or execution control. No reference copies target
 authority, grants access, or permits target mutation. Retained artifact logical
 paths continue to satisfy Project's canonical confined-path profile; traversal,
-ambiguous, reserved, control-character, and non-NFC forms fail closed.
+ambiguous, reserved, control-character, backslash, over-240-character, and
+non-NFC forms fail closed.
 
 Canonical workspace digests are SHA-256 over compact, sorted-key UTF-8 JSON
 after removing `workspace_digest`. The pure Personal workspace adapter applies

@@ -18,7 +18,12 @@ _RESERVED_PROJECT_PATH_SEGMENT = re.compile(
 def is_canonical_project_logical_path(value: str) -> bool:
     """Match the canonical Project path profile without owning Project state."""
 
-    if unicodedata.normalize("NFC", value) != value:
+    if (
+        not value
+        or len(value) > 240
+        or "\\" in value
+        or unicodedata.normalize("NFC", value) != value
+    ):
         return False
     return all(
         segment
