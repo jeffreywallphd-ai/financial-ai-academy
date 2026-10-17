@@ -1,7 +1,7 @@
 ---
 id: WRK-0136
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/application/service.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/project_reference.py", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/unit/personal_workspace/test_learning_reference_gateway.py", "backend/tests/unit/personal_workspace/test_project_reference_gateway.py", "backend/tests/unit/personal_workspace/test_personal_workspace_service.py", "backend/tests/integration/personal_workspace/test_postgres_personal_workspace.py", "backend/tests/integration/api/test_single_profile_personal_workspace_api.py", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/openapi.json", "contracts/api/README.md", "apps/web/README.md", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/modules/module-map.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0136-compose-personal-workspace-project-api.md", "docs/planning/register.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d408affe1d01910c1ba8cd1b1c9554a11ec5393d
+claim_id: WRK-0136:427699ce-df74-4b69-bad6-b03efc4b68fb
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T13:10:53Z
 ---
 
 # Agent Work Packet: Compose Personal-Workspace Project API
