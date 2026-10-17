@@ -1,7 +1,7 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/presentation-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0156-qualify-presentation-preferences-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: a2fe0df6dcc8341f93523bc01b175a31af6345f7
+claim_id: WRK-0156:b3c35c5a-7bca-457a-89c7-3ce10eb50e0d
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-17T22:45:26Z
 ---
 
 # Agent Work Packet: Qualify the Presentation Preferences Live Flow
@@ -269,3 +269,6 @@ changed, then leave SLI-0075 closure-ready.
 - 2026-10-17: Marked ready after packet, dependency, decision-readiness,
   public-API, all-combination, concurrency, closed-capture, exact write-scope,
   documentation, and planning validation passed without CAP or slice drift.
+- 2026-10-17: Activated from recorded base `a2fe0df` after validating the
+  completed dependency, current CAP authority, qualification-only scope,
+  exact file ownership, and no active coordination collision.

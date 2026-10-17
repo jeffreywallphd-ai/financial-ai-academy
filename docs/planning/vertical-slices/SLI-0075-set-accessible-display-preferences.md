@@ -218,7 +218,7 @@ packet starts. Proposed dependency-ordered seams are:
 | WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
 | WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | complete |
 | WRK-0155 | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | complete |
-| WRK-0156 | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155 | none | ready |
+| WRK-0156 | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155 | none | active |
 
 Detailed packet plans will declare exact files, generated artifacts, checks,
 and stop conditions immediately before each packet starts. Packet identifiers
@@ -348,3 +348,5 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
   protective browser behavior, privacy/isolation, and exact cleanup.
 - 2026-10-17: Marked WRK-0156 ready after deterministic packet, dependency,
   contract, decision, write-scope, and planning validation.
+- 2026-10-17: Activated WRK-0156 from the current CAP branch after a
+  collision-free bounded claim.
