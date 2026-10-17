@@ -5,11 +5,17 @@ from __future__ import annotations
 from dataclasses import asdict
 import base64
 import binascii
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Annotated, Literal, Union
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_serializer,
+    field_validator,
+)
 
 from financial_ai_academy.modules.adaptation.public import (
     ActivityLaunchResolution,
@@ -76,6 +82,28 @@ class ApiModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+def _project_timestamp_json(value: datetime) -> str:
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError("Project timestamps must include an offset.")
+    normalized = value.astimezone(timezone.utc)
+    if normalized.microsecond:
+        rendered = normalized.strftime("%Y-%m-%dT%H:%M:%S.%f").rstrip("0")
+    else:
+        rendered = normalized.strftime("%Y-%m-%dT%H:%M:%S")
+    return f"{rendered}Z"
+
+
+class ProjectTimestampModel(ApiModel):
+    """Keep Project JSON timestamps aligned with its canonical contracts."""
+
+    @field_serializer("*", check_fields=False, when_used="json")
+    def _serialize_project_timestamp_fields(self, value: object):
+        # Omitting the return annotation preserves the OpenAPI date-time schema.
+        if isinstance(value, datetime):
+            return _project_timestamp_json(value)
+        return value
+
+
 class ApiErrorEnvelope(ApiModel):
     error_version: Literal["1.0"] = "1.0"
     code: str = Field(min_length=1, max_length=80)
@@ -130,7 +158,7 @@ class ProjectCreateRequestModel(ApiModel):
     origin: ProjectOriginModel
 
 
-class ProjectShellResponseModel(ApiModel):
+class ProjectShellResponseModel(ProjectTimestampModel):
     schema_version: Literal["1.0.0"]
     project_id: str
     learner_id: str
@@ -166,7 +194,7 @@ Identifier = Annotated[
 Digest = Annotated[str, Field(pattern=r"^[a-f0-9]{64}$")]
 
 
-class ProjectNoteResponseModel(ApiModel):
+class ProjectNoteResponseModel(ProjectTimestampModel):
     note_id: Identifier
     note_version: int = Field(ge=1)
     title: str = Field(min_length=1, max_length=120)
@@ -175,7 +203,7 @@ class ProjectNoteResponseModel(ApiModel):
     updated_at: datetime
 
 
-class ProjectReferenceResponseModel(ApiModel):
+class ProjectReferenceResponseModel(ProjectTimestampModel):
     reference_id: Identifier
     reference_version: int = Field(ge=1)
     title: str = Field(min_length=1, max_length=160)
@@ -205,7 +233,7 @@ class ProjectEnvironmentModel(ApiModel):
     dependency_digest: Digest | None = None
 
 
-class ProjectArtifactInputModel(ApiModel):
+class ProjectArtifactInputModel(ProjectTimestampModel):
     artifact_kind: Literal[
         "dataset", "notebook", "code", "environment", "result",
         "reflection", "supporting_file",
@@ -234,7 +262,7 @@ class ProjectArtifactResponseModel(ProjectArtifactInputModel):
     created_at: datetime
 
 
-class ProjectDomainLinkInputModel(ApiModel):
+class ProjectDomainLinkInputModel(ProjectTimestampModel):
     link_type: Literal["context", "input", "comparison", "output"]
     owner_module: Identifier
     resource_type: Identifier
@@ -343,7 +371,7 @@ class ProjectArtifactUploadRequestModel(ApiModel):
         return value
 
 
-class ProjectWorkspaceResponseModel(ApiModel):
+class ProjectWorkspaceResponseModel(ProjectTimestampModel):
     schema_version: Literal["1.0.0"]
     project_id: Identifier
     learner_id: Identifier
@@ -383,7 +411,7 @@ class ProjectDomainLinkReferenceModel(ApiModel):
     owner_reference_digest: Digest
 
 
-class ProjectSnapshotMaterialModel(ApiModel):
+class ProjectSnapshotMaterialModel(ProjectTimestampModel):
     project_id: Identifier
     learner_id: Identifier
     project_revision: int = Field(ge=1)
@@ -397,7 +425,7 @@ class ProjectSnapshotMaterialModel(ApiModel):
     domain_links: list[ProjectDomainLinkReferenceModel] = Field(max_length=50)
 
 
-class ProjectSnapshotResponseModel(ApiModel):
+class ProjectSnapshotResponseModel(ProjectTimestampModel):
     schema_version: Literal["1.0.0"]
     snapshot_id: Identifier
     snapshot_digest: Digest
@@ -438,7 +466,7 @@ class ProjectEvidenceExportMaterialModel(ApiModel):
     excluded_artifacts: list[ExcludedEvidenceArtifactModel] = Field(max_length=100)
 
 
-class ProjectEvidenceExportResponseModel(ApiModel):
+class ProjectEvidenceExportResponseModel(ProjectTimestampModel):
     schema_version: Literal["1.0.0"]
     export_id: Identifier
     export_digest: Digest

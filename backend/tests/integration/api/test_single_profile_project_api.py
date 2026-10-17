@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import hashlib
+import json
 import os
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
@@ -11,10 +12,16 @@ from pathlib import Path
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from pydantic_core import PydanticSerializationError
 
 from financial_ai_academy.bootstrap.composition import build_application_services
 from financial_ai_academy.bootstrap.settings import SingleProfileApplicationSettings
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
+from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
+from financial_ai_academy.hosts.api.models import (
+    ProjectEvidenceExportResponseModel,
+    ProjectShellResponseModel,
+)
 from financial_ai_academy.modules.content.public import AdmitLessonPackageRequest
 from financial_ai_academy.modules.curriculum.public import (
     CreateLessonPlacementRequest,
@@ -61,7 +68,7 @@ from financial_ai_academy.platform.security.single_profile_policy import (
 
 ORIGIN = "http://127.0.0.1:8000"
 COOKIE = "financial_ai_academy_session"
-NOW = datetime(2026, 10, 16, tzinfo=timezone.utc)
+NOW = datetime(2026, 10, 16, 14, 30, 15, 847480, tzinfo=timezone.utc)
 ROOT = Path(__file__).resolve().parents[4]
 POSTGRES_DSN = os.environ.get("FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN")
 PROJECT_FIXTURE = (
@@ -69,6 +76,7 @@ PROJECT_FIXTURE = (
     / "contracts/compatibility/lesson-package/v1/approved"
     / "intro-risk-return-project"
 )
+OPENAPI = ROOT / "contracts/api/openapi.json"
 
 
 def project_curriculum_graph(
@@ -305,6 +313,104 @@ def independent_payload() -> dict[str, object]:
     }
 
 
+def test_project_response_timestamps_preserve_export_digest_material() -> None:
+    timestamp_without_fraction = "2026-10-17T02:18:48Z"
+    timestamp_with_trimmed_fraction = "2026-10-17T02:18:48.84748Z"
+    timestamp_with_full_fraction = "2026-10-17T02:18:48.123456Z"
+    snapshot_digest = "a" * 64
+    expected_export = {
+        "format": "project-evidence-manifest-v1",
+        "project_id": "project-1",
+        "snapshot_id": "snapshot-1",
+        "snapshot_digest": snapshot_digest,
+        "snapshot_record": {
+            "schema_version": "1.0.0",
+            "snapshot_id": "snapshot-1",
+            "snapshot_digest": snapshot_digest,
+            "snapshot": {
+                "project_id": "project-1",
+                "learner_id": "learner-1",
+                "project_revision": 1,
+                "project_shell_digest": "b" * 64,
+                "workspace_revision": 2,
+                "workspace_created_at": timestamp_without_fraction,
+                "workspace_updated_at": timestamp_with_trimmed_fraction,
+                "notes": [],
+                "references": [],
+                "artifacts": [],
+                "domain_links": [],
+            },
+            "closed_at": timestamp_with_full_fraction,
+        },
+        "workspace_record": {
+            "schema_version": "1.0.0",
+            "project_id": "project-1",
+            "learner_id": "learner-1",
+            "workspace_revision": 2,
+            "notes": [],
+            "references": [],
+            "artifacts": [],
+            "domain_links": [],
+            "created_at": timestamp_without_fraction,
+            "updated_at": timestamp_with_trimmed_fraction,
+        },
+        "artifact_files": [],
+        "excluded_artifacts": [],
+    }
+    expected_export_digest = hashlib.sha256(
+        json.dumps(
+            expected_export,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()
+    response = ProjectEvidenceExportResponseModel.model_validate(
+        {
+            "schema_version": "1.0.0",
+            "export_id": "export-1",
+            "export_digest": expected_export_digest,
+            "export": expected_export,
+            "generated_at": timestamp_with_trimmed_fraction,
+        }
+    )
+
+    payload = response.model_dump(mode="json")
+
+    assert payload["generated_at"] == timestamp_with_trimmed_fraction
+    assert payload["export"] == expected_export
+    assert hashlib.sha256(
+        json.dumps(
+            payload["export"],
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest() == payload["export_digest"]
+
+
+def test_project_response_timestamp_serialization_rejects_naive_time() -> None:
+    response = ProjectShellResponseModel(
+        schema_version="1.0.0",
+        project_id="project-1",
+        learner_id="learner-1",
+        title="Compare evidence",
+        charter="Compare educational evidence.",
+        origin={"origin_type": "independent"},
+        lifecycle="active",
+        revision=1,
+        created_at=datetime(2026, 10, 17, 2, 18, 48),
+        updated_at=NOW,
+    )
+
+    with pytest.raises(PydanticSerializationError, match="include an offset"):
+        response.model_dump(mode="json")
+
+
+def test_project_timestamp_serialization_preserves_reviewed_openapi() -> None:
+    assert OPENAPI.read_bytes() == generate_bytes()
+
+
 def test_authenticated_http_create_list_and_read_share_one_public_api() -> None:
     subject = client()
     subject.cookies.set(COOKIE, "session-a")
@@ -319,6 +425,8 @@ def test_authenticated_http_create_list_and_read_share_one_public_api() -> None:
     assert listed.json()["records"] == [created.json()]
     assert opened.json() == created.json()
     assert created.json()["learner_id"] == "learner-a"
+    assert created.json()["created_at"] == "2026-10-16T14:30:15.84748Z"
+    assert created.json()["updated_at"] == "2026-10-16T14:30:15.84748Z"
     assert {"idempotency_key", "request_fingerprint", "storage"}.isdisjoint(
         created.json()
     )
