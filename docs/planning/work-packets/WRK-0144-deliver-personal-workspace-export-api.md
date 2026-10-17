@@ -213,3 +213,8 @@ compatibility assumptions; and the remaining browser/live-recovery packets.
 - 2026-10-17: Activated from recorded base `282eb4d` after confirming the
   current CAP binding, completed WRK-0143 dependency, exact bounded scope,
   resolved decisions, and no active coordination collision.
+- 2026-10-17: Submitted exact candidate `a5b514d` after focused application,
+  API, generated-client, and real-PostgreSQL qualification. Independent review
+  identified one substantive request-closure gap: non-empty GET bodies were
+  tolerated even though their fields could not override server authority. The
+  corrective descendant rejects query and body input before workspace access.

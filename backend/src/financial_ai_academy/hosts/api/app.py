@@ -862,14 +862,14 @@ def create_app(services: ApiServices) -> FastAPI:
         responses=_ERROR_RESPONSES,
         tags=["personal-workspace"],
     )
-    def export_personal_workspace(
+    async def export_personal_workspace(
         request: Request,
         context: LearnerContext = Depends(personal_workspace_read_context),
     ) -> PersonalWorkspaceExportResponseModel:
-        if request.query_params:
+        if request.query_params or await request.body():
             raise PersonalWorkspaceError(
                 PersonalWorkspaceErrorCode.INVALID_REQUEST,
-                "Saved learning export does not accept query selectors.",
+                "Saved learning export does not accept request input.",
             )
         exported = personal_workspace_operations().export_workspace(
             ExportPersonalWorkspaceRequest(learner_id=context.learner_id)

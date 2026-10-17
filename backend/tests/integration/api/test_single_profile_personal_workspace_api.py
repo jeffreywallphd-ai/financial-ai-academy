@@ -305,6 +305,30 @@ def test_export_rejects_query_selectors_before_workspace_access() -> None:
     assert workspaces.export_requests == []
 
 
+@pytest.mark.parametrize(
+    "body",
+    (
+        {"learner_id": "learner.other"},
+        {"generated_at": "2026-10-17T13:00:00Z"},
+        {"workspace_digest": "a" * 64},
+        {"storage_destination": "private-export"},
+    ),
+)
+def test_export_rejects_request_bodies_before_workspace_access(
+    body: dict[str, str],
+) -> None:
+    workspaces = Workspaces()
+    response = client(("personal_workspace.read",), workspaces).request(
+        "GET",
+        "/api/v1/personal-workspace/export",
+        json=body,
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_request"
+    assert workspaces.export_requests == []
+
+
 def test_authenticated_write_uses_server_learner_and_selector_command() -> None:
     workspaces = Workspaces()
     response = client(
