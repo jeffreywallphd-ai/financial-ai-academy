@@ -1,7 +1,7 @@
 ---
 id: SLI-0073
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -236,7 +236,7 @@ packet starts. The dependency-ordered seams are:
 | WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | complete |
 | WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | complete |
 | WRK-0145 | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | WRK-0144 | none | complete |
-| WRK-0146 | Qualify cumulative browser/headless export parity, maximum bounds, interruption, target isolation, restart, stopped-source empty-target community recovery, containment, cleanup, and CAP closure | WRK-0145 | none | verifying |
+| WRK-0146 | Qualify cumulative browser/headless export parity, maximum bounds, interruption, target isolation, restart, stopped-source empty-target community recovery, containment, cleanup, and CAP closure | WRK-0145 | none | complete |
 
 Dependent packets are not claimed until their predecessor is complete. The
 sequential default avoids shared contract, client, API, UI, and local-live
@@ -322,6 +322,42 @@ accessibility; compatibility and migration impact; assumptions; unqualified
 profiles; residual gaps; and CAP-package conformance. Local approval and review
 records remain ignored; no slice or packet approval is requested.
 
+### Completion Evidence
+
+- WRK-0143 through WRK-0146 completed in dependency order. Together they
+  deliver the closed owner export view, exact capacity outcomes, removal
+  isolation, protected application and HTTP operations, reviewed OpenAPI and
+  generated-client parity, the explicit browser download, and cumulative
+  restart and recovery qualification.
+- WRK-0146's exact candidate
+  `94ef909e79499ebdced8a42bb410ee354375a793` produced the qualifying local
+  receipt at
+  `.local-codex/control-plane/receipts/WRK-0146/94ef909e79499ebdced8a42bb410ee354375a793/20261017T181332Z-50e8502d-2970-4c45-922e-f952d7e856d9.json`
+  with digest
+  `sha256:b845deb436f956b97eddb7b640b331c678c1bcd429a79946883d2552f3f01881`.
+- The focused recovery corpus passed 66 tests. Architecture passed 17 tests,
+  security passed 10 control groups, documentation covered 385 Markdown
+  files, planning covered 237 artifacts, and the fixed aggregate readiness
+  gate passed all 29 checks.
+- The disposable PostgreSQL 18.4 and pinned-Chromium topology proved exact
+  browser/headless export parity, query and replay continuity, structural plus
+  row-data restore equivalence, runner-root confinement, populated-target
+  refusal, restored-session revocation, pre-restore-cookie denial,
+  fresh-session success, source immutability, ordered redacted evidence, and
+  bounded cleanup.
+- Exact-limit refusal for records, collections, and collection members leaves
+  query, export, removal, and unrelated valid work available. Unicode, varied
+  count/order, optional fields, malformed input, process failure, and cleanup
+  cases keep the qualification focused on invariants rather than fixture
+  incidental detail.
+- No product restore API, import, migration, managed-cloud policy, artifact
+  execution, provider integration, financial action, or separate AI mutation
+  authority was added. Operator recovery tooling, manifests, roles,
+  encryption, offsite retention, cross-version support, broader failure
+  matrices, RPO/RTO, and managed-cloud recovery remain explicit later gaps.
+- The completed packet set conforms to CAP-0017 without material drift. Local
+  approval and reviewer records remain only in ignored storage.
+
 ## Planning History
 
 - 2026-10-17: Refined the final CAP-0017 manifest increment after SLI-0070
@@ -376,3 +412,7 @@ records remain ignored; no slice or packet approval is requested.
   implementation gates confirmed its completed dependency, current CAP
   authority, exact qualification scope, resolved decision posture, and absence
   of an active coordination collision.
+- 2026-10-17: Completed WRK-0146 and SLI-0073 after the corrected exact
+  candidate passed affected verification, all tracked findings were closed in
+  ignored local controller state, the full readiness gate passed, and recovery
+  evidence remained inside the accepted community-profile boundary.

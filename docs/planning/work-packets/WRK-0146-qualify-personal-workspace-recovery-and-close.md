@@ -1,7 +1,7 @@
 ---
 id: WRK-0146
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -270,3 +270,10 @@ cloud, separate AI authority, artifact execution, or financial action changed.
   logical capture, populated-target refusal, empty-target restore, restored-
   session revocation, fresh-session replay, source isolation, redacted report,
   and bounded cleanup all passed in the disposable local topology.
+- 2026-10-17: Completed at exact candidate
+  `94ef909e79499ebdced8a42bb410ee354375a793` with qualifying receipt digest
+  `sha256:b845deb436f956b97eddb7b640b331c678c1bcd429a79946883d2552f3f01881`.
+  The focused recovery corpus passed 66 tests, the live stopped-source restore
+  completed against PostgreSQL 18.4 and pinned Chromium, and the aggregate
+  readiness gate passed all 29 checks without widening the product recovery
+  boundary.

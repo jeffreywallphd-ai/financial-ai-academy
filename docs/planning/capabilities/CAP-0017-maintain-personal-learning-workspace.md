@@ -1,9 +1,9 @@
 ---
 id: CAP-0017
 kind: capability
-planning_status: ready
+planning_status: complete
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0017
 updated: 2026-10-17
 parent: null
 depends_on: ["CAP-0001", "CAP-0007"]
@@ -92,6 +92,28 @@ project, financial, or AI record.
   optional resource adapters isolate only those references and never lock the
   base workspace.
 
+## Completion Evidence
+
+- SLI-0070 through SLI-0073 are complete. The shared Personal-workspace core
+  now supports deterministic notes, bookmarks, collections, exact Curriculum
+  and Project references, query and refresh, removal, export, capacity
+  outcomes, and restart/recovery-safe behavior through one protected API used
+  by browser and headless clients.
+- The final exact candidate
+  `94ef909e79499ebdced8a42bb410ee354375a793` has qualifying receipt digest
+  `sha256:b845deb436f956b97eddb7b640b331c678c1bcd429a79946883d2552f3f01881`.
+  The cumulative live route passed against PostgreSQL 18.4 and pinned Chromium,
+  and the aggregate readiness gate passed all 29 checks.
+- Personal workspace retains organization and reference authority only.
+  Curriculum, Project, Assessment, Learner model, Audit, Identity, and other
+  domain owners remain authoritative; saved references grant no permission,
+  copied persistence, execution, or target mutation.
+- The capability remains API-first and deployment-neutral. Managed-cloud
+  tenancy and recovery, collaboration, portable multi-module import/export,
+  active artifact execution, later resource adapters, and a separate headless
+  AI mode remain outside this completed package and require their own governed
+  capabilities or decisions.
+
 ## Risks and Non-Goals
 
 A general workspace can become a god module. This CAP owns organization and
@@ -118,4 +140,9 @@ accessibility, and verification documentation.
 - 2026-10-17: ADR-0021 resolved ownership with a focused Personal workspace
   module. The outcome and four-slice manifest remain unchanged; the package is
   returned to shaping because its decision posture materially changed.
+- 2026-10-17: Completed CAP-0017 after all four manifest slices closed with
+  cumulative contract, PostgreSQL, protected API, generated-client, browser,
+  headless, accessibility, anti-rigidity, restart, and bounded community-
+  recovery evidence. No material package drift or unresolved decision gate
+  remains.
 
