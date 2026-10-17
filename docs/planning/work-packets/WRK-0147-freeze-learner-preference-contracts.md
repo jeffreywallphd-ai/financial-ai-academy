@@ -1,7 +1,7 @@
 ---
 id: WRK-0147
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -282,3 +282,8 @@ dependency-ready.
 - 2026-10-17: Moved to exact-candidate verification after 60 focused Learner-
   model tests, 17 architecture checks, 10 security control groups, planning,
   documentation, whitespace, and all 29 aggregate readiness checks passed.
+- 2026-10-17: Completed the versioned learner-preference contract and pure
+  core with closed profile, mutation, history, and export shapes; fixed ASCII
+  and Unicode digest vectors; bounded malformed-text failures; explicit global
+  entry-ID uniqueness; and no persistence, API, browser, inference, evidence,
+  recommendation, provider, or external-action behavior.
