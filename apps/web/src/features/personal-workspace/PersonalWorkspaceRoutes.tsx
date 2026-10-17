@@ -9,6 +9,7 @@ import {
 import { StatusPanel } from "../../components/StatusPanel";
 import type {
   SaveLearningRouteState,
+  PersonalWorkspaceExporter,
   WorkspaceActionState,
   WorkspaceRouteState,
 } from "./model";
@@ -62,7 +63,11 @@ function Failure({
   return <StatusPanel actionLabel="Try again" description="The page could not be completed safely. No technical or private details were displayed." icon="error-circle" onAction={onRetry} title="Something went wrong" tone="danger" />;
 }
 
-export function PersonalWorkspaceRoute() {
+export function PersonalWorkspaceRoute({
+  exportWorkspace,
+}: {
+  exportWorkspace: PersonalWorkspaceExporter;
+}) {
   const state = useLoaderData<WorkspaceRouteState>();
   const actionState = useActionData<WorkspaceActionState>();
   const navigation = useNavigation();
@@ -72,7 +77,7 @@ export function PersonalWorkspaceRoute() {
     return <PersonalWorkspaceLoadingState />;
   }
   return state.status === "ready" ? (
-    <PersonalWorkspacePage actionState={actionState} busy={navigation.state === "submitting"} result={state.result} search={state.search} workspace={state.workspace} />
+    <PersonalWorkspacePage actionState={actionState} busy={navigation.state === "submitting"} exportWorkspace={exportWorkspace} result={state.result} search={state.search} workspace={state.workspace} />
   ) : (
     <Failure onReturn={() => void navigate(state.status === "invalid-query" ? "/saved-learning" : "/learn")} onRetry={() => revalidator.revalidate()} returnLabel="Return to learning library" status={state.status} />
   );

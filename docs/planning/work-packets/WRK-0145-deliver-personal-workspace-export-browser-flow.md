@@ -1,7 +1,7 @@
 ---
 id: WRK-0145
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -224,3 +224,10 @@ recovery and slice-closure work.
 - 2026-10-17: Activated from the recorded base after confirming the current CAP
   binding, completed dependency, exact bounded scope, resolved decisions, and
   no active coordination collision.
+- 2026-10-17: Implemented the explicit generated-client export flow with deep
+  closed-response and displayed-workspace binding, a stable ID-free JSON
+  download, accessible technical facts and recovery states, and distinct
+  capacity guidance that leaves removal controls available. Focused model and
+  component tests passed 102 checks, focused Chromium passed 19 journeys, and
+  type, lint, build, learner-language, design, documentation, planning, and
+  whitespace checks passed before exact-candidate verification.

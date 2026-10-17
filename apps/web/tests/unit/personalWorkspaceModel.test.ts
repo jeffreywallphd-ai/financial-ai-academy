@@ -3,11 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import type { FinancialAcademyApiClient } from "../../src/generated/api-client";
 import {
   createPersonalWorkspaceAction,
+  createPersonalWorkspaceExporter,
   createPersonalWorkspaceLoader,
 } from "../../src/features/personal-workspace/api";
 import {
   parseSaveSelection,
   parseWorkspaceSearch,
+  personalWorkspaceExportIsSafe,
   personalWorkspaceIsSafe,
   personalWorkspaceQueriesMatch,
   personalWorkspaceQueryDigest,
@@ -129,6 +131,16 @@ const workspace = {
   workspace_digest: "d".repeat(64),
 };
 
+function workspaceExport(overrides: Record<string, unknown> = {}) {
+  return {
+    schema_version: "1.0.0",
+    generated_at: "2026-10-17T10:05:00Z",
+    workspace,
+    workspace_digest: workspace.workspace_digest,
+    ...overrides,
+  };
+}
+
 function workspaceWithTarget(target: Record<string, unknown>) {
   return {
     ...workspace,
@@ -187,6 +199,72 @@ function accepted(data: unknown, status = 200) {
 }
 
 describe("Personal workspace browser model", () => {
+  it("accepts only a closed export whose digest and times match its workspace", () => {
+    expect(personalWorkspaceExportIsSafe(workspaceExport())).toBe(true);
+    expect(personalWorkspaceExportIsSafe(workspaceExport({ private_key: "secret" }))).toBe(false);
+    expect(personalWorkspaceExportIsSafe(workspaceExport({ workspace_digest: "e".repeat(64) }))).toBe(false);
+    expect(personalWorkspaceExportIsSafe(workspaceExport({ generated_at: "yesterday" }))).toBe(false);
+    expect(personalWorkspaceExportIsSafe(workspaceExport({ generated_at: "2026-10-17T10:03:00Z" }))).toBe(false);
+    expect(personalWorkspaceExportIsSafe(workspaceExport({
+      workspace: { ...workspace, storage_key: "private/workspace" },
+    }))).toBe(false);
+  });
+
+  it("exports through the generated GET without query or body authority", async () => {
+    const get = vi.fn().mockResolvedValue(accepted(workspaceExport()));
+    const exporter = createPersonalWorkspaceExporter(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+
+    const outcome = await exporter(workspace.revision, workspace.workspace_digest);
+
+    expect(outcome).toEqual(expect.objectContaining({
+      status: "ready",
+      fileName: "saved-learning-export.json",
+      export: workspaceExport(),
+    }));
+    expect(outcome.status === "ready" ? JSON.parse(outcome.content) : null).toEqual(workspaceExport());
+    expect(get).toHaveBeenCalledWith("/api/v1/personal-workspace/export", {});
+  });
+
+  it("rejects changed or malformed exports before a browser download", async () => {
+    const changed = createPersonalWorkspaceExporter(
+      { GET: vi.fn().mockResolvedValue(accepted(workspaceExport())) } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    expect(await changed(workspace.revision + 1, workspace.workspace_digest)).toEqual({ status: "changed" });
+    expect(await changed(workspace.revision, "e".repeat(64))).toEqual({ status: "changed" });
+
+    const malformed = createPersonalWorkspaceExporter(
+      { GET: vi.fn().mockResolvedValue(accepted(workspaceExport({ private_key: "secret" }))) } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    expect(await malformed(workspace.revision, workspace.workspace_digest)).toEqual({ status: "invalid-response" });
+  });
+
+  it("renews an expired session once and maps closed export failures", async () => {
+    const profile = session();
+    const get = vi.fn()
+      .mockResolvedValueOnce(accepted({ code: "unauthorized" }, 401))
+      .mockResolvedValueOnce(accepted(workspaceExport()));
+    const exporter = createPersonalWorkspaceExporter(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      profile,
+    );
+    expect(await exporter(workspace.revision, workspace.workspace_digest)).toEqual(expect.objectContaining({ status: "ready" }));
+    expect(profile.invalidate).toHaveBeenCalledOnce();
+    expect(profile.ensure).toHaveBeenCalledTimes(2);
+
+    for (const [status, outcome] of [[403, "forbidden"], [409, "unavailable"], [503, "unavailable"], [500, "unexpected"]] as const) {
+      const failed = createPersonalWorkspaceExporter(
+        { GET: vi.fn().mockResolvedValue(accepted({ code: "failure" }, status)) } as unknown as FinancialAcademyApiClient,
+        session(),
+      );
+      expect(await failed(workspace.revision, workspace.workspace_digest)).toEqual({ status: outcome });
+    }
+  });
+
   it("accepts canonical Unicode boundaries, multiline notes, tabs, and an empty bookmark label", () => {
     expect(personalWorkspaceIsSafe({
       ...workspace,

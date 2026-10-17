@@ -5,12 +5,14 @@ import { Icon } from "../../components/Icon";
 import {
   type PersonalWorkspace,
   type PersonalWorkspaceCollection,
+  type PersonalWorkspaceExporter,
   type PersonalWorkspaceMutation,
   type PersonalWorkspaceQueryResult,
   type PersonalWorkspaceRecord,
   type SaveSelection,
   type WorkspaceSearchValues,
   type WorkspaceActionState,
+  type WorkspaceExportOutcome,
   workspaceSearchHref,
 } from "./model";
 
@@ -99,6 +101,24 @@ function actionMessage(kind: WorkspaceActionState["kind"]): {
   detail: string;
   title: string;
 } {
+  if (kind === "record-limit") {
+    return {
+      title: "Saved learning is full",
+      detail: "You can keep up to 200 notes and bookmarks. Remove one you no longer need, then try again.",
+    };
+  }
+  if (kind === "collection-limit") {
+    return {
+      title: "Collection limit reached",
+      detail: "You can keep up to 50 collections. Remove a collection you no longer need, then try again. Removing a collection does not remove its saved items.",
+    };
+  }
+  if (kind === "collection-member-limit") {
+    return {
+      title: "Collection is full",
+      detail: "A collection can contain up to 100 saved items. Remove an item from this collection or reorganize your saved learning, then try again.",
+    };
+  }
   if (kind === "stale") {
     return {
       title: "Saved learning changed",
@@ -151,6 +171,50 @@ function actionMessage(kind: WorkspaceActionState["kind"]): {
     title: "Change not completed",
     detail: "We couldn't complete this change safely. No technical or private details were shown.",
   };
+}
+
+function startWorkspaceDownload(content: string, fileName: string) {
+  const url = URL.createObjectURL(
+    new Blob([content], { type: "application/json" }),
+  );
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
+}
+
+function WorkspaceExportNotice({
+  outcome,
+}: {
+  outcome: WorkspaceExportOutcome | null;
+}) {
+  if (!outcome) return null;
+  const message = outcome.status === "ready"
+    ? "Your Saved learning download is ready."
+    : outcome.status === "changed"
+      ? "Your saved learning changed while the download was prepared. Refresh this page and try again."
+      : outcome.status === "invalid-response"
+        ? "The download did not pass its integrity check, so it was not saved."
+        : outcome.status === "unauthorized" || outcome.status === "forbidden"
+          ? "Your private learner access could not be confirmed. The download was not saved."
+          : "The download is temporarily unavailable. Try again.";
+  return (
+    <div aria-live="polite" className={outcome.status === "ready" ? "saved-learning-results" : "saved-learning-alert"} role="status">
+      <p>{message}</p>
+      {outcome.status === "ready" ? (
+        <details>
+          <summary>Technical record</summary>
+          <dl className="saved-learning-technical">
+            <div><dt>Data format version</dt><dd><code>{outcome.export.schema_version}</code></dd></div>
+            <div><dt>Generated</dt><dd><time dateTime={outcome.export.generated_at}>{outcome.export.generated_at}</time></dd></div>
+            <div><dt>Workspace revision</dt><dd>{outcome.export.workspace.revision}</dd></div>
+            <div><dt>Workspace integrity code</dt><dd><code>{outcome.export.workspace_digest}</code></dd></div>
+          </dl>
+        </details>
+      ) : null}
+    </div>
+  );
 }
 
 export function WorkspaceActionNotice({
@@ -522,16 +586,20 @@ function CollectionPanel({
 export function PersonalWorkspacePage({
   actionState,
   busy,
+  exportWorkspace,
   result,
   search = {},
   workspace,
 }: {
   actionState?: WorkspaceActionState | undefined;
   busy: boolean;
+  exportWorkspace: PersonalWorkspaceExporter;
   result?: PersonalWorkspaceQueryResult | undefined;
   search?: WorkspaceSearchValues | undefined;
   workspace: PersonalWorkspace;
 }) {
+  const [exportOutcome, setExportOutcome] = useState<WorkspaceExportOutcome | null>(null);
+  const [exportPending, setExportPending] = useState(false);
   const retryCollectionMutation = preparedMutation(actionState, "create-collection");
   const retryCollection = retryCollectionMutation?.operation === "create_collection"
     ? retryCollectionMutation
@@ -555,13 +623,37 @@ export function PersonalWorkspacePage({
     visibleRecords.every(
       (record, index) => record.record_id === workspace.records[index]?.record_id,
     );
+  async function handleExport() {
+    setExportOutcome(null);
+    setExportPending(true);
+    try {
+      const outcome = await exportWorkspace(
+        workspace.revision,
+        workspace.workspace_digest,
+      );
+      if (outcome.status === "ready") {
+        startWorkspaceDownload(outcome.content, outcome.fileName);
+      }
+      setExportOutcome(outcome);
+    } catch {
+      setExportOutcome({ status: "unavailable" });
+    } finally {
+      setExportPending(false);
+    }
+  }
   return (
     <section className="saved-learning-page">
       <header className="saved-learning-page__header">
         <p className="eyebrow"><Icon name="learn" />Your learning</p>
         <h1>Saved learning</h1>
         <p>Keep personal notes and bookmarks with the learning resource they came from. Open a lesson or learning opportunity to save something new.</p>
-        <Link className="button saved-learning-button--primary" to="/learn">Choose learning to save</Link>
+        <div className="saved-learning-actions">
+          <Link className="button saved-learning-button--primary" to="/learn">Choose learning to save</Link>
+          <button className="button button--secondary" disabled={busy || exportPending} onClick={() => void handleExport()} type="button">
+            {exportPending ? "Preparing download…" : "Download saved learning"}
+          </button>
+        </div>
+        <WorkspaceExportNotice outcome={exportOutcome} />
       </header>
       <WorkspaceActionNotice actionState={actionState} />
 

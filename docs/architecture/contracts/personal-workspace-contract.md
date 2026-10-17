@@ -126,8 +126,13 @@ records from the matching current workspace revision, and requires exact
 canonical workspace order before exposing reorder authority. Live browser and
 headless query/refresh restart behavior is qualified. Protected export
 composition, public quota mapping, generated-client parity, zero-write capacity
-denial, and ordinary PostgreSQL restart behavior are qualified. Export UI and
-the complete community recovery exercise remain later SLI-0073 work. The boundary has no collaboration, cloud
+denial, and ordinary PostgreSQL restart behavior are qualified. The browser
+uses that same bodyless generated-client operation, closes the full response,
+requires its revision and digest to match the displayed workspace, and only
+then creates a stable ID-free JSON download. It announces bounded failure and
+capacity guidance without hiding removal or exact unchanged-request retry
+controls. The complete community recovery exercise remains later SLI-0073
+work. The boundary has no collaboration, cloud
 synchronization, artifact preview/download/execution, Project mutation,
 Portfolio association, Assessment or Learner-model effect, AI authority, or
 personalized financial advice.

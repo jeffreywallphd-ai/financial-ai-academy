@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 import {
   availableOpportunity,
@@ -112,6 +113,9 @@ async function mockSavedLearning(page: Page, options: {
   applyFirstMutationBeforeFailure?: boolean;
   firstMutationCode?: string;
   firstMutationStatus?: number;
+  changedExport?: boolean;
+  invalidExport?: boolean;
+  exportStatus?: number;
   initialWorkspace?: ReturnType<typeof emptyWorkspace>;
   invalidRead?: boolean;
   readStatus?: number;
@@ -120,12 +124,41 @@ async function mockSavedLearning(page: Page, options: {
   let workspace = structuredClone(options.initialWorkspace ?? emptyWorkspace());
   let mutationCount = 0;
   const posts: Record<string, unknown>[] = [];
+  const exportRequests: { method: string; postData: string | null; search: string }[] = [];
   const completed = new Map<string, ReturnType<typeof emptyWorkspace>>();
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     if (url.pathname === "/api/v1/session/single-profile") {
       return json(route, 201, { learner_id: "learner-one" });
+    }
+    if (url.pathname === "/api/v1/personal-workspace/export" && request.method() === "GET") {
+      exportRequests.push({ method: request.method(), postData: request.postData(), search: url.search });
+      if (options.exportStatus) {
+        return json(route, options.exportStatus, { code: "export_unavailable" });
+      }
+      if (options.invalidExport) {
+        return json(route, 200, {
+          schema_version: "1.0.0",
+          generated_at: "2026-10-17T11:00:00Z",
+          workspace,
+          workspace_digest: workspace.workspace_digest,
+          storage_key: "private/workspace",
+        });
+      }
+      const exportedWorkspace = options.changedExport
+        ? {
+            ...workspace,
+            revision: workspace.revision + 1,
+            workspace_digest: "e".repeat(64),
+          }
+        : workspace;
+      return json(route, 200, {
+        schema_version: "1.0.0",
+        generated_at: "2026-10-17T11:00:00Z",
+        workspace: exportedWorkspace,
+        workspace_digest: exportedWorkspace.workspace_digest,
+      });
     }
     if (url.pathname === "/api/v1/personal-workspace" && request.method() === "GET") {
       if (options.readStatus) {
@@ -330,7 +363,59 @@ async function mockSavedLearning(page: Page, options: {
     }
     return json(route, 404, { code: "not_found" });
   });
-  return { posts, workspace: () => workspace };
+  return { exportRequests, posts, workspace: () => workspace };
+}
+
+test("downloads a current closed Saved learning export through the public API", async ({ page }) => {
+  const mocked = await mockSavedLearning(page, { initialWorkspace: projectWorkspace() });
+  await page.goto("/saved-learning");
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download saved learning" }).click();
+  const download = await downloadPromise;
+  const path = await download.path();
+
+  expect(download.suggestedFilename()).toBe("saved-learning-export.json");
+  expect(path).not.toBeNull();
+  const exported = JSON.parse(await readFile(path!, "utf8")) as Record<string, unknown>;
+  expect(exported).toEqual({
+    schema_version: "1.0.0",
+    generated_at: "2026-10-17T11:00:00Z",
+    workspace: mocked.workspace(),
+    workspace_digest: mocked.workspace().workspace_digest,
+  });
+  expect(mocked.exportRequests).toEqual([{ method: "GET", postData: null, search: "" }]);
+  const status = page.getByText("Your Saved learning download is ready.").locator("xpath=parent::*");
+  await expect(status).toContainText("download is ready");
+  await status.getByText("Technical record").click();
+  await expect(status).toContainText("2026-10-17T11:00:00Z");
+});
+
+test("refuses a download when Saved learning changes or the export is not closed", async ({ page }) => {
+  await mockSavedLearning(page, { initialWorkspace: projectWorkspace(), changedExport: true });
+  await page.goto("/saved-learning");
+  await page.getByRole("button", { name: "Download saved learning" }).click();
+  await expect(page.getByText(/Refresh this page/)).toBeVisible();
+});
+
+for (const [code, heading, detail] of [
+  ["record_limit", "Saved learning is full", "up to 200"],
+  ["collection_limit", "Collection limit reached", "up to 50"],
+  ["collection_member_limit", "Collection is full", "up to 100"],
+] as const) {
+  test(`explains ${code} without hiding removal recovery`, async ({ page }) => {
+    await mockSavedLearning(page, {
+      initialWorkspace: projectWorkspace(),
+      firstMutationStatus: 409,
+      firstMutationCode: code,
+    });
+    await page.goto("/saved-learning");
+    const record = page.getByRole("heading", { name: "Allocation review" }).locator("xpath=ancestor::li");
+    await record.getByRole("button", { name: "Save note changes" }).click();
+    await expect(page.getByRole("heading", { name: heading })).toBeFocused();
+    await expect(page.getByRole("alert")).toContainText(detail);
+    await expect(record.locator("summary", { hasText: "Remove saved record" })).toBeVisible();
+  });
 }
 
 test("saves, edits, organizes, and reopens learning through the generated public API", async ({ page }) => {

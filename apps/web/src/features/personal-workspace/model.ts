@@ -3,6 +3,8 @@ import type { components } from "../../generated/api-client";
 
 export type PersonalWorkspace =
   components["schemas"]["PersonalWorkspaceResponseModel"];
+export type PersonalWorkspaceExport =
+  components["schemas"]["PersonalWorkspaceExportResponseModel"];
 export type PersonalWorkspaceRecord = PersonalWorkspace["records"][number];
 export type PersonalWorkspaceCollection =
   PersonalWorkspace["collections"][number];
@@ -98,11 +100,14 @@ export type SaveLearningRouteState =
   | { status: WorkspaceFailureKind };
 
 export type WorkspaceActionFailure =
+  | "collection-limit"
+  | "collection-member-limit"
   | "conflict"
   | "forbidden"
   | "invalid"
   | "invalid-response"
   | "not-found"
+  | "record-limit"
   | "source-unavailable"
   | "stale"
   | "unauthorized"
@@ -115,6 +120,28 @@ export type WorkspaceActionState = {
   intent: string;
   preparedRequest?: PreparedWorkspaceRequest;
 };
+
+export type WorkspaceExportOutcome =
+  | {
+      status: "ready";
+      content: string;
+      export: PersonalWorkspaceExport;
+      fileName: string;
+    }
+  | {
+      status:
+        | "changed"
+        | "forbidden"
+        | "invalid-response"
+        | "unauthorized"
+        | "unavailable"
+        | "unexpected";
+    };
+
+export type PersonalWorkspaceExporter = (
+  expectedRevision: number,
+  expectedDigest: string,
+) => Promise<WorkspaceExportOutcome>;
 
 const DIGEST = /^[a-f0-9]{64}$/;
 const CURRICULUM_ID = /^[a-z0-9][a-z0-9._-]{2,63}$/;
@@ -486,6 +513,32 @@ export function personalWorkspaceIsSafe(
     collection.member_record_ids.every((memberId) =>
       acceptedRecords.has(memberId),
     ),
+  );
+}
+
+export function personalWorkspaceExportIsSafe(
+  value: unknown,
+): value is PersonalWorkspaceExport {
+  const candidate = record(value);
+  if (
+    !candidate ||
+    !hasOnlyKeys(candidate, [
+      "generated_at",
+      "schema_version",
+      "workspace",
+      "workspace_digest",
+    ]) ||
+    candidate.schema_version !== "1.0.0" ||
+    typeof candidate.workspace_digest !== "string" ||
+    !DIGEST.test(candidate.workspace_digest) ||
+    !utcDateTimeIsSafe(candidate.generated_at) ||
+    !personalWorkspaceIsSafe(candidate.workspace)
+  ) {
+    return false;
+  }
+  return (
+    candidate.workspace_digest === candidate.workspace.workspace_digest &&
+    Date.parse(candidate.generated_at) >= Date.parse(candidate.workspace.updated_at)
   );
 }
 

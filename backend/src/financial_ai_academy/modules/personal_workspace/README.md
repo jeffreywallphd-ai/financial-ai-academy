@@ -76,5 +76,8 @@ workspace exports as the virtual revision-one aggregate without a write.
 Capacity refusals now expose distinct `record_limit`, `collection_limit`, and
 `collection_member_limit` meanings with safe next actions, and PostgreSQL
 qualification proves that denial changes neither aggregate nor replay state.
-Export UI and the complete community recovery qualification remain later
-SLI-0073 packets.
+The Saved learning browser uses the same generated bodyless GET, validates the
+complete closed response and its current revision/digest before creating a
+stable ID-free JSON download, and maps those capacity codes to plain recovery
+guidance while leaving removal controls usable. The complete community recovery
+qualification remains a later SLI-0073 packet.

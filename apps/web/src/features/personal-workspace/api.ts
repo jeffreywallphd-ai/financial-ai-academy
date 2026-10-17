@@ -12,6 +12,7 @@ import {
   mutationErrorCode,
   parseSaveSelection,
   parseWorkspaceSearch,
+  personalWorkspaceExportIsSafe,
   personalWorkspaceIsSafe,
   personalWorkspaceQueriesMatch,
   personalWorkspaceQueryDigest,
@@ -21,6 +22,7 @@ import {
   type PersonalWorkspaceMutation,
   type PreparedWorkspaceRequest,
   type PersonalWorkspace,
+  type PersonalWorkspaceExporter,
   type PersonalWorkspaceQuery,
   type PersonalWorkspaceQueryResult,
   type SaveLearningRouteState,
@@ -403,9 +405,84 @@ function failureFromResult(
     const code = mutationErrorCode(error);
     if (code === "stale_revision") return actionFailure("stale", intent, preparedRequest);
     if (code === "source_unavailable") return actionFailure("source-unavailable", intent, preparedRequest);
+    if (code === "record_limit") return actionFailure("record-limit", intent);
+    if (code === "collection_limit") return actionFailure("collection-limit", intent);
+    if (code === "collection_member_limit") return actionFailure("collection-member-limit", intent);
     return actionFailure("conflict", intent, preparedRequest);
   }
   return actionFailure("unexpected", intent, preparedRequest);
+}
+
+async function exportPersonalWorkspace(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  expectedRevision: number,
+  expectedDigest: string,
+  retryUnauthorized: boolean,
+): ReturnType<PersonalWorkspaceExporter> {
+  try {
+    const result = await client.GET("/api/v1/personal-workspace/export", {});
+    if (result.response.status === 200) {
+      if (!result.data || !personalWorkspaceExportIsSafe(result.data)) {
+        return { status: "invalid-response" };
+      }
+      if (
+        result.data.workspace.revision !== expectedRevision ||
+        result.data.workspace_digest !== expectedDigest
+      ) {
+        return { status: "changed" };
+      }
+      return {
+        status: "ready",
+        content: JSON.stringify(result.data, null, 2),
+        export: result.data,
+        fileName: "saved-learning-export.json",
+      };
+    }
+    if (result.response.status === 401 && retryUnauthorized) {
+      session.invalidate();
+      const renewed = await session.ensure();
+      if (renewed.status === "ready") {
+        return exportPersonalWorkspace(
+          client,
+          session,
+          expectedRevision,
+          expectedDigest,
+          false,
+        );
+      }
+      return { status: renewed.kind };
+    }
+    if (result.response.status === 401) return { status: "unauthorized" };
+    if (result.response.status === 403) return { status: "forbidden" };
+    if (
+      result.response.status === 404 ||
+      result.response.status === 409 ||
+      result.response.status === 503
+    ) {
+      return { status: "unavailable" };
+    }
+    return { status: "unexpected" };
+  } catch {
+    return { status: "unavailable" };
+  }
+}
+
+export function createPersonalWorkspaceExporter(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+): PersonalWorkspaceExporter {
+  return async (expectedRevision, expectedDigest) => {
+    const established = await session.ensure();
+    if (established.status === "error") return { status: established.kind };
+    return exportPersonalWorkspace(
+      client,
+      session,
+      expectedRevision,
+      expectedDigest,
+      true,
+    );
+  };
 }
 
 async function sendMutation(

@@ -62,6 +62,7 @@ import {
 } from "../features/project-workspace/ProjectRoutes";
 import {
   createPersonalWorkspaceAction,
+  createPersonalWorkspaceExporter,
   createPersonalWorkspaceLoader,
   createSaveLearningLoader,
 } from "../features/personal-workspace/api";
@@ -104,6 +105,7 @@ const projectLearningAction = createProjectLearningAction(client, session);
 const personalWorkspaceLoader = createPersonalWorkspaceLoader(client, session);
 const saveLearningLoader = createSaveLearningLoader(client, session);
 const personalWorkspaceAction = createPersonalWorkspaceAction(client, session);
+const personalWorkspaceExporter = createPersonalWorkspaceExporter(client, session);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -128,6 +130,10 @@ function ProjectDetailRouteWithDependencies() {
       exportSnapshot={projectSnapshotExporter}
     />
   );
+}
+
+function PersonalWorkspaceRouteWithDependencies() {
+  return <PersonalWorkspaceRoute exportWorkspace={personalWorkspaceExporter} />;
 }
 
 function UnexpectedRouteError() {
@@ -170,7 +176,7 @@ export const router = createBrowserRouter([
         path: "saved-learning",
         loader: personalWorkspaceLoader,
         action: personalWorkspaceAction,
-        Component: PersonalWorkspaceRoute,
+        Component: PersonalWorkspaceRouteWithDependencies,
         HydrateFallback: PersonalWorkspaceLoadingState,
       },
       {

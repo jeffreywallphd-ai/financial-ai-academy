@@ -249,8 +249,16 @@ adding a browser-only policy path.
 The reviewed generated client also exposes `exportPersonalWorkspace` as a
 direct JSON operation. It accepts no learner, time, digest, storage, or query
 input and returns the same closed server-generated export to authenticated
-browser and headless callers. No download control is exposed in this browser
-slice; the API contract remains available without rendering a route.
+browser and headless callers. The Saved learning page now offers an explicit
+`Download saved learning` action. Its injected adapter deep-validates the
+closed export, requires its revision and digest to match the workspace on
+screen, and only then downloads UTF-8 JSON as
+`saved-learning-export.json`. Changed or malformed responses create no file;
+plain recovery guidance is announced, while format, generation time, revision,
+and integrity details remain available in an accessible technical disclosure.
+Distinct record, collection, and collection-member capacity codes explain the
+accepted 200, 50, and 100 limits without replacing existing removal or exact
+unchanged-request retry controls.
 
 The Saved learning screen and reviewed generated client use the protected
 `queryPersonalWorkspace` operation and additive `refresh_reference` mutation

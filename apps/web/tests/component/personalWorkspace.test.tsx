@@ -4,7 +4,7 @@ import {
   createMemoryRouter,
   RouterProvider,
 } from "react-router";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   PersonalWorkspacePage,
@@ -12,6 +12,7 @@ import {
 } from "../../src/features/personal-workspace/PersonalWorkspacePage";
 import type {
   PersonalWorkspace,
+  PersonalWorkspaceExporter,
   PersonalWorkspaceQueryResult,
   SaveSelection,
   WorkspaceActionState,
@@ -177,6 +178,7 @@ function renderWorkspace(
   value: PersonalWorkspace = workspace,
   result?: PersonalWorkspaceQueryResult,
   search?: WorkspaceSearchValues,
+  exportWorkspace: PersonalWorkspaceExporter = async () => ({ status: "unavailable" }),
 ) {
   const router = createMemoryRouter([{
     path: "/saved-learning",
@@ -184,12 +186,67 @@ function renderWorkspace(
       submissions.push(await request.formData());
       return null;
     },
-    element: <PersonalWorkspacePage actionState={actionState} busy={false} result={result} search={search} workspace={value} />,
+    element: <PersonalWorkspacePage actionState={actionState} busy={false} exportWorkspace={exportWorkspace} result={result} search={search} workspace={value} />,
   }], { initialEntries: ["/saved-learning"] });
   return render(<RouterProvider router={router} />);
 }
 
 describe("Saved learning pages", () => {
+  it("downloads only a matching closed export and shows its bounded technical record", async () => {
+    const createObjectURL = vi.fn().mockReturnValue("blob:saved-learning");
+    const revokeObjectURL = vi.fn();
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectURL });
+    const exporter = vi.fn<PersonalWorkspaceExporter>().mockResolvedValue({
+      status: "ready",
+      content: JSON.stringify({ schema_version: "1.0.0" }),
+      export: {
+        schema_version: "1.0.0",
+        generated_at: "2026-10-17T13:01:00Z",
+        workspace,
+        workspace_digest: workspace.workspace_digest,
+      },
+      fileName: "saved-learning-export.json",
+    });
+    renderWorkspace([], undefined, workspace, undefined, undefined, exporter);
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Download saved learning" }));
+
+    await waitFor(() => expect(exporter).toHaveBeenCalledWith(workspace.revision, workspace.workspace_digest));
+    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(click).toHaveBeenCalledOnce();
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:saved-learning");
+    const status = screen.getByText("Your Saved learning download is ready.").closest('[role="status"]') as HTMLElement;
+    expect(status).toHaveTextContent("download is ready");
+    await userEvent.setup().click(within(status).getByText("Technical record"));
+    expect(screen.getByText("2026-10-17T13:01:00Z")).toBeVisible();
+    expect(screen.getAllByText(workspace.workspace_digest)).not.toHaveLength(0);
+    click.mockRestore();
+  });
+
+  it("does not download a response prepared from a changed workspace", async () => {
+    const exporter = vi.fn<PersonalWorkspaceExporter>().mockResolvedValue({ status: "changed" });
+    renderWorkspace([], undefined, workspace, undefined, undefined, exporter);
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Download saved learning" }));
+
+    expect(await screen.findByText(/Refresh this page/)).toBeVisible();
+    expect(exporter).toHaveBeenCalledWith(workspace.revision, workspace.workspace_digest);
+  });
+
+  it.each([
+    ["record-limit", "Saved learning is full", "up to 200"],
+    ["collection-limit", "Collection limit reached", "up to 50"],
+    ["collection-member-limit", "Collection is full", "up to 100"],
+  ] as const)("keeps recovery controls available for %s", (kind, heading, detail) => {
+    renderWorkspace([], { status: "error", kind, intent: "workspace-change" });
+    expect(screen.getByRole("heading", { name: heading })).toBeVisible();
+    expect(screen.getByRole("alert")).toHaveTextContent(detail);
+    expect(screen.getAllByText("Remove saved record").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Remove collection").length).toBeGreaterThan(0);
+  });
+
   it("leads with learner meaning and keeps exact facts in keyboard-reachable technical records", async () => {
     renderWorkspace();
     const user = userEvent.setup();

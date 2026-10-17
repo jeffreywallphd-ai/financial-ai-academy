@@ -235,7 +235,7 @@ packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | complete |
 | WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | complete |
-| WRK-0145 | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | WRK-0144 | none | active |
+| WRK-0145 | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | WRK-0144 | none | verifying |
 | JIT-D | Qualify cumulative browser/headless parity, maximum bounds, interruption, target isolation, restart, empty-target community database recovery, containment, cleanup, and CAP closure | JIT-C | none | captured |
 
 Dependent packets are not claimed until their predecessor is complete. The
@@ -356,3 +356,7 @@ records remain ignored; no slice or packet approval is requested.
 - 2026-10-17: Activated WRK-0145 from the recorded base after revalidating the
   completed WRK-0144 dependency, current CAP package, exact browser/test/docs
   scope, resolved decisions, and absence of an active write collision.
+- 2026-10-17: Advanced WRK-0145 to verification after delivering the explicit
+  current-revision export download, closed browser validation, accessible
+  failure/technical states, and capacity-specific recovery guidance without
+  changing the public API, persistence, or recovery policy.
