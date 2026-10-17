@@ -75,6 +75,22 @@ PRACTICE_SUBMISSION_STORAGE = """
         COALESCE((SELECT min(evidence_id::text)
                     FROM assessment.practice_completion_evidence), '')
 """
+PROJECT_LEARNING_STORAGE_KEYS = (
+    "assessment_attempts",
+    "assessment_responses",
+    "assessment_scores",
+    "assessment_completion_evidence",
+    "assessment_outbox",
+    "practice_attempts",
+    "practice_responses",
+    "practice_scores",
+    "practice_completion_evidence",
+    "practice_outbox",
+    "learner_completion_projections",
+    "learner_completion_history",
+    "practice_history_projections",
+    "practice_history_attempts",
+)
 PRIVATE_PRACTICE_FIELDS = frozenset(
     {
         "answer",
@@ -1756,6 +1772,26 @@ def assert_project_storage(snapshot: dict[str, int]) -> None:
         raise RuntimeError("Project workspace evidence is incomplete or uncorrelated.")
 
 
+def project_learning_storage(snapshot: dict[str, int]) -> dict[str, int]:
+    missing = [key for key in PROJECT_LEARNING_STORAGE_KEYS if key not in snapshot]
+    if missing:
+        raise RuntimeError("Project learning-state storage evidence is incomplete.")
+    return {key: snapshot[key] for key in PROJECT_LEARNING_STORAGE_KEYS}
+
+
+def assert_project_learning_state_unchanged(
+    *,
+    before_storage: dict[str, int],
+    after_storage: dict[str, int],
+) -> None:
+    if project_learning_storage(after_storage) != project_learning_storage(
+        before_storage
+    ):
+        raise RuntimeError(
+            "Project journey created Assessment or Learner-model state."
+        )
+
+
 def assert_project_restart_result(
     *,
     before_observation: dict[str, Any],
@@ -2169,7 +2205,7 @@ def assert_replay_result(
         raise RuntimeError("Learner-model projection replay did not rebuild state.")
 
 
-def npm_e2e_command() -> list[str]:
+def npm_e2e_command(*test_files: str) -> list[str]:
     node = os.environ.get("FINANCIAL_AI_ACADEMY_NODE_EXECUTABLE")
     npm_cli = os.environ.get("FINANCIAL_AI_ACADEMY_NPM_CLI")
     if bool(node) != bool(npm_cli):
@@ -2185,13 +2221,16 @@ def npm_e2e_command() -> list[str]:
             "FINANCIAL_AI_ACADEMY_NPM_CLI."
         )
     prefix = [npm_executable] if not node else [node, npm_cli]
-    return [
+    command = [
         *prefix,
         "--prefix",
         str(REPOSITORY / "apps" / "web"),
         "run",
         "test:e2e",
     ]
+    if test_files:
+        command.extend(("--", *test_files))
+    return command
 
 
 def remove_container(container_name: str | None) -> None:
@@ -2297,7 +2336,22 @@ def main() -> int:
         environment["FINANCIAL_AI_ACADEMY_PROJECT_CAPTURE"] = str(
             project_capture
         )
-        run_checked(npm_e2e_command(), env=environment)
+        run_checked(
+            npm_e2e_command(
+                "approved-lesson.e2e.ts",
+                "curriculum-graph.e2e.ts",
+                "practice-activity.e2e.ts",
+            ),
+            env=environment,
+        )
+        project_learning_before = project_storage_snapshot(
+            postgres_dsn,
+            project_id="project-qualification-not-created",
+        )
+        run_checked(
+            npm_e2e_command("project-workspace.e2e.ts"),
+            env=environment,
+        )
 
         (
             practice_draft_save,
@@ -2346,6 +2400,10 @@ def main() -> int:
             project_id=project_id,
         )
         assert_project_storage(project_storage_before_restart)
+        assert_project_learning_state_unchanged(
+            before_storage=project_learning_before,
+            after_storage=project_storage_before_restart,
+        )
         project_before_restart = observe_headless_project_workspace(
             origin=origin,
             capture=project_workspace_capture,
@@ -2495,6 +2553,7 @@ def main() -> int:
                 "headless_public_api": True,
                 "learning_state_unchanged": True,
                 "normal_restart_without_reseeding": True,
+                "persistent_assessment_and_learner_model_state_unchanged": True,
                 "project_id": project_id,
                 "snapshot_immutable_after_later_work": True,
                 "unicode_evidence_preserved": True,

@@ -954,15 +954,18 @@ def test_project_restart_requires_exact_evidence_and_storage() -> None:
         "project": {"project_id": "project-qualification"},
         "artifact_sha256": "a" * 64,
     }
-    storage = {
+    storage = {key: 1 for key in runner.PROJECT_LEARNING_STORAGE_KEYS} | {
         "project_shells": 1,
         "project_workspaces": 1,
         "project_mutations": 4,
         "project_artifacts": 1,
         "project_snapshots": 1,
-        "assessment_attempts": 1,
     }
     runner.assert_project_storage(storage)
+    runner.assert_project_learning_state_unchanged(
+        before_storage=dict(storage),
+        after_storage=dict(storage),
+    )
     runner.assert_project_restart_result(
         before_observation=observation,
         after_observation=json.loads(json.dumps(observation)),
@@ -984,6 +987,20 @@ def test_project_restart_requires_exact_evidence_and_storage() -> None:
             after_observation=observation,
             before_storage=storage,
             after_storage=storage | {"project_snapshots": 2},
+        )
+    with pytest.raises(RuntimeError, match="created Assessment or Learner-model"):
+        runner.assert_project_learning_state_unchanged(
+            before_storage=storage,
+            after_storage=storage | {"assessment_attempts": 2},
+        )
+    with pytest.raises(RuntimeError, match="storage evidence is incomplete"):
+        runner.assert_project_learning_state_unchanged(
+            before_storage=storage,
+            after_storage={
+                key: value
+                for key, value in storage.items()
+                if key != "learner_completion_history"
+            },
         )
 
 

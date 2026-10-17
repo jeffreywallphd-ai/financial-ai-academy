@@ -10,7 +10,7 @@ capability: CAP-0007
 depends_on: [WRK-0123]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/tests/browser/approved-lesson/project-workspace.e2e.ts", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0121-qualify-project-workspace-snapshot-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+write_scope: ["apps/web/tests/browser/approved-lesson/project-workspace.e2e.ts", "backend/src/financial_ai_academy/modules/project/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0121-qualify-project-workspace-snapshot-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
 base_revision: 7977d7051a0cb9062525f61c40670de97f8f7835
 claim_id: WRK-0121:ad1ab5d1-9e50-4d27-aadb-be307b2ba251
@@ -218,3 +218,14 @@ autonomous authority was added.
   the isolated PostgreSQL 18.4/Python/static/generated-client/headless/pinned-
   Chromium workflow passed, including all 11 browser scenarios and bounded
   teardown. Exact-candidate checks and independent review remain before close.
+- 2026-10-17: Independent exact-candidate review requested direct pre/post
+  Assessment and Learner-model persistence evidence and correction of the
+  nearest Project README's stale browser-UI limitation. The packet's write
+  scope added that README as a bounded documentation-only refinement; no
+  product behavior, contract, CAP intent, or decision gate changed.
+- 2026-10-17: The corrected qualifier ran the ten non-Project browser
+  scenarios first, captured exact Assessment and Learner-model table counts,
+  then ran the Project-only generated-client scenario and proved those counts
+  unchanged. The isolated PostgreSQL 18.4 workflow again passed all 11 browser
+  scenarios, headless reads, restart checks, and bounded teardown; the Project
+  README now reflects the delivered browser boundary.

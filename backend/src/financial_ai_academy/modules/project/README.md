@@ -69,8 +69,9 @@ revision one, under the write boundary and after a second revision check.
 Artifact upload has a distinct public request type, and its exact bytes are
 verified before both first acceptance and idempotent replay.
 
-This seam does not yet render workspace UI or validate a production domain
-owner.
+The generated-client browser flow now renders the workspace and its safe
+download and evidence actions through the protected public API. This seam does
+not yet validate a production domain owner.
 The synthetic Portfolio-named fixture proves only that the provider-neutral
 reference shape can represent another owner; no live Portfolio contract,
 calculation, authorization, or copied state exists. Project still has no

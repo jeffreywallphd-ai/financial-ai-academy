@@ -29,9 +29,10 @@
   import/restore, retention cleanup, and a separate headless AI mode beyond the
   directly covered Project shell/workspace/artifact/snapshot/export contracts,
   PostgreSQL and local object persistence, protected generated-browser/headless
-  API parity, exact downloads and export, normal restart, zero learning-state
-  side effects, full live Python/static/PostgreSQL topology, and tracked static
-  production build
+  API parity, exact downloads and export, normal restart, direct pre/post
+  Assessment and Learner-model table-count invariance during the Project-only
+  browser phase, full live Python/static/PostgreSQL topology, and tracked
+  static production build
 - Managed-cloud deployment composition and direct local/cloud artifact-parity comparison beyond the qualified local approved-lesson topology
 - Discovery rebuild scheduling, concurrent production rebuild operation,
   non-lesson destinations, external search adapters, and managed-cloud
