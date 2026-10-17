@@ -77,9 +77,14 @@ share the same protected versioned API and server-owned mutation authority.
 
 The implemented `personal-workspace-v1` family fixes bounded portable records,
 exact Curriculum reference provenance, canonical digests, and closed
-revision-bound mutation intents behind a pure contract port. It adds no
-persistence, identity binding, API, browser, target refresh, or cross-module
-mutation.
+revision-bound mutation intents behind a pure contract port. A module-owned
+PostgreSQL repository preserves the complete revalidated aggregate and exact
+mutation replay without cross-schema foreign keys. Protected read and mutation
+operations bind the learner from the server session, resolve create selectors
+through Curriculum's public surface, and supply the same reviewed OpenAPI and
+generated-client contract to browser and headless consumers. It adds no
+browser view, cross-module mutation, collaboration, execution, or downstream
+learning-state effect.
 
 Portable financial methods, portfolio records, and simulation results
 additionally follow

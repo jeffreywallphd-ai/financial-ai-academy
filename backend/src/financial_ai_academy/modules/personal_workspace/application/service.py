@@ -12,7 +12,9 @@ from ..domain.workspace import (
     CreateBookmarkMutation,
     CreateCollectionMutation,
     CreateNoteMutation,
+    LearningOpportunityReference,
     PersonalWorkspace,
+    PlacedLessonReference,
     WorkspaceMutationIntent,
 )
 from ..ports.learning_reference import (
@@ -32,11 +34,13 @@ from ..ports.workspace_contract import (
 from ..public import (
     CreateBookmarkCommand,
     CreateNoteCommand,
+    LearningOpportunitySelector,
     MutatePersonalWorkspaceRequest,
     OpenPersonalWorkspaceRequest,
     PersonalWorkspaceError,
     PersonalWorkspaceErrorCode,
     PersonalWorkspaceMutationCommand,
+    PlacedLessonSelector,
 )
 
 
@@ -157,17 +161,13 @@ class PersonalWorkspaceService:
         mutation = command.mutation
         if isinstance(mutation, CreateNoteCommand):
             resolved = CreateNoteMutation(
-                target=self._references.resolve(
-                    mutation.selector, validated_at=validated_at
-                ),
+                target=self._resolve_target(mutation.selector, validated_at),
                 title=mutation.title,
                 body=mutation.body,
             )
         elif isinstance(mutation, CreateBookmarkCommand):
             resolved = CreateBookmarkMutation(
-                target=self._references.resolve(
-                    mutation.selector, validated_at=validated_at
-                ),
+                target=self._resolve_target(mutation.selector, validated_at),
                 label=mutation.label,
             )
         else:
@@ -180,6 +180,20 @@ class PersonalWorkspaceService:
         )
         self._contract.mutation_intent_document(intent)
         return intent
+
+    def _resolve_target(self, selector, validated_at: datetime):
+        target = self._references.resolve(selector, validated_at=validated_at)
+        if isinstance(selector, LearningOpportunitySelector):
+            if not isinstance(target, LearningOpportunityReference) or (
+                target.opportunity_id,
+                target.placement_id,
+            ) != (selector.opportunity_id, selector.placement_id):
+                raise PersonalWorkspaceSourceUnavailable()
+        elif not isinstance(selector, PlacedLessonSelector) or not isinstance(
+            target, PlacedLessonReference
+        ) or target.placement_id != selector.placement_id:
+            raise PersonalWorkspaceSourceUnavailable()
+        return target
 
     def _empty(self, learner_id: str) -> PersonalWorkspace:
         seed = self._seeds.for_learner(learner_id)

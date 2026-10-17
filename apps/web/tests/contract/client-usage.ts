@@ -30,6 +30,8 @@ type ProjectSubmission =
   components["schemas"]["ProjectSubmissionRequestModel"];
 type ProjectSubmissionResource =
   components["schemas"]["ProjectMilestoneEvidenceRequestModel"]["resources"][number];
+type PersonalWorkspaceMutation =
+  components["schemas"]["PersonalWorkspaceMutationRequestModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -88,6 +90,26 @@ void learningStart.then((result) => {
 });
 void client.GET("/api/v1/projects/{project_id}", {
   params: { path: { project_id: "project-1" } },
+});
+
+void client.GET("/api/v1/personal-workspace");
+const savedLearningNote: PersonalWorkspaceMutation = {
+  schema_version: "1.0.0",
+  idempotency_key: "saved-learning-note-1",
+  expected_revision: 1,
+  mutation: {
+    operation: "create_note",
+    selector: {
+      reference_kind: "learning_opportunity",
+      opportunity_id: "risk-return-basics",
+      placement_id: "risk-return-primary",
+    },
+    title: "What I want to remember",
+    body: "Risk and return need to be considered together.",
+  },
+};
+void client.POST("/api/v1/personal-workspace/mutations", {
+  body: savedLearningNote,
 });
 
 const noteMutation: ProjectWorkspaceMutation = {

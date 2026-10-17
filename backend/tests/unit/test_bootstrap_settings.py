@@ -21,6 +21,7 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     )
     events = contracts / "events" / "assessment" / "v1"
     project = contracts / "learning" / "project" / "v1"
+    personal_workspace = contracts / "learning" / "personal-workspace" / "v1"
     migrations = tmp_path / "migrations"
     for directory in (
         lesson,
@@ -29,6 +30,7 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
         assessment_project,
         events,
         project,
+        personal_workspace,
         migrations,
     ):
         directory.mkdir(parents=True, exist_ok=True)
@@ -52,4 +54,5 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     assert settings.assessment_event_schema_dir == events
     assert settings.project_schema_dir == project
     assert settings.assessment_project_schema_dir == assessment_project
+    assert settings.personal_workspace_schema_dir == personal_workspace
     assert isinstance(settings.validate(), SingleProfileRequestPolicy)

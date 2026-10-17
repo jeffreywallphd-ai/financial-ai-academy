@@ -571,6 +571,7 @@ def build_local_app(
             adaptation=services.adaptation,
             audit=services.audit,
             project=services.project,
+            personal_workspace=getattr(services, "personal_workspace", None),
         )
     )
 

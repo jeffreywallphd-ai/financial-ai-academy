@@ -120,6 +120,24 @@ export interface paths {
       };
       readonly post: operations["submitPlacedPractice"];
     };
+  readonly "/api/v1/personal-workspace": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getPersonalWorkspace"];
+    };
+  readonly "/api/v1/personal-workspace/mutations": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["mutatePersonalWorkspace"];
+    };
   readonly "/api/v1/projects": {
       readonly parameters: {
         readonly query?: never;
@@ -805,6 +823,148 @@ export interface components {
       readonly "locator": string;
       readonly "media_type": "image/png" | "image/jpeg" | "image/webp";
       readonly "sha256": string;
+    };
+    readonly "PersonalArchiveRecordModel": {
+      readonly "operation": "archive_record";
+      readonly "record_id": string;
+    };
+    readonly "PersonalCreateBookmarkModel": {
+      readonly "label": string | null;
+      readonly "operation": "create_bookmark";
+      readonly "selector": components["schemas"]["PersonalLearningOpportunitySelectorModel"] | components["schemas"]["PersonalPlacedLessonSelectorModel"];
+    };
+    readonly "PersonalCreateCollectionModel": {
+      readonly "operation": "create_collection";
+      readonly "title": string;
+    };
+    readonly "PersonalCreateNoteModel": {
+      readonly "body": string;
+      readonly "operation": "create_note";
+      readonly "selector": components["schemas"]["PersonalLearningOpportunitySelectorModel"] | components["schemas"]["PersonalPlacedLessonSelectorModel"];
+      readonly "title": string;
+    };
+    readonly "PersonalLearningOpportunityReferenceModel": {
+      readonly "destination": string;
+      readonly "opportunity_id": string;
+      readonly "owner_module": "curriculum";
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "placement_id": string;
+      readonly "provenance": components["schemas"]["PersonalWorkspaceProvenanceModel"];
+      readonly "reference_kind": "learning_opportunity";
+      readonly "source_fingerprint": string;
+      readonly "target_status": "available";
+      readonly "title": string;
+      readonly "validated_at": string;
+    };
+    readonly "PersonalLearningOpportunitySelectorModel": {
+      readonly "opportunity_id": string;
+      readonly "placement_id": string;
+      readonly "reference_kind": "learning_opportunity";
+    };
+    readonly "PersonalPlacedLessonReferenceModel": {
+      readonly "destination": string;
+      readonly "owner_module": "curriculum";
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "placement_id": string;
+      readonly "provenance": components["schemas"]["PersonalWorkspaceProvenanceModel"];
+      readonly "reference_kind": "placed_lesson";
+      readonly "target_status": "available";
+      readonly "title": string;
+      readonly "validated_at": string;
+    };
+    readonly "PersonalPlacedLessonSelectorModel": {
+      readonly "placement_id": string;
+      readonly "reference_kind": "placed_lesson";
+    };
+    readonly "PersonalRemoveCollectionModel": {
+      readonly "collection_id": string;
+      readonly "operation": "remove_collection";
+    };
+    readonly "PersonalRemoveRecordModel": {
+      readonly "operation": "remove_record";
+      readonly "record_id": string;
+    };
+    readonly "PersonalRenameCollectionModel": {
+      readonly "collection_id": string;
+      readonly "operation": "rename_collection";
+      readonly "title": string;
+    };
+    readonly "PersonalReorderRecordsModel": {
+      readonly "operation": "reorder_records";
+      readonly "record_ids": ReadonlyArray<string>;
+    };
+    readonly "PersonalRestoreRecordModel": {
+      readonly "operation": "restore_record";
+      readonly "record_id": string;
+    };
+    readonly "PersonalSetCollectionMembersModel": {
+      readonly "collection_id": string;
+      readonly "member_record_ids": ReadonlyArray<string>;
+      readonly "operation": "set_collection_members";
+    };
+    readonly "PersonalUpdateBookmarkModel": {
+      readonly "label": string | null;
+      readonly "operation": "update_bookmark";
+      readonly "record_id": string;
+    };
+    readonly "PersonalUpdateNoteModel": {
+      readonly "body": string;
+      readonly "operation": "update_note";
+      readonly "record_id": string;
+      readonly "title": string;
+    };
+    readonly "PersonalWorkspaceBookmarkModel": {
+      readonly "archived": boolean;
+      readonly "created_at": string;
+      readonly "label"?: string | null;
+      readonly "record_id": string;
+      readonly "record_kind": "bookmark";
+      readonly "target": components["schemas"]["PersonalLearningOpportunityReferenceModel"] | components["schemas"]["PersonalPlacedLessonReferenceModel"];
+      readonly "updated_at": string;
+    };
+    readonly "PersonalWorkspaceCollectionModel": {
+      readonly "collection_id": string;
+      readonly "created_at": string;
+      readonly "member_record_ids": ReadonlyArray<string>;
+      readonly "title": string;
+      readonly "updated_at": string;
+    };
+    readonly "PersonalWorkspaceMutationRequestModel": {
+      readonly "expected_revision": number;
+      readonly "idempotency_key": string;
+      readonly "mutation": components["schemas"]["PersonalCreateNoteModel"] | components["schemas"]["PersonalUpdateNoteModel"] | components["schemas"]["PersonalCreateBookmarkModel"] | components["schemas"]["PersonalUpdateBookmarkModel"] | components["schemas"]["PersonalCreateCollectionModel"] | components["schemas"]["PersonalRenameCollectionModel"] | components["schemas"]["PersonalRemoveCollectionModel"] | components["schemas"]["PersonalSetCollectionMembersModel"] | components["schemas"]["PersonalReorderRecordsModel"] | components["schemas"]["PersonalArchiveRecordModel"] | components["schemas"]["PersonalRestoreRecordModel"] | components["schemas"]["PersonalRemoveRecordModel"];
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "PersonalWorkspaceNoteModel": {
+      readonly "archived": boolean;
+      readonly "body": string;
+      readonly "created_at": string;
+      readonly "record_id": string;
+      readonly "record_kind": "note";
+      readonly "target": components["schemas"]["PersonalLearningOpportunityReferenceModel"] | components["schemas"]["PersonalPlacedLessonReferenceModel"];
+      readonly "title": string;
+      readonly "updated_at": string;
+    };
+    readonly "PersonalWorkspaceProvenanceModel": {
+      readonly "content_reviewed_on": string;
+      readonly "educational_use_notice": string;
+      readonly "published_at": string;
+      readonly "published_by": string;
+    };
+    readonly "PersonalWorkspaceResponseModel": {
+      readonly "collections": ReadonlyArray<components["schemas"]["PersonalWorkspaceCollectionModel"]>;
+      readonly "created_at": string;
+      readonly "learner_id": string;
+      readonly "records": ReadonlyArray<components["schemas"]["PersonalWorkspaceNoteModel"] | components["schemas"]["PersonalWorkspaceBookmarkModel"]>;
+      readonly "revision": number;
+      readonly "schema_version": "1.0.0";
+      readonly "updated_at": string;
+      readonly "workspace_digest": string;
+      readonly "workspace_id": string;
     };
     readonly "PracticeAttemptPolicyModel": {
       readonly "history_visible": true;
@@ -2227,6 +2387,122 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getPersonalWorkspace: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PersonalWorkspaceResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly mutatePersonalWorkspace: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PersonalWorkspaceMutationRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PersonalWorkspaceResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
           };
         };
         readonly 503: {

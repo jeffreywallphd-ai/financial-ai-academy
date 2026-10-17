@@ -152,6 +152,8 @@ def test_bootstrap_persists_stable_binding_and_rotates_sessions() -> None:
         "project.create",
         "project.read",
         "project.write",
+        "personal_workspace.read",
+        "personal_workspace.write",
     )
     assert all(
         TOKEN_ONE not in session.token_hash

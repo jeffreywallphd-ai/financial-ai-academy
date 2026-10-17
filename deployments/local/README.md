@@ -4,8 +4,9 @@ The intended complete local profile includes the static web application,
 Python API and worker, PostgreSQL, filesystem object storage, and DuckDB/Parquet
 analytics. Only the bounded approved-lesson, curriculum-graph, discovery-query,
 deterministic-navigation-state, deterministic assessment, answer-safe practice
-opening, retained-completion, and Project list/create/reopen `single_profile`
-path is qualified today.
+opening, retained-completion, Project list/create/reopen, and API-only Personal
+workspace `single_profile` path is qualified today. The Personal-workspace
+browser experience remains a later CAP-0017 packet.
 This is a development/CI qualification topology, not a production
 publication, backup, restore, availability, or remote-hosting claim.
 

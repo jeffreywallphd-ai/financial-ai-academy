@@ -48,6 +48,7 @@ class PublicCurriculumLearningReferenceGateway:
                 if (
                     record is None
                     or record.availability != OpportunityAvailability.AVAILABLE
+                    or record.provenance.published_at > validated_at
                 ):
                     raise PersonalWorkspaceSourceUnavailable()
                 return LearningOpportunityReference(
@@ -70,11 +71,13 @@ class PublicCurriculumLearningReferenceGateway:
                             record.provenance.educational_use_notice
                         ),
                     ),
-                    validated_at=max(validated_at, record.provenance.published_at),
+                    validated_at=validated_at,
                 )
             lesson = self._curriculum.open_placed_lesson(
                 OpenPlacedLessonRequest(selector.placement_id)
             )
+            if lesson.provenance.published_at > validated_at:
+                raise PersonalWorkspaceSourceUnavailable()
             return PlacedLessonReference(
                 placement_id=lesson.placement_id,
                 package_id=lesson.package_id,
@@ -93,7 +96,7 @@ class PublicCurriculumLearningReferenceGateway:
                         lesson.provenance.educational_use_notice
                     ),
                 ),
-                validated_at=max(validated_at, lesson.provenance.published_at),
+                validated_at=validated_at,
             )
         except PersonalWorkspaceSourceUnavailable:
             raise

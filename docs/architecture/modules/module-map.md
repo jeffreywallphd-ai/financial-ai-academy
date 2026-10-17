@@ -16,7 +16,7 @@
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
-| Personal workspace | accepted; portable contract and pure mutation core implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Persistence, protected API, target adapters, and browser delivery remain CAP-0017 work; lifecycle events remain future work |
+| Personal workspace | accepted; contract, persistence, source adapter, and protected API implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Browser delivery remains CAP-0017 work; lifecycle events remain future work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -89,8 +89,13 @@ artifact execution, or special headless-client authority.
 
 The implemented v1 contract and pure core admit only exact Curriculum-owned
 learning references, enforce bounded records and collection integrity, and
-apply closed revision-bound mutations with a canonical digest. The seam has no
-repository, migration, host, provider, model, or UI dependency.
+apply closed revision-bound mutations with a canonical digest. The application
+service resolves selector-only create requests through Curriculum's public
+surface. Personal-workspace-owned PostgreSQL tables preserve the current
+aggregate and exact replay without cross-schema foreign keys, while the
+protected API binds learner identity from the server session and is shared by
+generated browser and headless clients. The seam has no provider, model,
+execution, cross-module mutation, or browser-interface dependency.
 
 ## Implemented Adaptation Deterministic Baseline
 

@@ -42,6 +42,7 @@ def test_cross_module_imports_use_only_public_surfaces() -> None:
         "curriculum",
         "identity",
         "learner_model",
+        "personal_workspace",
         "project",
     }
     prefix = "financial_ai_academy.modules."
@@ -81,6 +82,7 @@ def test_domain_layers_are_framework_and_adapter_free() -> None:
         "curriculum",
         "identity",
         "learner_model",
+        "personal_workspace",
         "project",
     ):
         for path in (MODULES / module_name / "domain").rglob("*.py"):
@@ -142,6 +144,18 @@ def test_repositories_query_only_their_own_module_schema() -> None:
         "learner_model.",
     ):
         assert foreign_schema not in project_repository
+    personal_workspace_repository = (
+        MODULES / "personal_workspace/adapters/postgres_repository.py"
+    ).read_text(encoding="utf-8")
+    for foreign_schema in (
+        "assessment.",
+        "content.",
+        "curriculum.",
+        "identity.",
+        "learner_model.",
+        "project.",
+    ):
+        assert foreign_schema not in personal_workspace_repository
 
 
 def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
@@ -245,6 +259,21 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
     ):
         assert foreign_schema not in project_shells
 
+    personal_workspaces = (
+        REPOSITORY
+        / "backend/migrations/personal_workspace"
+        / "personal_workspace_0001_workspaces.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    for foreign_schema in (
+        "references assessment.",
+        "references content.",
+        "references curriculum.",
+        "references identity.",
+        "references learner_model.",
+        "references project.",
+    ):
+        assert foreign_schema not in personal_workspaces
+
 
 def test_modules_have_public_application_and_port_seams() -> None:
     for module_name in (
@@ -255,6 +284,7 @@ def test_modules_have_public_application_and_port_seams() -> None:
         "curriculum",
         "identity",
         "learner_model",
+        "personal_workspace",
         "project",
     ):
         root = MODULES / module_name
@@ -263,6 +293,17 @@ def test_modules_have_public_application_and_port_seams() -> None:
         assert (root / "domain").is_dir()
         assert (root / "ports").is_dir()
         assert (root / "adapters").is_dir()
+
+
+def test_personal_workspace_uses_only_curriculum_public_surface() -> None:
+    prefix = "financial_ai_academy.modules.curriculum"
+    imports = {
+        imported
+        for path in (MODULES / "personal_workspace").rglob("*.py")
+        for imported in imported_modules(path)
+        if imported.startswith(prefix)
+    }
+    assert imports == {f"{prefix}.public"}
 
 
 def test_assessment_gateways_import_only_public_module_surfaces() -> None:

@@ -4,6 +4,19 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/personal-workspace` and
+`POST /api/v1/personal-workspace/mutations` are the protected Personal
+workspace boundary. Reads and writes require the explicit
+`personal_workspace.read` and `personal_workspace.write` permissions and bind
+the learner only from the opaque server session. Create-note and
+create-bookmark inputs carry a closed Curriculum selector; title, route,
+package, publication, validation time, record identity, and other server-owned
+facts cannot be selected by a caller. Exact retry returns the accepted
+workspace while stale revision and changed key reuse fail without overwrite.
+The reviewed OpenAPI and generated TypeScript types are identical for browser,
+command-line, service, and future headless consumers. No separate AI authority
+path is defined.
+
 Project learning submission uses five protected operations on the same shared
 API: `GET /api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate`,
 `POST /api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions`,
