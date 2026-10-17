@@ -1,9 +1,9 @@
 ---
 id: WRK-0150
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0018
+owner: unassigned
 updated: 2026-10-17
 parent: SLI-0074
 capability: CAP-0018

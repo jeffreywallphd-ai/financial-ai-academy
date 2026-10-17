@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,6 +15,9 @@ from financial_ai_academy.modules.identity.public import (
 )
 from financial_ai_academy.modules.learner_model.adapters.preference_contract import (
     ContractLearnerPreferenceAdapter,
+)
+from financial_ai_academy.modules.learner_model.domain.preferences import (
+    canonical_digest,
 )
 from financial_ai_academy.modules.learner_model.public import (
     ExportLearnerPreferencesRequest,
@@ -197,6 +201,68 @@ def test_headless_reads_use_server_learner_and_closed_contracts() -> None:
     assert preferences.export_requests == [
         ExportLearnerPreferencesRequest(LEARNER_ID)
     ]
+
+
+def test_profile_response_preserves_digest_canonical_fractional_timestamp() -> None:
+    preferences = Preferences()
+    contract = ContractLearnerPreferenceAdapter(SCHEMA_DIR)
+    document = json.loads(
+        (FIXTURE_DIR / "valid-populated-profile.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    canonical_time = "2026-10-17T18:03:00.007590Z"
+    document["updated_at"] = canonical_time
+    document["goals"][0]["updated_at"] = canonical_time
+    digest_input = dict(document)
+    digest_input.pop("profile_digest")
+    document["profile_digest"] = canonical_digest(digest_input)
+    preferences.empty = contract.parse_profile(
+        json.dumps(document).encode("utf-8")
+    )
+    history_document = json.loads(
+        (FIXTURE_DIR / "valid-history.json").read_text(encoding="utf-8")
+    )
+    history_document["changes"][-1]["occurred_at"] = canonical_time
+    preferences.history = contract.parse_history(
+        json.dumps(history_document).encode("utf-8")
+    )
+    export_document = json.loads(
+        (FIXTURE_DIR / "valid-export.json").read_text(encoding="utf-8")
+    )
+    export_document["exported_at"] = canonical_time
+    export_document["profile"] = document
+    export_document["history"]["changes"][-1][
+        "occurred_at"
+    ] = canonical_time
+    export_document["history"]["changes"][-1][
+        "resulting_profile_digest"
+    ] = document["profile_digest"]
+    preferences.export = contract.parse_export(
+        json.dumps(export_document).encode("utf-8")
+    )
+
+    subject = client(("learner_preferences.read",), preferences)
+    response = subject.get("/api/v1/learner-preferences")
+    history_response = subject.get("/api/v1/learner-preferences/history")
+    export_response = subject.get("/api/v1/learner-preferences/export")
+
+    assert response.status_code == 200
+    response_document = response.json()
+    assert response_document["updated_at"] == canonical_time
+    assert response_document["goals"][0]["updated_at"] == canonical_time
+    response_digest = response_document.pop("profile_digest")
+    assert canonical_digest(response_document) == response_digest
+    assert (
+        history_response.json()["changes"][-1]["occurred_at"]
+        == canonical_time
+    )
+    exported = export_response.json()
+    assert exported["exported_at"] == canonical_time
+    assert exported["profile"]["updated_at"] == canonical_time
+    assert (
+        exported["history"]["changes"][-1]["occurred_at"] == canonical_time
+    )
 
 
 def test_mutation_uses_server_learner_and_exact_frozen_intent() -> None:

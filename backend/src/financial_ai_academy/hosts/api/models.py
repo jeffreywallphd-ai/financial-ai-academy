@@ -153,6 +153,30 @@ class ProjectTimestampModel(ApiModel):
         return value
 
 
+def _learner_preference_timestamp_json(value: datetime) -> str:
+    """Preserve the exact timestamp text covered by preference digests."""
+
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError("Learner preference timestamps must include an offset.")
+    normalized = value.astimezone(timezone.utc)
+    if normalized.microsecond:
+        rendered = normalized.strftime("%Y-%m-%dT%H:%M:%S.%f")
+    else:
+        rendered = normalized.strftime("%Y-%m-%dT%H:%M:%S")
+    return f"{rendered}Z"
+
+
+class LearnerPreferenceTimestampModel(ApiModel):
+    """Keep preference response timestamps aligned with canonical digests."""
+
+    @field_serializer("*", check_fields=False, when_used="json")
+    def _serialize_learner_preference_timestamp_fields(self, value: object):
+        # Omitting the return annotation preserves the OpenAPI date-time schema.
+        if isinstance(value, datetime):
+            return _learner_preference_timestamp_json(value)
+        return value
+
+
 class ApiErrorEnvelope(ApiModel):
     error_version: Literal["1.0"] = "1.0"
     code: str = Field(min_length=1, max_length=80)
@@ -2552,7 +2576,7 @@ LearnerPreferenceOperation = Literal[
 ]
 
 
-class LearnerPreferenceGoalModel(ProjectTimestampModel):
+class LearnerPreferenceGoalModel(LearnerPreferenceTimestampModel):
     goal_id: LearnerPreferenceIdentifier
     title: str = Field(min_length=1, max_length=160)
     detail: LearnerPreferenceDetail2000
@@ -2561,7 +2585,7 @@ class LearnerPreferenceGoalModel(ProjectTimestampModel):
     updated_at: datetime
 
 
-class LearnerPreferenceExperienceModel(ProjectTimestampModel):
+class LearnerPreferenceExperienceModel(LearnerPreferenceTimestampModel):
     experience_id: LearnerPreferenceIdentifier
     subject: str = Field(min_length=1, max_length=120)
     level: Literal["new", "some_experience", "experienced"]
@@ -2570,14 +2594,14 @@ class LearnerPreferenceExperienceModel(ProjectTimestampModel):
     updated_at: datetime
 
 
-class LearnerPreferenceInterestModel(ProjectTimestampModel):
+class LearnerPreferenceInterestModel(LearnerPreferenceTimestampModel):
     interest_id: LearnerPreferenceIdentifier
     label: str = Field(min_length=1, max_length=120)
     created_at: datetime
     updated_at: datetime
 
 
-class LearnerPreferenceProfileResponseModel(ProjectTimestampModel):
+class LearnerPreferenceProfileResponseModel(LearnerPreferenceTimestampModel):
     schema_version: Literal["1.0.0"]
     profile_id: LearnerPreferenceIdentifier
     learner_id: UUID
@@ -2695,7 +2719,7 @@ class LearnerPreferenceMutationRequestModel(ApiModel):
     mutation: LearnerPreferenceMutationModel
 
 
-class LearnerPreferenceChangeModel(ProjectTimestampModel):
+class LearnerPreferenceChangeModel(LearnerPreferenceTimestampModel):
     schema_version: Literal["1.0.0"]
     revision: int = Field(ge=1)
     operation: LearnerPreferenceOperation
@@ -2705,14 +2729,14 @@ class LearnerPreferenceChangeModel(ProjectTimestampModel):
     resulting_profile_digest: LearnerPreferenceDigest
 
 
-class LearnerPreferenceHistoryResponseModel(ProjectTimestampModel):
+class LearnerPreferenceHistoryResponseModel(LearnerPreferenceTimestampModel):
     schema_version: Literal["1.0.0"]
     profile_id: LearnerPreferenceIdentifier
     current_revision: int = Field(ge=1)
     changes: list[LearnerPreferenceChangeModel] = Field(max_length=100)
 
 
-class LearnerPreferenceExportResponseModel(ProjectTimestampModel):
+class LearnerPreferenceExportResponseModel(LearnerPreferenceTimestampModel):
     schema_version: Literal["1.0.0"]
     purpose: str = Field(min_length=1, max_length=240)
     limitations: list[LearnerPreferenceLimitation] = Field(
