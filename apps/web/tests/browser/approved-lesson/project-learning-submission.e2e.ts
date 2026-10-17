@@ -26,6 +26,7 @@ const ARTIFACT_BYTES = Buffer.from(
   "utf-8",
 );
 const ARTIFACT_DIGEST = createHash("sha256").update(ARTIFACT_BYTES).digest("hex");
+const SUBMITTED_STATE_TIMEOUT_MS = 15_000;
 
 function projectApi(projectId: string) {
   return `/api/v1/projects/${encodeURIComponent(projectId)}`;
@@ -186,7 +187,9 @@ test("preserves Project learning submissions through browser, headless, and reta
   const firstIntent = firstSubmitted.request().postDataJSON() as Record<string, unknown>;
   const firstOutcome = (await firstSubmitted.json()) as ProjectSubmissionOutcome;
   expect(firstOutcome.validation.status).toBe("accepted");
-  await expect(page.getByRole("heading", { name: "Submitted checkpoint" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Submitted checkpoint" })).toBeVisible({
+    timeout: SUBMITTED_STATE_TIMEOUT_MS,
+  });
 
   const firstEndpoint = `${api}/snapshots/${encodeURIComponent(firstSnapshot.snapshot_id)}/submissions`;
   const exactReplayResponse = await context.request.post(firstEndpoint, {
@@ -247,7 +250,9 @@ test("preserves Project learning submissions through browser, headless, and reta
   const secondOutcome = (await secondSubmitted.json()) as ProjectSubmissionOutcome;
   expect(secondOutcome.validation.status).toBe("accepted");
   expect(secondOutcome.evidence?.supersedes_submission_id).toBe(firstOutcome.evidence?.submission_id);
-  await expect(page.getByRole("heading", { name: "Submitted checkpoint" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Submitted checkpoint" })).toBeVisible({
+    timeout: SUBMITTED_STATE_TIMEOUT_MS,
+  });
   await expect(page.getByRole("heading", { name: "Accepted checkpoints" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Open submitted evidence" })).toHaveCount(2);
   await expect(page.getByText(/does not grade its quality, show mastery, or provide financial advice/i)).toBeVisible();

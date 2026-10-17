@@ -207,8 +207,9 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0147 | Freeze learner-preference v1 profile, mutation, history/export, compatibility, pure domain, transport-neutral parser/projector, privacy, and anti-rigidity contracts | none | none | complete |
 | WRK-0148 | Compose Learner-model application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0147 | none | complete |
 | WRK-0149 | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | WRK-0148 | none | complete |
-| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149, WRK-0151 | none | verifying |
+| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149, WRK-0151, WRK-0152 | none | verifying |
 | WRK-0151 | Preserve exact canonical learner-preference timestamps in API responses so digest validation remains stable | WRK-0148 | none | complete |
+| WRK-0152 | Stabilize the captured-output Project submitted-state check without weakening its functional assertion | WRK-0128 | none | verifying |
 
 Dependent packets are not reserved, authored, or claimed until their concrete
 predecessor is complete.
@@ -318,3 +319,6 @@ approval history.
   complete isolated browser/headless/PostgreSQL workflow, including exact
   replay, all three simultaneous-write outcome classes, normal restart,
   source-state noninterference, accessibility, recovery, and bounded cleanup.
+- 2026-10-17: Added test-only WRK-0152 after the controller reproduced an
+  existing Project UI wait sensitivity only under captured subprocess output.
+  The correction does not change CAP-0018 behavior or acceptance.

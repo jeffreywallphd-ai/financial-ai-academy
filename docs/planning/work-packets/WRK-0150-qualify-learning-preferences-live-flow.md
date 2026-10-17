@@ -7,10 +7,10 @@ owner: codex-cap-0018
 updated: 2026-10-17
 parent: SLI-0074
 capability: CAP-0018
-depends_on: [WRK-0149, WRK-0151]
+depends_on: [WRK-0149, WRK-0151, WRK-0152]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/learner-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0074-record-learning-goals-experience-interests.md", "docs/planning/work-packets/WRK-0150-qualify-learning-preferences-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/learner-preferences.e2e.ts", "apps/web/tests/browser/approved-lesson/project-learning-submission.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0074-record-learning-goals-experience-interests.md", "docs/planning/work-packets/WRK-0150-qualify-learning-preferences-live-flow.md", "docs/planning/work-packets/WRK-0152-stabilize-captured-project-submission-check.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
 base_revision: 49432b46812db11958fca516716ca4bcb3b287de
 claim_id: WRK-0150:9289da3d-5514-436b-98e3-9192590991cc
@@ -269,3 +269,7 @@ leave SLI-0074 closure-ready.
   live browser journey activate a named control through the keyboard. Focused
   harness, TypeScript, lint, and the learner-preference Chromium journey passed
   after these bounded evidence corrections.
+- 2026-10-17: Added WRK-0152 as a bounded test-only dependency after the exact
+  live wrapper reproduced a pre-existing Project submitted-state timeout only
+  when the controller captured subprocess output. Product and contract scope
+  remain unchanged.
