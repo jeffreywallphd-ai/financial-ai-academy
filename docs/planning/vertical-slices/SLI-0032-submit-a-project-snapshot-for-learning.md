@@ -241,7 +241,7 @@ scope is refined just in time.
 | WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | complete |
 | WRK-0127 | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | WRK-0126 | none | complete |
 | WRK-0128 | Deliver the protected Project-completion read and accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | WRK-0127 | none | complete |
-| JIT-E | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | JIT-D | none | captured |
+| WRK-0129 | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | WRK-0128 | none | ready |
 
 ## Verification and Qualification
 
@@ -407,3 +407,10 @@ qualified.
   visible through accessible technical disclosures. Cumulative PostgreSQL,
   restart, headless/browser, projection, Audit, denial, accessibility, and
   no-execution qualification remains in JIT-E.
+- 2026-10-17: Refined JIT-E as WRK-0129. The evidence-only packet adds the
+  complete learning-linked Project submission journey to the isolated live
+  qualifier, correlates browser and headless reads with immutable Assessment
+  evidence, Learner-model projection, Audit references, restart, denial,
+  accessibility, containment, and cleanup evidence, and then closes this
+  slice. No product behavior, authority, durable decision, or lower-level
+  approval gate was added.
