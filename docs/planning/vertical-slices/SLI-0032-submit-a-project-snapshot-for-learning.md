@@ -236,7 +236,7 @@ scope is refined just in time.
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | verifying |
+| WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
 | JIT-B | Deliver Assessment-owned application/persistence, Project/Content/Curriculum public adapters, atomic evidence/event storage, replay, supersession, and protected API/generated client | JIT-A | none | captured |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
@@ -330,3 +330,7 @@ qualified.
 - 2026-10-17: Activated the slice and WRK-0124 after the CAP authority,
   implementation gate, dependency state, bounded scope, and durable packet
   claim were revalidated against the current repository revision.
+- 2026-10-17: WRK-0124 completed at exact corrected candidate `97d316a` after
+  qualifying verification and accepted independent follow-up review. The
+  additive transport-neutral contract and pure deterministic policy now bound
+  every later stateful and client packet without adding runtime authority.
