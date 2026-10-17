@@ -1,7 +1,7 @@
 ---
 id: WRK-0137
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -238,3 +238,16 @@ leave WRK-0138 dependency-ready.
   start manifest can bind the refined scope. No product file had changed.
 - 2026-10-17: Re-activated from recorded base `65ed242` with a fresh start
   manifest covering the complete refined scope and no active file collision.
+- 2026-10-17: Completed implementation at exact candidate `703349c` after all
+  Project query and form selectors became closed over exact fields and
+  cardinality, invalid shapes failed before session or API access, and direct
+  Chromium qualification covered accessibility, keyboard use, narrow and 200%
+  text reflow, three-theme parity, forced colors, reduced motion, mixed
+  organization, anchored return, and inert saved-file behavior. Focused web
+  checks passed 80 tests, the Project Chromium suite passed 11 scenarios, the
+  exact 10-check affected receipt qualified with digest
+  `sha256:240e77941c6876b97e9dfa347699d86b47d09c7576880f76d54238f0c1f983f0`,
+  and all 29 aggregate readiness checks passed. No backend, API, OpenAPI,
+  generated-client, migration, Project mutation, artifact-content, provider,
+  AI-authority, or financial-action boundary changed. WRK-0138 remains the
+  isolated live qualification seam.
