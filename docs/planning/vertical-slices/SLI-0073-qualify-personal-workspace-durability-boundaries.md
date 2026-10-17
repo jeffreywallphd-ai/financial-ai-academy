@@ -234,7 +234,7 @@ packet starts. The dependency-ordered seams are:
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | complete |
-| WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | ready |
+| WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | active |
 | JIT-C | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify cumulative browser/headless parity, maximum bounds, interruption, target isolation, restart, empty-target community database recovery, containment, cleanup, and CAP closure | JIT-C | none | captured |
 
@@ -340,3 +340,6 @@ records remain ignored; no slice or packet approval is requested.
   operation, protected JSON route, exact public quota outcomes, existing
   PostgreSQL replay/restart behavior, and reviewed OpenAPI/generated-client
   seam. It adds no migration, browser feature, import, or recovery policy.
+- 2026-10-17: Activated WRK-0144 from the recorded base after revalidating the
+  completed contract dependency, current CAP package, resolved decision
+  posture, exact API/application/test scope, and absence of a write collision.

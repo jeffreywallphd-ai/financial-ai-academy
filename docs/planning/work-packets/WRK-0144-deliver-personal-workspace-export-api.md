@@ -1,7 +1,7 @@
 ---
 id: WRK-0144
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/personal_workspace/public.py", "backend/src/financial_ai_academy/modules/personal_workspace/application/service.py", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/tests/unit/personal_workspace/test_personal_workspace_service.py", "backend/tests/integration/personal_workspace/test_postgres_personal_workspace.py", "backend/tests/integration/api/test_single_profile_personal_workspace_api.py", "backend/tests/architecture/test_module_boundaries.py", "contracts/api/openapi.json", "contracts/api/README.md", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "apps/web/README.md", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/assurance/architecture-verification.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0073-qualify-personal-workspace-durability-boundaries.md", "docs/planning/work-packets/WRK-0144-deliver-personal-workspace-export-api.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
-base_revision: ""
-claim_id: ""
-claimed_by: ""
-claimed_at: ""
+base_revision: 282eb4d6e7065e4b8013cd07cec660752f3f2392
+claim_id: WRK-0144:563c9dc9-b9e2-4ab1-ac50-8f31834bc6c2
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T16:58:50Z
 ---
 
 # Agent Work Packet: Deliver Personal Workspace Export and Quota API
@@ -210,3 +210,6 @@ compatibility assumptions; and the remaining browser/live-recovery packets.
   the fixed export/quota contract, existing repository and read permission,
   adds no migration or new identity policy, and requires no lower-level
   approval within the current approved CAP-0017 package.
+- 2026-10-17: Activated from recorded base `282eb4d` after confirming the
+  current CAP binding, completed WRK-0143 dependency, exact bounded scope,
+  resolved decisions, and no active coordination collision.
