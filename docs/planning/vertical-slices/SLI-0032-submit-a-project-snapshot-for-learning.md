@@ -239,7 +239,7 @@ scope is refined just in time.
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
 | WRK-0125 | Deliver safe Project snapshot facts, Assessment-owned application/persistence, public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | complete |
 | WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | complete |
-| WRK-0127 | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | WRK-0126 | none | active |
+| WRK-0127 | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | WRK-0126 | none | verifying |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
 | JIT-E | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | JIT-D | none | captured |
 
