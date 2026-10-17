@@ -27,9 +27,11 @@
 - Personal-workspace target-availability refresh, multiple learners,
   import/export, and managed-cloud retention/recovery beyond the directly
   covered portable contract, pure mutation core, Curriculum public adapter,
-  PostgreSQL persistence, protected API, generated-browser/headless Saved
-  Learning journey, exact replay/conflict denial, target-state isolation, and
-  full live-topology restart
+  Project public adapter, PostgreSQL persistence, protected API,
+  generated-browser/headless mixed Curriculum and Project workspace,
+  checkpoint, and inert-file Saved Learning journey, confidential unavailable-
+  Project isolation, exact replay/conflict denial, artifact-byte exclusion,
+  target-state isolation, and full live-topology restart
 - Live domain-resource and Portfolio associations, external execution,
   collaboration, managed cloud, production recovery,
   import/restore, retention cleanup, and a separate headless AI mode beyond the

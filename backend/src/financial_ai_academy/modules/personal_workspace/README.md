@@ -36,9 +36,11 @@ and headless consumers. Source-bearing creates also require the owning module's
 read permission; caller-selected learner query parameters are rejected before
 workspace access. The generated-client Saved Learning browser flow and an
 ordinary authenticated non-browser client use these same operations. The
-current browser creates Curriculum references; Project browser entry points
-remain a later packet, while headless clients can already use the reviewed
-Project selectors. Isolated PostgreSQL/Python/static-browser qualification
-directly proves exact replay, changed-key and stale-revision denial,
-target-state isolation, normal restart without reseeding, and bounded cleanup
-without changing this ownership direction.
+current browser creates Curriculum references and exact Project workspace,
+checkpoint, and inert-file references from contextual Project controls; the
+same reviewed selectors remain available to headless clients. Isolated
+PostgreSQL/Python/static-browser qualification directly proves mixed-reference
+organization, exact Project correlation, artifact-byte exclusion, confidential
+unavailable-Project isolation, exact replay, changed-key and stale-revision
+denial, target-state isolation, normal restart without reseeding, and bounded
+cleanup without changing this ownership direction.

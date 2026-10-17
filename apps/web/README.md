@@ -402,8 +402,14 @@ accessibility, and restart durability without a browser-only API. The
 same live topology also exercises `/saved-learning` through the generated
 client, compares the resulting closed workspace with ordinary authenticated
 headless HTTP, proves exact replay plus changed-key and stale-revision denial,
-checks target-domain count invariance, and reopens the same notes, bookmark,
-ordered collection, provenance, and revision after a normal restart. The
+checks target-domain count invariance, and reopens the same notes, bookmarks,
+ordered collection, provenance, and revision after a normal restart. The live
+Project journey runs first, after which contextual controls save the exact
+Project workspace, immutable checkpoint, and inert-file manifest alongside a
+Curriculum lesson. The qualifier correlates those references to the public
+Project capture and PostgreSQL rows, refuses an unavailable Project without
+changing unrelated records, excludes artifact bytes and execution actions,
+and proves Project state remains unchanged. The
 separate pinned browser fixture preserves
 the wider same-kind shared-branch and variable-reference anti-rigidity cases;
 the live approved graph does not invent those shapes for qualification.

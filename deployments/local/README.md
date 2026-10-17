@@ -146,9 +146,15 @@ last accepted mutation, proves changed-key and stale-revision conflicts are
 confidential and side-effect free, and observes the same complete state after
 restart. Direct PostgreSQL correlation binds the public workspace ID,
 revision, accepted document, restore request key, and restore result to one
-Personal-workspace aggregate and its seven workspace-scoped mutation rows.
-Bounded before/after snapshots also prove that the journey leaves Content,
-Curriculum, Assessment, Learner model, and Project counts unchanged. The
+Personal-workspace aggregate and its ten workspace-scoped mutation rows. The
+Project browser journey runs before Saved Learning and contributes one exact
+workspace, immutable checkpoint, and inert-file manifest selector. The mixed
+collection survives headless replay and restart; an unavailable Project fails
+confidentially without changing unrelated records; and the saved file record
+contains no bytes, storage locator, download, preview, or execution seam.
+Bounded before/after snapshots also prove that the Saved Learning journey
+leaves the exact Project rows plus Content, Curriculum, Assessment, and Learner
+model state unchanged. The
 companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.

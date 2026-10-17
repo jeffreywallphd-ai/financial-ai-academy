@@ -385,23 +385,96 @@ def personal_workspace_capture() -> dict[str, Any]:
         "created_at": "2026-10-17T12:01:00Z",
         "updated_at": "2026-10-17T12:07:00Z",
     }
+    project_common = {
+        "owner_module": "project",
+        "project_id": "project-qualification",
+        "title": "Unicode evidence Project",
+        "lifecycle": "active",
+        "project_revision": 1,
+        "workspace_revision": 5,
+        "target_status": "available",
+        "validated_at": "2026-10-17T12:08:00Z",
+    }
+    project_note = {
+        "record_kind": "note",
+        "record_id": "note-project",
+        "title": "Project workspace reminders",
+        "body": "Keep this Project source connected without copying its working files.",
+        "target": project_common
+        | {
+            "reference_kind": "project_workspace",
+            "destination": "/projects/project-qualification#workspace",
+        },
+        "archived": False,
+        "created_at": "2026-10-17T12:08:00Z",
+        "updated_at": "2026-10-17T12:08:00Z",
+    }
+    snapshot_bookmark = {
+        "record_kind": "bookmark",
+        "record_id": "bookmark-snapshot",
+        "label": "Fixed Project checkpoint",
+        "target": project_common
+        | {
+            "reference_kind": "project_snapshot",
+            "snapshot_id": "snapshot-qualification",
+            "snapshot_digest": "c" * 64,
+            "closed_at": "2026-10-17T12:06:00Z",
+            "destination": (
+                "/projects/project-qualification#snapshot-snapshot-qualification"
+            ),
+        },
+        "archived": False,
+        "created_at": "2026-10-17T12:09:00Z",
+        "updated_at": "2026-10-17T12:09:00Z",
+    }
+    artifact_bookmark = {
+        "record_kind": "bookmark",
+        "record_id": "bookmark-artifact",
+        "label": "Project dataset record",
+        "target": project_common
+        | {
+            "reference_kind": "project_artifact",
+            "artifact_id": "artifact-qualification",
+            "artifact_version": 1,
+            "artifact_kind": "dataset",
+            "logical_path": "Résumé-Σ-data.csv",
+            "media_type": "text/csv",
+            "inspection_mode": "plain_text",
+            "byte_count": 22,
+            "content_digest": "d" * 64,
+            "created_at": "2026-10-17T12:05:00Z",
+            "destination": (
+                "/projects/project-qualification"
+                "#artifact-artifact-qualification-v1"
+            ),
+        },
+        "archived": False,
+        "created_at": "2026-10-17T12:10:00Z",
+        "updated_at": "2026-10-17T12:10:00Z",
+    }
     workspace = {
         "schema_version": "1.0.0",
         "workspace_id": "workspace-one",
         "learner_id": "single-profile-learner",
-        "revision": 8,
-        "records": [bookmark, note],
+        "revision": 11,
+        "records": [bookmark, note, project_note, snapshot_bookmark, artifact_bookmark],
         "collections": [
             {
                 "collection_id": "collection-one",
                 "title": "Foundations İ",
-                "member_record_ids": ["bookmark-one", "note-one"],
+                "member_record_ids": [
+                    "bookmark-one",
+                    "note-one",
+                    "note-project",
+                    "bookmark-snapshot",
+                    "bookmark-artifact",
+                ],
                 "created_at": "2026-10-17T12:04:00Z",
                 "updated_at": "2026-10-17T12:05:00Z",
             }
         ],
         "created_at": "2026-10-17T12:00:00Z",
-        "updated_at": "2026-10-17T12:07:00Z",
+        "updated_at": "2026-10-17T12:10:00Z",
         "workspace_digest": "b" * 64,
     }
     return {
@@ -409,7 +482,7 @@ def personal_workspace_capture() -> dict[str, Any]:
         "exact_replay_request": {
             "schema_version": "1.0.0",
             "idempotency_key": "11111111-1111-4111-8111-111111111111",
-            "expected_revision": 7,
+            "expected_revision": 10,
             "mutation": {
                 "operation": "restore_record",
                 "record_id": "note-one",
@@ -421,6 +494,17 @@ def personal_workspace_capture() -> dict[str, Any]:
             "bookmark_label": bookmark["label"],
             "collection_title": "Foundations İ",
             "placement_id": "intro-risk-return-primary",
+            "project_id": "project-qualification",
+            "project_note_title": project_note["title"],
+            "project_note_body": project_note["body"],
+            "snapshot_id": "snapshot-qualification",
+            "snapshot_label": snapshot_bookmark["label"],
+            "snapshot_digest": "c" * 64,
+            "artifact_id": "artifact-qualification",
+            "artifact_version": 1,
+            "artifact_label": artifact_bookmark["label"],
+            "artifact_digest": "d" * 64,
+            "artifact_byte_count": 22,
         },
     }
 
@@ -438,7 +522,7 @@ def correlated_personal_workspace_storage() -> dict[str, Any]:
             },
             "accepted_revision": revision,
         }
-        for revision in range(2, 8)
+        for revision in range(2, workspace["revision"])
     ]
     mutation_rows.append(
         {
@@ -450,7 +534,7 @@ def correlated_personal_workspace_storage() -> dict[str, Any]:
     )
     return {
         "personal_workspaces": 1,
-        "personal_mutations": 7,
+        "personal_mutations": workspace["revision"] - 1,
         "content_packages": 1,
         "curriculum_placements": 3,
         "curriculum_discovery_records": 3,
@@ -1238,6 +1322,25 @@ def test_personal_workspace_capture_is_closed_correlated_and_private(
     with pytest.raises(RuntimeError, match="collection is invalid"):
         runner.load_personal_workspace_capture(path, data_root=tmp_path)
 
+    copied_bytes = json.loads(json.dumps(capture))
+    copied_bytes["workspace"]["records"][-1]["target"]["content_base64"] = (
+        "c2NlbmFyaW8sdmFsdWU="
+    )
+    path.write_text(json.dumps(copied_bytes), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+
+    mismatched_project = json.loads(json.dumps(capture))
+    mismatched_project["workspace"]["records"][-2]["target"]["project_id"] = (
+        "project.other"
+    )
+    mismatched_project["workspace"]["records"][-2]["target"]["destination"] = (
+        "/projects/project.other#snapshot-snapshot-qualification"
+    )
+    path.write_text(json.dumps(mismatched_project), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="browser-observed meaning"):
+        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+
 
 def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
     monkeypatch: pytest.MonkeyPatch,
@@ -1259,7 +1362,7 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
             return {"expires_at": "later"}
         return capture["workspace"]
 
-    denials = iter(("immutable_conflict", "stale_revision"))
+    denials = iter(("immutable_conflict", "stale_revision", "source_unavailable"))
 
     def request_status(
         _opener: object,
@@ -1294,6 +1397,8 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
         "POST",
         "POST",
         "POST",
+        "POST",
+        "GET",
     ]
     assert calls[2][2] == capture["exact_replay_request"]
     assert calls[3][2]["idempotency_key"] == capture["exact_replay_request"][
@@ -1303,6 +1408,10 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
     assert calls[4][2]["idempotency_key"] != capture["exact_replay_request"][
         "idempotency_key"
     ]
+    assert calls[5][2]["mutation"]["selector"] == {
+        "reference_kind": "project_workspace",
+        "project_id": "project.missing-qualification",
+    }
 
 
 def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:

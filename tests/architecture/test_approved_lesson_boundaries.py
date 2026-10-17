@@ -713,9 +713,23 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
             "FINANCIAL_AI_ACADEMY_PERSONAL_WORKSPACE_CAPTURE",
             runner,
         )
+        self.assertIn("FINANCIAL_AI_ACADEMY_PROJECT_CAPTURE", runner)
+        self.assertLess(
+            runner.index('npm_e2e_command("project-workspace.e2e.ts")'),
+            runner.index('npm_e2e_command("personal-workspace.e2e.ts")'),
+        )
         self.assertIn("exact_headless_replay", runner)
         self.assertIn("source_and_learning_state_unchanged", runner)
+        self.assertIn('"project.missing-qualification"', runner)
+        self.assertIn('"project_workspace"', runner)
+        self.assertIn('"project_snapshot"', runner)
+        self.assertIn('"project_artifact"', runner)
         self.assertIn("../../../src/features/personal-workspace/model", browser)
+        self.assertIn("../../../src/features/project-workspace/model", browser)
+        self.assertIn("Save Project to Saved learning", browser)
+        self.assertIn("Save checkpoint to Saved learning", browser)
+        self.assertIn("Save file to Saved learning", browser)
+        self.assertNotIn("content_base64", browser)
         self.assertNotIn("financial_ai_academy", browser)
         self.assertNotIn("backend/", browser)
         self.assertNotIn("localStorage", browser)
