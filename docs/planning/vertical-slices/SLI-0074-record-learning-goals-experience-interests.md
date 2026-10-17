@@ -207,7 +207,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0147 | Freeze learner-preference v1 profile, mutation, history/export, compatibility, pure domain, transport-neutral parser/projector, privacy, and anti-rigidity contracts | none | none | complete |
 | WRK-0148 | Compose Learner-model application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0147 | none | complete |
 | WRK-0149 | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | WRK-0148 | none | complete |
-| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149 | none | ready |
+| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149 | none | active |
 
 Dependent packets are not reserved, authored, or claimed until their concrete
 predecessor is complete.
@@ -303,3 +303,6 @@ approval history.
   browser/headless journey, simultaneous PostgreSQL races, restart,
   containment, accessibility, and cleanup evidence without changing product
   behavior or opening a durable decision.
+- 2026-10-17: Activated WRK-0150 from recorded base `b04f6a2` after confirming
+  the completed browser dependency, qualification-only boundary, exact shared
+  runner/build/documentation scope, and absence of an active edit collision.

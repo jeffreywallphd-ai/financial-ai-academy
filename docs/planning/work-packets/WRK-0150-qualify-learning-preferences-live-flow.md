@@ -1,7 +1,7 @@
 ---
 id: WRK-0150
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/learner-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0074-record-learning-goals-experience-interests.md", "docs/planning/work-packets/WRK-0150-qualify-learning-preferences-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b04f6a287c902b29b14fa8fe75a5c9091142aa72
+claim_id: WRK-0150:2b49c81f-0930-4d44-824c-70be7cb77427
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-17T19:29:44Z
 ---
 
 # Agent Work Packet: Qualify the Learning Preferences Live Flow
@@ -252,3 +252,6 @@ leave SLI-0074 closure-ready.
 - 2026-10-17: Marked ready after packet, dependency, decision-readiness,
   public-API, race-matrix, closed-capture, exact write-scope, documentation,
   and planning validation passed without material CAP or slice drift.
+- 2026-10-17: Activated from recorded base `b04f6a2` after validating the
+  completed dependency, current CAP authority, qualification-only scope,
+  exact file ownership, and no active coordination collision.
