@@ -455,8 +455,17 @@ function one(search: URLSearchParams, name: string): string | undefined {
   return values.length === 1 && values[0] ? values[0] : undefined;
 }
 
-function absent(search: URLSearchParams, names: readonly string[]): boolean {
-  return names.every((name) => search.getAll(name).length === 0);
+function queryFieldsAreExact(
+  search: URLSearchParams,
+  required: readonly string[],
+  optional: readonly string[] = [],
+): boolean {
+  const allowed = new Set([...required, ...optional]);
+  for (const key of search.keys()) {
+    if (!allowed.has(key)) return false;
+  }
+  return required.every((key) => search.getAll(key).length === 1) &&
+    optional.every((key) => search.getAll(key).length <= 1);
 }
 
 function positiveQueryInteger(value: string | undefined): number | undefined {
@@ -483,7 +492,7 @@ export function parseSaveSelection(url: URL): SaveSelection | undefined {
   if (
     kind === "project_workspace" &&
     workspaceIdentifierIsSafe(projectId) &&
-    absent(url.searchParams, ["placement", "opportunity", "snapshot", "artifact", "version", "return"])
+    queryFieldsAreExact(url.searchParams, ["kind", "project"])
   ) {
     return {
       kind,
@@ -496,7 +505,7 @@ export function parseSaveSelection(url: URL): SaveSelection | undefined {
     kind === "project_snapshot" &&
     workspaceIdentifierIsSafe(projectId) &&
     workspaceIdentifierIsSafe(snapshotId) &&
-    absent(url.searchParams, ["placement", "opportunity", "artifact", "version", "return"])
+    queryFieldsAreExact(url.searchParams, ["kind", "project", "snapshot"])
   ) {
     return {
       kind,
@@ -512,7 +521,7 @@ export function parseSaveSelection(url: URL): SaveSelection | undefined {
     workspaceIdentifierIsSafe(projectId) &&
     workspaceIdentifierIsSafe(artifactId) &&
     artifactVersion !== undefined &&
-    absent(url.searchParams, ["placement", "opportunity", "snapshot", "return"])
+    queryFieldsAreExact(url.searchParams, ["kind", "project", "artifact", "version"])
   ) {
     return {
       kind,
@@ -528,7 +537,11 @@ export function parseSaveSelection(url: URL): SaveSelection | undefined {
   if (
     !placementId ||
     !CURRICULUM_ID.test(placementId) ||
-    !absent(url.searchParams, ["project", "snapshot", "artifact", "version"])
+    !queryFieldsAreExact(
+      url.searchParams,
+      kind === "opportunity" ? ["kind", "opportunity", "placement"] : ["kind", "placement"],
+      ["return"],
+    )
   ) return undefined;
   if (kind === "lesson") {
     return { kind: "placed_lesson", placementId, returnTo };

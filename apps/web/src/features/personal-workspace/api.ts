@@ -119,14 +119,38 @@ function identifiers(form: FormData, name: string): string[] | undefined {
   return values as string[];
 }
 
-function sourceSelector(form: FormData) {
+function formFieldsAreExact(form: FormData, fields: readonly string[]): boolean {
+  const allowed = new Set(fields);
+  for (const key of form.keys()) {
+    if (!allowed.has(key)) return false;
+  }
+  return fields.every((key) => form.getAll(key).length === 1);
+}
+
+function sourceSelector(form: FormData, payloadFields: readonly string[]) {
   const kind = required(form, "reference_kind", 32);
   const projectId = identifier(form, "project_id");
-  if (kind === "project_workspace" && projectId) {
+  const commonFields = [
+    "form_intent",
+    "idempotency_key",
+    "expected_revision",
+    "operation",
+    ...payloadFields,
+  ];
+  if (
+    kind === "project_workspace" &&
+    projectId &&
+    formFieldsAreExact(form, [...commonFields, "reference_kind", "project_id"])
+  ) {
     return { reference_kind: kind, project_id: projectId } as const;
   }
   const snapshotId = identifier(form, "snapshot_id");
-  if (kind === "project_snapshot" && projectId && snapshotId) {
+  if (
+    kind === "project_snapshot" &&
+    projectId &&
+    snapshotId &&
+    formFieldsAreExact(form, [...commonFields, "reference_kind", "project_id", "snapshot_id"])
+  ) {
     return {
       reference_kind: kind,
       project_id: projectId,
@@ -142,7 +166,14 @@ function sourceSelector(form: FormData) {
     kind === "project_artifact" &&
     projectId &&
     artifactId &&
-    Number.isSafeInteger(artifactVersion)
+    Number.isSafeInteger(artifactVersion) &&
+    formFieldsAreExact(form, [
+      ...commonFields,
+      "reference_kind",
+      "project_id",
+      "artifact_id",
+      "artifact_version",
+    ])
   ) {
     return {
       reference_kind: kind,
@@ -153,11 +184,21 @@ function sourceSelector(form: FormData) {
   }
   const placementId = required(form, "placement_id", 64);
   if (!curriculumIdentifierIsSafe(placementId)) return undefined;
-  if (kind === "placed_lesson") {
+  if (
+    kind === "placed_lesson" &&
+    formFieldsAreExact(form, [...commonFields, "reference_kind", "placement_id"])
+  ) {
     return { reference_kind: kind, placement_id: placementId } as const;
   }
   const opportunityId = required(form, "opportunity_id", 64);
-  return kind === "learning_opportunity" && curriculumIdentifierIsSafe(opportunityId)
+  return kind === "learning_opportunity" &&
+    curriculumIdentifierIsSafe(opportunityId) &&
+    formFieldsAreExact(form, [
+      ...commonFields,
+      "reference_kind",
+      "opportunity_id",
+      "placement_id",
+    ])
     ? {
         reference_kind: kind,
         opportunity_id: opportunityId,
@@ -169,7 +210,7 @@ function sourceSelector(form: FormData) {
 function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined {
   const operation = required(form, "operation", 40);
   if (operation === "create_note") {
-    const selector = sourceSelector(form);
+    const selector = sourceSelector(form, ["title", "body"]);
     const title = required(form, "title", 120);
     const body = required(form, "body", 8_000);
     return selector && title && body
@@ -177,7 +218,7 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
       : undefined;
   }
   if (operation === "create_bookmark") {
-    const selector = sourceSelector(form);
+    const selector = sourceSelector(form, ["label"]);
     const label = optional(form, "label");
     return selector && label !== undefined
       ? { operation, selector, label }

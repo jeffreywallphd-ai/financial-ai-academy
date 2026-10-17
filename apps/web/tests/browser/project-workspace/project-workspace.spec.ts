@@ -471,13 +471,33 @@ test("saves Project work, keeps files inert, closes a snapshot, and continues wo
 test("saves exact Project items with curriculum learning and reopens their anchored destinations", async ({ page }) => {
   const posts: Record<string, unknown>[] = [];
   await mockProjects(page, posts);
+  await page.setViewportSize({ width: 375, height: 720 });
   await page.goto("/projects/project-independent");
 
   await page.getByRole("link", { name: "Save Project to Saved learning" }).click();
   await expect(page.getByRole("heading", { name: "Save this Project" })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  const saveFormDimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(saveFormDimensions.content).toBeLessThanOrEqual(saveFormDimensions.viewport);
+  const saveFormText = await page.locator("main").innerText();
+  for (const theme of ["light", "dark", "system"] as const) {
+    await page.getByLabel("Theme").selectOption(theme);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    expect(await page.locator("main").innerText()).toBe(saveFormText);
+  }
+  await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "active" });
   await page.getByLabel(/Personal label/).fill("Workspace record");
-  await page.getByRole("button", { name: "Save bookmark" }).click();
+  const saveBookmark = page.getByRole("button", { name: "Save bookmark" });
+  await page.keyboard.press("Tab");
+  await expect(saveBookmark).toBeFocused();
+  expect(await saveBookmark.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
+  await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/saved-learning$/);
+  await page.emulateMedia({ reducedMotion: "no-preference", forcedColors: "none" });
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   const workspaceRecord = page.getByRole("heading", { name: "Workspace record" }).locator("xpath=ancestor::li");
   await workspaceRecord.getByRole("link", { name: independent.title }).click();
   await expect(page).toHaveURL(/\/projects\/project-independent#workspace$/);
@@ -512,6 +532,29 @@ test("saves exact Project items with curriculum learning and reopens their ancho
   await collection.getByRole("button", { name: "Save collection items" }).click();
   await expect(collection.getByRole("checkbox", { name: "Curriculum reminder" })).toBeChecked();
   await expect(collection.getByRole("checkbox", { name: "Evidence file" })).toBeChecked();
+
+  await page.emulateMedia({ reducedMotion: "no-preference", forcedColors: "none" });
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  const mixedText = await page.locator("main").innerText();
+  for (const theme of ["light", "dark", "system"] as const) {
+    await page.getByLabel("Theme").selectOption(theme);
+    expect(await page.locator("main").innerText()).toBe(mixedText);
+  }
+  const mixedDimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(mixedDimensions.content).toBeLessThanOrEqual(mixedDimensions.viewport);
+  const savedFile = page.getByRole("heading", { name: "Evidence file" }).locator("xpath=ancestor::li");
+  await expect(savedFile).not.toContainText(/download|preview|run file|execute/i);
+  await expect(savedFile.locator("img, object, embed, iframe")).toHaveCount(0);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.addStyleTag({ content: "html { font-size: 200% !important; }" });
+  const zoomedDimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    content: document.documentElement.scrollWidth,
+  }));
+  expect(zoomedDimensions.content).toBeLessThanOrEqual(zoomedDimensions.viewport);
 
   const savedMutations = posts
     .map((body) => body.mutation as Record<string, unknown> | undefined)

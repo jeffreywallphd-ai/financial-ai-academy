@@ -250,10 +250,14 @@ describe("Personal workspace browser model", () => {
       "kind=project_workspace&project=Project-Unsafe",
       "kind=project_snapshot&project=project.research-1",
       "kind=project_snapshot&project=project.research-1&snapshot=snapshot.baseline-1&artifact=artifact.one",
+      "kind=project_snapshot&project=project.research-1&snapshot=snapshot.baseline-1&snapshot=snapshot.other",
       "kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=0",
       "kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=03",
+      "kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=3&version=4",
       "kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=9007199254740992",
       "kind=project_workspace&project=project.research-1&return=%2Fprojects%2Fanother",
+      "kind=project_workspace&project=project.research-1&owner=learner-one",
+      "kind=project_workspace&project=project.research-1&extra=ignored",
       "kind=project_workspace&project=project.research-1&project=project.other",
     ]) {
       expect(parseSaveSelection(new URL(`https://academy.test/saved-learning/new?${query}`))).toBeUndefined();
@@ -298,6 +302,32 @@ describe("Personal workspace browser model", () => {
     }));
     expect(post.mock.calls[0]?.[1]?.body).not.toHaveProperty("learner_id");
     expect(post.mock.calls[0]?.[1]?.body).not.toHaveProperty("workspace_id");
+  });
+
+  it.each([
+    ["cross-variant Project field", [["reference_kind", "project_workspace"], ["project_id", "project.research-1"], ["snapshot_id", "snapshot.baseline-1"]]],
+    ["unknown owner field", [["reference_kind", "project_workspace"], ["project_id", "project.research-1"], ["owner", "learner-one"]]],
+    ["duplicated Project ID", [["reference_kind", "project_workspace"], ["project_id", "project.research-1"], ["project_id", "project.other"]]],
+    ["duplicated artifact version", [["reference_kind", "project_artifact"], ["project_id", "project.research-1"], ["artifact_id", "artifact.inputs-1"], ["artifact_version", "3"], ["artifact_version", "4"]]],
+    ["Project field on a Curriculum selector", [["reference_kind", "placed_lesson"], ["placement_id", "cash-flow-primary"], ["project_id", "project.research-1"]]],
+  ] as const)("rejects a create form with a %s before session or API access", async (_name, selectorFields) => {
+    const post = vi.fn();
+    const profile = session();
+    const action = createPersonalWorkspaceAction(
+      { POST: post } as unknown as FinancialAcademyApiClient,
+      profile,
+    );
+    const form = new FormData();
+    form.set("form_intent", "create-bookmark");
+    form.set("idempotency_key", "11111111-1111-4111-8111-111111111111");
+    form.set("expected_revision", "4");
+    form.set("operation", "create_bookmark");
+    form.set("label", "Review later");
+    for (const [name, value] of selectorFields) form.append(name, value);
+
+    expect(await action({ request: new Request("http://localhost/saved-learning/new", { method: "POST", body: form }) } as never)).toEqual(expect.objectContaining({ kind: "invalid" }));
+    expect(profile.ensure).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
   });
 
   it("returns the same validated mutation for an unchanged uncertain-response retry", async () => {
