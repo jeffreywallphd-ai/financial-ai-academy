@@ -130,7 +130,7 @@ describe("Learning preferences page", () => {
     const submissions: FormData[] = [];
     renderPreferences(submissions);
 
-    await userEvent.setup().click(screen.getByRole("button", { name: "Move Explain risk and return down" }));
+    await userEvent.setup().click(screen.getByRole("button", { name: "Move Explain risk and return, item 1 down" }));
 
     await waitFor(() => expect(submissions).toHaveLength(1));
     expect(submissions[0]!.get("operation")).toBe("reorder_goals");
@@ -147,18 +147,18 @@ describe("Learning preferences page", () => {
 
     const cases = [
       {
-        button: "Remove goal: Explain risk and return",
-        confirmation: /removing “Explain risk and return” permanently removes/i,
+        button: "Remove goal: Explain risk and return, item 1",
+        confirmation: /removing “Explain risk and return” \(item 1\).*permanently removes/i,
         operation: "remove_goal",
       },
       {
-        button: "Remove experience: Personal finance",
-        confirmation: /removing “Personal finance” permanently removes/i,
+        button: "Remove experience: Personal finance, item 1",
+        confirmation: /removing “Personal finance” \(item 1\).*permanently removes/i,
         operation: "remove_experience",
       },
       {
-        button: "Remove interest: ETF research",
-        confirmation: /removing “ETF research” permanently removes/i,
+        button: "Remove interest: ETF research, item 1",
+        confirmation: /removing “ETF research” \(item 1\).*permanently removes/i,
         operation: "remove_interest",
       },
     ];
@@ -180,12 +180,32 @@ describe("Learning preferences page", () => {
   it("gives repeated controls item-specific accessible names and keeps revisions technical", () => {
     renderPreferences();
 
-    expect(screen.getByRole("button", { name: "Archive goal: Explain risk and return" })).toBeVisible();
-    expect(screen.getByLabelText("Edit goal: Explain risk and return")).toBeVisible();
-    expect(screen.getByLabelText("Edit experience: Personal finance")).toBeVisible();
-    expect(screen.getByLabelText("Edit interest: ETF research")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Archive goal: Explain risk and return, item 1" })).toBeVisible();
+    expect(screen.getByLabelText("Edit goal: Explain risk and return, item 1")).toBeVisible();
+    expect(screen.getByLabelText("Edit experience: Personal finance, item 1")).toBeVisible();
+    expect(screen.getByLabelText("Edit interest: ETF research, item 1")).toBeVisible();
     expect(screen.queryByText("Revision 4")).not.toBeInTheDocument();
     expect(screen.getByText("Result revision")).toBeInTheDocument();
+  });
+
+  it("keeps controls distinct when valid items use the same learner wording", () => {
+    const first = preferenceProfileFixture.goals[0]!;
+    const duplicateWordingProfile: LearnerPreferenceProfile = {
+      ...preferenceProfileFixture,
+      goals: [
+        { ...first, goal_id: "goal.same-1", title: "Compare evidence" },
+        { ...first, goal_id: "goal.same-2", title: "Compare evidence" },
+      ],
+    };
+
+    renderPreferences([], undefined, duplicateWordingProfile);
+
+    expect(screen.getByRole("button", { name: "Remove goal: Compare evidence, item 1" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Remove goal: Compare evidence, item 2" })).toBeVisible();
+    expect(screen.getByLabelText("Edit goal: Compare evidence, item 1")).toBeVisible();
+    expect(screen.getByLabelText("Edit goal: Compare evidence, item 2")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Move Compare evidence, item 1 down" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Move Compare evidence, item 2 up" })).toBeVisible();
   });
 
   it("requires explicit reset confirmation and distinguishes preferences from saved work", async () => {

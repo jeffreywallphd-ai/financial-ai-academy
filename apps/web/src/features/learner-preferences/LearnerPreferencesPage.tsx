@@ -122,7 +122,7 @@ function OrderControls({
             <MutationFields actionState={actionState} intent={intent} mutation={mutation} revision={revision} />
             <input name="operation" type="hidden" value={operation} />
             {orderedIds.map((id) => <input key={id} name="ordered_ids" type="hidden" value={id} />)}
-            <button aria-label={`Move ${itemLabel} ${direction}`} className="button button--quiet" disabled={busy} type="submit">
+            <button aria-label={`Move ${itemLabel}, item ${index + 1} ${direction}`} className="button button--quiet" disabled={busy} type="submit">
               Move {direction}
               <span className="visually-hidden"> item {index + 1}</span>
             </button>
@@ -254,6 +254,7 @@ function ItemMutationForm({
   operation,
   revision,
   targetLabel,
+  targetPosition,
 }: {
   actionState: LearnerPreferencesActionState | undefined;
   busy: boolean;
@@ -263,6 +264,7 @@ function ItemMutationForm({
   operation: "archive_goal" | "restore_goal" | "remove_goal" | "remove_experience" | "remove_interest";
   revision: number;
   targetLabel: string;
+  targetPosition: number;
 }) {
   const [removeConfirmed, setRemoveConfirmed] = useState(false);
   const mutation = { operation, entry_id: entryId } as LearnerPreferenceMutation;
@@ -282,11 +284,11 @@ function ItemMutationForm({
             type="checkbox"
             value="remove"
           />
-          {` I understand that removing “${targetLabel}” permanently removes this wording from my learning preferences.`}
+          {` I understand that removing “${targetLabel}” (item ${targetPosition}) permanently removes this wording from my learning preferences.`}
         </label>
       ) : null}
       <button
-        aria-label={`${label}: ${targetLabel}`}
+        aria-label={`${label}: ${targetLabel}, item ${targetPosition}`}
         className={removesEntry ? "button preferences-button--danger" : "button button--quiet"}
         disabled={busy || (removesEntry && !removeConfirmed)}
         type="submit"
@@ -394,10 +396,10 @@ export function LearnerPreferencesPage({
               <li className={goal.archived ? "preferences-card preferences-card--muted" : "preferences-card"} key={goal.goal_id}>
                 <div className="preferences-card__heading"><div><h3>{goal.title}</h3>{goal.archived ? <strong className="preferences-status">Archived</strong> : null}</div><OrderControls actionState={actionState} busy={busy} ids={goalIds} index={index} itemId={goal.goal_id} itemLabel={goal.title} operation="reorder_goals" revision={profile.revision} /></div>
                 {goal.detail ? <p>{goal.detail}</p> : <p className="preferences-muted">No additional detail.</p>}
-                <details><summary aria-label={`Edit goal: ${goal.title}`}>Edit goal</summary><GoalForm actionState={actionState} busy={busy} goal={goal} revision={profile.revision} /></details>
+                <details><summary aria-label={`Edit goal: ${goal.title}, item ${index + 1}`}>Edit goal</summary><GoalForm actionState={actionState} busy={busy} goal={goal} revision={profile.revision} /></details>
                 <div className="preferences-actions">
-                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`${goal.archived ? "restore" : "archive"}-goal-${goal.goal_id}`} label={goal.archived ? "Restore goal" : "Archive goal"} operation={goal.archived ? "restore_goal" : "archive_goal"} revision={profile.revision} targetLabel={goal.title} />
-                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`remove-goal-${goal.goal_id}`} label="Remove goal" operation="remove_goal" revision={profile.revision} targetLabel={goal.title} />
+                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`${goal.archived ? "restore" : "archive"}-goal-${goal.goal_id}`} label={goal.archived ? "Restore goal" : "Archive goal"} operation={goal.archived ? "restore_goal" : "archive_goal"} revision={profile.revision} targetLabel={goal.title} targetPosition={index + 1} />
+                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`remove-goal-${goal.goal_id}`} label="Remove goal" operation="remove_goal" revision={profile.revision} targetLabel={goal.title} targetPosition={index + 1} />
                 </div>
                 <details><summary>Technical record</summary><dl className="preferences-technical"><div><dt>Goal identifier</dt><dd><code>{goal.goal_id}</code></dd></div><div><dt>Last updated</dt><dd><time dateTime={goal.updated_at}>{goal.updated_at}</time></dd></div></dl></details>
               </li>
@@ -415,8 +417,8 @@ export function LearnerPreferencesPage({
               <li className="preferences-card" key={entry.experience_id}>
                 <div className="preferences-card__heading"><div><h3>{entry.subject}</h3><strong className="preferences-status">{experienceLevelLabel(entry.level)}</strong></div><OrderControls actionState={actionState} busy={busy} ids={experienceIds} index={index} itemId={entry.experience_id} itemLabel={entry.subject} operation="reorder_experience" revision={profile.revision} /></div>
                 {entry.detail ? <p>{entry.detail}</p> : <p className="preferences-muted">No additional detail.</p>}
-                <details><summary aria-label={`Edit experience: ${entry.subject}`}>Edit experience</summary><ExperienceForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
-                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.experience_id} intent={`remove-experience-${entry.experience_id}`} label="Remove experience" operation="remove_experience" revision={profile.revision} targetLabel={entry.subject} /></div>
+                <details><summary aria-label={`Edit experience: ${entry.subject}, item ${index + 1}`}>Edit experience</summary><ExperienceForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
+                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.experience_id} intent={`remove-experience-${entry.experience_id}`} label="Remove experience" operation="remove_experience" revision={profile.revision} targetLabel={entry.subject} targetPosition={index + 1} /></div>
                 <details><summary>Technical record</summary><dl className="preferences-technical"><div><dt>Experience identifier</dt><dd><code>{entry.experience_id}</code></dd></div><div><dt>Last updated</dt><dd><time dateTime={entry.updated_at}>{entry.updated_at}</time></dd></div></dl></details>
               </li>
             ))}
@@ -432,8 +434,8 @@ export function LearnerPreferencesPage({
             {profile.interests.map((entry, index) => (
               <li className="preferences-card" key={entry.interest_id}>
                 <div className="preferences-card__heading"><h3>{entry.label}</h3><OrderControls actionState={actionState} busy={busy} ids={interestIds} index={index} itemId={entry.interest_id} itemLabel={entry.label} operation="reorder_interests" revision={profile.revision} /></div>
-                <details><summary aria-label={`Edit interest: ${entry.label}`}>Edit interest</summary><InterestForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
-                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.interest_id} intent={`remove-interest-${entry.interest_id}`} label="Remove interest" operation="remove_interest" revision={profile.revision} targetLabel={entry.label} /></div>
+                <details><summary aria-label={`Edit interest: ${entry.label}, item ${index + 1}`}>Edit interest</summary><InterestForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
+                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.interest_id} intent={`remove-interest-${entry.interest_id}`} label="Remove interest" operation="remove_interest" revision={profile.revision} targetLabel={entry.label} targetPosition={index + 1} /></div>
                 <details><summary>Technical record</summary><dl className="preferences-technical"><div><dt>Interest identifier</dt><dd><code>{entry.interest_id}</code></dd></div><div><dt>Last updated</dt><dd><time dateTime={entry.updated_at}>{entry.updated_at}</time></dd></div></dl></details>
               </li>
             ))}
