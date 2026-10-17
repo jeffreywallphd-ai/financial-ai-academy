@@ -238,7 +238,7 @@ scope is refined just in time.
 | --- | --- | --- | --- | --- |
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
 | WRK-0125 | Deliver safe Project snapshot facts, Assessment-owned application/persistence, public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | complete |
-| JIT-B2 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | captured |
+| WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | ready |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B2 | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
 | JIT-E | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | JIT-D | none | captured |
@@ -367,3 +367,8 @@ qualified.
   replay and supersession, serializes non-regressing occurrence time, and
   refuses storage beyond the canonical 100-item complete-history bound. The
   protected HTTP/OpenAPI/generated-client seam remains JIT-B2.
+- 2026-10-17: Refined JIT-B2 as WRK-0126. The bounded packet composes the
+  completed submission core, exposes four protected Project-scoped HTTP
+  operations, and regenerates the reviewed OpenAPI/client seam for browser and
+  headless consumers. Projection, Audit, browser behavior, and live
+  qualification remain dependent packets; no new decision or CAP drift arose.
