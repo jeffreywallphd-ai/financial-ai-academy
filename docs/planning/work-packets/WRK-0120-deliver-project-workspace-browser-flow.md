@@ -1,10 +1,10 @@
 ---
 id: WRK-0120
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
-updated: 2026-10-16
+updated: 2026-10-17
 parent: SLI-0031
 capability: CAP-0007
 depends_on: [WRK-0119]
@@ -238,3 +238,14 @@ effect, managed-cloud profile, or separate AI mode was added.
   the production build showed that the delivered route would otherwise remain
   absent from the Python-served artifact. This is generated output from the
   accepted browser source and does not change product scope or authority.
+- 2026-10-17: Completed at exact reviewed candidate
+  `0fe63b50e05adea65363c3c8b6502f13ee3316d1`. The generated-client browser
+  flow now reopens and edits the bounded workspace, handles inert files,
+  closes immutable checkpoints, exports correlated evidence, and continues
+  live work without adding browser-only authority. Exact-candidate verification
+  passed nine affected checks; the complete web suite passed 253 tests and the
+  focused Chromium flow passed seven tests. Four independent review rounds
+  closed every substantive finding, including retry-key revision binding,
+  artifact and export integrity, response semantics, and Unicode 16.0 path
+  equivalence. Full live PostgreSQL, restart, containment, and slice-wide
+  evidence remains assigned to WRK-0121.

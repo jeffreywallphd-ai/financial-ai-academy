@@ -236,7 +236,7 @@ refined just in time.
 | --- | --- | --- | --- | --- |
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
-| WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | active |
+| WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
 | JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0120 | none | captured |
 
 ## Verification and Qualification
@@ -360,3 +360,10 @@ created, and no managed-cloud or production-recovery profile was qualified.
 - 2026-10-16: Activated WRK-0120 after revalidating the completed public API
   dependency, current CAP/SLI scope, decision readiness, generated-client-only
   boundary, and collision-free browser write scope.
+- 2026-10-17: Completed WRK-0120 at exact reviewed candidate
+  `0fe63b50e05adea65363c3c8b6502f13ee3316d1`. The learner-facing flow consumes
+  only the generated public client, keeps files inert, binds live retries and
+  immutable evidence to exact revisions and digests, preserves canonical
+  Unicode path identity without rejecting valid records, and leaves all
+  operations usable by headless clients. WRK-0121 now owns integrated
+  qualification and slice closure.
