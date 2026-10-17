@@ -1,7 +1,7 @@
 ---
 id: WRK-0125
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -10,7 +10,7 @@ capability: CAP-0007
 depends_on: ["WRK-0124"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/migrations/README.md", "backend/migrations/assessment/assessment_0004_project_submission_evidence.down.sql", "backend/migrations/assessment/assessment_0004_project_submission_evidence.up.sql", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/ports/repositories.py", "backend/src/financial_ai_academy/modules/assessment/public.py", "backend/src/financial_ai_academy/modules/project/README.md", "backend/src/financial_ai_academy/modules/project/application/service.py", "backend/src/financial_ai_academy/modules/project/public.py", "backend/tests/integration/assessment/test_postgres_project_submission.py", "backend/tests/unit/assessment/test_project_submission_service.py", "backend/tests/unit/project/test_project_learning_snapshot.py", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0125-compose-project-submission-persistence.md"]
+write_scope: ["backend/migrations/README.md", "backend/migrations/assessment/assessment_0004_project_submission_evidence.down.sql", "backend/migrations/assessment/assessment_0004_project_submission_evidence.up.sql", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/ports/repositories.py", "backend/src/financial_ai_academy/modules/assessment/public.py", "backend/src/financial_ai_academy/modules/project/README.md", "backend/src/financial_ai_academy/modules/project/application/service.py", "backend/src/financial_ai_academy/modules/project/public.py", "backend/tests/integration/assessment/test_postgres_assessment.py", "backend/tests/integration/assessment/test_postgres_practice_progress.py", "backend/tests/integration/assessment/test_postgres_practice_submission.py", "backend/tests/integration/assessment/test_postgres_project_submission.py", "backend/tests/unit/assessment/test_project_submission_service.py", "backend/tests/unit/project/test_project_learning_snapshot.py", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0125-compose-project-submission-persistence.md"]
 generated_artifacts: []
 base_revision: bb6f53173a7b895de8447982d05f785558d03e1d
 claim_id: WRK-0125:d8dd0c12-4a75-4c7e-bb20-61c0f8f56e31
@@ -258,3 +258,7 @@ for just-in-time refinement.
 - 2026-10-17: Reclaimed the refined packet from base revision `bb6f531` after
   deterministic packet and implementation gates passed with the expanded safe
   Project public-operation scope.
+- 2026-10-17: Returned briefly to `ready` during implementation to include the
+  existing Assessment migration-regression tests whose exact expected migration
+  inventory must advance with `assessment_0004`. This is a mechanical
+  compatibility scope refinement, not a product or approval change.
