@@ -1,9 +1,9 @@
 ---
 id: WRK-0134
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0017
 updated: 2026-10-17
 parent: SLI-0070
 capability: CAP-0017
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/personal-workspace.e2e.ts", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0134-qualify-saved-learning-live-flow.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: bc388b21b63ff761d4a6ec291914c771dac2778a
-claim_id: WRK-0134:512004ee-9a51-4c47-86c7-9ca63ee5c8a4
+base_revision: cb489a7f444edadbd34935ae2f995130d2cc0fb5
+claim_id: WRK-0134:e643f5cc-e1dc-458a-8f49-621df5f1f0c0
 claimed_by: codex-cap-0017
-claimed_at: 2026-10-17T12:18:45Z
+claimed_at: 2026-10-17T12:23:06Z
 ---
 
 # Agent Work Packet: Qualify the Saved Learning Live Flow
@@ -221,3 +221,6 @@ autonomous authority was added.
   passed and the live topology exposed that its tracked static application
   predates WRK-0133. Added only `apps/web/dist` as a reproducible generated
   artifact; product meaning and the evidence contract are unchanged.
+- 2026-10-17: Re-activated from base `cb489a7` after the refined packet passed
+  validation and claim checks. The fresh claim owns the reproducible static
+  build plus the unchanged evidence-only live qualification boundary.

@@ -206,7 +206,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0131 | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | complete |
 | WRK-0132 | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0131 | none | complete |
 | WRK-0133 | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | WRK-0132 | none | complete |
-| WRK-0134 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | WRK-0133 | none | ready |
+| WRK-0134 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | WRK-0133 | none | active |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. Dependent packets are not claimed until their predecessor is complete.
@@ -334,3 +334,5 @@ authority were not delivered or qualified.
 - 2026-10-17: Returned WRK-0134 to ready so its reproducible generated-artifact
   scope includes the tracked static browser build consumed by the isolated live
   topology. No product contract, behavior, CAP boundary, or decision changed.
+- 2026-10-17: Re-activated WRK-0134 from base `cb489a7` with the refined static-
+  build scope after packet validation and current CAP/dependency checks passed.
