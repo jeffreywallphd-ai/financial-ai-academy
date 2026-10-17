@@ -13,7 +13,10 @@ import "../styles/practice-activity.css";
 import "../styles/project-workspace.css";
 import "../styles/personal-workspace.css";
 import "../styles/learner-preferences.css";
+import "../styles/presentation-preferences.css";
+import { PresentationProvider } from "../platform/presentation/presentation";
 import { ThemeProvider } from "../platform/theme/theme";
+import { presentationProfileReader } from "./dependencies";
 import { router } from "./router";
 
 
@@ -25,9 +28,11 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <StrictMode>
     <ThemeProvider>
-      <RouterProvider
-        router={router}
-      />
+      <PresentationProvider readProfile={presentationProfileReader}>
+        <RouterProvider
+          router={router}
+        />
+      </PresentationProvider>
     </ThemeProvider>
   </StrictMode>,
 );

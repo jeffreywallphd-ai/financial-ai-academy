@@ -100,6 +100,30 @@ Use the serif family for page, section, and editorial card headings. Use sans-se
 
 Keep lesson reading lines between 55 and 75 characters. Never reduce essential explanatory text below 16 px.
 
+### Learner-controlled presentation
+
+The learner-owned `Display and accessibility` profile applies only four closed,
+reversible presentation choices through document-root attributes and shared
+tokens:
+
+| Root attribute | Safe values | Token effect |
+| --- | --- | --- |
+| `data-text-size` | `default`, `larger` | Keep the browser-relative `100%` root size or raise it to `112.5%`, so browser text scaling remains effective |
+| `data-text-spacing` | `default`, `increased` | Keep the baseline or use `0.12em` letter spacing, `0.16em` word spacing, and the body-large line height |
+| `data-reading-width` | `standard`, `focused` | Keep the `46rem` reading maximum or narrow it to `38rem` |
+| `data-motion` | `system`, `reduce` | Follow device motion protection or set all shared application durations to `0ms` |
+
+Apply all four attributes as one complete validated set. Missing, unavailable,
+or malformed saved state uses `default`, `default`, `standard`, and `system`;
+never apply a partial profile. Browser zoom, text scaling, forced colors, and
+`prefers-reduced-motion: reduce` remain authoritative when they are more
+protective. These choices must not hide content or actions, reduce targets or
+contrast, force motion, accept arbitrary CSS, or become a medical label.
+
+`data-theme="system|light|dark"` remains a separate browser-local platform
+choice. It is not part of the learner-owned profile, history, download, digest,
+or headless API meaning.
+
 ## Spacing and Sizing
 
 Use the 4 px base scale from `tokens.css`.

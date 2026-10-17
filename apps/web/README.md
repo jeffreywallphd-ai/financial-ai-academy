@@ -254,8 +254,28 @@ and export. They use server-owned learner identity and
 The client accepts only the closed text-size, text-spacing, reading-width, and
 motion values. It does not carry arbitrary CSS, medical or inferred labels,
 evidence, policy, provider, or browser-local theme. The display settings UI and
-runtime token application are delivered separately; their absence does not
-remove this headless API boundary.
+runtime token application remain clients of this same headless boundary.
+`/preferences/display` validates one coherent profile/history export before it
+shows private details, previews complete drafts through the four semantic root
+attributes, sends one exact complete replacement or confirmed reset, and keeps
+the local `system|light|dark` theme explicitly separate. Cancel and navigation
+restore the last accepted profile; unavailable or malformed saved state leaves
+the application at the complete accessible baseline. Exact version, revision,
+times, and digest remain reachable through `Technical record`, and downloads
+are produced only from a newly validated export matching the displayed
+revision and digest.
+
+The global presentation provider reads the same generated public client on a
+fresh browser load and applies only a complete validated profile. It maps
+`data-text-size`, `data-text-spacing`, `data-reading-width`, and `data-motion`
+to shared design-system tokens on the document root. Browser zoom, text
+scaling, forced colors, and more-protective reduced-motion signals retain
+precedence. The focused unit, component, and Chromium suites cover all 16 safe
+value combinations, draft restore, exact mutation fields, reset/theme
+separation, invalid and unavailable fallback, keyboard/focus semantics, axe,
+narrow reflow, 200-percent text, forced colors, and reduced motion. Final live
+Python-host, PostgreSQL-restart, and complete cross-route qualification remains
+the dependent SLI-0075 qualification packet.
 
 `/saved-learning` opens the learner's private notes, bookmarks, and collections
 through the generated Personal-workspace client. Available opportunity-detail

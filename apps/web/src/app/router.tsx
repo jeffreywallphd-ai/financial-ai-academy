@@ -1,6 +1,5 @@
 import { createBrowserRouter, redirect } from "react-router";
 
-import { createFinancialAcademyApiClient } from "../generated/api-client";
 import { StatusPanel } from "../components/StatusPanel";
 import {
   createCurriculumActivityLauncher,
@@ -80,11 +79,18 @@ import {
   LearnerPreferencesLoadingState,
   LearnerPreferencesRoute,
 } from "../features/learner-preferences/LearnerPreferencesRoute";
-import { SingleProfileSession } from "../platform/auth/singleProfileSession";
+import {
+  createPresentationPreferencesAction,
+  createPresentationPreferencesExporter,
+  createPresentationPreferencesLoader,
+} from "../features/presentation-preferences/api";
+import {
+  PresentationPreferencesLoadingState,
+  PresentationPreferencesRoute,
+} from "../features/presentation-preferences/PresentationPreferencesRoute";
 import { AppShell } from "./AppShell";
+import { apiClient as client, singleProfileSession as session } from "./dependencies";
 
-const client = createFinancialAcademyApiClient(window.location.origin);
-const session = new SingleProfileSession(client);
 const learningCatalogLoader = createLearningCatalogLoader(client, session);
 const learningOpportunityDetailLoader = createLearningOpportunityDetailLoader(
   client,
@@ -118,6 +124,9 @@ const personalWorkspaceExporter = createPersonalWorkspaceExporter(client, sessio
 const learnerPreferencesLoader = createLearnerPreferencesLoader(client, session);
 const learnerPreferencesAction = createLearnerPreferencesAction(client, session);
 const learnerPreferencesExporter = createLearnerPreferencesExporter(client, session);
+const presentationPreferencesLoader = createPresentationPreferencesLoader(client, session);
+const presentationPreferencesAction = createPresentationPreferencesAction(client, session);
+const presentationPreferencesExporter = createPresentationPreferencesExporter(client, session);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -150,6 +159,14 @@ function PersonalWorkspaceRouteWithDependencies() {
 
 function LearnerPreferencesRouteWithDependencies() {
   return <LearnerPreferencesRoute exportPreferences={learnerPreferencesExporter} />;
+}
+
+function PresentationPreferencesRouteWithDependencies() {
+  return (
+    <PresentationPreferencesRoute
+      exportPreferences={presentationPreferencesExporter}
+    />
+  );
 }
 
 function UnexpectedRouteError() {
@@ -194,6 +211,13 @@ export const router = createBrowserRouter([
         action: learnerPreferencesAction,
         Component: LearnerPreferencesRouteWithDependencies,
         HydrateFallback: LearnerPreferencesLoadingState,
+      },
+      {
+        path: "preferences/display",
+        loader: presentationPreferencesLoader,
+        action: presentationPreferencesAction,
+        Component: PresentationPreferencesRouteWithDependencies,
+        HydrateFallback: PresentationPreferencesLoadingState,
       },
       {
         path: "saved-learning",

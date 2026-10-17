@@ -32,6 +32,10 @@
   --faa-line-height-section: 2.25rem;
   --faa-line-height-page: 2.75rem;
   --faa-line-height-display: 3.5rem;
+  --faa-presentation-root-font-size: 100%;
+  --faa-presentation-letter-spacing: normal;
+  --faa-presentation-word-spacing: normal;
+  --faa-presentation-body-line-height: var(--faa-line-height-body);
 
   /* Spacing */
   --faa-space-0: 0;
@@ -280,6 +284,26 @@
     --faa-shadow-md: 0 8px 24px rgb(0 0 0 / 0.4);
     --faa-shadow-lg: 0 20px 48px rgb(0 0 0 / 0.5);
   }
+}
+
+[data-text-size="larger"] {
+  --faa-presentation-root-font-size: 112.5%;
+}
+
+[data-text-spacing="increased"] {
+  --faa-presentation-letter-spacing: 0.12em;
+  --faa-presentation-word-spacing: 0.16em;
+  --faa-presentation-body-line-height: var(--faa-line-height-body-lg);
+}
+
+[data-reading-width="focused"] {
+  --faa-layout-reading-max: 38rem;
+}
+
+[data-motion="reduce"] {
+  --faa-duration-fast: 0ms;
+  --faa-duration-standard: 0ms;
+  --faa-duration-deliberate: 0ms;
 }
 
 @media (min-width: 96rem) {

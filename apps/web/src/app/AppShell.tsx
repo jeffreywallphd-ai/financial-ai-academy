@@ -11,6 +11,8 @@ export function AppShell() {
     ? "Skip to lesson"
     : location.pathname.startsWith("/preferences/learning")
       ? "Skip to learning preferences"
+    : location.pathname.startsWith("/preferences/display")
+      ? "Skip to display and accessibility settings"
     : location.pathname.startsWith("/saved-learning")
       ? "Skip to saved learning"
     : location.pathname.startsWith("/projects")
@@ -40,6 +42,7 @@ export function AppShell() {
           <NavLink to="/saved-learning">Saved learning</NavLink>
           <NavLink to="/projects">Projects</NavLink>
           <NavLink to="/preferences/learning">Learning preferences</NavLink>
+          <NavLink to="/preferences/display">Display and accessibility</NavLink>
         </nav>
         <ThemeControl />
       </header>

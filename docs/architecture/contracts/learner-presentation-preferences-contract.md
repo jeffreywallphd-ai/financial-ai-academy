@@ -86,6 +86,26 @@ OpenAPI-generated TypeScript client is the identical contract for browser,
 command-line, service, and future headless clients. Browser-local theme remains
 outside every public and stored learner-owned document.
 
+## Browser Consumption and Presentation
+
+The browser composes one generated API client and one server-owned learner
+session for both the router and the global presentation provider. A fresh load
+reads the protected profile and applies it only after the closed shape and
+canonical digest validate. `/preferences/display` reads the coherent export so
+the displayed profile and bounded history cannot mix revisions. The UI sends
+only complete replacement or reset intents through the generated operation;
+it adds no learner selector, browser-owned authoritative copy, or second API.
+
+The platform adapter maps the four complete values to
+`data-text-size`, `data-text-spacing`, `data-reading-width`, and `data-motion`
+on the document root. Shared design-system tokens express their effects. A
+draft preview is transient; cancel or navigation restores the last accepted
+profile. Missing, denied, unavailable, or malformed state applies the complete
+safe baseline without disabling the separate local theme control. Browser zoom,
+text scaling, forced colors, and a more-protective device reduced-motion signal
+retain precedence. Technical details and a correlated validated export remain
+available without leading the learner task or exposing malformed fields.
+
 ## Failure and Compatibility
 
 Unknown versions, operations, fields, values, malformed identity/time/digest,

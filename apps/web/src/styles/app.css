@@ -45,12 +45,14 @@
 
 .brand-link > span:last-child {
   display: grid;
+  min-width: var(--faa-space-0);
 }
 
 .brand-link strong {
   font-family: var(--faa-font-display);
   font-size: var(--faa-font-size-card-title);
   line-height: var(--faa-line-height-card-title);
+  overflow-wrap: anywhere;
 }
 
 .brand-link small {
@@ -205,9 +207,17 @@
 }
 
 @media (max-width: 39.99rem) {
+  :root {
+    --faa-layout-page-gutter: var(--faa-space-4);
+  }
+
   .app-topbar {
     align-items: flex-start;
     flex-wrap: wrap;
+  }
+
+  .brand-link {
+    max-width: 100%;
   }
 
   .brand-link small,
