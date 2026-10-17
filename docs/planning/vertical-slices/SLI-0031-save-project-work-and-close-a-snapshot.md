@@ -238,7 +238,7 @@ refined just in time.
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
 | WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | complete |
-| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0122 | none | ready |
+| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0122 | none | active |
 
 ## Verification and Qualification
 
@@ -387,3 +387,6 @@ created, and no managed-cloud or production-recovery profile was qualified.
   and API verification passed, and exact-candidate controls recorded complete
   verification and independent technical evidence with no open findings.
   WRK-0121 may now resume integrated qualification.
+- 2026-10-17: Resumed WRK-0121 after its corrective dependency completed.
+  The qualification packet retains its original evidence-only scope and now
+  runs from the corrected snapshot-integrity boundary.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0121
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/project-workspace.e2e.ts", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0121-qualify-project-workspace-snapshot-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: c4b21ff1067ba8b32e6efb26738bbbc2549752a6
-claim_id: WRK-0121:b302f507-fab2-46aa-a44a-0b16cdaa43b6
+base_revision: 55a5737a8c7617bc5753b1552336800bc9fc60b7
+claim_id: WRK-0121:f6a17da1-a550-40e2-9435-6352b1968391
 claimed_by: codex-cap-0007
-claimed_at: 2026-10-17T00:23:10Z
+claimed_at: 2026-10-17T02:17:21Z
 ---
 
 # Agent Work Packet: Qualify Project Workspace and Snapshot Flow
@@ -200,3 +200,7 @@ autonomous authority was added.
   snapshot-digest defect outside this qualification-only write scope. WRK-0122
   owns the bounded canonical-timestamp correction; this packet resumes after
   that prerequisite completes.
+- 2026-10-17: Reclaimed from clean base `55a5737` after WRK-0122 completed with
+  exact verification and no open technical findings. The packet resumes the
+  isolated live Project qualifier without expanding product authority or its
+  declared write scope.
