@@ -1,7 +1,7 @@
 ---
 id: WRK-0144
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -216,3 +216,8 @@ compatibility assumptions; and the remaining browser/live-recovery packets.
 - 2026-10-17: Verified the export request boundary rejects query and body input
   before workspace access while retaining server-owned learner, generation
   time, digest, and storage authority.
+- 2026-10-17: Completed the application/API seam with a closed server-generated
+  export, distinct actionable capacity outcomes, zero-write denial evidence,
+  exact replay and ordinary restart behavior, and one generated browser/headless
+  contract. Browser controls and the cumulative recovery exercise remain in
+  the dependent packet seams.

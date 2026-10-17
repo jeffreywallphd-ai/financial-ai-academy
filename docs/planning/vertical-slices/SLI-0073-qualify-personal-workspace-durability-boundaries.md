@@ -234,7 +234,7 @@ packet starts. The dependency-ordered seams are:
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | complete |
-| WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | verifying |
+| WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | complete |
 | JIT-C | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify cumulative browser/headless parity, maximum bounds, interruption, target isolation, restart, empty-target community database recovery, containment, cleanup, and CAP closure | JIT-C | none | captured |
 
@@ -345,3 +345,7 @@ records remain ignored; no slice or packet approval is requested.
   posture, exact API/application/test scope, and absence of a write collision.
 - 2026-10-17: Advanced WRK-0144 to verification after focused application,
   API, generated-client, and real-PostgreSQL qualification.
+- 2026-10-17: Completed WRK-0144 with one protected server-authoritative export
+  operation, closed OpenAPI/generated-client parity, distinct capacity outcomes,
+  and PostgreSQL zero-write, replay, removal, and restart evidence. Browser
+  controls and cumulative recovery qualification remain in JIT-C and JIT-D.
