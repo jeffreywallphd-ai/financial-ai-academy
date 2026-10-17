@@ -1,9 +1,9 @@
 ---
 id: WRK-0128
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0007
 updated: 2026-10-17
 parent: SLI-0032
 capability: CAP-0007
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/router.tsx", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/src/features/project-workspace/ProjectRoutes.tsx", "apps/web/src/features/project-workspace/ProjectSubmissionPage.tsx", "apps/web/src/features/project-workspace/api.ts", "apps/web/src/features/project-workspace/model.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/styles/project-workspace.css", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/unit/projectWorkspaceModel.test.ts", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/integration/api/test_single_profile_project_submission_api.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0128-deliver-project-learning-submission-browser-flow.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: ef68d72691f1bd3ee08b55c03d53474c70489418
+claim_id: WRK-0128:f032f255-aa7a-47a1-890c-745ff7d1a1b4
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T04:40:12Z
 ---
 
 # Agent Work Packet: Deliver the Project Learning-Submission Browser Flow
@@ -237,3 +237,6 @@ provider, queue, or external execution changed.
   Learner-model completion read and the accessible generated-client flow form
   one reviewable learner outcome inside the approved CAP-0007/SLI-0032 package;
   no durable decision or lower-level approval gate was introduced.
+- 2026-10-17: Claimed from base `ef68d72` after the current CAP package,
+  completed dependency, bounded scope, implementation gate, decision readiness,
+  and active ownership safety were revalidated.
