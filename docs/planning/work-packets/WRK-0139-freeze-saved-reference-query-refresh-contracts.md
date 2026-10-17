@@ -1,7 +1,7 @@
 ---
 id: WRK-0139
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["contracts/learning/personal-workspace/v1/learning-reference.schema.json", "contracts/learning/personal-workspace/v1/workspace.schema.json", "contracts/learning/personal-workspace/v1/mutation-intent.schema.json", "contracts/learning/personal-workspace/v1/workspace-query.schema.json", "contracts/learning/personal-workspace/v1/workspace-query-result.schema.json", "contracts/learning/personal-workspace/v1/README.md", "contracts/compatibility/personal-workspace/v1", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/domain/workspace.py", "backend/src/financial_ai_academy/modules/personal_workspace/public.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/workspace_contract.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/workspace_contract.py", "backend/tests/contract/personal_workspace/test_personal_workspace_contract.py", "backend/tests/unit/personal_workspace/test_workspace_contract.py", "docs/architecture/contracts/personal-workspace-contract.md", "docs/planning/vertical-slices/SLI-0072-search-and-refresh-saved-references.md", "docs/planning/work-packets/WRK-0139-freeze-saved-reference-query-refresh-contracts.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 43528ad1aa6e31a058389ab600ec6b72532b4b59
+claim_id: WRK-0139:464525e1-58f1-4345-b2ed-bdbaf1ffa04a
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T14:48:45Z
 ---
 
 # Agent Work Packet: Freeze Saved-Reference Query and Refresh Contracts
@@ -254,3 +254,6 @@ execution/provider behavior changed, then leave WRK-0140 dependency-ready.
   while preserving legacy documents and leaving owner orchestration,
   persistence/API/client, browser, and live qualification to later packets. No
   lower-level approval is required.
+- 2026-10-17: Activated from recorded base `43528ad` after validating the
+  approved parent package, completed dependency, bounded contract/core scope,
+  resolved decisions, and no active coordination overlap.

@@ -1,7 +1,7 @@
 ---
 id: SLI-0072
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -296,3 +296,6 @@ approval is requested.
   pure deterministic search/status behavior, compatibility, confidentiality,
   and anti-rigidity evidence. Application, persistence, API/client, browser,
   and live behavior remain later packet seams.
+- 2026-10-17: Activated WRK-0139 from the recorded base after confirming the
+  current CAP approval, completed SLI-0071 dependency, exact pure-contract
+  scope, resolved decision posture, and absence of a known write collision.
