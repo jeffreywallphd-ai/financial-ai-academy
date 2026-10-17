@@ -27,6 +27,7 @@ REPOSITORY = Path(__file__).resolve().parents[4]
 MIGRATIONS = REPOSITORY / "backend/migrations"
 POSTGRES_DSN = os.environ.get("FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN")
 LEARNER_ID = "11111111-1111-4111-8111-111111111111"
+SECOND_LEARNER_ID = "22222222-2222-4222-8222-222222222222"
 PROJECT_ID = "project-retirement-plan"
 NOW = datetime(2026, 10, 17, 3, 30, tzinfo=timezone.utc)
 
@@ -137,8 +138,11 @@ def service(
     )
 
 
-def request() -> ReconcileProjectCompletionAuditRequest:
-    return ReconcileProjectCompletionAuditRequest(LEARNER_ID, PROJECT_ID)
+def request(
+    learner_id: str = LEARNER_ID,
+    project_id: str = PROJECT_ID,
+) -> ReconcileProjectCompletionAuditRequest:
+    return ReconcileProjectCompletionAuditRequest(learner_id, project_id)
 
 
 def count() -> int:
@@ -161,6 +165,39 @@ def test_project_audit_replay_is_idempotent_and_tamper_conflicts() -> None:
         ).reconcile_project_completion(request())
     assert captured.value.code is AuditErrorCode.CONFLICT
     assert count() == 1
+
+
+def test_project_audit_scopes_submission_identity_by_learner() -> None:
+    first = event()
+    second = replace(
+        event(),
+        learner_id=SECOND_LEARNER_ID,
+        event_id="event-retirement-second-01",
+        evidence_id="evidence-retirement-second-01",
+        submission_id=first.submission_id,
+    )
+
+    service((first,)).reconcile_project_completion(request())
+    service((second,)).reconcile_project_completion(request(SECOND_LEARNER_ID))
+
+    assert count() == 2
+
+
+def test_project_audit_persists_contract_identifier_boundaries() -> None:
+    for index, project_id in enumerate(("p", "p" + "a" * 127), start=1):
+        value = replace(
+            event(),
+            project_id=project_id,
+            event_id=f"event-boundary-{index}",
+            evidence_id=f"evidence-boundary-{index}",
+            submission_id=f"submission-boundary-{index}",
+            snapshot_id=f"snapshot-boundary-{index}",
+        )
+        service((value,)).reconcile_project_completion(
+            request(project_id=project_id)
+        )
+
+    assert count() == 2
 
 
 def test_project_audit_interruption_rolls_back_and_rows_are_immutable() -> None:

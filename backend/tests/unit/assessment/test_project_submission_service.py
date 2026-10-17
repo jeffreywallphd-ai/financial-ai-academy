@@ -371,6 +371,17 @@ def test_project_completion_replay_is_typed_ordered_and_empty_safe() -> None:
     assert events[0].event_type == "assessment.project.completed"
 
 
+@pytest.mark.parametrize("project_id", ["p", "p" + "a" * 127])
+def test_project_completion_replay_accepts_contract_identifier_boundaries(
+    project_id: str,
+) -> None:
+    subject, _source, _repository = _subject()
+
+    assert subject.read_completed_projects(
+        ReadCompletedProjectsRequest(LEARNER, project_id)
+    ) == ()
+
+
 def test_public_project_source_assembles_exact_versioned_facts() -> None:
     source, project, content, placement = _public_source(
         first_description="A" * 200

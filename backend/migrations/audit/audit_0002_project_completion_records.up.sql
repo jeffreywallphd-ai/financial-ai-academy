@@ -2,7 +2,7 @@ CREATE TABLE audit.project_completion_records (
     audit_id uuid PRIMARY KEY,
     event_id text NOT NULL UNIQUE,
     evidence_id text NOT NULL UNIQUE,
-    submission_id text NOT NULL UNIQUE,
+    submission_id text NOT NULL,
     actor_id uuid NOT NULL,
     action text NOT NULL,
     project_id text NOT NULL,
@@ -30,6 +30,8 @@ CREATE TABLE audit.project_completion_records (
         ),
     CONSTRAINT audit_project_completion_occurrence
         CHECK (occurrence BETWEEN 1 AND 100),
+    CONSTRAINT audit_project_completion_submission_identity
+        UNIQUE (actor_id, submission_id),
     CONSTRAINT audit_project_completion_digests
         CHECK (
             snapshot_digest ~ '^[a-f0-9]{64}$'

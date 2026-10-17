@@ -271,7 +271,7 @@ class AssessmentService:
         self, request: ReadCompletedProjectsRequest
     ) -> tuple[OrderedProjectCompletionEvent, ...]:
         self._validate_uuid(request.learner_id, learner=True)
-        if not self._valid_identifier(request.project_id):
+        if not self._valid_project_identifier(request.project_id):
             raise AssessmentError(
                 AssessmentErrorCode.INVALID_SUBMISSION,
                 "The Project identity is invalid.",
@@ -1177,6 +1177,17 @@ class AssessmentService:
         if not 3 <= len(value) <= 64 or not value[0].isalnum():
             return False
         return all(character.islower() or character.isdigit() or character in "._-" for character in value)
+
+    @staticmethod
+    def _valid_project_identifier(value: str) -> bool:
+        if not 1 <= len(value) <= 128 or not value[0].isalnum():
+            return False
+        return all(
+            character.islower()
+            or character.isdigit()
+            or character in "._-"
+            for character in value
+        )
 
     def _require_project_submission_source(
         self, reference: str

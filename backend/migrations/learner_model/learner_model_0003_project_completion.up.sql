@@ -7,7 +7,7 @@ CREATE TABLE learner_model.project_completion_projections (
     rebuilt_at timestamptz NOT NULL,
     PRIMARY KEY (learner_id, project_id),
     CONSTRAINT learner_model_project_projection_project_profile
-        CHECK (project_id ~ '^[a-z0-9][a-z0-9._-]{2,63}$'),
+        CHECK (project_id ~ '^[a-z0-9][a-z0-9._-]{0,127}$'),
     CONSTRAINT learner_model_project_projection_history_count
         CHECK (history_count BETWEEN 0 AND 100),
     CONSTRAINT learner_model_project_projection_completion
@@ -70,7 +70,7 @@ CREATE TABLE learner_model.project_completion_history (
         CHECK (occurred_at >= submitted_at),
     UNIQUE (event_id),
     UNIQUE (evidence_id),
-    UNIQUE (submission_id)
+    UNIQUE (learner_id, submission_id)
 );
 
 COMMENT ON TABLE learner_model.project_completion_projections IS

@@ -128,7 +128,7 @@ def _timestamp(value: datetime) -> str:
 _ID = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
 _VERSION = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 _DIGEST = re.compile(r"^[a-f0-9]{64}$")
-_PROJECT_EVENT_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
+_PROJECT_IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 _CONTRACT_VERSION = re.compile(
     r"^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
 )
@@ -501,7 +501,7 @@ def _project_context(learner_id: str, project_id: str) -> None:
         UUID(learner_id)
     except (ValueError, AttributeError) as error:
         raise InvalidCompletionEvidence("learner_id") from error
-    if _ID.fullmatch(project_id) is None:
+    if _PROJECT_IDENTIFIER.fullmatch(project_id) is None:
         raise InvalidCompletionEvidence("project_id")
 
 
@@ -538,9 +538,9 @@ def _validate_project_completion(
         or item.event_version != "1.0.0"
         or item.policy_id != "assessment-project-closure"
         or item.policy_version != "1.0.0"
-        or _ID.fullmatch(item.project_id) is None
+        or _PROJECT_IDENTIFIER.fullmatch(item.project_id) is None
         or any(
-            _PROJECT_EVENT_ID.fullmatch(value) is None
+            _PROJECT_IDENTIFIER.fullmatch(value) is None
             for value in identifiers
         )
         or any(
@@ -558,7 +558,7 @@ def _validate_project_completion(
         raise InvalidCompletionEvidence("project_evidence")
     if (
         item.supersedes_submission_id is not None
-        and _PROJECT_EVENT_ID.fullmatch(item.supersedes_submission_id) is None
+        and _PROJECT_IDENTIFIER.fullmatch(item.supersedes_submission_id) is None
     ):
         raise InvalidCompletionEvidence("supersedes_submission_id")
 

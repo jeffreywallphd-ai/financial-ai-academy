@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -30,6 +31,7 @@ REPOSITORY = Path(__file__).resolve().parents[4]
 MIGRATIONS = REPOSITORY / "backend/migrations"
 POSTGRES_DSN = os.environ.get("FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN")
 LEARNER_ID = "11111111-1111-4111-8111-111111111111"
+SECOND_LEARNER_ID = "22222222-2222-4222-8222-222222222222"
 PROJECT_ID = "project-retirement-plan"
 NOW = datetime(2026, 10, 17, 3, 30, tzinfo=timezone.utc)
 
@@ -149,8 +151,11 @@ def service(
     )
 
 
-def request() -> OpenProjectCompletionRequest:
-    return OpenProjectCompletionRequest(LEARNER_ID, PROJECT_ID)
+def request(
+    learner_id: str = LEARNER_ID,
+    project_id: str = PROJECT_ID,
+) -> OpenProjectCompletionRequest:
+    return OpenProjectCompletionRequest(learner_id, project_id)
 
 
 def counts() -> tuple[int, int]:
@@ -177,6 +182,37 @@ def test_project_projection_rebuilds_and_replays_without_duplicate_rows() -> Non
     assert reopened.source_digest == initial.source_digest
     assert [item.occurrence for item in reopened.history] == [1, 2]
     assert counts() == (1, 2)
+
+
+def test_project_projection_scopes_submission_identity_by_learner() -> None:
+    first = completion(1)
+    second = replace(
+        completion(1),
+        learner_id=SECOND_LEARNER_ID,
+        event_id="event-retirement-second-01",
+        evidence_id="evidence-retirement-second-01",
+        submission_id=first.submission_id,
+    )
+
+    service((first,)).open_project_completion(request())
+    service((second,)).open_project_completion(request(SECOND_LEARNER_ID))
+
+    assert counts() == (2, 2)
+
+
+def test_project_projection_persists_contract_identifier_boundaries() -> None:
+    for index, project_id in enumerate(("p", "p" + "a" * 127), start=1):
+        value = replace(
+            completion(1),
+            project_id=project_id,
+            event_id=f"event-boundary-{index}",
+            evidence_id=f"evidence-boundary-{index}",
+            submission_id=f"submission-boundary-{index}",
+            snapshot_id=f"snapshot-boundary-{index}",
+        )
+        service((value,)).open_project_completion(request(project_id=project_id))
+
+    assert counts() == (2, 2)
 
 
 def test_interrupted_project_replace_preserves_prior_complete_projection() -> None:

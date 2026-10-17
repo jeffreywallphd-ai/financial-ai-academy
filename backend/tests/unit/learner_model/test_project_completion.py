@@ -74,14 +74,20 @@ def completion(
 
 
 class Source:
-    def __init__(self, values: tuple[SourceProjectCompletion, ...]) -> None:
+    def __init__(
+        self,
+        values: tuple[SourceProjectCompletion, ...],
+        *,
+        project_id: str = PROJECT_ID,
+    ) -> None:
         self.values = values
+        self.project_id = project_id
 
     def list_for_project(
         self, *, learner_id: str, project_id: str
     ) -> tuple[SourceProjectCompletion, ...]:
         assert learner_id == LEARNER_ID
-        assert project_id == PROJECT_ID
+        assert project_id == self.project_id
         return self.values
 
 
@@ -151,6 +157,23 @@ def test_valid_contract_identifier_boundaries_do_not_require_fixture_lengths() -
     view = service((compact,)).open_project_completion(request())
     assert view.completed is True
     assert view.history[0].event_id == "e"
+
+
+@pytest.mark.parametrize("project_id", ["p", "p" + "a" * 127])
+def test_project_context_accepts_contract_identifier_boundaries(
+    project_id: str,
+) -> None:
+    value = replace(completion(), project_id=project_id)
+    subject = LearnerModelService(
+        Source((value,), project_id=project_id), Repository(), Clock()
+    )
+
+    view = subject.open_project_completion(
+        OpenProjectCompletionRequest(LEARNER_ID, project_id)
+    )
+
+    assert view.completed is True
+    assert view.project_id == project_id
 
 
 @pytest.mark.parametrize(

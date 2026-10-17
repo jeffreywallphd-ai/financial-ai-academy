@@ -70,14 +70,20 @@ def event() -> AuditableProjectEvent:
 
 
 class Source:
-    def __init__(self, values: tuple[AuditableProjectEvent, ...]) -> None:
+    def __init__(
+        self,
+        values: tuple[AuditableProjectEvent, ...],
+        *,
+        project_id: str = PROJECT_ID,
+    ) -> None:
         self.values = values
+        self.project_id = project_id
 
     def list_for_project(
         self, *, learner_id: str, project_id: str
     ) -> tuple[AuditableProjectEvent, ...]:
         assert learner_id == LEARNER_ID
-        assert project_id == PROJECT_ID
+        assert project_id == self.project_id
         return self.values
 
 
@@ -127,6 +133,22 @@ def test_empty_exact_and_duplicate_project_reconciliation_are_bounded() -> None:
     assert record.project_id == PROJECT_ID
     assert record.evidence_id == event().evidence_id
     assert len(record.integrity_digest) == 64
+
+
+@pytest.mark.parametrize("project_id", ["p", "p" + "a" * 127])
+def test_project_context_accepts_contract_identifier_boundaries(
+    project_id: str,
+) -> None:
+    value = replace(event(), project_id=project_id)
+    subject = AuditService(
+        Source((value,), project_id=project_id), Repository(), Clock()
+    )
+
+    receipt = subject.reconcile_project_completion(
+        ReconcileProjectCompletionAuditRequest(LEARNER_ID, project_id)
+    )
+
+    assert receipt.reconciled_event_count == 1
 
 
 @pytest.mark.parametrize(

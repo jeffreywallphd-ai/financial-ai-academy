@@ -227,7 +227,7 @@ class LearnerModelService:
             ) from error
         value = request.project_id
         if (
-            not 3 <= len(value) <= 64
+            not 1 <= len(value) <= 128
             or not value[0].isalnum()
             or not all(
                 character.islower()
