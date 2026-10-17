@@ -1,7 +1,7 @@
 ---
 id: WRK-0131
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/__init__.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/__init__.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/workspace_contract.py", "backend/src/financial_ai_academy/modules/personal_workspace/domain/__init__.py", "backend/src/financial_ai_academy/modules/personal_workspace/domain/workspace.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/__init__.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/workspace_contract.py", "backend/tests/contract/personal_workspace", "backend/tests/unit/personal_workspace", "contracts/compatibility/personal-workspace/v1", "contracts/learning/README.md", "contracts/learning/personal-workspace/v1", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0131-freeze-personal-workspace-learning-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: ad3caacfa925064ac1e5705a36ef894fe3b65ea2
+claim_id: WRK-0131:81f47bea-6814-4247-8bda-366d54f7a34b
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T10:34:11Z
 ---
 
 # Agent Work Packet: Freeze Personal Workspace Learning Contracts

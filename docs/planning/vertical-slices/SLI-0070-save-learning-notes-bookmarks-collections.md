@@ -1,7 +1,7 @@
 ---
 id: SLI-0070
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
