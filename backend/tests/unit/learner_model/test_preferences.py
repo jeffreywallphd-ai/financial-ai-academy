@@ -9,10 +9,14 @@ from financial_ai_academy.modules.learner_model.domain.preferences import (
     MAX_GOALS,
     InvalidLearnerPreference,
     LearnerPreferenceProfile,
+    PreferenceExport,
+    PreferenceHistory,
     PreferenceMutation,
     PreferenceMutationIntent,
     apply_preference_mutation,
     empty_preference_profile,
+    validate_preference_export,
+    validate_preference_history,
     validate_preference_profile,
 )
 
@@ -150,6 +154,68 @@ def test_reset_creates_empty_next_revision_without_changing_identity() -> None:
     assert reset.goals == reset.experience == reset.interests == ()
     assert change.operation == "reset_profile"
     assert change.object_kind == "profile"
+
+
+def test_generated_reorder_and_reset_changes_validate_in_history_and_export() -> None:
+    profile = _empty()
+    for minute, identifier in enumerate(("interest.one", "interest.two"), start=1):
+        profile, _ = _apply(
+            profile,
+            "create_interest",
+            minute=minute,
+            issued_id=identifier,
+            label=identifier,
+        )
+    reordered, reorder_change = _apply(
+        profile,
+        "reorder_interests",
+        minute=3,
+        ordered_ids=("interest.two", "interest.one"),
+    )
+    history = PreferenceHistory(
+        schema_version="1.0.0",
+        profile_id=reordered.profile_id,
+        current_revision=reordered.revision,
+        changes=(reorder_change,),
+    )
+    validate_preference_history(history, reordered)
+    validate_preference_export(
+        PreferenceExport(
+            schema_version="1.0.0",
+            purpose="Portable learner preference review",
+            limitations=("Explicit learner input only",),
+            exported_at=START + timedelta(minutes=3),
+            profile=reordered,
+            history=history,
+        )
+    )
+
+    reset, reset_change = _apply(reordered, "reset_profile", minute=4)
+    reset_history = replace(
+        history,
+        current_revision=reset.revision,
+        changes=(reorder_change, reset_change),
+    )
+    validate_preference_history(reset_history, reset)
+
+
+def test_history_rejects_operation_and_object_kind_contradiction() -> None:
+    profile, change = _apply(
+        _empty(),
+        "create_interest",
+        minute=1,
+        issued_id="interest.one",
+        label="Markets",
+    )
+    history = PreferenceHistory(
+        schema_version="1.0.0",
+        profile_id=profile.profile_id,
+        current_revision=profile.revision,
+        changes=(replace(change, operation="create_goal"),),
+    )
+    with pytest.raises(InvalidLearnerPreference) as failure:
+        validate_preference_history(history, profile)
+    assert failure.value.code == "learner_preferences.invalid_history"
 
 
 def test_stale_revision_duplicate_identity_and_naive_time_fail_closed() -> None:

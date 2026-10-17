@@ -27,6 +27,7 @@ from ..domain.preferences import (
     profile_document,
     validate_preference_export,
     validate_preference_history,
+    validate_preference_mutation_intent,
     validate_preference_profile,
 )
 from ..ports.preference_contract import LearnerPreferenceContractFailure
@@ -74,10 +75,7 @@ class ContractLearnerPreferenceAdapter:
                 ordered_ids=tuple(mutation.get("ordered_ids", [])),
             ),
         )
-        if intent.schema_version != VERSION:
-            self._reject(
-                "learner_preferences.unsupported_version", "schema_version"
-            )
+        self._domain(validate_preference_mutation_intent, intent)
         return intent
 
     def parse_history(self, value: bytes) -> PreferenceHistory:
@@ -114,6 +112,7 @@ class ContractLearnerPreferenceAdapter:
     def mutation_intent_document(
         self, value: PreferenceMutationIntent
     ) -> dict[str, object]:
+        self._domain(validate_preference_mutation_intent, value)
         operation = value.mutation.operation
         mutation: dict[str, object] = {"operation": operation}
         if operation in {
@@ -176,7 +175,10 @@ class ContractLearnerPreferenceAdapter:
         return document
 
     def canonical_digest(self, value: Mapping[str, object]) -> str:
-        return canonical_digest(value)
+        try:
+            return canonical_digest(value)
+        except InvalidLearnerPreference as error:
+            self._reject(error.code, error.reference)
 
     def empty_profile(
         self,

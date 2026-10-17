@@ -151,7 +151,8 @@ composition may change.
 `learner-preference-profile-v1` is one closed document containing exact server
 identity/revision/time facts and ordered closed values. Profile identity and
 learner identity are distinct bounded identifiers. Goal, experience, and
-interest IDs are unique across their own sections; every order list is complete
+goal, experience, and interest IDs are unique across the complete profile so
+generic change references remain unambiguous; every order list is complete
 and duplicate-free. Archived goals remain in goal order until removed. Empty
 sections are valid.
 

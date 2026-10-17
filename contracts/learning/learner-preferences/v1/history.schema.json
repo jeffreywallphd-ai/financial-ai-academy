@@ -21,11 +21,41 @@
         "schema_version": {"const": "1.0.0"},
         "revision": {"type": "integer", "minimum": 1},
         "operation": {"enum": ["create_goal", "update_goal", "archive_goal", "restore_goal", "remove_goal", "reorder_goals", "create_experience", "update_experience", "remove_experience", "reorder_experience", "create_interest", "rename_interest", "remove_interest", "reorder_interests", "reset_profile"]},
-        "object_kind": {"type": ["string", "null"], "enum": ["goal", "experience", "interest", "profile", null]},
+        "object_kind": {"enum": ["goal", "experience", "interest", "profile"]},
         "object_id": {"type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
         "occurred_at": {"type": "string", "format": "date-time", "pattern": "Z$"},
         "resulting_profile_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
-      }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "operation": {"enum": ["create_goal", "update_goal", "archive_goal", "restore_goal", "remove_goal"]},
+            "object_kind": {"const": "goal"},
+            "object_id": {"$ref": "#/$defs/id"}
+          }
+        },
+        {
+          "properties": {
+            "operation": {"enum": ["create_experience", "update_experience", "remove_experience"]},
+            "object_kind": {"const": "experience"},
+            "object_id": {"$ref": "#/$defs/id"}
+          }
+        },
+        {
+          "properties": {
+            "operation": {"enum": ["create_interest", "rename_interest", "remove_interest"]},
+            "object_kind": {"const": "interest"},
+            "object_id": {"$ref": "#/$defs/id"}
+          }
+        },
+        {
+          "properties": {
+            "operation": {"enum": ["reorder_goals", "reorder_experience", "reorder_interests", "reset_profile"]},
+            "object_kind": {"const": "profile"},
+            "object_id": {"type": "null"}
+          }
+        }
+      ]
     }
   }
 }

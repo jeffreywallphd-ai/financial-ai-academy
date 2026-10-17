@@ -68,6 +68,7 @@ def test_fixed_profile_digests_cover_empty_and_unicode_shapes(
     observed = adapter.canonical_digest(
         {key: value for key, value in populated.items() if key != "profile_digest"}
     )
+    assert observed == "d69720e24577a0d6106536668875a28f429e6f99a41a1f4f23f691270fa42f3d"
     decomposed = deepcopy(populated)
     decomposed["goals"][0]["detail"] = "Compare cafe\u0301 data without normalizing text."
     changed = adapter.canonical_digest(
@@ -198,3 +199,44 @@ def test_export_rejects_history_that_does_not_match_profile(
     with pytest.raises(LearnerPreferenceContractFailure) as failure:
         adapter.parse_export(json.dumps(document).encode("utf-8"))
     assert failure.value.code == "learner_preferences.history_mismatch"
+
+
+def test_published_export_schema_closes_nested_profile_and_history() -> None:
+    schema = json.loads((SCHEMA_DIR / "export.schema.json").read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
+    document = json.loads(_fixture("valid-export.json"))
+    assert validator.is_valid(document)
+
+    document["profile"] = {"secret": "must-not-pass"}
+    document["history"] = {"internal": "must-not-pass"}
+    assert not validator.is_valid(document)
+
+
+def test_published_history_schema_correlates_operation_and_object_kind() -> None:
+    schema = json.loads((SCHEMA_DIR / "history.schema.json").read_text(encoding="utf-8"))
+    validator = Draft202012Validator(schema)
+    document = json.loads(_fixture("valid-history.json"))
+    assert validator.is_valid(document)
+
+    document["changes"][0]["object_kind"] = "interest"
+    assert not validator.is_valid(document)
+
+
+@pytest.mark.parametrize("title", [" leading", "trailing ", "bad\ud800text"])
+def test_intent_parser_rejects_noncanonical_or_malformed_text(
+    adapter: ContractLearnerPreferenceAdapter,
+    title: str,
+) -> None:
+    document = json.loads(_fixture("valid-create-goal-intent.json"))
+    document["mutation"]["title"] = title
+    with pytest.raises(LearnerPreferenceContractFailure) as failure:
+        adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "learner_preferences.invalid_text"
+
+
+def test_canonical_digest_translates_malformed_unicode_to_stable_failure(
+    adapter: ContractLearnerPreferenceAdapter,
+) -> None:
+    with pytest.raises(LearnerPreferenceContractFailure) as failure:
+        adapter.canonical_digest({"value": "bad\ud800text"})
+    assert failure.value.code == "learner_preferences.invalid_text"

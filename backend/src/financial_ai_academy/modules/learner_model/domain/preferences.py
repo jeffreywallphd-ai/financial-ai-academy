@@ -20,6 +20,25 @@ MAX_HISTORY = 100
 _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
 _DIGEST = re.compile(r"^[a-f0-9]{64}$")
 _CONTROL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+_SURROGATE = re.compile(r"[\ud800-\udfff]")
+
+_HISTORY_OBJECT_KIND = {
+    "create_goal": "goal",
+    "update_goal": "goal",
+    "archive_goal": "goal",
+    "restore_goal": "goal",
+    "remove_goal": "goal",
+    "reorder_goals": "profile",
+    "create_experience": "experience",
+    "update_experience": "experience",
+    "remove_experience": "experience",
+    "reorder_experience": "profile",
+    "create_interest": "interest",
+    "rename_interest": "interest",
+    "remove_interest": "interest",
+    "reorder_interests": "profile",
+    "reset_profile": "profile",
+}
 
 
 class InvalidLearnerPreference(ValueError):
@@ -126,14 +145,18 @@ class PreferenceExport:
 
 
 def canonical_digest(value: Mapping[str, object]) -> str:
-    return hashlib.sha256(
-        json.dumps(
+    try:
+        encoded = json.dumps(
             value,
             ensure_ascii=False,
             sort_keys=True,
             separators=(",", ":"),
         ).encode("utf-8")
-    ).hexdigest()
+    except (TypeError, ValueError, UnicodeError) as error:
+        raise InvalidLearnerPreference(
+            "learner_preferences.invalid_text", "canonical"
+        ) from error
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def empty_preference_profile(
@@ -247,11 +270,15 @@ def validate_preference_history(
         occurred_at = _aware(change.occurred_at, "changes.occurred_at")
         if prior_time is not None and occurred_at < prior_time:
             _reject("learner_preferences.invalid_history", "changes.occurred_at")
-        if (change.object_kind is None) != (change.object_id is None):
+        expected_kind = _HISTORY_OBJECT_KIND.get(change.operation)
+        if expected_kind is None or change.object_kind != expected_kind:
+            _reject("learner_preferences.invalid_history", "changes.operation")
+        if expected_kind == "profile":
+            if change.object_id is not None:
+                _reject("learner_preferences.invalid_history", "changes.object")
+        elif change.object_id is None:
             _reject("learner_preferences.invalid_history", "changes.object")
-        if change.object_kind not in {None, "goal", "experience", "interest", "profile"}:
-            _reject("learner_preferences.invalid_history", "changes.object_kind")
-        if change.object_id is not None:
+        else:
             _identifier(change.object_id, "changes.object_id")
         if _DIGEST.fullmatch(change.resulting_profile_digest) is None:
             _reject("learner_preferences.invalid_history", "changes.digest")
@@ -289,9 +316,7 @@ def apply_preference_mutation(
     issued_id: str | None = None,
 ) -> tuple[LearnerPreferenceProfile, PreferenceChange]:
     validate_preference_profile(profile)
-    if intent.schema_version != VERSION:
-        _reject("learner_preferences.unsupported_version", "intent.schema_version")
-    _identifier(intent.idempotency_key, "idempotency_key")
+    validate_preference_mutation_intent(intent)
     if intent.expected_revision != profile.revision:
         _reject("learner_preferences.stale_revision", "expected_revision")
     now = _aware(occurred_at, "occurred_at")
@@ -454,6 +479,64 @@ def apply_preference_mutation(
     )
 
 
+def validate_preference_mutation_intent(intent: PreferenceMutationIntent) -> None:
+    """Validate a complete immutable intent without needing current state."""
+
+    if intent.schema_version != VERSION:
+        _reject("learner_preferences.unsupported_version", "intent.schema_version")
+    _identifier(intent.idempotency_key, "idempotency_key")
+    if intent.expected_revision < 1:
+        _reject("learner_preferences.invalid_revision", "expected_revision")
+
+    mutation = intent.mutation
+    operation = mutation.operation
+    allowed: set[str]
+    if operation in {"create_goal", "update_goal"}:
+        allowed = {"title", "detail"}
+        if operation == "update_goal":
+            allowed.add("entry_id")
+            _required_id(mutation.entry_id)
+        _text(mutation.title, "title", 160)
+        _optional_text(mutation.detail, "detail", 2_000)
+    elif operation in {"archive_goal", "restore_goal", "remove_goal"}:
+        allowed = {"entry_id"}
+        _required_id(mutation.entry_id)
+    elif operation == "reorder_goals":
+        allowed = {"ordered_ids"}
+        _validate_ordered_ids(mutation.ordered_ids, MAX_GOALS)
+    elif operation in {"create_experience", "update_experience"}:
+        allowed = {"subject", "level", "detail"}
+        if operation == "update_experience":
+            allowed.add("entry_id")
+            _required_id(mutation.entry_id)
+        _text(mutation.subject, "subject", 120)
+        _level(mutation.level)
+        _optional_text(mutation.detail, "detail", 1_000)
+    elif operation == "remove_experience":
+        allowed = {"entry_id"}
+        _required_id(mutation.entry_id)
+    elif operation == "reorder_experience":
+        allowed = {"ordered_ids"}
+        _validate_ordered_ids(mutation.ordered_ids, MAX_EXPERIENCE_ENTRIES)
+    elif operation in {"create_interest", "rename_interest"}:
+        allowed = {"label"}
+        if operation == "rename_interest":
+            allowed.add("entry_id")
+            _required_id(mutation.entry_id)
+        _text(mutation.label, "label", 120)
+    elif operation == "remove_interest":
+        allowed = {"entry_id"}
+        _required_id(mutation.entry_id)
+    elif operation == "reorder_interests":
+        allowed = {"ordered_ids"}
+        _validate_ordered_ids(mutation.ordered_ids, MAX_INTERESTS)
+    elif operation == "reset_profile":
+        allowed = set()
+    else:
+        _reject("learner_preferences.unsupported_operation", "operation")
+    _validate_mutation_fields(mutation, allowed)
+
+
 def profile_document(
     profile: LearnerPreferenceProfile,
     *,
@@ -532,6 +615,7 @@ def _text(value: str | None, reference: str, maximum: int) -> str:
         or len(value) > maximum
         or value != value.strip()
         or _CONTROL.search(value) is not None
+        or _SURROGATE.search(value) is not None
     ):
         _reject("learner_preferences.invalid_text", reference)
     return value
@@ -576,6 +660,33 @@ def _reorder(values: list[object], field: str, ordered_ids: tuple[str, ...]) -> 
     if reordered == values:
         _reject("learner_preferences.no_change", field)
     return reordered
+
+
+def _validate_ordered_ids(ordered_ids: tuple[str, ...], maximum: int) -> None:
+    if len(ordered_ids) > maximum or len(ordered_ids) != len(set(ordered_ids)):
+        _reject("learner_preferences.invalid_order", "ordered_ids")
+    for identifier in ordered_ids:
+        _identifier(identifier, "ordered_ids")
+
+
+def _validate_mutation_fields(
+    mutation: PreferenceMutation,
+    allowed: set[str],
+) -> None:
+    values = {
+        "entry_id": mutation.entry_id,
+        "title": mutation.title,
+        "detail": mutation.detail,
+        "subject": mutation.subject,
+        "level": mutation.level,
+        "label": mutation.label,
+        "ordered_ids": mutation.ordered_ids,
+    }
+    for field, value in values.items():
+        if field in allowed:
+            continue
+        if value is not None and value != ():
+            _reject("learner_preferences.invalid_shape", field)
 
 
 def _reject(code: str, reference: str) -> None:

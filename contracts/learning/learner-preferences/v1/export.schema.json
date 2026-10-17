@@ -9,8 +9,100 @@
     "schema_version": {"const": "1.0.0"},
     "purpose": {"type": "string", "minLength": 1, "maxLength": 240},
     "limitations": {"type": "array", "minItems": 1, "maxItems": 8, "items": {"type": "string", "minLength": 1, "maxLength": 320}},
-    "exported_at": {"type": "string", "format": "date-time", "pattern": "Z$"},
-    "profile": {"type": "object"},
-    "history": {"type": "object"}
+    "exported_at": {"$ref": "#/$defs/time"},
+    "profile": {"$ref": "#/$defs/profile"},
+    "history": {"$ref": "#/$defs/history"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "time": {"type": "string", "format": "date-time", "pattern": "Z$"},
+    "detail2000": {"type": ["string", "null"], "minLength": 1, "maxLength": 2000},
+    "detail1000": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000},
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goal_id", "title", "detail", "archived", "created_at", "updated_at"],
+      "properties": {
+        "goal_id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 160},
+        "detail": {"$ref": "#/$defs/detail2000"},
+        "archived": {"type": "boolean"},
+        "created_at": {"$ref": "#/$defs/time"},
+        "updated_at": {"$ref": "#/$defs/time"}
+      }
+    },
+    "experience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experience_id", "subject", "level", "detail", "created_at", "updated_at"],
+      "properties": {
+        "experience_id": {"$ref": "#/$defs/id"},
+        "subject": {"type": "string", "minLength": 1, "maxLength": 120},
+        "level": {"enum": ["new", "some_experience", "experienced"]},
+        "detail": {"$ref": "#/$defs/detail1000"},
+        "created_at": {"$ref": "#/$defs/time"},
+        "updated_at": {"$ref": "#/$defs/time"}
+      }
+    },
+    "interest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interest_id", "label", "created_at", "updated_at"],
+      "properties": {
+        "interest_id": {"$ref": "#/$defs/id"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 120},
+        "created_at": {"$ref": "#/$defs/time"},
+        "updated_at": {"$ref": "#/$defs/time"}
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "profile_id", "learner_id", "revision", "goals", "experience", "interests", "created_at", "updated_at", "profile_digest"],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "profile_id": {"$ref": "#/$defs/id"},
+        "learner_id": {"type": "string", "format": "uuid"},
+        "revision": {"type": "integer", "minimum": 1},
+        "goals": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/goal"}},
+        "experience": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/experience"}},
+        "interests": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/interest"}},
+        "created_at": {"$ref": "#/$defs/time"},
+        "updated_at": {"$ref": "#/$defs/time"},
+        "profile_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "revision", "operation", "object_kind", "object_id", "occurred_at", "resulting_profile_digest"],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "revision": {"type": "integer", "minimum": 1},
+        "operation": {"enum": ["create_goal", "update_goal", "archive_goal", "restore_goal", "remove_goal", "reorder_goals", "create_experience", "update_experience", "remove_experience", "reorder_experience", "create_interest", "rename_interest", "remove_interest", "reorder_interests", "reset_profile"]},
+        "object_kind": {"enum": ["goal", "experience", "interest", "profile"]},
+        "object_id": {"type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+        "occurred_at": {"$ref": "#/$defs/time"},
+        "resulting_profile_digest": {"$ref": "#/$defs/digest"}
+      },
+      "oneOf": [
+        {"properties": {"operation": {"enum": ["create_goal", "update_goal", "archive_goal", "restore_goal", "remove_goal"]}, "object_kind": {"const": "goal"}, "object_id": {"$ref": "#/$defs/id"}}},
+        {"properties": {"operation": {"enum": ["create_experience", "update_experience", "remove_experience"]}, "object_kind": {"const": "experience"}, "object_id": {"$ref": "#/$defs/id"}}},
+        {"properties": {"operation": {"enum": ["create_interest", "rename_interest", "remove_interest"]}, "object_kind": {"const": "interest"}, "object_id": {"$ref": "#/$defs/id"}}},
+        {"properties": {"operation": {"enum": ["reorder_goals", "reorder_experience", "reorder_interests", "reset_profile"]}, "object_kind": {"const": "profile"}, "object_id": {"type": "null"}}}
+      ]
+    },
+    "history": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "profile_id", "current_revision", "changes"],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "profile_id": {"$ref": "#/$defs/id"},
+        "current_revision": {"type": "integer", "minimum": 1},
+        "changes": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/change"}}
+      }
+    }
   }
 }
