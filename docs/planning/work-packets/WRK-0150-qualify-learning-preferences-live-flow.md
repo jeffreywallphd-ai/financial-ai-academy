@@ -1,7 +1,7 @@
 ---
 id: WRK-0150
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -273,3 +273,9 @@ leave SLI-0074 closure-ready.
   live wrapper reproduced a pre-existing Project submitted-state timeout only
   when the controller captured subprocess output. Product and contract scope
   remain unchanged.
+- 2026-10-17: Completed on exact candidate `1299d35` with qualifying receipt
+  `20261017T210309Z-1fe32c66-de0c-4d81-be05-d2c514a0fb13.json`. The closed
+  capture, real keyboard activation, browser/headless parity, all three
+  simultaneous-write outcomes, PostgreSQL restart, source-state containment,
+  architecture checks, and captured-output live topology passed without a
+  product, contract, generated-client, provider, model, or authority change.

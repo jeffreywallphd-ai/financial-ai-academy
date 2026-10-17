@@ -1,7 +1,7 @@
 ---
 id: SLI-0074
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -207,7 +207,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0147 | Freeze learner-preference v1 profile, mutation, history/export, compatibility, pure domain, transport-neutral parser/projector, privacy, and anti-rigidity contracts | none | none | complete |
 | WRK-0148 | Compose Learner-model application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0147 | none | complete |
 | WRK-0149 | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | WRK-0148 | none | complete |
-| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149, WRK-0151, WRK-0152 | none | verifying |
+| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149, WRK-0151, WRK-0152 | none | complete |
 | WRK-0151 | Preserve exact canonical learner-preference timestamps in API responses so digest validation remains stable | WRK-0148 | none | complete |
 | WRK-0152 | Stabilize the captured-output Project submitted-state check without weakening its functional assertion | WRK-0129 | none | complete |
 
@@ -269,13 +269,27 @@ CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery will document explicit preference meaning and limitations, Learner-
-model ownership, versioned contracts, persistence, protected API/headless
-parity, purpose and privacy disclosures, reset/export behavior, accessible UI,
-and exact qualification evidence. Completion records exact candidates, focused
-and affected checks, receipts, privacy and anti-rigidity results, changed
-boundaries, assumptions, and residual gaps without tracked reviewer identity or
-approval history.
+Completed delivery documents explicit preference meaning and limitations,
+Learner-model ownership, versioned contracts, module-owned PostgreSQL
+persistence, one protected API for generated browser and ordinary headless
+clients, purpose/privacy disclosures, reset/export behavior, and the accessible
+`Learning preferences` flow. Exact candidate `1299d35` produced qualifying
+receipt `20261017T210309Z-1fe32c66-de0c-4d81-be05-d2c514a0fb13.json`: planning,
+documentation, architecture, typecheck, zero-warning lint, and the complete
+captured-output live topology passed. The topology proved the full learner-
+controlled journey, closed capture validation, browser/headless parity, exact
+replay, all three simultaneous-write outcomes, canonical digest/history/export
+correlation, normal restart, source-state noninterference, confidential
+denials, keyboard behavior, containment, and exact cleanup. The deterministic
+completion structure passed for all six packets, and all 29 aggregate agent-
+readiness checks passed.
+
+The slice does not infer preferences, use them as learning evidence or policy,
+or introduce a separate AI authority, provider, external action, or financial
+behavior. It supports the current single-profile local identity and local
+PostgreSQL topology; organization tenancy, managed-cloud operation, adaptive
+use of preferences, and production recovery remain outside this slice and are
+left to their planned capabilities and decisions.
 
 ## Planning History
 
@@ -325,3 +339,6 @@ approval history.
 - 2026-10-17: Completed WRK-0152 with the existing Project submitted-state
   assertion preserved under the captured-output topology. The dependent
   learner-preference qualification packet can resume.
+- 2026-10-17: Completed SLI-0074 after all six packets, deterministic
+  completion structure, exact-candidate checks, cumulative live qualification,
+  and aggregate readiness passed. The next CAP-0018 slice may now be selected.
