@@ -246,6 +246,9 @@ WRK-0142 dependency-ready.
 - 2026-10-17: Marked ready after packet, dependency, decision-readiness,
   generated-client, interface-authority, exact write-scope, documentation, and
   planning validation passed without material CAP or slice drift.
+- 2026-10-17: Verification tightened the canonical browser-query boundary so
+  compatibility normalization cannot expand otherwise short input beyond the
+  API's 240-code-point text limit before session or API access.
 - 2026-10-17: Activated from recorded base `96e6f10` after validating the
   completed dependency, current CAP authority, closed browser/API boundary,
   exact write scope, and absence of an active file collision.

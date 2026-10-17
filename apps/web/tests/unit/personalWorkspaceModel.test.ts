@@ -267,6 +267,7 @@ describe("Personal workspace browser model", () => {
     "limit=0",
     `cursor=${"a".repeat(513)}`,
     `q=${encodeURIComponent("x".repeat(241))}`,
+    `q=${encodeURIComponent("\ufdfa".repeat(14))}`,
     `q=${encodeURIComponent("\u0085\u001c\u001d\u001e\u001f")}`,
     `q=${encodeURIComponent(" \t\n")}`,
   ])("rejects unsafe browser query %s before session or API access", async (query) => {
@@ -343,6 +344,9 @@ describe("Personal workspace browser model", () => {
     expect(parseWorkspaceSearch(new URL(
       `https://academy.test/saved-learning?q=${encodeURIComponent("risk\ufeffreturn")}`,
     ))?.query.text).toBe("risk\ufeffreturn");
+    expect(Array.from(parseWorkspaceSearch(new URL(
+      `https://academy.test/saved-learning?q=${encodeURIComponent("\ufdfa".repeat(13))}`,
+    ))?.query.text ?? "")).toHaveLength(234);
   });
 
   it.each([

@@ -743,7 +743,11 @@ export function parseWorkspaceSearch(
   const limit = limitValue === undefined ? 50 : positiveQueryInteger(limitValue);
   const normalizedText = text === undefined ? undefined : normalizedQueryText(text);
   if (
-    (text !== undefined && (!boundedString(text, 1, 240) || normalizedText?.length === 0)) ||
+    (text !== undefined && (
+      !boundedString(text, 1, 240) ||
+      normalizedText === undefined ||
+      !boundedString(normalizedText, 1, 240)
+    )) ||
     (recordKind !== undefined && !RECORD_KINDS.has(recordKind)) ||
     (ownerModule !== undefined && !OWNER_MODULES.has(ownerModule)) ||
     (referenceKind !== undefined && !REFERENCE_KINDS.has(referenceKind)) ||
