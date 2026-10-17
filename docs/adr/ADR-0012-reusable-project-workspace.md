@@ -4,6 +4,7 @@
 - Date: 2026-10-15
 - Decision request: [DEC-0007](../planning/decision-requests/DEC-0007-applied-project-lifecycle-ownership.md)
 - Supersedes: [ADR-0010](ADR-0010-applied-project-lifecycle-ownership.md)
+- Amended by: [ADR-0021](ADR-0021-focused-personal-learning-workspace.md)
 
 ## Context
 
@@ -156,6 +157,8 @@ and egress authority.
 
 ## Supersession
 
-This ADR supersedes ADR-0010. A future split of Project's bounded workspace into
-a general Workspace module, or a transfer of Project ownership, requires another
-superseding ADR with contract, persistence, event, and migration analysis.
+This ADR supersedes ADR-0010. ADR-0021 later accepts a separate focused Personal
+workspace module while preserving every Project ownership rule in this ADR.
+A split or transfer of Project's bounded workspace, or a merger of Project and
+Personal workspace ownership, still requires another superseding ADR with
+contract, persistence, event, and migration analysis.

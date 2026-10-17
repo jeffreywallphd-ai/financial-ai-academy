@@ -18,6 +18,9 @@ Work affects repository placement, modules, dependencies, APIs, events, portable
   PostgreSQL-backed at-least-once jobs; application meaning excludes database,
   broker, provider-job, and secret payloads.
 - ADR-0012 assigns reusable project workspaces, immutable snapshots, and typed learning/domain links to Project while Assessment retains learning submissions; portable project artifacts remain inert untrusted data under ADR-0011.
+- ADR-0021 assigns learner-authored notes, bookmarks, collections, and typed
+  references to a separate focused Personal workspace module while every
+  referenced module retains business-state and permission authority.
 - Exact external shapes live in executable schemas.
 - ADR-0009 fixes the initial runtime/framework lines while generated OpenAPI clients remain the browser data authority and Node remains build/test tooling only.
 - The qualified approved-lesson seam keeps Content, Curriculum, and Identity behind public operations from PostgreSQL/filesystem through the generated client to the closed browser renderer.
@@ -33,6 +36,7 @@ Work affects repository placement, modules, dependencies, APIs, events, portable
 - `docs/adr/ADR-0009-initial-application-framework-runtime-baseline.md`
 - `docs/adr/ADR-0011-inert-applied-project-artifacts.md`
 - `docs/adr/ADR-0012-reusable-project-workspace.md`
+- `docs/adr/ADR-0021-focused-personal-learning-workspace.md`
 - `docs/adr/ADR-0017-platform-native-human-reviewed-content-authoring.md`
 - `docs/adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md`
 - `docs/architecture/modules/module-map.md`

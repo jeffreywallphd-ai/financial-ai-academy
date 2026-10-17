@@ -43,6 +43,10 @@ Baseline context for every non-trivial task.
   as the first narrow educational integration behind provider-neutral contracts;
   unspecified storage, cloud, export, redistribution, real-time, and AI/ML uses
   remain denied, and later providers are independently admitted adapters
+- ADR-0021 assigns learner-authored notes, bookmarks, collections, and typed
+  cross-domain references to a focused Personal workspace module; referenced
+  modules retain authority, optional adapters isolate failure, and browser and
+  headless clients share one protected public API
 
 ## Workflow
 

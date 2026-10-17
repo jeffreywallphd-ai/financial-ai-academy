@@ -2,7 +2,7 @@
 
 - Status: partially accepted
 - Canonical for: accepted first learning-loop ownership and remaining module hypotheses
-- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md), [ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md), [ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md)
+- Related ADRs: [ADR-0005](../../adr/ADR-0005-first-learning-loop-module-ownership.md), [ADR-0006](../../adr/ADR-0006-setup-selectable-learner-identity.md), [ADR-0007](../../adr/ADR-0007-platform-owned-versioned-lesson-package.md), [ADR-0012](../../adr/ADR-0012-reusable-project-workspace.md), [ADR-0014](../../adr/ADR-0014-governed-adaptive-learning-research-plane.md), [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md), [ADR-0019](../../adr/ADR-0019-append-only-bounded-projection-overrides.md), [ADR-0021](../../adr/ADR-0021-focused-personal-learning-workspace.md)
 - Decision gate: use accepted first-loop boundaries; refine every still-proposed boundary before implementation
 
 | Module | Status | Primary responsibility | Publishes |
@@ -16,6 +16,7 @@
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
+| Personal workspace | accepted; implementation pending | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Personal-workspace record and reference lifecycle events remain future work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -36,6 +37,10 @@
   network, clock, random, AI, host, or adapter dependency. Owning modules retain
   workflow, authorization, persistence, and result meaning.
 - Audit captures references and integrity evidence from owning modules without becoming a second business database.
+- Personal workspace owns learner organization and learner-authored note content.
+  Its typed references never copy target business state, grant permission, or
+  mutate Content, Curriculum, Assessment, Learner model, Project, or later
+  domain owners.
 - Content owns ADR-0007 package identity, publication, lesson body, educational-source provenance, and storage references. Assessment owns the meaning and runtime use of packaged assessment definitions.
 - Content owns approved learning-project brief meaning and Curriculum owns its
   exact learning placement. Project accepts exact public references and owns
@@ -74,6 +79,13 @@ inert artifact bytes/manifests, immutable snapshots, and evidence exports
 through one protected API and generated client. It has no workspace browser UI,
 Assessment submission, live Portfolio link, execution, provider, or AI-
 authoritative behavior.
+
+ADR-0021 accepts Personal workspace as a separate focused module for notes,
+bookmarks, collections, and typed cross-domain references. The initial seam is
+learner-scoped and private-host compatible, uses owner public operations behind
+optional adapters, and preserves unrelated workspace behavior when one target
+kind is unavailable. It adds no collaboration, cloud sync, target-state copy,
+artifact execution, or special headless-client authority.
 
 ## Implemented Adaptation Deterministic Baseline
 

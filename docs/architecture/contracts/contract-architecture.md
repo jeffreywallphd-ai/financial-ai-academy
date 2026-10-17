@@ -65,6 +65,16 @@ pure validation, and evidence/event/history projection seam. Persistence,
 public API, generated clients, consumers, and browser behavior remain separate
 later seams.
 
+Personal learning-workspace records additionally follow
+[ADR-0021](../../adr/ADR-0021-focused-personal-learning-workspace.md). Personal
+workspace owns learner-authored notes and the lifecycle and organization of
+bookmarks, collections, and typed references. Each reference retains exact
+owner, resource identity, applicable version or as-of evidence, provenance,
+validation time, and bounded availability state, but never embeds target
+business state or grants target permission. Owner-specific adapters use public
+application operations and degrade independently. Browser and headless clients
+share the same protected versioned API and server-owned mutation authority.
+
 Portable financial methods, portfolio records, and simulation results
 additionally follow
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the

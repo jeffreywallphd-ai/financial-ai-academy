@@ -1,14 +1,14 @@
 ---
 id: DEC-0021
 kind: decision-request
-planning_status: captured
+planning_status: complete
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-17
 parent: null
 depends_on: ["DEC-0007"]
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0021-focused-personal-learning-workspace.md
 ---
 
 # Decision Request: Choose Personal Learning Workspace Ownership
@@ -111,3 +111,5 @@ return that CAP package for renewed CAP-level approval.
 
 - 2026-10-17: Captured when incremental delivery found that CAP-0017's general
   learner workspace crosses the explicit ADR-0012 Project-scope boundary.
+- 2026-10-17: Promoted the focused Personal workspace boundary to ADR-0021 and
+  reconciled current architecture, contracts, decision readiness, and context.

@@ -1,13 +1,13 @@
 ---
 id: CAP-0017
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-17
 parent: null
 depends_on: ["CAP-0001", "CAP-0007"]
-decision_gates: ["DEC-0021"]
+decision_gates: []
 approval_model: cap-package-v1
 slice_ids: ["SLI-0070", "SLI-0071", "SLI-0072", "SLI-0073"]
 ---
@@ -51,6 +51,7 @@ project, financial, or AI record.
 ## Canonical Context
 
 - [Reusable Project Workspace](../../adr/ADR-0012-reusable-project-workspace.md)
+- [Focused Personal Learning Workspace](../../adr/ADR-0021-focused-personal-learning-workspace.md)
 - [Inert Applied-Project Artifacts](../../adr/ADR-0011-inert-applied-project-artifacts.md)
 - [Data Architecture](../../architecture/data/data-architecture.md)
 - [Community Evidence Protection](../../security/community-learner-evidence-protection.md)
@@ -58,9 +59,8 @@ project, financial, or AI record.
 
 ## Decision Gates and Constraints
 
-- DEC-0021 must select and promote the module ownership and public boundary for
-  general learner notes, bookmarks, collections, and cross-domain references
-  before SLI-0070 begins.
+- ADR-0021 assigns general learner notes, bookmarks, collections, and
+  cross-domain references to the focused Personal workspace module.
 - Project owns mutable project workspaces and immutable snapshots; other domain
   resources remain independently authoritative.
 - Workspace links carry stable references and provenance only and never grant
@@ -115,4 +115,7 @@ accessibility, and verification documentation.
 - 2026-10-17: Incremental delivery found that a general personal-workspace
   owner is not authorized by ADR-0012. Added DEC-0021 and blocked delivery
   without changing the four-slice manifest or capability outcome.
+- 2026-10-17: ADR-0021 resolved ownership with a focused Personal workspace
+  module. The outcome and four-slice manifest remain unchanged; the package is
+  returned to shaping because its decision posture materially changed.
 
