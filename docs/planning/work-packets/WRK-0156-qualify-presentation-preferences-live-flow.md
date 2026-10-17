@@ -1,7 +1,7 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: ready
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -305,3 +305,7 @@ changed, then leave SLI-0075 closure-ready.
   the winning revision before its replay lookup is refreshed. WRK-0157 owns
   the bounded shared application correction; this packet resumes afterward
   without widening its qualification scope.
+- 2026-10-17: Resumed verification after WRK-0157 closed the bounded
+  concurrent exact-replay split-read window for both preference families.
+  The qualification remains limited to its original browser, headless API,
+  PostgreSQL, restart, privacy, accessibility, and cleanup evidence.

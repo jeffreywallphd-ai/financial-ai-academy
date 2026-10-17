@@ -1,7 +1,7 @@
 ---
 id: WRK-0157
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018-correction
 updated: 2026-10-17
@@ -210,3 +210,8 @@ assumptions; and residual gaps. Then return WRK-0156 to verification.
   security control groups passed. The complete Chromium/headless/PostgreSQL
   workflow also passed its exact and conflicting races, restart, isolation,
   accessibility, and cleanup paths without a contract or schema change.
+- 2026-10-17: Completed on exact candidate `f178ea3` after the qualifying
+  controller receipt, deterministic split-read regression coverage, fresh
+  PostgreSQL concurrency evidence, complete live qualification, aggregate
+  readiness, and the required technical verification all passed without a
+  public-contract, schema, adapter, or UI change.
