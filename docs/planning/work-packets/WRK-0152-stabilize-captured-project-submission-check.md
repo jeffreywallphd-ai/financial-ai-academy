@@ -7,7 +7,7 @@ owner: codex-cap-0018
 updated: 2026-10-17
 parent: SLI-0074
 capability: CAP-0018
-depends_on: [WRK-0128]
+depends_on: [WRK-0129]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/project-learning-submission.e2e.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0074-record-learning-goals-experience-interests.md", "docs/planning/work-packets/WRK-0150-qualify-learning-preferences-live-flow.md", "docs/planning/work-packets/WRK-0152-stabilize-captured-project-submission-check.md"]
@@ -74,7 +74,7 @@ and the learner-visible `Submitted checkpoint` heading before continuing.
 
 ## Dependencies and Parallel Safety
 
-Completed WRK-0128 supplies the browser flow. WRK-0150 depends on this bounded
+Completed WRK-0129 supplies the qualified browser flow. WRK-0150 depends on this bounded
 correction because its controller-selected live receipt captures subprocess
 output. This packet is not parallel-safe with WRK-0150 planning closure.
 
@@ -123,3 +123,6 @@ and contract boundaries, and cleanup.
 - 2026-10-17: Entered verification after packet/planning/documentation checks,
   TypeScript, zero-warning lint, whitespace, and all 29 aggregate readiness
   checks passed with the functional submitted-state assertions preserved.
+- 2026-10-17: Corrected the direct dependency to WRK-0129, which introduced
+  and qualified the changed browser check. Implementation and acceptance are
+  unchanged.

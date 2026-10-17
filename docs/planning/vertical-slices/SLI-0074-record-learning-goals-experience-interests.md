@@ -209,7 +209,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0149 | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | WRK-0148 | none | complete |
 | WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149, WRK-0151, WRK-0152 | none | verifying |
 | WRK-0151 | Preserve exact canonical learner-preference timestamps in API responses so digest validation remains stable | WRK-0148 | none | complete |
-| WRK-0152 | Stabilize the captured-output Project submitted-state check without weakening its functional assertion | WRK-0128 | none | verifying |
+| WRK-0152 | Stabilize the captured-output Project submitted-state check without weakening its functional assertion | WRK-0129 | none | verifying |
 
 Dependent packets are not reserved, authored, or claimed until their concrete
 predecessor is complete.
