@@ -1,7 +1,7 @@
 ---
 id: SLI-0075
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -409,3 +409,8 @@ decision gate remains, and no lower-level completion approval exists.
   all 16 profiles, browser/headless parity, restart, privacy, accessibility,
   containment, cleanup, exact-candidate verification, and aggregate readiness
   passed without CAP drift. SLI-0075 entered deterministic closure.
+- 2026-10-17: Completed SLI-0075 after the structural completion gate passed
+  all five retained packet claims and the reconciled outcome, failure,
+  compatibility, migration, documentation, environment, and residual-risk
+  evidence satisfied the approved CAP-0018 package. No completion approval was
+  requested or recorded.
