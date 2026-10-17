@@ -10,6 +10,7 @@ import hashlib
 import hmac
 import json
 from pathlib import Path
+import re
 import secrets
 from typing import Any, Mapping, Never
 import unicodedata
@@ -54,6 +55,7 @@ from ..ports.workspace_contract import PersonalWorkspaceContractFailure
 
 VERSION = "1.0.0"
 _PROCESS_CURSOR_SIGNING_KEY = secrets.token_bytes(32)
+_PLATFORM_IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 
 
 class ContractPersonalWorkspaceAdapter:
@@ -1064,28 +1066,49 @@ class ContractPersonalWorkspaceAdapter:
                 path or schema,
             )
 
-    @staticmethod
     def _shape_failure_code(
+        self,
         schema: str,
         document: Mapping[str, object],
         error: Any,
     ) -> str:
         if error.validator == "maxItems":
             path = tuple(str(part) for part in error.absolute_path)
-            if path and path[-1] == "records":
+            if (
+                schema in {"workspace", "workspace-export"}
+                and path
+                and path[-1] == "records"
+            ):
                 return "personal_workspace.contract.record_limit"
-            if path and path[-1] == "collections":
+            if (
+                schema in {"workspace", "workspace-export"}
+                and path
+                and path[-1] == "collections"
+            ):
                 return "personal_workspace.contract.collection_limit"
-            if path and path[-1] == "member_record_ids":
+            if (
+                schema in {"workspace", "workspace-export"}
+                and path
+                and path[-1] == "member_record_ids"
+                and self._valid_member_overflow_at_path(
+                    document, tuple(error.absolute_path)
+                )
+            ):
                 return "personal_workspace.contract.collection_member_limit"
         mutation = document.get("mutation")
+        member_record_ids = (
+            mutation.get("member_record_ids")
+            if isinstance(mutation, Mapping)
+            else None
+        )
         if (
             schema != "mutation-intent"
             or not isinstance(mutation, Mapping)
             or mutation.get("operation") != "set_collection_members"
             or set(mutation) != {"operation", "collection_id", "member_record_ids"}
             or not isinstance(mutation.get("collection_id"), str)
-            or not isinstance(mutation.get("member_record_ids"), list)
+            or not isinstance(member_record_ids, list)
+            or not self._valid_member_overflow(member_record_ids)
         ):
             return "personal_workspace.contract.invalid_shape"
         pending = [error]
@@ -1097,6 +1120,36 @@ class ContractPersonalWorkspaceAdapter:
                     return "personal_workspace.contract.collection_member_limit"
             pending.extend(current.context)
         return "personal_workspace.contract.invalid_shape"
+
+    @staticmethod
+    def _valid_member_overflow_at_path(
+        document: Mapping[str, object],
+        path: tuple[object, ...],
+    ) -> bool:
+        value: object = document
+        for part in path:
+            if isinstance(value, Mapping) and isinstance(part, str):
+                value = value.get(part)
+            elif isinstance(value, list) and isinstance(part, int):
+                if part < 0 or part >= len(value):
+                    return False
+                value = value[part]
+            else:
+                return False
+        return ContractPersonalWorkspaceAdapter._valid_member_overflow(value)
+
+    @staticmethod
+    def _valid_member_overflow(value: object) -> bool:
+        return (
+            isinstance(value, list)
+            and len(value) > 100
+            and all(
+                isinstance(record_id, str)
+                and _PLATFORM_IDENTIFIER.fullmatch(record_id) is not None
+                for record_id in value
+            )
+            and len(value) == len(set(value))
+        )
 
     def _version(self, document: Mapping[str, object]) -> None:
         if document.get("schema_version") != VERSION:

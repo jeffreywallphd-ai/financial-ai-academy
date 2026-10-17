@@ -276,6 +276,32 @@ def test_malformed_membership_shape_does_not_masquerade_as_capacity(
     assert failure.value.code == "personal_workspace.contract.invalid_shape"
 
 
+@pytest.mark.parametrize(
+    "member_record_ids",
+    [
+        [f"record.{index:03d}" for index in range(100)] + ["NOT_VALID"],
+        [f"record.{index:03d}" for index in range(100)] + ["record.099"],
+    ],
+)
+def test_invalid_or_duplicate_oversized_membership_is_not_capacity(
+    adapter: ContractPersonalWorkspaceAdapter,
+    member_record_ids: list[str],
+) -> None:
+    document = {
+        "schema_version": "1.0.0",
+        "idempotency_key": "membership.invalid-overflow",
+        "expected_revision": 1,
+        "mutation": {
+            "operation": "set_collection_members",
+            "collection_id": "collection.one",
+            "member_record_ids": member_record_ids,
+        },
+    }
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
 def test_removal_cleans_only_workspace_owned_order_and_membership(
     adapter: ContractPersonalWorkspaceAdapter,
 ) -> None:
@@ -506,6 +532,21 @@ def test_query_normalizes_text_and_composes_safe_filters(
     assert adapter.parse_workspace_query_result(
         json.dumps(adapter.workspace_query_result_document(result)).encode("utf-8")
     ) == result
+
+
+def test_oversized_query_result_keeps_non_quota_failure(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_bytes()
+    )
+    result = adapter.query_workspace(workspace, WorkspaceQuery(limit=100))
+    document = adapter.workspace_query_result_document(result)
+    document["records"] = [document["records"][0]] * 101
+
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_workspace_query_result(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "personal_workspace.contract.invalid_shape"
 
 
 def test_query_pages_are_stable_and_revision_bound(
