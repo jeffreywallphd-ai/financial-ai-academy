@@ -387,3 +387,10 @@ qualified.
   cross-learner denial, independent-Project denial, replay, privacy, and note,
   source, and artifact shapes. Projection, Audit, browser, and slice-wide live
   qualification remain in the dependent JIT-C through JIT-E packets.
+- 2026-10-17: WRK-0127 completed at exact candidate `2248e16`. Assessment
+  Project completion replay is correlated and flattened to safe provenance;
+  Learner model deterministically rebuilds bounded Project activity completion;
+  and Audit appends deterministic integrity references. Learner-scoped
+  submission identity and canonical Project identifier boundaries are proven
+  across unit and PostgreSQL checks. Browser delivery and slice-wide live
+  qualification remain in the dependent JIT-D and JIT-E packets.

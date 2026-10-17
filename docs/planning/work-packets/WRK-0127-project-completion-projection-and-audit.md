@@ -1,7 +1,7 @@
 ---
 id: WRK-0127
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -206,3 +206,14 @@ did not change, then leave JIT-D ready for refinement.
   additive parser on the existing Assessment Project contract adapter and added
   its focused contract test to declared scope. Contract meaning and CAP scope
   are unchanged.
+- 2026-10-17: Completed at exact candidate `2248e16` with qualifying receipt
+  `sha256:ff213f46b7b6f54900d0f028b297373dd57f4d32a54c82aefa3545cac7e7517e`.
+  Assessment now exposes a flattened, revalidated Project-completion replay;
+  Learner model rebuilds bounded activity completion without mastery authority;
+  and Audit retains deterministic append-only integrity references. Focused
+  tests cover learner-scoped submission identities and the full canonical
+  one-to-128-character Project identifier profile. Unit, PostgreSQL,
+  architecture, security, planning, documentation, whitespace, and the
+  29-check aggregate readiness gate pass. API and browser behavior, Project and
+  Assessment schema meaning, dependencies, AI authority, providers, queues,
+  and external execution did not change; JIT-D remains to be refined.
