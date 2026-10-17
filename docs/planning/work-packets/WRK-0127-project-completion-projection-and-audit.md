@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/assessment/public.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission.py", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_contract.py", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/learner_model", "backend/src/financial_ai_academy/modules/audit", "backend/migrations/learner_model", "backend/migrations/audit", "backend/migrations/README.md", "backend/src/financial_ai_academy/modules/README.md", "backend/tests/unit/assessment/test_project_submission_contract.py", "backend/tests/unit/assessment/test_project_submission_service.py", "backend/tests/integration/assessment/test_postgres_project_submission.py", "backend/tests/unit/learner_model", "backend/tests/integration/learner_model", "backend/tests/unit/audit", "backend/tests/integration/audit", "backend/tests/architecture/test_module_boundaries.py", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0127-project-completion-projection-and-audit.md"]
 generated_artifacts: []
-base_revision: 202fa6e777106ff8169bdee70764bc2a0b42f895
-claim_id: WRK-0127:36aa6f40-ffdd-4dbe-8abd-9757dfae0634
+base_revision: ec73bd62a4c56a5a8fac5cd66ab4a60b4d58a8fa
+claim_id: WRK-0127:f5c83376-c5b5-43b4-8824-3c1eb0737487
 claimed_by: codex-cap-0007
-claimed_at: 2026-10-17T04:19:22Z
+claimed_at: 2026-10-17T04:20:09Z
 ---
 
 # Agent Work Packet: Deliver Project Completion Projection and Audit References
