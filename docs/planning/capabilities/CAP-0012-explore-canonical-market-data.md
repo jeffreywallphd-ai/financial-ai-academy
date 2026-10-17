@@ -1,10 +1,10 @@
 ---
 id: CAP-0012
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0024", "CAP-0026"]
 decision_gates: ["DEC-0012", "DEC-0013"]
@@ -110,4 +110,7 @@ operations, accessibility, and verification documentation.
 - 2026-10-15: Shaped from catalog candidate 9 with manifest SLI-0050 through
   SLI-0053. DEC-0012 and DEC-0013 block CAP approval and delivery.
 - 2026-10-15: DEC-0013 was promoted through ADR-0015; DEC-0012 remains an unresolved provider and licensed-use gate, so this CAP remains decision-blocked.
+- 2026-10-16: DEC-0012 was promoted through ADR-0020. The CAP is no longer
+  decision-blocked and returns to shaping for dependency and CAP-package
+  readiness validation; no provider use outside an exact profile is authorized.
 

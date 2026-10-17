@@ -358,7 +358,7 @@ class RoadmapReviewTests(unittest.TestCase):
         self.assertEqual(len(result["decisions"]), 20)
         decisions_by_id = {item["id"]: item for item in result["decisions"]}
         self.assertTrue(decisions_by_id["DEC-0013"]["decision_made"])
-        self.assertFalse(decisions_by_id["DEC-0012"]["decision_made"])
+        self.assertTrue(decisions_by_id["DEC-0012"]["decision_made"])
         self.assertEqual(
             decisions_by_id["DEC-0006"]["decision_record"],
             "docs/planning/README.md#authority-model",

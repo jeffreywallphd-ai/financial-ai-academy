@@ -1,10 +1,10 @@
 ---
 id: CAP-0027
 kind: capability
-planning_status: decision-blocked
+planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0019", "CAP-0024", "CAP-0026"]
 decision_gates: ["DEC-0011", "DEC-0012", "DEC-0017"]
@@ -112,4 +112,7 @@ and qualification documentation.
 - 2026-10-15: DEC-0017 was promoted to ADR-0018. Exact allowlisted packaged
   adapters and PostgreSQL at-least-once jobs now constrain local planning;
   DEC-0012 remains unresolved.
+- 2026-10-16: DEC-0012 was promoted through ADR-0020. All listed provider
+  decision gates are resolved, so this CAP returns to shaping for dependency
+  and CAP-package readiness validation.
 
