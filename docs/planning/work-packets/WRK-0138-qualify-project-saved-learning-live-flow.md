@@ -1,9 +1,9 @@
 ---
 id: WRK-0138
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0017
 updated: 2026-10-17
 parent: SLI-0071
 capability: CAP-0017
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/personal-workspace.e2e.ts", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0138-qualify-project-saved-learning-live-flow.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 1e2b5ba5bcbf30a1551ccf389e9b60451b0e5775
+claim_id: WRK-0138:f1eb8112-03c3-412f-96f7-efa12571311b
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T14:01:22Z
 ---
 
 # Agent Work Packet: Qualify the Project Saved-Learning Live Flow
