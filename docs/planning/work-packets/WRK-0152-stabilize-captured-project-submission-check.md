@@ -1,7 +1,7 @@
 ---
 id: WRK-0152
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -124,5 +124,10 @@ and contract boundaries, and cleanup.
   TypeScript, zero-warning lint, whitespace, and all 29 aggregate readiness
   checks passed with the functional submitted-state assertions preserved.
 - 2026-10-17: Corrected the direct dependency to WRK-0129, which introduced
-  and qualified the changed browser check. Implementation and acceptance are
-  unchanged.
+  and qualified the changed browser check. Implementation behavior and
+  evidence are unchanged.
+- 2026-10-17: Completed on exact candidate `c7911ac` with qualifying receipt
+  `20261017T205933Z-8e52de59-1175-4287-be06-bd8017181500.json`. Planning,
+  documentation, typecheck, zero-warning lint, captured-output live browser,
+  and all 29 aggregate readiness checks passed. The functional submitted-state
+  assertion remains and no product or contract behavior changed.
