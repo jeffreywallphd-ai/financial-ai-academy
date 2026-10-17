@@ -29,6 +29,19 @@ under `/snapshots`. Writes require `project.write`; reads require
 `project.read`. Every operation derives the learner from the opaque session and
 is directly available to generated and non-browser/headless clients.
 
+Saved-learning operations use the same API-first boundary.
+`GET /api/v1/personal-workspace` opens the bounded learner aggregate,
+`POST /api/v1/personal-workspace/query` applies a closed versioned search and
+continuation document without consulting a source owner, and
+`POST /api/v1/personal-workspace/mutations` includes the record-ID-only
+`refresh_reference` operation. The host derives learner identity and readable
+reference kinds from the opaque session; callers cannot supply learner,
+permission, owner, selector, replacement facts, status, time, provenance, or
+destination. Refresh without the exact owner-read permission follows the same
+confidential unavailable transition as a missing, denied, removed, absent, or
+failing source. Generated browser and ordinary headless clients use one
+reviewed contract and no separate AI authority path.
+
 Learning-started snapshot submission adds an Assessment-owned boundary beneath
 the same Project resource. An exact snapshot candidate is read at
 `/snapshots/{snapshot_id}/submission-candidate`; a closed mapping is posted to

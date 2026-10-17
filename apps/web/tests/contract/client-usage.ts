@@ -32,6 +32,8 @@ type ProjectSubmissionResource =
   components["schemas"]["ProjectMilestoneEvidenceRequestModel"]["resources"][number];
 type PersonalWorkspaceMutation =
   components["schemas"]["PersonalWorkspaceMutationRequestModel"];
+type PersonalWorkspaceQuery =
+  components["schemas"]["PersonalWorkspaceQueryRequestModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -129,6 +131,34 @@ const savedProjectArtifact: PersonalWorkspaceMutation = {
 };
 void client.POST("/api/v1/personal-workspace/mutations", {
   body: savedProjectArtifact,
+});
+
+const savedLearningQuery: PersonalWorkspaceQuery = {
+  schema_version: "1.0.0",
+  text: "diversification",
+  record_kinds: ["note", "bookmark"],
+  target_statuses: ["available", "stale"],
+  sort: "updated_desc",
+  limit: 25,
+};
+void client.POST("/api/v1/personal-workspace/query", {
+  body: savedLearningQuery,
+});
+void client.POST("/api/v1/personal-workspace/query", {
+  body: { ...savedLearningQuery, cursor: "opaque_cursor" },
+});
+
+const refreshSavedReference: PersonalWorkspaceMutation = {
+  schema_version: "1.0.0",
+  idempotency_key: "refresh-saved-reference-1",
+  expected_revision: 3,
+  mutation: {
+    operation: "refresh_reference",
+    record_id: "record-1",
+  },
+};
+void client.POST("/api/v1/personal-workspace/mutations", {
+  body: refreshSavedReference,
 });
 
 const noteMutation: ProjectWorkspaceMutation = {

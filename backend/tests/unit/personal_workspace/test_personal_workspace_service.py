@@ -20,6 +20,7 @@ from financial_ai_academy.modules.personal_workspace.domain.workspace import (
     CreateCollectionMutation,
     RemoveCollectionMutation,
     RemoveRecordMutation,
+    RefreshReferenceMutation,
     RenameCollectionMutation,
     ReorderRecordsMutation,
     RestoreRecordMutation,
@@ -43,9 +44,12 @@ from financial_ai_academy.modules.personal_workspace.public import (
     PersonalWorkspaceError,
     PersonalWorkspaceErrorCode,
     PersonalWorkspaceMutationCommand,
+    PlacedLessonSelector,
     ProjectArtifactSelector,
     ProjectSnapshotSelector,
     ProjectWorkspaceSelector,
+    QueryPersonalWorkspaceRequest,
+    WorkspaceQuery,
 )
 
 
@@ -331,6 +335,219 @@ def test_stale_revision_fails_before_source_resolution() -> None:
     assert caught.value.code == PersonalWorkspaceErrorCode.STALE_REVISION
     assert references.calls == 1
     assert repository.writes == 1
+
+
+def test_query_is_read_only_and_never_resolves_an_owner() -> None:
+    operations, repository, references = service()
+    operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", note_command())
+    )
+    calls_before_query = references.calls
+    writes_before_query = repository.writes
+
+    result = operations.query_workspace(
+        QueryPersonalWorkspaceRequest(
+            "learner.one",
+            WorkspaceQuery(text="risk", record_kinds=("note",)),
+        )
+    )
+
+    assert tuple(record.record_id for record in result.records) == ("record.note",)
+    assert result.applied_query.text == "risk"
+    assert references.calls == calls_before_query
+    assert repository.writes == writes_before_query
+
+
+def test_invalid_query_cursor_is_a_generic_conflict() -> None:
+    operations, repository, references = service()
+    operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", note_command())
+    )
+
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        operations.query_workspace(
+            QueryPersonalWorkspaceRequest(
+                "learner.one",
+                WorkspaceQuery(cursor="forged"),
+            )
+        )
+
+    assert caught.value.code == PersonalWorkspaceErrorCode.IMMUTABLE_CONFLICT
+    assert caught.value.reference == "cursor"
+    assert repository.writes == 1
+    assert references.calls == 1
+
+
+def test_refresh_uses_kind_permission_and_exact_replay_precedes_owner_call() -> None:
+    operations, repository, references = service()
+    created = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", note_command())
+    )
+    refresh = MutatePersonalWorkspaceRequest(
+        "learner.one",
+        command(
+            RefreshReferenceMutation("record.note"),
+            key="reference.refresh",
+            revision=created.revision,
+        ),
+        frozenset({"learning_opportunity"}),
+    )
+
+    accepted = operations.mutate_workspace(refresh)
+    replay = operations.mutate_workspace(refresh)
+
+    assert accepted.records[0].target.target_status == "available"
+    assert replay == accepted
+    assert references.calls == 2
+    assert repository.writes == 2
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "selector", "reference_kind"),
+    [
+        (
+            "placed",
+            PlacedLessonSelector("placement.risk"),
+            "placed_lesson",
+        ),
+        (
+            "valid-project-workspace-note.json",
+            ProjectWorkspaceSelector("project.research-1"),
+            "project_workspace",
+        ),
+        (
+            "valid-project-snapshot-bookmark.json",
+            ProjectSnapshotSelector("project.research-1", "snapshot.baseline-1"),
+            "project_snapshot",
+        ),
+        (
+            "valid-project-artifact-bookmark.json",
+            ProjectArtifactSelector(
+                "project.research-1", "artifact.allocation-inputs", 3
+            ),
+            "project_artifact",
+        ),
+    ],
+)
+def test_refresh_derives_every_retained_selector_kind(
+    fixture_name: str, selector, reference_kind: str
+) -> None:
+    operations, repository, references = service()
+    contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
+    if fixture_name == "placed":
+        reference = contract.parse_workspace(
+            (FIXTURE_DIR / "valid-populated-workspace.json").read_bytes()
+        ).records[1].target
+    else:
+        reference = contract.parse_mutation_intent(
+            (FIXTURE_DIR / fixture_name).read_bytes()
+        ).mutation.target
+    references.reference = reference
+    references.expected_selector = selector
+    created = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.sources",
+            PersonalWorkspaceMutationCommand(
+                "1.0.0",
+                f"create.{reference_kind}",
+                1,
+                CreateBookmarkCommand(selector, None),
+            ),
+        )
+    )
+
+    accepted = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.sources",
+            command(
+                RefreshReferenceMutation("record.note"),
+                key=f"refresh.{reference_kind}",
+                revision=created.revision,
+            ),
+            frozenset({reference_kind}),
+        )
+    )
+
+    assert accepted.records[0].target.reference_kind == reference_kind
+    assert accepted.records[0].target.target_status == "available"
+    assert references.calls == 2
+    assert repository.writes == 2
+
+
+def test_refresh_without_exact_kind_permission_is_confidentially_unavailable() -> None:
+    operations, repository, references = service()
+    created = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", note_command())
+    )
+
+    accepted = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.one",
+            command(
+                RefreshReferenceMutation("record.note"),
+                key="reference.unavailable",
+                revision=created.revision,
+            ),
+            frozenset({"placed_lesson"}),
+        )
+    )
+
+    assert accepted.records[0].target.target_status == "unavailable"
+    assert references.calls == 1
+    assert repository.writes == 2
+
+
+def test_refresh_source_outage_uses_same_confidential_unavailable_state() -> None:
+    operations, repository, references = service()
+    created = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", note_command())
+    )
+    references.unavailable = True
+
+    accepted = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.one",
+            command(
+                RefreshReferenceMutation("record.note"),
+                key="reference.source-outage",
+                revision=created.revision,
+            ),
+            frozenset({"learning_opportunity"}),
+        )
+    )
+
+    assert accepted.records[0].target.target_status == "unavailable"
+    assert references.calls == 2
+    assert repository.writes == 2
+
+
+def test_refresh_immutable_drift_retains_history_and_marks_stale() -> None:
+    operations, repository, references = service()
+    created = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", note_command())
+    )
+    original = created.records[0].target
+    references.reference = replace(
+        references.reference,
+        package_digest="c" * 64,
+    )
+
+    accepted = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.one",
+            command(
+                RefreshReferenceMutation("record.note"),
+                key="reference.stale",
+                revision=created.revision,
+            ),
+            frozenset({"learning_opportunity"}),
+        )
+    )
+
+    assert accepted.records[0].target.target_status == "stale"
+    assert accepted.records[0].target.title == original.title
+    assert references.calls == 2
+    assert repository.writes == 2
 
 
 def test_non_source_mutation_does_not_call_curriculum_gateway() -> None:

@@ -60,6 +60,12 @@ assert.match(schema, /PersonalProjectArtifactSelectorModel/);
 assert.match(schema, /PersonalProjectWorkspaceReferenceModel/);
 assert.match(schema, /PersonalProjectSnapshotReferenceModel/);
 assert.match(schema, /PersonalProjectArtifactReferenceModel/);
+assert.match(schema, /\/api\/v1\/personal-workspace\/query/);
+assert.match(schema, /operations\["queryPersonalWorkspace"\]/);
+assert.match(schema, /PersonalWorkspaceQueryRequestModel/);
+assert.match(schema, /PersonalWorkspaceQueryResponseModel/);
+assert.match(schema, /PersonalRefreshReferenceModel/);
+assert.match(schema, /"available" \| "stale" \| "unavailable"/);
 for (const model of [
   "PersonalProjectWorkspaceReferenceModel",
   "PersonalProjectSnapshotReferenceModel",

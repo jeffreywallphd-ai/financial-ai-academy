@@ -5,8 +5,10 @@ committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
 `GET /api/v1/personal-workspace` and
-`POST /api/v1/personal-workspace/mutations` are the protected Personal
-workspace boundary. Reads and writes require the explicit
+`POST /api/v1/personal-workspace/query`, together with
+`POST /api/v1/personal-workspace/mutations`, are the protected Personal
+workspace boundary. Reads and queries require `personal_workspace.read`;
+writes require
 `personal_workspace.read` and `personal_workspace.write` permissions and bind
 the learner only from the opaque server session. Create-note and
 create-bookmark inputs additionally require the owning module's read
@@ -20,6 +22,16 @@ storage, mutation, export, or execution fields. Exact retry returns the accepted
 workspace while stale revision and changed key reuse fail without overwrite.
 Both operations reject every query selector; workspace-owned missing records
 or collections return the bounded `not_found` result.
+The query POST accepts one closed v1 body and returns normalized query meaning,
+bounded records, workspace revision, query digest, and an authenticated opaque
+continuation. It never calls Curriculum or Project and accepts no learner,
+permission, owner, provider, or storage input. The mutation union also admits
+`refresh_reference` with only a record ID. The server derives the retained
+selector and exact readable reference kind; unavailable permission, target,
+adapter, or source causes collapse to the same stored and public unavailable
+status. Only an exact trusted result becomes available, while immutable drift
+retains historical facts and becomes stale. Exact replay precedes source
+resolution.
 The reviewed OpenAPI and generated TypeScript types are identical for browser,
 command-line, service, and future headless consumers. No separate AI authority
 path is defined.

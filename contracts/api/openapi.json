@@ -3717,7 +3717,11 @@
             "type": "string"
           },
           "target_status": {
-            "const": "available",
+            "enum": [
+              "available",
+              "stale",
+              "unavailable"
+            ],
             "title": "Target Status",
             "type": "string"
           },
@@ -3827,7 +3831,11 @@
             "type": "string"
           },
           "target_status": {
-            "const": "available",
+            "enum": [
+              "available",
+              "stale",
+              "unavailable"
+            ],
             "title": "Target Status",
             "type": "string"
           },
@@ -4122,7 +4130,11 @@
             "type": "string"
           },
           "target_status": {
-            "const": "available",
+            "enum": [
+              "available",
+              "stale",
+              "unavailable"
+            ],
             "title": "Target Status",
             "type": "string"
           },
@@ -4228,7 +4240,11 @@
             "type": "string"
           },
           "target_status": {
-            "const": "available",
+            "enum": [
+              "available",
+              "stale",
+              "unavailable"
+            ],
             "title": "Target Status",
             "type": "string"
           },
@@ -4285,6 +4301,29 @@
           "project_id"
         ],
         "title": "PersonalProjectWorkspaceSelectorModel",
+        "type": "object"
+      },
+      "PersonalRefreshReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "refresh_reference",
+            "title": "Operation",
+            "type": "string"
+          },
+          "record_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Record Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "record_id"
+        ],
+        "title": "PersonalRefreshReferenceModel",
         "type": "object"
       },
       "PersonalRemoveCollectionModel": {
@@ -4675,6 +4714,7 @@
                 "create_bookmark": "#/components/schemas/PersonalCreateBookmarkModel",
                 "create_collection": "#/components/schemas/PersonalCreateCollectionModel",
                 "create_note": "#/components/schemas/PersonalCreateNoteModel",
+                "refresh_reference": "#/components/schemas/PersonalRefreshReferenceModel",
                 "remove_collection": "#/components/schemas/PersonalRemoveCollectionModel",
                 "remove_record": "#/components/schemas/PersonalRemoveRecordModel",
                 "rename_collection": "#/components/schemas/PersonalRenameCollectionModel",
@@ -4722,6 +4762,9 @@
               },
               {
                 "$ref": "#/components/schemas/PersonalRemoveRecordModel"
+              },
+              {
+                "$ref": "#/components/schemas/PersonalRefreshReferenceModel"
               }
             ],
             "title": "Mutation"
@@ -4859,6 +4902,189 @@
           "educational_use_notice"
         ],
         "title": "PersonalWorkspaceProvenanceModel",
+        "type": "object"
+      },
+      "PersonalWorkspaceQueryRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "archived": {
+            "title": "Archived",
+            "type": "boolean"
+          },
+          "collection_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Collection Id",
+            "type": "string"
+          },
+          "cursor": {
+            "maxLength": 512,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Cursor",
+            "type": "string"
+          },
+          "limit": {
+            "default": 50,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "owner_modules": {
+            "items": {
+              "enum": [
+                "curriculum",
+                "project"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Owner Modules",
+            "type": "array"
+          },
+          "record_kinds": {
+            "items": {
+              "enum": [
+                "note",
+                "bookmark"
+              ],
+              "type": "string"
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "title": "Record Kinds",
+            "type": "array"
+          },
+          "reference_kinds": {
+            "items": {
+              "enum": [
+                "learning_opportunity",
+                "placed_lesson",
+                "project_workspace",
+                "project_snapshot",
+                "project_artifact"
+              ],
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 1,
+            "title": "Reference Kinds",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sort": {
+            "default": "workspace_order",
+            "enum": [
+              "workspace_order",
+              "updated_desc",
+              "updated_asc",
+              "title_asc",
+              "source_asc"
+            ],
+            "title": "Sort",
+            "type": "string"
+          },
+          "target_statuses": {
+            "items": {
+              "enum": [
+                "available",
+                "stale",
+                "unavailable"
+              ],
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Target Statuses",
+            "type": "array"
+          },
+          "text": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version"
+        ],
+        "title": "PersonalWorkspaceQueryRequestModel",
+        "type": "object"
+      },
+      "PersonalWorkspaceQueryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "applied_query": {
+            "$ref": "#/components/schemas/PersonalWorkspaceQueryRequestModel"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 512,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9_-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "query_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Query Digest",
+            "type": "string"
+          },
+          "records": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "bookmark": "#/components/schemas/PersonalWorkspaceBookmarkModel",
+                  "note": "#/components/schemas/PersonalWorkspaceNoteModel"
+                },
+                "propertyName": "record_kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PersonalWorkspaceNoteModel"
+                },
+                {
+                  "$ref": "#/components/schemas/PersonalWorkspaceBookmarkModel"
+                }
+              ]
+            },
+            "maxItems": 100,
+            "title": "Records",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "workspace_revision": {
+            "minimum": 1.0,
+            "title": "Workspace Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "workspace_revision",
+          "query_digest",
+          "applied_query",
+          "records",
+          "next_cursor"
+        ],
+        "title": "PersonalWorkspaceQueryResponseModel",
         "type": "object"
       },
       "PersonalWorkspaceResponseModel": {
@@ -7253,7 +7479,11 @@
             "title": "Resource Version"
           },
           "target_status": {
-            "const": "available",
+            "enum": [
+              "available",
+              "stale",
+              "unavailable"
+            ],
             "title": "Target Status",
             "type": "string"
           },
@@ -11308,6 +11538,112 @@
           }
         ],
         "summary": "Mutate Personal Workspace",
+        "tags": [
+          "personal-workspace"
+        ]
+      }
+    },
+    "/api/v1/personal-workspace/query": {
+      "post": {
+        "operationId": "queryPersonalWorkspace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalWorkspaceQueryRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalWorkspaceQueryResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Query Personal Workspace",
         "tags": [
           "personal-workspace"
         ]

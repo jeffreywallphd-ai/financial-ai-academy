@@ -55,9 +55,11 @@ permissions; OpenAPI/client generators; affected tests; and nearest READMEs.
   requires `personal_workspace.write`. Its public mutation carries only record
   ID plus the existing schema/idempotency/revision envelope.
 - The host converts current server-issued Curriculum and Project read
-  permissions into a closed set of readable owner modules. The service derives
-  the owner and selector only after loading the learner-owned record. A missing
-  owner permission skips the owner call and follows the same unavailable
+  permissions into a closed set of readable reference kinds. This keeps
+  opportunity and lesson permissions distinct while grouping the three
+  Project kinds behind `project.read`. The service derives the owner and
+  selector only after loading the learner-owned record. A missing exact-kind
+  permission skips the owner call and follows the same unavailable
   transition as missing, denied, removed, adapter-absent, or source-outage.
 - Exact replay is checked before owner resolution. Changed-key reuse, stale
   workspace revision, and missing workspace-owned record keep their existing
@@ -137,7 +139,7 @@ query digest, and optional authenticated continuation.
 `RefreshReferenceCommand` contains only `record_id`. The existing mutation
 envelope supplies schema version, idempotency key, and expected revision. The
 application request additionally receives a server-derived immutable set of
-readable owner modules. This set is not an HTTP request field and is not part of
+readable reference kinds. This set is not an HTTP request field and is not part of
 the idempotency fingerprint. The service derives one typed selector from the
 retained reference and calls the existing closed source gateway only when its
 owner is readable. Exact selector/result correlation uses the same checks as

@@ -18,7 +18,9 @@ from ..domain.workspace import (
     ProjectArtifactReference,
     ProjectSnapshotReference,
     ProjectWorkspaceReference,
+    RefreshReferenceMutation,
     WorkspaceMutationIntent,
+    WorkspaceQueryResult,
 )
 from ..ports.learning_reference import (
     LearningReferenceGatewayPort,
@@ -47,6 +49,7 @@ from ..public import (
     ProjectArtifactSelector,
     ProjectSnapshotSelector,
     ProjectWorkspaceSelector,
+    QueryPersonalWorkspaceRequest,
 )
 
 
@@ -123,12 +126,21 @@ class PersonalWorkspaceService:
                 )
                 else None
             )
-            accepted = self._contract.apply_mutation(
-                current,
-                intent,
-                occurred_at=now,
-                issued_id=issued_id,
-            )
+            if isinstance(intent.mutation, RefreshReferenceMutation):
+                accepted = self._apply_refresh(
+                    current,
+                    intent,
+                    learner_id=request.learner_id,
+                    readable_reference_kinds=request.readable_reference_kinds,
+                    occurred_at=now,
+                )
+            else:
+                accepted = self._contract.apply_mutation(
+                    current,
+                    intent,
+                    occurred_at=now,
+                    issued_id=issued_id,
+                )
             stored = self._repository.save_if_revision(
                 idempotency_key=command.idempotency_key,
                 request_fingerprint=fingerprint,
@@ -167,6 +179,106 @@ class PersonalWorkspaceService:
             ) from error
         except Exception as error:
             raise self._unavailable(command.idempotency_key) from error
+
+    def query_workspace(
+        self, request: QueryPersonalWorkspaceRequest
+    ) -> WorkspaceQueryResult:
+        self._validate_learner(request.learner_id)
+        try:
+            workspace = self._repository.get_workspace(request.learner_id)
+            current = self._revalidate(workspace or self._empty(request.learner_id))
+            return self._contract.query_workspace(current, request.query)
+        except PersonalWorkspaceError:
+            raise
+        except PersonalWorkspaceContractFailure as error:
+            if error.code.endswith("collection_not_found"):
+                raise PersonalWorkspaceError(
+                    PersonalWorkspaceErrorCode.NOT_FOUND,
+                    "The saved learning collection was not found.",
+                    reference=error.reference,
+                ) from error
+            if error.code.endswith("invalid_cursor"):
+                raise PersonalWorkspaceError(
+                    PersonalWorkspaceErrorCode.IMMUTABLE_CONFLICT,
+                    "Saved learning changed. Start the search again.",
+                    reference="cursor",
+                ) from error
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.INVALID_REQUEST,
+                "The saved learning search is not valid.",
+                reference=error.reference,
+            ) from error
+        except Exception as error:
+            raise self._unavailable() from error
+
+    def _apply_refresh(
+        self,
+        current: PersonalWorkspace,
+        intent: WorkspaceMutationIntent,
+        *,
+        learner_id: str,
+        readable_reference_kinds: frozenset[str],
+        occurred_at: datetime,
+    ) -> PersonalWorkspace:
+        mutation = intent.mutation
+        if not isinstance(mutation, RefreshReferenceMutation):
+            raise AssertionError("refresh intent required")
+        record = next(
+            (
+                candidate
+                for candidate in current.records
+                if candidate.record_id == mutation.record_id
+            ),
+            None,
+        )
+        if record is None:
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.NOT_FOUND,
+                "The saved learning item was not found.",
+                reference=mutation.record_id,
+            )
+
+        resolved = None
+        target = record.target
+        if target.reference_kind in readable_reference_kinds:
+            try:
+                resolved = self._resolve_target(
+                    self._selector_for_reference(target),
+                    learner_id,
+                    occurred_at,
+                )
+            except PersonalWorkspaceSourceUnavailable:
+                resolved = None
+        return self._contract.apply_reference_refresh(
+            current,
+            intent,
+            occurred_at=occurred_at,
+            resolved_reference=resolved,
+        )
+
+    @staticmethod
+    def _selector_for_reference(target):
+        if isinstance(target, LearningOpportunityReference):
+            return LearningOpportunitySelector(
+                opportunity_id=target.opportunity_id,
+                placement_id=target.placement_id,
+            )
+        if isinstance(target, PlacedLessonReference):
+            return PlacedLessonSelector(placement_id=target.placement_id)
+        if isinstance(target, ProjectWorkspaceReference):
+            return ProjectWorkspaceSelector(project_id=target.project_id)
+        if isinstance(target, ProjectSnapshotReference):
+            return ProjectSnapshotSelector(
+                project_id=target.project_id,
+                snapshot_id=target.snapshot_id,
+            )
+        if isinstance(target, ProjectArtifactReference):
+            return ProjectArtifactSelector(
+                project_id=target.project_id,
+                artifact_id=target.artifact_id,
+                artifact_version=target.artifact_version,
+            )
+        raise PersonalWorkspaceSourceUnavailable()
 
     def _intent(
         self,

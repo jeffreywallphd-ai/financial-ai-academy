@@ -17,6 +17,7 @@ from pydantic import (
     GetJsonSchemaHandler,
     field_serializer,
     field_validator,
+    model_serializer,
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
@@ -94,6 +95,7 @@ from financial_ai_academy.modules.personal_workspace.domain.workspace import (
     CreateCollectionMutation as PersonalCreateCollectionMutation,
     RemoveCollectionMutation as PersonalRemoveCollectionMutation,
     RemoveRecordMutation as PersonalRemoveRecordMutation,
+    RefreshReferenceMutation as PersonalRefreshReferenceMutation,
     RenameCollectionMutation as PersonalRenameCollectionMutation,
     ReorderRecordsMutation as PersonalReorderRecordsMutation,
     RestoreRecordMutation as PersonalRestoreRecordMutation,
@@ -112,6 +114,8 @@ from financial_ai_academy.modules.personal_workspace.public import (
     ProjectArtifactSelector as PersonalProjectArtifactSelector,
     ProjectSnapshotSelector as PersonalProjectSnapshotSelector,
     ProjectWorkspaceSelector as PersonalProjectWorkspaceSelector,
+    WorkspaceQuery as PersonalWorkspaceQuery,
+    WorkspaceQueryResult as PersonalWorkspaceQueryResult,
 )
 
 
@@ -312,7 +316,7 @@ class ProjectDomainLinkInputModel(ProjectTimestampModel):
 class ProjectDomainLinkResponseModel(ProjectDomainLinkInputModel):
     link_id: Identifier
     owner_reference_digest: Digest
-    target_status: Literal["available"]
+    target_status: Literal["available", "stale", "unavailable"]
     validated_at: datetime
     created_at: datetime
 
@@ -451,7 +455,7 @@ class PersonalLearningOpportunityReferenceModel(ProjectTimestampModel):
     destination: str = Field(
         pattern=r"^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$"
     )
-    target_status: Literal["available"]
+    target_status: Literal["available", "stale", "unavailable"]
     provenance: PersonalWorkspaceProvenanceModel
     validated_at: datetime
 
@@ -467,7 +471,7 @@ class PersonalPlacedLessonReferenceModel(ProjectTimestampModel):
     destination: str = Field(
         pattern=r"^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$"
     )
-    target_status: Literal["available"]
+    target_status: Literal["available", "stale", "unavailable"]
     provenance: PersonalWorkspaceProvenanceModel
     validated_at: datetime
 
@@ -483,7 +487,7 @@ class PersonalProjectWorkspaceReferenceModel(ProjectTimestampModel):
     destination: str = Field(
         pattern=r"^/projects/[a-z0-9][a-z0-9._-]{0,127}#workspace$"
     )
-    target_status: Literal["available"]
+    target_status: Literal["available", "stale", "unavailable"]
     validated_at: datetime
 
 
@@ -504,7 +508,7 @@ class PersonalProjectSnapshotReferenceModel(ProjectTimestampModel):
             r"#snapshot-[a-z0-9][a-z0-9._-]{0,127}$"
         )
     )
-    target_status: Literal["available"]
+    target_status: Literal["available", "stale", "unavailable"]
     validated_at: datetime
 
 
@@ -618,6 +622,84 @@ class PersonalWorkspaceResponseModel(ProjectTimestampModel):
     workspace_digest: Digest
 
 
+class PersonalWorkspaceQueryRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    text: str = Field(
+        default_factory=lambda: None,
+        min_length=1,
+        max_length=240,
+    )
+    record_kinds: tuple[Literal["note", "bookmark"], ...] = Field(
+        default_factory=tuple, min_length=1, max_length=2
+    )
+    owner_modules: tuple[Literal["curriculum", "project"], ...] = Field(
+        default_factory=tuple, min_length=1, max_length=2
+    )
+    reference_kinds: tuple[
+        Literal[
+            "learning_opportunity",
+            "placed_lesson",
+            "project_workspace",
+            "project_snapshot",
+            "project_artifact",
+        ],
+        ...,
+    ] = Field(default_factory=tuple, min_length=1, max_length=5)
+    target_statuses: tuple[
+        Literal["available", "stale", "unavailable"], ...
+    ] = Field(default_factory=tuple, min_length=1, max_length=3)
+    archived: bool = Field(default_factory=lambda: None)
+    collection_id: Identifier = Field(default_factory=lambda: None)
+    sort: Literal[
+        "workspace_order",
+        "updated_desc",
+        "updated_asc",
+        "title_asc",
+        "source_asc",
+    ] = "workspace_order"
+    limit: int = Field(default=50, ge=1, le=100)
+    cursor: str = Field(
+        default_factory=lambda: None,
+        min_length=1,
+        max_length=512,
+        pattern=r"^[A-Za-z0-9_-]+$",
+    )
+
+    @model_serializer(mode="wrap")
+    def omit_absent_query_fields(self, handler):
+        serialized = handler(self)
+        return {
+            key: value
+            for key, value in serialized.items()
+            if value is not None and value != []
+        }
+
+    @field_validator(
+        "record_kinds",
+        "owner_modules",
+        "reference_kinds",
+        "target_statuses",
+    )
+    @classmethod
+    def require_unique_query_values(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        if len(value) != len(set(value)):
+            raise ValueError("query filters must contain unique values")
+        return value
+
+
+class PersonalWorkspaceQueryResponseModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    workspace_revision: int = Field(ge=1)
+    query_digest: Digest
+    applied_query: PersonalWorkspaceQueryRequestModel
+    records: list[PersonalWorkspaceRecordModel] = Field(max_length=100)
+    next_cursor: str | None = Field(
+        min_length=1,
+        max_length=512,
+        pattern=r"^[A-Za-z0-9_-]+$",
+    )
+
+
 class PersonalLearningOpportunitySelectorModel(ApiModel):
     reference_kind: Literal["learning_opportunity"]
     opportunity_id: CurriculumIdentifier
@@ -727,6 +809,11 @@ class PersonalRemoveRecordModel(ApiModel):
     record_id: Identifier
 
 
+class PersonalRefreshReferenceModel(ApiModel):
+    operation: Literal["refresh_reference"]
+    record_id: Identifier
+
+
 PersonalWorkspaceMutationModel = Annotated[
     Union[
         PersonalCreateNoteModel,
@@ -741,6 +828,7 @@ PersonalWorkspaceMutationModel = Annotated[
         PersonalArchiveRecordModel,
         PersonalRestoreRecordModel,
         PersonalRemoveRecordModel,
+        PersonalRefreshReferenceModel,
     ],
     Field(discriminator="operation"),
 ]
@@ -3261,6 +3349,8 @@ def personal_workspace_mutation_command(
         value = PersonalArchiveRecordMutation(record_id=mutation.record_id)
     elif isinstance(mutation, PersonalRestoreRecordModel):
         value = PersonalRestoreRecordMutation(record_id=mutation.record_id)
+    elif isinstance(mutation, PersonalRefreshReferenceModel):
+        value = PersonalRefreshReferenceMutation(record_id=mutation.record_id)
     else:
         value = PersonalRemoveRecordMutation(record_id=mutation.record_id)
     return PersonalWorkspaceMutationCommand(
@@ -3275,6 +3365,45 @@ def personal_workspace_response(
     workspace: PersonalWorkspace,
 ) -> PersonalWorkspaceResponseModel:
     return PersonalWorkspaceResponseModel.model_validate(asdict(workspace))
+
+
+def personal_workspace_query(
+    model: PersonalWorkspaceQueryRequestModel,
+) -> PersonalWorkspaceQuery:
+    return PersonalWorkspaceQuery(
+        schema_version=model.schema_version,
+        text=model.text,
+        record_kinds=model.record_kinds,
+        owner_modules=model.owner_modules,
+        reference_kinds=model.reference_kinds,
+        target_statuses=model.target_statuses,
+        archived=model.archived,
+        collection_id=model.collection_id,
+        sort=model.sort,
+        limit=model.limit,
+        cursor=model.cursor,
+    )
+
+
+def personal_workspace_query_response(
+    result: PersonalWorkspaceQueryResult,
+) -> PersonalWorkspaceQueryResponseModel:
+    query = asdict(result.applied_query)
+    normalized_query = {
+        key: value
+        for key, value in query.items()
+        if value is not None and value != ()
+    }
+    return PersonalWorkspaceQueryResponseModel.model_validate(
+        {
+            "schema_version": result.schema_version,
+            "workspace_revision": result.workspace_revision,
+            "query_digest": result.query_digest,
+            "applied_query": normalized_query,
+            "records": [asdict(record) for record in result.records],
+            "next_cursor": result.next_cursor,
+        }
+    )
 
 
 def _body_node(node: content_public.BodyNode) -> BodyNodeModel:

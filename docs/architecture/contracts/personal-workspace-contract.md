@@ -84,10 +84,14 @@ creates a mutation or execution path into another module.
   The first accepted mutation atomically persists revision two. Exact retries
   return the accepted workspace; stale revisions and changed idempotency-key
   reuse fail without replacing it.
-- `GET /api/v1/personal-workspace` and
+- `GET /api/v1/personal-workspace`,
+  `POST /api/v1/personal-workspace/query`, and
   `POST /api/v1/personal-workspace/mutations` use server-owned learner context
-  and explicit read/write permissions. Browser and authenticated headless
-  consumers share these reviewed OpenAPI and generated-client contracts.
+  and explicit read/write permissions. Query is source-independent and
+  read-only. Refresh receives a server-derived closed set of readable
+  reference kinds, not caller permission or owner claims. Browser and
+  authenticated headless consumers share these reviewed OpenAPI and generated-
+  client contracts.
 - Source-bearing create requests also require the referenced owner's public
   read permission and reject caller-selected learner query parameters before
   workspace access. Missing workspace-owned records and collections have a
@@ -95,10 +99,11 @@ creates a mutation or execution path into another module.
 
 ## Exclusions
 
-The protected API, generated client, and `Saved learning` browser entry flow
-cover Curriculum and Project references. Project lifecycle-event handling
-and query/refresh API, client, browser, and live composition remain later
-CAP-0017 work. The boundary has no collaboration, cloud
+The protected API and generated client cover query and record-only refresh for
+Curriculum and Project references. The current `Saved learning` browser entry
+flow covers organization and source creation; query/status/refresh controls
+and complete live recovery qualification remain later CAP-0017 work. Project
+lifecycle-event handling also remains out of scope. The boundary has no collaboration, cloud
 synchronization, artifact preview/download/execution, Project mutation,
 Portfolio association, Assessment or Learner-model effect, AI authority, or
 personalized financial advice.

@@ -24,6 +24,7 @@ from financial_ai_academy.modules.personal_workspace.public import (
     ProjectArtifactSelector,
     ProjectSnapshotSelector,
     ProjectWorkspaceSelector,
+    QueryPersonalWorkspaceRequest,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
@@ -104,6 +105,7 @@ class Workspaces:
             self.populated = workspace
         self.open_requests: list[OpenPersonalWorkspaceRequest] = []
         self.mutation_requests: list[MutatePersonalWorkspaceRequest] = []
+        self.query_requests: list[QueryPersonalWorkspaceRequest] = []
 
     def open_workspace(self, request: OpenPersonalWorkspaceRequest):
         self.open_requests.append(request)
@@ -112,6 +114,11 @@ class Workspaces:
     def mutate_workspace(self, request: MutatePersonalWorkspaceRequest):
         self.mutation_requests.append(request)
         return self.populated
+
+    def query_workspace(self, request: QueryPersonalWorkspaceRequest):
+        self.query_requests.append(request)
+        contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
+        return contract.query_workspace(self.populated, request.query)
 
 
 def client(
@@ -235,6 +242,118 @@ def test_identity_and_server_fields_cannot_be_supplied_by_caller() -> None:
     assert response.status_code == 400
     assert response.json()["code"] == "invalid_request"
     assert workspaces.mutation_requests == []
+
+
+def test_headless_query_uses_server_learner_and_closed_body() -> None:
+    workspaces = Workspaces()
+    response = client(("personal_workspace.read",), workspaces).post(
+        "/api/v1/personal-workspace/query",
+        json={
+            "schema_version": "1.0.0",
+            "record_kinds": ["note"],
+            "target_statuses": ["available"],
+            "limit": 10,
+        },
+        headers={"origin": ORIGIN},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["schema_version"] == "1.0.0"
+    assert response.json()["applied_query"]["record_kinds"] == ["note"]
+    assert not {
+        "text",
+        "owner_modules",
+        "reference_kinds",
+        "archived",
+        "collection_id",
+        "cursor",
+    }.intersection(response.json()["applied_query"])
+    assert "next_cursor" in response.json()
+    assert workspaces.query_requests[0].learner_id == "learner.demo"
+    assert workspaces.query_requests[0].query.limit == 10
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("learner_id", "learner.other"),
+        ("owner", "curriculum"),
+        ("permission", "project.read"),
+        ("cursor", None),
+        ("record_kinds", []),
+        ("target_statuses", ["available", "available"]),
+    ],
+)
+def test_query_rejects_private_null_empty_or_duplicate_fields(
+    field: str, value: object
+) -> None:
+    workspaces = Workspaces()
+    body: dict[str, object] = {"schema_version": "1.0.0", field: value}
+    response = client(("personal_workspace.read",), workspaces).post(
+        "/api/v1/personal-workspace/query",
+        json=body,
+        headers={"origin": ORIGIN},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_request"
+    assert workspaces.query_requests == []
+
+
+def test_refresh_receives_only_server_derived_reference_kind_access() -> None:
+    workspaces = Workspaces()
+    response = client(
+        (
+            "personal_workspace.write",
+            "curriculum.discovery.read",
+            "project.read",
+        ),
+        workspaces,
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json={
+            "schema_version": "1.0.0",
+            "idempotency_key": "refresh-record-one",
+            "expected_revision": 1,
+            "mutation": {
+                "operation": "refresh_reference",
+                "record_id": "record.one",
+            },
+        },
+        headers={"origin": ORIGIN},
+    )
+
+    assert response.status_code == 200
+    request = workspaces.mutation_requests[0]
+    assert request.command.mutation.operation == "refresh_reference"
+    assert request.readable_reference_kinds == frozenset(
+        {
+            "learning_opportunity",
+            "project_workspace",
+            "project_snapshot",
+            "project_artifact",
+        }
+    )
+
+
+def test_refresh_without_owner_read_is_not_rejected_or_disclosed_by_host() -> None:
+    workspaces = Workspaces()
+    response = client(("personal_workspace.write",), workspaces).post(
+        "/api/v1/personal-workspace/mutations",
+        json={
+            "schema_version": "1.0.0",
+            "idempotency_key": "refresh-without-owner-read",
+            "expected_revision": 1,
+            "mutation": {
+                "operation": "refresh_reference",
+                "record_id": "record.one",
+            },
+        },
+        headers={"origin": ORIGIN},
+    )
+
+    assert response.status_code == 200
+    assert workspaces.mutation_requests[0].readable_reference_kinds == frozenset()
 
 
 def test_query_selected_learner_is_rejected_before_workspace_access() -> None:

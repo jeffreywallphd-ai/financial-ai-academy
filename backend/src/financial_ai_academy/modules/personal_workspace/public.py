@@ -12,6 +12,7 @@ from .domain.workspace import (
     PersonalWorkspace,
     RemoveCollectionMutation,
     RemoveRecordMutation,
+    RefreshReferenceMutation,
     RenameCollectionMutation,
     ReorderRecordsMutation,
     RestoreRecordMutation,
@@ -133,7 +134,16 @@ WorkspaceCommandMutation: TypeAlias = (
     | ArchiveRecordMutation
     | RestoreRecordMutation
     | RemoveRecordMutation
+    | RefreshReferenceMutation
 )
+
+ReadableReferenceKind: TypeAlias = Literal[
+    "learning_opportunity",
+    "placed_lesson",
+    "project_workspace",
+    "project_snapshot",
+    "project_artifact",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,6 +163,13 @@ class OpenPersonalWorkspaceRequest:
 class MutatePersonalWorkspaceRequest:
     learner_id: str
     command: PersonalWorkspaceMutationCommand
+    readable_reference_kinds: frozenset[ReadableReferenceKind] = frozenset()
+
+
+@dataclass(frozen=True, slots=True)
+class QueryPersonalWorkspaceRequest:
+    learner_id: str
+    query: WorkspaceQuery
 
 
 class PersonalWorkspaceOperations(Protocol):
@@ -163,6 +180,10 @@ class PersonalWorkspaceOperations(Protocol):
     def mutate_workspace(
         self, request: MutatePersonalWorkspaceRequest
     ) -> PersonalWorkspace: ...
+
+    def query_workspace(
+        self, request: QueryPersonalWorkspaceRequest
+    ) -> WorkspaceQueryResult: ...
 
 
 __all__ = [
@@ -177,6 +198,9 @@ __all__ = [
     "PersonalWorkspaceErrorCode",
     "PersonalWorkspaceMutationCommand",
     "PersonalWorkspaceOperations",
+    "QueryPersonalWorkspaceRequest",
+    "ReadableReferenceKind",
+    "RefreshReferenceMutation",
     "PlacedLessonSelector",
     "ProjectArtifactSelector",
     "ProjectSnapshotSelector",

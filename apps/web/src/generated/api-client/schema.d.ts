@@ -138,6 +138,15 @@ export interface paths {
       };
       readonly post: operations["mutatePersonalWorkspace"];
     };
+  readonly "/api/v1/personal-workspace/query": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["queryPersonalWorkspace"];
+    };
   readonly "/api/v1/projects": {
       readonly parameters: {
         readonly query?: never;
@@ -854,7 +863,7 @@ export interface components {
       readonly "provenance": components["schemas"]["PersonalWorkspaceProvenanceModel"];
       readonly "reference_kind": "learning_opportunity";
       readonly "source_fingerprint": string;
-      readonly "target_status": "available";
+      readonly "target_status": "available" | "stale" | "unavailable";
       readonly "title": string;
       readonly "validated_at": string;
     };
@@ -872,7 +881,7 @@ export interface components {
       readonly "placement_id": string;
       readonly "provenance": components["schemas"]["PersonalWorkspaceProvenanceModel"];
       readonly "reference_kind": "placed_lesson";
-      readonly "target_status": "available";
+      readonly "target_status": "available" | "stale" | "unavailable";
       readonly "title": string;
       readonly "validated_at": string;
     };
@@ -917,7 +926,7 @@ export interface components {
       readonly "reference_kind": "project_snapshot";
       readonly "snapshot_digest": string;
       readonly "snapshot_id": string;
-      readonly "target_status": "available";
+      readonly "target_status": "available" | "stale" | "unavailable";
       readonly "title": string;
       readonly "validated_at": string;
       readonly "workspace_revision": number;
@@ -934,7 +943,7 @@ export interface components {
       readonly "project_id": string;
       readonly "project_revision": number;
       readonly "reference_kind": "project_workspace";
-      readonly "target_status": "available";
+      readonly "target_status": "available" | "stale" | "unavailable";
       readonly "title": string;
       readonly "validated_at": string;
       readonly "workspace_revision": number;
@@ -942,6 +951,10 @@ export interface components {
     readonly "PersonalProjectWorkspaceSelectorModel": {
       readonly "project_id": string;
       readonly "reference_kind": "project_workspace";
+    };
+    readonly "PersonalRefreshReferenceModel": {
+      readonly "operation": "refresh_reference";
+      readonly "record_id": string;
     };
     readonly "PersonalRemoveCollectionModel": {
       readonly "collection_id": string;
@@ -999,7 +1012,7 @@ export interface components {
     readonly "PersonalWorkspaceMutationRequestModel": {
       readonly "expected_revision": number;
       readonly "idempotency_key": string;
-      readonly "mutation": components["schemas"]["PersonalCreateNoteModel"] | components["schemas"]["PersonalUpdateNoteModel"] | components["schemas"]["PersonalCreateBookmarkModel"] | components["schemas"]["PersonalUpdateBookmarkModel"] | components["schemas"]["PersonalCreateCollectionModel"] | components["schemas"]["PersonalRenameCollectionModel"] | components["schemas"]["PersonalRemoveCollectionModel"] | components["schemas"]["PersonalSetCollectionMembersModel"] | components["schemas"]["PersonalReorderRecordsModel"] | components["schemas"]["PersonalArchiveRecordModel"] | components["schemas"]["PersonalRestoreRecordModel"] | components["schemas"]["PersonalRemoveRecordModel"];
+      readonly "mutation": components["schemas"]["PersonalCreateNoteModel"] | components["schemas"]["PersonalUpdateNoteModel"] | components["schemas"]["PersonalCreateBookmarkModel"] | components["schemas"]["PersonalUpdateBookmarkModel"] | components["schemas"]["PersonalCreateCollectionModel"] | components["schemas"]["PersonalRenameCollectionModel"] | components["schemas"]["PersonalRemoveCollectionModel"] | components["schemas"]["PersonalSetCollectionMembersModel"] | components["schemas"]["PersonalReorderRecordsModel"] | components["schemas"]["PersonalArchiveRecordModel"] | components["schemas"]["PersonalRestoreRecordModel"] | components["schemas"]["PersonalRemoveRecordModel"] | components["schemas"]["PersonalRefreshReferenceModel"];
       readonly "schema_version": "1.0.0";
     };
     readonly "PersonalWorkspaceNoteModel": {
@@ -1017,6 +1030,27 @@ export interface components {
       readonly "educational_use_notice": string;
       readonly "published_at": string;
       readonly "published_by": string;
+    };
+    readonly "PersonalWorkspaceQueryRequestModel": {
+      readonly "archived"?: boolean;
+      readonly "collection_id"?: string;
+      readonly "cursor"?: string;
+      readonly "limit"?: number;
+      readonly "owner_modules"?: ReadonlyArray<"curriculum" | "project">;
+      readonly "record_kinds"?: ReadonlyArray<"note" | "bookmark">;
+      readonly "reference_kinds"?: ReadonlyArray<"learning_opportunity" | "placed_lesson" | "project_workspace" | "project_snapshot" | "project_artifact">;
+      readonly "schema_version": "1.0.0";
+      readonly "sort"?: "workspace_order" | "updated_desc" | "updated_asc" | "title_asc" | "source_asc";
+      readonly "target_statuses"?: ReadonlyArray<"available" | "stale" | "unavailable">;
+      readonly "text"?: string;
+    };
+    readonly "PersonalWorkspaceQueryResponseModel": {
+      readonly "applied_query": components["schemas"]["PersonalWorkspaceQueryRequestModel"];
+      readonly "next_cursor": string | null;
+      readonly "query_digest": string;
+      readonly "records": ReadonlyArray<components["schemas"]["PersonalWorkspaceNoteModel"] | components["schemas"]["PersonalWorkspaceBookmarkModel"]>;
+      readonly "schema_version": "1.0.0";
+      readonly "workspace_revision": number;
     };
     readonly "PersonalWorkspaceResponseModel": {
       readonly "collections": ReadonlyArray<components["schemas"]["PersonalWorkspaceCollectionModel"]>;
@@ -1343,7 +1377,7 @@ export interface components {
       readonly "resource_id": string;
       readonly "resource_type": string;
       readonly "resource_version"?: string | null;
-      readonly "target_status": "available";
+      readonly "target_status": "available" | "stale" | "unavailable";
       readonly "validated_at": string;
     };
     readonly "ProjectEnvironmentModel": {
@@ -2530,6 +2564,69 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["PersonalWorkspaceResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly queryPersonalWorkspace: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PersonalWorkspaceQueryRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PersonalWorkspaceQueryResponseModel"];
           };
         };
         readonly 400: {

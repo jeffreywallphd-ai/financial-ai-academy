@@ -48,12 +48,16 @@ unavailable-Project isolation, exact replay, changed-key and stale-revision
 denial, target-state isolation, normal restart without reseeding, and bounded
 cleanup without changing this ownership direction.
 
-The newest pure seam adds no host operation yet. It defines closed query and
-query-result documents over the learner's own bounded aggregate and a
-record-ID-only refresh intent. Querying never calls Curriculum or Project.
-Trusted refresh comparison preserves exact package/snapshot/artifact meaning,
-allows bounded mutable Project-workspace facts to advance, and collapses every
-missing, removed, denied, unavailable, or absent-adapter cause to one public
-`unavailable` status. Application orchestration, PostgreSQL replay, protected
-API/OpenAPI/generated-client, browser controls, and live recovery evidence
-remain the next SLI-0072 packets.
+The application and protected API now compose the query and refresh seam.
+`POST /api/v1/personal-workspace/query` performs one pure bounded query over
+the server-selected learner aggregate and never calls Curriculum or Project.
+The additive record-ID-only `refresh_reference` mutation derives its selector
+from retained state. Server permissions become a closed readable-reference-
+kind set, so opportunity, lesson, and Project access cannot widen one another.
+Exact replay runs before an owner call. Missing permission, removed or denied
+targets, absent adapters, and source outages all persist the same confidential
+`unavailable` meaning. Trusted refresh preserves package/snapshot/artifact
+meaning, records immutable drift as `stale`, and can recover an exact later
+result to `available`. Existing JSON aggregate and replay persistence admits
+these additive states without a table migration. Browser controls and the
+complete isolated live recovery journey remain later SLI-0072 packets.

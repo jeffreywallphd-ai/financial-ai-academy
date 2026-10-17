@@ -36,6 +36,9 @@ from financial_ai_academy.modules.personal_workspace.public import (
     ProjectArtifactSelector,
     ProjectSnapshotSelector,
     ProjectWorkspaceSelector,
+    QueryPersonalWorkspaceRequest,
+    RefreshReferenceMutation,
+    WorkspaceQuery,
 )
 from financial_ai_academy.platform.database.migrations import (
     PostgresMigrationRunner,
@@ -175,6 +178,15 @@ def command(key: str, *, revision: int = 1, body: str = "Keep exact evidence"):
     )
 
 
+def refresh_command(key: str, revision: int):
+    return PersonalWorkspaceMutationCommand(
+        schema_version="1.0.0",
+        idempotency_key=key,
+        expected_revision=revision,
+        mutation=RefreshReferenceMutation(record_id="note.postgres"),
+    )
+
+
 def test_empty_read_is_side_effect_free_and_stable() -> None:
     assert POSTGRES_DSN is not None
     subject, gateway = service()
@@ -204,6 +216,110 @@ def test_first_mutation_survives_restart_and_exact_retry_skips_source() -> None:
     assert accepted.revision == 2
     assert gateway.calls == 1
     assert restarted_gateway.calls == 0
+
+
+def test_query_survives_restart_without_writing_or_resolving_source() -> None:
+    assert POSTGRES_DSN is not None
+    subject, gateway = service()
+    subject.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", command("note.one"))
+    )
+    restarted, restarted_gateway = service("unused.identifier")
+
+    result = restarted.query_workspace(
+        QueryPersonalWorkspaceRequest(
+            "learner.one",
+            WorkspaceQuery(text="diversification", limit=1),
+        )
+    )
+
+    assert tuple(record.record_id for record in result.records) == (
+        "note.postgres",
+    )
+    assert gateway.calls == 1
+    assert restarted_gateway.calls == 0
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT count(*) FROM personal_workspace.mutations"
+        ).fetchone() == (1,)
+
+
+def test_refresh_statuses_and_replay_survive_restart_without_migration() -> None:
+    subject, gateway = service()
+    created = subject.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", command("note.one"))
+    )
+    available_request = MutatePersonalWorkspaceRequest(
+        "learner.one",
+        refresh_command("refresh.available", created.revision),
+        frozenset({"learning_opportunity"}),
+    )
+    available = subject.mutate_workspace(available_request)
+    assert available.records[0].target.target_status == "available"
+
+    restarted, restarted_gateway = service("unused.identifier")
+    replay = restarted.mutate_workspace(available_request)
+    assert replay == available
+    assert restarted_gateway.calls == 0
+
+    restarted_gateway.reference = replace(
+        restarted_gateway.reference,
+        package_digest="c" * 64,
+    )
+    stale = restarted.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.one",
+            refresh_command("refresh.stale", available.revision),
+            frozenset({"learning_opportunity"}),
+        )
+    )
+    assert stale.records[0].target.target_status == "stale"
+
+    unavailable = restarted.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.one",
+            refresh_command("refresh.unavailable", stale.revision),
+            frozenset(),
+        )
+    )
+    reopened = service("unused.identifier")[0].open_workspace(
+        OpenPersonalWorkspaceRequest("learner.one")
+    )
+    assert reopened == unavailable
+    assert reopened.records[0].target.target_status == "unavailable"
+    assert gateway.calls == 2
+    assert restarted_gateway.calls == 1
+
+
+def test_concurrent_refreshes_accept_exactly_one_revision() -> None:
+    created_by, _ = service()
+    created = created_by.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", command("note.one"))
+    )
+    first, _ = service("unused.first")
+    second, _ = service("unused.second")
+
+    def run(subject, key):
+        try:
+            return subject.mutate_workspace(
+                MutatePersonalWorkspaceRequest(
+                    "learner.one",
+                    refresh_command(key, created.revision),
+                    frozenset({"learning_opportunity"}),
+                )
+            )
+        except PersonalWorkspaceError as error:
+            return error.code
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = tuple(
+            pool.map(
+                lambda args: run(*args),
+                ((first, "refresh.first"), (second, "refresh.second")),
+            )
+        )
+    assert sum(hasattr(result, "revision") for result in results) == 1
+    assert results.count(PersonalWorkspaceErrorCode.STALE_REVISION) == 1
 
 
 def test_project_reference_variants_survive_restart_and_exact_replay() -> None:

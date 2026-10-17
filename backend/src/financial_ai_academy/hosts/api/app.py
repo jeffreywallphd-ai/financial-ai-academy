@@ -117,6 +117,8 @@ from financial_ai_academy.modules.personal_workspace.public import (
     PersonalWorkspaceError,
     PersonalWorkspaceErrorCode,
     PersonalWorkspaceOperations,
+    QueryPersonalWorkspaceRequest,
+    ReadableReferenceKind,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     RequestPolicyViolation,
@@ -162,6 +164,8 @@ from .models import (
     ProjectWorkspaceMutationRequestModel,
     ProjectWorkspaceResponseModel,
     PersonalWorkspaceMutationRequestModel,
+    PersonalWorkspaceQueryRequestModel,
+    PersonalWorkspaceQueryResponseModel,
     PersonalWorkspaceResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
@@ -196,6 +200,8 @@ from .models import (
     project_workspace_mutation_intent,
     project_workspace_response,
     personal_workspace_mutation_command,
+    personal_workspace_query,
+    personal_workspace_query_response,
     personal_workspace_response,
     personal_workspace_source_permission,
 )
@@ -222,6 +228,21 @@ _ERROR_RESPONSES = {
     409: {"model": ApiErrorEnvelope, "description": "Conflict"},
     503: {"model": ApiErrorEnvelope, "description": "Unavailable"},
 }
+
+
+def _readable_reference_kinds(
+    permissions: tuple[str, ...],
+) -> frozenset[ReadableReferenceKind]:
+    readable: set[ReadableReferenceKind] = set()
+    if "curriculum.discovery.read" in permissions:
+        readable.add("learning_opportunity")
+    if "curriculum.lesson.read" in permissions:
+        readable.add("placed_lesson")
+    if "project.read" in permissions:
+        readable.update(
+            {"project_workspace", "project_snapshot", "project_artifact"}
+        )
+    return frozenset(readable)
 
 
 def create_app(services: ApiServices) -> FastAPI:
@@ -827,6 +848,31 @@ def create_app(services: ApiServices) -> FastAPI:
         return personal_workspace_response(workspace)
 
     @app.post(
+        "/api/v1/personal-workspace/query",
+        response_model=PersonalWorkspaceQueryResponseModel,
+        operation_id="queryPersonalWorkspace",
+        responses=_ERROR_RESPONSES,
+        tags=["personal-workspace"],
+    )
+    def query_personal_workspace(
+        request_model: PersonalWorkspaceQueryRequestModel,
+        request: Request,
+        context: LearnerContext = Depends(personal_workspace_read_context),
+    ) -> PersonalWorkspaceQueryResponseModel:
+        if request.query_params:
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.INVALID_REQUEST,
+                "Saved learning search does not accept URL query selectors.",
+            )
+        result = personal_workspace_operations().query_workspace(
+            QueryPersonalWorkspaceRequest(
+                learner_id=context.learner_id,
+                query=personal_workspace_query(request_model),
+            )
+        )
+        return personal_workspace_query_response(result)
+
+    @app.post(
         "/api/v1/personal-workspace/mutations",
         response_model=PersonalWorkspaceResponseModel,
         operation_id="mutatePersonalWorkspace",
@@ -856,6 +902,9 @@ def create_app(services: ApiServices) -> FastAPI:
             MutatePersonalWorkspaceRequest(
                 learner_id=context.learner_id,
                 command=personal_workspace_mutation_command(request_model),
+                readable_reference_kinds=_readable_reference_kinds(
+                    context.permissions
+                ),
             )
         )
         return personal_workspace_response(workspace)
