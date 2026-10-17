@@ -209,7 +209,7 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0135 | Freeze additive Project-reference contracts, reuse Project public reads through a Personal-workspace Project adapter, and prove pure core and anti-rigidity behavior | SLI-0070, CAP-0007 | none | complete |
 | WRK-0136 | Deliver Personal-workspace persistence/API/OpenAPI/generated-client support and authorization revalidation for all Project reference variants | WRK-0135 | none | complete |
-| JIT-C | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | JIT-B | none | captured |
+| WRK-0137 | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | WRK-0136 | none | ready |
 | JIT-D | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | JIT-C | none | captured |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
@@ -322,3 +322,8 @@ decision still requiring approval. No lower-level completion approval exists.
   `8570856` after focused backend, API, browser, contract, architecture,
   security, affected, aggregate, and independent technical verification passed.
   The contextual Project save-control packet may now start.
+- 2026-10-17: Refined JIT-C as WRK-0137 around exact contextual Project links,
+  a closed extension of the existing Saved Learning selection/action flow,
+  mixed-reference organization, and focused mocked-browser evidence. The
+  protected API and generated client remain unchanged; live topology evidence
+  remains in JIT-D.
