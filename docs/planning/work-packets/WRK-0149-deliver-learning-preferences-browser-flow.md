@@ -1,7 +1,7 @@
 ---
 id: WRK-0149
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -203,6 +203,30 @@ and residual live-qualification gaps. Confirm no backend, contract, generated
 client, identity, persistence, inferred trait, evidence/competency,
 recommendation, provider, external action, or financial behavior changed.
 
+## Completion Evidence
+
+- Exact candidate `0706a0adede07b6f361e685e7f6d0b8caca24733` produced a fresh,
+  stable qualifying receipt for the same candidate; all nine selected affected
+  checks passed. The ignored local receipt retains the complete command log.
+- The `/preferences/learning` route uses only the generated public client and
+  server session for strict current-profile/history reads, exact bounded
+  mutations, idempotent uncertain-result retry, stale-write recovery,
+  integrity-checked export, and revalidation after accepted changes.
+- Canonical profile digests, entry/profile chronology, monotonic bounded
+  history, latest-result correlation, and export chronology fail closed.
+  Irreversible removals require named confirmation, and duplicate valid
+  learner wording retains position-specific accessible control names.
+- The complete web suite passed 403 tests. Typecheck, zero-warning lint,
+  static build, 17 architecture tests, 10 security control groups,
+  learner-language, design-system, documentation, planning, whitespace, and
+  the 29-part aggregate readiness gate passed.
+- No backend, executable contract, OpenAPI, generated client, identity,
+  persistence, inferred trait, learning evidence, competency, recommendation,
+  provider, external action, or financial behavior changed in this packet.
+- Live Chromium, simultaneous PostgreSQL races, normal restart, ordinary
+  headless HTTP parity, containment, accessibility, and exact cleanup remain
+  for the final dependency-ordered qualification packet.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0148 completed. The packet
@@ -229,3 +253,6 @@ recommendation, provider, external action, or financial behavior changed.
   guidance without widening the generated-client-only boundary. Focused,
   full-web, type, lint, build, architecture, security, language, design,
   documentation, planning, whitespace, and aggregate-readiness checks passed.
+- 2026-10-17: Completed the generated-client browser flow at exact candidate
+  `0706a0a` with all selected and aggregate checks passing. The dependency-
+  ready next increment is the final qualification-only packet.
