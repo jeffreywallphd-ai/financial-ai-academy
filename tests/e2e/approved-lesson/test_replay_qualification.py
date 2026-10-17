@@ -3835,7 +3835,9 @@ def presentation_preference_history(profile: dict[str, Any]) -> dict[str, Any]:
             "object_id": None,
             "occurred_at": f"2026-10-17T18:00:{revision:02d}Z",
             "resulting_profile_digest": (
-                profile["profile_digest"] if revision == profile["revision"] else "a" * 64
+                profile["profile_digest"]
+                if revision == profile["revision"]
+                else presentation_preference_profile(revision)["profile_digest"]
             ),
         }
         for revision in range(2, profile["revision"] + 1)
@@ -4064,12 +4066,80 @@ def test_presentation_preference_restart_requires_exact_rows() -> None:
             for change in history["changes"]
         ],
         "mutations": [
-            [profile["learner_id"], f"presentation.{index}", accepted["revision"], accepted]
+            [
+                profile["learner_id"],
+                (
+                    capture["exact_replay_request"]["idempotency_key"]
+                    if accepted["revision"] == profile["revision"]
+                    else f"presentation.{index}"
+                ),
+                accepted["revision"],
+                accepted,
+            ]
             for index, accepted in enumerate(accepted_profiles, start=2)
         ],
     }
-    runner.assert_presentation_preference_storage(storage, profile=profile, history=history)
+    runner.assert_presentation_preference_storage(
+        storage,
+        profile=profile,
+        history=history,
+        exact_replay_request=capture["exact_replay_request"],
+        exact_replay_response=capture["exact_replay_response"],
+    )
     changed = deepcopy(storage)
     changed["profiles"][0][2] += 1
     with pytest.raises(RuntimeError, match="stored profile"):
         runner.assert_presentation_preference_storage(changed, profile=profile, history=history)
+
+    duplicate_revision = deepcopy(storage)
+    duplicate_revision["mutations"][0][2] = 3
+    duplicate_revision["mutations"][0][3] = deepcopy(
+        duplicate_revision["mutations"][1][3]
+    )
+    with pytest.raises(RuntimeError, match="revision or key coverage"):
+        runner.assert_presentation_preference_storage(
+            duplicate_revision,
+            profile=profile,
+            history=history,
+        )
+
+    mismatched_history = deepcopy(storage)
+    mismatched_history["changes"][0][2]["resulting_profile_digest"] = "b" * 64
+    mismatched_history["changes"][0][3] = "b" * 64
+    mismatched_history_document = deepcopy(history)
+    mismatched_history_document["changes"][0]["resulting_profile_digest"] = "b" * 64
+    with pytest.raises(RuntimeError, match="replay storage"):
+        runner.assert_presentation_preference_storage(
+            mismatched_history,
+            profile=profile,
+            history=mismatched_history_document,
+        )
+
+    duplicate_key = deepcopy(storage)
+    duplicate_key["mutations"][1][1] = duplicate_key["mutations"][0][1]
+    with pytest.raises(RuntimeError, match="revision or key coverage"):
+        runner.assert_presentation_preference_storage(
+            duplicate_key,
+            profile=profile,
+            history=history,
+        )
+
+    invalid_key = deepcopy(storage)
+    invalid_key["mutations"][0][1] = "not valid/for replay"
+    with pytest.raises(RuntimeError, match="revision or key coverage"):
+        runner.assert_presentation_preference_storage(
+            invalid_key,
+            profile=profile,
+            history=history,
+        )
+
+    missing_exact_replay = deepcopy(storage)
+    missing_exact_replay["mutations"][-1][1] = "presentation.final"
+    with pytest.raises(RuntimeError, match="exact replay row"):
+        runner.assert_presentation_preference_storage(
+            missing_exact_replay,
+            profile=profile,
+            history=history,
+            exact_replay_request=capture["exact_replay_request"],
+            exact_replay_response=capture["exact_replay_response"],
+        )

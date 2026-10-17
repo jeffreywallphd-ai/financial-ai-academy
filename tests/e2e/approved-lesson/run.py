@@ -6019,6 +6019,8 @@ def assert_presentation_preference_storage(
     *,
     profile: dict[str, Any],
     history: dict[str, Any],
+    exact_replay_request: dict[str, Any] | None = None,
+    exact_replay_response: dict[str, Any] | None = None,
 ) -> None:
     profiles = snapshot.get("profiles")
     changes = snapshot.get("changes")
@@ -6048,13 +6050,46 @@ def assert_presentation_preference_storage(
         for row in changes
     ):
         raise RuntimeError("Presentation preference stored history is uncorrelated.")
+    expected_revisions = list(range(2, profile["revision"] + 1))
+    history_by_revision = {
+        change["revision"]: change for change in history["changes"]
+    }
+    if (
+        [change["revision"] for change in history["changes"]]
+        != expected_revisions
+        or len(history_by_revision) != len(expected_revisions)
+    ):
+        raise RuntimeError("Presentation preference history revision coverage is invalid.")
+    mutation_keys = [row[1] for row in mutations]
+    if (
+        [row[2] for row in mutations] != expected_revisions
+        or len(set(mutation_keys)) != len(mutation_keys)
+        or not all(_preference_identifier(key) for key in mutation_keys)
+    ):
+        raise RuntimeError("Presentation preference replay revision or key coverage is invalid.")
     if any(
         row[0] != profile["learner_id"]
         or row[2] != row[3].get("revision")
         or stable_presentation_preference_profile(row[3]) != row[3]
+        or row[3]["profile_digest"]
+        != history_by_revision[row[2]]["resulting_profile_digest"]
         for row in mutations
     ):
         raise RuntimeError("Presentation preference replay storage is uncorrelated.")
+    if (exact_replay_request is None) != (exact_replay_response is None):
+        raise RuntimeError("Presentation preference exact replay evidence is incomplete.")
+    if exact_replay_request is not None and exact_replay_response is not None:
+        replay_request = stable_presentation_preference_request(exact_replay_request)
+        replay_response = stable_presentation_preference_profile(exact_replay_response)
+        replay_rows = [
+            row for row in mutations if row[1] == replay_request["idempotency_key"]
+        ]
+        if (
+            len(replay_rows) != 1
+            or replay_rows[0][2] != replay_response["revision"]
+            or replay_rows[0][3] != replay_response
+        ):
+            raise RuntimeError("Presentation preference exact replay row is uncorrelated.")
 
 
 def _run_presentation_preference_race(
@@ -6190,7 +6225,13 @@ def qualify_presentation_preference_races(
         history=history,
     )
     storage = presentation_preference_storage_snapshot(postgres_dsn)
-    assert_presentation_preference_storage(storage, profile=current_profile, history=history)
+    assert_presentation_preference_storage(
+        storage,
+        profile=current_profile,
+        history=history,
+        exact_replay_request=capture["exact_replay_request"],
+        exact_replay_response=capture["exact_replay_response"],
+    )
     return {
         "profile": current_profile,
         "history": history,
@@ -6579,6 +6620,8 @@ def main() -> int:
             presentation_storage_after_browser,
             profile=presentation_capture["profile"],
             history=presentation_capture["history"],
+            exact_replay_request=presentation_capture["exact_replay_request"],
+            exact_replay_response=presentation_capture["exact_replay_response"],
         )
         observe_headless_presentation_preferences(
             origin=origin,
@@ -6830,6 +6873,8 @@ def main() -> int:
             presentation_storage_after_restart,
             profile=presentation_after_restart["profile"],
             history=presentation_after_restart["history"],
+            exact_replay_request=presentation_capture["exact_replay_request"],
+            exact_replay_response=presentation_capture["exact_replay_response"],
         )
         if presentation_storage_after_restart != presentation_race_result["storage"]:
             raise RuntimeError(
