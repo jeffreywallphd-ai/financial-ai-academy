@@ -1,7 +1,7 @@
 ---
 id: WRK-0131
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -249,6 +249,28 @@ migration, public application operation, HTTP/OpenAPI, generated client, UI,
 Project/domain link, Assessment/Learner-model state, provider, AI mode, or
 execution behavior changed, then leave JIT-B dependency-ready.
 
+## Completion Evidence
+
+- Exact implementation candidate:
+  `79ba235c8efd8ca621508f031897cdb000cf75a7`.
+- The focused Personal-workspace contract and pure-core suites passed 81 tests,
+  including both reference kinds, every closed mutation kind, chronology,
+  canonical Unicode hashing, identifier classes, confidentiality, bounds, and
+  anti-rigidity variations.
+- Architecture checks passed 16 tests, all 10 security control groups passed,
+  documentation and planning checks passed, `git diff --check` passed, and
+  aggregate agent readiness passed all 29 checks.
+- Ignored local control-plane storage retains the exact-candidate receipt and
+  technical-disposition evidence; no approval or reviewer metadata is copied
+  into tracked artifacts.
+- The delivered boundary is additive and side-effect free. It changes no
+  source-resolution adapter, persistence or migration, public application or
+  HTTP operation, OpenAPI snapshot, generated client, browser UI, Project or
+  assessment state, provider, AI mode, or execution behavior.
+- Real PostgreSQL, public API/headless access, generated-client, browser,
+  restart, and accessibility qualification remain intentionally unqualified in
+  this packet and are assigned to the remaining dependency-ordered seams.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after SLI-0070 refinement. The packet
@@ -256,3 +278,7 @@ execution behavior changed, then leave JIT-B dependency-ready.
   for the two accepted learning-reference variants while leaving resolution,
   persistence, API, UI, Project/domain adapters, and execution to later
   packets or slices. No lower-level approval is required.
+- 2026-10-17: Finalized the packet after the exact candidate and all required
+  focused, affected, architecture, security, documentation, planning,
+  whitespace, and aggregate checks passed. The next packet may now compose the
+  persistence and API seam without changing these contracts.
