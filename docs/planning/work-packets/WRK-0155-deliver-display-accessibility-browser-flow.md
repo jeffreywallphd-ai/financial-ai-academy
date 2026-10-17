@@ -1,7 +1,7 @@
 ---
 id: WRK-0155
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -301,3 +301,8 @@ action, or financial behavior changed.
 - 2026-10-17: Re-entered verification after restoring both documented Project
   self-qualification triggers; the isolated presentation suite passed three
   journeys and the Project suite passed all eleven journeys.
+- 2026-10-17: Completed on exact candidate
+  `f6d6a451df0cb1a4a289959fd9da70d63feb30d7` with a qualifying fourteen-check
+  receipt, both focused Chromium boundaries, and the twenty-nine-check agent
+  readiness aggregate passing. Final production-host and restart qualification
+  remains in the dependent packet.
