@@ -204,7 +204,7 @@ truth, safety, reproducibility, advice, or execution authority.
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Run the cumulative Project capability matrix, close only directly observed acceptance gaps, reconcile the evidence and known-gap maps, and deterministically close SLI-0033 and CAP-0007 | SLI-0030, SLI-0031, SLI-0032 | none | captured |
+| WRK-0130 | Run the cumulative Project capability matrix, close only directly observed acceptance gaps, reconcile the evidence and known-gap maps, and deterministically close SLI-0033 and CAP-0007 | SLI-0030, SLI-0031, SLI-0032 | none | ready |
 
 The packet identifier is reserved and the bounded packet is authored immediately
 before activation. If qualification finds a material product defect, JIT-A
@@ -276,3 +276,7 @@ AI mode, and autonomous authority were not planned or added.
   first cumulative matrix with one bounded packet. It preserves the API-first
   browser/headless shared core, reuses current focused evidence, and avoids a
   duplicate meta-runner or inconsequential acceptance gates.
+- 2026-10-17: Refined JIT-A as WRK-0130. The packet owns a documentation-only
+  cumulative acceptance map and exact closure evidence. Product, contract,
+  harness, provider, execution, and managed-cloud changes remain outside its
+  bounded scope.
