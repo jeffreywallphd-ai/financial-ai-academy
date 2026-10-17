@@ -1,10 +1,10 @@
 ---
 id: CAP-0007
 kind: capability
-planning_status: ready
+planning_status: complete
 authority: noncanonical
-owner: unassigned
-updated: 2026-10-15
+owner: codex-cap-0007
+updated: 2026-10-17
 parent: null
 depends_on: ["CAP-0005", "CAP-0006"]
 decision_gates: []
@@ -163,10 +163,10 @@ boundary.
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
-| SLI-0030 | A learner creates one authorized independent Project with a personal charter or branches from one approved learning brief into a Project that preserves exact Content and Curriculum provenance and can continue outside the lesson. | First after CAP-0005 and CAP-0006 for the learning-origin path; establishes the ADR-0012 Project shell, closed origin union, lifecycle, authorization, public operations, and persistence boundary. | Moving Project ownership, adding organization or collaborative ownership, making source provenance mutable, or turning Project into a general workspace changes the CAP package. | captured |
-| SLI-0031 | The learner safely saves, versions, inspects through passive allowlisted behavior, downloads, links, and resumes bounded Project resources and inert artifacts, then closes an immutable snapshot while continuing the live workspace. | After SLI-0030; establishes ADR-0011 confinement and execution denial plus ADR-0012 artifact manifests, snapshots, many-valued typed domain links, stale/unavailable-owner behavior, and export semantics. A live Portfolio adapter remains gated on accepted Portfolio contracts. | Adding execution, active rendering, network/secret access, unrestricted storage, copied domain state, real financial actions, or an unaccepted provider changes the CAP package. | captured |
-| SLI-0032 | For a learning-bound project, the learner submits one exact Project snapshot, receives deterministic missing/invalid requirement feedback, and can reopen immutable Assessment evidence and derived completion while the live Project workspace remains independent and later snapshots do not overwrite history. | After SLI-0031; introduces idempotent Assessment submission by snapshot reference, exact learning versions, Learner-model projection, Audit references, and supersession rules. Independent projects remain valid without this path. | Making every project an assessment, instructor grading/override, AI-authoritative completion, collaborative submission, certification, or mutable submitted evidence changes the CAP package. | captured |
-| SLI-0033 | Independent and learning-bound Project flows are qualified for provenance, snapshot integrity, typed-link isolation, declared reproducibility, artifact confinement, execution denial, interruption/resume, version drift, authorization, community protection, accessibility, responsive/theme parity, and shared local/cloud semantics. | Last; depends on SLI-0030 through SLI-0032 and closes ADR-0012 ownership/snapshot obligations and ADR-0011 inert-artifact obligations without claiming live Portfolio integration or independent result reproduction. | Qualifying live Portfolio behavior, managed-cloud tenancy/recovery, execution, external providers, instructor workflows, public publishing, or live financial execution changes the CAP package. | captured |
+| SLI-0030 | A learner creates one authorized independent Project with a personal charter or branches from one approved learning brief into a Project that preserves exact Content and Curriculum provenance and can continue outside the lesson. | First after CAP-0005 and CAP-0006 for the learning-origin path; establishes the ADR-0012 Project shell, closed origin union, lifecycle, authorization, public operations, and persistence boundary. | Moving Project ownership, adding organization or collaborative ownership, making source provenance mutable, or turning Project into a general workspace changes the CAP package. | complete |
+| SLI-0031 | The learner safely saves, versions, inspects through passive allowlisted behavior, downloads, links, and resumes bounded Project resources and inert artifacts, then closes an immutable snapshot while continuing the live workspace. | After SLI-0030; establishes ADR-0011 confinement and execution denial plus ADR-0012 artifact manifests, snapshots, many-valued typed domain links, stale/unavailable-owner behavior, and export semantics. A live Portfolio adapter remains gated on accepted Portfolio contracts. | Adding execution, active rendering, network/secret access, unrestricted storage, copied domain state, real financial actions, or an unaccepted provider changes the CAP package. | complete |
+| SLI-0032 | For a learning-bound project, the learner submits one exact Project snapshot, receives deterministic missing/invalid requirement feedback, and can reopen immutable Assessment evidence and derived completion while the live Project workspace remains independent and later snapshots do not overwrite history. | After SLI-0031; introduces idempotent Assessment submission by snapshot reference, exact learning versions, Learner-model projection, Audit references, and supersession rules. Independent projects remain valid without this path. | Making every project an assessment, instructor grading/override, AI-authoritative completion, collaborative submission, certification, or mutable submitted evidence changes the CAP package. | complete |
+| SLI-0033 | Independent and learning-bound Project flows are qualified for provenance, snapshot integrity, typed-link isolation, declared reproducibility, artifact confinement, execution denial, interruption/resume, version drift, authorization, community protection, accessibility, responsive/theme parity, and shared local/cloud semantics. | Last; depends on SLI-0030 through SLI-0032 and closes ADR-0012 ownership/snapshot obligations and ADR-0011 inert-artifact obligations without claiming live Portfolio integration or independent result reproduction. | Qualifying live Portfolio behavior, managed-cloud tenancy/recovery, execution, external providers, instructor workflows, public publishing, or live financial execution changes the CAP package. | complete |
 
 ## Capability Acceptance
 
@@ -307,3 +307,8 @@ and autonomous authority remain outside CAP-0007 and unqualified.
   may reference multiple independently owned domain resources. The slice
   manifest remains SLI-0030 through SLI-0033 and requires a fresh CAP-level
   planning review before delivery.
+- 2026-10-17: Closed CAP-0007 after SLI-0030 through SLI-0033 completed and the
+  cumulative Project matrix satisfied the capability acceptance contract.
+  Direct private-host/shared-core evidence and deliberately unqualified cloud,
+  provider, execution, collaboration, publishing, financial-action, and
+  platform-accessibility boundaries remain explicit.
