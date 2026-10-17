@@ -1,17 +1,17 @@
 ---
 id: WRK-0134
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0017
+owner: unassigned
 updated: 2026-10-17
 parent: SLI-0070
 capability: CAP-0017
 depends_on: [WRK-0133]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/personal-workspace.e2e.ts", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0134-qualify-saved-learning-live-flow.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
-generated_artifacts: []
+write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/personal-workspace.e2e.ts", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0134-qualify-saved-learning-live-flow.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+generated_artifacts: ["apps/web/dist"]
 base_revision: bc388b21b63ff761d4a6ec291914c771dac2778a
 claim_id: WRK-0134:512004ee-9a51-4c47-86c7-9ca63ee5c8a4
 claimed_by: codex-cap-0017
@@ -56,6 +56,9 @@ known gaps, and nearest READMEs.
 - Existing exact-candidate evidence remains direct only where ancestry and
   unchanged affected files keep it current. Fresh cumulative checks own slice
   closure.
+- The tracked static application is regenerated only from the accepted
+  TypeScript source and exact lockfile so the isolated live topology exercises
+  the same Saved Learning browser candidate qualified by WRK-0133.
 - A functional, contract, or evidence-control defect routes to a separately
   bounded corrective packet. Harmless whitespace, optional wording,
   nonfunctional styling, generated values, or fixture order are fixed locally
@@ -214,3 +217,7 @@ autonomous authority was added.
 - 2026-10-17: Activated from base `bc388b2` after deterministic implementation
   gating confirmed the current CAP binding, completed dependencies, bounded
   write scope, and absence of a decision or ownership conflict.
+- 2026-10-17: Released the first claim to ready after focused harness checks
+  passed and the live topology exposed that its tracked static application
+  predates WRK-0133. Added only `apps/web/dist` as a reproducible generated
+  artifact; product meaning and the evidence contract are unchanged.
