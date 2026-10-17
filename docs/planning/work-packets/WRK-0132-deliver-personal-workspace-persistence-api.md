@@ -1,7 +1,7 @@
 ---
 id: WRK-0132
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -233,6 +233,41 @@ residual gaps. Confirm no browser interface, arbitrary file, execution,
 Project/Assessment/Learner-model effect, provider, managed-cloud profile,
 separate AI mode, autonomous authority, or financial action was added.
 
+## Completion Evidence
+
+- Exact implementation candidate:
+  `c8c7e9cc3be5784e71cbe918c1242847f4f1802a`.
+- Focused contract, Personal-workspace application, Curriculum gateway,
+  persistence, Identity, and architecture verification passed 126 tests. The
+  protected Personal-workspace API suite passed 10 tests, and the isolated
+  real-PostgreSQL suite passed 9 tests across migration, first
+  materialization, exact replay, stale/concurrent revision, interruption,
+  malformed retained meaning, restart, learner isolation, and retained-data
+  rollback refusal.
+- The affected-path qualification passed all 11 selected checks. Reviewed
+  OpenAPI reproduction, generated-client reproduction and usage typecheck,
+  documentation, planning, Python compilation, and `git diff --check` passed.
+  The web suite passed 267 tests, architecture verification passed 16 tests,
+  all 10 security control groups passed, and aggregate agent readiness passed
+  all 29 checks.
+- Source-bearing mutations require the owning Curriculum read permission and
+  resolve exact source facts before any workspace or replay write. Every query
+  selector is refused before Personal-workspace access; missing owned records
+  and collections map to a bounded `not_found` response; bookmark labels remain
+  required-but-nullable in the reviewed OpenAPI and generated TypeScript type.
+- The delivered boundary is additive and API-first. Browser and authenticated
+  headless callers share `GET /api/v1/personal-workspace` and
+  `POST /api/v1/personal-workspace/mutations`; no alternate AI authority path
+  exists. The implementation added no browser interface, arbitrary file or
+  artifact behavior, execution, Project/Assessment/Learner-model mutation,
+  provider integration, managed-cloud profile, or financial action.
+- Exact-candidate receipts and technical-review records remain in ignored
+  local control-plane storage. No approval or reviewer metadata is copied into
+  tracked artifacts.
+- Browser, accessibility, and full live save/resume journey qualification were
+  intentionally not performed in this packet. They remain assigned to the
+  dependency-ordered JIT-C and JIT-D seams.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0131 completed. This packet
@@ -253,3 +288,7 @@ separate AI mode, autonomous authority, or financial action was added.
 - 2026-10-17: Re-activated with a fresh claim and base revision after the
   refined scope passed planning validation and remained within the current CAP
   package.
+- 2026-10-17: Finalized the persistence and public-API seam after the exact
+  candidate passed its focused, PostgreSQL, API, generated-client,
+  architecture, security, affected, documentation, planning, whitespace, and
+  aggregate checks. JIT-C is now dependency-ready.
