@@ -1,7 +1,7 @@
 ---
 id: WRK-0139
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -247,6 +247,42 @@ migration impact; assumptions; unqualified checks; and residual gaps. Confirm
 no application/gateway/persistence/API/OpenAPI/client/browser/live/new-adapter/
 execution/provider behavior changed, then leave WRK-0140 dependency-ready.
 
+## Completion Evidence
+
+- Exact candidate `0a2af9d876b3dba0447197158ecacc903af9c120` is a strict
+  descendant of the recorded base revision. Its fresh, qualifying,
+  post-run-stable receipt has digest
+  `sha256:a9d3b204ac7890dff59de8176741c5b8b57bc782fdb89738ce8ef1643f4d82d9`.
+- The v1 contract now admits exactly `available`, `stale`, and `unavailable`
+  references plus closed query/result and record-only refresh intent shapes.
+  Six compatibility fixtures cover valid query/results, stale/unavailable
+  history, and rejection of private query or refresh fields.
+- Query execution normalizes Unicode text, composes closed filters, applies
+  stable record-ID tie-breaking, and pages within one already-authorized
+  workspace. HMAC-authenticated continuations bind learner, workspace,
+  revision, and canonical query meaning; tampering, cross-workspace replay,
+  stale revision, malformed applied cursors, and stalled page progression fail
+  without partial results.
+- Trusted refresh preserves learner text, record identity, collection
+  membership, and order. Confidential source failures collapse to unavailable;
+  immutable Curriculum, Project snapshot, or artifact drift retains historical
+  facts and becomes stale; an exact later result can recover availability.
+  Field-by-field cases cover both Curriculum variants and every retained
+  immutable snapshot and artifact fact.
+- The complete Personal-workspace contract/unit directory passed 214 tests;
+  the closure-focused contract/core pair passed 150. Architecture fitness
+  passed 17 tests, security passed 10 control groups, and planning,
+  documentation, Python compilation, and whitespace checks passed. The fixed
+  aggregate readiness gate passed all 29 checks.
+- The default continuation key is process-scoped and an explicit shared-key
+  injection seam is available for a later multi-worker topology. A signing-key
+  scope change deliberately expires outstanding continuations and grants no
+  authority.
+- No persistence, migration, application orchestration, owner-gateway call,
+  host API, OpenAPI, generated client, browser, live topology, new source
+  adapter, artifact execution, provider, or managed-cloud behavior changed.
+  Those delivery seams remain bounded to the dependent packets in SLI-0072.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after SLI-0072 refinement. The packet
@@ -257,3 +293,7 @@ execution/provider behavior changed, then leave WRK-0140 dependency-ready.
 - 2026-10-17: Activated from recorded base `43528ad` after validating the
   approved parent package, completed dependency, bounded contract/core scope,
   resolved decisions, and no active coordination overlap.
+- 2026-10-17: Completed the frozen contract/core seam after strengthening
+  continuation integrity and exact immutable-reference drift handling. Focused,
+  architecture, security, affected-check, and aggregate evidence passed on the
+  exact candidate with no remaining substantive gap in this packet.
