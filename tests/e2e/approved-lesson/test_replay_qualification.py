@@ -344,6 +344,12 @@ def practice_progress(*, draft: dict[str, Any] | None = None) -> dict[str, Any]:
 
 
 def personal_workspace_capture() -> dict[str, Any]:
+    project_capture = project_workspace_capture()
+    project = project_capture["project"]
+    current_project_workspace = project_capture["current_workspace"]
+    project_snapshot = project_capture["snapshot"]
+    project_snapshot_material = project_snapshot["snapshot"]
+    project_artifact = current_project_workspace["artifacts"][0]
     provenance = {
         "published_by": "Financial AI Academy",
         "published_at": "2026-10-17T10:00:00Z",
@@ -387,11 +393,11 @@ def personal_workspace_capture() -> dict[str, Any]:
     }
     project_common = {
         "owner_module": "project",
-        "project_id": "project-qualification",
-        "title": "Unicode evidence Project",
-        "lifecycle": "active",
-        "project_revision": 1,
-        "workspace_revision": 5,
+        "project_id": project["project_id"],
+        "title": project["title"],
+        "lifecycle": project["lifecycle"],
+        "project_revision": project["revision"],
+        "workspace_revision": current_project_workspace["workspace_revision"],
         "target_status": "available",
         "validated_at": "2026-10-17T12:08:00Z",
     }
@@ -403,7 +409,7 @@ def personal_workspace_capture() -> dict[str, Any]:
         "target": project_common
         | {
             "reference_kind": "project_workspace",
-            "destination": "/projects/project-qualification#workspace",
+            "destination": f"/projects/{project['project_id']}#workspace",
         },
         "archived": False,
         "created_at": "2026-10-17T12:08:00Z",
@@ -416,11 +422,14 @@ def personal_workspace_capture() -> dict[str, Any]:
         "target": project_common
         | {
             "reference_kind": "project_snapshot",
-            "snapshot_id": "snapshot-qualification",
-            "snapshot_digest": "c" * 64,
-            "closed_at": "2026-10-17T12:06:00Z",
+            "project_revision": project_snapshot_material["project_revision"],
+            "workspace_revision": project_snapshot_material["workspace_revision"],
+            "snapshot_id": project_snapshot["snapshot_id"],
+            "snapshot_digest": project_snapshot["snapshot_digest"],
+            "closed_at": project_snapshot["closed_at"],
             "destination": (
-                "/projects/project-qualification#snapshot-snapshot-qualification"
+                f"/projects/{project['project_id']}#snapshot-"
+                f"{project_snapshot['snapshot_id']}"
             ),
         },
         "archived": False,
@@ -434,18 +443,19 @@ def personal_workspace_capture() -> dict[str, Any]:
         "target": project_common
         | {
             "reference_kind": "project_artifact",
-            "artifact_id": "artifact-qualification",
-            "artifact_version": 1,
-            "artifact_kind": "dataset",
-            "logical_path": "Résumé-Σ-data.csv",
-            "media_type": "text/csv",
-            "inspection_mode": "plain_text",
-            "byte_count": 22,
-            "content_digest": "d" * 64,
-            "created_at": "2026-10-17T12:05:00Z",
+            "artifact_id": project_artifact["artifact_id"],
+            "artifact_version": project_artifact["artifact_version"],
+            "artifact_kind": project_artifact["artifact_kind"],
+            "logical_path": project_artifact["logical_path"],
+            "media_type": project_artifact["media_type"],
+            "inspection_mode": project_artifact["inspection_mode"],
+            "byte_count": project_artifact["byte_count"],
+            "content_digest": project_artifact["content_digest"],
+            "created_at": project_artifact["created_at"],
             "destination": (
-                "/projects/project-qualification"
-                "#artifact-artifact-qualification-v1"
+                f"/projects/{project['project_id']}#artifact-"
+                f"{project_artifact['artifact_id']}"
+                f"-v{project_artifact['artifact_version']}"
             ),
         },
         "archived": False,
@@ -494,17 +504,39 @@ def personal_workspace_capture() -> dict[str, Any]:
             "bookmark_label": bookmark["label"],
             "collection_title": "Foundations İ",
             "placement_id": "intro-risk-return-primary",
-            "project_id": "project-qualification",
+            "project_id": project["project_id"],
+            "project_title": project["title"],
+            "project_lifecycle": project["lifecycle"],
+            "project_revision": project["revision"],
+            "project_workspace_revision": current_project_workspace[
+                "workspace_revision"
+            ],
             "project_note_title": project_note["title"],
             "project_note_body": project_note["body"],
-            "snapshot_id": "snapshot-qualification",
+            "snapshot_id": project_snapshot["snapshot_id"],
             "snapshot_label": snapshot_bookmark["label"],
-            "snapshot_digest": "c" * 64,
-            "artifact_id": "artifact-qualification",
-            "artifact_version": 1,
+            "snapshot_digest": project_snapshot["snapshot_digest"],
+            "snapshot_project_revision": project_snapshot_material[
+                "project_revision"
+            ],
+            "snapshot_workspace_revision": project_snapshot_material[
+                "workspace_revision"
+            ],
+            "snapshot_closed_at": project_snapshot["closed_at"],
+            "artifact_id": project_artifact["artifact_id"],
+            "artifact_version": project_artifact["artifact_version"],
             "artifact_label": artifact_bookmark["label"],
-            "artifact_digest": "d" * 64,
-            "artifact_byte_count": 22,
+            "artifact_project_revision": project["revision"],
+            "artifact_workspace_revision": current_project_workspace[
+                "workspace_revision"
+            ],
+            "artifact_kind": project_artifact["artifact_kind"],
+            "artifact_logical_path": project_artifact["logical_path"],
+            "artifact_media_type": project_artifact["media_type"],
+            "artifact_inspection_mode": project_artifact["inspection_mode"],
+            "artifact_digest": project_artifact["content_digest"],
+            "artifact_byte_count": project_artifact["byte_count"],
+            "artifact_created_at": project_artifact["created_at"],
         },
     }
 
@@ -1295,24 +1327,30 @@ def test_personal_workspace_capture_is_closed_correlated_and_private(
     tmp_path: Path,
 ) -> None:
     capture = personal_workspace_capture()
+    project_capture = project_workspace_capture()
     path = tmp_path / "personal-workspace-capture.json"
     path.write_text(json.dumps(capture), encoding="utf-8")
     assert runner.load_personal_workspace_capture(
         path,
         data_root=tmp_path,
+        project_capture=project_capture,
     ) == capture
 
     leaked = json.loads(json.dumps(capture))
     leaked["credential"] = "private"
     path.write_text(json.dumps(leaked), encoding="utf-8")
     with pytest.raises(RuntimeError, match="invalid shape"):
-        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
 
     expanded = json.loads(json.dumps(capture))
     expanded["workspace"]["private_detail"] = "hidden"
     path.write_text(json.dumps(expanded), encoding="utf-8")
     with pytest.raises(RuntimeError, match="closed public contract"):
-        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
 
     dangling = json.loads(json.dumps(capture))
     dangling["workspace"]["collections"][0]["member_record_ids"].append(
@@ -1320,7 +1358,9 @@ def test_personal_workspace_capture_is_closed_correlated_and_private(
     )
     path.write_text(json.dumps(dangling), encoding="utf-8")
     with pytest.raises(RuntimeError, match="collection is invalid"):
-        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
 
     copied_bytes = json.loads(json.dumps(capture))
     copied_bytes["workspace"]["records"][-1]["target"]["content_base64"] = (
@@ -1328,18 +1368,107 @@ def test_personal_workspace_capture_is_closed_correlated_and_private(
     )
     path.write_text(json.dumps(copied_bytes), encoding="utf-8")
     with pytest.raises(RuntimeError, match="closed public contract"):
-        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
 
     mismatched_project = json.loads(json.dumps(capture))
     mismatched_project["workspace"]["records"][-2]["target"]["project_id"] = (
         "project.other"
     )
     mismatched_project["workspace"]["records"][-2]["target"]["destination"] = (
-        "/projects/project.other#snapshot-snapshot-qualification"
+        "/projects/project.other#snapshot-snapshot-one"
     )
     path.write_text(json.dumps(mismatched_project), encoding="utf-8")
     with pytest.raises(RuntimeError, match="browser-observed meaning"):
-        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+        runner.load_personal_workspace_capture(
+            path, data_root=tmp_path, project_capture=project_capture
+        )
+
+
+@pytest.mark.parametrize(
+    ("record_index", "field", "changed_value"),
+    (
+        (2, "workspace_revision", 999),
+        (3, "closed_at", "2026-10-16T16:04:01Z"),
+        (4, "logical_path", "different-but-safe.csv"),
+    ),
+)
+def test_personal_workspace_capture_binds_each_project_reference_class(
+    tmp_path: Path,
+    record_index: int,
+    field: str,
+    changed_value: object,
+) -> None:
+    capture = personal_workspace_capture()
+    capture["workspace"]["records"][record_index]["target"][field] = changed_value
+    path = tmp_path / "personal-workspace-capture.json"
+    path.write_text(json.dumps(capture), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="browser-observed meaning"):
+        runner.load_personal_workspace_capture(
+            path,
+            data_root=tmp_path,
+            project_capture=project_workspace_capture(),
+        )
+
+
+def test_personal_workspace_capture_binds_browser_expectations_to_project(
+    tmp_path: Path,
+) -> None:
+    capture = personal_workspace_capture()
+    capture["expected"]["artifact_kind"] = "code"
+    path = tmp_path / "personal-workspace-capture.json"
+    path.write_text(json.dumps(capture), encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="expectations changed Project meaning"):
+        runner.load_personal_workspace_capture(
+            path,
+            data_root=tmp_path,
+            project_capture=project_workspace_capture(),
+        )
+
+
+@pytest.mark.parametrize(
+    "logical_path",
+    (
+        "Re\u0301sume\u0301-data.csv",
+        " report.csv",
+        "folder./report.csv",
+        "folder/control\u001f.csv",
+        "folder/bad?.csv",
+        "CON.txt",
+    ),
+)
+def test_personal_workspace_reference_rejects_noncanonical_project_paths(
+    logical_path: str,
+) -> None:
+    target = personal_workspace_capture()["workspace"]["records"][4]["target"]
+    target["logical_path"] = logical_path
+    with pytest.raises(RuntimeError, match="inert-file reference is invalid"):
+        runner._stable_personal_workspace_reference(target)
+
+
+def test_personal_workspace_reference_accepts_varied_nfc_project_path() -> None:
+    target = personal_workspace_capture()["workspace"]["records"][4]["target"]
+    target["logical_path"] = "Données/Στοιχεία.csv"
+    assert runner._stable_personal_workspace_reference(target) == target
+
+
+@pytest.mark.parametrize(
+    ("record_index", "time_field"),
+    ((3, "closed_at"), (4, "created_at")),
+)
+def test_personal_workspace_reference_rejects_future_project_material(
+    record_index: int,
+    time_field: str,
+) -> None:
+    target = personal_workspace_capture()["workspace"]["records"][record_index][
+        "target"
+    ]
+    target[time_field] = "2026-10-17T12:08:01Z"
+    with pytest.raises(RuntimeError, match="reference is invalid"):
+        runner._stable_personal_workspace_reference(target)
 
 
 def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
@@ -1363,6 +1492,13 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
         return capture["workspace"]
 
     denials = iter(("immutable_conflict", "stale_revision", "source_unavailable"))
+    denial_messages = {
+        "immutable_conflict": "The request key already names different saved work.",
+        "stale_revision": (
+            "The saved workspace changed. Refresh it before trying again."
+        ),
+        "source_unavailable": "The learning item is not available to save.",
+    }
 
     def request_status(
         _opener: object,
@@ -1380,7 +1516,7 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
         return 409, {
             "error_version": "1.0",
             "code": code,
-            "message": "The saved request could not be applied.",
+            "message": denial_messages[code],
             "correlation_id": "22222222-2222-4222-8222-222222222222",
         }
 
@@ -1416,6 +1552,8 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
 
 def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:
     capture = personal_workspace_capture()
+    snapshot_target = capture["workspace"]["records"][3]["target"]
+    artifact_target = capture["workspace"]["records"][4]["target"]
     sensitive_values = (
         capture["workspace"]["learner_id"],
         capture["workspace"]["workspace_id"],
@@ -1423,6 +1561,13 @@ def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:
         capture["expected"]["note_body"],
         capture["exact_replay_request"]["idempotency_key"],
         "personal_workspace.mutations",
+        snapshot_target["project_id"],
+        snapshot_target["title"],
+        snapshot_target["snapshot_id"],
+        snapshot_target["snapshot_digest"],
+        artifact_target["artifact_id"],
+        artifact_target["logical_path"],
+        artifact_target["content_digest"],
     )
     for leaked_value in sensitive_values:
         with pytest.raises(RuntimeError, match="disclosed private details"):
@@ -1437,6 +1582,32 @@ def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:
                 expected_code="immutable_conflict",
                 capture=capture,
             )
+    guessed_project_id = "project.guessed-private"
+    with pytest.raises(RuntimeError, match="disclosed private details"):
+        runner._assert_safe_personal_workspace_denial(
+            409,
+            {
+                "error_version": "1.0",
+                "code": "source_unavailable",
+                "message": f"Project {guessed_project_id} is unavailable.",
+                "correlation_id": "22222222-2222-4222-8222-222222222222",
+            },
+            expected_code="source_unavailable",
+            capture=capture,
+            additional_sensitive_values=(guessed_project_id,),
+        )
+    with pytest.raises(RuntimeError, match="changed public meaning"):
+        runner._assert_safe_personal_workspace_denial(
+            409,
+            {
+                "error_version": "1.0",
+                "code": "source_unavailable",
+                "message": "That Project does not exist.",
+                "correlation_id": "22222222-2222-4222-8222-222222222222",
+            },
+            expected_code="source_unavailable",
+            capture=capture,
+        )
     with pytest.raises(RuntimeError, match="correlation is invalid"):
         runner._assert_safe_personal_workspace_denial(
             409,

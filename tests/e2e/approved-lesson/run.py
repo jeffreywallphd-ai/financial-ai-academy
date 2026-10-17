@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import unicodedata
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -351,6 +352,10 @@ PRIVATE_PROJECT_LEARNING_CAPTURE_KEYS = PRIVATE_PROJECT_CAPTURE_KEYS | frozenset
 UTC_TIMESTAMP = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
     r"(?:\.[0-9]{1,6})?Z$"
+)
+RESERVED_PROJECT_PATH_SEGMENT = re.compile(
+    r"^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\..*)?$",
+    re.IGNORECASE,
 )
 
 
@@ -1049,6 +1054,36 @@ def _canonical_utc(value: object, *, label: str) -> str:
     return value
 
 
+def _utc_instant(value: object, *, label: str) -> datetime:
+    return datetime.fromisoformat(
+        _canonical_utc(value, label=label).replace("Z", "+00:00")
+    )
+
+
+def _canonical_project_logical_path(value: object) -> bool:
+    if (
+        not isinstance(value, str)
+        or not value
+        or len(value) > 240
+        or "\\" in value
+        or value.startswith("/")
+        or unicodedata.normalize("NFC", value) != value
+    ):
+        return False
+    return all(
+        segment
+        and segment not in {".", ".."}
+        and segment == segment.strip()
+        and not segment.endswith(".")
+        and not any(
+            ord(character) < 32 or character in '<>:"|?*'
+            for character in segment
+        )
+        and RESERVED_PROJECT_PATH_SEGMENT.fullmatch(segment) is None
+        for segment in value.split("/")
+    )
+
+
 def _assert_same_practice_scope(
     document: dict[str, Any],
     expected: dict[str, Any],
@@ -1616,6 +1651,13 @@ def _stable_personal_workspace_reference(value: object) -> dict[str, Any]:
                 or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,127}", snapshot_id)
                 or not re.fullmatch(r"[a-f0-9]{64}", str(value.get("snapshot_digest", "")))
                 or not UTC_TIMESTAMP.fullmatch(str(value.get("closed_at", "")))
+                or _utc_instant(
+                    value.get("closed_at"), label="Project checkpoint close time"
+                )
+                > _utc_instant(
+                    value.get("validated_at"),
+                    label="Project checkpoint validation time",
+                )
                 or value.get("destination")
                 != f"/projects/{project_id}#snapshot-{snapshot_id}"
             ):
@@ -1639,11 +1681,7 @@ def _stable_personal_workspace_reference(value: object) -> dict[str, Any]:
                 "result",
                 "supporting_file",
             }
-            or not isinstance(logical_path, str)
-            or not 1 <= len(logical_path) <= 240
-            or "\\" in logical_path
-            or logical_path.startswith("/")
-            or any(segment in {"", ".", ".."} for segment in logical_path.split("/"))
+            or not _canonical_project_logical_path(logical_path)
             or value.get("media_type")
             not in {
                 "application/json",
@@ -1660,6 +1698,13 @@ def _stable_personal_workspace_reference(value: object) -> dict[str, Any]:
             or not 0 <= value["byte_count"] <= 10_485_760
             or not re.fullmatch(r"[a-f0-9]{64}", str(value.get("content_digest", "")))
             or not UTC_TIMESTAMP.fullmatch(str(value.get("created_at", "")))
+            or _utc_instant(
+                value.get("created_at"), label="Project artifact creation time"
+            )
+            > _utc_instant(
+                value.get("validated_at"),
+                label="Project artifact validation time",
+            )
             or value.get("destination")
             != (
                 f"/projects/{project_id}#artifact-{artifact_id}"
@@ -1827,10 +1872,93 @@ def stable_personal_workspace(document: dict[str, Any]) -> dict[str, Any]:
     return copy.deepcopy(document)
 
 
+def _project_reference_expectations(
+    project_capture: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    project = project_capture.get("project")
+    current_workspace = project_capture.get("current_workspace")
+    snapshot = project_capture.get("snapshot")
+    if not all(
+        isinstance(value, dict)
+        for value in (project, current_workspace, snapshot)
+    ):
+        raise RuntimeError("Project correlation evidence is unavailable.")
+    snapshot_material = snapshot.get("snapshot")
+    artifacts = current_workspace.get("artifacts")
+    if (
+        not isinstance(snapshot_material, dict)
+        or not isinstance(artifacts, list)
+        or len(artifacts) != 1
+        or not isinstance(artifacts[0], dict)
+    ):
+        raise RuntimeError("Project correlation evidence is incomplete.")
+    artifact = artifacts[0]
+    common = {
+        "owner_module": "project",
+        "project_id": project.get("project_id"),
+        "title": project.get("title"),
+        "lifecycle": project.get("lifecycle"),
+        "target_status": "available",
+    }
+    workspace_reference = common | {
+        "reference_kind": "project_workspace",
+        "project_revision": project.get("revision"),
+        "workspace_revision": current_workspace.get("workspace_revision"),
+        "destination": f"/projects/{project.get('project_id')}#workspace",
+    }
+    snapshot_reference = common | {
+        "reference_kind": "project_snapshot",
+        "project_revision": snapshot_material.get("project_revision"),
+        "workspace_revision": snapshot_material.get("workspace_revision"),
+        "snapshot_id": snapshot.get("snapshot_id"),
+        "snapshot_digest": snapshot.get("snapshot_digest"),
+        "closed_at": snapshot.get("closed_at"),
+        "destination": (
+            f"/projects/{project.get('project_id')}#snapshot-"
+            f"{snapshot.get('snapshot_id')}"
+        ),
+    }
+    artifact_reference = common | {
+        "reference_kind": "project_artifact",
+        "project_revision": project.get("revision"),
+        "workspace_revision": current_workspace.get("workspace_revision"),
+        **{
+            key: artifact.get(key)
+            for key in (
+                "artifact_id",
+                "artifact_version",
+                "artifact_kind",
+                "logical_path",
+                "media_type",
+                "inspection_mode",
+                "byte_count",
+                "content_digest",
+                "created_at",
+            )
+        },
+        "destination": (
+            f"/projects/{project.get('project_id')}#artifact-"
+            f"{artifact.get('artifact_id')}-v{artifact.get('artifact_version')}"
+        ),
+    }
+    return {
+        "project_workspace": workspace_reference,
+        "project_snapshot": snapshot_reference,
+        "project_artifact": artifact_reference,
+    }
+
+
+def _matches_reference_expectation(
+    actual: dict[str, Any], expected: dict[str, Any]
+) -> bool:
+    return all(actual.get(key) == value for key, value in expected.items())
+
+
 def load_personal_workspace_capture(
     path: Path,
     *,
     data_root: Path,
+    project_capture: dict[str, Any],
 ) -> dict[str, Any]:
     if path.is_symlink() or not path.is_file():
         raise RuntimeError("The bounded Personal workspace capture is absent.")
@@ -1849,6 +1977,7 @@ def load_personal_workspace_capture(
     if not all(isinstance(value, dict) for value in (workspace, replay, expected)):
         raise RuntimeError("Personal workspace capture documents must be objects.")
     stable = stable_personal_workspace(workspace)
+    project_references = _project_reference_expectations(project_capture)
     _exact_keys(
         replay,
         frozenset({"schema_version", "idempotency_key", "expected_revision", "mutation"}),
@@ -1884,20 +2013,76 @@ def load_personal_workspace_capture(
                 "collection_title",
                 "placement_id",
                 "project_id",
+                "project_title",
+                "project_lifecycle",
+                "project_revision",
+                "project_workspace_revision",
                 "project_note_title",
                 "project_note_body",
                 "snapshot_id",
                 "snapshot_label",
                 "snapshot_digest",
+                "snapshot_project_revision",
+                "snapshot_workspace_revision",
+                "snapshot_closed_at",
                 "artifact_id",
                 "artifact_version",
                 "artifact_label",
+                "artifact_project_revision",
+                "artifact_workspace_revision",
+                "artifact_kind",
+                "artifact_logical_path",
+                "artifact_media_type",
+                "artifact_inspection_mode",
                 "artifact_digest",
                 "artifact_byte_count",
+                "artifact_created_at",
             }
         ),
         "Personal workspace capture expectations",
     )
+    expected_project_values = {
+        "project_id": project_references["project_workspace"]["project_id"],
+        "project_title": project_references["project_workspace"]["title"],
+        "project_lifecycle": project_references["project_workspace"]["lifecycle"],
+        "project_revision": project_references["project_workspace"]["project_revision"],
+        "project_workspace_revision": project_references["project_workspace"][
+            "workspace_revision"
+        ],
+        "snapshot_id": project_references["project_snapshot"]["snapshot_id"],
+        "snapshot_digest": project_references["project_snapshot"]["snapshot_digest"],
+        "snapshot_project_revision": project_references["project_snapshot"][
+            "project_revision"
+        ],
+        "snapshot_workspace_revision": project_references["project_snapshot"][
+            "workspace_revision"
+        ],
+        "snapshot_closed_at": project_references["project_snapshot"]["closed_at"],
+        "artifact_id": project_references["project_artifact"]["artifact_id"],
+        "artifact_version": project_references["project_artifact"]["artifact_version"],
+        "artifact_project_revision": project_references["project_artifact"][
+            "project_revision"
+        ],
+        "artifact_workspace_revision": project_references["project_artifact"][
+            "workspace_revision"
+        ],
+        "artifact_kind": project_references["project_artifact"]["artifact_kind"],
+        "artifact_logical_path": project_references["project_artifact"][
+            "logical_path"
+        ],
+        "artifact_media_type": project_references["project_artifact"]["media_type"],
+        "artifact_inspection_mode": project_references["project_artifact"][
+            "inspection_mode"
+        ],
+        "artifact_digest": project_references["project_artifact"]["content_digest"],
+        "artifact_byte_count": project_references["project_artifact"]["byte_count"],
+        "artifact_created_at": project_references["project_artifact"]["created_at"],
+    }
+    if any(
+        expected.get(key) != value
+        for key, value in expected_project_values.items()
+    ):
+        raise RuntimeError("Personal workspace expectations changed Project meaning.")
     notes = [record for record in stable["records"] if record["record_kind"] == "note"]
     bookmarks = [
         record for record in stable["records"] if record["record_kind"] == "bookmark"
@@ -1922,29 +2107,23 @@ def load_personal_workspace_capture(
         or project_note is None
         or project_note["body"] != expected.get("project_note_body")
         or project_note["target"].get("reference_kind") != "project_workspace"
-        or project_note["target"].get("project_id") != expected.get("project_id")
+        or not _matches_reference_expectation(
+            project_note["target"], project_references["project_workspace"]
+        )
         or curriculum_bookmark is None
         or curriculum_bookmark["target"].get("reference_kind") != "placed_lesson"
         or curriculum_bookmark["target"].get("placement_id")
         != expected.get("placement_id")
         or snapshot_bookmark is None
         or snapshot_bookmark["target"].get("reference_kind") != "project_snapshot"
-        or snapshot_bookmark["target"].get("project_id") != expected.get("project_id")
-        or snapshot_bookmark["target"].get("snapshot_id")
-        != expected.get("snapshot_id")
-        or snapshot_bookmark["target"].get("snapshot_digest")
-        != expected.get("snapshot_digest")
+        or not _matches_reference_expectation(
+            snapshot_bookmark["target"], project_references["project_snapshot"]
+        )
         or artifact_bookmark is None
         or artifact_bookmark["target"].get("reference_kind") != "project_artifact"
-        or artifact_bookmark["target"].get("project_id") != expected.get("project_id")
-        or artifact_bookmark["target"].get("artifact_id")
-        != expected.get("artifact_id")
-        or artifact_bookmark["target"].get("artifact_version")
-        != expected.get("artifact_version")
-        or artifact_bookmark["target"].get("content_digest")
-        != expected.get("artifact_digest")
-        or artifact_bookmark["target"].get("byte_count")
-        != expected.get("artifact_byte_count")
+        or not _matches_reference_expectation(
+            artifact_bookmark["target"], project_references["project_artifact"]
+        )
         or stable["collections"][0]["title"] != expected.get("collection_title")
         or set(stable["collections"][0]["member_record_ids"])
         != {record["record_id"] for record in stable["records"]}
@@ -1960,6 +2139,7 @@ def _assert_safe_personal_workspace_denial(
     *,
     expected_code: str,
     capture: dict[str, Any],
+    additional_sensitive_values: tuple[str, ...] = (),
 ) -> None:
     if status != 409:
         raise RuntimeError("Personal workspace conflict returned an unexpected status.")
@@ -1979,6 +2159,18 @@ def _assert_safe_personal_workspace_denial(
         raise RuntimeError("Personal workspace denial correlation is invalid.")
     workspace = capture["workspace"]
     replay = capture["exact_replay_request"]
+    project_sensitive_keys = {
+        "project_id",
+        "title",
+        "destination",
+        "snapshot_id",
+        "snapshot_digest",
+        "closed_at",
+        "artifact_id",
+        "logical_path",
+        "content_digest",
+        "created_at",
+    }
     sensitive_values = {
         str(workspace["learner_id"]),
         str(workspace["workspace_id"]),
@@ -1995,6 +2187,14 @@ def _assert_safe_personal_workspace_denial(
             )
             if value
         ),
+        *(
+            str(value)
+            for record in workspace["records"]
+            if record.get("target", {}).get("owner_module") == "project"
+            for key, value in record["target"].items()
+            if key in project_sensitive_keys and isinstance(value, str) and value
+        ),
+        *(value for value in additional_sensitive_values if value),
     }
     serialized = json.dumps(
         document, sort_keys=True, separators=(",", ":"), ensure_ascii=False
@@ -2008,6 +2208,15 @@ def _assert_safe_personal_workspace_denial(
         marker.casefold() in serialized for marker in private_markers
     ):
         raise RuntimeError("Personal workspace denial disclosed private details.")
+    canonical_messages = {
+        "immutable_conflict": "The request key already names different saved work.",
+        "stale_revision": (
+            "The saved workspace changed. Refresh it before trying again."
+        ),
+        "source_unavailable": "The learning item is not available to save.",
+    }
+    if document.get("message") != canonical_messages.get(expected_code):
+        raise RuntimeError("Personal workspace denial changed public meaning.")
 
 
 def observe_headless_personal_workspace(
@@ -2097,6 +2306,9 @@ def observe_headless_personal_workspace(
         missing_denial,
         expected_code="source_unavailable",
         capture=capture,
+        additional_sensitive_values=(
+            str(missing_target["mutation"]["selector"]["project_id"]),
+        ),
     )
     after_denial = stable_personal_workspace(
         _request_json(opener, origin=origin, path="/api/v1/personal-workspace")
@@ -3719,6 +3931,7 @@ def main() -> int:
         personal_capture = load_personal_workspace_capture(
             personal_workspace_capture,
             data_root=data_root,
+            project_capture=project_workspace_capture,
         )
         personal_storage_before_restart = personal_workspace_storage_snapshot(
             postgres_dsn

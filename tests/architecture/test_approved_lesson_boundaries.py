@@ -724,6 +724,12 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         self.assertIn('"project_workspace"', runner)
         self.assertIn('"project_snapshot"', runner)
         self.assertIn('"project_artifact"', runner)
+        self.assertIn(
+            "project_capture=project_workspace_capture",
+            runner,
+        )
+        self.assertIn("_canonical_project_logical_path", runner)
+        self.assertIn("additional_sensitive_values", runner)
         self.assertIn("../../../src/features/personal-workspace/model", browser)
         self.assertIn("../../../src/features/project-workspace/model", browser)
         self.assertIn("Save Project to Saved learning", browser)
