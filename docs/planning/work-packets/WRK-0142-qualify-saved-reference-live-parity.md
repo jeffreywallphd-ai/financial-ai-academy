@@ -1,7 +1,7 @@
 ---
 id: WRK-0142
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -236,6 +236,47 @@ implementation, contract, generated-client, migration, source mutation,
 artifact execution, provider, managed-cloud, separate AI authority, or
 financial action changed, then leave SLI-0072 closure-ready.
 
+## Completion Evidence
+
+- Delivered the cumulative qualification seam for the already implemented
+  Saved Learning query and record-only source check. Browser and headless
+  clients use the same protected public query/mutation APIs, canonical query
+  meaning and digest, signed continuation, exact refresh replay, and final
+  restore replay.
+- Exact candidate `68b41ac08b7576f57d6cd3b2dfd73cabda2ab4a7` produced qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0142/68b41ac08b7576f57d6cd3b2dfd73cabda2ab4a7/20261017T163415Z-b3af415b-3fd1-4f37-8ef6-02ad7d038720.json`
+  with digest `sha256:7b302fdd04c3dfd9b3f653b318f7718e512990ab7dcd2b92ee7db72e4fbe1775`.
+  Its affected plan passed planning tools/integrity, documentation, architecture,
+  local architecture, web typecheck/lint, and the disposable approved-lesson
+  live check.
+- Focused replay qualification passed 52 tests. The live topology passed ten
+  core Chromium journeys plus the Project workspace, Personal workspace, and
+  Project-learning submission journeys against disposable PostgreSQL 18.4,
+  then proved retained state after a normal application restart.
+- Failure evidence covers malformed capture shape, changed query meaning or
+  digest, unowned query records, widened refresh authority, stale revision,
+  changed-key reuse, unavailable-source confidentiality, exact replay, safe
+  UTC precision normalization, and smaller/larger/reordered canonical
+  workspaces with real signed multi-page continuation.
+- Privacy-safe schema-wide exact-row fingerprints prove the journey does not
+  change Assessment, Audit, Content, Curriculum, Learner-model, or Project
+  facts, including Project workspace, checkpoint, and inert-artifact state.
+  Exact Personal-workspace aggregate and mutation rows remain stable through
+  headless replay and restart.
+- Architecture passed 17 tests, security passed 10 control groups,
+  documentation and planning integrity passed, whitespace was clean, and the
+  aggregate readiness gate passed all 29 checks.
+- Documentation now records the live browser/headless query/refresh boundary,
+  exact replay/restart evidence, privacy-safe target fingerprints, and the
+  narrowed remaining stale/unavailable live-transition gap. No schema,
+  OpenAPI, generated client, migration, or product implementation changed.
+- Qualification is local-profile evidence only. Managed-cloud operation,
+  backup/restore recovery, production load, later domain adapters, background
+  refresh, artifact activity, separate AI authority, provider integration, and
+  financial action remain outside this packet.
+- The packet conforms to the approved CAP-0017 and SLI-0072 boundaries. It
+  introduced no material drift and requires no lower-level completion approval.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0141 completed. This final packet
@@ -252,3 +293,7 @@ financial action changed, then leave SLI-0072 closure-ready.
 - 2026-10-17: Moved to evidence verification after the focused replay,
   generated-browser/headless parity, architecture, security, documentation,
   planning, type, and lint checks passed without a product or contract change.
+- 2026-10-17: Completed after exact-candidate affected verification, cumulative
+  live browser/headless and PostgreSQL restart qualification, focused failure
+  and anti-rigidity checks, target-state isolation, and aggregate readiness all
+  passed within the approved qualification-only boundary.

@@ -1,7 +1,7 @@
 ---
 id: SLI-0072
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -212,7 +212,7 @@ packet starts. The dependency-ordered seams are:
 | WRK-0139 | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | complete |
 | WRK-0140 | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | WRK-0139 | none | complete |
 | WRK-0141 | Deliver plain-language browser search, filters, status, per-record refresh, and accessible safe resume through the generated client | WRK-0140 | none | complete |
-| WRK-0142 | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | WRK-0141 | none | verifying |
+| WRK-0142 | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | WRK-0141 | none | complete |
 
 Dependent packets are not claimed until their predecessor is complete. The
 sequential default avoids shared contract/client/API/UI collisions; a later
@@ -270,18 +270,54 @@ CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Update the Personal-workspace contract and module guidance, protected API and
-generated-client documentation, Saved learning UI guidance, local operations,
-security/containment and architecture assurance, known gaps, this slice,
-packet artifacts, and the planning register.
+Delivery updated the Personal-workspace contract and module guidance, protected
+API and generated-client documentation, Saved Learning UI guidance, local
+operations, security and architecture assurance, known gaps, packet artifacts,
+this slice, and the planning register.
 
-Completion identifies exact packet candidates and receipts; scenario-to-test
-evidence; query/cursor/status/refresh contracts; source confidentiality;
-browser/headless parity; PostgreSQL replay/restart; target non-mutation; optional
-adapter isolation; accessibility; migration/rollback impact; assumptions;
-unqualified profiles; residual gaps; and CAP-package conformance. Approval and
-reviewer records remain only in ignored local storage. No slice or packet
-approval is requested.
+### Completion Evidence
+
+- WRK-0139 through WRK-0142 are complete in dependency order. Together they
+  deliver a closed query and result contract, signed continuation, exact
+  three-state reference meaning, record-only source checks, public application
+  and API orchestration, generated-client browser behavior, and cumulative
+  local live qualification.
+- The same protected public API serves browser and headless callers. Canonical
+  query normalization and digests bind continuations to learner, workspace,
+  revision, and query meaning; source checks derive owner authority on the
+  server and cannot widen into target mutation or private-content access.
+- WRK-0142's exact candidate
+  `68b41ac08b7576f57d6cd3b2dfd73cabda2ab4a7` produced the qualifying local
+  receipt at
+  `.local-codex/control-plane/receipts/WRK-0142/68b41ac08b7576f57d6cd3b2dfd73cabda2ab4a7/20261017T163415Z-b3af415b-3fd1-4f37-8ef6-02ad7d038720.json`
+  with digest
+  `sha256:7b302fdd04c3dfd9b3f653b318f7718e512990ab7dcd2b92ee7db72e4fbe1775`.
+- Focused replay qualification passed 52 tests. Architecture passed 17 tests,
+  security passed 10 control groups, and the fixed aggregate readiness gate
+  passed all 29 checks. The live topology passed ten core Chromium journeys
+  plus Project workspace, Personal workspace, and Project-learning submission
+  journeys against disposable PostgreSQL 18.4, then proved retained state
+  after a normal application restart.
+- Failure and anti-rigidity evidence covers changed query meaning or digest,
+  malformed evidence, unowned results, widened refresh authority, stale
+  revisions, changed-key replay, confidential unavailable sources, equivalent
+  UTC precision, Unicode text, optional fields, and smaller, larger, or
+  reordered canonical workspaces with real signed multi-page continuations.
+- Privacy-safe schema-wide exact-row fingerprints prove that query and refresh
+  do not change Assessment, Audit, Content, Curriculum, Learner-model, or
+  Project facts. Exact Personal-workspace aggregate and mutation rows remain
+  stable through headless replay and restart.
+- Contract additions remain compatible, existing saved references need no
+  eager rewrite, and no migration was required. Rollback may remove unused
+  query or refresh entry points only while preserving accepted records,
+  learner notes, and fail-closed stale or unavailable meaning.
+- Managed cloud, backup and restore, production load, background refresh,
+  later domain adapters, artifact activity, separate AI authority, provider
+  integration, and financial action remain outside this slice. No unresolved
+  durable decision is introduced by those explicit later boundaries.
+- The completed packet set conforms to the approved CAP-0017 package without
+  material drift. Approval records remain only in ignored local storage, and
+  no slice, packet, implementation, or completion approval is required.
 
 ## Planning History
 
@@ -319,5 +355,11 @@ approval is requested.
   parity, PostgreSQL replay/restart, target isolation, containment, cleanup, and
   slice-closure evidence without changing delivered product behavior.
 - 2026-10-17: WRK-0142 entered evidence verification after its cumulative live
-  browser/headless qualification and focused checks passed. SLI-0072 remains
-  active until the exact candidate and closure evidence are accepted.
+  browser/headless qualification and focused checks passed. SLI-0072 then
+  entered closure verification against the exact candidate and evidence.
+- 2026-10-17: All four dependency-ordered packets completed and SLI-0072
+  entered deterministic closure verification with cumulative contract,
+  browser/headless, replay, restart, containment, and anti-rigidity evidence.
+- 2026-10-17: Completed SLI-0072 after its packet set, cumulative evidence,
+  documentation impact, compatibility posture, known boundaries, and approved
+  CAP-package conformance passed the deterministic completion gate.
