@@ -185,6 +185,18 @@
   display: contents;
 }
 
+.saved-learning-member-order {
+  display: grid;
+  gap: var(--faa-space-2);
+  padding-left: var(--faa-space-6);
+  margin: var(--faa-space-0);
+}
+
+.saved-learning-member-order li {
+  display: grid;
+  gap: var(--faa-space-2);
+}
+
 .saved-learning-technical {
   display: grid;
   gap: var(--faa-space-3);

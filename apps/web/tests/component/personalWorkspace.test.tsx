@@ -119,6 +119,10 @@ describe("Saved learning pages", () => {
     await user.click(within(note as HTMLElement).getByText("Technical record"));
     expect(within(note as HTMLElement).getByText("risk-return-basics")).toBeVisible();
     expect(within(note as HTMLElement).getByText("a".repeat(64))).toBeVisible();
+    expect(within(note as HTMLElement).getByText("curriculum")).toBeVisible();
+    expect(within(note as HTMLElement).getByText("available")).toBeVisible();
+    expect(within(note as HTMLElement).getByText("Educational content only.")).toBeVisible();
+    expect(within(note as HTMLElement).getAllByText("2026-10-17T10:01:00Z", { selector: "time" })).toHaveLength(3);
   });
 
   it("submits current revision, stable request authority, ordered records, and collection membership", async () => {
@@ -144,7 +148,12 @@ describe("Saved learning pages", () => {
     const collection = screen.getByRole("heading", { name: "Foundations" }).closest("section");
     await user.click(within(collection as HTMLElement).getByRole("button", { name: "Save collection items" }));
     await waitFor(() => expect(submissions).toHaveLength(3));
-    expect(submissions[2]?.getAll("member_record_ids")).toEqual(["note-one", "bookmark-one"]);
+    expect(submissions[2]?.getAll("member_record_ids")).toEqual(["bookmark-one", "note-one"]);
+
+    await user.click(within(collection as HTMLElement).getByRole("button", { name: "Move Risk and return earlier in collection" }));
+    await user.click(within(collection as HTMLElement).getByRole("button", { name: "Save collection items" }));
+    await waitFor(() => expect(submissions).toHaveLength(4));
+    expect(submissions[3]?.getAll("member_record_ids")).toEqual(["note-one", "bookmark-one"]);
   });
 
   it("exposes every saved-record and collection change through bounded forms", async () => {
@@ -181,14 +190,17 @@ describe("Saved learning pages", () => {
 
     await user.type(screen.getAllByLabelText("Collection name")[0]!, "Next steps");
     await user.click(screen.getByRole("button", { name: "Create collection" }));
+    await user.click(screen.getByRole("button", { name: "Create collection" }));
     const existingName = within(collection).getByLabelText("Collection name");
     await user.clear(existingName);
     await user.type(existingName, "Core ideas");
     await user.click(within(collection).getByRole("button", { name: "Rename collection" }));
     await user.click(within(collection).getByText("Remove collection", { selector: "summary" }));
     await user.click(within(collection).getByRole("button", { name: "Remove collection" }));
-    await waitFor(() => expect(submissions).toHaveLength(7));
+    await waitFor(() => expect(submissions).toHaveLength(8));
+    expect(submissions[4]?.get("idempotency_key")).not.toBe(submissions[5]?.get("idempotency_key"));
     expect(submissions.slice(4).map((form) => form.get("operation"))).toEqual([
+      "create_collection",
       "create_collection",
       "rename_collection",
       "remove_collection",
@@ -203,7 +215,17 @@ describe("Saved learning pages", () => {
   });
 
   it("focuses a task-first stale response and preserves a safe next action", () => {
-    renderWorkspace([], { status: "error", kind: "stale", intent: "update:note-one", idempotencyKey: "request-one" });
+    renderWorkspace([], {
+      status: "error",
+      kind: "stale",
+      intent: "update:note-one",
+      preparedRequest: {
+        schema_version: "1.0.0",
+        idempotency_key: "request-one",
+        expected_revision: 3,
+        mutation: { operation: "update_note", record_id: "note-one", title: "Risk and return", body: "Old body" },
+      },
+    });
     expect(screen.getByRole("heading", { name: "Saved learning changed" })).toHaveFocus();
     expect(screen.getByRole("alert")).toHaveTextContent(/Refresh the page/);
   });
@@ -239,5 +261,47 @@ describe("Saved learning pages", () => {
     await waitFor(() => expect(submissions).toHaveLength(2));
     expect(submissions[1]?.get("label")).toBe("");
     expect(screen.getByRole("link", { name: "Return to lesson" })).toHaveAttribute("href", "/learn/placements/cash-flow-primary");
+  });
+
+  it("retries the complete immutable request after revalidation and uses a fresh request after an edit", async () => {
+    const submissions: FormData[] = [];
+    const selection: SaveSelection = { kind: "placed_lesson", placementId: "cash-flow-primary", returnTo: "/learn" };
+    const actionState: WorkspaceActionState = {
+      status: "error",
+      kind: "unavailable",
+      intent: "create-note",
+      preparedRequest: {
+        schema_version: "1.0.0",
+        idempotency_key: "original-request",
+        expected_revision: 4,
+        mutation: {
+          operation: "create_note",
+          selector: { reference_kind: "placed_lesson", placement_id: "cash-flow-primary" },
+          title: "Cash flow reminder",
+          body: "Track the movement of cash.",
+        },
+      },
+    };
+    const router = createMemoryRouter([{
+      path: "/saved-learning/new",
+      action: async ({ request }) => {
+        submissions.push(await request.formData());
+        return null;
+      },
+      element: <SaveLearningPage actionState={actionState} busy={false} selection={selection} workspace={{ ...workspace, revision: 5 }} />,
+    }], { initialEntries: ["/saved-learning/new"] });
+    render(<RouterProvider router={router} />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(submissions[0]?.get("idempotency_key")).toBe("original-request");
+    expect(submissions[0]?.get("expected_revision")).toBe("4");
+
+    await user.type(screen.getByLabelText("Note", { exact: true }), " More detail.");
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+    await waitFor(() => expect(submissions).toHaveLength(2));
+    expect(submissions[1]?.get("idempotency_key")).not.toBe("original-request");
+    expect(submissions[1]?.get("expected_revision")).toBe("5");
   });
 });

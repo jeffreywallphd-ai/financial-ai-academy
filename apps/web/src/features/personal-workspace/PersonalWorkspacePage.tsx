@@ -3,9 +3,9 @@ import { Form, Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
 import {
-  readableWorkspaceDate,
   type PersonalWorkspace,
   type PersonalWorkspaceCollection,
+  type PersonalWorkspaceMutation,
   type PersonalWorkspaceRecord,
   type SaveSelection,
   type WorkspaceActionState,
@@ -16,30 +16,78 @@ function requestKey() {
   return crypto.randomUUID();
 }
 
+function limited(value: string, maximum: number): string {
+  return Array.from(value).slice(0, maximum).join("");
+}
+
+function preparedMutation(
+  actionState: WorkspaceActionState | undefined,
+  intent: string,
+): PersonalWorkspaceMutation | undefined {
+  return actionState?.intent === intent
+    ? actionState.preparedRequest?.mutation
+    : undefined;
+}
+
 function MutationFields({
   actionState,
   intent,
+  mutation,
   revision,
 }: {
   actionState?: WorkspaceActionState | undefined;
   intent: string;
+  mutation: PersonalWorkspaceMutation;
   revision: number;
 }) {
-  const [idempotencyKey, setIdempotencyKey] = useState(() =>
-    actionState?.intent === intent && actionState.kind !== "conflict"
-      ? actionState.idempotencyKey
-      : requestKey(),
+  const [freshKey, setFreshKey] = useState(requestKey);
+  const [retryAbandoned, setRetryAbandoned] = useState(false);
+  const keyInput = useRef<HTMLInputElement>(null);
+  const prepared = actionState?.intent === intent
+    ? actionState.preparedRequest
+    : undefined;
+  const mutationSignature = JSON.stringify(mutation);
+  const preparedSignature = prepared
+    ? JSON.stringify(prepared.mutation)
+    : undefined;
+  const retryable = Boolean(
+    prepared &&
+      (actionState?.kind === "unavailable" ||
+        actionState?.kind === "invalid-response" ||
+        actionState?.kind === "unexpected"),
+  );
+  const usePrepared = Boolean(
+    retryable && !retryAbandoned && mutationSignature === preparedSignature,
   );
   useEffect(() => {
-    if (actionState?.intent === intent && actionState.kind === "conflict") {
-      setIdempotencyKey(requestKey());
+    setRetryAbandoned(false);
+  }, [prepared?.idempotency_key]);
+  useEffect(() => {
+    if (prepared && mutationSignature !== preparedSignature) {
+      setRetryAbandoned(true);
     }
-  }, [actionState, intent]);
+  }, [mutationSignature, prepared, preparedSignature]);
+  useEffect(() => {
+    setFreshKey(requestKey());
+  }, [revision, actionState?.kind, prepared?.idempotency_key]);
+  useEffect(() => {
+    const form = keyInput.current?.form;
+    if (!form) return undefined;
+    const renew = () => queueMicrotask(() => setFreshKey(requestKey()));
+    form.addEventListener("submit", renew);
+    return () => form.removeEventListener("submit", renew);
+  }, []);
+  const idempotencyKey = usePrepared && prepared
+    ? prepared.idempotency_key
+    : freshKey;
+  const expectedRevision = usePrepared && prepared
+    ? prepared.expected_revision
+    : revision;
   return (
     <>
       <input name="form_intent" type="hidden" value={intent} />
-      <input name="idempotency_key" type="hidden" value={idempotencyKey} />
-      <input name="expected_revision" type="hidden" value={revision} />
+      <input name="idempotency_key" ref={keyInput} type="hidden" value={idempotencyKey} />
+      <input name="expected_revision" type="hidden" value={expectedRevision} />
     </>
   );
 }
@@ -133,6 +181,10 @@ function TechnicalRecord({ record }: { record: PersonalWorkspaceRecord }) {
       <dl className="saved-learning-technical">
         <div><dt>Saved record</dt><dd><code>{record.record_id}</code></dd></div>
         <div><dt>Learning resource type</dt><dd><code>{record.target.reference_kind}</code></dd></div>
+        <div><dt>Saved record created</dt><dd><time dateTime={record.created_at}>{record.created_at}</time></dd></div>
+        <div><dt>Saved record updated</dt><dd><time dateTime={record.updated_at}>{record.updated_at}</time></dd></div>
+        <div><dt>Source owner</dt><dd><code>{record.target.owner_module}</code></dd></div>
+        <div><dt>Source status</dt><dd>{record.target.target_status}</dd></div>
         {record.target.reference_kind === "learning_opportunity" ? (
           <>
             <div><dt>Learning opportunity</dt><dd><code>{record.target.opportunity_id}</code></dd></div>
@@ -146,6 +198,7 @@ function TechnicalRecord({ record }: { record: PersonalWorkspaceRecord }) {
         <div><dt>Published by</dt><dd>{record.target.provenance.published_by}</dd></div>
         <div><dt>Published</dt><dd><time dateTime={record.target.provenance.published_at}>{record.target.provenance.published_at}</time></dd></div>
         <div><dt>Content reviewed</dt><dd><time dateTime={record.target.provenance.content_reviewed_on}>{record.target.provenance.content_reviewed_on}</time></dd></div>
+        <div><dt>Educational-use notice</dt><dd>{record.target.provenance.educational_use_notice}</dd></div>
       </dl>
     </details>
   );
@@ -176,9 +229,7 @@ function RecordCard({
   revision: number;
 }) {
   const updateIntent = `update:${record.record_id}`;
-  const retryMutation = actionState?.intent === updateIntent
-    ? actionState.retryMutation
-    : undefined;
+  const retryMutation = preparedMutation(actionState, updateIntent);
   const retryNote = retryMutation?.operation === "update_note" && retryMutation.record_id === record.record_id
     ? retryMutation
     : undefined;
@@ -188,6 +239,12 @@ function RecordCard({
   const [noteTitle, setNoteTitle] = useState(retryNote?.title ?? (record.record_kind === "note" ? record.title : ""));
   const [noteBody, setNoteBody] = useState(retryNote?.body ?? (record.record_kind === "note" ? record.body : ""));
   const [bookmarkLabel, setBookmarkLabel] = useState(retryBookmark?.label ?? (record.record_kind === "bookmark" ? record.label ?? "" : ""));
+  const noteMutation = record.record_kind === "note"
+    ? { operation: "update_note", record_id: record.record_id, title: noteTitle, body: noteBody } as const
+    : undefined;
+  const bookmarkMutation = record.record_kind === "bookmark"
+    ? { operation: "update_bookmark", record_id: record.record_id, label: bookmarkLabel } as const
+    : undefined;
   return (
     <li className="saved-learning-card">
       <article aria-labelledby={`saved-record-${record.record_id}`}>
@@ -199,19 +256,19 @@ function RecordCard({
 
         {record.record_kind === "note" ? (
           <Form className="saved-learning-form" method="post">
-            <MutationFields actionState={actionState} intent={updateIntent} revision={revision} />
+            <MutationFields actionState={actionState} intent={updateIntent} mutation={noteMutation!} revision={revision} />
             <input name="operation" type="hidden" value="update_note" />
             <input name="record_id" type="hidden" value={record.record_id} />
-            <label>Note title<input disabled={busy} maxLength={200} name="title" onChange={(event) => setNoteTitle(event.currentTarget.value)} required value={noteTitle} /></label>
-            <label>Note<textarea disabled={busy} maxLength={10_000} name="body" onChange={(event) => setNoteBody(event.currentTarget.value)} required rows={5} value={noteBody} /></label>
+            <label>Note title<input disabled={busy} maxLength={240} name="title" onChange={(event) => setNoteTitle(limited(event.currentTarget.value, 120))} required value={noteTitle} /></label>
+            <label>Note<textarea disabled={busy} maxLength={16_000} name="body" onChange={(event) => setNoteBody(limited(event.currentTarget.value, 8_000))} required rows={5} value={noteBody} /></label>
             <button className="button" disabled={busy} type="submit">Save note changes</button>
           </Form>
         ) : (
           <Form className="saved-learning-form" method="post">
-            <MutationFields actionState={actionState} intent={updateIntent} revision={revision} />
+            <MutationFields actionState={actionState} intent={updateIntent} mutation={bookmarkMutation!} revision={revision} />
             <input name="operation" type="hidden" value="update_bookmark" />
             <input name="record_id" type="hidden" value={record.record_id} />
-            <label>Personal label<input disabled={busy} maxLength={200} name="label" onChange={(event) => setBookmarkLabel(event.currentTarget.value)} value={bookmarkLabel} /></label>
+            <label>Personal label<input disabled={busy} maxLength={240} name="label" onChange={(event) => setBookmarkLabel(limited(event.currentTarget.value, 120))} value={bookmarkLabel} /></label>
             <button className="button" disabled={busy} type="submit">Save bookmark changes</button>
           </Form>
         )}
@@ -221,17 +278,18 @@ function RecordCard({
             const label = offset === -1 ? "Move earlier" : "Move later";
             const disabled = busy || (offset === -1 ? index === 0 : index === records.length - 1);
             const intent = `reorder:${record.record_id}:${offset}`;
+            const recordIds = reordered(records, index, offset);
             return (
               <Form key={offset} method="post">
-                <MutationFields actionState={actionState} intent={intent} revision={revision} />
+                <MutationFields actionState={actionState} intent={intent} mutation={{ operation: "reorder_records", record_ids: recordIds }} revision={revision} />
                 <input name="operation" type="hidden" value="reorder_records" />
-                {reordered(records, index, offset).map((recordId) => <input key={recordId} name="record_ids" type="hidden" value={recordId} />)}
+                {recordIds.map((recordId) => <input key={recordId} name="record_ids" type="hidden" value={recordId} />)}
                 <button className="button button--secondary" disabled={disabled} type="submit">{label}</button>
               </Form>
             );
           })}
           <Form method="post">
-            <MutationFields actionState={actionState} intent={`${record.archived ? "restore" : "archive"}:${record.record_id}`} revision={revision} />
+            <MutationFields actionState={actionState} intent={`${record.archived ? "restore" : "archive"}:${record.record_id}`} mutation={{ operation: record.archived ? "restore_record" : "archive_record", record_id: record.record_id }} revision={revision} />
             <input name="operation" type="hidden" value={record.archived ? "restore_record" : "archive_record"} />
             <input name="record_id" type="hidden" value={record.record_id} />
             <button className="button button--secondary" disabled={busy} type="submit">{record.archived ? "Restore record" : "Archive record"}</button>
@@ -243,7 +301,7 @@ function RecordCard({
           <summary>Remove saved record</summary>
           <p>This removes your saved note or bookmark and its collection membership. It does not remove the learning resource.</p>
           <Form method="post">
-            <MutationFields actionState={actionState} intent={`remove:${record.record_id}`} revision={revision} />
+            <MutationFields actionState={actionState} intent={`remove:${record.record_id}`} mutation={{ operation: "remove_record", record_id: record.record_id }} revision={revision} />
             <input name="operation" type="hidden" value="remove_record" />
             <input name="record_id" type="hidden" value={record.record_id} />
             <button className="button saved-learning-button--danger" disabled={busy} type="submit">Remove saved record</button>
@@ -267,7 +325,7 @@ function CollectionPanel({
   records: readonly PersonalWorkspaceRecord[];
   revision: number;
 }) {
-  const retryMutation = actionState?.retryMutation;
+  const retryMutation = actionState?.preparedRequest?.mutation;
   const retryTitle = actionState?.intent === `rename:${collection.collection_id}` &&
     retryMutation?.operation === "rename_collection" &&
     retryMutation.collection_id === collection.collection_id
@@ -279,35 +337,59 @@ function CollectionPanel({
     ? retryMutation.member_record_ids
     : collection.member_record_ids;
   const [title, setTitle] = useState(retryTitle);
-  const [memberIds, setMemberIds] = useState(() => new Set(retryMemberIds));
+  const [memberIds, setMemberIds] = useState(() => [...retryMemberIds]);
+  const recordsById = new Map(records.map((record) => [record.record_id, record]));
+  const renameMutation = {
+    operation: "rename_collection",
+    collection_id: collection.collection_id,
+    title,
+  } as const;
+  const membersMutation = {
+    operation: "set_collection_members",
+    collection_id: collection.collection_id,
+    member_record_ids: memberIds,
+  } as const;
+  function moveMember(index: number, offset: -1 | 1) {
+    setMemberIds((current) => {
+      const destination = index + offset;
+      if (destination < 0 || destination >= current.length) return current;
+      const next = [...current];
+      const [moved] = next.splice(index, 1);
+      if (moved) next.splice(destination, 0, moved);
+      return next;
+    });
+  }
   return (
     <section className="saved-learning-panel">
       <h3>{collection.title}</h3>
       <Form className="saved-learning-form" method="post">
-        <MutationFields actionState={actionState} intent={`rename:${collection.collection_id}`} revision={revision} />
+        <MutationFields actionState={actionState} intent={`rename:${collection.collection_id}`} mutation={renameMutation} revision={revision} />
         <input name="operation" type="hidden" value="rename_collection" />
         <input name="collection_id" type="hidden" value={collection.collection_id} />
-        <label>Collection name<input disabled={busy} maxLength={200} name="title" onChange={(event) => setTitle(event.currentTarget.value)} required value={title} /></label>
+        <label>Collection name<input disabled={busy} maxLength={240} name="title" onChange={(event) => setTitle(limited(event.currentTarget.value, 120))} required value={title} /></label>
         <button className="button button--secondary" disabled={busy} type="submit">Rename collection</button>
       </Form>
       <Form className="saved-learning-form" method="post">
-        <MutationFields actionState={actionState} intent={`members:${collection.collection_id}`} revision={revision} />
+        <MutationFields actionState={actionState} intent={`members:${collection.collection_id}`} mutation={membersMutation} revision={revision} />
         <input name="operation" type="hidden" value="set_collection_members" />
         <input name="collection_id" type="hidden" value={collection.collection_id} />
+        {memberIds.map((recordId) => <input key={recordId} name="member_record_ids" type="hidden" value={recordId} />)}
         <fieldset disabled={busy}>
           <legend>Saved items in this collection</legend>
           {records.length === 0 ? <p>No saved items are available.</p> : records.map((record) => (
             <label className="saved-learning-choice" key={record.record_id}>
               <input
-                checked={memberIds.has(record.record_id)}
-                name="member_record_ids"
+                checked={memberIds.includes(record.record_id)}
+                disabled={busy || (!memberIds.includes(record.record_id) && memberIds.length >= 100)}
                 onChange={(event) => {
                   const checked = event.currentTarget.checked;
                   setMemberIds((current) => {
-                    const next = new Set(current);
-                    if (checked) next.add(record.record_id);
-                    else next.delete(record.record_id);
-                    return next;
+                    if (checked) {
+                      return current.includes(record.record_id) || current.length >= 100
+                        ? current
+                        : [...current, record.record_id];
+                    }
+                    return current.filter((recordId) => recordId !== record.record_id);
                   });
                 }}
                 type="checkbox"
@@ -317,13 +399,31 @@ function CollectionPanel({
             </label>
           ))}
         </fieldset>
+        {memberIds.length > 0 ? (
+          <ol aria-label={`Order of saved items in ${collection.title}`} className="saved-learning-member-order">
+            {memberIds.map((recordId, index) => {
+              const member = recordsById.get(recordId);
+              if (!member) return null;
+              const name = recordName(member);
+              return (
+                <li key={recordId}>
+                  <span>{name}</span>
+                  <span className="saved-learning-actions">
+                    <button aria-label={`Move ${name} earlier in collection`} className="button button--secondary" disabled={busy || index === 0} onClick={() => moveMember(index, -1)} type="button">Move earlier</button>
+                    <button aria-label={`Move ${name} later in collection`} className="button button--secondary" disabled={busy || index === memberIds.length - 1} onClick={() => moveMember(index, 1)} type="button">Move later</button>
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        ) : null}
         <button className="button button--secondary" disabled={busy} type="submit">Save collection items</button>
       </Form>
       <details className="saved-learning-remove">
         <summary>Remove collection</summary>
         <p>This removes the collection only. Your notes and bookmarks stay saved.</p>
         <Form method="post">
-          <MutationFields actionState={actionState} intent={`remove-collection:${collection.collection_id}`} revision={revision} />
+          <MutationFields actionState={actionState} intent={`remove-collection:${collection.collection_id}`} mutation={{ operation: "remove_collection", collection_id: collection.collection_id }} revision={revision} />
           <input name="operation" type="hidden" value="remove_collection" />
           <input name="collection_id" type="hidden" value={collection.collection_id} />
           <button className="button saved-learning-button--danger" disabled={busy} type="submit">Remove collection</button>
@@ -350,8 +450,9 @@ export function PersonalWorkspacePage({
   busy: boolean;
   workspace: PersonalWorkspace;
 }) {
-  const retryCollection = actionState?.intent === "create-collection" && actionState.retryMutation?.operation === "create_collection"
-    ? actionState.retryMutation
+  const retryCollectionMutation = preparedMutation(actionState, "create-collection");
+  const retryCollection = retryCollectionMutation?.operation === "create_collection"
+    ? retryCollectionMutation
     : undefined;
   const [newCollectionTitle, setNewCollectionTitle] = useState(retryCollection?.title ?? "");
   return (
@@ -382,9 +483,9 @@ export function PersonalWorkspacePage({
           <section className="saved-learning-panel">
             <h2 id="collections-heading">Collections</h2>
             <Form className="saved-learning-form" method="post">
-              <MutationFields actionState={actionState} intent="create-collection" revision={workspace.revision} />
+              <MutationFields actionState={actionState} intent="create-collection" mutation={{ operation: "create_collection", title: newCollectionTitle }} revision={workspace.revision} />
               <input name="operation" type="hidden" value="create_collection" />
-              <label>Collection name<input disabled={busy} maxLength={200} name="title" onChange={(event) => setNewCollectionTitle(event.currentTarget.value)} required value={newCollectionTitle} /></label>
+              <label>Collection name<input disabled={busy} maxLength={240} name="title" onChange={(event) => setNewCollectionTitle(limited(event.currentTarget.value, 120))} required value={newCollectionTitle} /></label>
               <button className="button" disabled={busy} type="submit">Create collection</button>
             </Form>
           </section>
@@ -408,8 +509,8 @@ export function PersonalWorkspacePage({
               <div><dt>Workspace revision</dt><dd>{workspace.revision}</dd></div>
               <div><dt>Data format version</dt><dd><code>{workspace.schema_version}</code></dd></div>
               <div><dt>Workspace integrity code</dt><dd><code>{workspace.workspace_digest}</code></dd></div>
-              <div><dt>Created</dt><dd>{readableWorkspaceDate(workspace.created_at)}</dd></div>
-              <div><dt>Updated</dt><dd>{readableWorkspaceDate(workspace.updated_at)}</dd></div>
+              <div><dt>Created</dt><dd><time dateTime={workspace.created_at}>{workspace.created_at}</time></dd></div>
+              <div><dt>Updated</dt><dd><time dateTime={workspace.updated_at}>{workspace.updated_at}</time></dd></div>
             </dl>
           </details>
         </aside>
@@ -440,15 +541,24 @@ export function SaveLearningPage({
   workspace: PersonalWorkspace;
 }) {
   const objectName = selection.kind === "placed_lesson" ? "lesson" : "learning opportunity";
-  const retryNote = actionState?.intent === "create-note" && actionState.retryMutation?.operation === "create_note"
-    ? actionState.retryMutation
+  const retryNoteMutation = preparedMutation(actionState, "create-note");
+  const retryNote = retryNoteMutation?.operation === "create_note"
+    ? retryNoteMutation
     : undefined;
-  const retryBookmark = actionState?.intent === "create-bookmark" && actionState.retryMutation?.operation === "create_bookmark"
-    ? actionState.retryMutation
+  const retryBookmarkMutation = preparedMutation(actionState, "create-bookmark");
+  const retryBookmark = retryBookmarkMutation?.operation === "create_bookmark"
+    ? retryBookmarkMutation
     : undefined;
   const [noteTitle, setNoteTitle] = useState(retryNote?.title ?? "");
   const [noteBody, setNoteBody] = useState(retryNote?.body ?? "");
   const [bookmarkLabel, setBookmarkLabel] = useState(retryBookmark?.label ?? "");
+  const selector = selection.kind === "learning_opportunity"
+    ? {
+        reference_kind: selection.kind,
+        opportunity_id: selection.opportunityId,
+        placement_id: selection.placementId,
+      } as const
+    : { reference_kind: selection.kind, placement_id: selection.placementId } as const;
   return (
     <section className="saved-learning-page saved-learning-save">
       <header className="saved-learning-page__header">
@@ -465,20 +575,20 @@ export function SaveLearningPage({
         <Form className="saved-learning-panel saved-learning-form" method="post">
           <h2>Save a note</h2>
           <p>Write what you want to remember about this {objectName}.</p>
-          <MutationFields actionState={actionState} intent="create-note" revision={workspace.revision} />
+          <MutationFields actionState={actionState} intent="create-note" mutation={{ operation: "create_note", selector, title: noteTitle, body: noteBody }} revision={workspace.revision} />
           <SelectionFields selection={selection} />
           <input name="operation" type="hidden" value="create_note" />
-          <label>Note title<input disabled={busy} maxLength={200} name="title" onChange={(event) => setNoteTitle(event.currentTarget.value)} required value={noteTitle} /></label>
-          <label>Note<textarea disabled={busy} maxLength={10_000} name="body" onChange={(event) => setNoteBody(event.currentTarget.value)} required rows={8} value={noteBody} /></label>
+          <label>Note title<input disabled={busy} maxLength={240} name="title" onChange={(event) => setNoteTitle(limited(event.currentTarget.value, 120))} required value={noteTitle} /></label>
+          <label>Note<textarea disabled={busy} maxLength={16_000} name="body" onChange={(event) => setNoteBody(limited(event.currentTarget.value, 8_000))} required rows={8} value={noteBody} /></label>
           <button className="button saved-learning-button--primary" disabled={busy} type="submit">Save note</button>
         </Form>
         <Form className="saved-learning-panel saved-learning-form" method="post">
           <h2>Save a bookmark</h2>
           <p>Keep a direct link for later. A personal label is optional.</p>
-          <MutationFields actionState={actionState} intent="create-bookmark" revision={workspace.revision} />
+          <MutationFields actionState={actionState} intent="create-bookmark" mutation={{ operation: "create_bookmark", selector, label: bookmarkLabel }} revision={workspace.revision} />
           <SelectionFields selection={selection} />
           <input name="operation" type="hidden" value="create_bookmark" />
-          <label>Personal label <span>(optional)</span><input disabled={busy} maxLength={200} name="label" onChange={(event) => setBookmarkLabel(event.currentTarget.value)} value={bookmarkLabel} /></label>
+          <label>Personal label <span>(optional)</span><input disabled={busy} maxLength={240} name="label" onChange={(event) => setBookmarkLabel(limited(event.currentTarget.value, 120))} value={bookmarkLabel} /></label>
           <button className="button saved-learning-button--primary" disabled={busy} type="submit">Save bookmark</button>
         </Form>
       </div>

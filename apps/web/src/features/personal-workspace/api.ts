@@ -12,8 +12,10 @@ import {
   mutationErrorCode,
   parseSaveSelection,
   personalWorkspaceIsSafe,
+  curriculumIdentifierIsSafe,
   workspaceIdentifierIsSafe,
   type PersonalWorkspaceMutation,
+  type PreparedWorkspaceRequest,
   type SaveLearningRouteState,
   type WorkspaceActionFailure,
   type WorkspaceActionState,
@@ -82,21 +84,23 @@ export function createSaveLearningLoader(
   };
 }
 
+function textIsValid(value: string, minimum: number, maximum: number): boolean {
+  const length = Array.from(value).length;
+  return length >= minimum && length <= maximum && !value.includes("\u0000");
+}
+
 function required(form: FormData, name: string, maximum = 10_000): string | undefined {
   const values = form.getAll(name);
   if (values.length !== 1 || typeof values[0] !== "string") return undefined;
   const value = values[0];
-  return value.length >= 1 && value.length <= maximum && value.trim().length > 0
-    ? value
-    : undefined;
+  return textIsValid(value, 1, maximum) ? value : undefined;
 }
 
-function optional(form: FormData, name: string, maximum = 200): string | null | undefined {
+function optional(form: FormData, name: string, maximum = 120): string | undefined {
   const values = form.getAll(name);
   if (values.length !== 1 || typeof values[0] !== "string") return undefined;
   const value = values[0];
-  if (value === "") return null;
-  return value.length <= maximum && value.trim().length > 0 ? value : undefined;
+  return textIsValid(value, 0, maximum) ? value : undefined;
 }
 
 function identifier(form: FormData, name: string): string | undefined {
@@ -118,12 +122,12 @@ function identifiers(form: FormData, name: string): string[] | undefined {
 function sourceSelector(form: FormData) {
   const kind = required(form, "reference_kind", 32);
   const placementId = required(form, "placement_id", 64);
-  if (!placementId) return undefined;
+  if (!curriculumIdentifierIsSafe(placementId)) return undefined;
   if (kind === "placed_lesson") {
     return { reference_kind: kind, placement_id: placementId } as const;
   }
   const opportunityId = required(form, "opportunity_id", 64);
-  return kind === "learning_opportunity" && opportunityId
+  return kind === "learning_opportunity" && curriculumIdentifierIsSafe(opportunityId)
     ? {
         reference_kind: kind,
         opportunity_id: opportunityId,
@@ -136,8 +140,8 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
   const operation = required(form, "operation", 40);
   if (operation === "create_note") {
     const selector = sourceSelector(form);
-    const title = required(form, "title", 200);
-    const body = required(form, "body", 10_000);
+    const title = required(form, "title", 120);
+    const body = required(form, "body", 8_000);
     return selector && title && body
       ? { operation, selector, title, body }
       : undefined;
@@ -151,8 +155,8 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
   }
   if (operation === "update_note") {
     const recordId = identifier(form, "record_id");
-    const title = required(form, "title", 200);
-    const body = required(form, "body", 10_000);
+    const title = required(form, "title", 120);
+    const body = required(form, "body", 8_000);
     return recordId && title && body
       ? { operation, record_id: recordId, title, body }
       : undefined;
@@ -165,12 +169,12 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
       : undefined;
   }
   if (operation === "create_collection") {
-    const title = required(form, "title", 200);
+    const title = required(form, "title", 120);
     return title ? { operation, title } : undefined;
   }
   if (operation === "rename_collection") {
     const collectionId = identifier(form, "collection_id");
-    const title = required(form, "title", 200);
+    const title = required(form, "title", 120);
     return collectionId && title
       ? { operation, collection_id: collectionId, title }
       : undefined;
@@ -184,7 +188,7 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
   if (operation === "set_collection_members") {
     const collectionId = identifier(form, "collection_id");
     const memberRecordIds = identifiers(form, "member_record_ids");
-    return collectionId && memberRecordIds
+    return collectionId && memberRecordIds && memberRecordIds.length <= 100
       ? {
           operation,
           collection_id: collectionId,
@@ -194,7 +198,9 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
   }
   if (operation === "reorder_records") {
     const recordIds = identifiers(form, "record_ids");
-    return recordIds ? { operation, record_ids: recordIds } : undefined;
+    return recordIds && recordIds.length <= 200
+      ? { operation, record_ids: recordIds }
+      : undefined;
   }
   if (
     operation === "archive_record" ||
@@ -210,41 +216,38 @@ function mutationFromForm(form: FormData): PersonalWorkspaceMutation | undefined
 function actionFailure(
   kind: WorkspaceActionFailure,
   intent: string,
-  idempotencyKey: string,
+  preparedRequest?: PreparedWorkspaceRequest,
 ): WorkspaceActionState {
-  return { status: "error", kind, intent, idempotencyKey };
+  return preparedRequest
+    ? { status: "error", kind, intent, preparedRequest }
+    : { status: "error", kind, intent };
 }
 
 function failureFromResult(
   status: number,
   error: unknown,
   intent: string,
-  idempotencyKey: string,
+  preparedRequest: PreparedWorkspaceRequest,
 ): WorkspaceActionState {
-  if (status === 401) return actionFailure("unauthorized", intent, idempotencyKey);
-  if (status === 403) return actionFailure("forbidden", intent, idempotencyKey);
-  if (status === 404) return actionFailure("not-found", intent, idempotencyKey);
-  if (status === 400 || status === 422) return actionFailure("invalid", intent, idempotencyKey);
-  if (status === 503) return actionFailure("unavailable", intent, idempotencyKey);
+  if (status === 401) return actionFailure("unauthorized", intent, preparedRequest);
+  if (status === 403) return actionFailure("forbidden", intent, preparedRequest);
+  if (status === 404) return actionFailure("not-found", intent, preparedRequest);
+  if (status === 400 || status === 422) return actionFailure("invalid", intent, preparedRequest);
+  if (status === 503) return actionFailure("unavailable", intent, preparedRequest);
   if (status === 409) {
     const code = mutationErrorCode(error);
-    if (code === "stale_revision") return actionFailure("stale", intent, idempotencyKey);
-    if (code === "source_unavailable") return actionFailure("source-unavailable", intent, idempotencyKey);
-    return actionFailure("conflict", intent, idempotencyKey);
+    if (code === "stale_revision") return actionFailure("stale", intent, preparedRequest);
+    if (code === "source_unavailable") return actionFailure("source-unavailable", intent, preparedRequest);
+    return actionFailure("conflict", intent, preparedRequest);
   }
-  return actionFailure("unexpected", intent, idempotencyKey);
+  return actionFailure("unexpected", intent, preparedRequest);
 }
 
 async function sendMutation(
   client: FinancialAcademyApiClient,
   session: SingleProfileSession,
   signal: AbortSignal,
-  body: {
-    schema_version: "1.0.0";
-    idempotency_key: string;
-    expected_revision: number;
-    mutation: PersonalWorkspaceMutation;
-  },
+  body: PreparedWorkspaceRequest,
   intent: string,
   retryUnauthorized: boolean,
 ): Promise<Response | WorkspaceActionState> {
@@ -256,7 +259,7 @@ async function sendMutation(
     if (result.response.status === 200) {
       return result.data && personalWorkspaceIsSafe(result.data)
         ? redirect("/saved-learning")
-        : actionFailure("invalid-response", intent, body.idempotency_key);
+        : actionFailure("invalid-response", intent, body);
     }
     if (result.response.status === 401 && retryUnauthorized) {
       session.invalidate();
@@ -264,17 +267,17 @@ async function sendMutation(
       if (renewed.status === "ready") {
         return sendMutation(client, session, signal, body, intent, false);
       }
-      return actionFailure(renewed.kind, intent, body.idempotency_key);
+      return actionFailure(renewed.kind, intent, body);
     }
     return failureFromResult(
       result.response.status,
       result.error,
       intent,
-      body.idempotency_key,
+      body,
     );
   } catch (error) {
     if (signal.aborted) throw error;
-    return actionFailure("unavailable", intent, body.idempotency_key);
+    return actionFailure("unavailable", intent, body);
   }
 }
 
@@ -295,27 +298,26 @@ export function createPersonalWorkspaceAction(
       expectedRevision < 1 ||
       !mutation
     ) {
-      return actionFailure("invalid", intent, idempotencyKey);
+      return actionFailure("invalid", intent);
     }
+    const preparedRequest: PreparedWorkspaceRequest = {
+      schema_version: "1.0.0",
+      idempotency_key: idempotencyKey,
+      expected_revision: expectedRevision,
+      mutation,
+    };
     const established = await session.ensure(request.signal);
     if (established.status === "error") {
-      return actionFailure(established.kind, intent, idempotencyKey);
+      return actionFailure(established.kind, intent, preparedRequest);
     }
     const result = await sendMutation(
       client,
       session,
       request.signal,
-      {
-        schema_version: "1.0.0",
-        idempotency_key: idempotencyKey,
-        expected_revision: expectedRevision,
-        mutation,
-      },
+      preparedRequest,
       intent,
       true,
     );
-    return result instanceof Response
-      ? result
-      : { ...result, retryMutation: mutation };
+    return result;
   };
 }

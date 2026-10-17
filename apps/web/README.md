@@ -226,8 +226,11 @@ and lesson pages provide `Save to Saved learning` links that carry only the
 closed resource selector to `/saved-learning/new`; learners never type internal
 resource identifiers. The flow supports note/bookmark creation and editing,
 ordered collection membership, record reordering, archive/restore, and bounded
-removal. It closes every complete workspace response before display, uses the
-current server revision and stable request identity for mutations, and never
+removal. Collection membership preserves the server-returned learner order and
+provides explicit earlier/later controls. The flow closes every complete
+workspace response before display, uses the current server revision and a fresh
+request identity for each new mutation, and preserves the complete original
+request when a response is uncertain so an unchanged retry is idempotent. It never
 selects learner, source, package, publication, digest, time, or permission
 authority in the browser. Plain task language leads the flow while exact
 workspace, record, collection, package, publication, validation, version, and

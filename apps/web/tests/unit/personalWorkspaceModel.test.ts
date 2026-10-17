@@ -97,14 +97,17 @@ function accepted(data: unknown, status = 200) {
 }
 
 describe("Personal workspace browser model", () => {
-  it("accepts varied closed records, nullable labels, order, and compatible extra facts", () => {
+  it("accepts canonical Unicode boundaries, multiline notes, tabs, and an empty bookmark label", () => {
     expect(personalWorkspaceIsSafe({
       ...workspace,
-      compatible_future_fact: "ignored",
-      records: workspace.records.map((record, index) => ({
-        ...record,
-        compatible_record_fact: index,
-      })),
+      records: [
+        {
+          ...note,
+          title: "📈".repeat(120),
+          body: `${"📚".repeat(7_990)}\n\tstudy`,
+        },
+        { ...bookmark, label: "" },
+      ],
     })).toBe(true);
   });
 
@@ -118,6 +121,13 @@ describe("Personal workspace browser model", () => {
     ["invalid time", { ...workspace, updated_at: "yesterday" }],
     ["invalid calendar date", { ...workspace, records: [{ ...note, target: { ...note.target, provenance: { ...note.target.provenance, content_reviewed_on: "2026-02-31" } } }] }],
     ["invalid digest", { ...workspace, workspace_digest: "not-a-digest" }],
+    ["uppercase platform identifier", { ...workspace, workspace_id: "Workspace-one" }],
+    ["short curriculum identifier", { ...workspace, records: [{ ...note, target: { ...note.target, placement_id: "x" } }] }],
+    ["invalid package version", { ...workspace, records: [{ ...note, target: { ...note.target, package_version: "v1" } }] }],
+    ["overlong note title", { ...workspace, records: [{ ...note, title: "a".repeat(121) }] }],
+    ["NUL in a note", { ...workspace, records: [{ ...note, body: "before\u0000after" }] }],
+    ["unknown workspace property", { ...workspace, extra_fact: true }],
+    ["unknown record property", { ...workspace, records: [{ ...note, extra_fact: true }] }],
   ])("rejects %s without accepting a partial view", (_name, candidate) => {
     expect(personalWorkspaceIsSafe(candidate)).toBe(false);
   });
@@ -145,7 +155,7 @@ describe("Personal workspace browser model", () => {
 
   it.each([
     ["create note", [["operation", "create_note"], ["reference_kind", "learning_opportunity"], ["opportunity_id", "risk-return-basics"], ["placement_id", "risk-return-primary"], ["title", "Risk note"], ["body", "Keep evidence and interpretation separate."]], { operation: "create_note", selector: { reference_kind: "learning_opportunity", opportunity_id: "risk-return-basics", placement_id: "risk-return-primary" }, title: "Risk note", body: "Keep evidence and interpretation separate." }],
-    ["create bookmark", [["operation", "create_bookmark"], ["reference_kind", "placed_lesson"], ["placement_id", "cash-flow-primary"], ["label", ""]], { operation: "create_bookmark", selector: { reference_kind: "placed_lesson", placement_id: "cash-flow-primary" }, label: null }],
+    ["create bookmark", [["operation", "create_bookmark"], ["reference_kind", "placed_lesson"], ["placement_id", "cash-flow-primary"], ["label", ""]], { operation: "create_bookmark", selector: { reference_kind: "placed_lesson", placement_id: "cash-flow-primary" }, label: "" }],
     ["update note", [["operation", "update_note"], ["record_id", "note-one"], ["title", "Updated"], ["body", "Updated body"]], { operation: "update_note", record_id: "note-one", title: "Updated", body: "Updated body" }],
     ["update bookmark", [["operation", "update_bookmark"], ["record_id", "bookmark-one"], ["label", "Review"]], { operation: "update_bookmark", record_id: "bookmark-one", label: "Review" }],
     ["create collection", [["operation", "create_collection"], ["title", "Next steps"]], { operation: "create_collection", title: "Next steps" }],
@@ -196,13 +206,49 @@ describe("Personal workspace browser model", () => {
     expect(await action({ request: new Request("http://localhost/saved-learning/new", { method: "POST", body: form }) } as never)).toEqual(expect.objectContaining({
       status: "error",
       kind: "unavailable",
-      idempotencyKey: "11111111-1111-4111-8111-111111111111",
-      retryMutation: {
-        operation: "create_note",
-        selector: { reference_kind: "placed_lesson", placement_id: "cash-flow-primary" },
-        title: "Cash flow reminder",
-        body: "Track the movement of cash.",
+      preparedRequest: {
+        schema_version: "1.0.0",
+        idempotency_key: "11111111-1111-4111-8111-111111111111",
+        expected_revision: 4,
+        mutation: {
+          operation: "create_note",
+          selector: { reference_kind: "placed_lesson", placement_id: "cash-flow-primary" },
+          title: "Cash flow reminder",
+          body: "Track the movement of cash.",
+        },
       },
     }));
+  });
+
+  it("accepts canonical Unicode request lengths and rejects invalid identifiers and excess members", async () => {
+    const post = vi.fn().mockResolvedValue(accepted(workspace));
+    const action = createPersonalWorkspaceAction({ POST: post } as unknown as FinancialAcademyApiClient, session());
+    const valid = new FormData();
+    valid.set("form_intent", "create-note");
+    valid.set("idempotency_key", "request-unicode");
+    valid.set("expected_revision", "4");
+    valid.set("operation", "create_note");
+    valid.set("reference_kind", "placed_lesson");
+    valid.set("placement_id", "cash-flow-primary");
+    valid.set("title", "📈".repeat(120));
+    valid.set("body", "Line one\n\tLine two");
+    expect(await action({ request: new Request("http://localhost/saved-learning/new", { method: "POST", body: valid }) } as never)).toBeInstanceOf(Response);
+
+    const invalidId = new FormData();
+    for (const [name, value] of valid.entries()) invalidId.append(name, value);
+    invalidId.set("idempotency_key", "request-invalid-id");
+    invalidId.set("placement_id", "Cash-Flow");
+    expect(await action({ request: new Request("http://localhost/saved-learning/new", { method: "POST", body: invalidId }) } as never)).toEqual(expect.objectContaining({ kind: "invalid" }));
+
+    const excess = new FormData();
+    excess.set("form_intent", "members");
+    excess.set("idempotency_key", "request-members");
+    excess.set("expected_revision", "4");
+    excess.set("operation", "set_collection_members");
+    excess.set("collection_id", "collection-one");
+    for (let index = 0; index < 101; index += 1) {
+      excess.append("member_record_ids", `record-${index}`);
+    }
+    expect(await action({ request: new Request("http://localhost/saved-learning", { method: "POST", body: excess }) } as never)).toEqual(expect.objectContaining({ kind: "invalid" }));
   });
 });

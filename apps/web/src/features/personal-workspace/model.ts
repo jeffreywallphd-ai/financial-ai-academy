@@ -8,6 +8,12 @@ export type PersonalWorkspaceCollection =
   PersonalWorkspace["collections"][number];
 export type PersonalWorkspaceMutation =
   components["schemas"]["PersonalWorkspaceMutationRequestModel"]["mutation"];
+export type PreparedWorkspaceRequest = {
+  schema_version: "1.0.0";
+  idempotency_key: string;
+  expected_revision: number;
+  mutation: PersonalWorkspaceMutation;
+};
 
 export type WorkspaceFailureKind =
   | "forbidden"
@@ -55,20 +61,18 @@ export type WorkspaceActionState = {
   status: "error";
   kind: WorkspaceActionFailure;
   intent: string;
-  idempotencyKey: string;
-  retryMutation?: PersonalWorkspaceMutation;
+  preparedRequest?: PreparedWorkspaceRequest;
 };
 
 const DIGEST = /^[a-f0-9]{64}$/;
-const OPPORTUNITY_ID = /^[a-z0-9][a-z0-9._-]{2,63}$/;
-const PRODUCER_ID = /^[a-z0-9][a-z0-9._-]{2,63}$/;
+const CURRICULUM_ID = /^[a-z0-9][a-z0-9._-]{2,63}$/;
+const PLATFORM_ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
+const SEMANTIC_VERSION = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const UTC_DATE_TIME = /^(\d{4}-\d{2}-\d{2})[Tt](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?Z$/;
 
-function hasControlCharacter(value: string): boolean {
-  return Array.from(value).some((character) => {
-    const code = character.codePointAt(0) ?? 0;
-    return code <= 0x1f || code === 0x7f;
-  });
+function hasNullCharacter(value: string): boolean {
+  return value.includes("\u0000");
 }
 
 function record(value: unknown): Record<string, unknown> | undefined {
@@ -84,24 +88,36 @@ function boundedString(
 ): value is string {
   return (
     typeof value === "string" &&
-    value.length >= minimum &&
-    value.length <= maximum &&
-    !hasControlCharacter(value)
+    Array.from(value).length >= minimum &&
+    Array.from(value).length <= maximum &&
+    !hasNullCharacter(value)
   );
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+  const accepted = new Set(keys);
+  return Object.keys(value).every((key) => accepted.has(key));
 }
 
 export function workspaceIdentifierIsSafe(value: unknown): value is string {
-  return (
-    boundedString(value, 1, 128) &&
-    value.trim() === value &&
-    !/\s/.test(value)
-  );
+  return typeof value === "string" && PLATFORM_ID.test(value);
+}
+
+export function curriculumIdentifierIsSafe(value: unknown): value is string {
+  return typeof value === "string" && CURRICULUM_ID.test(value);
 }
 
 function utcDateTimeIsSafe(value: unknown): value is string {
-  if (typeof value !== "string" || !value.endsWith("Z")) return false;
-  const parsed = Date.parse(value);
-  return Number.isFinite(parsed);
+  if (typeof value !== "string") return false;
+  const matched = UTC_DATE_TIME.exec(value);
+  if (!matched) return false;
+  const [, date, hour, minute, second] = matched;
+  return Boolean(
+    dateIsSafe(date) &&
+      Number(hour) <= 23 &&
+      Number(minute) <= 59 &&
+      Number(second) <= 60,
+  );
 }
 
 function dateIsSafe(value: unknown): value is string {
@@ -110,20 +126,21 @@ function dateIsSafe(value: unknown): value is string {
   return Number.isFinite(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
 }
 
-function safeDestination(value: unknown): value is string {
+function referenceDestinationIsSafe(value: unknown): value is string {
   if (typeof value !== "string") return false;
-  const matched = /^\/learn\/(?:opportunities|placements)\/([^/?#]+)$/.exec(value);
-  return Boolean(matched?.[1] && PRODUCER_ID.test(matched[1]));
+  const matched = /^\/learn\/placements\/([^/?#]+)$/.exec(value);
+  return Boolean(matched?.[1] && CURRICULUM_ID.test(matched[1]));
 }
 
 function provenanceIsSafe(value: unknown): boolean {
   const candidate = record(value);
   return Boolean(
     candidate &&
-      boundedString(candidate.published_by, 1, 200) &&
+      hasOnlyKeys(candidate, ["published_by", "published_at", "content_reviewed_on", "educational_use_notice"]) &&
+      boundedString(candidate.published_by, 1, 160) &&
       utcDateTimeIsSafe(candidate.published_at) &&
       dateIsSafe(candidate.content_reviewed_on) &&
-      boundedString(candidate.educational_use_notice, 1, 1_000),
+      boundedString(candidate.educational_use_notice, 1, 500),
   );
 }
 
@@ -131,15 +148,19 @@ function referenceIsSafe(value: unknown): boolean {
   const candidate = record(value);
   if (
     !candidate ||
+    !hasOnlyKeys(candidate, candidate.reference_kind === "learning_opportunity"
+      ? ["reference_kind", "owner_module", "opportunity_id", "placement_id", "package_id", "package_version", "package_digest", "source_fingerprint", "title", "destination", "target_status", "provenance", "validated_at"]
+      : ["reference_kind", "owner_module", "placement_id", "package_id", "package_version", "package_digest", "title", "destination", "target_status", "provenance", "validated_at"]) ||
     candidate.owner_module !== "curriculum" ||
     candidate.target_status !== "available" ||
-    !PRODUCER_ID.test(String(candidate.placement_id ?? "")) ||
-    !PRODUCER_ID.test(String(candidate.package_id ?? "")) ||
-    !boundedString(candidate.package_version, 1, 64) ||
+    !curriculumIdentifierIsSafe(candidate.placement_id) ||
+    !curriculumIdentifierIsSafe(candidate.package_id) ||
+    typeof candidate.package_version !== "string" ||
+    !SEMANTIC_VERSION.test(candidate.package_version) ||
     typeof candidate.package_digest !== "string" ||
     !DIGEST.test(candidate.package_digest) ||
-    !boundedString(candidate.title, 1, 300) ||
-    !safeDestination(candidate.destination) ||
+    !boundedString(candidate.title, 1, 240) ||
+    !referenceDestinationIsSafe(candidate.destination) ||
     candidate.destination !== `/learn/placements/${String(candidate.placement_id)}` ||
     !utcDateTimeIsSafe(candidate.validated_at) ||
     !provenanceIsSafe(candidate.provenance)
@@ -149,8 +170,7 @@ function referenceIsSafe(value: unknown): boolean {
   if (candidate.reference_kind === "placed_lesson") return true;
   return (
     candidate.reference_kind === "learning_opportunity" &&
-    typeof candidate.opportunity_id === "string" &&
-    OPPORTUNITY_ID.test(candidate.opportunity_id) &&
+    curriculumIdentifierIsSafe(candidate.opportunity_id) &&
     typeof candidate.source_fingerprint === "string" &&
     DIGEST.test(candidate.source_fingerprint)
   );
@@ -160,6 +180,7 @@ function workspaceRecordIsSafe(value: unknown): value is PersonalWorkspaceRecord
   const candidate = record(value);
   if (
     !candidate ||
+    !hasOnlyKeys(candidate, ["record_kind", "record_id", ...(candidate.record_kind === "note" ? ["title", "body"] : ["label"]), "target", "archived", "created_at", "updated_at"]) ||
     !workspaceIdentifierIsSafe(candidate.record_id) ||
     typeof candidate.archived !== "boolean" ||
     !utcDateTimeIsSafe(candidate.created_at) ||
@@ -171,13 +192,13 @@ function workspaceRecordIsSafe(value: unknown): value is PersonalWorkspaceRecord
   }
   if (candidate.record_kind === "note") {
     return (
-      boundedString(candidate.title, 1, 200) &&
-      boundedString(candidate.body, 1, 10_000)
+      boundedString(candidate.title, 1, 120) &&
+      boundedString(candidate.body, 1, 8_000)
     );
   }
   return (
     candidate.record_kind === "bookmark" &&
-    (candidate.label === null || boundedString(candidate.label, 1, 200))
+    (candidate.label === null || boundedString(candidate.label, 0, 120))
   );
 }
 
@@ -185,8 +206,9 @@ function collectionIsSafe(value: unknown): value is PersonalWorkspaceCollection 
   const candidate = record(value);
   return Boolean(
     candidate &&
+      hasOnlyKeys(candidate, ["collection_id", "title", "member_record_ids", "created_at", "updated_at"]) &&
       workspaceIdentifierIsSafe(candidate.collection_id) &&
-      boundedString(candidate.title, 1, 200) &&
+      boundedString(candidate.title, 1, 120) &&
       utcDateTimeIsSafe(candidate.created_at) &&
       utcDateTimeIsSafe(candidate.updated_at) &&
       Date.parse(candidate.created_at as string) <=
@@ -205,6 +227,7 @@ export function personalWorkspaceIsSafe(
   const candidate = record(value);
   if (
     !candidate ||
+    !hasOnlyKeys(candidate, ["schema_version", "workspace_id", "learner_id", "revision", "records", "collections", "created_at", "updated_at", "workspace_digest"]) ||
     candidate.schema_version !== "1.0.0" ||
     !workspaceIdentifierIsSafe(candidate.workspace_id) ||
     !workspaceIdentifierIsSafe(candidate.learner_id) ||
@@ -246,11 +269,14 @@ function one(search: URLSearchParams, name: string): string | undefined {
 }
 
 function returnPathIsSafe(value: string | undefined): value is string {
+  const matched = value
+    ? /^\/learn\/(?:opportunities|placements)\/([^/?#]+)$/.exec(value)
+    : null;
   return Boolean(
     value &&
-      (value === "/learn" || safeDestination(value)) &&
-      !hasControlCharacter(value) &&
-      value.length <= 512,
+      (value === "/learn" || (matched?.[1] && CURRICULUM_ID.test(matched[1]))) &&
+      !hasNullCharacter(value) &&
+      Array.from(value).length <= 512,
   );
 }
 
@@ -259,7 +285,7 @@ export function parseSaveSelection(url: URL): SaveSelection | undefined {
   const placementId = one(url.searchParams, "placement");
   const returnToValue = one(url.searchParams, "return");
   const returnTo = returnPathIsSafe(returnToValue) ? returnToValue : "/learn";
-  if (!placementId || !PRODUCER_ID.test(placementId)) return undefined;
+  if (!placementId || !CURRICULUM_ID.test(placementId)) return undefined;
   if (kind === "lesson") {
     return { kind: "placed_lesson", placementId, returnTo };
   }
@@ -267,7 +293,7 @@ export function parseSaveSelection(url: URL): SaveSelection | undefined {
   if (
     kind === "opportunity" &&
     opportunityId &&
-    OPPORTUNITY_ID.test(opportunityId)
+    CURRICULUM_ID.test(opportunityId)
   ) {
     return {
       kind: "learning_opportunity",

@@ -1,6 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page, type Route } from "@playwright/test";
 
+import {
+  availableOpportunity,
+  learningCatalogFixture,
+  learningQueryPageFixture,
+} from "../../component/learningCatalogFixture";
+import { lessonFixture } from "../../component/lessonFixture";
+
 
 const provenance = {
   published_by: "Financial AI Academy",
@@ -32,12 +39,16 @@ function emptyWorkspace() {
 }
 
 async function mockSavedLearning(page: Page, options: {
+  applyFirstMutationBeforeFailure?: boolean;
+  firstMutationCode?: string;
   firstMutationStatus?: number;
   invalidRead?: boolean;
+  readStatus?: number;
 } = {}) {
   let workspace = emptyWorkspace();
   let mutationCount = 0;
   const posts: Record<string, unknown>[] = [];
+  const completed = new Map<string, ReturnType<typeof emptyWorkspace>>();
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -45,6 +56,9 @@ async function mockSavedLearning(page: Page, options: {
       return json(route, 201, { learner_id: "learner-one" });
     }
     if (url.pathname === "/api/v1/personal-workspace" && request.method() === "GET") {
+      if (options.readStatus) {
+        return json(route, options.readStatus, { code: "workspace_unavailable" });
+      }
       if (options.invalidRead) {
         return json(route, 200, {
           ...workspace,
@@ -63,14 +77,40 @@ async function mockSavedLearning(page: Page, options: {
       const body = request.postDataJSON() as Record<string, unknown>;
       posts.push(body);
       mutationCount += 1;
-      if (mutationCount === 1 && options.firstMutationStatus) {
-        return json(route, options.firstMutationStatus, { code: "unavailable" });
+      const idempotencyKey = String(body.idempotency_key);
+      const earlier = completed.get(idempotencyKey);
+      if (earlier) {
+        workspace = structuredClone(earlier);
+        return json(route, 200, workspace);
+      }
+      const firstFailure = mutationCount === 1 && options.firstMutationStatus;
+      if (firstFailure && !options.applyFirstMutationBeforeFailure) {
+        return json(route, options.firstMutationStatus!, { code: options.firstMutationCode ?? "unavailable" });
       }
       const mutation = body.mutation as Record<string, unknown>;
       const now = `2026-10-17T10:${String(workspace.revision).padStart(2, "0")}:00Z`;
-      if (mutation.operation === "create_note") {
+      if (mutation.operation === "create_note" || mutation.operation === "create_bookmark") {
         const selector = mutation.selector as Record<string, string>;
-        workspace.records.push({
+        const target = {
+          reference_kind: selector.reference_kind,
+          owner_module: "curriculum",
+          ...(selector.reference_kind === "learning_opportunity"
+            ? {
+                opportunity_id: selector.opportunity_id,
+                source_fingerprint: "b".repeat(64),
+              }
+            : {}),
+          placement_id: selector.placement_id,
+          package_id: "risk-return-package",
+          package_version: "1.0.0",
+          package_digest: "a".repeat(64),
+          title: "Risk and return basics",
+          destination: `/learn/placements/${selector.placement_id}`,
+          target_status: "available",
+          validated_at: now,
+          provenance,
+        };
+        workspace.records.push(mutation.operation === "create_note" ? {
           record_kind: "note",
           record_id: `note-${workspace.revision}`,
           title: mutation.title,
@@ -78,25 +118,23 @@ async function mockSavedLearning(page: Page, options: {
           archived: false,
           created_at: now,
           updated_at: now,
-          target: {
-            reference_kind: selector.reference_kind,
-            owner_module: "curriculum",
-            opportunity_id: selector.opportunity_id,
-            placement_id: selector.placement_id,
-            package_id: "risk-return-package",
-            package_version: "1.0.0",
-            package_digest: "a".repeat(64),
-            source_fingerprint: "b".repeat(64),
-            title: "Risk and return basics",
-            destination: `/learn/placements/${selector.placement_id}`,
-            target_status: "available",
-            validated_at: now,
-            provenance,
-          },
+          target,
+        } : {
+          record_kind: "bookmark",
+          record_id: `bookmark-${workspace.revision}`,
+          label: mutation.label,
+          archived: false,
+          created_at: now,
+          updated_at: now,
+          target,
         });
       } else if (mutation.operation === "update_note") {
         workspace.records = workspace.records.map((record) => record.record_id === mutation.record_id
           ? { ...record, title: mutation.title, body: mutation.body, updated_at: now }
+          : record);
+      } else if (mutation.operation === "update_bookmark") {
+        workspace.records = workspace.records.map((record) => record.record_id === mutation.record_id
+          ? { ...record, label: mutation.label, updated_at: now }
           : record);
       } else if (mutation.operation === "archive_record" || mutation.operation === "restore_record") {
         workspace.records = workspace.records.map((record) => record.record_id === mutation.record_id
@@ -114,6 +152,25 @@ async function mockSavedLearning(page: Page, options: {
         workspace.collections = workspace.collections.map((collection) => collection.collection_id === mutation.collection_id
           ? { ...collection, member_record_ids: mutation.member_record_ids, updated_at: now }
           : collection);
+      } else if (mutation.operation === "rename_collection") {
+        workspace.collections = workspace.collections.map((collection) => collection.collection_id === mutation.collection_id
+          ? { ...collection, title: mutation.title, updated_at: now }
+          : collection);
+      } else if (mutation.operation === "remove_collection") {
+        workspace.collections = workspace.collections.filter((collection) => collection.collection_id !== mutation.collection_id);
+      } else if (mutation.operation === "reorder_records") {
+        const byId = new Map(workspace.records.map((record) => [record.record_id, record]));
+        workspace.records = (mutation.record_ids as string[]).flatMap((recordId) => {
+          const record = byId.get(recordId);
+          return record ? [record] : [];
+        });
+      } else if (mutation.operation === "remove_record") {
+        workspace.records = workspace.records.filter((record) => record.record_id !== mutation.record_id);
+        workspace.collections = workspace.collections.map((collection) => ({
+          ...collection,
+          member_record_ids: (collection.member_record_ids as string[]).filter((recordId) => recordId !== mutation.record_id),
+          updated_at: now,
+        }));
       }
       workspace = {
         ...workspace,
@@ -121,6 +178,10 @@ async function mockSavedLearning(page: Page, options: {
         updated_at: now,
         workspace_digest: String(workspace.revision + 1).padStart(64, "0"),
       };
+      completed.set(idempotencyKey, structuredClone(workspace));
+      if (firstFailure) {
+        return json(route, options.firstMutationStatus!, { code: options.firstMutationCode ?? "unavailable" });
+      }
       return json(route, 200, workspace);
     }
     return json(route, 404, { code: "not_found" });
@@ -161,7 +222,7 @@ test("saves, edits, organizes, and reopens learning through the generated public
   await page.getByLabel("Collection name").first().fill("Foundations");
   await page.getByRole("button", { name: "Create collection" }).click();
   await expect(page.getByRole("heading", { level: 3, name: "Foundations" })).toBeVisible();
-  const collection = page.getByRole("heading", { name: "Foundations" }).locator("xpath=ancestor::section");
+  const collection = page.getByRole("heading", { name: "Foundations" }).locator("xpath=ancestor::section[1]");
   await collection.getByRole("checkbox", { name: "Risk notes updated" }).check();
   await collection.getByRole("button", { name: "Save collection items" }).click();
   await expect.poll(() => mocked.workspace().collections[0]?.member_record_ids).toEqual(["note-1"]);
@@ -169,11 +230,43 @@ test("saves, edits, organizes, and reopens learning through the generated public
   const updatedRecord = page.getByRole("heading", { name: "Risk notes updated" }).locator("xpath=ancestor::li");
   await updatedRecord.getByRole("button", { name: "Archive record" }).click();
   await expect(page.getByText("Note · Archived")).toBeVisible();
+  await page.getByRole("button", { name: "Restore record" }).click();
+  await expect(page.getByText("Note · Archived")).toHaveCount(0);
+
+  await page.goto("/saved-learning/new?kind=lesson&placement=cash-flow-primary");
+  await page.getByLabel("Personal label").fill("Cash flow bookmark");
+  await page.getByRole("button", { name: "Save bookmark" }).click();
+  const bookmark = page.getByRole("heading", { name: "Cash flow bookmark" }).locator("xpath=ancestor::li");
+  await bookmark.getByLabel("Personal label").fill("Cash flow review");
+  await bookmark.getByRole("button", { name: "Save bookmark changes" }).click();
+  await expect(page.getByRole("heading", { name: "Cash flow review" })).toBeVisible();
+  await page.getByRole("heading", { name: "Cash flow review" }).locator("xpath=ancestor::li").getByRole("button", { name: "Move earlier" }).click();
+  await expect.poll(() => mocked.workspace().records.map((record) => record.record_kind)).toEqual(["bookmark", "note"]);
+
+  const reorderedCollection = page.getByRole("heading", { name: "Foundations" }).locator("xpath=ancestor::section[1]");
+  await reorderedCollection.getByRole("checkbox", { name: "Cash flow review" }).check();
+  await reorderedCollection.getByRole("button", { name: "Move Cash flow review earlier in collection" }).click();
+  await reorderedCollection.getByRole("button", { name: "Save collection items" }).click();
+  await expect.poll(() => mocked.workspace().collections[0]?.member_record_ids).toEqual(["bookmark-7", "note-1"]);
+  await reorderedCollection.getByLabel("Collection name").fill("Core ideas");
+  await reorderedCollection.getByRole("button", { name: "Rename collection" }).click();
+  await expect(page.getByRole("heading", { name: "Core ideas" })).toBeVisible();
+
+  const removableBookmark = page.getByRole("heading", { name: "Cash flow review" }).locator("xpath=ancestor::li");
+  await removableBookmark.locator("summary", { hasText: "Remove saved record" }).click();
+  await removableBookmark.getByRole("button", { name: "Remove saved record" }).click();
+  await expect(page.getByRole("heading", { name: "Cash flow review" })).toHaveCount(0);
+  const removableCollection = page.getByRole("heading", { name: "Core ideas" }).locator("xpath=ancestor::section[1]");
+  await removableCollection.locator("summary", { hasText: "Remove collection" }).click();
+  await removableCollection.getByRole("button", { name: "Remove collection" }).click();
+  await expect(page.getByRole("heading", { name: "Core ideas" })).toHaveCount(0);
+
   await page.reload();
   await expect(page.getByRole("heading", { level: 3, name: "Risk notes updated" })).toBeVisible();
 
-  await updatedRecord.getByText("Technical record").click();
-  await expect(updatedRecord.getByText("risk-return-basics")).toBeVisible();
+  const reopenedRecord = page.getByRole("heading", { name: "Risk notes updated" }).locator("xpath=ancestor::li");
+  await reopenedRecord.getByText("Technical record").click();
+  await expect(reopenedRecord.getByText("risk-return-basics")).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   const lightText = await page.locator("main").innerText();
   for (const theme of ["dark", "system"] as const) {
@@ -183,8 +276,8 @@ test("saves, edits, organizes, and reopens learning through the generated public
   expect(new Set(mocked.posts.map((body) => body.idempotency_key)).size).toBe(mocked.posts.length);
 });
 
-test("reuses an unchanged request after an uncertain response", async ({ page }) => {
-  const mocked = await mockSavedLearning(page, { firstMutationStatus: 503 });
+test("reuses the complete original request after an accepted write loses its response", async ({ page }) => {
+  const mocked = await mockSavedLearning(page, { firstMutationStatus: 503, applyFirstMutationBeforeFailure: true });
   await page.goto("/saved-learning/new?kind=lesson&placement=cash-flow-primary");
   await page.getByLabel("Note title").fill("Cash flow reminder");
   await page.getByLabel("Note", { exact: true }).fill("Track the movement of cash.");
@@ -195,6 +288,97 @@ test("reuses an unchanged request after an uncertain response", async ({ page })
   await expect(page).toHaveURL(/\/saved-learning$/);
   expect(mocked.posts).toHaveLength(2);
   expect(mocked.posts[1]).toEqual(mocked.posts[0]);
+  expect(mocked.posts[1]?.expected_revision).toBe(1);
+  expect(mocked.workspace().revision).toBe(2);
+  expect(mocked.workspace().records).toHaveLength(1);
+});
+
+test("prepares a fresh request when a learner edits after an uncertain response", async ({ page }) => {
+  const mocked = await mockSavedLearning(page, { firstMutationStatus: 503, applyFirstMutationBeforeFailure: true });
+  await page.goto("/saved-learning/new?kind=lesson&placement=cash-flow-primary");
+  await page.getByLabel("Note title").fill("Cash flow reminder");
+  await page.getByLabel("Note", { exact: true }).fill("Track the movement of cash.");
+  await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page.getByRole("heading", { name: "Change not confirmed" })).toBeFocused();
+  await page.locator('textarea[name="body"]').fill("Track the movement of cash and timing.");
+  await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page).toHaveURL(/\/saved-learning$/);
+  expect(mocked.posts).toHaveLength(2);
+  expect(mocked.posts[1]?.idempotency_key).not.toBe(mocked.posts[0]?.idempotency_key);
+  expect(mocked.posts[1]?.expected_revision).toBe(2);
+});
+
+test("explains when a selected learning source is no longer available", async ({ page }) => {
+  await mockSavedLearning(page, { firstMutationStatus: 409, firstMutationCode: "source_unavailable" });
+  await page.goto("/saved-learning/new?kind=lesson&placement=cash-flow-primary");
+  await page.getByRole("button", { name: "Save bookmark" }).click();
+  await expect(page.getByRole("heading", { name: "Item not saved" })).toBeFocused();
+  await expect(page.getByRole("alert")).toContainText("no longer available");
+});
+
+for (const [code, heading] of [
+  ["stale_revision", "Saved learning changed"],
+  ["idempotency_conflict", "Use a fresh request"],
+] as const) {
+  test(`gives a bounded recovery for ${code}`, async ({ page }) => {
+    await mockSavedLearning(page, { firstMutationStatus: 409, firstMutationCode: code });
+    await page.goto("/saved-learning/new?kind=lesson&placement=cash-flow-primary");
+    await page.getByRole("button", { name: "Save bookmark" }).click();
+    await expect(page.getByRole("heading", { name: heading })).toBeFocused();
+  });
+}
+
+for (const [status, heading] of [
+  [401, "Learner session needed"],
+  [403, "Saved learning unavailable"],
+  [404, "Learning item not found"],
+] as const) {
+  test(`fails closed when workspace loading returns ${status}`, async ({ page }) => {
+    await mockSavedLearning(page, { readStatus: status });
+    await page.goto("/saved-learning");
+    await expect(page.getByRole("heading", { name: heading })).toBeVisible();
+    await expect(page.locator("main")).not.toContainText("workspace-one");
+  });
+}
+
+test("opens the saved-learning flow from opportunity and lesson context", async ({ page }) => {
+  await page.route("**/api/v1/session/single-profile", (route) => json(route, 201, {
+    status: "ready",
+    authentication_method: "single_profile",
+    expires_at: "2026-10-17T13:00:00Z",
+  }));
+  await page.route("**/api/v1/curriculum/opportunities/query*", (route) => json(route, 200, learningQueryPageFixture));
+  await page.route("**/api/v1/curriculum/opportunities", (route) => json(route, 200, learningCatalogFixture));
+  await page.route("**/api/v1/curriculum/placements/*/lesson", (route) => json(route, 200, lessonFixture));
+  await page.route("**/api/v1/curriculum/placements/*/completion", (route) => json(route, 200, {
+    projection_version: "1.0.0",
+    placement_id: lessonFixture.placement_id,
+    completed: false,
+    completion_meaning: "not_completed",
+    source_digest: "c".repeat(64),
+    rebuilt_at: "2026-10-17T12:00:00Z",
+    history: [],
+  }));
+  await page.route("**/api/v1/curriculum/placements/*/knowledge-check**", (route) => json(route, 404, { code: "not_found" }));
+  await page.route("**/api/v1/content/assets/risk-spectrum", (route) => route.fulfill({
+    status: 200,
+    contentType: "image/png",
+    body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lA2mWQAAAABJRU5ErkJggg==", "base64"),
+  }));
+
+  await page.goto(`/learn/opportunities/${availableOpportunity.opportunity_id}`);
+  const opportunityLink = page.getByRole("link", { name: "Save to Saved learning" });
+  await expect(opportunityLink).toHaveAttribute(
+    "href",
+    `/saved-learning/new?kind=opportunity&opportunity=${availableOpportunity.opportunity_id}&placement=${availableOpportunity.placement_id}&return=%2Flearn%2Fopportunities%2F${availableOpportunity.opportunity_id}`,
+  );
+
+  await page.goto(`/learn/placements/${lessonFixture.placement_id}`);
+  const lessonLink = page.getByRole("link", { name: "Save to Saved learning" });
+  await expect(lessonLink).toHaveAttribute(
+    "href",
+    `/saved-learning/new?kind=lesson&placement=${lessonFixture.placement_id}&return=%2Flearn%2Fplacements%2F${lessonFixture.placement_id}`,
+  );
 });
 
 test("fails closed for malformed private data and preserves responsive accessible recovery", async ({ page }) => {
