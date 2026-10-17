@@ -16,6 +16,7 @@ from ..domain.workspace import (
     ProjectArtifactReference,
     ProjectSnapshotReference,
     ProjectWorkspaceReference,
+    is_canonical_project_logical_path,
 )
 from ..ports.learning_reference import PersonalWorkspaceSourceUnavailable
 from ..public import (
@@ -87,6 +88,7 @@ class PublicProjectLearningReferenceGateway:
                     or material.project_id != shell.project_id
                     or material.learner_id != learner_id
                     or material.project_revision > shell.revision
+                    or snapshot.closed_at > validated_at
                 ):
                     raise PersonalWorkspaceSourceUnavailable()
                 return ProjectSnapshotReference(
@@ -120,6 +122,11 @@ class PublicProjectLearningReferenceGateway:
                 None,
             )
             if artifact is None:
+                raise PersonalWorkspaceSourceUnavailable()
+            if (
+                artifact.created_at > validated_at
+                or not is_canonical_project_logical_path(artifact.logical_path)
+            ):
                 raise PersonalWorkspaceSourceUnavailable()
             return ProjectArtifactReference(
                 project_id=shell.project_id,

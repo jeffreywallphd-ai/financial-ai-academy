@@ -37,6 +37,7 @@ from ..domain.workspace import (
     WorkspaceMutationIntent,
     WorkspaceNote,
     WorkspaceRecord,
+    is_canonical_project_logical_path,
 )
 from ..ports.workspace_contract import PersonalWorkspaceContractFailure
 
@@ -65,6 +66,7 @@ class ContractPersonalWorkspaceAdapter:
     def parse_reference(self, value: bytes) -> LearningReference:
         document = self._document(value, "learning-reference")
         self._version(document)
+        self._validate_reference_semantics(document["reference"])
         return self._reference(document["reference"])
 
     def parse_workspace(self, value: bytes) -> PersonalWorkspace:
@@ -552,6 +554,7 @@ class ContractPersonalWorkspaceAdapter:
                 )
             return
         if reference_kind == "project_artifact":
+            self._validate_project_logical_path(value["logical_path"])
             expected = (
                 f"/projects/{value['project_id']}#artifact-"
                 f"{value['artifact_id']}-v{value['artifact_version']}"
@@ -578,6 +581,15 @@ class ContractPersonalWorkspaceAdapter:
             self._reject(
                 "personal_workspace.contract.invalid_time",
                 "reference",
+            )
+
+    def _validate_project_logical_path(self, value: str) -> None:
+        """Preserve Project's canonical path profile at the copied boundary."""
+
+        if not is_canonical_project_logical_path(value):
+            self._reject(
+                "personal_workspace.contract.invalid_reference",
+                "logical_path",
             )
 
     def _new_id(

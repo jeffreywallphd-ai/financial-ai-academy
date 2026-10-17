@@ -4,7 +4,34 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import re
 from typing import Literal, TypeAlias
+import unicodedata
+
+
+_RESERVED_PROJECT_PATH_SEGMENT = re.compile(
+    r"^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\..*)?$",
+    re.IGNORECASE,
+)
+
+
+def is_canonical_project_logical_path(value: str) -> bool:
+    """Match the canonical Project path profile without owning Project state."""
+
+    if unicodedata.normalize("NFC", value) != value:
+        return False
+    return all(
+        segment
+        and segment not in {".", ".."}
+        and segment == segment.strip()
+        and not segment.endswith(".")
+        and not any(
+            ord(character) < 32 or character in '<>:"|?*'
+            for character in segment
+        )
+        and _RESERVED_PROJECT_PATH_SEGMENT.fullmatch(segment) is None
+        for segment in value.split("/")
+    )
 
 
 @dataclass(frozen=True, slots=True)

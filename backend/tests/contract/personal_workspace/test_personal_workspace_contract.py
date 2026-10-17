@@ -103,6 +103,13 @@ def test_project_reference_intents_are_closed_and_portable(
     intent = adapter.parse_mutation_intent(fixture)
     assert isinstance(intent.mutation.target, reference_type)  # type: ignore[union-attr]
     assert adapter.mutation_intent_document(intent) == json.loads(fixture)
+    target = json.loads(fixture)["mutation"]["target"]
+    reference = adapter.parse_reference(
+        json.dumps(
+            {"schema_version": "1.0.0", "reference": target}
+        ).encode("utf-8")
+    )
+    assert isinstance(reference, reference_type)
 
 
 @pytest.mark.parametrize(
@@ -249,6 +256,51 @@ def test_project_reference_source_time_cannot_follow_validation(
     with pytest.raises(PersonalWorkspaceContractFailure) as failure:
         adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
     assert failure.value.code == "personal_workspace.contract.invalid_time"
+
+
+@pytest.mark.parametrize(
+    "logical_path",
+    [
+        "../private.txt",
+        "evidence/../private.txt",
+        "evidence/./result.csv",
+        "evidence//result.csv",
+        "evidence /result.csv",
+        "evidence/CON.txt",
+        "evidence/control\u0001.csv",
+        "evidence/cafe\u0301.csv",
+        "evidence/result.",
+    ],
+)
+@pytest.mark.parametrize("surface", ["reference", "mutation", "workspace"])
+def test_project_artifact_paths_preserve_project_canonical_profile(
+    adapter: ContractPersonalWorkspaceAdapter,
+    logical_path: str,
+    surface: str,
+) -> None:
+    mutation_document = _fixture("valid-project-artifact-bookmark.json")
+    target = deepcopy(mutation_document["mutation"]["target"])  # type: ignore[index]
+    target["logical_path"] = logical_path  # type: ignore[index]
+
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        if surface == "reference":
+            adapter.parse_reference(
+                json.dumps(
+                    {"schema_version": "1.0.0", "reference": target},
+                    ensure_ascii=False,
+                ).encode("utf-8")
+            )
+        elif surface == "mutation":
+            mutation_document["mutation"]["target"] = target  # type: ignore[index]
+            adapter.parse_mutation_intent(
+                json.dumps(mutation_document, ensure_ascii=False).encode("utf-8")
+            )
+        else:
+            workspace_document = _fixture("valid-populated-workspace.json")
+            workspace_document["records"][0]["target"] = target  # type: ignore[index]
+            adapter.parse_workspace(_seal(adapter, workspace_document))
+
+    assert failure.value.code == "personal_workspace.contract.invalid_reference"
 
 
 def test_nullable_bookmark_label_has_one_canonical_representation(

@@ -39,7 +39,10 @@ creates a mutation or execution path into another module.
   `project_snapshot`, and `project_artifact`. They retain safe Project title,
   lifecycle and revisions; snapshot identity/digest/close time; or inert
   artifact identity/version/kind/path/media/inspection/size/content-digest
-  facts. Safe same-origin destinations correlate every retained identity.
+  facts. Safe same-origin destinations correlate every retained identity. A
+  retained artifact logical path must remain canonical under Project's path
+  profile; traversal, dot/empty segments, reserved aliases, surrounding
+  whitespace, control characters, and non-NFC forms fail closed.
 - The Project adapter calls only learner-bound `open_project`, `open_workspace`,
   and `open_snapshot` public operations. It cannot call artifact download,
   export, mutation, object storage, or persistence and maps missing, denied,

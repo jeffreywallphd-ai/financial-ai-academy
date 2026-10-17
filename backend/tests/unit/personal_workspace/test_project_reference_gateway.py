@@ -36,7 +36,13 @@ from financial_ai_academy.modules.project.domain.workspace import (
     ProjectWorkspace,
     ProvenanceSourceType,
 )
-from financial_ai_academy.modules.project.public import ProjectError, ProjectErrorCode
+from financial_ai_academy.modules.project.public import (
+    OpenProjectRequest,
+    OpenProjectSnapshotRequest,
+    OpenProjectWorkspaceRequest,
+    ProjectError,
+    ProjectErrorCode,
+)
 
 
 NOW = datetime(2026, 10, 17, 13, 0, tzinfo=timezone.utc)
@@ -128,49 +134,65 @@ class Projects:
         self.workspace = workspace()
         self.snapshot = snapshot()
         self.calls: list[str] = []
+        self.requests: list[object] = []
         self.error: Exception | None = None
 
-    def _result(self, name: str, value):
+    def _result(self, name: str, request: object, value):
         self.calls.append(name)
+        self.requests.append(request)
         if self.error is not None:
             raise self.error
         return value
 
-    def open_project(self, _request):
-        return self._result("open_project", self.shell)
+    def open_project(self, request):
+        return self._result("open_project", request, self.shell)
 
-    def open_workspace(self, _request):
-        return self._result("open_workspace", self.workspace)
+    def open_workspace(self, request):
+        return self._result("open_workspace", request, self.workspace)
 
-    def open_snapshot(self, _request):
-        return self._result("open_snapshot", self.snapshot)
+    def open_snapshot(self, request):
+        return self._result("open_snapshot", request, self.snapshot)
 
     def download_artifact(self, _request):  # pragma: no cover - must stay unreachable
         raise AssertionError("The Personal workspace must not download artifact bytes.")
 
 
 @pytest.mark.parametrize(
-    ("selector", "expected_type", "expected_calls"),
+    ("selector", "expected_type", "expected_calls", "expected_requests"),
     [
         (
             ProjectWorkspaceSelector("project.demo"),
             ProjectWorkspaceReference,
             ["open_project", "open_workspace"],
+            [
+                OpenProjectRequest("learner.demo", "project.demo"),
+                OpenProjectWorkspaceRequest("learner.demo", "project.demo"),
+            ],
         ),
         (
             ProjectSnapshotSelector("project.demo", "snapshot.baseline"),
             ProjectSnapshotReference,
             ["open_project", "open_snapshot"],
+            [
+                OpenProjectRequest("learner.demo", "project.demo"),
+                OpenProjectSnapshotRequest(
+                    "learner.demo", "project.demo", "snapshot.baseline"
+                ),
+            ],
         ),
         (
             ProjectArtifactSelector("project.demo", "artifact.inputs", 2),
             ProjectArtifactReference,
             ["open_project", "open_workspace"],
+            [
+                OpenProjectRequest("learner.demo", "project.demo"),
+                OpenProjectWorkspaceRequest("learner.demo", "project.demo"),
+            ],
         ),
     ],
 )
 def test_project_reference_variants_use_only_public_read_operations(
-    selector, expected_type, expected_calls
+    selector, expected_type, expected_calls, expected_requests
 ) -> None:
     projects = Projects()
     result = PublicProjectLearningReferenceGateway(projects).resolve(
@@ -181,6 +203,7 @@ def test_project_reference_variants_use_only_public_read_operations(
 
     assert isinstance(result, expected_type)
     assert projects.calls == expected_calls
+    assert projects.requests == expected_requests
     assert result.project_id == "project.demo"
     assert result.title == "Evidence comparison"
     assert result.validated_at == NOW
@@ -220,27 +243,82 @@ def test_snapshot_reference_does_not_copy_snapshot_material() -> None:
 
 
 @pytest.mark.parametrize(
-    ("kind", "media_type", "inspection_mode", "byte_count"),
+    (
+        "title",
+        "project_revision",
+        "workspace_revision",
+        "kind",
+        "logical_path",
+        "media_type",
+        "inspection_mode",
+        "byte_count",
+        "content_digest",
+        "created_at",
+    ),
     [
-        (ArtifactKind.DATASET, "text/csv", InspectionMode.PLAIN_TEXT, 0),
-        (ArtifactKind.NOTEBOOK, "application/x-ipynb+json", InspectionMode.METADATA_ONLY, 8200),
-        (ArtifactKind.RESULT, "application/json", InspectionMode.PLAIN_TEXT, 10485760),
+        (
+            "Evidence comparison",
+            1,
+            1,
+            ArtifactKind.DATASET,
+            "inputs/a.csv",
+            "text/csv",
+            InspectionMode.PLAIN_TEXT,
+            0,
+            "1" * 64,
+            CREATED,
+        ),
+        (
+            "Notebook review",
+            7,
+            12,
+            ArtifactKind.NOTEBOOK,
+            "analysis/review.ipynb",
+            "application/x-ipynb+json",
+            InspectionMode.METADATA_ONLY,
+            8200,
+            "d" * 64,
+            datetime(2026, 10, 17, 12, 30, tzinfo=timezone.utc),
+        ),
+        (
+            "Result record",
+            99,
+            101,
+            ArtifactKind.RESULT,
+            "results/final.json",
+            "application/json",
+            InspectionMode.PLAIN_TEXT,
+            10485760,
+            "f" * 64,
+            NOW,
+        ),
     ],
 )
 def test_artifact_reference_varies_safe_manifest_facts_without_private_payload(
+    title: str,
+    project_revision: int,
+    workspace_revision: int,
     kind: ArtifactKind,
+    logical_path: str,
     media_type: str,
     inspection_mode: InspectionMode,
     byte_count: int,
+    content_digest: str,
+    created_at: datetime,
 ) -> None:
     projects = Projects()
+    projects.shell = shell(title=title, revision=project_revision)
     projects.workspace = workspace(
+        workspace_revision=workspace_revision,
         artifacts=(
             artifact(
                 artifact_kind=kind,
+                logical_path=logical_path,
                 media_type=media_type,
                 inspection_mode=inspection_mode,
                 byte_count=byte_count,
+                content_digest=content_digest,
+                created_at=created_at,
             ),
         )
     )
@@ -251,8 +329,14 @@ def test_artifact_reference_varies_safe_manifest_facts_without_private_payload(
     )
 
     assert isinstance(result, ProjectArtifactReference)
+    assert result.title == title
+    assert result.project_revision == project_revision
+    assert result.workspace_revision == workspace_revision
     assert result.artifact_kind == kind.value
+    assert result.logical_path == logical_path
     assert result.byte_count == byte_count
+    assert result.content_digest == content_digest
+    assert result.created_at == created_at
     serialized = repr(result)
     for private in (
         "Private charter",
@@ -292,18 +376,51 @@ def test_non_project_selector_fails_without_touching_project() -> None:
     assert projects.calls == []
 
 
-@pytest.mark.parametrize("mismatch", ["shell", "workspace", "snapshot", "artifact"])
+@pytest.mark.parametrize(
+    "mismatch",
+    [
+        "shell_learner",
+        "shell_project",
+        "shell_lifecycle",
+        "workspace_learner",
+        "workspace_project",
+        "snapshot_id",
+        "snapshot_learner",
+        "snapshot_project",
+        "snapshot_revision",
+        "artifact",
+    ],
+)
 def test_missing_mismatched_or_denied_project_fails_closed(mismatch: str) -> None:
     projects = Projects()
     selector = ProjectWorkspaceSelector("project.demo")
-    if mismatch == "shell":
+    if mismatch == "shell_learner":
         projects.shell = shell(learner_id="learner.other")
-    elif mismatch == "workspace":
+    elif mismatch == "shell_project":
+        projects.shell = shell(project_id="project.other")
+    elif mismatch == "shell_lifecycle":
+        projects.shell = shell(lifecycle="archived")
+    elif mismatch == "workspace_learner":
+        projects.workspace = workspace(learner_id="learner.other")
+    elif mismatch == "workspace_project":
         projects.workspace = workspace(project_id="project.other")
-    elif mismatch == "snapshot":
+    elif mismatch == "snapshot_id":
+        selector = ProjectSnapshotSelector("project.demo", "snapshot.baseline")
+        projects.snapshot = snapshot(snapshot_id="snapshot.other")
+    elif mismatch == "snapshot_learner":
         selector = ProjectSnapshotSelector("project.demo", "snapshot.baseline")
         projects.snapshot = snapshot(
             snapshot=replace(snapshot().snapshot, learner_id="learner.other")
+        )
+    elif mismatch == "snapshot_project":
+        selector = ProjectSnapshotSelector("project.demo", "snapshot.baseline")
+        projects.snapshot = snapshot(
+            snapshot=replace(snapshot().snapshot, project_id="project.other")
+        )
+    elif mismatch == "snapshot_revision":
+        selector = ProjectSnapshotSelector("project.demo", "snapshot.baseline")
+        projects.snapshot = snapshot(
+            snapshot=replace(snapshot().snapshot, project_revision=4)
         )
     else:
         selector = ProjectArtifactSelector("project.demo", "artifact.missing", 1)
@@ -315,6 +432,83 @@ def test_missing_mismatched_or_denied_project_fails_closed(mismatch: str) -> Non
             validated_at=NOW,
         )
     assert "learner.other" not in str(failure.value)
+
+
+@pytest.mark.parametrize(
+    ("selector", "future_source"),
+    [
+        (
+            ProjectSnapshotSelector("project.demo", "snapshot.baseline"),
+            "snapshot",
+        ),
+        (
+            ProjectArtifactSelector("project.demo", "artifact.inputs", 2),
+            "artifact",
+        ),
+    ],
+)
+def test_source_time_after_validation_fails_closed(selector, future_source: str) -> None:
+    projects = Projects()
+    future = datetime(2026, 10, 17, 13, 0, 1, tzinfo=timezone.utc)
+    if future_source == "snapshot":
+        projects.snapshot = snapshot(closed_at=future)
+    else:
+        projects.workspace = workspace(artifacts=(artifact(created_at=future),))
+
+    with pytest.raises(PersonalWorkspaceSourceUnavailable):
+        PublicProjectLearningReferenceGateway(projects).resolve(
+            selector,
+            learner_id="learner.demo",
+            validated_at=NOW,
+        )
+
+
+@pytest.mark.parametrize(
+    ("selector", "boundary_source"),
+    [
+        (
+            ProjectSnapshotSelector("project.demo", "snapshot.baseline"),
+            "snapshot",
+        ),
+        (
+            ProjectArtifactSelector("project.demo", "artifact.inputs", 2),
+            "artifact",
+        ),
+    ],
+)
+def test_source_time_equal_to_validation_is_accepted(
+    selector, boundary_source: str
+) -> None:
+    projects = Projects()
+    if boundary_source == "snapshot":
+        projects.snapshot = snapshot(closed_at=NOW)
+    else:
+        projects.workspace = workspace(artifacts=(artifact(created_at=NOW),))
+
+    result = PublicProjectLearningReferenceGateway(projects).resolve(
+        selector,
+        learner_id="learner.demo",
+        validated_at=NOW,
+    )
+    assert result.validated_at == NOW
+
+
+@pytest.mark.parametrize(
+    "logical_path",
+    ["../private.txt", "evidence/CON.txt", "evidence/cafe\u0301.csv"],
+)
+def test_noncanonical_project_artifact_path_fails_closed(logical_path: str) -> None:
+    projects = Projects()
+    projects.workspace = workspace(
+        artifacts=(artifact(logical_path=logical_path),)
+    )
+
+    with pytest.raises(PersonalWorkspaceSourceUnavailable):
+        PublicProjectLearningReferenceGateway(projects).resolve(
+            ProjectArtifactSelector("project.demo", "artifact.inputs", 2),
+            learner_id="learner.demo",
+            validated_at=NOW,
+        )
 
 
 def test_project_public_failure_is_bounded_and_confidential() -> None:
