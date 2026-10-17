@@ -1,7 +1,7 @@
 ---
 id: WRK-0123
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -161,3 +161,11 @@ return to WRK-0121.
 - 2026-10-17: Activated from clean base `ff2423e` after the implementation gate
   confirmed current CAP authority, completed dependencies, bounded Project-only
   response scope, and no lower-level approval requirement.
+- 2026-10-17: Submitted exact candidate `b985db7`. A Project-specific Pydantic
+  response base now applies the contract's UTC timestamp spelling at JSON
+  serialization only. Deterministic nested-export and live HTTP regressions
+  cover zero, trimmed, and full fractional precision, exact digest parity,
+  naive-time denial, and the unchanged reviewed OpenAPI snapshot. The affected
+  Project suite passed 141 tests with 10 environment-specific skips; focused
+  HTTP verification passed 8 tests with one PostgreSQL skip; architecture and
+  all 10 security control groups passed.
