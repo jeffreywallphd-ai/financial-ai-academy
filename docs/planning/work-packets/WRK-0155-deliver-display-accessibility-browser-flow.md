@@ -1,7 +1,7 @@
 ---
 id: WRK-0155
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -290,3 +290,7 @@ action, or financial behavior changed.
   route also selected unrelated legacy screenshot and Project journeys. The
   packet now confines its required Chromium evidence to a dedicated authenticated
   presentation-preferences wrapper without weakening any existing suite.
+- 2026-10-17: Re-entered verification after the dedicated authenticated wrapper
+  passed all three presentation-preferences Chromium journeys and catalog tests
+  proved exact, non-overlapping selection for presentation, lesson, and Project
+  browser paths.
