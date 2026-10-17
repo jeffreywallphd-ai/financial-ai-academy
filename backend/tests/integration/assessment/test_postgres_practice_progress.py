@@ -69,6 +69,7 @@ def migrated_database() -> object:
         "assessment_0001_knowledge_check_evidence",
         "assessment_0002_practice_evidence",
         "assessment_0003_practice_progress",
+        "assessment_0004_project_submission_evidence",
     }
     assert {item.migration_id for item in runner.apply_all()} == expected
     assert {item.migration_id for item in runner.apply_all()} == expected
@@ -491,6 +492,7 @@ def test_progress_migration_round_trip_preserves_existing_evidence_bytes() -> No
         "assessment_0001_knowledge_check_evidence",
         "assessment_0002_practice_evidence",
         "assessment_0003_practice_progress",
+        "assessment_0004_project_submission_evidence",
     }
     with psycopg.connect(POSTGRES_DSN) as connection:
         after = connection.execute(

@@ -51,6 +51,15 @@ retry policy under a row lock. Drafts are mutable work, not evidence. The down
 migration is for controlled development only and fails rather than deleting or
 collapsing retained evidence when a scope contains more than one attempt.
 
+`assessment_0004_project_submission_evidence` adds immutable Project snapshot
+submission aggregates, exact request replay identities, per-learner Project
+ordering scopes, a monotonic accepted sequence, and the safe Project completion
+outbox. Candidate, submission, and evidence documents remain Assessment-owned;
+Project, Content, and Curriculum are resolved only through public operations.
+One transaction allocates occurrence/supersession, writes the evidence, and
+writes its event. Every table rejects ordinary update/delete, and controlled
+down migration refuses to discard retained evidence or events.
+
 The same Curriculum stream owns
 `curriculum_0002_discovery_projection`. It stores immutable catalog
 classifications separately from the replaceable singleton discovery generation

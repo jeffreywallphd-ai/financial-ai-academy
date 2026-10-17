@@ -160,9 +160,10 @@ completion event. It carries exact evidence, submission, Project, snapshot,
 brief, placement, policy, milestone, occurrence, time, and fingerprint
 provenance while omitting learner identity and artifact-level mappings. It is
 not a quality, correctness, mastery, competency, reproducibility, suitability,
-performance, or advice signal. The current packet supplies contract and pure
-projection meaning only; persistence, replay, and consumers are not yet
-implemented.
+performance, or advice signal. Assessment now retains the event atomically
+with immutable Project evidence and can replay exact ordered evidence through
+its transport-neutral application operation. External consumers are not yet
+composed.
 
 ## Practice Draft and Retry Contracts
 
@@ -317,6 +318,9 @@ for exact source/milestone/resource validation, canonical fingerprinting,
 bounded issues, and evidence/event/history projection. Focused evidence covers
 all four resource kinds, one through twenty milestones, non-ASCII text,
 permitted ordering changes, stale and unknown facts, prohibited private or
-active fields, and immutable supersession history. It adds no repository,
-migration, application service, public API, generated client, Learner-model or
-Audit consumer, browser flow, provider, execution path, or AI authority.
+active fields, and immutable supersession history. Public-operation-only
+candidate assembly, transport-neutral submit/read operations, append-only
+PostgreSQL evidence, atomic safe outbox, exact replay/conflict, concurrent
+ordering, restart, rollback, and supersession are implemented. Protected HTTP,
+OpenAPI/generated client, Learner-model or Audit consumers, browser flow,
+provider, execution path, and AI authority remain absent.

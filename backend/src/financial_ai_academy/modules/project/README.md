@@ -36,6 +36,11 @@ The Project seam remains transport-neutral:
 - learning-start listing stays bounded to exact Curriculum placements and
   resolves each safe title, purpose, and immutable origin through public
   Curriculum and Content operations. It creates no learner state.
+- `open_learning_snapshot` returns the exact learning origin, immutable
+  snapshot, and only the safe version/digest facts needed by Assessment. Domain
+  links expose their target identity and exact retained version or as-of time;
+  note bodies, source URLs, artifact bytes and paths, provenance text, and the
+  current mutable workspace remain private to Project.
 
 This seam has a Project-owned repository, migration, UTC/UUID adapters, and
 public HTTP/client boundary. The browser now composes list, create, and reopen

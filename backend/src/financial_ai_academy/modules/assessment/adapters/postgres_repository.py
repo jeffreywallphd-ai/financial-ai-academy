@@ -12,6 +12,7 @@ import psycopg
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
+from .project_submission_contract import ContractProjectSubmissionAdapter
 from ..domain.models import AssessmentSubmissionCandidate
 from ..domain.practice import (
     MultipleSelectPracticeResponse,
@@ -25,11 +26,17 @@ from ..domain.practice import (
     PracticeSubmissionCandidate,
     SingleSelectPracticeResponse,
 )
+from ..domain.project_submission import (
+    ProjectCompletionEvidence,
+    ProjectEvidenceMetadata,
+)
 from ..ports.repositories import (
     KnowledgeCheckAlreadyCompleted,
     PracticeAttemptLimitReached,
     PracticeDraftConflict,
     PracticeSubmissionConflict,
+    ProjectSubmissionConflict,
+    ProjectSubmissionRecordCandidate,
     StoredPracticeCompletionEvent,
     SubmissionConflict,
 )
@@ -45,9 +52,201 @@ class PostgresAssessmentRepository:
         dsn: str,
         *,
         before_outbox: Callable[[], None] | None = None,
+        project_submission_contract: ContractProjectSubmissionAdapter | None = None,
     ) -> None:
         self._dsn = dsn
         self._before_outbox = before_outbox
+        self._project_submission_contract = project_submission_contract
+
+    def record_project_submission(
+        self, candidate: ProjectSubmissionRecordCandidate
+    ) -> tuple[ProjectCompletionEvidence, bool]:
+        contract = self._require_project_submission_contract()
+        accepted = candidate.accepted
+        submission = accepted.submission
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            with connection.transaction():
+                connection.execute(
+                    """
+                    INSERT INTO assessment.project_submission_identities (
+                        learner_id, submission_id
+                    ) VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                    """,
+                    (candidate.learner_id, submission.submission_id),
+                )
+                connection.execute(
+                    """
+                    SELECT 1
+                    FROM assessment.project_submission_identities
+                    WHERE learner_id = %s AND submission_id = %s
+                    FOR UPDATE
+                    """,
+                    (candidate.learner_id, submission.submission_id),
+                ).fetchone()
+                existing = connection.execute(
+                    """
+                    SELECT *
+                    FROM assessment.project_submissions
+                    WHERE learner_id = %s AND submission_id = %s
+                    """,
+                    (candidate.learner_id, submission.submission_id),
+                ).fetchone()
+                if existing is not None:
+                    if existing["request_fingerprint"] != accepted.request_fingerprint:
+                        raise ProjectSubmissionConflict(
+                            "Submission identity maps to different input."
+                        )
+                    return self._project_evidence_from_row(existing), False
+
+                project_id = accepted.candidate.project.project_id
+                connection.execute(
+                    """
+                    INSERT INTO assessment.project_submission_scopes (
+                        learner_id, project_id
+                    ) VALUES (%s, %s)
+                    ON CONFLICT DO NOTHING
+                    """,
+                    (candidate.learner_id, project_id),
+                )
+                connection.execute(
+                    """
+                    SELECT 1
+                    FROM assessment.project_submission_scopes
+                    WHERE learner_id = %s AND project_id = %s
+                    FOR UPDATE
+                    """,
+                    (candidate.learner_id, project_id),
+                ).fetchone()
+                prior = connection.execute(
+                    """
+                    SELECT submission_id, occurrence
+                    FROM assessment.project_submissions
+                    WHERE learner_id = %s AND project_id = %s
+                    ORDER BY occurrence DESC
+                    LIMIT 1
+                    """,
+                    (candidate.learner_id, project_id),
+                ).fetchone()
+                occurrence = 1 if prior is None else int(prior["occurrence"]) + 1
+                supersedes = None if prior is None else str(prior["submission_id"])
+                accepted_sequence = int(
+                    connection.execute(
+                        "SELECT nextval('assessment.project_submission_accepted_sequence') AS value"
+                    ).fetchone()["value"]
+                )
+                metadata = ProjectEvidenceMetadata(
+                    evidence_id=candidate.evidence_id,
+                    learner_id=candidate.learner_id,
+                    occurrence=occurrence,
+                    accepted_sequence=accepted_sequence,
+                    submitted_at=candidate.submitted_at,
+                    supersedes_submission_id=supersedes,
+                )
+                evidence = contract.project_evidence(accepted, metadata)
+                event = contract.project_event(
+                    evidence,
+                    event_id=candidate.event_id,
+                    occurred_at=candidate.submitted_at,
+                )
+                candidate_document = contract.to_candidate_document(
+                    accepted.candidate
+                )
+                submission_document = contract.to_submission_document(submission)
+                evidence_document = contract.to_evidence_document(evidence)
+                event_document = contract.to_event_document(event)
+                connection.execute(
+                    """
+                    INSERT INTO assessment.project_submissions (
+                        evidence_id,
+                        learner_id,
+                        submission_id,
+                        project_id,
+                        snapshot_id,
+                        request_fingerprint,
+                        occurrence,
+                        accepted_sequence,
+                        supersedes_submission_id,
+                        candidate,
+                        submission,
+                        evidence,
+                        submitted_at
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (
+                        evidence.evidence_id,
+                        evidence.learner_id,
+                        submission.submission_id,
+                        project_id,
+                        accepted.candidate.project.snapshot_id,
+                        accepted.request_fingerprint,
+                        occurrence,
+                        accepted_sequence,
+                        supersedes,
+                        Jsonb(candidate_document),
+                        Jsonb(submission_document),
+                        Jsonb(evidence_document),
+                        evidence.submitted_at,
+                    ),
+                )
+                if self._before_outbox is not None:
+                    self._before_outbox()
+                connection.execute(
+                    """
+                    INSERT INTO assessment.project_outbox (
+                        event_id,
+                        evidence_id,
+                        event_type,
+                        event_version,
+                        event_payload,
+                        occurred_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        event.event_id,
+                        evidence.evidence_id,
+                        event.event_type,
+                        event.event_version,
+                        Jsonb(event_document),
+                        event.occurred_at,
+                    ),
+                )
+        return evidence, True
+
+    def list_project_completion_evidence(
+        self, *, learner_id: str, project_id: str
+    ) -> tuple[ProjectCompletionEvidence, ...]:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            rows = connection.execute(
+                """
+                SELECT *
+                FROM assessment.project_submissions
+                WHERE learner_id = %s AND project_id = %s
+                ORDER BY occurrence
+                """,
+                (learner_id, project_id),
+            ).fetchall()
+        return tuple(self._project_evidence_from_row(row) for row in rows)
+
+    def list_project_completion_event_documents(
+        self, *, learner_id: str, project_id: str
+    ) -> tuple[Mapping[str, Any], ...]:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            rows = connection.execute(
+                """
+                SELECT o.event_payload
+                FROM assessment.project_outbox AS o
+                JOIN assessment.project_submissions AS s
+                  ON s.evidence_id = o.evidence_id
+                WHERE s.learner_id = %s AND s.project_id = %s
+                ORDER BY s.occurrence
+                """,
+                (learner_id, project_id),
+            ).fetchall()
+        return tuple(row["event_payload"] for row in rows)
 
     def record_submission(
         self, candidate: AssessmentSubmissionCandidate
@@ -597,6 +796,65 @@ class PostgresAssessmentRepository:
             )
             for row in rows
         )
+
+    def _require_project_submission_contract(
+        self,
+    ) -> ContractProjectSubmissionAdapter:
+        if self._project_submission_contract is None:
+            raise RuntimeError("Project submission persistence is unavailable.")
+        return self._project_submission_contract
+
+    def _project_evidence_from_row(
+        self, row: Mapping[str, Any]
+    ) -> ProjectCompletionEvidence:
+        contract = self._require_project_submission_contract()
+        candidate = contract.parse_candidate(
+            self._project_document_bytes(row["candidate"])
+        )
+        submission = contract.parse_submission(
+            self._project_document_bytes(row["submission"])
+        )
+        validation = contract.validate(candidate, submission)
+        if (
+            validation.accepted is None
+            or validation.request_fingerprint != row["request_fingerprint"]
+        ):
+            raise ValueError("Stored Project submission is inconsistent.")
+        submitted_at = row["submitted_at"]
+        if not isinstance(submitted_at, datetime):
+            raise ValueError("Stored Project submission time is invalid.")
+        evidence = contract.project_evidence(
+            validation.accepted,
+            ProjectEvidenceMetadata(
+                evidence_id=str(row["evidence_id"]),
+                learner_id=str(row["learner_id"]),
+                occurrence=int(row["occurrence"]),
+                accepted_sequence=int(row["accepted_sequence"]),
+                submitted_at=submitted_at,
+                supersedes_submission_id=(
+                    str(row["supersedes_submission_id"])
+                    if row["supersedes_submission_id"] is not None
+                    else None
+                ),
+            ),
+        )
+        stored = row["evidence"]
+        if not isinstance(stored, Mapping) or contract.to_evidence_document(
+            evidence
+        ) != dict(stored):
+            raise ValueError("Stored Project evidence is inconsistent.")
+        return evidence
+
+    @staticmethod
+    def _project_document_bytes(value: object) -> bytes:
+        if not isinstance(value, Mapping):
+            raise ValueError("Stored Project submission document is invalid.")
+        return json.dumps(
+            dict(value),
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
 
     def _resolve_existing(
         self,

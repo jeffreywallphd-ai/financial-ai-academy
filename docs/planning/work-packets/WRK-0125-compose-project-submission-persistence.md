@@ -188,7 +188,7 @@ backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/assessment/test_pr
 backend/.venv/Scripts/python.exe -m pytest backend/tests/integration/assessment/test_postgres_project_submission.py backend/tests/integration/assessment/test_postgres_assessment.py backend/tests/integration/assessment/test_postgres_practice_submission.py backend/tests/integration/assessment/test_postgres_practice_progress.py
 backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/project backend/tests/unit/content backend/tests/unit/curriculum backend/tests/unit/assessment
 python dev-tools/architecture/check_architecture.py
-python dev-tools/security/check_security.py
+python dev-tools/security/check_slice_security.py
 python docs/planning/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0125-compose-project-submission-persistence.md
 python dev-tools/planning/check_planning.py
 python dev-tools/documentation/check_docs.py
@@ -265,3 +265,12 @@ for just-in-time refinement.
 - 2026-10-17: Reclaimed the fully bounded packet from base revision `f66a0df`
   and acquired exact edit ownership after planning and implementation gates
   passed again.
+- 2026-10-17: Implemented the public-operation-only candidate gateway,
+  transport-neutral submit/read core, Project-owned safe snapshot-facts read,
+  additive append-only Assessment migration/repository, and atomic safe
+  outbox. Focused contract/unit checks pass 49/49, the affected real-
+  PostgreSQL set passes 35/35, and the combined Project, Content, Curriculum,
+  and Assessment unit regression passes 263/263. Architecture (16/16),
+  security (10 control groups), planning, documentation, packet validation,
+  compilation, and whitespace checks pass. Exact-candidate verification and
+  independent technical review remain before completion.

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
-from typing import Protocol
+from typing import Literal, Protocol
 
 from .domain.project import (
     IndependentProjectOrigin,
@@ -134,6 +135,32 @@ class OpenProjectSnapshotRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class OpenProjectLearningSnapshotRequest:
+    learner_id: str
+    project_id: str
+    snapshot_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectLearningSnapshotResource:
+    resource_kind: Literal["note", "source", "artifact", "domain_resource"]
+    resource_id: str
+    resource_version: int | str | None
+    resource_as_of: datetime | None
+    record_digest: str
+    content_digest: str | None = None
+    byte_count: int | None = None
+    owner_reference_digest: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectLearningSnapshot:
+    origin: LearningProjectOrigin
+    snapshot: ProjectSnapshot
+    resources: tuple[ProjectLearningSnapshotResource, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class ExportProjectSnapshotRequest:
     learner_id: str
     project_id: str
@@ -208,6 +235,10 @@ class ProjectOperations(Protocol):
         self, request: OpenProjectSnapshotRequest
     ) -> ProjectSnapshot: ...
 
+    def open_learning_snapshot(
+        self, request: OpenProjectLearningSnapshotRequest
+    ) -> ProjectLearningSnapshot: ...
+
     def export_snapshot(
         self, request: ExportProjectSnapshotRequest
     ) -> ProjectEvidenceExportBundle: ...
@@ -235,6 +266,7 @@ __all__ = [
     "ListProjectsRequest",
     "MutateProjectWorkspaceRequest",
     "OpenProjectRequest",
+    "OpenProjectLearningSnapshotRequest",
     "OpenProjectSnapshotRequest",
     "OpenProjectWorkspaceRequest",
     "ProjectCreateIntent",
@@ -243,6 +275,8 @@ __all__ = [
     "ProjectEvidenceFileContent",
     "ProjectError",
     "ProjectErrorCode",
+    "ProjectLearningSnapshot",
+    "ProjectLearningSnapshotResource",
     "ProjectOperations",
     "ProjectOrigin",
     "ProjectSnapshot",

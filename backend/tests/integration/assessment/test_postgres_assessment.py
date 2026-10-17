@@ -118,6 +118,7 @@ def migrated_database() -> object:
     assert "assessment_0001_knowledge_check_evidence" in assessment_ids
     assert "assessment_0002_practice_evidence" in assessment_ids
     assert "assessment_0003_practice_progress" in assessment_ids
+    assert "assessment_0004_project_submission_evidence" in assessment_ids
     assert {item.migration_id for item in assessment.apply_all()} == {
         "0001_content_lesson_package_versions",
         "0002_curriculum_lesson_placements",
@@ -130,8 +131,14 @@ def migrated_database() -> object:
         "assessment_0001_knowledge_check_evidence",
         "assessment_0002_practice_evidence",
         "assessment_0003_practice_progress",
+        "assessment_0004_project_submission_evidence",
     }
     yield
+    _remove_stream(
+        "assessment_0004_project_submission_evidence",
+        MIGRATIONS
+        / "assessment/assessment_0004_project_submission_evidence.down.sql",
+    )
     _remove_stream(
         "assessment_0003_practice_progress",
         MIGRATIONS / "assessment/assessment_0003_practice_progress.down.sql",

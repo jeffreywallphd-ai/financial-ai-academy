@@ -14,6 +14,10 @@ from ..domain.practice import (
     PracticeScope,
     PracticeSubmissionCandidate,
 )
+from ..domain.project_submission import (
+    AcceptedProjectSubmission,
+    ProjectCompletionEvidence,
+)
 from ..public import KnowledgeCheckResult
 
 
@@ -41,6 +45,19 @@ class PracticeDraftConflict(RuntimeError):
     pass
 
 
+class ProjectSubmissionConflict(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectSubmissionRecordCandidate:
+    accepted: AcceptedProjectSubmission
+    learner_id: str
+    evidence_id: str
+    event_id: str
+    submitted_at: datetime
+
+
 @dataclass(frozen=True, slots=True)
 class StoredPracticeCompletionEvent:
     event_id: str
@@ -53,6 +70,18 @@ class StoredPracticeCompletionEvent:
 
 
 class AssessmentRepositoryPort(Protocol):
+    def record_project_submission(
+        self, candidate: ProjectSubmissionRecordCandidate
+    ) -> tuple[ProjectCompletionEvidence, bool]: ...
+
+    def list_project_completion_evidence(
+        self, *, learner_id: str, project_id: str
+    ) -> tuple[ProjectCompletionEvidence, ...]: ...
+
+    def list_project_completion_event_documents(
+        self, *, learner_id: str, project_id: str
+    ) -> tuple[Mapping[str, Any], ...]: ...
+
     def record_submission(
         self, candidate: AssessmentSubmissionCandidate
     ) -> tuple[KnowledgeCheckResult, bool]: ...

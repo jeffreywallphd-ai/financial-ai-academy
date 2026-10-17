@@ -61,10 +61,17 @@ sharing or grading record.
 
 ## Current Delivery Boundary
 
-The current implementation is deliberately side-effect free: closed schemas,
-compatibility records, immutable Python values, a port, and pure parsing,
-validation, fingerprinting, and projection. It has no clock, UUID source,
-repository, migration, transaction, cross-module gateway, API, OpenAPI client,
-browser, consumer, provider, queue, execution adapter, or managed-cloud
-profile. Those seams require later bounded packets and must consume rather
-than redefine this contract.
+The shared application core now assembles the candidate through public
+Project, Content, and Curriculum operations, validates the exact closed
+submission, and commits accepted immutable evidence plus its safe outbox event
+atomically in Assessment-owned PostgreSQL tables. Project supplies only safe
+facts from the exact workspace retained with the snapshot. Brief descriptions
+longer than the assessment title field receive a deterministic display-label
+projection; milestone identity and version remain exact. Refusals have no
+persistence side effect, exact replay preserves original server metadata, and
+later snapshots append superseding history without mutation.
+
+The protected HTTP route, reviewed OpenAPI/client, browser, Learner-model and
+Audit consumers, dispatcher, provider, execution adapter, and managed-cloud
+profile remain later bounded packets. They must consume rather than redefine
+this contract.

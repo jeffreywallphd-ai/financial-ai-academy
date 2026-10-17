@@ -14,6 +14,12 @@ from .domain.practice import (
     PracticeResult,
     PracticeRetryState,
 )
+from .domain.project_submission import (
+    ProjectCompletionEvidence,
+    ProjectHistory,
+    ProjectSnapshotCandidate,
+    ProjectValidationResult,
+)
 
 
 class AssessmentErrorCode(StrEnum):
@@ -119,6 +125,40 @@ class SavePlacedPracticeDraftRequest:
 class ReadCompletedPracticesRequest:
     learner_id: str
     placement_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class OpenProjectSubmissionCandidateRequest:
+    learner_id: str
+    project_id: str
+    snapshot_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class SubmitProjectSnapshotRequest:
+    learner_id: str
+    project_id: str
+    snapshot_id: str
+    submission: bytes
+
+
+@dataclass(frozen=True, slots=True)
+class ReadProjectCompletionEvidenceRequest:
+    learner_id: str
+    project_id: str
+    submission_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ReadProjectCompletionHistoryRequest:
+    learner_id: str
+    project_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectSubmissionOutcome:
+    validation: ProjectValidationResult
+    evidence: ProjectCompletionEvidence | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -257,6 +297,22 @@ class KnowledgeCheckCompletionEvent:
 
 
 class AssessmentOperations(Protocol):
+    def open_project_submission_candidate(
+        self, request: OpenProjectSubmissionCandidateRequest
+    ) -> ProjectSnapshotCandidate: ...
+
+    def submit_project_snapshot(
+        self, request: SubmitProjectSnapshotRequest
+    ) -> ProjectSubmissionOutcome: ...
+
+    def read_project_completion_evidence(
+        self, request: ReadProjectCompletionEvidenceRequest
+    ) -> ProjectCompletionEvidence: ...
+
+    def read_project_completion_history(
+        self, request: ReadProjectCompletionHistoryRequest
+    ) -> ProjectHistory: ...
+
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest
     ) -> KnowledgeCheckPresentation: ...

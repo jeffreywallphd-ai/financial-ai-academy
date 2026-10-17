@@ -68,6 +68,7 @@ from ..public import (
     ListProjectsRequest,
     MutateProjectWorkspaceRequest,
     OpenProjectRequest,
+    OpenProjectLearningSnapshotRequest,
     OpenProjectSnapshotRequest,
     OpenProjectWorkspaceRequest,
     ProjectArtifactDownload,
@@ -75,6 +76,8 @@ from ..public import (
     ProjectEvidenceFileContent,
     ProjectError,
     ProjectErrorCode,
+    ProjectLearningSnapshot,
+    ProjectLearningSnapshotResource,
     ResolveLearningProjectStartOptionRequest,
     UploadProjectArtifactRequest,
 )
@@ -415,6 +418,113 @@ class ProjectService:
             return self._revalidate_snapshot(stored.snapshot)
         except ProjectError:
             raise
+        except Exception as error:
+            raise self._unavailable(request.snapshot_id) from error
+
+    def open_learning_snapshot(
+        self, request: OpenProjectLearningSnapshotRequest
+    ) -> ProjectLearningSnapshot:
+        shell = self._owned_shell(request.learner_id, request.project_id)
+        if not isinstance(shell.origin, LearningProjectOrigin):
+            raise ProjectError(
+                ProjectErrorCode.INVALID_REQUEST,
+                "Only a learning Project can be submitted for learning.",
+                reference=request.project_id,
+            )
+        try:
+            stored = self._repository.get_snapshot(
+                request.learner_id, request.project_id, request.snapshot_id
+            )
+            if stored is None:
+                raise self._not_found(request.snapshot_id)
+            snapshot = self._revalidate_snapshot(stored.snapshot)
+            workspace = self._revalidate_workspace(stored.workspace)
+            if (
+                snapshot.snapshot.project_id != shell.project_id
+                or snapshot.snapshot.learner_id != shell.learner_id
+                or snapshot.snapshot.project_revision > shell.revision
+                or snapshot.snapshot.workspace_revision
+                != workspace.workspace_revision
+                or workspace.project_id != shell.project_id
+                or workspace.learner_id != shell.learner_id
+            ):
+                raise self._integrity(request.snapshot_id)
+
+            workspace_document = self._contract.workspace_document(workspace)
+            link_documents = {
+                str(item["link_id"]): item
+                for item in workspace_document["domain_links"]  # type: ignore[index]
+            }
+            resources: list[ProjectLearningSnapshotResource] = []
+            resources.extend(
+                ProjectLearningSnapshotResource(
+                    "note",
+                    item.record_id,
+                    item.record_version,
+                    None,
+                    item.record_digest,
+                )
+                for item in snapshot.snapshot.notes
+            )
+            resources.extend(
+                ProjectLearningSnapshotResource(
+                    "source",
+                    item.record_id,
+                    item.record_version,
+                    None,
+                    item.record_digest,
+                )
+                for item in snapshot.snapshot.references
+            )
+            resources.extend(
+                ProjectLearningSnapshotResource(
+                    "artifact",
+                    item.artifact_id,
+                    item.artifact_version,
+                    None,
+                    item.manifest_digest,
+                    item.content_digest,
+                    item.byte_count,
+                )
+                for item in snapshot.snapshot.artifacts
+            )
+            for item in snapshot.snapshot.domain_links:
+                document = link_documents.get(item.link_id)
+                if (
+                    document is None
+                    or self._contract.canonical_digest(document)
+                    != item.record_digest
+                    or document.get("owner_reference_digest")
+                    != item.owner_reference_digest
+                ):
+                    raise self._integrity(item.link_id)
+                resource_version = document.get("resource_version")
+                resource_as_of = document.get("resource_as_of")
+                if (resource_version is None) == (resource_as_of is None):
+                    raise self._integrity(item.link_id)
+                resources.append(
+                    ProjectLearningSnapshotResource(
+                        "domain_resource",
+                        str(document["resource_id"]),
+                        str(resource_version)
+                        if resource_version is not None
+                        else None,
+                        self._parse_canonical_time(str(resource_as_of))
+                        if resource_as_of is not None
+                        else None,
+                        item.record_digest,
+                        owner_reference_digest=item.owner_reference_digest,
+                    )
+                )
+            return ProjectLearningSnapshot(
+                origin=shell.origin,
+                snapshot=snapshot,
+                resources=tuple(resources),
+            )
+        except ProjectError:
+            raise
+        except (KeyError, TypeError, ValueError) as error:
+            raise self._integrity(request.snapshot_id) from error
         except Exception as error:
             raise self._unavailable(request.snapshot_id) from error
 
@@ -1039,6 +1149,13 @@ class ProjectService:
         return self._contract.parse_snapshot(
             self._canonical(self._contract.snapshot_document(snapshot))
         )
+
+    @staticmethod
+    def _parse_canonical_time(value: str) -> datetime:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None or parsed.utcoffset() is None:
+            raise ValueError("Project timestamp must include an offset.")
+        return parsed.astimezone(timezone.utc)
 
     def _revalidate_export(
         self, exported: ProjectEvidenceExport

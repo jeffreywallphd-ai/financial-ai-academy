@@ -46,7 +46,17 @@ from ..ports.repositories import (
     PracticeAttemptLimitReached,
     PracticeDraftConflict,
     PracticeSubmissionConflict,
+    ProjectSubmissionConflict,
+    ProjectSubmissionRecordCandidate,
     SubmissionConflict,
+)
+from ..ports.project_submission import (
+    ProjectSubmissionContract,
+    ProjectSubmissionContractFailure,
+)
+from ..ports.project_submission_gateways import (
+    ProjectSubmissionSourceFailure,
+    ProjectSubmissionSourcePort,
 )
 from ..ports.practice_definition import (
     PracticeDefinitionFailure,
@@ -70,10 +80,15 @@ from ..public import (
     KnowledgeCheckResult,
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
+    OpenProjectSubmissionCandidateRequest,
     ReadCompletedPracticesRequest,
     ReadCompletedKnowledgeChecksRequest,
     ReadPlacedPracticeProgressRequest,
+    ReadProjectCompletionEvidenceRequest,
+    ReadProjectCompletionHistoryRequest,
     SavePlacedPracticeDraftRequest,
+    ProjectSubmissionOutcome,
+    SubmitProjectSnapshotRequest,
     PracticeHistorySource,
     PracticeHistorySourceAttempt,
     PracticeHistorySourceItem,
@@ -95,6 +110,8 @@ class AssessmentService:
         practice_parser: PracticeDefinitionPort | None = None,
         practice_submission_parser: PracticeSubmissionPort | None = None,
         practice_progress_contract: PracticeProgressContractPort | None = None,
+        project_submission_source: ProjectSubmissionSourcePort | None = None,
+        project_submission_contract: ProjectSubmissionContract | None = None,
     ) -> None:
         self._curriculum = curriculum
         self._content = content
@@ -106,6 +123,138 @@ class AssessmentService:
         self._practice_parser = practice_parser
         self._practice_submission_parser = practice_submission_parser
         self._practice_progress_contract = practice_progress_contract
+        self._project_submission_source = project_submission_source
+        self._project_submission_contract = project_submission_contract
+
+    def open_project_submission_candidate(
+        self, request: OpenProjectSubmissionCandidateRequest
+    ):
+        self._validate_uuid(request.learner_id, learner=True)
+        source = self._require_project_submission_source(request.project_id)
+        try:
+            return source.resolve(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+                snapshot_id=request.snapshot_id,
+            )
+        except ProjectSubmissionSourceFailure as error:
+            raise self._project_source_error(error) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project submission facts are unavailable.",
+                reference=request.project_id,
+            ) from error
+
+    def submit_project_snapshot(
+        self, request: SubmitProjectSnapshotRequest
+    ) -> ProjectSubmissionOutcome:
+        contract = self._require_project_submission_contract(request.project_id)
+        candidate = self.open_project_submission_candidate(
+            OpenProjectSubmissionCandidateRequest(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+                snapshot_id=request.snapshot_id,
+            )
+        )
+        try:
+            submission = contract.parse_submission(request.submission)
+            validation = contract.validate(candidate, submission)
+        except ProjectSubmissionContractFailure as error:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "The Project submission was rejected.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        if validation.accepted is None:
+            return ProjectSubmissionOutcome(validation=validation, evidence=None)
+        try:
+            evidence, _created = self._repository.record_project_submission(
+                ProjectSubmissionRecordCandidate(
+                    accepted=validation.accepted,
+                    learner_id=request.learner_id,
+                    evidence_id=self._ids.new(),
+                    event_id=self._ids.new(),
+                    submitted_at=self._server_time(),
+                )
+            )
+            return ProjectSubmissionOutcome(validation=validation, evidence=evidence)
+        except ProjectSubmissionConflict as error:
+            raise AssessmentError(
+                AssessmentErrorCode.CONFLICT,
+                "The submission identity was already used for different input.",
+                reference="submission_id",
+                diagnostic_code="assessment.project.conflicting_submission",
+            ) from error
+        except ProjectSubmissionContractFailure as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project evidence storage is unavailable.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project evidence storage is unavailable.",
+                reference=request.project_id,
+            ) from error
+
+    def read_project_completion_evidence(
+        self, request: ReadProjectCompletionEvidenceRequest
+    ):
+        history = self.read_project_completion_history(
+            ReadProjectCompletionHistoryRequest(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+            )
+        )
+        for evidence in history.items:
+            if evidence.accepted.submission.submission_id == request.submission_id:
+                return evidence
+        raise AssessmentError(
+            AssessmentErrorCode.NOT_FOUND,
+            "Project evidence was not found.",
+            reference=request.submission_id,
+        )
+
+    def read_project_completion_history(
+        self, request: ReadProjectCompletionHistoryRequest
+    ):
+        self._validate_uuid(request.learner_id, learner=True)
+        contract = self._require_project_submission_contract(request.project_id)
+        try:
+            evidence = self._repository.list_project_completion_evidence(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+            )
+            if not evidence:
+                raise AssessmentError(
+                    AssessmentErrorCode.NOT_FOUND,
+                    "Project evidence was not found.",
+                    reference=request.project_id,
+                )
+            return contract.project_history(evidence)
+        except ProjectSubmissionContractFailure as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project evidence history is unavailable.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project evidence history is unavailable.",
+                reference=request.project_id,
+            ) from error
 
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest
@@ -945,6 +1094,45 @@ class AssessmentService:
         if not 3 <= len(value) <= 64 or not value[0].isalnum():
             return False
         return all(character.islower() or character.isdigit() or character in "._-" for character in value)
+
+    def _require_project_submission_source(
+        self, reference: str
+    ) -> ProjectSubmissionSourcePort:
+        if self._project_submission_source is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project submission facts are unavailable.",
+                reference=reference,
+            )
+        return self._project_submission_source
+
+    def _require_project_submission_contract(
+        self, reference: str
+    ) -> ProjectSubmissionContract:
+        if self._project_submission_contract is None:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project submission is unavailable.",
+                reference=reference,
+            )
+        return self._project_submission_contract
+
+    @staticmethod
+    def _project_source_error(error: ProjectSubmissionSourceFailure) -> AssessmentError:
+        if error.code == "assessment.project.not_found":
+            code = AssessmentErrorCode.NOT_FOUND
+        elif error.code == "assessment.project.stale_source":
+            code = AssessmentErrorCode.STALE_REFERENCE
+        elif error.code == "assessment.project.invalid_source":
+            code = AssessmentErrorCode.INVALID_DEFINITION
+        else:
+            code = AssessmentErrorCode.UNAVAILABLE
+        return AssessmentError(
+            code,
+            "Project submission facts are unavailable.",
+            reference=error.reference,
+            diagnostic_code=error.code,
+        )
 
     def _server_time(self) -> datetime:
         value = self._clock.now()

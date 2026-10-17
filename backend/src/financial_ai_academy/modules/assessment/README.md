@@ -20,17 +20,19 @@ applicable reviewed feedback/references, and a safe correlated completion-event
 document from supplied server metadata. It performs no identity lookup, clock,
 persistence, publication, network, API, or UI action.
 
-The additive Project submission contract adapter accepts one learner-safe
+The additive Project submission path accepts one learner-safe
 candidate assembled from exact Project snapshot, Content brief, and Curriculum
 placement facts plus one closed submission intent. Its pure policy requires
 every approved milestone exactly once and only exact immutable resource
 references already included in that snapshot. It canonicalizes permitted
 mapping/reference order, returns stable bounded correction issues, and can map
 an accepted result plus bounded server metadata to immutable evidence, a safe
-completion event, and ordered history. It does not resolve identity, read
-another module, persist, publish, expose HTTP, execute artifacts, grade
-quality, infer mastery, or provide advice. Those runtime seams remain later
-SLI-0032 packets.
+completion event, and ordered history. The application adapter obtains source
+facts only through the three modules' public operations; validation refusals
+write nothing, while accepted evidence and its safe outbox event commit in one
+Assessment transaction. It does not publish, expose HTTP, execute artifacts,
+grade quality, infer mastery, or provide advice. HTTP and consumer seams remain
+later SLI-0032 packets.
 
 ## Public operations
 
@@ -42,12 +44,15 @@ SLI-0032 packets.
 - `read_placed_practice_retry_state(ReadPlacedPracticeProgressRequest) -> PracticeRetryState`
 - `read_completed_practices(ReadCompletedPracticesRequest) -> tuple[OrderedPracticeCompletionEvent, ...]`
 - `read_practice_history_source(ReadCompletedPracticesRequest) -> PracticeHistorySource`
+- `open_project_submission_candidate(OpenProjectSubmissionCandidateRequest) -> ProjectSnapshotCandidate`
+- `submit_project_snapshot(SubmitProjectSnapshotRequest) -> ProjectSubmissionOutcome`
+- `read_project_completion_evidence(ReadProjectCompletionEvidenceRequest) -> ProjectCompletionEvidence`
+- `read_project_completion_history(ReadProjectCompletionHistoryRequest) -> ProjectHistory`
 - `submit_placed_knowledge_check(SubmitPlacedKnowledgeCheckRequest) -> KnowledgeCheckResult`
 - `read_completed_knowledge_checks(ReadCompletedKnowledgeChecksRequest) -> tuple[KnowledgeCheckCompletionEvent, ...]`
 
-No Project-submission public operation is implemented yet. The new
-transport-neutral port and values deliberately precede application,
-persistence, and API composition.
+The Project-submission operations are transport-neutral and are not yet
+composed into the protected HTTP host or generated client.
 
 The open operation resolves Curriculum and Content only through their public
 facades and returns no correct option, private scoring object, or feedback. The
@@ -115,6 +120,17 @@ aggregate/outbox succeeds. A stale conditional save, exhausted retry, or
 rollback preserves both the latest draft and all prior evidence. Development
 downgrade refuses to remove retry support when multiple retained attempts make
 the former one-completion constraint impossible to restore.
+
+`assessment_0004_project_submission_evidence` adds learner/submission and
+learner/Project lock rows, immutable Project evidence, and a safe Project
+outbox. Exact replay returns the original IDs and time; changed identity reuse
+conflicts. A distinct later snapshot receives the next locked Project
+occurrence and points to the immediately prior submission without rewriting
+history. Accepted sequence is server-owned and increasing across Project
+evidence. Reads re-parse and revalidate the retained candidate, submission,
+fingerprint, and projected evidence before returning it. Ordinary row mutation
+is rejected, and development downgrade refuses to remove retained evidence or
+events.
 
 The outbox row is durable event evidence only. No dispatcher, worker, broker,
 consumer, or delivery guarantee is implemented.
