@@ -1,7 +1,7 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -72,10 +72,12 @@ bounded local qualification. Canonical sources govern over this packet.
 - Device/browser zoom, text scaling, forced colors, and reduced-motion signals
   retain precedence whenever they are more protective. Qualification checks
   usable content/actions and root semantics, not pixel identity.
-- Same-key/same-payload concurrency converges on one accepted revision;
-  same-key/changed-payload yields one accepted result and one confidential
-  conflict; different-key/same-revision yields one accepted result and one
-  stale denial, with no duplicate or lost durable change.
+- Same-key/same-payload concurrency converges on one accepted revision.
+  Same-key/changed-payload yields one accepted result and one confidential 409:
+  immutable conflict when the accepted replay is visible first, or stale
+  revision when the winning revision is visible first. Different-key/same-
+  revision yields one accepted result and one stale denial. Every timing
+  preserves exactly one durable change without loss or duplication.
 - Captures contain only bounded public documents, requests, and expected
   correlations. They exclude cookies, credentials, connection strings,
   private storage locators, inferred traits, evidence, and learner-selected
@@ -190,7 +192,7 @@ this packet completes.
 | Reset and theme separation | Non-baseline learner settings and dark theme | Learner resets saved choices | A new baseline learner revision persists while local theme remains dark | Chromium/API/PostgreSQL |
 | Browser/headless parity | Closed browser capture | Ordinary cookie-backed client reads, mutates, resets, and exports | Public meaning matches without UI imports or browser authority | runner/public HTTP |
 | Exact replay race | Two clients submit the same key and payload together | Both requests finish | Both observe one accepted result and only one next revision/change/replay row exists | public HTTP/PostgreSQL |
-| Changed-key race | Two clients submit one key with different values | Requests serialize | One result is accepted, one is a confidential conflict, and only accepted meaning persists | public HTTP/PostgreSQL |
+| Changed-key race | Two clients submit one key with different values | Requests serialize | One result is accepted, the other is a confidential immutable-conflict or stale-revision denial according to transaction timing, and only accepted meaning persists | public HTTP/PostgreSQL |
 | Stale-revision race | Two fresh keys target one current revision | Requests serialize | One result is accepted, one is stale, and no update is lost or duplicated | public HTTP/PostgreSQL |
 | Restart durability | Browser/headless/race state is correlated | Python host restarts without reseeding | Profile, history, export, exact replay, root semantics, and rows remain stable | restart/API/PostgreSQL |
 | Protective precedence | Any saved profile is active | 200-percent text, forced colors, or reduced motion is applied | Content/actions stay reachable and the more-protective browser/device behavior wins | Chromium/axe/design |
@@ -272,3 +274,14 @@ changed, then leave SLI-0075 closure-ready.
 - 2026-10-17: Activated from recorded base `a2fe0df` after validating the
   completed dependency, current CAP authority, qualification-only scope,
   exact file ownership, and no active coordination collision.
+- 2026-10-17: Entered verification after the generated-client Chromium and
+  ordinary headless paths applied all 16 profiles, reproduced exact export and
+  replay meaning, serialized three race classes to one durable change, matched
+  PostgreSQL rows after a normal restart, preserved unrelated state and local-
+  theme separation, passed protective-browser and accessibility checks, and
+  removed the disposable topology. Focused runner tests passed 75 cases; Web
+  tests passed 421 cases; typecheck, zero-warning lint, build, architecture,
+  security, documentation, design-system, planning, compilation, and
+  whitespace checks passed. The first broad Web and architecture invocations
+  were environment-only failures in the read-restricted Windows temporary
+  directory and passed unchanged with the repository writable temporary root.
