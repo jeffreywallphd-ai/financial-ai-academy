@@ -1,7 +1,7 @@
 ---
 id: WRK-0155
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -10,7 +10,7 @@ capability: CAP-0018
 depends_on: [WRK-0154]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/dependencies.ts", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/design-system/tokens.css", "apps/web/src/features/presentation-preferences/PresentationPreferencesPage.tsx", "apps/web/src/features/presentation-preferences/PresentationPreferencesRoute.tsx", "apps/web/src/features/presentation-preferences/api.ts", "apps/web/src/features/presentation-preferences/model.ts", "apps/web/src/platform/presentation/presentation.tsx", "apps/web/src/platform/theme/theme.tsx", "apps/web/src/styles/app.css", "apps/web/src/styles/base.css", "apps/web/src/styles/presentation-preferences.css", "apps/web/tests/browser/presentation-preferences/presentation-preferences.spec.ts", "apps/web/tests/component/presentationApplication.test.tsx", "apps/web/tests/component/presentationPreferences.test.tsx", "apps/web/tests/component/theme.test.tsx", "apps/web/tests/unit/presentationPreferencesModel.test.ts", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/check_presentation_preferences.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "dev-tools/design/check_design_system.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/learner-presentation-preferences-contract.md", "docs/design/style-guide.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0155-deliver-display-accessibility-browser-flow.md"]
+write_scope: ["apps/web/README.md", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/dependencies.ts", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/design-system/tokens.css", "apps/web/src/features/presentation-preferences/PresentationPreferencesPage.tsx", "apps/web/src/features/presentation-preferences/PresentationPreferencesRoute.tsx", "apps/web/src/features/presentation-preferences/api.ts", "apps/web/src/features/presentation-preferences/model.ts", "apps/web/src/platform/presentation/presentation.tsx", "apps/web/src/platform/theme/theme.tsx", "apps/web/src/styles/app.css", "apps/web/src/styles/base.css", "apps/web/src/styles/presentation-preferences.css", "apps/web/tests/browser/presentation-preferences/presentation-preferences.spec.ts", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/presentationApplication.test.tsx", "apps/web/tests/component/presentationPreferences.test.tsx", "apps/web/tests/component/theme.test.tsx", "apps/web/tests/unit/presentationPreferencesModel.test.ts", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/check_presentation_preferences.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "dev-tools/design/check_design_system.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/learner-presentation-preferences-contract.md", "docs/design/style-guide.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0155-deliver-display-accessibility-browser-flow.md"]
 generated_artifacts: []
 base_revision: b2da74b396eeeb6d465f2ab65083565d0d36e094
 claim_id: WRK-0155:fc065afe-0bde-4886-8c5f-05fba9ca4e97
@@ -294,3 +294,6 @@ action, or financial behavior changed.
   passed all three presentation-preferences Chromium journeys and catalog tests
   proved exact, non-overlapping selection for presentation, lesson, and Project
   browser paths.
+- 2026-10-17: Returned to active delivery to restore the documented Project
+  browser check self-qualification triggers and give that existing browser
+  harness a deterministic safe response for the new global presentation read.
