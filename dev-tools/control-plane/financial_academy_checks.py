@@ -17,6 +17,12 @@ def catalog() -> CheckCatalog:
     python = CURRENT_PYTHON_ARGUMENT
     wrapper = Path(__file__).resolve().with_name("check_approved_lesson.py")
     wrapper_digest = "sha256:" + hashlib.sha256(wrapper.read_bytes()).hexdigest()
+    presentation_wrapper = Path(__file__).resolve().with_name(
+        "check_presentation_preferences.py"
+    )
+    presentation_wrapper_digest = (
+        "sha256:" + hashlib.sha256(presentation_wrapper.read_bytes()).hexdigest()
+    )
     web_check = (
         python,
         control_plane_file_argument("check_approved_lesson.py", wrapper_digest),
@@ -24,6 +30,18 @@ def catalog() -> CheckCatalog:
         wrapper_digest,
         "--root",
         ".",
+    )
+    presentation_browser_check = (
+        python,
+        control_plane_file_argument(
+            "check_presentation_preferences.py", presentation_wrapper_digest
+        ),
+        "--self-sha256",
+        presentation_wrapper_digest,
+        "--root",
+        ".",
+        "--mode",
+        "presentation-browser",
     )
     web_source_paths = (
         "apps/web/src/**",
@@ -49,27 +67,25 @@ def catalog() -> CheckCatalog:
         "contracts/api/openapi.json",
     )
     mocked_browser_paths = (
+        "apps/web/tests/browser/curriculum-graph/**",
+        "apps/web/tests/browser/learning-catalog/**",
+        "apps/web/tests/browser/lesson-reading/**",
+        "apps/web/tests/browser/support/**",
+        "apps/web/tests/browser/playwright.config.ts",
+    )
+    presentation_browser_paths = (
         "apps/web/src/features/presentation-preferences/**",
         "apps/web/src/platform/presentation/**",
         "apps/web/src/design-system/tokens.css",
         "apps/web/src/styles/presentation-preferences.css",
-        "apps/web/tests/browser/curriculum-graph/**",
-        "apps/web/tests/browser/learning-catalog/**",
-        "apps/web/tests/browser/lesson-reading/**",
         "apps/web/tests/browser/presentation-preferences/**",
-        "apps/web/tests/browser/support/**",
-        "apps/web/tests/browser/playwright.config.ts",
     )
     project_browser_paths = (
         "apps/web/src/features/project-workspace/**",
         "apps/web/src/styles/project-workspace.css",
         "apps/web/tests/browser/project-workspace/**",
     )
-    project_browser_check_paths = (
-        *project_browser_paths,
-        "dev-tools/control-plane/check_approved_lesson.py",
-        "dev-tools/control-plane/financial_academy_checks.py",
-    )
+    project_browser_check_paths = project_browser_paths
     approved_browser_paths = (
         "apps/web/tests/browser/approved-lesson/**",
         "apps/web/tests/browser/approved-lesson.config.ts",
@@ -144,7 +160,7 @@ def catalog() -> CheckCatalog:
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
             CheckDefinition("control-plane:review", (python, "dev-tools/control-plane/test_review.py"), ("dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py"), "medium", 11, description="Technical review, corrected-descendant, and review-ledger behavior"),
-            CheckDefinition("control-plane:verification", (python, "dev-tools/control-plane/test_verification.py"), ("dev-tools/control-plane/verification.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/test_verification.py"), "medium", 12, description="Affected-selection, repository-check, and receipt behavior"),
+            CheckDefinition("control-plane:verification", (python, "dev-tools/control-plane/test_verification.py"), ("dev-tools/control-plane/verification.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/check_presentation_preferences.py", "dev-tools/control-plane/test_verification.py"), "medium", 12, description="Affected-selection, repository-check, and receipt behavior"),
             CheckDefinition("planning:tools", (python, "dev-tools/planning/test_planning_tools.py"), ("dev-tools/planning/**", "docs/planning/**"), "medium", 20, description="Planning-tool behavior"),
             CheckDefinition("planning:integrity", (python, "dev-tools/planning/check_planning.py"), ("dev-tools/planning/**", "docs/planning/**"), "low", 30, description="Planning artifact integrity"),
             CheckDefinition("documentation:integrity", (python, "dev-tools/documentation/check_docs.py"), ("docs/**", "AGENTS.md", *documentation_paths), "low", 40, description="Documentation and context integrity"),
@@ -157,10 +173,11 @@ def catalog() -> CheckCatalog:
             CheckDefinition("roadmap-review:unit", (*web_check, "--mode", "roadmap-unit"), roadmap_unit_paths, "medium", 48, description="Roadmap review DOM and view-model behavior"),
             CheckDefinition("architecture:integrity", (python, "dev-tools/architecture/check_architecture.py"), ("backend/**", "contracts/**", "docs/architecture/**"), "high", 50, description="Architecture boundary checks"),
             CheckDefinition("local:architecture", (python, "tests/architecture/test_approved_lesson_boundaries.py"), local_composition_paths, "medium", 51, description="Local composition and approved-lesson boundary checks"),
-            CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_source_paths, *mocked_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths, "apps/web/tsconfig.json"), "medium", 52, description="Web TypeScript boundary"),
-            CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_source_paths, *mocked_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths), "medium", 54, description="Web source and test lint"),
+            CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_source_paths, *mocked_browser_paths, *presentation_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths, "apps/web/tsconfig.json"), "medium", 52, description="Web TypeScript boundary"),
+            CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_source_paths, *mocked_browser_paths, *presentation_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths), "medium", 54, description="Web source and test lint"),
             CheckDefinition("web:unit", (*web_check, "--mode", "unit"), (*web_source_paths, "apps/web/scripts/generate-api-client.mjs"), "medium", 56, description="Web unit, component, and contract behavior"),
             CheckDefinition("web:browser", (*web_check, "--mode", "browser"), mocked_browser_paths, "medium", 58, timeout_seconds=120, description="Mocked Chromium application behavior"),
+            CheckDefinition("presentation:browser", presentation_browser_check, (*presentation_browser_paths, "dev-tools/control-plane/check_presentation_preferences.py"), "medium", 58, timeout_seconds=120, description="Focused presentation-preferences Chromium behavior"),
             CheckDefinition("project:browser", (*web_check, "--mode", "project-browser"), project_browser_check_paths, "medium", 59, timeout_seconds=120, description="Focused Project Chromium behavior"),
             CheckDefinition("design:integrity", (python, "dev-tools/design/check_design_system.py"), ("apps/web/src/design-system/**", "docs/design/**"), "medium", 60, description="Design-system integrity"),
             CheckDefinition("web:build", (*web_check, "--mode", "build"), web_build_paths, "medium", 62, description="Static web production build"),

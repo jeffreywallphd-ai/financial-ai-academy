@@ -27,7 +27,6 @@ MOCKED_BROWSER_SUITES = (
     "apps/web/tests/browser/curriculum-graph",
     "apps/web/tests/browser/learning-catalog",
     "apps/web/tests/browser/lesson-reading",
-    "apps/web/tests/browser/presentation-preferences",
 )
 PROJECT_BROWSER_SUITE = "apps/web/tests/browser/project-workspace"
 REPOSITORY_MARKERS = (

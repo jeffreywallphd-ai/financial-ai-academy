@@ -31,6 +31,9 @@ from check_approved_lesson import (  # noqa: E402
     file_digest,
     resolve_runtime,
 )
+from check_presentation_preferences import (  # noqa: E402
+    execute as execute_presentation_check,
+)
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
@@ -360,14 +363,14 @@ class SelectionTests(unittest.TestCase):
             "apps/web/tests/browser/presentation-preferences/example.spec.ts": [
                 "web:typecheck",
                 "web:lint",
-                "web:browser",
+                "presentation:browser",
             ],
             "apps/web/src/features/presentation-preferences/PresentationPreferencesPage.tsx": [
                 "learner-language:changed",
                 "web:typecheck",
                 "web:lint",
                 "web:unit",
-                "web:browser",
+                "presentation:browser",
                 "web:build",
             ],
             "apps/web/tests/browser/project-workspace/example.spec.ts": [
@@ -474,13 +477,16 @@ class SelectionTests(unittest.TestCase):
             "dev-tools/control-plane/check_approved_lesson.py": [
                 "control-plane:unit",
                 "control-plane:verification",
-                "project:browser",
                 "approved-lesson:live",
+            ],
+            "dev-tools/control-plane/check_presentation_preferences.py": [
+                "control-plane:unit",
+                "control-plane:verification",
+                "presentation:browser",
             ],
             "dev-tools/control-plane/financial_academy_checks.py": [
                 "control-plane:unit",
                 "control-plane:verification",
-                "project:browser",
             ],
         }
         for path, expected in cases.items():
@@ -806,19 +812,20 @@ class RepositoryWebCheckTests(unittest.TestCase):
         self.assertIn("apps/web/tests/browser/project-workspace", commands[0])
         self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
 
-    def test_mocked_browser_check_includes_presentation_preferences(self) -> None:
+    def test_presentation_browser_check_runs_only_its_focused_suite(self) -> None:
         commands: list[tuple[str, ...]] = []
 
         def runner(command: tuple[str, ...], *, root: Path) -> None:
             del root
             commands.append(command)
 
-        with tempfile.TemporaryDirectory(prefix="mocked-browser-check-") as directory:
+        with tempfile.TemporaryDirectory(prefix="presentation-browser-check-") as directory:
             with mock.patch(
-                "check_approved_lesson.resolve_runtime", return_value=self.runtime
+                "check_presentation_preferences.resolve_runtime",
+                return_value=self.runtime,
             ):
-                execute_web_check(
-                    "browser",
+                execute_presentation_check(
+                    "presentation-browser",
                     root=Path(directory),
                     command_runner=runner,
                     version_reader=self.versions,
@@ -829,6 +836,7 @@ class RepositoryWebCheckTests(unittest.TestCase):
             "apps/web/tests/browser/presentation-preferences",
             commands[0],
         )
+        self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
 
     def test_bound_current_wrapper_runs_new_mode_against_distinct_candidate_root(self) -> None:
         commands: list[tuple[tuple[str, ...], Path]] = []
