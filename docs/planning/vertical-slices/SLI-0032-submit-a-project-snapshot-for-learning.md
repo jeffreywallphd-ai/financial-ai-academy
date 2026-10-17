@@ -1,7 +1,7 @@
 ---
 id: SLI-0032
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -241,7 +241,7 @@ scope is refined just in time.
 | WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | complete |
 | WRK-0127 | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | WRK-0126 | none | complete |
 | WRK-0128 | Deliver the protected Project-completion read and accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | WRK-0127 | none | complete |
-| WRK-0129 | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | WRK-0128 | none | active |
+| WRK-0129 | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | WRK-0128 | none | complete |
 
 ## Verification and Qualification
 
@@ -315,6 +315,28 @@ executed or actively rendered, no result was independently reproduced, no
 quality/mastery/competency or advice claim was made, no live Portfolio/provider
 integration was added, and no managed-cloud or production-recovery profile was
 qualified.
+
+Delivered evidence is exact candidate `b36a321`, qualifying receipt
+`sha256:00f33304a7574507a9b6fa9bc38373efde13c74b4c60e366aca71d19cec64b01`,
+and accepted local read-only exact-diff disposition R01. The live isolated
+PostgreSQL 18.4/Python/pinned-Chromium workflow passed ten catalog/curriculum/
+practice scenarios, one independent Project scenario, and the two-snapshot
+Project learning-submission scenario. It correlated exactly two immutable
+Assessment aggregates and events, two ordered Learner-model history sources,
+one rebuildable bounded completion root, and two append-only Audit references;
+proved browser/headless parity, exact replay, changed conflict, later-work
+immutability, immediate supersession, private-field exclusion, independent-
+Project denial, normal restart, deterministic replay, and cleanup; and executed
+no artifact or active preview. Focused runner tests passed 31/31, Project-
+submission contract/application/API tests passed 72 with one expected
+PostgreSQL-only skip, web/generated-client tests passed 267/267, typecheck,
+lint, build, design, learner-language, documentation, planning, architecture,
+whitespace, and all 29 aggregate readiness checks passed. The external Codex
+review path was not used because repository transmission lacked explicit
+authorization. Managed cloud, production recovery, live domain-resource and
+Portfolio association, provider integration, external execution, qualitative
+grading, mastery/competency estimation, financial advice, and a separate
+headless AI orchestration mode remain unqualified.
 
 ## Planning History
 
@@ -419,3 +441,7 @@ qualified.
   decision readiness, packet-start manifest, and file ownership passed. The
   historical qualifier leases were recovered explicitly without widening the
   product boundary.
+- 2026-10-17: WRK-0129 completed at exact candidate `b36a321` with qualifying
+  affected-check receipt `sha256:00f33304a7574507a9b6fa9bc38373efde13c74b4c60e366aca71d19cec64b01`
+  and accepted local read-only exact-diff disposition R01. All six packets are
+  complete, so the slice moved to deterministic completion verification.

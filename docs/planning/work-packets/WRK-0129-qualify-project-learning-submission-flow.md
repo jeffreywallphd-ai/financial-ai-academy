@@ -1,7 +1,7 @@
 ---
 id: WRK-0129
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -232,3 +232,14 @@ autonomous authority was added.
   Chromium qualifier. The checked-in bundle predated the already accepted
   Project-learning browser source, so qualification rebuilt the same product
   source without changing its contract, behavior, or authority.
+- 2026-10-17: Completed at exact candidate `b36a321` with qualifying affected-
+  check receipt
+  `sha256:00f33304a7574507a9b6fa9bc38373efde13c74b4c60e366aca71d19cec64b01`
+  and accepted local read-only exact-diff disposition R01. The isolated
+  PostgreSQL 18.4/Python/pinned-Chromium run proved two immutable snapshot
+  submissions, bounded correction, exact replay and changed conflict, ordered
+  supersession, browser/headless parity, Learner-model and Audit correlation,
+  independent-Project denial, normal restart, deterministic replay, and exact
+  cleanup. The external Codex review path was not used because repository
+  transmission lacked explicit authorization; deterministic review and the
+  fixed verification receipt found no open defect.
