@@ -1,9 +1,9 @@
 ---
 id: WRK-0137
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0017
+owner: unassigned
 updated: 2026-10-17
 parent: SLI-0071
 capability: CAP-0017
@@ -234,3 +234,5 @@ leave WRK-0138 dependency-ready.
   product edits because its invalid-selection text and return action were
   Curriculum-specific. The bounded change makes shared failure behavior source-
   neutral without changing routing, authority, or slice meaning.
+- 2026-10-17: Released the untouched implementation claim so a fresh claim and
+  start manifest can bind the refined scope. No product file had changed.
