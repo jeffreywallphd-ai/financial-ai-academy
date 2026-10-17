@@ -140,6 +140,54 @@ describe("Learning preferences page", () => {
     ]);
   });
 
+  it("requires item-specific confirmation before each irreversible removal", async () => {
+    const submissions: FormData[] = [];
+    renderPreferences(submissions);
+    const user = userEvent.setup();
+
+    const cases = [
+      {
+        button: "Remove goal: Explain risk and return",
+        confirmation: /removing “Explain risk and return” permanently removes/i,
+        operation: "remove_goal",
+      },
+      {
+        button: "Remove experience: Personal finance",
+        confirmation: /removing “Personal finance” permanently removes/i,
+        operation: "remove_experience",
+      },
+      {
+        button: "Remove interest: ETF research",
+        confirmation: /removing “ETF research” permanently removes/i,
+        operation: "remove_interest",
+      },
+    ];
+
+    for (const [index, item] of cases.entries()) {
+      const button = screen.getByRole("button", { name: item.button });
+      expect(button).toBeDisabled();
+      await user.click(button);
+      expect(submissions).toHaveLength(index);
+      await user.click(screen.getByRole("checkbox", { name: item.confirmation }));
+      expect(button).toBeEnabled();
+      await user.click(button);
+      await waitFor(() => expect(submissions).toHaveLength(index + 1));
+      expect(submissions[index]!.get("operation")).toBe(item.operation);
+      expect(submissions[index]!.get("confirm_remove")).toBe("remove");
+    }
+  });
+
+  it("gives repeated controls item-specific accessible names and keeps revisions technical", () => {
+    renderPreferences();
+
+    expect(screen.getByRole("button", { name: "Archive goal: Explain risk and return" })).toBeVisible();
+    expect(screen.getByLabelText("Edit goal: Explain risk and return")).toBeVisible();
+    expect(screen.getByLabelText("Edit experience: Personal finance")).toBeVisible();
+    expect(screen.getByLabelText("Edit interest: ETF research")).toBeVisible();
+    expect(screen.queryByText("Revision 4")).not.toBeInTheDocument();
+    expect(screen.getByText("Result revision")).toBeInTheDocument();
+  });
+
   it("requires explicit reset confirmation and distinguishes preferences from saved work", async () => {
     const submissions: FormData[] = [];
     renderPreferences(submissions);
@@ -211,6 +259,18 @@ describe("Learning preferences page", () => {
     const heading = await screen.findByRole("heading", { name: "Preferences changed" });
     await waitFor(() => expect(heading).toHaveFocus());
     expect(screen.getByText(/Refresh the page, review the current choices/i)).toBeVisible();
+  });
+
+  it("offers a safe next step after an unexpected action failure", async () => {
+    renderPreferences([], {
+      status: "error",
+      kind: "unexpected",
+      intent: "create-goal",
+    });
+
+    const heading = await screen.findByRole("heading", { name: "Change not completed" });
+    await waitFor(() => expect(heading).toHaveFocus());
+    expect(screen.getByText(/Reload this page, review the current preferences, and try again/i)).toBeVisible();
   });
 
   it("reuses the exact prepared request only while an uncertain form is unchanged", async () => {

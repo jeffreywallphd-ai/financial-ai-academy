@@ -218,8 +218,21 @@ recommendation, provider, external action, or financial behavior changed.
   exact mutation envelopes, safe prepared-request retry, stale-write recovery,
   bounded history, confirmed reset, integrity-checked export, accessible
   technical details, and responsive semantic-token presentation. Typecheck,
-  zero-warning lint, the 396-test web suite, static build, architecture,
+  zero-warning lint, the 402-test web suite, static build, architecture,
   learner-language, design-system, security, documentation, planning,
   whitespace, and the 29-part aggregate readiness gate passed. Live Chromium,
   simultaneous PostgreSQL races, restart, containment, and cleanup remain in
   the dependency-ordered final qualification packet.
+- 2026-10-17: Independent R01 requested bounded corrections for canonical
+  digest and chronology validation, item-removal confirmation, item-specific
+  accessible names, progressive revision disclosure, and unexpected-failure
+  recovery guidance. The correction keeps the same generated-client-only
+  boundary and adds direct regression evidence without widening the packet.
+- 2026-10-17: Closed the five R01 correction targets in the replacement
+  candidate: exact profile digest and chronology checks now fail closed;
+  irreversible item removal requires explicit named confirmation; repeated
+  controls identify their item; revision facts remain in technical details;
+  and unexpected failures provide a safe reload-and-review path. Focused 22-
+  test, full 402-test, type, lint, build, architecture, security, language,
+  design, documentation, planning, whitespace, and aggregate-readiness checks
+  passed before resubmission.

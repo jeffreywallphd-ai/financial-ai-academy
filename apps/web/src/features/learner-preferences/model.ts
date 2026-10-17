@@ -103,7 +103,19 @@ function exact(value: Record<string, unknown>, keys: readonly string[]): boolean
 function text(value: unknown, minimum: number, maximum: number): value is string {
   if (typeof value !== "string") return false;
   const characters = Array.from(value);
-  return characters.length >= minimum && characters.length <= maximum;
+  return characters.length >= minimum &&
+    characters.length <= maximum &&
+    value === value.trim() &&
+    characters.every((character) => {
+      const codePoint = character.codePointAt(0) ?? 0;
+      return !(
+        codePoint <= 8 ||
+        (codePoint >= 11 && codePoint <= 12) ||
+        (codePoint >= 14 && codePoint <= 31) ||
+        codePoint === 127 ||
+        (codePoint >= 0xd800 && codePoint <= 0xdfff)
+      );
+    });
 }
 
 function nullableText(value: unknown, maximum: number): value is string | null {
@@ -120,6 +132,39 @@ function timestamp(value: unknown): value is string {
 
 function chronological(created: string, updated: string): boolean {
   return Date.parse(created) <= Date.parse(updated);
+}
+
+function contained(created: string, updated: string, profileCreated: string, profileUpdated: string): boolean {
+  return Date.parse(created) >= Date.parse(profileCreated) &&
+    Date.parse(updated) <= Date.parse(profileUpdated);
+}
+
+function canonicalJson(value: unknown): string {
+  function canonical(valueAtKey: unknown): unknown {
+    if (Array.isArray(valueAtKey)) return valueAtKey.map(canonical);
+    if (record(valueAtKey)) {
+      return Object.fromEntries(
+        Object.keys(valueAtKey)
+          .sort()
+          .map((key) => [key, canonical(valueAtKey[key])]),
+      );
+    }
+    return valueAtKey;
+  }
+  return JSON.stringify(canonical(value));
+}
+
+async function sha256(value: unknown): Promise<string | undefined> {
+  if (!globalThis.crypto?.subtle) return undefined;
+  try {
+    const bytes = new TextEncoder().encode(canonicalJson(value));
+    const result = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+    return [...new Uint8Array(result)]
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  } catch {
+    return undefined;
+  }
 }
 
 function goalIsSafe(
@@ -159,7 +204,7 @@ function interestIsSafe(
     chronological(value.created_at, value.updated_at);
 }
 
-export function learnerPreferenceProfileIsSafe(
+function learnerPreferenceProfileHasSafeShape(
   value: unknown,
 ): value is LearnerPreferenceProfile {
   if (!record(value) || !exact(value, [
@@ -190,12 +235,21 @@ export function learnerPreferenceProfileIsSafe(
     typeof value.profile_digest !== "string" ||
     !DIGEST.test(value.profile_digest)
   ) return false;
+  const profile = value as LearnerPreferenceProfile;
   const ids = [
-    ...value.goals.map((item) => item.goal_id),
-    ...value.experience.map((item) => item.experience_id),
-    ...value.interests.map((item) => item.interest_id),
+    ...profile.goals.map((item) => item.goal_id),
+    ...profile.experience.map((item) => item.experience_id),
+    ...profile.interests.map((item) => item.interest_id),
   ];
-  return new Set(ids).size === ids.length;
+  if (new Set(ids).size !== ids.length) return false;
+  return [...profile.goals, ...profile.experience, ...profile.interests].every((item) =>
+    contained(item.created_at, item.updated_at, profile.created_at, profile.updated_at));
+}
+
+export async function learnerPreferenceProfileIsSafe(value: unknown): Promise<boolean> {
+  if (!learnerPreferenceProfileHasSafeShape(value)) return false;
+  const { profile_digest: profileDigest, ...material } = value;
+  return (await sha256(material)) === profileDigest;
 }
 
 function changeIsSafe(
@@ -233,6 +287,7 @@ function changeIsSafe(
 
 export function learnerPreferenceHistoryIsSafe(
   value: unknown,
+  profile?: LearnerPreferenceProfile,
 ): value is LearnerPreferenceHistory {
   if (!record(value) || !exact(value, ["schema_version", "profile_id", "current_revision", "changes"])) return false;
   if (
@@ -245,26 +300,38 @@ export function learnerPreferenceHistoryIsSafe(
     !value.changes.every(changeIsSafe)
   ) return false;
   const changes = value.changes as LearnerPreferenceHistory["changes"];
-  return changes.every((change, index) =>
+  if (!changes.every((change, index) =>
     change.revision <= Number(value.current_revision) &&
-    (index === 0 || changes[index - 1]!.revision < change.revision));
+    (index === 0 || (
+      changes[index - 1]!.revision < change.revision &&
+      Date.parse(changes[index - 1]!.occurred_at) <= Date.parse(change.occurred_at)
+    ))
+  )) return false;
+  if (!profile) return true;
+  if (value.profile_id !== profile.profile_id || value.current_revision !== profile.revision) return false;
+  const latest = changes.at(-1);
+  return !latest || (
+    latest.revision === profile.revision &&
+    latest.resulting_profile_digest === profile.profile_digest
+  );
 }
 
-export function learnerPreferenceExportIsSafe(
+export async function learnerPreferenceExportIsSafe(
   value: unknown,
-): value is LearnerPreferenceExport {
+): Promise<boolean> {
   if (!record(value) || !exact(value, ["schema_version", "purpose", "limitations", "exported_at", "profile", "history"])) return false;
-  return value.schema_version === "1.0.0" &&
+  if (!(value.schema_version === "1.0.0" &&
     text(value.purpose, 1, 240) &&
     Array.isArray(value.limitations) &&
     value.limitations.length >= 1 &&
     value.limitations.length <= 8 &&
     value.limitations.every((item) => text(item, 1, 320)) &&
     timestamp(value.exported_at) &&
-    learnerPreferenceProfileIsSafe(value.profile) &&
-    learnerPreferenceHistoryIsSafe(value.history) &&
-    value.profile.profile_id === value.history.profile_id &&
-    value.profile.revision === value.history.current_revision;
+    learnerPreferenceProfileHasSafeShape(value.profile) &&
+    learnerPreferenceHistoryIsSafe(value.history, value.profile) &&
+    Date.parse(value.exported_at) >= Date.parse(value.profile.updated_at)
+  )) return false;
+  return learnerPreferenceProfileIsSafe(value.profile);
 }
 
 export function preferenceMutationErrorCode(value: unknown): string | undefined {

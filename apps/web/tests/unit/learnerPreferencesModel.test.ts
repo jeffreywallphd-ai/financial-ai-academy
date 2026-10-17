@@ -21,54 +21,40 @@ import {
 
 export const preferenceProfileFixture: LearnerPreferenceProfile = {
   schema_version: "1.0.0",
-  profile_id: "profile.learning-1",
+  profile_id: "profile.local-learner",
   learner_id: "11111111-1111-4111-8111-111111111111",
   revision: 4,
   goals: [
     {
-      goal_id: "goal.risk-1",
-      title: "Explain risk and return without promising an outcome",
-      detail: "Compare several possible outcomes, including loss. 📊",
+      goal_id: "goal.research-literacy",
+      title: "Understand how financial evidence is tested",
+      detail: "Practice checking assumptions, sources, and limitations.",
       archived: false,
-      created_at: "2026-10-17T14:00:00Z",
-      updated_at: "2026-10-17T14:02:00Z",
-    },
-    {
-      goal_id: "goal.cash-2",
-      title: "Understand cash-flow choices",
-      detail: null,
-      archived: true,
-      created_at: "2026-10-17T14:01:00Z",
-      updated_at: "2026-10-17T14:03:00Z",
+      created_at: "2026-10-17T18:01:00Z",
+      updated_at: "2026-10-17T18:01:00Z",
     },
   ],
   experience: [
     {
-      experience_id: "experience.finance-1",
-      subject: "Personal finance",
+      experience_id: "experience.python",
+      subject: "Python for data analysis",
       level: "some_experience",
-      detail: "I have built a monthly budget.",
-      created_at: "2026-10-17T14:04:00Z",
-      updated_at: "2026-10-17T14:04:00Z",
+      detail: "I have used notebooks for class exercises.",
+      created_at: "2026-10-17T18:02:00Z",
+      updated_at: "2026-10-17T18:02:00Z",
     },
   ],
   interests: [
     {
-      interest_id: "interest.etf-1",
-      label: "ETF research",
-      created_at: "2026-10-17T14:05:00Z",
-      updated_at: "2026-10-17T14:05:00Z",
-    },
-    {
-      interest_id: "interest.behavior-2",
-      label: "Behavioral finance",
-      created_at: "2026-10-17T14:06:00Z",
-      updated_at: "2026-10-17T14:06:00Z",
+      interest_id: "interest.market-structure",
+      label: "How markets match buyers and sellers",
+      created_at: "2026-10-17T18:03:00Z",
+      updated_at: "2026-10-17T18:03:00Z",
     },
   ],
-  created_at: "2026-10-17T14:00:00Z",
-  updated_at: "2026-10-17T14:06:00Z",
-  profile_digest: "a".repeat(64),
+  created_at: "2026-10-17T18:00:00Z",
+  updated_at: "2026-10-17T18:03:00Z",
+  profile_digest: "3bafc94452c22184dfab79023d6659c571aca1cab02d00f55f0624daadc7088e",
 };
 
 export const preferenceHistoryFixture: LearnerPreferenceHistory = {
@@ -81,8 +67,8 @@ export const preferenceHistoryFixture: LearnerPreferenceHistory = {
       revision: 2,
       operation: "create_goal",
       object_kind: "goal",
-      object_id: "goal.risk-1",
-      occurred_at: "2026-10-17T14:00:00Z",
+      object_id: "goal.research-literacy",
+      occurred_at: "2026-10-17T18:01:00Z",
       resulting_profile_digest: "b".repeat(64),
     },
     {
@@ -90,17 +76,17 @@ export const preferenceHistoryFixture: LearnerPreferenceHistory = {
       revision: 3,
       operation: "create_experience",
       object_kind: "experience",
-      object_id: "experience.finance-1",
-      occurred_at: "2026-10-17T14:04:00Z",
+      object_id: "experience.python",
+      occurred_at: "2026-10-17T18:02:00Z",
       resulting_profile_digest: "c".repeat(64),
     },
     {
       schema_version: "1.0.0",
       revision: 4,
-      operation: "reorder_interests",
-      object_kind: "profile",
-      object_id: null,
-      occurred_at: "2026-10-17T14:06:00Z",
+      operation: "create_interest",
+      object_kind: "interest",
+      object_id: "interest.market-structure",
+      occurred_at: "2026-10-17T18:03:00Z",
       resulting_profile_digest: preferenceProfileFixture.profile_digest,
     },
   ],
@@ -113,43 +99,64 @@ export const preferenceExportFixture: LearnerPreferenceExport = {
     "These statements are not competency evidence.",
     "They are not financial advice or a suitability assessment.",
   ],
-  exported_at: "2026-10-17T14:07:00Z",
+  exported_at: "2026-10-17T18:05:00Z",
   profile: preferenceProfileFixture,
   history: preferenceHistoryFixture,
 };
 
 describe("learner preference browser model", () => {
-  it("accepts varied contract-valid profile, history, and export shapes", () => {
-    expect(learnerPreferenceProfileIsSafe(preferenceProfileFixture)).toBe(true);
-    expect(learnerPreferenceHistoryIsSafe(preferenceHistoryFixture)).toBe(true);
-    expect(learnerPreferenceExportIsSafe(preferenceExportFixture)).toBe(true);
-    const empty = {
-      ...preferenceProfileFixture,
+  it("accepts fixed contract-valid profile, history, export, and empty vectors", async () => {
+    expect(await learnerPreferenceProfileIsSafe(preferenceProfileFixture)).toBe(true);
+    expect(learnerPreferenceHistoryIsSafe(preferenceHistoryFixture, preferenceProfileFixture)).toBe(true);
+    expect(await learnerPreferenceExportIsSafe(preferenceExportFixture)).toBe(true);
+    const empty: LearnerPreferenceProfile = {
+      schema_version: "1.0.0",
+      profile_id: "profile.local-learner",
+      learner_id: "11111111-1111-4111-8111-111111111111",
       revision: 1,
       goals: [],
       experience: [],
       interests: [],
+      created_at: "2026-10-17T18:00:00Z",
+      updated_at: "2026-10-17T18:00:00Z",
+      profile_digest: "d30eecfd7e88c2f219056d824362e61dc6447dc572816f06a91247d3b5e24bce",
     };
-    expect(learnerPreferenceProfileIsSafe(empty)).toBe(true);
+    expect(await learnerPreferenceProfileIsSafe(empty)).toBe(true);
   });
 
-  it("fails closed on extra fields, duplicate IDs, malformed chronology, and mismatched exports", () => {
-    expect(learnerPreferenceProfileIsSafe({ ...preferenceProfileFixture, hidden_score: 0.8 })).toBe(false);
-    expect(learnerPreferenceProfileIsSafe({
+  it("fails closed on extra fields, duplicate IDs, digest mismatch, and entry time escape", async () => {
+    expect(await learnerPreferenceProfileIsSafe({ ...preferenceProfileFixture, hidden_score: 0.8 })).toBe(false);
+    expect(await learnerPreferenceProfileIsSafe({
       ...preferenceProfileFixture,
       interests: [{ ...preferenceProfileFixture.interests[0]!, interest_id: preferenceProfileFixture.goals[0]!.goal_id }],
     })).toBe(false);
-    expect(learnerPreferenceProfileIsSafe({
+    expect(await learnerPreferenceProfileIsSafe({
       ...preferenceProfileFixture,
-      goals: [{ ...preferenceProfileFixture.goals[0]!, updated_at: "2026-10-16T14:00:00Z" }],
+      profile_digest: "a".repeat(64),
+    })).toBe(false);
+    expect(await learnerPreferenceProfileIsSafe({
+      ...preferenceProfileFixture,
+      goals: [{ ...preferenceProfileFixture.goals[0]!, updated_at: "2026-10-17T18:04:00Z" }],
+    })).toBe(false);
+  });
+
+  it("fails closed on history chronology, latest-result mismatch, and early export time", async () => {
+    expect(learnerPreferenceHistoryIsSafe({
+      ...preferenceHistoryFixture,
+      changes: preferenceHistoryFixture.changes.map((change, index) => ({
+        ...change,
+        occurred_at: index === 1 ? "2026-10-17T18:00:30Z" : change.occurred_at,
+      })),
     })).toBe(false);
     expect(learnerPreferenceHistoryIsSafe({
       ...preferenceHistoryFixture,
-      changes: [...preferenceHistoryFixture.changes].reverse(),
-    })).toBe(false);
-    expect(learnerPreferenceExportIsSafe({
+      changes: preferenceHistoryFixture.changes.map((change, index) => index === 2
+        ? { ...change, resulting_profile_digest: "d".repeat(64) }
+        : change),
+    }, preferenceProfileFixture)).toBe(false);
+    expect(await learnerPreferenceExportIsSafe({
       ...preferenceExportFixture,
-      history: { ...preferenceHistoryFixture, current_revision: 3 },
+      exported_at: "2026-10-17T18:02:59Z",
     })).toBe(false);
   });
 
@@ -205,6 +212,27 @@ describe("learner preference generated-client adapter", () => {
     ]);
   });
 
+  it("rejects a public profile/history pair whose latest integrity result does not match", async () => {
+    const mismatchedHistory = {
+      ...preferenceHistoryFixture,
+      changes: preferenceHistoryFixture.changes.map((change, index) => index === 2
+        ? { ...change, resulting_profile_digest: "d".repeat(64) }
+        : change),
+    };
+    const get = vi.fn()
+      .mockResolvedValueOnce({ data: preferenceProfileFixture, response: new Response(null, { status: 200 }) })
+      .mockResolvedValueOnce({ data: mismatchedHistory, response: new Response(null, { status: 200 }) });
+    const loader = createLearnerPreferencesLoader(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      sessionReady(),
+    );
+
+    await expect(loader({
+      request: new Request("http://example.test/preferences/learning"),
+      params: {},
+    } as Parameters<typeof loader>[0])).resolves.toEqual({ status: "invalid-response" });
+  });
+
   it("sends exact server-authoritative mutation fields and maps stale writes", async () => {
     const post = vi.fn().mockResolvedValue({
       error: { code: "stale_revision", message: "not exposed" },
@@ -237,6 +265,43 @@ describe("learner preference generated-client adapter", () => {
           detail: "Use more than one possible outcome.",
         },
       },
+    }));
+  });
+
+  it("requires explicit removal confirmation before sending the bounded mutation", async () => {
+    const post = vi.fn().mockResolvedValue({
+      error: { code: "stale_revision" },
+      response: new Response(null, { status: 409 }),
+    });
+    const client = { POST: post } as unknown as FinancialAcademyApiClient;
+    const action = createLearnerPreferencesAction(client, sessionReady());
+    const form = new FormData();
+    form.set("form_intent", "remove-goal-goal.research-literacy");
+    form.set("idempotency_key", "request.remove-1");
+    form.set("expected_revision", "4");
+    form.set("operation", "remove_goal");
+    form.set("entry_id", "goal.research-literacy");
+
+    const withoutConfirmation = await action({
+      request: new Request("http://example.test/preferences/learning", { method: "POST", body: form }),
+      params: {},
+    } as Parameters<typeof action>[0]);
+    expect(withoutConfirmation).toEqual({
+      status: "error",
+      kind: "invalid",
+      intent: "remove-goal-goal.research-literacy",
+    });
+    expect(post).not.toHaveBeenCalled();
+
+    form.set("confirm_remove", "remove");
+    await action({
+      request: new Request("http://example.test/preferences/learning", { method: "POST", body: form }),
+      params: {},
+    } as Parameters<typeof action>[0]);
+    expect(post).toHaveBeenCalledWith("/api/v1/learner-preferences/mutations", expect.objectContaining({
+      body: expect.objectContaining({
+        mutation: { operation: "remove_goal", entry_id: "goal.research-literacy" },
+      }),
     }));
   });
 });

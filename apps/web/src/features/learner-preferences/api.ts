@@ -12,6 +12,9 @@ import {
   learnerPreferenceProfileIsSafe,
   preferenceMutationErrorCode,
   type LearnerPreferenceMutation,
+  type LearnerPreferenceExport,
+  type LearnerPreferenceHistory,
+  type LearnerPreferenceProfile,
   type LearnerPreferencesActionFailure,
   type LearnerPreferencesActionState,
   type LearnerPreferencesExporter,
@@ -42,18 +45,18 @@ async function readPreferenceBundle(
       client.GET("/api/v1/learner-preferences/history", { signal }),
     ]);
     if (profileResult.response.status === 200 && historyResult.response.status === 200) {
+      const profile = profileResult.data as LearnerPreferenceProfile | undefined;
+      const history = historyResult.data as LearnerPreferenceHistory | undefined;
       if (
-        !profileResult.data ||
-        !historyResult.data ||
-        !learnerPreferenceProfileIsSafe(profileResult.data) ||
-        !learnerPreferenceHistoryIsSafe(historyResult.data) ||
-        profileResult.data.profile_id !== historyResult.data.profile_id ||
-        profileResult.data.revision !== historyResult.data.current_revision
+        !profile ||
+        !history ||
+        !(await learnerPreferenceProfileIsSafe(profile)) ||
+        !learnerPreferenceHistoryIsSafe(history, profile)
       ) return { status: "invalid-response" };
       return {
         status: "ready",
-        profile: profileResult.data,
-        history: historyResult.data,
+        profile,
+        history,
       };
     }
     if (
@@ -136,9 +139,18 @@ function mutationFromForm(form: FormData): LearnerPreferenceMutation | undefined
       ? { operation, title, detail }
       : { operation, entry_id: entryId!, title, detail };
   }
-  if (operation === "archive_goal" || operation === "restore_goal" || operation === "remove_goal") {
+  if (operation === "archive_goal" || operation === "restore_goal") {
     const entryId = identifier(form, "entry_id");
     return exactFields(form, [...common, "entry_id"]) && entryId
+      ? { operation, entry_id: entryId }
+      : undefined;
+  }
+  if (operation === "remove_goal" || operation === "remove_experience" || operation === "remove_interest") {
+    const entryId = identifier(form, "entry_id");
+    return exactFields(form, [...common, "entry_id", "confirm_remove"]) &&
+      entryId &&
+      form.getAll("confirm_remove").length === 1 &&
+      form.get("confirm_remove") === "remove"
       ? { operation, entry_id: entryId }
       : undefined;
   }
@@ -163,12 +175,6 @@ function mutationFromForm(form: FormData): LearnerPreferenceMutation | undefined
     return operation === "create_experience"
       ? { operation, subject, level, detail }
       : { operation, entry_id: entryId!, subject, level, detail };
-  }
-  if (operation === "remove_experience" || operation === "remove_interest") {
-    const entryId = identifier(form, "entry_id");
-    return exactFields(form, [...common, "entry_id"]) && entryId
-      ? { operation, entry_id: entryId }
-      : undefined;
   }
   if (operation === "create_interest" || operation === "rename_interest") {
     const label = required(form, "label", 120);
@@ -230,7 +236,7 @@ async function sendMutation(
   try {
     const result = await client.POST("/api/v1/learner-preferences/mutations", { body, signal });
     if (result.response.status === 200) {
-      return result.data && learnerPreferenceProfileIsSafe(result.data)
+      return result.data && await learnerPreferenceProfileIsSafe(result.data)
         ? redirect("/preferences/learning")
         : actionFailure("invalid-response", intent, body);
     }
@@ -283,14 +289,15 @@ async function exportPreferences(
   try {
     const result = await client.GET("/api/v1/learner-preferences/export", {});
     if (result.response.status === 200) {
-      if (!result.data || !learnerPreferenceExportIsSafe(result.data)) return { status: "invalid-response" };
-      if (result.data.profile.revision !== expectedRevision || result.data.profile.profile_digest !== expectedDigest) {
+      const exported = result.data as LearnerPreferenceExport | undefined;
+      if (!exported || !(await learnerPreferenceExportIsSafe(exported))) return { status: "invalid-response" };
+      if (exported.profile.revision !== expectedRevision || exported.profile.profile_digest !== expectedDigest) {
         return { status: "changed" };
       }
       return {
         status: "ready",
-        content: JSON.stringify(result.data, null, 2),
-        export: result.data,
+        content: JSON.stringify(exported, null, 2),
+        export: exported,
         fileName: "learning-preferences-export.json",
       };
     }

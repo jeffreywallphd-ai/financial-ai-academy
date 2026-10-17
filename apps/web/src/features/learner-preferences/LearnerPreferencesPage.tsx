@@ -73,7 +73,7 @@ function actionMessage(kind: LearnerPreferencesActionState["kind"]): { title: st
   if (kind === "invalid") return { title: "Check this change", detail: "One or more entries are missing or too long. Review the fields and try again." };
   if (kind === "invalid-response") return { title: "Saved result unavailable", detail: "We couldn't safely confirm the saved result, so no partial private details were shown. Reload this page before making another change." };
   if (kind === "unavailable") return { title: "Change not confirmed", detail: "We couldn't confirm whether this change finished. Keep the form unchanged and try the same request again, or reload the page to check." };
-  return { title: "Change not completed", detail: "We couldn't complete this change safely. No technical or private details were shown." };
+  return { title: "Change not completed", detail: "We couldn't complete this change safely. No technical or private details were shown. Reload this page, review the current preferences, and try again." };
 }
 
 function ActionNotice({ actionState }: { actionState: LearnerPreferencesActionState | undefined }) {
@@ -253,6 +253,7 @@ function ItemMutationForm({
   label,
   operation,
   revision,
+  targetLabel,
 }: {
   actionState: LearnerPreferencesActionState | undefined;
   busy: boolean;
@@ -261,14 +262,35 @@ function ItemMutationForm({
   label: string;
   operation: "archive_goal" | "restore_goal" | "remove_goal" | "remove_experience" | "remove_interest";
   revision: number;
+  targetLabel: string;
 }) {
+  const [removeConfirmed, setRemoveConfirmed] = useState(false);
   const mutation = { operation, entry_id: entryId } as LearnerPreferenceMutation;
+  const removesEntry = operation.startsWith("remove");
   return (
     <Form method="post">
       <MutationFields actionState={actionState} intent={intent} mutation={mutation} revision={revision} />
       <input name="operation" type="hidden" value={operation} />
       <input name="entry_id" type="hidden" value={entryId} />
-      <button className={operation.startsWith("remove") ? "button preferences-button--danger" : "button button--quiet"} disabled={busy} type="submit">{label}</button>
+      {removesEntry ? (
+        <label>
+          <input
+            checked={removeConfirmed}
+            name="confirm_remove"
+            onChange={(event) => setRemoveConfirmed(event.target.checked)}
+            required
+            type="checkbox"
+            value="remove"
+          />
+          {` I understand that removing “${targetLabel}” permanently removes this wording from my learning preferences.`}
+        </label>
+      ) : null}
+      <button
+        aria-label={`${label}: ${targetLabel}`}
+        className={removesEntry ? "button preferences-button--danger" : "button button--quiet"}
+        disabled={busy || (removesEntry && !removeConfirmed)}
+        type="submit"
+      >{label}</button>
     </Form>
   );
 }
@@ -306,10 +328,11 @@ function History({ history }: { history: LearnerPreferenceHistory }) {
           {[...history.changes].reverse().map((change) => (
             <li key={change.revision}>
               <strong>{preferenceChangeLabel(change.operation)}</strong>
-              <span>Revision {change.revision} · <time dateTime={change.occurred_at}>{new Date(change.occurred_at).toLocaleString()}</time></span>
+              <span><time dateTime={change.occurred_at}>{new Date(change.occurred_at).toLocaleString()}</time></span>
               <details>
                 <summary>Technical record</summary>
                 <dl className="preferences-technical">
+                  <div><dt>Result revision</dt><dd>{change.revision}</dd></div>
                   <div><dt>Change type</dt><dd><code>{change.operation}</code></dd></div>
                   {change.object_id ? <div><dt>Item identifier</dt><dd><code>{change.object_id}</code></dd></div> : null}
                   <div><dt>Result integrity code</dt><dd><code>{change.resulting_profile_digest}</code></dd></div>
@@ -371,10 +394,10 @@ export function LearnerPreferencesPage({
               <li className={goal.archived ? "preferences-card preferences-card--muted" : "preferences-card"} key={goal.goal_id}>
                 <div className="preferences-card__heading"><div><h3>{goal.title}</h3>{goal.archived ? <strong className="preferences-status">Archived</strong> : null}</div><OrderControls actionState={actionState} busy={busy} ids={goalIds} index={index} itemId={goal.goal_id} itemLabel={goal.title} operation="reorder_goals" revision={profile.revision} /></div>
                 {goal.detail ? <p>{goal.detail}</p> : <p className="preferences-muted">No additional detail.</p>}
-                <details><summary>Edit goal</summary><GoalForm actionState={actionState} busy={busy} goal={goal} revision={profile.revision} /></details>
+                <details><summary aria-label={`Edit goal: ${goal.title}`}>Edit goal</summary><GoalForm actionState={actionState} busy={busy} goal={goal} revision={profile.revision} /></details>
                 <div className="preferences-actions">
-                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`${goal.archived ? "restore" : "archive"}-goal-${goal.goal_id}`} label={goal.archived ? "Restore goal" : "Archive goal"} operation={goal.archived ? "restore_goal" : "archive_goal"} revision={profile.revision} />
-                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`remove-goal-${goal.goal_id}`} label="Remove goal" operation="remove_goal" revision={profile.revision} />
+                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`${goal.archived ? "restore" : "archive"}-goal-${goal.goal_id}`} label={goal.archived ? "Restore goal" : "Archive goal"} operation={goal.archived ? "restore_goal" : "archive_goal"} revision={profile.revision} targetLabel={goal.title} />
+                  <ItemMutationForm actionState={actionState} busy={busy} entryId={goal.goal_id} intent={`remove-goal-${goal.goal_id}`} label="Remove goal" operation="remove_goal" revision={profile.revision} targetLabel={goal.title} />
                 </div>
                 <details><summary>Technical record</summary><dl className="preferences-technical"><div><dt>Goal identifier</dt><dd><code>{goal.goal_id}</code></dd></div><div><dt>Last updated</dt><dd><time dateTime={goal.updated_at}>{goal.updated_at}</time></dd></div></dl></details>
               </li>
@@ -392,8 +415,8 @@ export function LearnerPreferencesPage({
               <li className="preferences-card" key={entry.experience_id}>
                 <div className="preferences-card__heading"><div><h3>{entry.subject}</h3><strong className="preferences-status">{experienceLevelLabel(entry.level)}</strong></div><OrderControls actionState={actionState} busy={busy} ids={experienceIds} index={index} itemId={entry.experience_id} itemLabel={entry.subject} operation="reorder_experience" revision={profile.revision} /></div>
                 {entry.detail ? <p>{entry.detail}</p> : <p className="preferences-muted">No additional detail.</p>}
-                <details><summary>Edit experience</summary><ExperienceForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
-                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.experience_id} intent={`remove-experience-${entry.experience_id}`} label="Remove experience" operation="remove_experience" revision={profile.revision} /></div>
+                <details><summary aria-label={`Edit experience: ${entry.subject}`}>Edit experience</summary><ExperienceForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
+                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.experience_id} intent={`remove-experience-${entry.experience_id}`} label="Remove experience" operation="remove_experience" revision={profile.revision} targetLabel={entry.subject} /></div>
                 <details><summary>Technical record</summary><dl className="preferences-technical"><div><dt>Experience identifier</dt><dd><code>{entry.experience_id}</code></dd></div><div><dt>Last updated</dt><dd><time dateTime={entry.updated_at}>{entry.updated_at}</time></dd></div></dl></details>
               </li>
             ))}
@@ -409,8 +432,8 @@ export function LearnerPreferencesPage({
             {profile.interests.map((entry, index) => (
               <li className="preferences-card" key={entry.interest_id}>
                 <div className="preferences-card__heading"><h3>{entry.label}</h3><OrderControls actionState={actionState} busy={busy} ids={interestIds} index={index} itemId={entry.interest_id} itemLabel={entry.label} operation="reorder_interests" revision={profile.revision} /></div>
-                <details><summary>Edit interest</summary><InterestForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
-                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.interest_id} intent={`remove-interest-${entry.interest_id}`} label="Remove interest" operation="remove_interest" revision={profile.revision} /></div>
+                <details><summary aria-label={`Edit interest: ${entry.label}`}>Edit interest</summary><InterestForm actionState={actionState} busy={busy} entry={entry} revision={profile.revision} /></details>
+                <div className="preferences-actions"><ItemMutationForm actionState={actionState} busy={busy} entryId={entry.interest_id} intent={`remove-interest-${entry.interest_id}`} label="Remove interest" operation="remove_interest" revision={profile.revision} targetLabel={entry.label} /></div>
                 <details><summary>Technical record</summary><dl className="preferences-technical"><div><dt>Interest identifier</dt><dd><code>{entry.interest_id}</code></dd></div><div><dt>Last updated</dt><dd><time dateTime={entry.updated_at}>{entry.updated_at}</time></dd></div></dl></details>
               </li>
             ))}
