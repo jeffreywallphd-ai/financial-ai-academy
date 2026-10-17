@@ -206,8 +206,8 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0147 | Freeze learner-preference v1 profile, mutation, history/export, compatibility, pure domain, transport-neutral parser/projector, privacy, and anti-rigidity contracts | none | none | complete |
 | WRK-0148 | Compose Learner-model application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0147 | none | complete |
-| JIT-C | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | JIT-B | none | captured |
-| JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | JIT-C | none | captured |
+| WRK-0149 | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | WRK-0148 | none | ready |
+| JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149 | none | captured |
 
 Dependent packets are not reserved, authored, or claimed until their concrete
 predecessor is complete.
@@ -287,3 +287,7 @@ approval history.
   export, reviewed OpenAPI, and generated TypeScript operations. The next
   dependency-ready increment is the browser flow; simultaneous-writer race
   evidence remains in the final live-qualification seam.
+- 2026-10-17: Refined dependency-ready JIT-C as WRK-0149. The packet delivers
+  the complete learner-controlled browser flow through the fixed generated
+  client, retains API/headless authority, and leaves process-level live,
+  restart, race, containment, and cleanup proof to the final packet.
