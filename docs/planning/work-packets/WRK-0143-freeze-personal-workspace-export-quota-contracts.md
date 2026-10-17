@@ -1,7 +1,7 @@
 ---
 id: WRK-0143
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -244,3 +244,7 @@ provider, execution, AI, financial, or external-action behavior changed.
 - 2026-10-17: Activated from recorded base `75dccce` after confirming current
   CAP binding, resolved decision posture, exact contract-only write scope,
   completed predecessor slices, and no active coordination collision.
+- 2026-10-17: Moved to evidence verification after the closed export envelope,
+  privacy denials, exact capacity classifications, removal isolation, focused
+  contract/core/architecture checks, documentation, planning, security, and
+  whitespace validation passed within the contract-only boundary.
