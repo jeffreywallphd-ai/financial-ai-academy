@@ -25,6 +25,9 @@ from financial_ai_academy.modules.personal_workspace.domain.workspace import (
     WorkspaceBookmark,
     WorkspaceMutationIntent,
     WorkspaceNote,
+    ProjectArtifactReference,
+    ProjectSnapshotReference,
+    ProjectWorkspaceReference,
 )
 from financial_ai_academy.modules.personal_workspace.ports.workspace_contract import (
     PersonalWorkspaceContractFailure,
@@ -57,6 +60,11 @@ def _reference(adapter: ContractPersonalWorkspaceAdapter):
     intent = adapter.parse_mutation_intent(
         (FIXTURE_DIR / "valid-create-note-intent.json").read_bytes()
     )
+    return intent.mutation.target  # type: ignore[union-attr]
+
+
+def _project_reference(adapter: ContractPersonalWorkspaceAdapter, fixture: str):
+    intent = adapter.parse_mutation_intent((FIXTURE_DIR / fixture).read_bytes())
     return intent.mutation.target  # type: ignore[union-attr]
 
 
@@ -184,6 +192,62 @@ def test_bookmark_and_collection_mutations_preserve_order(
         occurred_at=datetime(2026, 10, 17, 12, 40, tzinfo=timezone.utc),
     )
     assert workspace.collections == ()
+
+
+def test_learning_and_project_references_share_one_flexible_workspace_core(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-empty-workspace.json").read_bytes()
+    )
+    targets = (
+        _reference(adapter),
+        _project_reference(adapter, "valid-project-workspace-note.json"),
+        _project_reference(adapter, "valid-project-snapshot-bookmark.json"),
+        _project_reference(adapter, "valid-project-artifact-bookmark.json"),
+    )
+    assert isinstance(targets[1], ProjectWorkspaceReference)
+    assert isinstance(targets[2], ProjectSnapshotReference)
+    assert isinstance(targets[3], ProjectArtifactReference)
+    for index, target in enumerate(targets, start=1):
+        workspace = adapter.apply_mutation(
+            workspace,
+            _intent(
+                workspace.revision,
+                CreateBookmarkMutation(target, f"Saved target {index}"),
+            ),
+            occurred_at=datetime(
+                2026, 10, 17, 13, index, tzinfo=timezone.utc
+            ),
+            issued_id=f"bookmark.{index}",
+        )
+    workspace = adapter.apply_mutation(
+        workspace,
+        _intent(workspace.revision, CreateCollectionMutation("Mixed sources")),
+        occurred_at=datetime(2026, 10, 17, 13, 10, tzinfo=timezone.utc),
+        issued_id="collection.mixed",
+    )
+    workspace = adapter.apply_mutation(
+        workspace,
+        _intent(
+            workspace.revision,
+            SetCollectionMembersMutation(
+                "collection.mixed",
+                tuple(record.record_id for record in reversed(workspace.records)),
+            ),
+        ),
+        occurred_at=datetime(2026, 10, 17, 13, 11, tzinfo=timezone.utc),
+    )
+
+    portable = adapter.workspace_document(workspace)
+    reopened = adapter.parse_workspace(json.dumps(portable).encode("utf-8"))
+    assert reopened == workspace
+    assert reopened.collections[0].member_record_ids == (
+        "bookmark.4",
+        "bookmark.3",
+        "bookmark.2",
+        "bookmark.1",
+    )
 
 
 @pytest.mark.parametrize(

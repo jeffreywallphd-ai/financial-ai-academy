@@ -13,6 +13,11 @@ from financial_ai_academy.modules.personal_workspace.adapters.workspace_contract
 from financial_ai_academy.modules.personal_workspace.ports.workspace_contract import (
     PersonalWorkspaceContractFailure,
 )
+from financial_ai_academy.modules.personal_workspace.domain.workspace import (
+    ProjectArtifactReference,
+    ProjectSnapshotReference,
+    ProjectWorkspaceReference,
+)
 
 
 ROOT = Path(__file__).parents[4]
@@ -82,6 +87,25 @@ def test_create_note_intent_is_portable(
 
 
 @pytest.mark.parametrize(
+    ("fixture_name", "reference_type"),
+    [
+        ("valid-project-workspace-note.json", ProjectWorkspaceReference),
+        ("valid-project-snapshot-bookmark.json", ProjectSnapshotReference),
+        ("valid-project-artifact-bookmark.json", ProjectArtifactReference),
+    ],
+)
+def test_project_reference_intents_are_closed_and_portable(
+    adapter: ContractPersonalWorkspaceAdapter,
+    fixture_name: str,
+    reference_type: type,
+) -> None:
+    fixture = (FIXTURE_DIR / fixture_name).read_bytes()
+    intent = adapter.parse_mutation_intent(fixture)
+    assert isinstance(intent.mutation.target, reference_type)  # type: ignore[union-attr]
+    assert adapter.mutation_intent_document(intent) == json.loads(fixture)
+
+
+@pytest.mark.parametrize(
     ("fixture_name", "code"),
     [
         ("invalid-dangling-collection.json", "personal_workspace.contract.dangling_member"),
@@ -107,6 +131,10 @@ def test_contract_has_no_private_or_authoritative_learning_fields() -> None:
         "provider_payload",
         "recommendation_score",
         "storage_path",
+        "artifact_bytes",
+        "download_url",
+        "object_key",
+        "permission",
     }
     documents = [
         json.loads(path.read_text(encoding="utf-8"))
@@ -153,6 +181,74 @@ def test_reference_matches_curriculum_route_and_title_profile(
     _expect_workspace_failure(
         adapter, mismatched, "personal_workspace.contract.invalid_reference"
     )
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "field", "private_value"),
+    [
+        ("valid-project-workspace-note.json", "charter", "private charter"),
+        ("valid-project-snapshot-bookmark.json", "snapshot", {"notes": []}),
+        ("valid-project-artifact-bookmark.json", "object_key", "private/key"),
+        ("valid-project-artifact-bookmark.json", "content", "secret bytes"),
+        ("valid-project-artifact-bookmark.json", "source_url", "https://private"),
+    ],
+)
+def test_project_references_reject_target_content_and_private_fields(
+    adapter: ContractPersonalWorkspaceAdapter,
+    fixture_name: str,
+    field: str,
+    private_value: object,
+) -> None:
+    document = _fixture(fixture_name)
+    document["mutation"]["target"][field] = private_value  # type: ignore[index]
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "destination"),
+    [
+        ("valid-project-workspace-note.json", "/projects/other#workspace"),
+        (
+            "valid-project-snapshot-bookmark.json",
+            "/projects/project.research-1#snapshot-other",
+        ),
+        (
+            "valid-project-artifact-bookmark.json",
+            "/projects/project.research-1#artifact-other-v3",
+        ),
+    ],
+)
+def test_project_reference_destinations_must_match_exact_identity(
+    adapter: ContractPersonalWorkspaceAdapter,
+    fixture_name: str,
+    destination: str,
+) -> None:
+    document = _fixture(fixture_name)
+    document["mutation"]["target"]["destination"] = destination  # type: ignore[index]
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "personal_workspace.contract.invalid_reference"
+
+
+@pytest.mark.parametrize(
+    ("fixture_name", "time_field"),
+    [
+        ("valid-project-snapshot-bookmark.json", "closed_at"),
+        ("valid-project-artifact-bookmark.json", "created_at"),
+    ],
+)
+def test_project_reference_source_time_cannot_follow_validation(
+    adapter: ContractPersonalWorkspaceAdapter,
+    fixture_name: str,
+    time_field: str,
+) -> None:
+    document = _fixture(fixture_name)
+    document["mutation"]["target"][time_field] = "2026-10-17T13:00:01Z"  # type: ignore[index]
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "personal_workspace.contract.invalid_time"
 
 
 def test_nullable_bookmark_label_has_one_canonical_representation(

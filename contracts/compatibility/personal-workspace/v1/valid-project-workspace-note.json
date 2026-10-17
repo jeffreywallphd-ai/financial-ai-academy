@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "intent.project-workspace-note",
+  "expected_revision": 1,
+  "mutation": {
+    "operation": "create_note",
+    "target": {
+      "reference_kind": "project_workspace",
+      "owner_module": "project",
+      "project_id": "project.research-1",
+      "title": "Compare allocation assumptions",
+      "lifecycle": "active",
+      "project_revision": 2,
+      "workspace_revision": 4,
+      "destination": "/projects/project.research-1#workspace",
+      "target_status": "available",
+      "validated_at": "2026-10-17T13:00:00Z"
+    },
+    "title": "Continue this Project",
+    "body": "Review the saved assumptions before adding more evidence."
+  }
+}

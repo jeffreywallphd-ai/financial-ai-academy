@@ -8,10 +8,12 @@
 ## Boundary
 
 Personal workspace owns learner-authored notes, bookmarks, collections, their
-order, and archive state. Curriculum continues to own the referenced learning
-opportunity or placed lesson. A workspace reference therefore carries exact
-public identity and provenance but never copies target business state, grants
-permission, or provides a mutation path into another module.
+order, and archive state. Curriculum continues to own a referenced learning
+opportunity or placed lesson, while Project owns its shell, mutable workspace,
+immutable snapshots, and inert artifact manifests. A workspace reference
+therefore carries exact bounded public identity/provenance facts but never
+copies target business state, grants permission, provides artifact content, or
+creates a mutation or execution path into another module.
 
 ## v1 rules
 
@@ -33,6 +35,16 @@ permission, or provides a mutation path into another module.
   `/learn/placements/{placement_id}` shape and must correlate with the exact
   retained placement. Unavailable or inaccessible targets remain an adapter
   and presentation concern; the workspace cannot silently substitute a target.
+- Additive Project references are exactly `project_workspace`,
+  `project_snapshot`, and `project_artifact`. They retain safe Project title,
+  lifecycle and revisions; snapshot identity/digest/close time; or inert
+  artifact identity/version/kind/path/media/inspection/size/content-digest
+  facts. Safe same-origin destinations correlate every retained identity.
+- The Project adapter calls only learner-bound `open_project`, `open_workspace`,
+  and `open_snapshot` public operations. It cannot call artifact download,
+  export, mutation, object storage, or persistence and maps missing, denied,
+  unavailable, or mismatched targets to one confidential source-unavailable
+  result.
 - The public create-note and create-bookmark requests accept only a closed
   Curriculum selector. The server resolves title, destination, package,
   publication, and validation provenance through Curriculum public operations.
@@ -51,7 +63,10 @@ permission, or provides a mutation path into another module.
 
 ## Exclusions
 
-The current seam has no browser view, collaboration, cloud synchronization,
-artifact execution, Project membership, Portfolio association, Assessment or
-Learner-model effect, AI authority, or personalized financial advice. Those
-concerns require their owning packets and decision readiness.
+The current protected API and `Saved learning` browser flow cover Curriculum
+references. Project-reference contracts and their public-only adapter are now
+implemented, but their application/API/client/browser composition remains the
+next CAP-0017 packet. The boundary has no collaboration, cloud synchronization,
+artifact preview/download/execution, Project mutation, Portfolio association,
+Assessment or Learner-model effect, AI authority, or personalized financial
+advice.

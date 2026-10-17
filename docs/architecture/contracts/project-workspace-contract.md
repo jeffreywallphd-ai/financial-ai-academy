@@ -137,6 +137,16 @@ Portfolio aggregate, or financial advice. Browser, command-line, service, and
 headless clients consume the same Project API; the contracts grant no client
 durable-state authority.
 
+Personal workspace may now resolve three inert typed references through
+Project's existing learner-bound public reads: the current Project workspace,
+an immutable snapshot, or one current artifact manifest. Its adapter retains a
+closed safe subset and derives a same-origin route. It does not import Project
+internals, read Project persistence or object storage, copy shell charter or
+workspace/snapshot material, expose provenance URLs or artifact bytes, call
+download/export/mutation operations, or grant Project access. Project remains
+authoritative on every reopen; persistence/API/browser composition of these
+new Personal-workspace selectors is later CAP-0017 work.
+
 ## Persisted Workspace, Artifact, Snapshot, and API Seam
 
 `project.project_workspaces` stores one revalidated JSON workspace aggregate

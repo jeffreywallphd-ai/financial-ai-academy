@@ -75,7 +75,54 @@
         "validated_at": { "$ref": "#/$defs/utc_time" }
       }
     },
-    "reference": { "oneOf": [{ "$ref": "#/$defs/learning_opportunity" }, { "$ref": "#/$defs/placed_lesson" }] },
+    "project_workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_kind", "owner_module", "project_id", "title", "lifecycle", "project_revision", "workspace_revision", "destination", "target_status", "validated_at"],
+      "properties": {
+        "reference_kind": { "const": "project_workspace" }, "owner_module": { "const": "project" },
+        "project_id": { "$ref": "#/$defs/platform_identifier" }, "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "const": "active" }, "project_revision": { "type": "integer", "minimum": 1 },
+        "workspace_revision": { "type": "integer", "minimum": 1 },
+        "destination": { "type": "string", "pattern": "^/projects/[a-z0-9][a-z0-9._-]{0,127}#workspace$" },
+        "target_status": { "const": "available" }, "validated_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "project_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_kind", "owner_module", "project_id", "snapshot_id", "title", "lifecycle", "project_revision", "workspace_revision", "snapshot_digest", "closed_at", "destination", "target_status", "validated_at"],
+      "properties": {
+        "reference_kind": { "const": "project_snapshot" }, "owner_module": { "const": "project" },
+        "project_id": { "$ref": "#/$defs/platform_identifier" }, "snapshot_id": { "$ref": "#/$defs/platform_identifier" },
+        "title": { "$ref": "#/$defs/title" }, "lifecycle": { "const": "active" },
+        "project_revision": { "type": "integer", "minimum": 1 }, "workspace_revision": { "type": "integer", "minimum": 1 },
+        "snapshot_digest": { "$ref": "#/$defs/digest" }, "closed_at": { "$ref": "#/$defs/utc_time" },
+        "destination": { "type": "string", "pattern": "^/projects/[a-z0-9][a-z0-9._-]{0,127}#snapshot-[a-z0-9][a-z0-9._-]{0,127}$" },
+        "target_status": { "const": "available" }, "validated_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "project_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reference_kind", "owner_module", "project_id", "artifact_id", "artifact_version", "title", "lifecycle", "project_revision", "workspace_revision", "artifact_kind", "logical_path", "media_type", "inspection_mode", "byte_count", "content_digest", "created_at", "destination", "target_status", "validated_at"],
+      "properties": {
+        "reference_kind": { "const": "project_artifact" }, "owner_module": { "const": "project" },
+        "project_id": { "$ref": "#/$defs/platform_identifier" }, "artifact_id": { "$ref": "#/$defs/platform_identifier" },
+        "artifact_version": { "type": "integer", "minimum": 1 }, "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "const": "active" }, "project_revision": { "type": "integer", "minimum": 1 },
+        "workspace_revision": { "type": "integer", "minimum": 1 },
+        "artifact_kind": { "enum": ["dataset", "notebook", "code", "environment", "result", "reflection", "supporting_file"] },
+        "logical_path": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*\\\\)(?!.*\\u0000).+$" },
+        "media_type": { "enum": ["application/octet-stream", "application/json", "application/pdf", "application/x-ipynb+json", "text/csv", "text/markdown", "text/plain", "text/x-python"] },
+        "inspection_mode": { "enum": ["metadata_only", "plain_text"] },
+        "byte_count": { "type": "integer", "minimum": 0, "maximum": 10485760 },
+        "content_digest": { "$ref": "#/$defs/digest" }, "created_at": { "$ref": "#/$defs/utc_time" },
+        "destination": { "type": "string", "pattern": "^/projects/[a-z0-9][a-z0-9._-]{0,127}#artifact-[a-z0-9][a-z0-9._-]{0,127}-v[1-9][0-9]*$" },
+        "target_status": { "const": "available" }, "validated_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+    "reference": { "oneOf": [{ "$ref": "#/$defs/learning_opportunity" }, { "$ref": "#/$defs/placed_lesson" }, { "$ref": "#/$defs/project_workspace" }, { "$ref": "#/$defs/project_snapshot" }, { "$ref": "#/$defs/project_artifact" }] },
     "note": {
       "type": "object",
       "additionalProperties": false,

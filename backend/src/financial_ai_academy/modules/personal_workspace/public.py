@@ -72,8 +72,33 @@ class PlacedLessonSelector:
     reference_kind: Literal["placed_lesson"] = "placed_lesson"
 
 
+@dataclass(frozen=True, slots=True)
+class ProjectWorkspaceSelector:
+    project_id: str
+    reference_kind: Literal["project_workspace"] = "project_workspace"
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectSnapshotSelector:
+    project_id: str
+    snapshot_id: str
+    reference_kind: Literal["project_snapshot"] = "project_snapshot"
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectArtifactSelector:
+    project_id: str
+    artifact_id: str
+    artifact_version: int
+    reference_kind: Literal["project_artifact"] = "project_artifact"
+
+
 LearningReferenceSelector: TypeAlias = (
-    LearningOpportunitySelector | PlacedLessonSelector
+    LearningOpportunitySelector
+    | PlacedLessonSelector
+    | ProjectWorkspaceSelector
+    | ProjectSnapshotSelector
+    | ProjectArtifactSelector
 )
 
 
@@ -150,5 +175,8 @@ __all__ = [
     "PersonalWorkspaceMutationCommand",
     "PersonalWorkspaceOperations",
     "PlacedLessonSelector",
+    "ProjectArtifactSelector",
+    "ProjectSnapshotSelector",
+    "ProjectWorkspaceSelector",
     "WorkspaceCommandMutation",
 ]

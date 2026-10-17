@@ -1,4 +1,4 @@
-"""Public-source gateway for accepted Personal-workspace references."""
+"""Public-owner gateway for accepted Personal-workspace references."""
 
 from __future__ import annotations
 

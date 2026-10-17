@@ -15,13 +15,19 @@ mutation core.
   operations to protected HTTP, generated-client, and future headless callers;
 - selector-based Curriculum resolution that keeps target facts under their
   owner and stores no lesson body or permission grant;
+- additive Project workspace, immutable snapshot, and inert artifact-manifest
+  reference values plus a focused adapter that uses only learner-bound Project
+  public reads and never downloads artifact bytes;
 - `PostgresPersonalWorkspaceRepository`, which owns current aggregate and exact
   replay state with optimistic revision and atomic first materialization.
 
-Only exact Curriculum-owned learning opportunities and placed lessons are
-admitted in v1. The module stores references rather than target business state
-and cannot confer access to a target. It imports no other module internals and
-has no provider, model, external-network, file, or execution dependency.
+The v1 union admits exact Curriculum-owned learning opportunities and placed
+lessons plus safe Project workspace, snapshot, and artifact-manifest facts.
+Project application-service/API composition for the new selectors remains the
+next slice packet. The module stores references rather than target business
+state and cannot confer access to a target. Its adapters import only owner
+public surfaces and have no provider, model, external-network, file-content,
+or execution dependency.
 
 The protected API/client delivery is the primary product boundary for browser
 and headless consumers. Source-bearing creates also require the owning

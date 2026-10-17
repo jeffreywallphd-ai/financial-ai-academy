@@ -47,7 +47,75 @@ class PlacedLessonReference:
     reference_kind: Literal["placed_lesson"] = "placed_lesson"
 
 
-LearningReference: TypeAlias = LearningOpportunityReference | PlacedLessonReference
+@dataclass(frozen=True, slots=True)
+class ProjectWorkspaceReference:
+    project_id: str
+    title: str
+    lifecycle: Literal["active"]
+    project_revision: int
+    workspace_revision: int
+    destination: str
+    target_status: Literal["available"]
+    validated_at: datetime
+    owner_module: Literal["project"] = "project"
+    reference_kind: Literal["project_workspace"] = "project_workspace"
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectSnapshotReference:
+    project_id: str
+    snapshot_id: str
+    title: str
+    lifecycle: Literal["active"]
+    project_revision: int
+    workspace_revision: int
+    snapshot_digest: str
+    closed_at: datetime
+    destination: str
+    target_status: Literal["available"]
+    validated_at: datetime
+    owner_module: Literal["project"] = "project"
+    reference_kind: Literal["project_snapshot"] = "project_snapshot"
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectArtifactReference:
+    project_id: str
+    artifact_id: str
+    artifact_version: int
+    title: str
+    lifecycle: Literal["active"]
+    project_revision: int
+    workspace_revision: int
+    artifact_kind: Literal[
+        "dataset",
+        "notebook",
+        "code",
+        "environment",
+        "result",
+        "reflection",
+        "supporting_file",
+    ]
+    logical_path: str
+    media_type: str
+    inspection_mode: Literal["metadata_only", "plain_text"]
+    byte_count: int
+    content_digest: str
+    created_at: datetime
+    destination: str
+    target_status: Literal["available"]
+    validated_at: datetime
+    owner_module: Literal["project"] = "project"
+    reference_kind: Literal["project_artifact"] = "project_artifact"
+
+
+LearningReference: TypeAlias = (
+    LearningOpportunityReference
+    | PlacedLessonReference
+    | ProjectWorkspaceReference
+    | ProjectSnapshotReference
+    | ProjectArtifactReference
+)
 
 
 @dataclass(frozen=True, slots=True)

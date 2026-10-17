@@ -20,6 +20,9 @@ from ..domain.workspace import (
     LearningReference,
     PersonalWorkspace,
     PlacedLessonReference,
+    ProjectArtifactReference,
+    ProjectSnapshotReference,
+    ProjectWorkspaceReference,
     PublicationProvenance,
     RemoveCollectionMutation,
     RemoveRecordMutation,
@@ -394,6 +397,52 @@ class ContractPersonalWorkspaceAdapter:
 
     def _reference(self, value: Mapping[str, Any]) -> LearningReference:
         self._validate_reference_semantics(value)
+        reference_kind = value["reference_kind"]
+        if reference_kind == "project_workspace":
+            return ProjectWorkspaceReference(
+                project_id=value["project_id"],
+                title=value["title"],
+                lifecycle=value["lifecycle"],
+                project_revision=value["project_revision"],
+                workspace_revision=value["workspace_revision"],
+                destination=value["destination"],
+                target_status=value["target_status"],
+                validated_at=self._timestamp(value["validated_at"]),
+            )
+        if reference_kind == "project_snapshot":
+            return ProjectSnapshotReference(
+                project_id=value["project_id"],
+                snapshot_id=value["snapshot_id"],
+                title=value["title"],
+                lifecycle=value["lifecycle"],
+                project_revision=value["project_revision"],
+                workspace_revision=value["workspace_revision"],
+                snapshot_digest=value["snapshot_digest"],
+                closed_at=self._timestamp(value["closed_at"]),
+                destination=value["destination"],
+                target_status=value["target_status"],
+                validated_at=self._timestamp(value["validated_at"]),
+            )
+        if reference_kind == "project_artifact":
+            return ProjectArtifactReference(
+                project_id=value["project_id"],
+                artifact_id=value["artifact_id"],
+                artifact_version=value["artifact_version"],
+                title=value["title"],
+                lifecycle=value["lifecycle"],
+                project_revision=value["project_revision"],
+                workspace_revision=value["workspace_revision"],
+                artifact_kind=value["artifact_kind"],
+                logical_path=value["logical_path"],
+                media_type=value["media_type"],
+                inspection_mode=value["inspection_mode"],
+                byte_count=value["byte_count"],
+                content_digest=value["content_digest"],
+                created_at=self._timestamp(value["created_at"]),
+                destination=value["destination"],
+                target_status=value["target_status"],
+                validated_at=self._timestamp(value["validated_at"]),
+            )
         provenance = PublicationProvenance(
             published_by=value["provenance"]["published_by"],
             published_at=self._timestamp(value["provenance"]["published_at"]),
@@ -411,7 +460,7 @@ class ContractPersonalWorkspaceAdapter:
             "provenance": provenance,
             "validated_at": self._timestamp(value["validated_at"]),
         }
-        if value["reference_kind"] == "learning_opportunity":
+        if reference_kind == "learning_opportunity":
             return LearningOpportunityReference(
                 opportunity_id=value["opportunity_id"],
                 source_fingerprint=value["source_fingerprint"],
@@ -477,6 +526,47 @@ class ContractPersonalWorkspaceAdapter:
             self._validate_reference_semantics(mutation["target"])
 
     def _validate_reference_semantics(self, value: Mapping[str, Any]) -> None:
+        reference_kind = value["reference_kind"]
+        validated_at = self._timestamp(value["validated_at"])
+        if reference_kind == "project_workspace":
+            expected = f"/projects/{value['project_id']}#workspace"
+            if value["destination"] != expected:
+                self._reject(
+                    "personal_workspace.contract.invalid_reference",
+                    "destination",
+                )
+            return
+        if reference_kind == "project_snapshot":
+            expected = (
+                f"/projects/{value['project_id']}#snapshot-{value['snapshot_id']}"
+            )
+            if value["destination"] != expected:
+                self._reject(
+                    "personal_workspace.contract.invalid_reference",
+                    "destination",
+                )
+            if self._timestamp(value["closed_at"]) > validated_at:
+                self._reject(
+                    "personal_workspace.contract.invalid_time",
+                    "reference",
+                )
+            return
+        if reference_kind == "project_artifact":
+            expected = (
+                f"/projects/{value['project_id']}#artifact-"
+                f"{value['artifact_id']}-v{value['artifact_version']}"
+            )
+            if value["destination"] != expected:
+                self._reject(
+                    "personal_workspace.contract.invalid_reference",
+                    "destination",
+                )
+            if self._timestamp(value["created_at"]) > validated_at:
+                self._reject(
+                    "personal_workspace.contract.invalid_time",
+                    "reference",
+                )
+            return
         placement_id = value["placement_id"]
         if value["destination"] != f"/learn/placements/{placement_id}":
             self._reject(
@@ -484,7 +574,6 @@ class ContractPersonalWorkspaceAdapter:
                 "destination",
             )
         published_at = self._timestamp(value["provenance"]["published_at"])
-        validated_at = self._timestamp(value["validated_at"])
         if published_at > validated_at:
             self._reject(
                 "personal_workspace.contract.invalid_time",
