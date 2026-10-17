@@ -7,9 +7,10 @@ deterministic-navigation-state, deterministic assessment, answer-safe practice
 opening, retained-completion, Project list/create/reopen, and Personal-workspace
 Saved Learning `single_profile` path is qualified today. The Personal-workspace
 journey uses the same protected public API from generated-browser and ordinary
-headless clients and survives a normal host restart without reseeding.
-This is a development/CI qualification topology, not a production
-publication, backup, restore, availability, or remote-hosting claim.
+headless clients, survives a normal host restart without reseeding, and is
+included in one stopped-source, empty-target disposable recovery exercise.
+This is a development/CI qualification topology, not a supported backup tool,
+production recovery, availability, or remote-hosting claim.
 
 ## Qualified Topology
 
@@ -162,6 +163,20 @@ companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.
 
+After the normal restart checks, the default runner-owned topology stops the
+application, creates one logical PostgreSQL dump, and copies the exact bounded
+application-data root inside its ignored temporary directory. A second unique
+PostgreSQL 18.4 container first receives a harmless marker: the recovery guard
+refuses that populated target without applying the dump and leaves the marker
+unchanged. The runner then empties the target, restores the database, compares
+privacy-safe schema fingerprints and file-tree digests, revokes restored
+sessions, and starts the ordinary application without seed flags against the
+restored database and copied data root. A fresh headless session reproduces the
+same Personal-workspace read, query, export, exact replay, mutation rows, and
+target-state fingerprints. The stopped source remains byte- and row-stable;
+both containers, the dump, copied data, and captures are removed in bounded
+cleanup. An acknowledged external database never enters or claims this drill.
+
 The runner also creates a fresh cookie-backed headless session and reads the
 exact graph, Navigation state, and eligible launch through public APIs. It then
 stops the application, deletes only the isolated
@@ -226,17 +241,22 @@ submission, identical non-browser progress/draft use, exact replay, stale-save
 refusal, server-owned retry/history/review state, atomic Assessment
 evidence/outbox counts, bounded practice denial, practice restart parity, and
 generated-browser/headless Personal-workspace parity, ordered collections,
-canonical Unicode query/digest correlation, record-only source checking,
+canonical Unicode query/digest and closed export parity, record-only source checking,
 confidential exact refresh/restore replay and conflict handling, source-state
-isolation, Personal-workspace restart durability,
+isolation, Personal-workspace restart durability, and the stopped-source
+disposable populated-target-refusal/empty-target recovery exercise described
+above,
 application-restart reconstruction of derived Learner-model state from
 unchanged Assessment evidence without fixture reseeding.
 
 The following remain unqualified: built-in credentials, OIDC, multiple
 learners, remote/public binding, worker and analytics composition, passive
-asset delivery, backup/restore, upgrade procedures beyond the tested slice
-migrations, non-Chromium browsers, non-Windows visual baselines, managed
-cloud, production distribution, and any RPO/RTO or availability claim.
+asset delivery, a supported backup/restore product, recovery manifest and
+finalization tooling, production roles and permissions, scheduled or retained
+recovery sets, failure/corruption and cross-version matrices, upgrade
+procedures beyond the tested slice migrations, non-Chromium browsers,
+non-Windows visual baselines, managed cloud, production distribution, and any
+RPO/RTO or availability claim.
 Additional live accepted attempts through the browser, an available live review
 destination, downstream practice-event consumption, and production recovery
 remain unqualified. The deterministic three-shape submission, feedback result,

@@ -31,6 +31,7 @@ from psycopg import sql
 REPOSITORY = Path(__file__).resolve().parents[3]
 ARTIFACT_ROOT = REPOSITORY / "artifacts" / "tmp"
 CONTAINER_PREFIX = "faa-wrk0005-postgres-"
+RECOVERY_CONTAINER_PREFIX = "faa-wrk0146-recovery-postgres-"
 POSTGRES_IMAGE = "postgres:18.4"
 POSTGRES_USER = "financial_ai_academy"
 POSTGRES_DATABASE = "financial_ai_academy"
@@ -290,6 +291,7 @@ PERSONAL_WORKSPACE_CAPTURE_ROOT_KEYS = frozenset(
     {
         "exact_replay_request",
         "expected",
+        "export",
         "query_request",
         "query_result",
         "refresh_request",
@@ -424,8 +426,10 @@ def wait_for_postgres(container_name: str) -> None:
     raise RuntimeError("The isolated PostgreSQL container did not become ready.")
 
 
-def start_postgres() -> tuple[str, str]:
-    container_name = CONTAINER_PREFIX + uuid4().hex[:12]
+def start_postgres(*, prefix: str = CONTAINER_PREFIX) -> tuple[str, str]:
+    if prefix not in {CONTAINER_PREFIX, RECOVERY_CONTAINER_PREFIX}:
+        raise RuntimeError("The isolated PostgreSQL container prefix is invalid.")
+    container_name = prefix + uuid4().hex[:12]
     port = free_loopback_port()
     try:
         run_checked(
@@ -544,13 +548,25 @@ def cleanup_qualification(
     *,
     application: subprocess.Popen[str] | None,
     container_name: str | None,
+    recovery_container_name: str | None = None,
     data_root: Path | None,
 ) -> tuple[str, ...]:
     failures: list[str] = []
-    steps = (
+    steps = [
         ("application", lambda: stop_application(application)),
-        ("database container", lambda: remove_container(container_name)),
-        ("temporary data", lambda: remove_data_root(data_root)),
+    ]
+    if recovery_container_name is not None:
+        steps.append(
+            (
+                "recovery database container",
+                lambda: remove_container(recovery_container_name),
+            )
+        )
+    steps.extend(
+        (
+            ("database container", lambda: remove_container(container_name)),
+            ("temporary data", lambda: remove_data_root(data_root)),
+        )
     )
     for label, cleanup in steps:
         try:
@@ -1911,6 +1927,56 @@ def stable_personal_workspace(document: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def stable_personal_workspace_export(
+    document: object,
+    *,
+    expected_workspace: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if not isinstance(document, dict):
+        raise RuntimeError("Personal workspace export is not an object.")
+    _exact_keys(
+        document,
+        frozenset(
+            {
+                "schema_version",
+                "workspace_digest",
+                "generated_at",
+                "workspace",
+            }
+        ),
+        "Personal workspace export",
+    )
+    workspace_value = document.get("workspace")
+    if not isinstance(workspace_value, dict):
+        raise RuntimeError("Personal workspace export has no workspace document.")
+    workspace = stable_personal_workspace(workspace_value)
+    generated_at = _normalized_utc(
+        document.get("generated_at"),
+        label="Personal workspace export generation time",
+    )
+    if (
+        document.get("schema_version") != "1.0.0"
+        or document.get("workspace_digest") != workspace["workspace_digest"]
+        or _utc_instant(
+            generated_at,
+            label="Personal workspace export generation time",
+        )
+        < _utc_instant(
+            workspace["updated_at"],
+            label="Personal workspace update time",
+        )
+    ):
+        raise RuntimeError("Personal workspace export correlation is invalid.")
+    if expected_workspace is not None and workspace != expected_workspace:
+        raise RuntimeError("Personal workspace export changed workspace meaning.")
+    return {
+        "schema_version": "1.0.0",
+        "workspace_digest": workspace["workspace_digest"],
+        "generated_at": generated_at,
+        "workspace": workspace,
+    }
+
+
 def stable_personal_workspace_query(document: object) -> dict[str, Any]:
     if not isinstance(document, dict):
         raise RuntimeError("Personal workspace query is not an object.")
@@ -2234,6 +2300,7 @@ def load_personal_workspace_capture(
     query_result = capture.get("query_result")
     refresh_request = capture.get("refresh_request")
     refresh_workspace = capture.get("refresh_workspace")
+    export_document = capture.get("export")
     expected = capture.get("expected")
     if not all(
         isinstance(value, dict)
@@ -2244,11 +2311,16 @@ def load_personal_workspace_capture(
             query_result,
             refresh_request,
             refresh_workspace,
+            export_document,
             expected,
         )
     ):
         raise RuntimeError("Personal workspace capture documents must be objects.")
     stable = stable_personal_workspace(workspace)
+    stable_export = stable_personal_workspace_export(
+        export_document,
+        expected_workspace=stable,
+    )
     stable_query_request = stable_personal_workspace_query(query_request)
     stable_query_result = stable_personal_workspace_query_result(
         query_result,
@@ -2438,6 +2510,7 @@ def load_personal_workspace_capture(
         raise RuntimeError("Personal workspace capture changed browser-observed meaning.")
     return {
         "workspace": stable,
+        "export": stable_export,
         "exact_replay_request": copy.deepcopy(replay),
         "query_request": stable_query_request,
         "query_result": stable_query_result,
@@ -2553,6 +2626,30 @@ def observe_headless_personal_workspace(
     )
     if observed != expected:
         raise RuntimeError("Headless Personal workspace changed browser-observed meaning.")
+    export_observation = stable_personal_workspace_export(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/personal-workspace/export",
+        ),
+        expected_workspace=expected,
+    )
+    browser_export = capture["export"]
+    if (
+        any(
+            export_observation[key] != browser_export[key]
+            for key in ("schema_version", "workspace_digest", "workspace")
+        )
+        or _utc_instant(
+            export_observation["generated_at"],
+            label="Headless Personal workspace export generation time",
+        )
+        < _utc_instant(
+            browser_export["generated_at"],
+            label="Browser Personal workspace export generation time",
+        )
+    ):
+        raise RuntimeError("Headless Personal workspace export changed browser meaning.")
     query_observation = stable_personal_workspace_query_result(
         _request_json(
             opener,
@@ -3433,6 +3530,224 @@ def _schema_state_fingerprint(
     }
 
 
+def application_database_fingerprint(
+    postgres_dsn: str,
+    *,
+    exclude_schemas: frozenset[str] = frozenset(),
+) -> dict[str, dict[str, Any]]:
+    with psycopg.connect(postgres_dsn) as connection:
+        schemas = [
+            str(row[0])
+            for row in connection.execute(
+                """
+                SELECT DISTINCT table_schema
+                FROM information_schema.tables
+                WHERE table_type = 'BASE TABLE'
+                  AND table_schema NOT IN ('information_schema', 'pg_catalog')
+                  AND table_schema NOT LIKE 'pg\\_%' ESCAPE '\\'
+                ORDER BY table_schema
+                """
+            ).fetchall()
+            if str(row[0]) not in exclude_schemas
+        ]
+        return {
+            schema: _schema_state_fingerprint(connection, schema=schema)
+            for schema in schemas
+        }
+
+
+def application_table_count(postgres_dsn: str) -> int:
+    with psycopg.connect(postgres_dsn) as connection:
+        row = connection.execute(
+            """
+            SELECT count(*)
+            FROM information_schema.tables
+            WHERE table_type = 'BASE TABLE'
+              AND table_schema NOT IN ('information_schema', 'pg_catalog')
+              AND table_schema NOT LIKE 'pg\\_%' ESCAPE '\\'
+            """
+        ).fetchone()
+    if row is None:
+        raise RuntimeError("Recovery target table evidence is unavailable.")
+    return int(row[0])
+
+
+def create_logical_backup(container_name: str, destination: Path) -> dict[str, Any]:
+    if not container_name.startswith(CONTAINER_PREFIX):
+        raise RuntimeError("Recovery capture requires the runner-owned source database.")
+    if destination.exists() or destination.is_symlink():
+        raise RuntimeError("Recovery capture destination must be new.")
+    resolved_parent = destination.parent.resolve()
+    if not resolved_parent.is_relative_to(ARTIFACT_ROOT.resolve()):
+        raise RuntimeError("Recovery capture destination escaped the bounded root.")
+    with destination.open("xb") as output:
+        completed = subprocess.run(
+            [
+                "docker",
+                "exec",
+                container_name,
+                "pg_dump",
+                "--format=custom",
+                "--no-owner",
+                "--no-privileges",
+                "--username",
+                POSTGRES_USER,
+                "--dbname",
+                POSTGRES_DATABASE,
+            ],
+            cwd=REPOSITORY,
+            stdout=output,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+    if completed.returncode != 0 or not destination.is_file():
+        destination.unlink(missing_ok=True)
+        raise RuntimeError("The controlled logical database capture failed.")
+    content = destination.read_bytes()
+    if not content:
+        destination.unlink(missing_ok=True)
+        raise RuntimeError("The controlled logical database capture is empty.")
+    return {
+        "byte_count": len(content),
+        "sha256": hashlib.sha256(content).hexdigest(),
+    }
+
+
+def restore_logical_backup(
+    *,
+    container_name: str,
+    postgres_dsn: str,
+    source: Path,
+) -> None:
+    if not container_name.startswith(RECOVERY_CONTAINER_PREFIX):
+        raise RuntimeError("Recovery restore requires the runner-owned target database.")
+    if application_table_count(postgres_dsn) != 0:
+        raise RuntimeError("Recovery target is populated; restore was refused.")
+    if source.is_symlink() or not source.is_file() or source.stat().st_size == 0:
+        raise RuntimeError("Recovery restore source is invalid.")
+    with source.open("rb") as input_stream:
+        completed = subprocess.run(
+            [
+                "docker",
+                "exec",
+                "--interactive",
+                container_name,
+                "pg_restore",
+                "--exit-on-error",
+                "--no-owner",
+                "--no-privileges",
+                "--username",
+                POSTGRES_USER,
+                "--dbname",
+                POSTGRES_DATABASE,
+            ],
+            cwd=REPOSITORY,
+            stdin=input_stream,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+    if completed.returncode != 0:
+        raise RuntimeError("The controlled logical database restore failed.")
+
+
+def assert_populated_target_refusal(
+    *,
+    container_name: str,
+    postgres_dsn: str,
+    source: Path,
+) -> None:
+    with psycopg.connect(postgres_dsn) as connection:
+        connection.execute(
+            "CREATE TABLE public.qualification_populated_marker (value integer NOT NULL)"
+        )
+        connection.execute(
+            "INSERT INTO public.qualification_populated_marker (value) VALUES (1)"
+        )
+    try:
+        restore_logical_backup(
+            container_name=container_name,
+            postgres_dsn=postgres_dsn,
+            source=source,
+        )
+    except RuntimeError as error:
+        if str(error) != "Recovery target is populated; restore was refused.":
+            raise
+    else:
+        raise RuntimeError("A populated recovery target was not refused.")
+    with psycopg.connect(postgres_dsn) as connection:
+        marker = connection.execute(
+            "SELECT value FROM public.qualification_populated_marker"
+        ).fetchone()
+        connection.execute("DROP TABLE public.qualification_populated_marker")
+    if marker != (1,) or application_table_count(postgres_dsn) != 0:
+        raise RuntimeError("Populated-target refusal changed the recovery target.")
+
+
+def revoke_restored_sessions(postgres_dsn: str) -> int:
+    with psycopg.connect(postgres_dsn) as connection:
+        before = connection.execute(
+            "SELECT count(*) FROM identity.sessions WHERE revoked_at IS NULL"
+        ).fetchone()
+        connection.execute(
+            "UPDATE identity.sessions SET revoked_at = CURRENT_TIMESTAMP "
+            "WHERE revoked_at IS NULL"
+        )
+        after = connection.execute(
+            "SELECT count(*) FROM identity.sessions WHERE revoked_at IS NULL"
+        ).fetchone()
+    if before is None or after != (0,):
+        raise RuntimeError("Restored session revocation could not be proven.")
+    return int(before[0])
+
+
+def bounded_file_tree_fingerprint(root: Path) -> dict[str, Any]:
+    if root.is_symlink() or not root.is_dir():
+        raise RuntimeError("Recovery data root is unavailable.")
+    digest = hashlib.sha256()
+    file_count = 0
+    byte_count = 0
+    for path in sorted(root.rglob("*"), key=lambda item: item.as_posix()):
+        if path.is_symlink():
+            raise RuntimeError("Recovery data root contains a symbolic link.")
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root).as_posix()
+        content = path.read_bytes()
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(str(len(content)).encode("ascii"))
+        digest.update(b"\0")
+        digest.update(content)
+        digest.update(b"\0")
+        file_count += 1
+        byte_count += len(content)
+    return {
+        "file_count": file_count,
+        "byte_count": byte_count,
+        "sha256": digest.hexdigest(),
+    }
+
+
+def copy_bounded_data_root(source: Path, target: Path) -> dict[str, Any]:
+    source_resolved = source.resolve()
+    target_parent = target.parent.resolve()
+    bounded_root = ARTIFACT_ROOT.resolve()
+    if (
+        not source_resolved.is_relative_to(bounded_root)
+        or not target_parent.is_relative_to(bounded_root)
+        or target.exists()
+        or target.is_symlink()
+    ):
+        raise RuntimeError("Recovery data-root copy escaped its bounded target.")
+    source_fingerprint = bounded_file_tree_fingerprint(source_resolved)
+    shutil.copytree(source_resolved, target)
+    target_fingerprint = bounded_file_tree_fingerprint(target)
+    if target_fingerprint != source_fingerprint:
+        raise RuntimeError("Recovery data-root copy changed accepted bytes.")
+    return target_fingerprint
+
+
 def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
     query = """
         SELECT
@@ -4190,7 +4505,9 @@ def npm_e2e_command(*test_files: str) -> list[str]:
 def remove_container(container_name: str | None) -> None:
     if not container_name:
         return
-    if not container_name.startswith(CONTAINER_PREFIX):
+    if not container_name.startswith(
+        (CONTAINER_PREFIX, RECOVERY_CONTAINER_PREFIX)
+    ):
         raise RuntimeError("Refusing to remove an unexpected container.")
     inspected = subprocess.run(
         ["docker", "inspect", container_name],
@@ -4253,6 +4570,7 @@ def main() -> int:
     ARTIFACT_ROOT.mkdir(parents=True, exist_ok=True)
     data_root = Path(tempfile.mkdtemp(prefix="wrk0005-", dir=ARTIFACT_ROOT))
     container_name: str | None = None
+    recovery_container_name: str | None = None
     application: subprocess.Popen[str] | None = None
     application_log = data_root / "python-application.log"
     practice_capture = data_root / "practice-submission-capture.json"
@@ -4262,6 +4580,10 @@ def main() -> int:
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
+    recovery_report: dict[str, Any] = {
+        "qualified": False,
+        "reason": "external database lifecycle is not runner-owned",
+    }
 
     try:
         if external_dsn:
@@ -4571,6 +4893,120 @@ def main() -> int:
             after_storage=personal_storage_after_restart,
         )
 
+        if container_name is not None:
+            stop_application(application)
+            application = None
+            source_application_data = data_root / "application-data"
+            recovered_application_data = data_root / "recovery-target-data"
+            logical_backup = data_root / "recovery-source.dump"
+            source_database_before = application_database_fingerprint(postgres_dsn)
+            source_non_identity_before = application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+            source_storage_before_recovery = personal_workspace_storage_snapshot(
+                postgres_dsn
+            )
+            source_files_before = bounded_file_tree_fingerprint(
+                source_application_data
+            )
+            backup_evidence = create_logical_backup(container_name, logical_backup)
+            copied_files = copy_bounded_data_root(
+                source_application_data,
+                recovered_application_data,
+            )
+            if (
+                application_database_fingerprint(postgres_dsn)
+                != source_database_before
+                or personal_workspace_storage_snapshot(postgres_dsn)
+                != source_storage_before_recovery
+                or bounded_file_tree_fingerprint(source_application_data)
+                != source_files_before
+            ):
+                raise RuntimeError("Recovery capture changed the stopped source.")
+
+            recovery_container_name, recovery_dsn = start_postgres(
+                prefix=RECOVERY_CONTAINER_PREFIX
+            )
+            assert_populated_target_refusal(
+                container_name=recovery_container_name,
+                postgres_dsn=recovery_dsn,
+                source=logical_backup,
+            )
+            restore_logical_backup(
+                container_name=recovery_container_name,
+                postgres_dsn=recovery_dsn,
+                source=logical_backup,
+            )
+            if application_database_fingerprint(recovery_dsn) != source_database_before:
+                raise RuntimeError("Recovered database changed accepted source state.")
+            revoked_sessions = revoke_restored_sessions(recovery_dsn)
+            if (
+                application_database_fingerprint(
+                    recovery_dsn,
+                    exclude_schemas=frozenset({"identity"}),
+                )
+                != source_non_identity_before
+            ):
+                raise RuntimeError(
+                    "Recovery session revocation changed non-identity state."
+                )
+
+            application = start_application(
+                postgres_dsn=recovery_dsn,
+                data_root=recovered_application_data,
+                port=port,
+                application_log=data_root / "recovery-application.log",
+                seed_fixture=False,
+            )
+            restored_personal = observe_headless_personal_workspace(
+                origin=origin,
+                capture=personal_capture,
+            )
+            restored_storage = personal_workspace_storage_snapshot(recovery_dsn)
+            assert_personal_workspace_restart_result(
+                before_observation=personal_before_restart,
+                after_observation=restored_personal,
+                before_storage=personal_storage_before_restart,
+                after_storage=restored_storage,
+                capture=personal_capture,
+            )
+            assert_personal_workspace_target_state_unchanged(
+                before_storage=source_storage_before_recovery,
+                after_storage=restored_storage,
+            )
+            if (
+                application_database_fingerprint(
+                    recovery_dsn,
+                    exclude_schemas=frozenset({"identity"}),
+                )
+                != source_non_identity_before
+                or application_database_fingerprint(postgres_dsn)
+                != source_database_before
+                or personal_workspace_storage_snapshot(postgres_dsn)
+                != source_storage_before_recovery
+                or bounded_file_tree_fingerprint(source_application_data)
+                != source_files_before
+                or bounded_file_tree_fingerprint(recovered_application_data)
+                != copied_files
+            ):
+                raise RuntimeError(
+                    "Recovered public use changed source, target, or copied data state."
+                )
+            recovery_report = {
+                "backup_byte_count": backup_evidence["byte_count"],
+                "backup_sha256": backup_evidence["sha256"],
+                "database_schema_count": len(source_database_before),
+                "data_file_count": copied_files["file_count"],
+                "data_sha256": copied_files["sha256"],
+                "empty_target_restored": True,
+                "fresh_session_public_api": True,
+                "populated_target_refused": True,
+                "qualified": True,
+                "restored_sessions_revoked": revoked_sessions,
+                "source_unchanged": True,
+            }
+
         report = {
             "browser": "Playwright pinned Chromium",
             "catalog": (
@@ -4631,6 +5067,7 @@ def main() -> int:
             },
             "personal_workspace": {
                 "browser_headless_query_parity": True,
+                "browser_headless_export_parity": True,
                 "browser_generated_client": True,
                 "canonical_query_digest": True,
                 "collection_order_preserved": True,
@@ -4650,6 +5087,7 @@ def main() -> int:
                 "unicode_evidence_preserved": True,
                 "workspace_id": personal_capture["workspace"]["workspace_id"],
             },
+            "personal_workspace_recovery": recovery_report,
             "project_workspace": {
                 "artifact_download_exact": True,
                 "browser_generated_client": True,
@@ -4717,6 +5155,7 @@ def main() -> int:
     cleanup_failures = cleanup_qualification(
         application=application,
         container_name=container_name,
+        recovery_container_name=recovery_container_name,
         data_root=data_root,
     )
     finish_after_cleanup(primary_error, cleanup_failures)

@@ -22,7 +22,15 @@
 - Built-in-credential, recovery, OIDC, provider-parity, and identity-mode migration conformance beyond the directly covered local `single_profile` binding/session/context path
 - Managed object-storage and real passive-asset retrieval conformance beyond the directly covered portable admission, PostgreSQL Content metadata, local filesystem objects, safe-node creation, integrity revalidation, exact Curriculum placement/read, and closed browser-renderer evidence
 - Manual screen-reader operation, actual browser 200-percent zoom controls, non-Chromium browsers, and non-Windows visual baselines beyond the directly covered axe, keyboard/focus, narrow/zoom-equivalent reflow, reduced-motion, forced-color, and Chromium theme evidence
-- Community coordinated-backup, recovery-set validation, empty-target restore, projection reconciliation, restored-session/recovery revocation, failure-path, redaction, and supported-platform qualification
+- Community operator backup/restore tooling, maintenance-write rejection,
+  recovery-set manifest/finalization, least-privileged roles and permissions,
+  external encrypted destination, recovery-credential handling, corruption/
+  interruption/resource-exhaustion and cross-version matrices, projection
+  reconciliation beyond retained exact rows, and supported-platform
+  qualification beyond the directly covered disposable stopped-source logical
+  PostgreSQL plus bounded-data copy, populated-target refusal, empty-target
+  Personal-workspace restore, restored-session revocation, redacted evidence,
+  source isolation, fresh-session replay, and bounded cleanup
 - PostgreSQL integration and migration checks beyond the directly covered Content, Curriculum, single-profile Identity, Assessment, Learner-model, Audit, Project, and Personal-workspace streams with PostgreSQL 18.4 empty-database apply/reapply/teardown and focused rollback paths
 - Personal-workspace live stale/unavailable source transitions, multiple
   learners, import/export, and managed-cloud retention/recovery beyond the directly
@@ -32,7 +40,9 @@
   checkpoint, and inert-file Saved Learning journey, canonical Unicode query/
   digest parity, current-source record-only refresh, confidential unavailable-
   Project isolation, exact refresh/final-mutation replay and conflict denial,
-  artifact-byte exclusion, target-state isolation, and full live-topology restart
+  artifact-byte exclusion, target-state isolation, full live-topology restart,
+  exact browser/headless export parity, and one disposable stopped-source,
+  empty-target Personal-workspace database/data-root recovery exercise
 - Live domain-resource and Portfolio associations, external execution,
   collaboration, managed cloud, production recovery,
   import/restore, retention cleanup, and a separate headless AI mode beyond the

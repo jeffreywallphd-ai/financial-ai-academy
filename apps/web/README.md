@@ -260,6 +260,12 @@ Distinct record, collection, and collection-member capacity codes explain the
 accepted 200, 50, and 100 limits without replacing existing removal or exact
 unchanged-request retry controls.
 
+The disposable approved-lesson qualifier also reads the downloaded JSON back,
+requires it to equal the generated-browser response, and compares that closed
+workspace/digest meaning with a later bodyless headless export call. The
+browser and headless clients therefore share one protected API and one export
+shape; this does not turn the browser download into a recovery or import file.
+
 The Saved learning screen and reviewed generated client use the protected
 `queryPersonalWorkspace` operation and additive `refresh_reference` mutation
 shared by browser, command-line, service, and future headless clients. The

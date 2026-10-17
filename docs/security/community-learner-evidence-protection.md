@@ -77,6 +77,18 @@ private evidence. Component, Chromium/axe, and live PostgreSQL/Python
 close/reopen checks cover this path. They do not qualify remote exposure,
 multi-user isolation, built-in/OIDC, production database roles, or recovery.
 
-The threat boundary is accepted. No backup or restore tool, permission profile, manifest schema, compatibility matrix, controlled restore drill, or recovery guarantee is qualified merely by this document. Delivery must satisfy the [community backup and restore qualification](../operations/community-backup-and-restore.md) before claiming operational support.
+The threat boundary is accepted. One disposable stopped-source, empty-target
+PostgreSQL 18.4 exercise now proves that Personal-workspace aggregate/replay
+state and the bounded application-data root survive logical capture and
+restore, that a populated target is refused before mutation, that restored
+sessions are revoked before a fresh protected read, and that the source and
+referenced domain state remain unchanged. Evidence contains only bounded
+counts, digests, phases, and booleans, and the runner removes both targets and
+all temporary material.
+
+That exercise is not a backup or restore tool, permission profile, recovery-
+set manifest, compatibility matrix, supported-platform drill, or recovery
+guarantee. The remaining [community backup and restore qualification](../operations/community-backup-and-restore.md)
+must be delivered before operational support is claimed.
 
 Managed-cloud encryption, key custody, backup automation, availability, retention, RPO, and RTO remain outside this boundary and require separate decisions.

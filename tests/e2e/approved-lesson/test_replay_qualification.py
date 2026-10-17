@@ -509,6 +509,12 @@ def personal_workspace_capture() -> dict[str, Any]:
     refresh_workspace["workspace_digest"] = "c" * 64
     return {
         "workspace": workspace,
+        "export": {
+            "schema_version": "1.0.0",
+            "workspace_digest": workspace["workspace_digest"],
+            "generated_at": "2026-10-17T12:11:00Z",
+            "workspace": json.loads(json.dumps(workspace)),
+        },
         "exact_replay_request": {
             "schema_version": "1.0.0",
             "idempotency_key": "11111111-1111-4111-8111-111111111111",
@@ -1466,6 +1472,9 @@ def test_personal_workspace_capture_is_closed_correlated_and_private(
     mismatched_project["workspace"]["records"][-2]["target"]["destination"] = (
         "/projects/project.other#snapshot-snapshot-one"
     )
+    mismatched_project["export"]["workspace"] = json.loads(
+        json.dumps(mismatched_project["workspace"])
+    )
     path.write_text(json.dumps(mismatched_project), encoding="utf-8")
     with pytest.raises(RuntimeError, match="browser-observed meaning"):
         runner.load_personal_workspace_capture(
@@ -1489,6 +1498,7 @@ def test_personal_workspace_capture_binds_each_project_reference_class(
 ) -> None:
     capture = personal_workspace_capture()
     capture["workspace"]["records"][record_index]["target"][field] = changed_value
+    capture["export"]["workspace"] = json.loads(json.dumps(capture["workspace"]))
     path = tmp_path / "personal-workspace-capture.json"
     path.write_text(json.dumps(capture), encoding="utf-8")
 
@@ -1580,6 +1590,8 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
             return capture["query_result"] | {
                 "workspace_revision": capture["workspace"]["revision"]
             }
+        if path == "/api/v1/personal-workspace/export":
+            return capture["export"]
         if (
             path == "/api/v1/personal-workspace/mutations"
             and payload == capture["refresh_request"]
@@ -1626,6 +1638,7 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
     assert [method for method, _path, _payload in calls] == [
         "POST",
         "GET",
+        "GET",
         "POST",
         "POST",
         "POST",
@@ -1634,20 +1647,21 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
         "POST",
         "GET",
     ]
-    assert calls[2][1:] == (
+    assert calls[2][1] == "/api/v1/personal-workspace/export"
+    assert calls[3][1:] == (
         "/api/v1/personal-workspace/query",
         capture["query_request"],
     )
-    assert calls[3][2] == capture["refresh_request"]
-    assert calls[4][2] == capture["exact_replay_request"]
-    assert calls[5][2]["idempotency_key"] == capture["exact_replay_request"][
+    assert calls[4][2] == capture["refresh_request"]
+    assert calls[5][2] == capture["exact_replay_request"]
+    assert calls[6][2]["idempotency_key"] == capture["exact_replay_request"][
         "idempotency_key"
     ]
-    assert calls[5][2]["mutation"]["operation"] == "archive_record"
-    assert calls[6][2]["idempotency_key"] != capture["exact_replay_request"][
+    assert calls[6][2]["mutation"]["operation"] == "archive_record"
+    assert calls[7][2]["idempotency_key"] != capture["exact_replay_request"][
         "idempotency_key"
     ]
-    assert calls[7][2]["mutation"]["selector"] == {
+    assert calls[8][2]["mutation"]["selector"] == {
         "reference_kind": "project_workspace",
         "project_id": "project.missing-qualification",
     }
@@ -1696,6 +1710,42 @@ def test_personal_workspace_evidence_normalizes_equivalent_utc_precision() -> No
         normalized["records"][0]["target"]["validated_at"]
         == "2026-10-17T12:00:00.00001Z"
     )
+
+
+def test_personal_workspace_export_is_closed_correlated_and_chronological() -> None:
+    capture = personal_workspace_capture()
+    normalized = runner.stable_personal_workspace_export(
+        capture["export"],
+        expected_workspace=capture["workspace"],
+    )
+    assert normalized == capture["export"]
+
+    future = json.loads(json.dumps(capture["export"]))
+    future["generated_at"] = "2026-10-17T12:12:00.123450Z"
+    assert runner.stable_personal_workspace_export(
+        future,
+        expected_workspace=capture["workspace"],
+    )["generated_at"] == "2026-10-17T12:12:00.12345Z"
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    (
+        lambda document: document.update({"private_storage": "not-allowed"}),
+        lambda document: document.update({"workspace_digest": "f" * 64}),
+        lambda document: document.update({"generated_at": "2026-10-17T12:09:59Z"}),
+        lambda document: document["workspace"].update({"revision": 99}),
+    ),
+)
+def test_personal_workspace_export_rejects_widened_or_changed_meaning(mutate) -> None:
+    capture = personal_workspace_capture()
+    document = json.loads(json.dumps(capture["export"]))
+    mutate(document)
+    with pytest.raises(RuntimeError, match="Personal workspace export"):
+        runner.stable_personal_workspace_export(
+            document,
+            expected_workspace=capture["workspace"],
+        )
 
 
 def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:
@@ -1938,6 +1988,85 @@ def test_personal_workspace_storage_requires_exact_row_correlation() -> None:
             wrong_replay,
             capture=capture,
         )
+
+
+def test_recovery_restore_refuses_populated_target_before_process(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    backup = tmp_path / "source.dump"
+    backup.write_bytes(b"bounded-backup")
+    invoked = False
+
+    def run_process(*_args, **_kwargs):
+        nonlocal invoked
+        invoked = True
+        raise AssertionError("restore process must not start")
+
+    monkeypatch.setattr(runner, "application_table_count", lambda _dsn: 1)
+    monkeypatch.setattr(runner.subprocess, "run", run_process)
+    with pytest.raises(RuntimeError, match="populated; restore was refused"):
+        runner.restore_logical_backup(
+            container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}test",
+            postgres_dsn="postgresql://isolated-target",
+            source=backup,
+        )
+    assert invoked is False
+
+
+def test_recovery_restore_streams_only_to_empty_owned_target(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    backup = tmp_path / "source.dump"
+    backup.write_bytes(b"bounded-backup")
+    observed: dict[str, Any] = {}
+
+    class Completed:
+        returncode = 0
+
+    def run_process(command, **kwargs):
+        observed["command"] = command
+        observed["content"] = kwargs["stdin"].read()
+        assert kwargs["stdout"] is runner.subprocess.DEVNULL
+        assert kwargs["stderr"] is runner.subprocess.DEVNULL
+        return Completed()
+
+    monkeypatch.setattr(runner, "application_table_count", lambda _dsn: 0)
+    monkeypatch.setattr(runner.subprocess, "run", run_process)
+    runner.restore_logical_backup(
+        container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}test",
+        postgres_dsn="postgresql://isolated-target",
+        source=backup,
+    )
+    assert observed["content"] == b"bounded-backup"
+    assert observed["command"][0:4] == [
+        "docker",
+        "exec",
+        "--interactive",
+        f"{runner.RECOVERY_CONTAINER_PREFIX}test",
+    ]
+    assert "--exit-on-error" in observed["command"]
+
+
+def test_recovery_data_root_copy_preserves_unicode_bytes_and_order_independence(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    bounded = tmp_path / "bounded"
+    source = bounded / "source"
+    target = bounded / "target"
+    (source / "nested").mkdir(parents=True)
+    (source / "Σ.txt").write_text("Café", encoding="utf-8")
+    (source / "nested" / "data.bin").write_bytes(b"\x00\x01\xff")
+    monkeypatch.setattr(runner, "ARTIFACT_ROOT", bounded)
+
+    copied = runner.copy_bounded_data_root(source, target)
+
+    assert copied == runner.bounded_file_tree_fingerprint(source)
+    assert copied == runner.bounded_file_tree_fingerprint(target)
+    assert copied["file_count"] == 2
+    assert copied["byte_count"] == len("Café".encode("utf-8")) + 3
 
 
 def test_project_workspace_capture_is_correlated_confined_and_private(
@@ -2811,6 +2940,43 @@ def test_cleanup_attempts_every_exact_stage_after_each_injected_failure(
     assert calls == ["application", "database container", "temporary data"]
     assert failures == (f"{failed_stage} (RuntimeError)",)
     assert "private cleanup detail" not in failures[0]
+
+
+def test_cleanup_removes_recovery_target_before_source_database(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    monkeypatch.setattr(
+        runner,
+        "stop_application",
+        lambda _target: calls.append("application"),
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_container",
+        lambda target: calls.append(str(target)),
+    )
+    monkeypatch.setattr(
+        runner,
+        "remove_data_root",
+        lambda _target: calls.append("temporary data"),
+    )
+
+    failures = runner.cleanup_qualification(
+        application=object(),
+        container_name=f"{runner.CONTAINER_PREFIX}source",
+        recovery_container_name=f"{runner.RECOVERY_CONTAINER_PREFIX}target",
+        data_root=Path("bounded-data"),
+    )
+
+    assert failures == ()
+    assert calls == [
+        "application",
+        f"{runner.RECOVERY_CONTAINER_PREFIX}target",
+        f"{runner.CONTAINER_PREFIX}source",
+        "temporary data",
+    ]
 
 
 def test_cleanup_diagnostics_preserve_the_primary_failure() -> None:

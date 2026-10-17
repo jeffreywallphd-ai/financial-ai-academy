@@ -4,6 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 
 import type {
   PersonalWorkspace,
+  PersonalWorkspaceExport,
   PersonalWorkspaceQuery,
   PersonalWorkspaceQueryResult,
 } from "../../../src/features/personal-workspace/model";
@@ -299,6 +300,30 @@ test("preserves Saved learning through the live public API", async ({
   expect(new Set(currentWorkspace.collections[0]?.member_record_ids)).toEqual(
     new Set(currentWorkspace.records.map((record) => record.record_id)),
   );
+
+  const exportResponsePromise = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === `${WORKSPACE_API}/export` &&
+      response.request().method() === "GET",
+  );
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download saved learning" }).click();
+  const [exportResponse, download] = await Promise.all([
+    exportResponsePromise,
+    downloadPromise,
+  ]);
+  expect(exportResponse.status()).toBe(200);
+  expect(download.suggestedFilename()).toBe("saved-learning-export.json");
+  const exportDocument = (await exportResponse.json()) as PersonalWorkspaceExport;
+  const downloadedPath = await download.path();
+  if (!downloadedPath) throw new Error("The Saved learning export download is unavailable.");
+  const downloadedExport = JSON.parse(
+    await readFile(downloadedPath, "utf-8"),
+  ) as PersonalWorkspaceExport;
+  expect(downloadedExport).toEqual(exportDocument);
+  expect(exportDocument.workspace).toEqual(currentWorkspace);
+  expect(exportDocument.workspace_digest).toBe(currentWorkspace.workspace_digest);
+  await expect(page.getByText("Your Saved learning download is ready.")).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   const capturePath = process.env.FINANCIAL_AI_ACADEMY_PERSONAL_WORKSPACE_CAPTURE;
@@ -308,6 +333,7 @@ test("preserves Saved learning through the live public API", async ({
       `${JSON.stringify(
         {
           workspace: currentWorkspace,
+          export: exportDocument,
           exact_replay_request: replayRequest,
           query_request: queryRequest,
           query_result: queryResult,

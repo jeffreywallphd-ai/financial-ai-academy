@@ -1,6 +1,7 @@
 # Community Backup and Restore
 
-- Status: accepted design; implementation and qualification pending
+- Status: accepted design; narrow disposable recovery exercise qualified,
+  supported tooling and complete qualification pending
 - Canonical for: community-profile recovery workflow and support-claim boundary
 - Decision: [ADR-0008](../adr/ADR-0008-community-learner-evidence-protection-and-recovery.md)
 
@@ -73,3 +74,26 @@ Executable evidence must cover:
 - controlled end-to-end restore drills across every supported community deployment shape.
 
 Until this evidence exists and is reviewed, the workflow is an accepted design contract, not an implemented or supported backup product.
+
+## Current Controlled Evidence
+
+`tests/e2e/approved-lesson/run.py` now performs one narrow recovery exercise in
+the runner-owned local topology. It stops the source application, creates a
+logical PostgreSQL dump, copies and hashes the bounded application-data root,
+refuses a marked populated target before restore, restores to a separate empty
+inactive PostgreSQL 18.4 target, compares the complete pre-revocation database
+and copied file evidence, revokes restored sessions, and starts the ordinary
+application without seed flags. A fresh protected headless session reproduces
+the accepted Personal-workspace read, query, export, exact replay, mutation
+rows, and target-state fingerprints. The source remains unchanged, evidence is
+redacted to counts/digests/booleans, and all temporary recovery material is
+removed in bounded cleanup.
+
+This closes only Personal-workspace inclusion and one controlled empty-target
+path for the disposable Windows/CI-targeted community topology. It does not
+implement an operator command, manifest/finalization format, backup role,
+permission profile, external destination, encryption, schedule, retention,
+cross-version compatibility, corruption/failure matrix, recovery-credential
+handling, production activation, or supported-platform drill. It makes no
+RPO, RTO, availability, offsite, immutability, authenticity, hostile-host, or
+ransomware-resilience claim. The preceding support boundary remains in force.
