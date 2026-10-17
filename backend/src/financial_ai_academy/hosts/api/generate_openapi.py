@@ -12,14 +12,22 @@ from financial_ai_academy.modules.assessment.public import (
     KnowledgeCheckResult,
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
+    OpenProjectSubmissionCandidateRequest,
     PracticeDraft,
     PracticePresentation,
     PracticeResult,
     PracticeRetryState,
     ReadPlacedPracticeProgressRequest,
+    ReadProjectCompletionEvidenceRequest,
+    ReadProjectCompletionHistoryRequest,
     SavePlacedPracticeDraftRequest,
     SubmitPlacedKnowledgeCheckRequest,
     SubmitPlacedPracticeRequest,
+    SubmitProjectSnapshotRequest,
+    ProjectCompletionEvidence,
+    ProjectHistory,
+    ProjectSnapshotCandidate,
+    ProjectSubmissionOutcome,
 )
 from financial_ai_academy.modules.identity.public import (
     IdentityError,
@@ -100,6 +108,26 @@ class _SchemaCurriculum:
 
 
 class _SchemaAssessment:
+    def open_project_submission_candidate(
+        self, request: OpenProjectSubmissionCandidateRequest
+    ) -> ProjectSnapshotCandidate:
+        raise NotImplementedError
+
+    def submit_project_snapshot(
+        self, request: SubmitProjectSnapshotRequest
+    ) -> ProjectSubmissionOutcome:
+        raise NotImplementedError
+
+    def read_project_completion_evidence(
+        self, request: ReadProjectCompletionEvidenceRequest
+    ) -> ProjectCompletionEvidence:
+        raise NotImplementedError
+
+    def read_project_completion_history(
+        self, request: ReadProjectCompletionHistoryRequest
+    ) -> ProjectHistory:
+        raise NotImplementedError
+
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest
     ) -> KnowledgeCheckPresentation:

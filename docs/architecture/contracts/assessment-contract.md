@@ -321,6 +321,11 @@ permitted ordering changes, stale and unknown facts, prohibited private or
 active fields, and immutable supersession history. Public-operation-only
 candidate assembly, transport-neutral submit/read operations, append-only
 PostgreSQL evidence, atomic safe outbox, exact replay/conflict, concurrent
-ordering, restart, rollback, and supersession are implemented. Protected HTTP,
-OpenAPI/generated client, Learner-model or Audit consumers, browser flow,
-provider, execution path, and AI authority remain absent.
+ordering, restart, rollback, and supersession are implemented. The local
+composition root now supplies the same Project-submission contract to the
+source, service, and repository. Four protected Project-scoped HTTP operations
+expose candidate, submit/refusal, exact evidence, and learner-safe ordered
+history through reviewed OpenAPI and generated TypeScript types for browser and
+headless clients. The host derives learner and permission from the session and
+does not reproduce Assessment policy. Learner-model or Audit consumers,
+browser flow, provider, execution path, and AI authority remain absent.

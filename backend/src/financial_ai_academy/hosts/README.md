@@ -29,6 +29,18 @@ under `/snapshots`. Writes require `project.write`; reads require
 `project.read`. Every operation derives the learner from the opaque session and
 is directly available to generated and non-browser/headless clients.
 
+Learning-started snapshot submission adds an Assessment-owned boundary beneath
+the same Project resource. An exact snapshot candidate is read at
+`/snapshots/{snapshot_id}/submission-candidate`; a closed mapping is posted to
+`/snapshots/{snapshot_id}/submissions`; retained ordered history and exact
+evidence are read from `/submissions` and `/submissions/{submission_id}`. The
+host only binds session learner, permission, and route selectors before calling
+Assessment public operations. Candidate assembly, deterministic validation,
+side-effect-free refusal, replay, occurrence, supersession, and persistence
+remain in the shared application core. Responses contain no workspace body,
+artifact bytes, storage path, execution control, grading, mastery, or provider
+authority. These operations are directly usable without the browser.
+
 The API host exposes the queryless discovery catalog at
 `GET /api/v1/curriculum/opportunities` and the additive bounded query at
 `GET /api/v1/curriculum/opportunities/query`. It resolves the opaque session on

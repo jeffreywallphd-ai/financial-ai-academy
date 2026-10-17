@@ -29,6 +29,14 @@ from financial_ai_academy.modules.assessment.public import (
     PracticeDraft,
     PracticePresentation,
     PracticeRetryState,
+    ProjectCompletionEvidence,
+    ProjectHistory,
+    ProjectSnapshotCandidate,
+    ProjectSubmissionOutcome,
+)
+from financial_ai_academy.modules.assessment.domain.project_submission import (
+    ProjectValidationResult,
+    SnapshotResource,
 )
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import (
@@ -484,6 +492,237 @@ class ProjectEvidenceFileContentModel(ApiModel):
 class ProjectEvidenceExportBundleResponseModel(ApiModel):
     manifest: ProjectEvidenceExportResponseModel
     files: list[ProjectEvidenceFileContentModel] = Field(max_length=100)
+
+
+ProjectSubmissionVersion = Annotated[
+    str,
+    Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$",
+    ),
+]
+
+
+class ProjectSubmissionProjectResponseModel(ProjectTimestampModel):
+    project_id: Identifier
+    project_revision: int = Field(ge=1)
+    project_shell_digest: Digest
+    snapshot_id: Identifier
+    snapshot_digest: Digest
+    workspace_revision: int = Field(ge=1)
+    closed_at: datetime
+
+
+class ProjectSubmissionOriginResponseModel(ApiModel):
+    package_id: Identifier
+    package_version: ProjectSubmissionVersion
+    package_digest: Digest
+    brief_id: Identifier
+    brief_version: ProjectSubmissionVersion
+    brief_digest: Digest
+    curriculum_id: Identifier
+    curriculum_version: ProjectSubmissionVersion
+    curriculum_digest: Digest
+    placement_id: Identifier
+    placement_version: ProjectSubmissionVersion
+    placement_digest: Digest
+
+
+class ProjectSubmissionMilestoneResponseModel(ApiModel):
+    milestone_id: Identifier
+    milestone_version: ProjectSubmissionVersion
+    sequence: int = Field(ge=1, le=20)
+    title: str = Field(min_length=1, max_length=160, pattern=r"^[^<>\u0000]*$")
+
+
+class ProjectSubmissionVersionedResourceModel(ApiModel):
+    resource_kind: Literal["note", "source"]
+    resource_id: Identifier
+    resource_version: int = Field(ge=1)
+    record_digest: Digest
+
+
+class ProjectSubmissionArtifactResourceModel(ApiModel):
+    resource_kind: Literal["artifact"]
+    resource_id: Identifier
+    resource_version: int = Field(ge=1)
+    record_digest: Digest
+    content_digest: Digest
+    byte_count: int = Field(ge=0, le=10485760)
+
+
+class ProjectSubmissionDomainResourceModel(ProjectTimestampModel):
+    resource_kind: Literal["domain_resource"]
+    resource_id: Identifier
+    record_digest: Digest
+    owner_reference_digest: Digest
+    resource_version: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=128,
+        exclude_if=lambda value: value is None,
+    )
+    resource_as_of: datetime | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+        validate_default=True,
+    )
+
+    @field_validator("resource_as_of")
+    @classmethod
+    def domain_resource_has_one_exact_selector(
+        cls, value: datetime | None, info
+    ) -> datetime | None:
+        version = info.data.get("resource_version")
+        if (version is None) == (value is None):
+            raise ValueError(
+                "domain resources require exactly one version or as-of time"
+            )
+        return value
+
+
+ProjectSubmissionResourceModel = Annotated[
+    Union[
+        ProjectSubmissionVersionedResourceModel,
+        ProjectSubmissionArtifactResourceModel,
+        ProjectSubmissionDomainResourceModel,
+    ],
+    Field(discriminator="resource_kind"),
+]
+
+
+class ProjectSubmissionCandidateResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    project: ProjectSubmissionProjectResponseModel
+    origin: ProjectSubmissionOriginResponseModel
+    policy_id: Literal["assessment-project-closure"]
+    policy_version: Literal["1.0.0"]
+    milestones: list[ProjectSubmissionMilestoneResponseModel] = Field(
+        min_length=1, max_length=20
+    )
+    resources: list[ProjectSubmissionResourceModel] = Field(
+        min_length=1, max_length=200
+    )
+
+
+class ProjectSubmissionSourceRequestModel(ApiModel):
+    project_id: Identifier
+    snapshot_id: Identifier
+    snapshot_digest: Digest
+    brief_id: Identifier
+    brief_version: ProjectSubmissionVersion
+    brief_digest: Digest
+    placement_id: Identifier
+    placement_version: ProjectSubmissionVersion
+    placement_digest: Digest
+
+
+class ProjectMilestoneEvidenceRequestModel(ApiModel):
+    milestone_id: Identifier
+    resources: list[ProjectSubmissionResourceModel] = Field(
+        min_length=1, max_length=50
+    )
+
+
+class ProjectSubmissionRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    submission_id: Identifier
+    source: ProjectSubmissionSourceRequestModel
+    policy_id: Literal["assessment-project-closure"]
+    policy_version: Literal["1.0.0"]
+    milestone_evidence: list[ProjectMilestoneEvidenceRequestModel] = Field(
+        min_length=1, max_length=20
+    )
+
+
+class ProjectValidationIssueResponseModel(ApiModel):
+    code: str = Field(
+        min_length=1,
+        max_length=96,
+        pattern=r"^assessment\.project\.[a-z0-9_]+$",
+    )
+    reference: str = Field(min_length=1, max_length=120)
+    message: str = Field(min_length=1, max_length=160)
+
+
+class ProjectAcceptedValidationResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    status: Literal["accepted"]
+    request_fingerprint: Digest
+    issues: list[ProjectValidationIssueResponseModel] = Field(max_length=0)
+
+
+class ProjectRefusedValidationResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    status: Literal["refused"]
+    issues: list[ProjectValidationIssueResponseModel] = Field(
+        min_length=1, max_length=100
+    )
+
+
+ProjectValidationResponseModel = Annotated[
+    Union[
+        ProjectAcceptedValidationResponseModel,
+        ProjectRefusedValidationResponseModel,
+    ],
+    Field(discriminator="status"),
+]
+
+
+class ProjectCompletionEvidenceResponseModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    evidence_id: Identifier
+    learner_id: Identifier
+    submission_id: Identifier
+    project_id: Identifier
+    snapshot_id: Identifier
+    snapshot_digest: Digest
+    brief_id: Identifier
+    brief_version: ProjectSubmissionVersion
+    brief_digest: Digest
+    placement_id: Identifier
+    placement_version: ProjectSubmissionVersion
+    placement_digest: Digest
+    policy_id: Literal["assessment-project-closure"]
+    policy_version: Literal["1.0.0"]
+    milestone_evidence: list[ProjectMilestoneEvidenceRequestModel] = Field(
+        min_length=1, max_length=20
+    )
+    milestone_ids: list[Identifier] = Field(min_length=1, max_length=20)
+    request_fingerprint: Digest
+    occurrence: int = Field(ge=1)
+    accepted_sequence: int = Field(ge=1)
+    submitted_at: datetime
+    supersedes_submission_id: Identifier | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+
+class ProjectSubmissionOutcomeResponseModel(ApiModel):
+    validation: ProjectValidationResponseModel
+    evidence: ProjectCompletionEvidenceResponseModel | None
+
+
+class ProjectCompletionHistoryItemResponseModel(ProjectTimestampModel):
+    evidence_id: Identifier
+    submission_id: Identifier
+    snapshot_id: Identifier
+    snapshot_digest: Digest
+    request_fingerprint: Digest
+    occurrence: int = Field(ge=1)
+    submitted_at: datetime
+    supersedes_submission_id: Identifier | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+
+
+class ProjectCompletionHistoryResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    project_id: Identifier
+    items: list[ProjectCompletionHistoryItemResponseModel] = Field(
+        min_length=1, max_length=100
+    )
 
 
 class InlineTextModel(ApiModel):
@@ -2274,6 +2513,160 @@ def project_evidence_export_response(
                 content_base64=base64.b64encode(item.content).decode("ascii"),
             )
             for item in bundle.files
+        ],
+    )
+
+
+def _project_submission_resource_response(
+    resource: SnapshotResource,
+) -> ProjectSubmissionResourceModel:
+    shared = {
+        "resource_kind": resource.resource_kind,
+        "resource_id": resource.resource_id,
+        "record_digest": resource.record_digest,
+    }
+    if resource.resource_kind in {"note", "source"}:
+        return ProjectSubmissionVersionedResourceModel(
+            **shared,
+            resource_version=resource.resource_version,
+        )
+    if resource.resource_kind == "artifact":
+        return ProjectSubmissionArtifactResourceModel(
+            **shared,
+            resource_version=resource.resource_version,
+            content_digest=resource.content_digest,
+            byte_count=resource.byte_count,
+        )
+    return ProjectSubmissionDomainResourceModel(
+        **shared,
+        owner_reference_digest=resource.owner_reference_digest,
+        resource_version=resource.resource_version,
+        resource_as_of=resource.resource_as_of,
+    )
+
+
+def project_submission_candidate_response(
+    candidate: ProjectSnapshotCandidate,
+) -> ProjectSubmissionCandidateResponseModel:
+    return ProjectSubmissionCandidateResponseModel(
+        schema_version="1.0.0",
+        project=ProjectSubmissionProjectResponseModel.model_validate(
+            asdict(candidate.project)
+        ),
+        origin=ProjectSubmissionOriginResponseModel.model_validate(
+            asdict(candidate.origin)
+        ),
+        policy_id="assessment-project-closure",
+        policy_version="1.0.0",
+        milestones=[
+            ProjectSubmissionMilestoneResponseModel.model_validate(asdict(item))
+            for item in candidate.milestones
+        ],
+        resources=[
+            _project_submission_resource_response(item)
+            for item in candidate.resources
+        ],
+    )
+
+
+def _project_milestone_evidence_response(
+    evidence,
+) -> ProjectMilestoneEvidenceRequestModel:
+    return ProjectMilestoneEvidenceRequestModel(
+        milestone_id=evidence.milestone_id,
+        resources=[
+            _project_submission_resource_response(item)
+            for item in evidence.resources
+        ],
+    )
+
+
+def project_completion_evidence_response(
+    evidence: ProjectCompletionEvidence,
+) -> ProjectCompletionEvidenceResponseModel:
+    accepted = evidence.accepted
+    submission = accepted.submission
+    return ProjectCompletionEvidenceResponseModel(
+        schema_version="1.0.0",
+        evidence_id=evidence.evidence_id,
+        learner_id=evidence.learner_id,
+        submission_id=submission.submission_id,
+        project_id=submission.project_id,
+        snapshot_id=submission.snapshot_id,
+        snapshot_digest=submission.snapshot_digest,
+        brief_id=submission.brief_id,
+        brief_version=submission.brief_version,
+        brief_digest=submission.brief_digest,
+        placement_id=submission.placement_id,
+        placement_version=submission.placement_version,
+        placement_digest=submission.placement_digest,
+        policy_id="assessment-project-closure",
+        policy_version="1.0.0",
+        milestone_evidence=[
+            _project_milestone_evidence_response(item)
+            for item in submission.milestone_evidence
+        ],
+        milestone_ids=[item.milestone_id for item in accepted.candidate.milestones],
+        request_fingerprint=accepted.request_fingerprint,
+        occurrence=evidence.occurrence,
+        accepted_sequence=evidence.accepted_sequence,
+        submitted_at=evidence.submitted_at,
+        supersedes_submission_id=evidence.supersedes_submission_id,
+    )
+
+
+def _project_validation_response(
+    validation: ProjectValidationResult,
+) -> ProjectValidationResponseModel:
+    issues = [
+        ProjectValidationIssueResponseModel.model_validate(asdict(item))
+        for item in validation.issues
+    ]
+    if validation.status == "accepted":
+        return ProjectAcceptedValidationResponseModel(
+            schema_version="1.0.0",
+            status="accepted",
+            request_fingerprint=validation.request_fingerprint,
+            issues=issues,
+        )
+    return ProjectRefusedValidationResponseModel(
+        schema_version="1.0.0",
+        status="refused",
+        issues=issues,
+    )
+
+
+def project_submission_outcome_response(
+    outcome: ProjectSubmissionOutcome,
+) -> ProjectSubmissionOutcomeResponseModel:
+    return ProjectSubmissionOutcomeResponseModel(
+        validation=_project_validation_response(outcome.validation),
+        evidence=(
+            project_completion_evidence_response(outcome.evidence)
+            if outcome.evidence is not None
+            else None
+        ),
+    )
+
+
+def project_completion_history_response(
+    history: ProjectHistory,
+) -> ProjectCompletionHistoryResponseModel:
+    return ProjectCompletionHistoryResponseModel(
+        schema_version="1.0.0",
+        project_id=history.project_id,
+        items=[
+            ProjectCompletionHistoryItemResponseModel(
+                evidence_id=item.evidence_id,
+                submission_id=item.accepted.submission.submission_id,
+                snapshot_id=item.accepted.submission.snapshot_id,
+                snapshot_digest=item.accepted.submission.snapshot_digest,
+                request_fingerprint=item.accepted.request_fingerprint,
+                occurrence=item.occurrence,
+                submitted_at=item.submitted_at,
+                supersedes_submission_id=item.supersedes_submission_id,
+            )
+            for item in history.items
         ],
     )
 

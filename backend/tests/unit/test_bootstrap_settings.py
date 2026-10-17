@@ -16,6 +16,9 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     lesson = contracts / "learning" / "lesson-package" / "v1"
     assessment = contracts / "learning" / "assessment" / "v1"
     practice = contracts / "learning" / "assessment" / "practice" / "v1"
+    assessment_project = (
+        contracts / "learning" / "assessment" / "project" / "v1"
+    )
     events = contracts / "events" / "assessment" / "v1"
     project = contracts / "learning" / "project" / "v1"
     migrations = tmp_path / "migrations"
@@ -23,6 +26,7 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
         lesson,
         assessment,
         practice,
+        assessment_project,
         events,
         project,
         migrations,
@@ -47,4 +51,5 @@ def test_contract_schema_directories_resolve_from_the_shared_contract_root(
     assert settings.practice_schema_dir == practice
     assert settings.assessment_event_schema_dir == events
     assert settings.project_schema_dir == project
+    assert settings.assessment_project_schema_dir == assessment_project
     assert isinstance(settings.validate(), SingleProfileRequestPolicy)

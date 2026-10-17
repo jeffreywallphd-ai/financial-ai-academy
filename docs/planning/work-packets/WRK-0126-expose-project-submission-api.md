@@ -1,7 +1,7 @@
 ---
 id: WRK-0126
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -10,12 +10,12 @@ capability: CAP-0007
 depends_on: ["WRK-0125"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/settings.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/integration/api/test_single_profile_project_submission_api.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0126-expose-project-submission-api.md"]
+write_scope: ["apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/settings.py", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/tests/integration/api/test_single_profile_project_submission_api.py", "backend/tests/unit/test_bootstrap_settings.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0126-expose-project-submission-api.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d3646497667e578811034a6bfc1f958980e0156c
+claim_id: WRK-0126:1e546432-cd39-4733-a752-c800408d0037
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T03:49:42Z
 ---
 
 # Agent Work Packet: Expose the Project Submission API
@@ -204,3 +204,8 @@ JIT-C ready for just-in-time refinement.
 - 2026-10-17: Authored and validated the just-in-time API/client packet after
   WRK-0125 completed. The boundary remains inside the approved CAP-0007 and
   SLI-0032 package and introduces no new decision gate.
+- 2026-10-17: Claimed the packet from base `d364649` after the implementation
+  gate passed for the current approved CAP package.
+- 2026-10-17: Expanded the test-only scope to keep the bootstrap settings
+  directory-resolution fixture synchronized with the new required Assessment
+  Project schema directory. No runtime or approval boundary changed.

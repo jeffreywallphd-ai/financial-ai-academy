@@ -31,6 +31,12 @@ from financial_ai_academy.modules.assessment.adapters.event_contract import (
 from financial_ai_academy.modules.assessment.adapters.postgres_repository import (
     PostgresAssessmentRepository,
 )
+from financial_ai_academy.modules.assessment.adapters.project_submission_contract import (
+    ContractProjectSubmissionAdapter,
+)
+from financial_ai_academy.modules.assessment.adapters.project_submission_gateways import (
+    PublicProjectSubmissionSource,
+)
 from financial_ai_academy.modules.assessment.adapters.practice_contract import (
     ContractPracticeDefinitionAdapter,
 )
@@ -175,12 +181,27 @@ def build_application_services(
         PostgresCurriculumRepository(settings.postgres_dsn),
         PublicContentGateway(content),
     )
+    project = ProjectService(
+        PostgresProjectRepository(settings.postgres_dsn, project_contract),
+        project_contract,
+        PublicContentProjectBriefGateway(content, project_contract),
+        PublicCurriculumProjectPlacementGateway(curriculum),
+        ProjectUtcClock(),
+        ProjectUuidGenerator(),
+        ProjectFilesystemObjectStorage(object_storage),
+    )
+    project_submission_contract = ContractProjectSubmissionAdapter(
+        settings.assessment_project_schema_dir
+    )
     assessment = AssessmentService(
         PublicCurriculumAssessmentGateway(curriculum),
         PublicContentDefinitionGateway(content),
         ContractAssessmentDefinitionParser(settings.assessment_schema_dir),
         ContractAssessmentEventParser(settings.assessment_event_schema_dir),
-        PostgresAssessmentRepository(settings.postgres_dsn),
+        PostgresAssessmentRepository(
+            settings.postgres_dsn,
+            project_submission_contract=project_submission_contract,
+        ),
         UtcClock(),
         UuidGenerator(),
         ContractPracticeDefinitionAdapter(settings.practice_schema_dir),
@@ -188,6 +209,14 @@ def build_application_services(
             settings.practice_schema_dir
         ),
         ContractPracticeProgressAdapter(settings.practice_schema_dir),
+        PublicProjectSubmissionSource(
+            project,
+            content,
+            curriculum,
+            project_submission_contract,
+            settings.project_schema_dir,
+        ),
+        project_submission_contract,
     )
     learner_model = LearnerModelService(
         AssessmentCompletionEvidenceSource(assessment),
@@ -207,15 +236,6 @@ def build_application_services(
     identity = IdentityService(
         PostgresIdentityRepository(settings.postgres_dsn),
         configured_mode=settings.security.identity_mode,
-    )
-    project = ProjectService(
-        PostgresProjectRepository(settings.postgres_dsn, project_contract),
-        project_contract,
-        PublicContentProjectBriefGateway(content, project_contract),
-        PublicCurriculumProjectPlacementGateway(curriculum),
-        ProjectUtcClock(),
-        ProjectUuidGenerator(),
-        ProjectFilesystemObjectStorage(object_storage),
     )
     return ApplicationServices(
         content=content,

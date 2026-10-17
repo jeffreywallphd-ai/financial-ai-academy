@@ -26,6 +26,8 @@ type ProjectArtifactUpload =
   components["schemas"]["ProjectArtifactUploadRequestModel"];
 type ProjectSnapshotClose =
   components["schemas"]["ProjectSnapshotCloseRequestModel"];
+type ProjectSubmission =
+  components["schemas"]["ProjectSubmissionRequestModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -168,6 +170,69 @@ void client.GET(
   {
     params: {
       path: { project_id: "project-1", snapshot_id: "snapshot-1" },
+    },
+  },
+);
+
+void client.GET(
+  "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate",
+  {
+    params: {
+      path: { project_id: "project-1", snapshot_id: "snapshot-1" },
+    },
+  },
+);
+
+const projectSubmission: ProjectSubmission = {
+  schema_version: "1.0.0",
+  submission_id: "project-submission-1",
+  source: {
+    project_id: "project-1",
+    snapshot_id: "snapshot-1",
+    snapshot_digest: "a".repeat(64),
+    brief_id: "risk-return-project",
+    brief_version: "1.0.0",
+    brief_digest: "b".repeat(64),
+    placement_id: "risk-return-project-primary",
+    placement_version: "1.0.0",
+    placement_digest: "c".repeat(64),
+  },
+  policy_id: "assessment-project-closure",
+  policy_version: "1.0.0",
+  milestone_evidence: [
+    {
+      milestone_id: "define-comparison",
+      resources: [
+        {
+          resource_kind: "note",
+          resource_id: "note-1",
+          resource_version: 1,
+          record_digest: "d".repeat(64),
+        },
+      ],
+    },
+  ],
+};
+void client.POST(
+  "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
+  {
+    params: {
+      path: { project_id: "project-1", snapshot_id: "snapshot-1" },
+    },
+    body: projectSubmission,
+  },
+);
+void client.GET("/api/v1/projects/{project_id}/submissions", {
+  params: { path: { project_id: "project-1" } },
+});
+void client.GET(
+  "/api/v1/projects/{project_id}/submissions/{submission_id}",
+  {
+    params: {
+      path: {
+        project_id: "project-1",
+        submission_id: "project-submission-1",
+      },
     },
   },
 );

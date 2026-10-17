@@ -59,6 +59,26 @@ artifact-level mappings. It carries only exact correlation and provenance
 needed by later authorized projections. Neither event nor history is a public
 sharing or grading record.
 
+## Protected API Boundary
+
+The local composition root now wires Project, Content, and Curriculum public
+operations into Assessment's project-submission source and supplies the same
+contract adapter to the application service and PostgreSQL repository. The
+protected API exposes exact candidate read, snapshot submission, complete
+history read, and exact evidence read under the Project resource. Learner
+identity comes only from the opaque server session; reads require the existing
+`project.read` permission and submission requires `project.write`. Route/body
+Project or snapshot mismatch fails before persistence, and query-selected
+learner authority is rejected.
+
+HTTP responses are closed projections of the v1 contract. Candidate and exact
+evidence expose only the current session-bound safe facts needed for
+correlation, while ordered history omits learner identity and every Project
+body or artifact byte. A deterministic validation refusal is a bounded normal
+response with no evidence and no write. The reviewed OpenAPI and generated
+TypeScript client are the common browser and headless boundary; neither defines
+an alternate AI authority path.
+
 ## Current Delivery Boundary
 
 The shared application core now assembles the candidate through public
@@ -73,7 +93,7 @@ later snapshots append superseding history without mutation. The repository
 enforces the complete-history contract's 100-item bound before commit and
 serializes occurrence with a non-regressing authoritative submission time.
 
-The protected HTTP route, reviewed OpenAPI/client, browser, Learner-model and
-Audit consumers, dispatcher, provider, execution adapter, and managed-cloud
-profile remain later bounded packets. They must consume rather than redefine
-this contract.
+The protected HTTP routes and reviewed OpenAPI/generated client are delivered.
+The browser, Learner-model and Audit consumers, dispatcher, provider, execution
+adapter, and managed-cloud profile remain later bounded packets. They must
+consume rather than redefine this contract.

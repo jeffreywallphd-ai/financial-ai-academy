@@ -37,11 +37,15 @@ from financial_ai_academy.modules.assessment.public import (
     AssessmentOperations,
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
+    OpenProjectSubmissionCandidateRequest,
     PracticePresentation,
     ReadPlacedPracticeProgressRequest,
     SavePlacedPracticeDraftRequest,
+    ReadProjectCompletionEvidenceRequest,
+    ReadProjectCompletionHistoryRequest,
     SubmitPlacedKnowledgeCheckRequest,
     SubmitPlacedPracticeRequest,
+    SubmitProjectSnapshotRequest,
 )
 from financial_ai_academy.modules.audit.public import (
     AuditError,
@@ -135,10 +139,15 @@ from .models import (
     ProjectCreateRequestModel,
     ProjectArtifactUploadRequestModel,
     ProjectEvidenceExportBundleResponseModel,
+    ProjectCompletionEvidenceResponseModel,
+    ProjectCompletionHistoryResponseModel,
     ProjectListResponseModel,
     ProjectSnapshotCloseRequestModel,
     ProjectSnapshotListResponseModel,
     ProjectSnapshotResponseModel,
+    ProjectSubmissionCandidateResponseModel,
+    ProjectSubmissionOutcomeResponseModel,
+    ProjectSubmissionRequestModel,
     ProjectShellResponseModel,
     ProjectWorkspaceMutationRequestModel,
     ProjectWorkspaceResponseModel,
@@ -162,10 +171,14 @@ from .models import (
     project_create_intent,
     project_artifact_content,
     project_evidence_export_response,
+    project_completion_evidence_response,
+    project_completion_history_response,
     project_list_response,
     project_snapshot_close_intent,
     project_snapshot_list_response,
     project_snapshot_response,
+    project_submission_candidate_response,
+    project_submission_outcome_response,
     project_shell_response,
     project_workspace_mutation_intent,
     project_workspace_response,
@@ -984,6 +997,142 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         )
         return project_evidence_export_response(exported)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate",
+        response_model=ProjectSubmissionCandidateResponseModel,
+        response_model_exclude_none=True,
+        operation_id="getProjectSubmissionCandidate",
+        responses=_ERROR_RESPONSES,
+        tags=["projects", "assessment"],
+    )
+    def get_project_submission_candidate(
+        request: Request,
+        project_id: str = Path(min_length=1, max_length=128),
+        snapshot_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectSubmissionCandidateResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Project submission opening does not accept query input.",
+                reference="query",
+            )
+        candidate = _assessment_service(
+            services.assessment
+        ).open_project_submission_candidate(
+            OpenProjectSubmissionCandidateRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+                snapshot_id=snapshot_id,
+            )
+        )
+        return project_submission_candidate_response(candidate)
+
+    @app.post(
+        "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
+        response_model=ProjectSubmissionOutcomeResponseModel,
+        operation_id="submitProjectSnapshot",
+        responses=_ERROR_RESPONSES,
+        tags=["projects", "assessment"],
+    )
+    def submit_project_snapshot(
+        request: Request,
+        request_model: ProjectSubmissionRequestModel,
+        project_id: str = Path(min_length=1, max_length=128),
+        snapshot_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_write_context),
+    ) -> ProjectSubmissionOutcomeResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Project submission does not accept query input.",
+                reference="query",
+            )
+        if (
+            request_model.source.project_id != project_id
+            or request_model.source.snapshot_id != snapshot_id
+        ):
+            raise AssessmentError(
+                AssessmentErrorCode.STALE_REFERENCE,
+                "Project submission source references do not match.",
+                reference="source",
+            )
+        document = json.dumps(
+            request_model.model_dump(mode="json", exclude_none=True),
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+        outcome = _assessment_service(services.assessment).submit_project_snapshot(
+            SubmitProjectSnapshotRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+                snapshot_id=snapshot_id,
+                submission=document,
+            )
+        )
+        return project_submission_outcome_response(outcome)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/submissions",
+        response_model=ProjectCompletionHistoryResponseModel,
+        response_model_exclude_none=True,
+        operation_id="getProjectSubmissionHistory",
+        responses=_ERROR_RESPONSES,
+        tags=["projects", "assessment"],
+    )
+    def get_project_submission_history(
+        request: Request,
+        project_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectCompletionHistoryResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Project submission history does not accept query input.",
+                reference="query",
+            )
+        history = _assessment_service(
+            services.assessment
+        ).read_project_completion_history(
+            ReadProjectCompletionHistoryRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+            )
+        )
+        return project_completion_history_response(history)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/submissions/{submission_id}",
+        response_model=ProjectCompletionEvidenceResponseModel,
+        response_model_exclude_none=True,
+        operation_id="getProjectSubmissionEvidence",
+        responses=_ERROR_RESPONSES,
+        tags=["projects", "assessment"],
+    )
+    def get_project_submission_evidence(
+        request: Request,
+        project_id: str = Path(min_length=1, max_length=128),
+        submission_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectCompletionEvidenceResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Project submission evidence does not accept query input.",
+                reference="query",
+            )
+        evidence = _assessment_service(
+            services.assessment
+        ).read_project_completion_evidence(
+            ReadProjectCompletionEvidenceRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+                submission_id=submission_id,
+            )
+        )
+        return project_completion_evidence_response(evidence)
 
     @app.get(
         "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",

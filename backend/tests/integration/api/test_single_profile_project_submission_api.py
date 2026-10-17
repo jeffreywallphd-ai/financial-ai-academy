@@ -1,0 +1,403 @@
+from __future__ import annotations
+
+import asyncio
+from dataclasses import replace
+from datetime import datetime, timezone
+import os
+from pathlib import Path
+
+import psycopg
+import pytest
+from fastapi.testclient import TestClient
+
+from financial_ai_academy.bootstrap.composition import build_application_services
+from financial_ai_academy.bootstrap.settings import SingleProfileApplicationSettings
+from financial_ai_academy.hosts.api.app import ApiServices, create_app
+from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
+from financial_ai_academy.modules.content.public import AdmitLessonPackageRequest
+from financial_ai_academy.modules.curriculum.public import (
+    CreateLessonPlacementRequest,
+    CreateProjectBriefPlacementRequest,
+    CurriculumActivity,
+    CurriculumActivityKind,
+    CurriculumBranch,
+    CurriculumBranchKind,
+    CurriculumCompetency,
+    CurriculumGraph,
+    CurriculumObjective,
+    CurriculumPresentationOrder,
+    CurriculumRelationship,
+    CurriculumRelationshipKind,
+    LessonActivityReference,
+    PublishCurriculumGraphRequest,
+    curriculum_graph_digest,
+)
+from financial_ai_academy.platform.security.single_profile_policy import (
+    SingleProfileSecuritySettings,
+)
+
+
+ORIGIN = "http://127.0.0.1:8000"
+ROOT = Path(__file__).resolve().parents[4]
+OPENAPI = ROOT / "contracts/api/openapi.json"
+POSTGRES_DSN = os.environ.get("FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN")
+PROJECT_FIXTURE = (
+    ROOT
+    / "contracts/compatibility/lesson-package/v1/approved"
+    / "intro-risk-return-project"
+)
+BRIEF_DIGEST = (
+    "1f234681a4b9262dd49e01c82c8c6a12f6a64d13845bea6140708a7d16f061ff"
+)
+
+
+def _headers() -> dict[str, str]:
+    return {"Origin": ORIGIN, "Sec-Fetch-Site": "same-origin"}
+
+
+def _graph(
+    *, package_id: str, package_version: str, package_digest: str
+) -> CurriculumGraph:
+    activity_id = "activity-risk-return-project"
+    graph = CurriculumGraph(
+        schema_version="1.0.0",
+        curriculum_id="financial-foundations-project-submission",
+        curriculum_version="1.0.0",
+        title="Financial foundations Project submission",
+        summary="A bounded path from reviewed material to Project evidence.",
+        publication_state="approved",
+        published_at=datetime(2026, 10, 17, tzinfo=timezone.utc),
+        source_references=(f"content:{package_id}@{package_version}",),
+        objectives=(
+            CurriculumObjective(
+                "objective-apply-risk-return",
+                "Apply risk and return ideas",
+                "Use consistent criteria in an educational comparison.",
+            ),
+        ),
+        competencies=(
+            CurriculumCompetency(
+                "competency-apply-risk-return",
+                "Risk and return application",
+                "Apply evidence without making an investment recommendation.",
+            ),
+        ),
+        activities=(
+            CurriculumActivity(
+                activity_id,
+                "Start the risk and return Project",
+                CurriculumActivityKind.LESSON,
+                LessonActivityReference(
+                    "risk-return-project-source",
+                    package_id,
+                    package_version,
+                    package_digest,
+                ),
+            ),
+        ),
+        branches=(
+            CurriculumBranch(
+                "branch-applied-project",
+                "Applied Project",
+                CurriculumBranchKind.REQUIRED,
+                (activity_id,),
+            ),
+        ),
+        relationships=(
+            CurriculumRelationship(
+                "relationship-project-objective",
+                CurriculumRelationshipKind.OBJECTIVE_COMPETENCY,
+                "objective-apply-risk-return",
+                "competency-apply-risk-return",
+            ),
+            CurriculumRelationship(
+                "relationship-project-develops",
+                CurriculumRelationshipKind.ACTIVITY_DEVELOPS_COMPETENCY,
+                activity_id,
+                "competency-apply-risk-return",
+            ),
+        ),
+        graph_digest="0" * 64,
+        presentation_order=CurriculumPresentationOrder(
+            objective_ids=("objective-apply-risk-return",),
+            competency_ids=("competency-apply-risk-return",),
+            activity_ids=(activity_id,),
+            branch_ids=("branch-applied-project",),
+        ),
+    )
+    return replace(graph, graph_digest=curriculum_graph_digest(graph))
+
+
+def _submission(
+    candidate: dict[str, object], submission_id: str
+) -> dict[str, object]:
+    project = candidate["project"]
+    origin = candidate["origin"]
+    milestones = candidate["milestones"]
+    resources = candidate["resources"]
+    assert isinstance(project, dict)
+    assert isinstance(origin, dict)
+    assert isinstance(milestones, list)
+    assert isinstance(resources, list) and resources
+    source = {
+        key: (
+            project
+            if key in {"project_id", "snapshot_id", "snapshot_digest"}
+            else origin
+        )[key]
+        for key in (
+            "project_id",
+            "snapshot_id",
+            "snapshot_digest",
+            "brief_id",
+            "brief_version",
+            "brief_digest",
+            "placement_id",
+            "placement_version",
+            "placement_digest",
+        )
+    }
+    return {
+        "schema_version": "1.0.0",
+        "submission_id": submission_id,
+        "source": source,
+        "policy_id": candidate["policy_id"],
+        "policy_version": candidate["policy_version"],
+        "milestone_evidence": [
+            {
+                "milestone_id": milestone["milestone_id"],
+                "resources": [resources[index % len(resources)]],
+            }
+            for index, milestone in enumerate(milestones)
+        ],
+    }
+
+
+def test_project_submission_openapi_snapshot_is_current() -> None:
+    assert OPENAPI.read_bytes() == generate_bytes()
+
+
+@pytest.mark.postgres
+@pytest.mark.skipif(
+    POSTGRES_DSN is None,
+    reason="FINANCIAL_AI_ACADEMY_TEST_POSTGRES_DSN is not configured",
+)
+def test_headless_project_submission_refusal_replay_and_history(
+    tmp_path: Path,
+) -> None:
+    assert POSTGRES_DSN is not None
+    with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
+        for schema in (
+            "project",
+            "identity",
+            "audit",
+            "learner_model",
+            "assessment",
+            "curriculum",
+            "content",
+            "platform",
+        ):
+            connection.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE")
+    settings = SingleProfileApplicationSettings(
+        postgres_dsn=POSTGRES_DSN,
+        object_storage_root=tmp_path / "objects",
+        lesson_schema_dir=ROOT / "contracts/learning/lesson-package/v1",
+        migrations_dir=ROOT / "backend/migrations",
+        security=SingleProfileSecuritySettings(
+            identity_mode="single_profile",
+            bind_host="127.0.0.1",
+            public_origin=ORIGIN,
+            allowed_hosts=("127.0.0.1:8000", "testserver"),
+            secure_cookie=False,
+        ),
+    )
+    services = build_application_services(settings, apply_migrations=True)
+    accepted = services.content.admit_lesson_package(
+        AdmitLessonPackageRequest(PROJECT_FIXTURE)
+    )
+    services.curriculum.create_lesson_placement(
+        CreateLessonPlacementRequest(
+            placement_id="risk-return-project-source",
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+        )
+    )
+    graph = _graph(
+        package_id=accepted.package_id,
+        package_version=accepted.package_version,
+        package_digest=accepted.package_digest,
+    )
+    services.curriculum.publish_curriculum_graph(PublishCurriculumGraphRequest(graph))
+    services.curriculum.create_project_brief_placement(
+        CreateProjectBriefPlacementRequest(
+            placement_id="risk-return-project-primary",
+            placement_version="1.0.0",
+            curriculum_id=graph.curriculum_id,
+            curriculum_version=graph.curriculum_version,
+            curriculum_digest=graph.graph_digest,
+            activity_id="activity-risk-return-project",
+            package_id=accepted.package_id,
+            package_version=accepted.package_version,
+            package_digest=accepted.package_digest,
+            brief_id="risk-return-project",
+            brief_version="1.0.0",
+            brief_digest=BRIEF_DIGEST,
+            project_brief_schema_version="1.0.0",
+        )
+    )
+    app = create_app(
+        ApiServices(
+            identity=services.identity,
+            curriculum=services.curriculum,
+            request_policy=services.request_policy,
+            assessment=services.assessment,
+            learner_model=services.learner_model,
+            adaptation=services.adaptation,
+            audit=services.audit,
+            project=services.project,
+        )
+    )
+    with TestClient(
+        app,
+        base_url=ORIGIN,
+        backend_options={"loop_factory": asyncio.SelectorEventLoop},
+    ) as subject:
+        unauthorized = subject.get(
+            "/api/v1/projects/project-guess/submissions"
+        )
+        bootstrapped = subject.post(
+            "/api/v1/session/single-profile",
+            headers=_headers(),
+            json={"limitation_acknowledged": True},
+        )
+        option = subject.get(
+            "/api/v1/projects/start-options/risk-return-project-primary"
+        ).json()
+        created = subject.post(
+            "/api/v1/projects",
+            headers=_headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "submission-project",
+                "title": "Evidence comparison",
+                "charter": "Compare educational evidence without advice.",
+                "origin": option["origin"],
+            },
+        )
+        project_id = created.json()["project_id"]
+        workspace = subject.post(
+            f"/api/v1/projects/{project_id}/workspace/mutations",
+            headers=_headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "submission-note",
+                "expected_workspace_revision": 1,
+                "mutation": {
+                    "operation": "add_note",
+                    "title": "Résumé of comparison limits",
+                    "body": "Evidence for both milestones; no recommendation.",
+                },
+            },
+        )
+        snapshot = subject.post(
+            f"/api/v1/projects/{project_id}/snapshots",
+            headers=_headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "submission-snapshot",
+                "expected_project_revision": 1,
+                "expected_workspace_revision": workspace.json()["workspace_revision"],
+            },
+        )
+        snapshot_id = snapshot.json()["snapshot_id"]
+        candidate_response = subject.get(
+            f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate"
+        )
+        candidate = candidate_response.json()
+        valid = _submission(candidate, "project-submission-1")
+        refused_document = {
+            **valid,
+            "submission_id": "project-submission-refused",
+            "milestone_evidence": valid["milestone_evidence"][:-1],
+        }
+        refused = subject.post(
+            f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
+            headers=_headers(),
+            json=refused_document,
+        )
+        selected_learner = subject.post(
+            f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
+            headers=_headers(),
+            json={**valid, "learner_id": "another-learner"},
+        )
+        query_denied = subject.get(
+            f"/api/v1/projects/{project_id}/submissions?learner_id=another-learner"
+        )
+        mismatch = subject.post(
+            f"/api/v1/projects/{project_id}/snapshots/another-snapshot/submissions",
+            headers=_headers(),
+            json=valid,
+        )
+        accepted_response = subject.post(
+            f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
+            headers=_headers(),
+            json=valid,
+        )
+        replay = subject.post(
+            f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
+            headers=_headers(),
+            json=valid,
+        )
+        exact = subject.get(
+            f"/api/v1/projects/{project_id}/submissions/project-submission-1"
+        )
+        history = subject.get(f"/api/v1/projects/{project_id}/submissions")
+
+    assert bootstrapped.status_code == 201
+    assert unauthorized.status_code == 401
+    assert candidate_response.status_code == 200, candidate_response.text
+    assert candidate["milestones"][0]["title"]
+    assert candidate["resources"][0]["resource_kind"] == "note"
+    assert {"body", "path", "object_key", "content"}.isdisjoint(
+        candidate["resources"][0]
+    )
+    assert refused.status_code == 200, refused.text
+    assert refused.json()["validation"]["status"] == "refused"
+    assert refused.json()["validation"]["issues"][0]["code"] == (
+        "assessment.project.missing_milestone"
+    )
+    assert refused.json()["evidence"] is None
+    assert selected_learner.status_code == 400
+    assert query_denied.status_code == 400
+    assert mismatch.status_code == 409
+    assert accepted_response.status_code == replay.status_code == 200
+    assert accepted_response.json() == replay.json()
+    assert accepted_response.json()["validation"]["status"] == "accepted"
+    assert exact.json() == accepted_response.json()["evidence"]
+    assert history.status_code == exact.status_code == 200
+    assert history.json()["items"] == [
+        {
+            key: value
+            for key, value in exact.json().items()
+            if key
+            in {
+                "evidence_id",
+                "submission_id",
+                "snapshot_id",
+                "snapshot_digest",
+                "request_fingerprint",
+                "occurrence",
+                "submitted_at",
+            }
+        }
+    ]
+    assert "learner_id" not in history.text
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT count(*) FROM assessment.project_submissions"
+        ).fetchone() == (1,)
+        assert connection.execute(
+            "SELECT count(*) FROM assessment.project_outbox "
+            "WHERE event_type = 'assessment.project.completed'"
+        ).fetchone() == (1,)
