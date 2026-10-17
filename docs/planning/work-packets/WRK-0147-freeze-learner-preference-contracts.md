@@ -1,7 +1,7 @@
 ---
 id: WRK-0147
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -278,3 +278,6 @@ dependency-ready.
   model core while leaving persistence/API, UI, and live qualification to
   dependency-ordered packets. It conforms to the current CAP-0018 package and
   requires no lower-level approval.
+- 2026-10-17: Moved to exact-candidate verification after 73 focused Learner-
+  model tests, 17 architecture checks, 10 security control groups, planning,
+  documentation, whitespace, and all 29 aggregate readiness checks passed.
