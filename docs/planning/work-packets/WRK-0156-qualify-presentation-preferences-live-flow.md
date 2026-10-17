@@ -1,7 +1,7 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: verifying
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -285,3 +285,8 @@ changed, then leave SLI-0075 closure-ready.
   whitespace checks passed. The first broad Web and architecture invocations
   were environment-only failures in the read-restricted Windows temporary
   directory and passed unchanged with the repository writable temporary root.
+- 2026-10-17: Returned unchanged to ready solely because the legacy
+  compatibility claim can be projected by the lease-aware controller but
+  cannot receive an exact submitted candidate. The bounded release enables an
+  immediate controller-native re-claim and does not reopen product scope or
+  invalidate the passing evidence.

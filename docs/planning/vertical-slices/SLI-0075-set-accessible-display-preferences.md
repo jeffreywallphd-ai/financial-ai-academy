@@ -1,7 +1,7 @@
 ---
 id: SLI-0075
 kind: vertical-slice
-planning_status: verifying
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -218,7 +218,7 @@ packet starts. Proposed dependency-ordered seams are:
 | WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
 | WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | complete |
 | WRK-0155 | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | complete |
-| WRK-0156 | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155 | none | verifying |
+| WRK-0156 | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155 | none | ready |
 
 Detailed packet plans will declare exact files, generated artifacts, checks,
 and stop conditions immediately before each packet starts. Packet identifiers
@@ -355,3 +355,7 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
   serialization, restart durability, source-state isolation, theme exclusion,
   protective browser behavior, accessibility, and bounded cleanup; focused and
   broader repository checks also passed with no product or contract change.
+- 2026-10-17: Returned the slice and unchanged WRK-0156 projection to ready so
+  the legacy compatibility claim can be replaced by a controller-native claim
+  that supports exact-candidate receipts. Passing implementation evidence and
+  scope remain unchanged.
