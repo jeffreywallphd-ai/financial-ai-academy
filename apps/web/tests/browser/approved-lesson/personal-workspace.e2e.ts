@@ -136,11 +136,23 @@ test("preserves Saved learning through the live public API", async ({
   const bookmarkCard = page
     .getByRole("heading", { level: 3, name: BOOKMARK_LABEL })
     .locator("xpath=ancestor::li");
+  const reorderResponse = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === MUTATION_API &&
+      response.request().method() === "POST",
+  );
   await bookmarkCard.getByRole("button", { name: "Move earlier" }).click();
+  expect((await reorderResponse).status()).toBe(200);
   await expect(page.locator(".saved-learning-list > li").first()).toContainText(BOOKMARK_LABEL);
 
   await page.getByLabel("Collection name").first().fill(COLLECTION_TITLE);
+  const collectionResponse = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === MUTATION_API &&
+      response.request().method() === "POST",
+  );
   await page.getByRole("button", { name: "Create collection" }).click();
+  expect((await collectionResponse).status()).toBe(200);
   const collection = page
     .getByRole("heading", { level: 3, name: COLLECTION_TITLE })
     .locator("xpath=ancestor::section[1]");
@@ -152,12 +164,24 @@ test("preserves Saved learning through the live public API", async ({
   await collection
     .getByRole("button", { name: `Move ${BOOKMARK_LABEL} earlier in collection` })
     .click();
+  const collectionMembersResponse = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === MUTATION_API &&
+      response.request().method() === "POST",
+  );
   await collection.getByRole("button", { name: "Save collection items" }).click();
+  expect((await collectionMembersResponse).status()).toBe(200);
 
   const noteCard = page
     .getByRole("heading", { level: 3, name: NOTE_TITLE })
     .locator("xpath=ancestor::li");
+  const archiveResponse = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === MUTATION_API &&
+      response.request().method() === "POST",
+  );
   await noteCard.getByRole("button", { name: "Archive record" }).click();
+  expect((await archiveResponse).status()).toBe(200);
   await expect(noteCard.getByText("Note · Archived", { exact: true })).toBeVisible();
   const restoreResponse = page.waitForResponse(
     (response) =>
