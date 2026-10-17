@@ -1,7 +1,7 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: verifying
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -314,3 +314,7 @@ changed, then leave SLI-0075 closure-ready.
   qualification bind its dependency-complete descendant instead of treating
   already verified dependency changes as an unrelated scope escape; it grants
   no new product work and changes no packet objective or acceptance scenario.
+- 2026-10-17: Returned to active correction after the exact verifier was found
+  to require unbounded history coverage even though the canonical contract
+  retains only the newest 100 summaries. The bounded correction accepts the
+  valid retained window while preserving complete mutation-row evidence.
