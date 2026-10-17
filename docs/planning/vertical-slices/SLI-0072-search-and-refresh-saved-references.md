@@ -212,7 +212,7 @@ packet starts. The dependency-ordered seams are:
 | WRK-0139 | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | complete |
 | WRK-0140 | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | WRK-0139 | none | complete |
 | WRK-0141 | Deliver plain-language browser search, filters, status, per-record refresh, and accessible safe resume through the generated client | WRK-0140 | none | complete |
-| JIT-D | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | WRK-0141 | none | captured |
+| WRK-0142 | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | WRK-0141 | none | ready |
 
 Dependent packets are not claimed until their predecessor is complete. The
 sequential default avoids shared contract/client/API/UI collisions; a later
@@ -314,3 +314,7 @@ approval is requested.
   browser search/filter/paging, three-state meaning, explicit checks, safe
   resume, partial-reorder defense, accessibility, and anti-rigidity evidence.
   It changes no API or CAP boundary and requires no lower-level approval.
+- 2026-10-17: Refined JIT-D as WRK-0142 after WRK-0141 completed. The packet
+  adds cumulative live generated-browser/headless query and record-only refresh
+  parity, PostgreSQL replay/restart, target isolation, containment, cleanup, and
+  slice-closure evidence without changing delivered product behavior.
