@@ -4,7 +4,7 @@ kind: capability
 planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0009", "CAP-0017", "CAP-0026"]
 decision_gates: []
@@ -105,4 +105,7 @@ accessibility, and qualification evidence.
 
 - 2026-10-15: Shaped from catalog candidate 16 with manifest SLI-0078 through
   SLI-0081. The package awaits one CAP planning approval.
+- 2026-10-16: Reconciled the complete four-slice package with current evidence,
+  workspace, and storage boundaries. Managed-cloud recovery remains explicitly
+  excluded; the manifest has no unresolved durable decision gate.
 

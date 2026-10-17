@@ -4,7 +4,7 @@ kind: capability
 planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0012"]
 decision_gates: ["DEC-0013"]
@@ -107,4 +107,7 @@ analysis UI behavior, exports, and verification evidence.
 - 2026-10-15: Shaped from catalog candidate 10 with manifest SLI-0054 through
   SLI-0057. DEC-0013 blocks CAP approval and delivery.
 - 2026-10-15: DEC-0013 was promoted through ADR-0015; the CAP returned to shaping for package revalidation before CAP-level approval.
+- 2026-10-16: Reconciled the complete four-slice package with ADR-0015 and the
+  staged market-data authority in ADR-0020 inherited through CAP-0012. The
+  manifest remains unchanged and has no unresolved durable decision gate.
 

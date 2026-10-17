@@ -4,7 +4,7 @@ kind: capability
 planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0007", "CAP-0011", "CAP-0012"]
 decision_gates: ["DEC-0011", "DEC-0014"]
@@ -112,4 +112,8 @@ execution, security, cost, export, UI, and verification documentation.
 - 2026-10-15: DEC-0014 was promoted to ADR-0016, selecting learner-managed
   execution with validated import and a non-authorizing future sandbox seam;
   the CAP returned to shaping for package refinement.
+- 2026-10-16: Reconciled the complete four-slice package with ADR-0013,
+  ADR-0016, and the provider-neutral market-data authority inherited through
+  CAP-0012. Learner-managed execution remains the only admitted runtime; the
+  manifest is unchanged.
 

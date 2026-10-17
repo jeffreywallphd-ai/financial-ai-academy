@@ -4,7 +4,7 @@ kind: capability
 planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0018", "CAP-0020", "CAP-0024"]
 decision_gates: ["DEC-0011"]
@@ -112,3 +112,6 @@ documentation with exact versioned contracts.
 - 2026-10-15: Shaped from catalog candidate 8 with manifest SLI-0046 through
   SLI-0049. DEC-0011 blocks CAP approval and delivery.
 - 2026-10-15: DEC-0011 was promoted through ADR-0013; the CAP returned to shaping for package revalidation before CAP-level approval.
+- 2026-10-16: Reconciled the complete four-slice package with ADR-0013 and
+  current provider-admission boundaries. Concrete provider use still requires
+  adapter-specific evidence; the manifest remains unchanged.

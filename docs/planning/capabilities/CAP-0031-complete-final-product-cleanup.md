@@ -149,3 +149,7 @@ as a new approval stage.
   beta styling, and similarly inconsequential findings from interrupting
   functional CAP delivery. The package is placed after the current terminal
   capabilities and preserves a user-directed route to move a named item earlier.
+- 2026-10-16: Reconciled the complete four-slice package with the current
+  terminal dependency set and consequence-based cleanup policy. Cleanup cannot
+  defer functional or safety defects, and the manifest has no unresolved
+  durable decision gate.

@@ -4,7 +4,7 @@ kind: capability
 planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0004", "CAP-0005", "CAP-0009", "CAP-0018"]
 decision_gates: ["DEC-0009", "DEC-0010"]
@@ -114,4 +114,7 @@ architecture verification, and known-gap evidence.
 - 2026-10-15: Shaped from catalog candidate 7 with manifest SLI-0042 through
   SLI-0045. DEC-0009 and DEC-0010 must be promoted before CAP approval.
 - 2026-10-15: DEC-0009 and DEC-0010 were promoted through ADR-0014; the CAP returned to shaping for package revalidation before CAP-level approval.
+- 2026-10-16: Reconciled the complete four-slice package with ADR-0014 and
+  current dependency authority. The manifest remains unchanged and contains no
+  unresolved durable decision gate.
 

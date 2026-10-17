@@ -4,7 +4,7 @@ kind: capability
 planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
 depends_on: ["CAP-0001", "CAP-0007"]
 decision_gates: []
@@ -106,4 +106,7 @@ accessibility, and verification documentation.
 - 2026-10-15: Shaped from catalog candidate 14 with manifest SLI-0070 through
   SLI-0073. The package has no unresolved durable decision and awaits one CAP
   planning approval; later adapters remain independently gated.
+- 2026-10-16: Reconciled the complete four-slice package with current project,
+  identity, and optional-adapter boundaries. Managed organization policy stays
+  out of scope; the manifest remains unchanged.
 

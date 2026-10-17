@@ -4,9 +4,9 @@ kind: capability
 planning_status: shaping
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-15
+updated: 2026-10-16
 parent: null
-depends_on: ["CAP-0005", "CAP-0006", "CAP-0007"]
+depends_on: ["CAP-0005", "CAP-0006", "CAP-0007", "CAP-0025"]
 decision_gates: ["DEC-0015"]
 approval_model: cap-package-v1
 slice_ids: ["SLI-0086", "SLI-0087", "SLI-0088", "SLI-0089"]
@@ -59,6 +59,7 @@ to rewrite evidence tied to prior versions.
 - [CAP-0005](CAP-0005-navigate-competency-based-curriculum.md)
 - [CAP-0006](CAP-0006-practice-and-demonstrate-understanding.md)
 - [CAP-0007](CAP-0007-complete-applied-projects.md)
+- [CAP-0025](CAP-0025-manage-identities-organizations-roles-entitlements.md)
 
 ## Decision Gates and Constraints
 
@@ -69,12 +70,14 @@ to rewrite evidence tied to prior versions.
   separated from Assessment runtime scoring.
 - Authorization, validation, review completion, and publication are
   deterministic; AI may draft only bounded material and never approve/publish.
+- Exact creator, reviewer, and organization permissions come from CAP-0025;
+  this CAP does not infer an organization tenancy or role model of its own.
 
 ## Proposed Vertical Slices
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
-| SLI-0086 | An authorized creator drafts and validates versioned lesson/curriculum source with safe preview, citations, assets, and exact publication target. | First after dependencies and ADR-0017; establishes revision-bound draft/review ownership. | Arbitrary active content, AI publication, or direct learner visibility changes the CAP package. | captured |
+| SLI-0086 | An authorized creator drafts and validates versioned lesson/curriculum source with safe preview, citations, assets, and exact publication target. | First after dependencies, including CAP-0025, and ADR-0017; establishes revision-bound draft/review ownership. | Arbitrary active content, AI publication, or direct learner visibility changes the CAP package. | captured |
 | SLI-0087 | The creator authors structured assessments, projects, competencies, and mappings through owning-module contracts with cross-reference validation. | After SLI-0086. | Authoring runtime scores, executing project artifacts, or cross-module persistence changes the CAP package. | captured |
 | SLI-0088 | Authorized reviewers compare versions, request changes, and publish or retire an immutable release with source/license and audit provenance. | After SLI-0087. | Mutable published versions, unreviewed release, or accreditation claims changes the CAP package. | captured |
 | SLI-0089 | Native authoring is qualified for validation, review separation, compatibility, rollback, native import/export, safe preview, authorization, accessibility, prior-evidence preservation, and narrow optional-adapter degradation. | Last; depends on SLI-0086 through SLI-0088. | Marketplace, real-time collaboration, or claiming an external standard without a new durable decision changes the CAP package. | captured |
@@ -113,4 +116,8 @@ operations, accessibility, and verification documentation.
 - 2026-10-15: DEC-0015 was promoted to ADR-0017, selecting platform-native
   human-reviewed authoring with optional future interoperability seams; the CAP
   returned to shaping for package refinement.
+- 2026-10-16: Revalidation made the existing CAP-0025 author/reviewer role
+  dependency explicit so this package cannot invent authorization policy. The
+  complete four-slice manifest otherwise remains unchanged and has no internal
+  durable decision gate.
 

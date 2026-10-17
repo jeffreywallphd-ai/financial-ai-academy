@@ -35,6 +35,12 @@ never leak into downstream domain behavior.
   quality, coverage, and provenance contracts selected by DEC-0013.
 - Constrained provider admission and licensed uses selected by ADR-0020, including
   attribution, quota, retention, redistribution, and degraded behavior.
+- Alpha Vantage as the first explicitly configured educational adapter for
+  allowlisted historical/end-of-day data, using the standard free quota or a
+  verified education/open-source quota only when the exact credential supports
+  it. Processing stays transient unless the active profile grants retention.
+- Validated imports and later authoritative or commercial providers through the
+  same provider-neutral contracts, without making Alpha Vantage mandatory.
 - Bounded query, compare, chart, tabular inspection, and permitted export with
   explicit source/effective/retrieval times and adjustment policy.
 - Raw, canonical, derived, and published zone separation with accessible
@@ -74,8 +80,8 @@ never leak into downstream domain behavior.
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
-| SLI-0050 | A learner searches the canonical instrument/coverage catalog and understands provider-neutral identity, availability, delay, attribution, and permitted use. | First after dependencies and both decisions; establishes canonical catalog and provider normalization. | Unreviewed provider use, live trading symbols as identity, or raw payload exposure changes the CAP package. | captured |
-| SLI-0051 | The learner retrieves bounded observations with exact market/source/retrieval times, currency, calendar, adjustment, quality, and provenance. | After SLI-0050; establishes query and data-zone behavior. | Silent adjustment, fabricated gap filling, or absent lineage changes the CAP package. | captured |
+| SLI-0050 | A learner searches the canonical instrument/coverage catalog and understands provider-neutral identity, availability, delay, attribution, and permitted use across the Alpha Vantage-first profile and fallback sources. | First after dependencies and both decisions; establishes canonical catalog and provider normalization. | Unreviewed provider use, live trading symbols as identity, or raw payload exposure changes the CAP package. | captured |
+| SLI-0051 | The learner retrieves bounded observations through the Alpha Vantage-first adapter or an available fallback with exact market/source/retrieval times, currency, calendar, adjustment, quality, and provenance. | After SLI-0050; establishes query and data-zone behavior. | Silent adjustment, fabricated gap filling, provider-specific public records, or absent lineage changes the CAP package. | captured |
 | SLI-0052 | The learner compares and charts series and exports only license-permitted canonical data with retained query and provenance metadata. | After SLI-0051. | Advice, unrestricted redistribution, or downstream provider coupling changes the CAP package. | captured |
 | SLI-0053 | The complete flow is qualified for normalization, calendars, adjustments, quality, license/attribution, quota/outage, export, accessibility, and local/cloud parity. | Last; depends on SLI-0050 through SLI-0052. | Portfolio accounting, a specific unapproved provider, or managed-cloud service claims changes the CAP package. | captured |
 
@@ -89,6 +95,9 @@ never leak into downstream domain behavior.
   values and carry required attribution and restrictions.
 - Contract, provider-conformance, data-quality, security, accessibility, and
   degraded-operation evidence covers every admitted path.
+- The Alpha Vantage adapter and an independent fake/reference adapter pass the
+  same public-contract corpus, and provider absence or exhausted quota leaves
+  imports and unrelated learning behavior usable.
 
 - Every slice includes focused failure and anti-rigidity tests so an unavailable
   provider, symbol class, or export right isolates only the affected path.
@@ -113,4 +122,8 @@ operations, accessibility, and verification documentation.
 - 2026-10-16: DEC-0012 was promoted through ADR-0020. The CAP is no longer
   decision-blocked and returns to shaping for dependency and CAP-package
   readiness validation; no provider use outside an exact profile is authorized.
+- 2026-10-16: Revalidated the complete four-slice package against ADR-0020.
+  Alpha Vantage is the first narrow adapter, while provider-neutral contracts,
+  synthetic evidence, validated imports, and independent conformance prevent
+  vendor lock-in. The manifest and ordering are unchanged.
 

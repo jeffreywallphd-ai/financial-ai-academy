@@ -65,6 +65,10 @@ authority or corrupting durable state.
   backed at-least-once delivery. Out-of-process hosts, elevated trust classes,
   external brokers, different guarantees, and sandboxes require another decision.
   ADR-0013 and ADR-0020 select constrained model and market-data use postures.
+- Alpha Vantage is the first market-data adapter target, but the platform port,
+  manifest, rights profile, normalized records, errors, and conformance corpus
+  remain provider-neutral and also run against an independent fake/reference
+  adapter. No provider SDK or payload becomes a public contract.
 - Platform contracts own canonical meaning. Adapters translate provider payloads
   and never supply domain authority or license interpretation.
 - Secrets remain behind platform resolution; provider capability and health are
@@ -89,6 +93,9 @@ authority or corrupting durable state.
   tested against shared contract and failure corpora.
 - Operator behavior is accessible and capability differences are reported
   honestly across deployment profiles.
+- Alpha Vantage configuration, capability, quota, rights, health, disablement,
+  and replacement are exercised through the same controls as another adapter;
+  no live secret or provider response is required by deterministic tests.
 
 - Every slice includes focused failure and anti-rigidity tests so an unhealthy
   or unsupported provider isolates only dependent capabilities and never forces
@@ -115,4 +122,7 @@ operator UI, operations, and verification documentation.
 - 2026-10-16: DEC-0012 was promoted through ADR-0020. All listed decision gates
   are resolved, so this CAP returns to shaping for dependency and CAP-package
   readiness validation.
+- 2026-10-16: Revalidated the complete four-slice package against ADR-0020.
+  Alpha Vantage supplies the first market-data conformance case without changing
+  the provider-neutral manifest, admission, operation, or qualification sequence.
 
