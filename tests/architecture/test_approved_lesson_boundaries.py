@@ -18,6 +18,15 @@ WEB_DIST = REPOSITORY / "apps" / "web" / "dist"
 SETUP_SCRIPT = REPOSITORY / "deployments" / "local" / "setup-dev.mjs"
 LOCAL_SERVER = REPOSITORY / "deployments" / "local" / "serve.py"
 LIVE_RUNNER = REPOSITORY / "tests" / "e2e" / "approved-lesson" / "run.py"
+PERSONAL_WORKSPACE_LIVE_SPEC = (
+    REPOSITORY
+    / "apps"
+    / "web"
+    / "tests"
+    / "browser"
+    / "approved-lesson"
+    / "personal-workspace.e2e.ts"
+)
 PLACEMENT_ID = "intro-risk-return-primary"
 
 
@@ -680,6 +689,36 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         self.assertNotIn("contracts/compatibility/assessment-practice", source)
         self.assertNotIn("ContractPracticeDefinitionAdapter", source)
         self.assertNotIn("ContractPracticeProgressAdapter", source)
+
+    def test_live_personal_workspace_reuses_public_api_without_core_imports(
+        self,
+    ) -> None:
+        runner = LIVE_RUNNER.read_text(encoding="utf-8")
+        browser = PERSONAL_WORKSPACE_LIVE_SPEC.read_text(encoding="utf-8")
+        tree = ast.parse(runner)
+        imported = {
+            node.module or ""
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+        }
+        self.assertTrue(
+            all(
+                not module.startswith("financial_ai_academy")
+                for module in imported
+            )
+        )
+        self.assertIn('"/api/v1/personal-workspace"', runner)
+        self.assertIn('"/api/v1/personal-workspace/mutations"', runner)
+        self.assertIn(
+            "FINANCIAL_AI_ACADEMY_PERSONAL_WORKSPACE_CAPTURE",
+            runner,
+        )
+        self.assertIn("exact_headless_replay", runner)
+        self.assertIn("source_and_learning_state_unchanged", runner)
+        self.assertIn("../../../src/features/personal-workspace/model", browser)
+        self.assertNotIn("financial_ai_academy", browser)
+        self.assertNotIn("backend/", browser)
+        self.assertNotIn("localStorage", browser)
 
     def test_static_build_contains_only_browser_artifacts_when_present(
         self,

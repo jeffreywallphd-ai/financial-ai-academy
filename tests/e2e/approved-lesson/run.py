@@ -284,6 +284,35 @@ PRIVATE_PROJECT_CAPTURE_KEYS = frozenset(
         "token",
     }
 )
+PERSONAL_WORKSPACE_CAPTURE_ROOT_KEYS = frozenset(
+    {"exact_replay_request", "expected", "workspace"}
+)
+PERSONAL_WORKSPACE_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "workspace_id",
+        "learner_id",
+        "revision",
+        "records",
+        "collections",
+        "created_at",
+        "updated_at",
+        "workspace_digest",
+    }
+)
+PERSONAL_WORKSPACE_PRIVATE_CAPTURE_KEYS = frozenset(
+    {
+        "authorization",
+        "cookie",
+        "credential",
+        "database",
+        "password",
+        "request_fingerprint",
+        "session_cookie",
+        "storage_path",
+        "token",
+    }
+)
 PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
     {
         "artifact_sha256",
@@ -1500,6 +1529,330 @@ def load_practice_submission_capture(
     )
 
 
+def _stable_personal_workspace_reference(value: object) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Personal workspace reference is not an object.")
+    kind = value.get("reference_kind")
+    common = frozenset(
+        {
+            "reference_kind",
+            "owner_module",
+            "placement_id",
+            "package_id",
+            "package_version",
+            "package_digest",
+            "title",
+            "destination",
+            "target_status",
+            "provenance",
+            "validated_at",
+        }
+    )
+    expected_keys = (
+        common | {"opportunity_id", "source_fingerprint"}
+        if kind == "learning_opportunity"
+        else common
+    )
+    _exact_keys(value, expected_keys, "Personal workspace reference")
+    if kind not in {"learning_opportunity", "placed_lesson"}:
+        raise RuntimeError("Personal workspace reference type is unsupported.")
+    if value.get("owner_module") != "curriculum" or value.get(
+        "target_status"
+    ) != "available":
+        raise RuntimeError("Personal workspace reference changed source authority.")
+    placement_id = value.get("placement_id")
+    if (
+        not isinstance(placement_id, str)
+        or value.get("destination") != f"/learn/placements/{placement_id}"
+        or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{2,63}", placement_id)
+    ):
+        raise RuntimeError("Personal workspace reference destination is invalid.")
+    for key in ("package_digest",):
+        if not re.fullmatch(r"[a-f0-9]{64}", str(value.get(key, ""))):
+            raise RuntimeError("Personal workspace reference digest is invalid.")
+    if kind == "learning_opportunity" and not re.fullmatch(
+        r"[a-f0-9]{64}", str(value.get("source_fingerprint", ""))
+    ):
+        raise RuntimeError("Personal workspace source fingerprint is invalid.")
+    if not UTC_TIMESTAMP.fullmatch(str(value.get("validated_at", ""))):
+        raise RuntimeError("Personal workspace validation time is invalid.")
+    provenance = value.get("provenance")
+    if not isinstance(provenance, dict):
+        raise RuntimeError("Personal workspace provenance is unavailable.")
+    _exact_keys(
+        provenance,
+        frozenset(
+            {
+                "published_by",
+                "published_at",
+                "content_reviewed_on",
+                "educational_use_notice",
+            }
+        ),
+        "Personal workspace provenance",
+    )
+    if not UTC_TIMESTAMP.fullmatch(str(provenance.get("published_at", ""))):
+        raise RuntimeError("Personal workspace publication time is invalid.")
+    return copy.deepcopy(value)
+
+
+def stable_personal_workspace(document: dict[str, Any]) -> dict[str, Any]:
+    _exact_keys(document, PERSONAL_WORKSPACE_ROOT_KEYS, "Personal workspace")
+    if (
+        document.get("schema_version") != "1.0.0"
+        or type(document.get("revision")) is not int
+        or document["revision"] < 1
+        or not re.fullmatch(
+            r"[a-f0-9]{64}", str(document.get("workspace_digest", ""))
+        )
+        or not UTC_TIMESTAMP.fullmatch(str(document.get("created_at", "")))
+        or not UTC_TIMESTAMP.fullmatch(str(document.get("updated_at", "")))
+    ):
+        raise RuntimeError("Personal workspace identity or chronology is invalid.")
+    records = document.get("records")
+    collections = document.get("collections")
+    if not isinstance(records, list) or len(records) > 200:
+        raise RuntimeError("Personal workspace records are invalid.")
+    if not isinstance(collections, list) or len(collections) > 50:
+        raise RuntimeError("Personal workspace collections are invalid.")
+    record_ids: list[str] = []
+    for record in records:
+        if not isinstance(record, dict):
+            raise RuntimeError("Personal workspace record is not an object.")
+        kind = record.get("record_kind")
+        common = {
+            "record_kind",
+            "record_id",
+            "target",
+            "archived",
+            "created_at",
+            "updated_at",
+        }
+        _exact_keys(
+            record,
+            frozenset(common | ({"title", "body"} if kind == "note" else {"label"})),
+            "Personal workspace record",
+        )
+        if kind not in {"note", "bookmark"} or type(record.get("archived")) is not bool:
+            raise RuntimeError("Personal workspace record type is invalid.")
+        record_id = record.get("record_id")
+        if not isinstance(record_id, str) or not re.fullmatch(
+            r"[a-z0-9][a-z0-9._-]{0,127}", record_id
+        ):
+            raise RuntimeError("Personal workspace record ID is invalid.")
+        if record_id in record_ids:
+            raise RuntimeError("Personal workspace record IDs are duplicated.")
+        record_ids.append(record_id)
+        if kind == "note" and (
+            not isinstance(record.get("title"), str)
+            or not 1 <= len(record["title"]) <= 120
+            or not isinstance(record.get("body"), str)
+            or not 1 <= len(record["body"]) <= 8_000
+        ):
+            raise RuntimeError("Personal workspace note text is invalid.")
+        if kind == "bookmark" and record.get("label") is not None and (
+            not isinstance(record.get("label"), str)
+            or len(record["label"]) > 120
+        ):
+            raise RuntimeError("Personal workspace bookmark label is invalid.")
+        _stable_personal_workspace_reference(record.get("target"))
+    collection_ids: set[str] = set()
+    accepted_records = set(record_ids)
+    for collection in collections:
+        if not isinstance(collection, dict):
+            raise RuntimeError("Personal workspace collection is not an object.")
+        _exact_keys(
+            collection,
+            frozenset(
+                {
+                    "collection_id",
+                    "title",
+                    "member_record_ids",
+                    "created_at",
+                    "updated_at",
+                }
+            ),
+            "Personal workspace collection",
+        )
+        collection_id = collection.get("collection_id")
+        members = collection.get("member_record_ids")
+        if (
+            not isinstance(collection_id, str)
+            or collection_id in collection_ids
+            or not isinstance(collection.get("title"), str)
+            or not 1 <= len(collection["title"]) <= 120
+            or not isinstance(members, list)
+            or len(members) > 100
+            or len(set(members)) != len(members)
+            or any(member not in accepted_records for member in members)
+        ):
+            raise RuntimeError("Personal workspace collection is invalid.")
+        collection_ids.add(collection_id)
+    return copy.deepcopy(document)
+
+
+def load_personal_workspace_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded Personal workspace capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 524_288:
+        raise RuntimeError("Personal workspace capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict) or set(capture) != PERSONAL_WORKSPACE_CAPTURE_ROOT_KEYS:
+        raise RuntimeError("Personal workspace capture has an invalid shape.")
+    leaked = PERSONAL_WORKSPACE_PRIVATE_CAPTURE_KEYS & _nested_mapping_keys(capture)
+    if leaked:
+        raise RuntimeError("Personal workspace capture contains private runtime data.")
+    workspace = capture.get("workspace")
+    replay = capture.get("exact_replay_request")
+    expected = capture.get("expected")
+    if not all(isinstance(value, dict) for value in (workspace, replay, expected)):
+        raise RuntimeError("Personal workspace capture documents must be objects.")
+    stable = stable_personal_workspace(workspace)
+    _exact_keys(
+        replay,
+        frozenset({"schema_version", "idempotency_key", "expected_revision", "mutation"}),
+        "Personal workspace replay request",
+    )
+    mutation = replay.get("mutation")
+    if (
+        replay.get("schema_version") != "1.0.0"
+        or not isinstance(replay.get("idempotency_key"), str)
+        or type(replay.get("expected_revision")) is not int
+        or replay["expected_revision"] != stable["revision"] - 1
+        or not isinstance(mutation, dict)
+    ):
+        raise RuntimeError("Personal workspace replay request is invalid.")
+    try:
+        UUID(replay["idempotency_key"])
+    except ValueError as error:
+        raise RuntimeError("Personal workspace replay key is invalid.") from error
+    _exact_keys(
+        mutation,
+        frozenset({"operation", "record_id"}),
+        "Personal workspace replay mutation",
+    )
+    if mutation.get("operation") != "restore_record":
+        raise RuntimeError("Personal workspace replay is not the accepted final restore.")
+    _exact_keys(
+        expected,
+        frozenset(
+            {"note_title", "note_body", "bookmark_label", "collection_title", "placement_id"}
+        ),
+        "Personal workspace capture expectations",
+    )
+    notes = [record for record in stable["records"] if record["record_kind"] == "note"]
+    bookmarks = [
+        record for record in stable["records"] if record["record_kind"] == "bookmark"
+    ]
+    if (
+        len(notes) != 1
+        or len(bookmarks) != 1
+        or len(stable["collections"]) != 1
+        or notes[0]["title"] != expected.get("note_title")
+        or notes[0]["body"] != expected.get("note_body")
+        or notes[0]["archived"] is not False
+        or bookmarks[0]["label"] != expected.get("bookmark_label")
+        or stable["collections"][0]["title"] != expected.get("collection_title")
+        or any(
+            record["target"]["placement_id"] != expected.get("placement_id")
+            for record in stable["records"]
+        )
+        or mutation.get("record_id") != notes[0]["record_id"]
+    ):
+        raise RuntimeError("Personal workspace capture changed browser-observed meaning.")
+    return {"workspace": stable, "exact_replay_request": copy.deepcopy(replay), "expected": copy.deepcopy(expected)}
+
+
+def _assert_safe_personal_workspace_denial(
+    status: int,
+    document: dict[str, Any],
+    *,
+    expected_code: str,
+) -> None:
+    if status != 409:
+        raise RuntimeError("Personal workspace conflict returned an unexpected status.")
+    _exact_keys(
+        document,
+        frozenset({"error_version", "code", "message", "correlation_id"}),
+        "Personal workspace denial",
+    )
+    if document.get("error_version") != "1.0" or document.get("code") != expected_code:
+        raise RuntimeError("Personal workspace conflict changed public meaning.")
+    private = PERSONAL_WORKSPACE_PRIVATE_CAPTURE_KEYS | {
+        "learner_id",
+        "workspace_id",
+        "record_id",
+        "note_body",
+    }
+    message = str(document.get("message", "")).lower()
+    if any(value in message for value in private):
+        raise RuntimeError("Personal workspace denial disclosed private details.")
+
+
+def observe_headless_personal_workspace(
+    *,
+    origin: str,
+    capture: dict[str, Any],
+) -> dict[str, Any]:
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    expected = capture["workspace"]
+    observed = stable_personal_workspace(
+        _request_json(opener, origin=origin, path="/api/v1/personal-workspace")
+    )
+    if observed != expected:
+        raise RuntimeError("Headless Personal workspace changed browser-observed meaning.")
+    exact_request = capture["exact_replay_request"]
+    replayed = stable_personal_workspace(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/personal-workspace/mutations",
+            method="POST",
+            payload=exact_request,
+        )
+    )
+    if replayed != expected:
+        raise RuntimeError("Headless Personal workspace replay changed accepted meaning.")
+    changed = copy.deepcopy(exact_request)
+    changed["mutation"]["operation"] = "archive_record"
+    changed_status, changed_denial = _request_json_status(
+        opener,
+        origin=origin,
+        path="/api/v1/personal-workspace/mutations",
+        method="POST",
+        payload=changed,
+    )
+    _assert_safe_personal_workspace_denial(
+        changed_status, changed_denial, expected_code="immutable_conflict"
+    )
+    stale = copy.deepcopy(changed)
+    stale["idempotency_key"] = str(uuid4())
+    stale_status, stale_denial = _request_json_status(
+        opener,
+        origin=origin,
+        path="/api/v1/personal-workspace/mutations",
+        method="POST",
+        payload=stale,
+    )
+    _assert_safe_personal_workspace_denial(
+        stale_status, stale_denial, expected_code="stale_revision"
+    )
+    return observed
+
+
 def load_project_workspace_capture(
     path: Path,
     *,
@@ -2225,6 +2578,77 @@ def assert_project_learning_restart_result(
         raise RuntimeError("Project learning storage changed during restart replay.")
 
 
+def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, int]:
+    query = """
+        SELECT
+            (SELECT count(*) FROM personal_workspace.workspaces),
+            (SELECT count(*) FROM personal_workspace.mutations),
+            (SELECT count(*) FROM content.lesson_package_versions),
+            (SELECT count(*) FROM curriculum.lesson_placements),
+            (SELECT count(*) FROM curriculum.discovery_projection_records),
+            (SELECT count(*) FROM assessment.attempts),
+            (SELECT count(*) FROM assessment.practice_attempts),
+            (SELECT count(*) FROM assessment.project_submissions),
+            (SELECT count(*) FROM learner_model.lesson_completion_projections),
+            (SELECT count(*) FROM learner_model.practice_history_projections),
+            (SELECT count(*) FROM learner_model.project_completion_projections),
+            (SELECT count(*) FROM project.project_shells)
+    """
+    labels = (
+        "personal_workspaces",
+        "personal_mutations",
+        "content_packages",
+        "curriculum_placements",
+        "curriculum_discovery_records",
+        "assessment_attempts",
+        "assessment_practice_attempts",
+        "assessment_project_submissions",
+        "learner_lesson_projections",
+        "learner_practice_projections",
+        "learner_project_projections",
+        "project_shells",
+    )
+    with psycopg.connect(postgres_dsn) as connection:
+        row = connection.execute(query).fetchone()
+    if row is None or len(row) != len(labels):
+        raise RuntimeError("Personal workspace storage snapshot is unavailable.")
+    return {label: int(row[index]) for index, label in enumerate(labels)}
+
+
+def assert_personal_workspace_storage(snapshot: dict[str, int]) -> None:
+    if snapshot.get("personal_workspaces") != 1 or snapshot.get(
+        "personal_mutations"
+    ) != 7:
+        raise RuntimeError("Personal workspace storage is incomplete or uncorrelated.")
+
+
+def assert_personal_workspace_target_state_unchanged(
+    *,
+    before_storage: dict[str, int],
+    after_storage: dict[str, int],
+) -> None:
+    keys = set(before_storage) - {"personal_workspaces", "personal_mutations"}
+    if set(after_storage) != set(before_storage) or any(
+        after_storage[key] != before_storage[key] for key in keys
+    ):
+        raise RuntimeError(
+            "Personal workspace journey changed target or learning evidence state."
+        )
+
+
+def assert_personal_workspace_restart_result(
+    *,
+    before_observation: dict[str, Any],
+    after_observation: dict[str, Any],
+    before_storage: dict[str, int],
+    after_storage: dict[str, int],
+) -> None:
+    if after_observation != before_observation:
+        raise RuntimeError("Personal workspace changed after normal restart.")
+    if after_storage != before_storage:
+        raise RuntimeError("Personal workspace storage changed during restart replay.")
+
+
 def project_storage_snapshot(
     postgres_dsn: str,
     *,
@@ -2827,6 +3251,7 @@ def main() -> int:
     application: subprocess.Popen[str] | None = None
     application_log = data_root / "python-application.log"
     practice_capture = data_root / "practice-submission-capture.json"
+    personal_workspace_capture = data_root / "personal-workspace-capture.json"
     project_capture = data_root / "project-workspace-capture.json"
     project_learning_capture = data_root / "project-learning-capture.json"
     port = free_loopback_port()
@@ -2859,6 +3284,9 @@ def main() -> int:
         environment["FINANCIAL_AI_ACADEMY_PRACTICE_CAPTURE"] = str(
             practice_capture
         )
+        environment["FINANCIAL_AI_ACADEMY_PERSONAL_WORKSPACE_CAPTURE"] = str(
+            personal_workspace_capture
+        )
         environment["FINANCIAL_AI_ACADEMY_PROJECT_CAPTURE"] = str(
             project_capture
         )
@@ -2873,6 +3301,38 @@ def main() -> int:
             ),
             env=environment,
         )
+        personal_storage_before = personal_workspace_storage_snapshot(postgres_dsn)
+        if personal_storage_before["personal_workspaces"] != 0 or personal_storage_before[
+            "personal_mutations"
+        ] != 0:
+            raise RuntimeError("Personal workspace qualification did not start empty.")
+        run_checked(
+            npm_e2e_command("personal-workspace.e2e.ts"),
+            env=environment,
+        )
+        personal_capture = load_personal_workspace_capture(
+            personal_workspace_capture,
+            data_root=data_root,
+        )
+        personal_storage_before_restart = personal_workspace_storage_snapshot(
+            postgres_dsn
+        )
+        assert_personal_workspace_storage(personal_storage_before_restart)
+        assert_personal_workspace_target_state_unchanged(
+            before_storage=personal_storage_before,
+            after_storage=personal_storage_before_restart,
+        )
+        personal_before_restart = observe_headless_personal_workspace(
+            origin=origin,
+            capture=personal_capture,
+        )
+        personal_storage_after_headless = personal_workspace_storage_snapshot(
+            postgres_dsn
+        )
+        if personal_storage_after_headless != personal_storage_before_restart:
+            raise RuntimeError(
+                "Headless Personal workspace replay or denial changed durable state."
+            )
         project_learning_before = project_storage_snapshot(
             postgres_dsn,
             project_id="project-qualification-not-created",
@@ -3073,6 +3533,19 @@ def main() -> int:
             before_storage=project_learning_storage_before_restart,
             after_storage=project_learning_storage_after_restart,
         )
+        personal_after_restart = observe_headless_personal_workspace(
+            origin=origin,
+            capture=personal_capture,
+        )
+        personal_storage_after_restart = personal_workspace_storage_snapshot(
+            postgres_dsn
+        )
+        assert_personal_workspace_restart_result(
+            before_observation=personal_before_restart,
+            after_observation=personal_after_restart,
+            before_storage=personal_storage_before_restart,
+            after_storage=personal_storage_after_restart,
+        )
 
         report = {
             "browser": "Playwright pinned Chromium",
@@ -3131,6 +3604,18 @@ def main() -> int:
                 "public_api_shared": True,
                 "retry_state_server_owned": True,
                 "three_response_types": True,
+            },
+            "personal_workspace": {
+                "browser_generated_client": True,
+                "collection_order_preserved": True,
+                "confidential_conflicts": True,
+                "exact_headless_replay": True,
+                "headless_public_api": True,
+                "normal_restart_without_reseeding": True,
+                "public_api_shared": True,
+                "source_and_learning_state_unchanged": True,
+                "unicode_evidence_preserved": True,
+                "workspace_id": personal_capture["workspace"]["workspace_id"],
             },
             "project_workspace": {
                 "artifact_download_exact": True,

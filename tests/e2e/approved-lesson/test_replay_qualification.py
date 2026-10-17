@@ -343,6 +343,88 @@ def practice_progress(*, draft: dict[str, Any] | None = None) -> dict[str, Any]:
     }
 
 
+def personal_workspace_capture() -> dict[str, Any]:
+    provenance = {
+        "published_by": "Financial AI Academy",
+        "published_at": "2026-10-17T10:00:00Z",
+        "content_reviewed_on": "2026-10-17",
+        "educational_use_notice": "Educational content only.",
+    }
+    target = {
+        "reference_kind": "placed_lesson",
+        "owner_module": "curriculum",
+        "placement_id": "intro-risk-return-primary",
+        "package_id": "intro-risk-return",
+        "package_version": "1.1.0",
+        "package_digest": "a" * 64,
+        "title": "Understanding Risk and Return",
+        "destination": "/learn/placements/intro-risk-return-primary",
+        "target_status": "available",
+        "provenance": provenance,
+        "validated_at": "2026-10-17T12:00:00Z",
+    }
+    bookmark = {
+        "record_kind": "bookmark",
+        "record_id": "bookmark-one",
+        "label": "Review risk and return Σ",
+        "target": target,
+        "archived": False,
+        "created_at": "2026-10-17T12:02:00Z",
+        "updated_at": "2026-10-17T12:03:00Z",
+    }
+    note = {
+        "record_kind": "note",
+        "record_id": "note-one",
+        "title": "Café risk and return notes",
+        "body": (
+            "Uncertainty and potential reward are related, but neither "
+            "promises an outcome."
+        ),
+        "target": target,
+        "archived": False,
+        "created_at": "2026-10-17T12:01:00Z",
+        "updated_at": "2026-10-17T12:07:00Z",
+    }
+    workspace = {
+        "schema_version": "1.0.0",
+        "workspace_id": "workspace-one",
+        "learner_id": "single-profile-learner",
+        "revision": 8,
+        "records": [bookmark, note],
+        "collections": [
+            {
+                "collection_id": "collection-one",
+                "title": "Foundations İ",
+                "member_record_ids": ["bookmark-one", "note-one"],
+                "created_at": "2026-10-17T12:04:00Z",
+                "updated_at": "2026-10-17T12:05:00Z",
+            }
+        ],
+        "created_at": "2026-10-17T12:00:00Z",
+        "updated_at": "2026-10-17T12:07:00Z",
+        "workspace_digest": "b" * 64,
+    }
+    return {
+        "workspace": workspace,
+        "exact_replay_request": {
+            "schema_version": "1.0.0",
+            "idempotency_key": "11111111-1111-4111-8111-111111111111",
+            "expected_revision": 7,
+            "mutation": {
+                "operation": "restore_record",
+                "record_id": "note-one",
+            },
+        },
+        "expected": {
+            "note_title": note["title"],
+            "note_body": note["body"],
+            "bookmark_label": bookmark["label"],
+            "collection_title": "Foundations İ",
+            "placement_id": "intro-risk-return-primary",
+        },
+    }
+
+
 def project_workspace_capture() -> dict[str, Any]:
     content = b"scenario,value\nbase,1\n"
     digest = hashlib.sha256(content).hexdigest()
@@ -1076,6 +1158,145 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
             )
     finally:
         outside.unlink()
+
+
+def test_personal_workspace_capture_is_closed_correlated_and_private(
+    tmp_path: Path,
+) -> None:
+    capture = personal_workspace_capture()
+    path = tmp_path / "personal-workspace-capture.json"
+    path.write_text(json.dumps(capture), encoding="utf-8")
+    assert runner.load_personal_workspace_capture(
+        path,
+        data_root=tmp_path,
+    ) == capture
+
+    leaked = json.loads(json.dumps(capture))
+    leaked["credential"] = "private"
+    path.write_text(json.dumps(leaked), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="invalid shape"):
+        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+
+    expanded = json.loads(json.dumps(capture))
+    expanded["workspace"]["private_detail"] = "hidden"
+    path.write_text(json.dumps(expanded), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+
+    dangling = json.loads(json.dumps(capture))
+    dangling["workspace"]["collections"][0]["member_record_ids"].append(
+        "missing-record"
+    )
+    path.write_text(json.dumps(dangling), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="collection is invalid"):
+        runner.load_personal_workspace_capture(path, data_root=tmp_path)
+
+
+def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    capture = personal_workspace_capture()
+    calls: list[tuple[str, str, dict[str, object] | None]] = []
+
+    def request_json(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert origin == "http://127.0.0.1:8123"
+        calls.append((method, path, payload))
+        if path == "/api/v1/session/single-profile":
+            return {"expires_at": "later"}
+        return capture["workspace"]
+
+    denials = iter(("immutable_conflict", "stale_revision"))
+
+    def request_status(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str,
+        payload: dict[str, object],
+    ) -> tuple[int, dict[str, Any]]:
+        assert origin == "http://127.0.0.1:8123"
+        assert path == "/api/v1/personal-workspace/mutations"
+        assert method == "POST"
+        code = next(denials)
+        calls.append((method, path, payload))
+        return 409, {
+            "error_version": "1.0",
+            "code": code,
+            "message": "The saved request could not be applied.",
+            "correlation_id": "22222222-2222-4222-8222-222222222222",
+        }
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+    monkeypatch.setattr(runner, "_request_json_status", request_status)
+
+    assert runner.observe_headless_personal_workspace(
+        origin="http://127.0.0.1:8123",
+        capture=capture,
+    ) == capture["workspace"]
+    assert [method for method, _path, _payload in calls] == [
+        "POST",
+        "GET",
+        "POST",
+        "POST",
+        "POST",
+    ]
+    assert calls[2][2] == capture["exact_replay_request"]
+    assert calls[3][2]["idempotency_key"] == capture["exact_replay_request"][
+        "idempotency_key"
+    ]
+    assert calls[3][2]["mutation"]["operation"] == "archive_record"
+    assert calls[4][2]["idempotency_key"] != capture["exact_replay_request"][
+        "idempotency_key"
+    ]
+
+
+def test_personal_workspace_restart_preserves_state_and_target_counts() -> None:
+    before_target = {
+        "personal_workspaces": 0,
+        "personal_mutations": 0,
+        "content_packages": 1,
+        "curriculum_placements": 3,
+        "curriculum_discovery_records": 3,
+        "assessment_attempts": 1,
+        "assessment_practice_attempts": 1,
+        "assessment_project_submissions": 2,
+        "learner_lesson_projections": 1,
+        "learner_practice_projections": 1,
+        "learner_project_projections": 1,
+        "project_shells": 2,
+    }
+    after = before_target | {"personal_workspaces": 1, "personal_mutations": 7}
+    runner.assert_personal_workspace_storage(after)
+    runner.assert_personal_workspace_target_state_unchanged(
+        before_storage=before_target,
+        after_storage=after,
+    )
+    runner.assert_personal_workspace_restart_result(
+        before_observation=personal_workspace_capture()["workspace"],
+        after_observation=personal_workspace_capture()["workspace"],
+        before_storage=after,
+        after_storage=dict(after),
+    )
+    with pytest.raises(RuntimeError, match="target or learning evidence"):
+        runner.assert_personal_workspace_target_state_unchanged(
+            before_storage=before_target,
+            after_storage=after | {"assessment_attempts": 2},
+        )
+    with pytest.raises(RuntimeError, match="changed during restart"):
+        runner.assert_personal_workspace_restart_result(
+            before_observation=personal_workspace_capture()["workspace"],
+            after_observation=personal_workspace_capture()["workspace"],
+            before_storage=after,
+            after_storage=after | {"personal_mutations": 8},
+        )
 
 
 def test_project_workspace_capture_is_correlated_confined_and_private(
