@@ -4,7 +4,7 @@ kind: vertical-slice
 planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
-updated: 2026-10-16
+updated: 2026-10-17
 parent: CAP-0007
 depends_on: [SLI-0030]
 decision_gates: []
@@ -237,7 +237,7 @@ refined just in time.
 | WRK-0118 | Freeze additive workspace, inert-artifact, domain-link, snapshot, and export contracts plus pure Project domain policy | SLI-0030 | none | complete |
 | WRK-0119 | Deliver Project-owned metadata/object persistence, application operations, migrations, protected API, and generated client | WRK-0118 | none | complete |
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
-| JIT-D | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0120 | none | captured |
+| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0120 | none | ready |
 
 ## Verification and Qualification
 
@@ -367,3 +367,8 @@ created, and no managed-cloud or production-recovery profile was qualified.
   Unicode path identity without rejecting valid records, and leaves all
   operations usable by headless clients. WRK-0121 now owns integrated
   qualification and slice closure.
+- 2026-10-17: Refined JIT-D as WRK-0121. The packet extends the existing
+  isolated live qualifier with the complete Project workspace journey and
+  correlates generated-client browser, ordinary headless HTTP, PostgreSQL,
+  object, restart, no-learning-effect, and cleanup evidence before slice
+  closure. It changes no product behavior and requires no new decision.
