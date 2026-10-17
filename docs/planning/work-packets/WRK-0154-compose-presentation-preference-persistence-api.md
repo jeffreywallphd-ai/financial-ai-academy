@@ -1,7 +1,7 @@
 ---
 id: WRK-0154
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -228,3 +228,8 @@ or financial behavior changed. Leave the browser packet dependency-ready.
   profile-and-history snapshot, then added deterministic concurrent-mutation,
   mixed-choice, reset, replay, and protected-API regression evidence within the
   existing packet scope.
+- 2026-10-17: Completed the application, additive PostgreSQL storage, four
+  protected public operations, OpenAPI-generated client, coherent bounded
+  history/export reads, exact replay and revision behavior, reset and export
+  privacy, isolation, migration, and browser/headless parity evidence. Runtime
+  presentation and browser controls remain outside this packet.
