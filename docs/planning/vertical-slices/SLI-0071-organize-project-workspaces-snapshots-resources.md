@@ -207,7 +207,7 @@ each packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0135 | Freeze additive Project-reference contracts, reuse Project public reads through a Personal-workspace Project adapter, and prove pure core and anti-rigidity behavior | SLI-0070, CAP-0007 | none | verifying |
+| WRK-0135 | Freeze additive Project-reference contracts, reuse Project public reads through a Personal-workspace Project adapter, and prove pure core and anti-rigidity behavior | SLI-0070, CAP-0007 | none | complete |
 | JIT-B | Deliver Personal-workspace persistence/API/OpenAPI/generated-client support and authorization revalidation for all Project reference variants | JIT-A | none | captured |
 | JIT-C | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | JIT-C | none | captured |
@@ -297,3 +297,7 @@ decision still requiring approval. No lower-level completion approval exists.
   reference union. The bounded correction does not change slice meaning.
 - 2026-10-17: Re-activated WRK-0135 from the fresh recorded base with all three
   reference-bearing schemas inside the exact scope and no active collision.
+- 2026-10-17: Completed WRK-0135 at exact candidate `d97d405` after the closed
+  Project reference union, public-only adapter, path and chronology boundaries,
+  confidentiality, anti-rigidity, and required repository checks all passed.
+  The persistence/API packet may now start without changing slice meaning.

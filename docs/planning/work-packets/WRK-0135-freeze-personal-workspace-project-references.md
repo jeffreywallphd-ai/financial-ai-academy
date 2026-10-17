@@ -1,7 +1,7 @@
 ---
 id: WRK-0135
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -213,6 +213,41 @@ Project mutation, persistence, migration, public API/OpenAPI, generated client,
 browser, artifact download/content, provider, AI, or execution behavior changed,
 then leave the persistence/API seam dependency-ready.
 
+## Completion Evidence
+
+- Exact implementation candidate:
+  `d97d40567181be2eba02339beaef635f8ba312f5`.
+- The additive contract admits exactly `project_workspace`,
+  `project_snapshot`, and `project_artifact`. It retains bounded Project,
+  revision, snapshot, and inert-manifest facts while excluding content,
+  permission, storage, provider, download, preview, and execution authority.
+- Resolution uses only learner-bound Project `open_project`, `open_workspace`,
+  and `open_snapshot` public operations. Exact request identity, returned-value
+  correlation, unavailable/denied confidentiality, no artifact download, safe
+  path confinement, and source chronology are directly covered.
+- Focused Personal-workspace contract/application and Project service suites
+  passed 189 tests. They include all portable surfaces, mixed reference kinds,
+  Project request/response correlations, path traversal and canonical-boundary
+  cases, exact/future timestamps, varied safe manifests, and private-field
+  rejection without fixture-count or presentation assumptions.
+- The fresh exact-candidate affected plan passed all four selected checks.
+  Architecture fitness passed 17 tests, all 10 security control groups passed,
+  planning integrity passed 224 artifacts, documentation validation passed 372
+  Markdown files, Python compilation and `git diff --check` passed, and
+  aggregate agent readiness passed all 29 checks.
+- Ignored local control-plane storage retains the qualifying receipt and
+  technical-disposition evidence with no open finding. No approval or reviewer
+  metadata is copied into tracked artifacts.
+- The implementation assumes Project public reads remain authoritative for
+  learner access and lifecycle while the Personal-workspace adapter rechecks
+  every copied identity, chronology, and logical-path boundary. Saved values
+  remain inert and require Project authorization again for later Project use.
+- No Project mutation, Personal-workspace persistence or migration, public
+  API/OpenAPI, generated client, browser UI, artifact download/content,
+  provider, AI, or execution behavior changed. Those API/persistence/client,
+  browser, and isolated live checks remain assigned to the dependent JIT-B,
+  JIT-C, and JIT-D seams.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after SLI-0071 refinement. The packet
@@ -223,3 +258,8 @@ then leave the persistence/API seam dependency-ready.
   inspection confirmed that the workspace and mutation-intent schemas embed
   the same closed reference union. Added those two exact schema paths to the
   scope; product meaning and the approved slice remain unchanged.
+- 2026-10-17: Finalized the Project-reference contract and public-adapter seam
+  after canonical path, chronology, learner binding, public request identity,
+  safe-field variation, confidentiality, focused, affected, architecture,
+  security, documentation, planning, whitespace, and aggregate evidence all
+  passed. The persistence/API seam is now dependency-ready.
