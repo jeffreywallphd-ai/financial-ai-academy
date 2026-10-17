@@ -53,20 +53,28 @@ class Repository:
         self.changes: list[PresentationPreferenceChange] = []
         self.replays: dict[str, tuple[str, PresentationPreferenceProfile]] = {}
         self.save_count = 0
+        self.snapshot_count = 0
 
     def get_presentation_preferences(self, learner_id: str):
         assert learner_id == LEARNER_ID
         return self.profile
 
     def get_presentation_preference_history(self, learner_id: str):
+        raise AssertionError("service reads must use one coherent snapshot")
+
+    def get_presentation_preference_snapshot(self, learner_id: str):
         assert learner_id == LEARNER_ID
+        self.snapshot_count += 1
         if self.profile is None:
             return None
-        return PresentationPreferenceHistory(
-            schema_version="1.0.0",
-            profile_id=self.profile.profile_id,
-            current_revision=self.profile.revision,
-            changes=tuple(self.changes[-100:]),
+        return (
+            self.profile,
+            PresentationPreferenceHistory(
+                schema_version="1.0.0",
+                profile_id=self.profile.profile_id,
+                current_revision=self.profile.revision,
+                changes=tuple(self.changes[-100:]),
+            ),
         )
 
     def get_presentation_preference_replay(
@@ -138,6 +146,15 @@ def intent(revision: int, *, adjusted: bool, key: str | None = None):
     )
 
 
+def reset_intent(revision: int, *, key: str = "intent.presentation-reset"):
+    return PresentationPreferenceMutationIntent(
+        schema_version="1.0.0",
+        idempotency_key=key,
+        expected_revision=revision,
+        mutation=PresentationPreferenceMutation(operation="reset_profile"),
+    )
+
+
 def test_default_open_and_history_are_side_effect_free_and_stable() -> None:
     subject, repository = service()
     profile = subject.open_presentation_preferences(
@@ -173,6 +190,47 @@ def test_replace_retry_history_and_export_share_one_contract() -> None:
     assert history.changes[0].operation == "replace_preferences"
     assert exported.profile == accepted and exported.history == history
     assert "theme" in exported.limitations[1].lower()
+    assert repository.snapshot_count == 2
+
+
+def test_reset_and_mixed_choices_remain_correlated_in_one_snapshot() -> None:
+    subject, repository = service()
+    mixed = PresentationPreferenceMutationIntent(
+        schema_version="1.0.0",
+        idempotency_key="intent.presentation-mixed",
+        expected_revision=1,
+        mutation=PresentationPreferenceMutation(
+            operation="replace_preferences",
+            text_size="larger",
+            text_spacing="default",
+            reading_width="focused",
+            motion="system",
+        ),
+    )
+    adjusted = subject.mutate_presentation_preferences(
+        MutatePresentationPreferencesRequest(LEARNER_ID, mixed)
+    )
+    reset = subject.mutate_presentation_preferences(
+        MutatePresentationPreferencesRequest(
+            LEARNER_ID, reset_intent(adjusted.revision)
+        )
+    )
+    exported = subject.export_presentation_preferences(
+        ExportPresentationPreferencesRequest(LEARNER_ID)
+    )
+
+    assert (reset.revision, reset.text_size, reset.motion) == (
+        3,
+        "default",
+        "system",
+    )
+    assert exported.profile == reset
+    assert exported.history.current_revision == reset.revision
+    assert [change.operation for change in exported.history.changes] == [
+        "replace_preferences",
+        "reset_profile",
+    ]
+    assert repository.snapshot_count == 1
 
 
 def test_changed_key_and_stale_revision_write_nothing() -> None:

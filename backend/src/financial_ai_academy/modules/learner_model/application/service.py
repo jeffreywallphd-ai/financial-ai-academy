@@ -452,25 +452,9 @@ class LearnerModelService:
         self._validate_learner(request.learner_id)
         repository, contract, seeds = self._presentation_preference_dependencies()
         try:
-            profile = repository.get_presentation_preferences(request.learner_id)
-            current = self._revalidate_presentation_preference(
-                profile
-                or self._default_presentation_preferences(
-                    request.learner_id, contract, seeds
-                ),
-                contract,
+            _, history = self._presentation_preference_snapshot(
+                request.learner_id, repository, contract, seeds
             )
-            history = repository.get_presentation_preference_history(
-                request.learner_id
-            )
-            if history is None:
-                history = PresentationPreferenceHistory(
-                    schema_version="1.0.0",
-                    profile_id=current.profile_id,
-                    current_revision=current.revision,
-                    changes=(),
-                )
-            validate_presentation_preference_history(history, current)
             return history
         except LearnerModelError:
             raise
@@ -488,13 +472,10 @@ class LearnerModelService:
         self, request: ExportPresentationPreferencesRequest
     ) -> PresentationPreferenceExport:
         self._validate_learner(request.learner_id)
-        _, contract, _ = self._presentation_preference_dependencies()
+        repository, contract, seeds = self._presentation_preference_dependencies()
         try:
-            profile = self.open_presentation_preferences(
-                OpenPresentationPreferencesRequest(request.learner_id)
-            )
-            history = self.read_presentation_preference_history(
-                ReadPresentationPreferenceHistoryRequest(request.learner_id)
+            profile, history = self._presentation_preference_snapshot(
+                request.learner_id, repository, contract, seeds
             )
             exported = PresentationPreferenceExport(
                 schema_version="1.0.0",
@@ -533,6 +514,30 @@ class LearnerModelService:
             self._presentation_preference_contract,
             self._presentation_preference_seeds,
         )
+
+    def _presentation_preference_snapshot(
+        self,
+        learner_id: str,
+        repository: PresentationPreferenceRepositoryPort,
+        contract: PresentationPreferenceContract,
+        seeds: PresentationPreferenceSeedPort,
+    ) -> tuple[PresentationPreferenceProfile, PresentationPreferenceHistory]:
+        snapshot = repository.get_presentation_preference_snapshot(learner_id)
+        if snapshot is None:
+            profile = self._default_presentation_preferences(
+                learner_id, contract, seeds
+            )
+            history = PresentationPreferenceHistory(
+                schema_version="1.0.0",
+                profile_id=profile.profile_id,
+                current_revision=profile.revision,
+                changes=(),
+            )
+        else:
+            profile, history = snapshot
+        current = self._revalidate_presentation_preference(profile, contract)
+        validate_presentation_preference_history(history, current)
+        return current, history
 
     @staticmethod
     def _default_presentation_preferences(

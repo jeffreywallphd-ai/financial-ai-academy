@@ -62,6 +62,12 @@ class PresentationPreferenceRepositoryPort(Protocol):
         self, learner_id: str
     ) -> PresentationPreferenceHistory | None: ...
 
+    def get_presentation_preference_snapshot(
+        self, learner_id: str
+    ) -> (
+        tuple[PresentationPreferenceProfile, PresentationPreferenceHistory] | None
+    ): ...
+
     def get_presentation_preference_replay(
         self, learner_id: str, idempotency_key: str
     ) -> tuple[str, PresentationPreferenceProfile] | None: ...

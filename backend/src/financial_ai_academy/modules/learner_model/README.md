@@ -120,6 +120,9 @@ replacement or reset, replay, and summary atomic; exact retry returns the
 accepted profile while changed-key reuse, stale revision, and interrupted
 writes preserve the current state. The migration has no cross-module foreign
 key and refuses a development down migration while retained data exists.
+History and export load the current profile and its bounded summaries through
+one PostgreSQL snapshot, so a concurrent accepted mutation cannot create a
+mixed-revision response or a false integrity failure.
 
 The four protected presentation-preference operations use the server session
 as the only learner selector. Reads require

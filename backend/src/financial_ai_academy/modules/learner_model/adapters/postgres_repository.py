@@ -44,6 +44,7 @@ class PostgresCompletionProjectionRepository:
         before_preference_save: Callable[[], None] | None = None,
         presentation_preference_contract: PresentationPreferenceContract | None = None,
         before_presentation_preference_save: Callable[[], None] | None = None,
+        after_presentation_preference_snapshot: Callable[[], None] | None = None,
     ) -> None:
         self._dsn = dsn
         self._before_projection = before_projection
@@ -54,6 +55,9 @@ class PostgresCompletionProjectionRepository:
         self._presentation_preference_contract = presentation_preference_contract
         self._before_presentation_preference_save = (
             before_presentation_preference_save
+        )
+        self._after_presentation_preference_snapshot = (
+            after_presentation_preference_snapshot
         )
 
     def replace(self, projection: LessonCompletionProjection) -> None:
@@ -607,32 +611,47 @@ class PostgresCompletionProjectionRepository:
     def get_presentation_preference_history(
         self, learner_id: str
     ) -> PresentationPreferenceHistory | None:
+        snapshot = self.get_presentation_preference_snapshot(learner_id)
+        return snapshot[1] if snapshot is not None else None
+
+    def get_presentation_preference_snapshot(
+        self, learner_id: str
+    ) -> (
+        tuple[PresentationPreferenceProfile, PresentationPreferenceHistory] | None
+    ):
         contract = self._presentation_preferences()
         with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
-            profile = connection.execute(
+            row = connection.execute(
                 """
-                SELECT profile_id, revision
-                FROM learner_model.presentation_preference_profiles
-                WHERE learner_id = %s
+                SELECT
+                    profiles.profile,
+                    profiles.profile_id,
+                    profiles.revision,
+                    COALESCE(
+                        jsonb_agg(changes.change ORDER BY changes.revision)
+                            FILTER (WHERE changes.revision IS NOT NULL),
+                        '[]'::jsonb
+                    ) AS changes
+                FROM learner_model.presentation_preference_profiles AS profiles
+                LEFT JOIN learner_model.presentation_preference_changes AS changes
+                    ON changes.learner_id = profiles.learner_id
+                WHERE profiles.learner_id = %s
+                GROUP BY profiles.profile, profiles.profile_id, profiles.revision
                 """,
                 (learner_id,),
             ).fetchone()
-            if profile is None:
-                return None
-            changes = connection.execute(
-                """
-                SELECT change FROM learner_model.presentation_preference_changes
-                WHERE learner_id = %s ORDER BY revision
-                """,
-                (learner_id,),
-            ).fetchall()
+            if self._after_presentation_preference_snapshot is not None:
+                self._after_presentation_preference_snapshot()
+        if row is None:
+            return None
+        profile = self._parse_presentation_profile(contract, row["profile"])
         document = {
             "schema_version": "1.0.0",
-            "profile_id": profile["profile_id"],
-            "current_revision": profile["revision"],
-            "changes": [row["change"] for row in changes],
+            "profile_id": row["profile_id"],
+            "current_revision": row["revision"],
+            "changes": row["changes"],
         }
-        return contract.parse_history(self._json_bytes(document))
+        return profile, contract.parse_history(self._json_bytes(document))
 
     def get_presentation_preference_replay(
         self, learner_id: str, idempotency_key: str

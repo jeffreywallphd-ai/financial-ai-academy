@@ -224,3 +224,7 @@ or financial behavior changed. Leave the browser packet dependency-ready.
 - 2026-10-17: Refined the active scope to include the existing learner-
   preference PostgreSQL and API regression files whose migration-order and
   shared-host assertions must remain current after the additive migration.
+- 2026-10-17: Corrected history and export to consume one coherent PostgreSQL
+  profile-and-history snapshot, then added deterministic concurrent-mutation,
+  mixed-choice, reset, replay, and protected-API regression evidence within the
+  existing packet scope.

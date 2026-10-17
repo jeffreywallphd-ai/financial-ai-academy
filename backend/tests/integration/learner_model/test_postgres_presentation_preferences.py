@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
+from threading import Event
 
 import psycopg
 import pytest
@@ -101,13 +103,14 @@ class Clock:
         return NOW + timedelta(minutes=self.minute)
 
 
-def service(*, before_save=None) -> LearnerModelService:
+def service(*, before_save=None, after_snapshot=None) -> LearnerModelService:
     assert POSTGRES_DSN is not None
     contract = ContractPresentationPreferenceAdapter(SCHEMAS)
     repository = PostgresCompletionProjectionRepository(
         POSTGRES_DSN,
         presentation_preference_contract=contract,
         before_presentation_preference_save=before_save,
+        after_presentation_preference_snapshot=after_snapshot,
     )
     return LearnerModelService(
         Source(),
@@ -139,6 +142,15 @@ def intent(
             reading_width=reading_width,  # type: ignore[arg-type]
             motion=motion,  # type: ignore[arg-type]
         ),
+    )
+
+
+def reset_intent(key: str, revision: int) -> PresentationPreferenceMutationIntent:
+    return PresentationPreferenceMutationIntent(
+        schema_version="1.0.0",
+        idempotency_key=key,
+        expected_revision=revision,
+        mutation=PresentationPreferenceMutation(operation="reset_profile"),
     )
 
 
@@ -251,6 +263,95 @@ def test_history_is_bounded_and_export_omits_browser_theme() -> None:
     assert document["profile"] == ContractPresentationPreferenceAdapter(
         SCHEMAS
     ).profile_document(profile)
+
+
+def test_mixed_preferences_reset_and_replay_remain_correlated() -> None:
+    subject = service()
+    mixed = mutate(
+        subject,
+        intent(
+            "display.mixed",
+            1,
+            text_size="larger",
+            text_spacing="default",
+            reading_width="focused",
+            motion="system",
+        ),
+    )
+    command = reset_intent("display.reset", mixed.revision)
+    reset = mutate(subject, command)
+    replayed = mutate(service(), command)
+    exported = subject.export_presentation_preferences(
+        ExportPresentationPreferencesRequest(LEARNER_ID)
+    )
+
+    assert reset == replayed == exported.profile
+    assert (reset.revision, reset.text_size, reset.motion) == (
+        3,
+        "default",
+        "system",
+    )
+    assert exported.history.current_revision == reset.revision
+    assert [change.operation for change in exported.history.changes] == [
+        "replace_preferences",
+        "reset_profile",
+    ]
+    assert counts() == (1, 2, 2)
+
+
+def test_export_uses_one_coherent_snapshot_during_concurrent_mutation() -> None:
+    first = mutate(
+        service(),
+        intent(
+            "display.snapshot-first",
+            1,
+            text_size="larger",
+            text_spacing="default",
+            reading_width="focused",
+            motion="system",
+        ),
+    )
+    snapshot_loaded = Event()
+    mutation_finished = Event()
+
+    def pause_after_snapshot() -> None:
+        snapshot_loaded.set()
+        assert mutation_finished.wait(timeout=5)
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        pending = executor.submit(
+            service(after_snapshot=pause_after_snapshot).export_presentation_preferences,
+            ExportPresentationPreferencesRequest(LEARNER_ID),
+        )
+        assert snapshot_loaded.wait(timeout=5)
+        latest = mutate(
+            service(),
+            intent(
+                "display.snapshot-second",
+                first.revision,
+                text_size="default",
+                text_spacing="increased",
+                reading_width="standard",
+                motion="reduce",
+            ),
+        )
+        mutation_finished.set()
+        exported = pending.result(timeout=5)
+
+    assert exported.profile.revision == first.revision
+    assert exported.history.current_revision == first.revision
+    assert exported.history.changes[-1].resulting_profile_digest == (
+        exported.profile.profile_digest
+    )
+    assert latest.revision == first.revision + 1
+    current = service().export_presentation_preferences(
+        ExportPresentationPreferencesRequest(LEARNER_ID)
+    )
+    assert (
+        current.profile.revision
+        == current.history.current_revision
+        == latest.revision
+    )
 
 
 def test_interruption_rolls_back_profile_change_and_replay() -> None:

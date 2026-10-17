@@ -74,7 +74,10 @@ Learner-model PostgreSQL adapter owns the current profile, replay records, and
 newest 100 summaries in additive `learner_model_0005` tables. An absent row is
 a side-effect-free virtual default. A per-learner advisory lock and one
 transaction keep the profile, summary, and replay atomic; exact retry resolves
-before revision comparison.
+before revision comparison. History and export read the current profile and
+ordered summaries in one repository snapshot. Concurrent mutation may make
+that snapshot older than a later read, but it cannot mix revisions within one
+response.
 
 The reviewed API exposes profile, mutation, history, and export operations
 under `learner_presentation_preferences.read|write`. All reject query-selected

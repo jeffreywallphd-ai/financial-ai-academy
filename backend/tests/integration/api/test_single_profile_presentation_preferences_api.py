@@ -107,6 +107,17 @@ class PresentationPreferences:
             self.intent,
             occurred_at=NOW + timedelta(minutes=1),
         )
+        self.reset_intent = PresentationPreferenceMutationIntent(
+            schema_version="1.0.0",
+            idempotency_key="display.api-reset",
+            expected_revision=self.accepted.revision,
+            mutation=PresentationPreferenceMutation(operation="reset_profile"),
+        )
+        self.reset, _ = contract.apply_mutation(
+            self.accepted,
+            self.reset_intent,
+            occurred_at=NOW + timedelta(minutes=2),
+        )
         self.history = PresentationPreferenceHistory(
             schema_version="1.0.0",
             profile_id=self.accepted.profile_id,
@@ -152,7 +163,11 @@ class PresentationPreferences:
     ):
         self.mutation_requests.append(request)
         self._fail()
-        return self.accepted
+        return (
+            self.reset
+            if request.intent.mutation.operation == "reset_profile"
+            else self.accepted
+        )
 
     def read_presentation_preference_history(
         self, request: ReadPresentationPreferenceHistoryRequest
@@ -211,6 +226,15 @@ def mutation_body() -> dict[str, object]:
     }
 
 
+def reset_body() -> dict[str, object]:
+    return {
+        "schema_version": "1.0.0",
+        "idempotency_key": "display.api-reset",
+        "expected_revision": 2,
+        "mutation": {"operation": "reset_profile"},
+    }
+
+
 def test_headless_routes_use_server_learner_and_frozen_shapes() -> None:
     preferences = PresentationPreferences()
     subject = client(("learner_presentation_preferences.read",), preferences)
@@ -253,6 +277,24 @@ def test_mutation_uses_server_learner_and_exact_complete_intent() -> None:
     assert request.learner_id == LEARNER_ID
     assert request.intent.mutation.reading_width == "focused"
     assert request.intent.mutation.motion == "reduce"
+
+
+def test_reset_uses_server_learner_and_accepts_no_style_fields() -> None:
+    preferences = PresentationPreferences()
+    response = client(
+        ("learner_presentation_preferences.write",), preferences
+    ).post(
+        "/api/v1/learner-presentation-preferences/mutations",
+        json=reset_body(),
+        headers={"Origin": ORIGIN},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["revision"] == 3
+    assert response.json()["text_size"] == "default"
+    request = preferences.mutation_requests[0]
+    assert request.learner_id == LEARNER_ID
+    assert request.intent == preferences.reset_intent
 
 
 @pytest.mark.parametrize(
