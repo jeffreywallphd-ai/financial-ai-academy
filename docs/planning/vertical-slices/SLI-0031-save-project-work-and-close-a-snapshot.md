@@ -381,3 +381,8 @@ created, and no managed-cloud or production-recovery profile was qualified.
   checkpoint integrity failures. Direct service reproduction isolated two
   timestamp spellings at the digest boundary. WRK-0122 is the bounded
   correction prerequisite; no contract or durable decision changes.
+- 2026-10-17: WRK-0122 reused the Project contract's canonical workspace
+  timestamp strings for snapshot digest material and added a deterministic
+  trailing-zero fractional-second regression. Focused Project unit, contract,
+  and API verification passed; candidate verification and review remain before
+  WRK-0121 resumes.

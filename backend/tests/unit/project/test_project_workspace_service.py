@@ -246,6 +246,14 @@ class Clock:
         return NOW + timedelta(minutes=self.tick)
 
 
+class FixedClock:
+    def __init__(self, value: datetime) -> None:
+        self.value = value
+
+    def now(self) -> datetime:
+        return self.value
+
+
 class Identifiers:
     def __init__(self) -> None:
         self.value = 0
@@ -263,7 +271,9 @@ class UnusedGateway:
         return ()
 
 
-def service() -> tuple[ProjectService, MemoryRepository, MemoryObjects]:
+def service(
+    clock: Clock | FixedClock | None = None,
+) -> tuple[ProjectService, MemoryRepository, MemoryObjects]:
     repository = MemoryRepository()
     objects = MemoryObjects()
     subject = ProjectService(
@@ -271,7 +281,7 @@ def service() -> tuple[ProjectService, MemoryRepository, MemoryObjects]:
         ContractProjectAdapter(ROOT / "contracts/learning/project/v1"),
         UnusedGateway(),
         UnusedGateway(),
-        Clock(),
+        clock or Clock(),
         Identifiers(),
         objects,
     )
@@ -377,6 +387,47 @@ def test_workspace_artifact_snapshot_and_export_are_one_headless_core() -> None:
     assert continued.workspace_revision == 4
     assert exported.manifest.export.workspace_record.workspace_revision == 3
     assert exported.files[0].content == content
+
+
+def test_snapshot_digest_reuses_contract_canonical_fractional_timestamp() -> None:
+    timestamp = datetime(2026, 10, 16, 20, 0, 0, 123450, tzinfo=timezone.utc)
+    subject, _repository, _objects = service(FixedClock(timestamp))
+    shell = create(subject)
+    workspace = subject.mutate_workspace(
+        MutateProjectWorkspaceRequest(
+            "learner-1",
+            shell.project_id,
+            intent("note-1", 1, AddNoteMutation("Question", "Compare inputs.")),
+        )
+    )
+
+    snapshot = subject.close_snapshot(
+        CloseProjectSnapshotRequest(
+            "learner-1",
+            shell.project_id,
+            ProjectSnapshotCloseIntent(
+                "1.0.0", "snapshot-1", 1, workspace.workspace_revision
+            ),
+        )
+    )
+    contract = ContractProjectAdapter(ROOT / "contracts/learning/project/v1")
+    snapshot_document = contract.snapshot_document(snapshot)
+    exported = subject.export_snapshot(
+        ExportProjectSnapshotRequest(
+            "learner-1", shell.project_id, snapshot.snapshot_id
+        )
+    )
+
+    assert snapshot_document["snapshot"]["workspace_created_at"] == (
+        "2026-10-16T20:00:00.12345Z"
+    )
+    assert snapshot_document["snapshot"]["workspace_updated_at"] == (
+        "2026-10-16T20:00:00.12345Z"
+    )
+    assert snapshot.snapshot_digest == contract.canonical_digest(
+        snapshot_document["snapshot"]
+    )
+    assert exported.manifest.export.snapshot_record == snapshot
 
 
 def test_artifact_replay_revalidates_bytes_before_returning_accepted_work() -> None:

@@ -970,8 +970,8 @@ class ProjectService:
             "project_revision": material.project_revision,
             "project_shell_digest": material.project_shell_digest,
             "workspace_revision": material.workspace_revision,
-            "workspace_created_at": self._timestamp(material.workspace_created_at),
-            "workspace_updated_at": self._timestamp(material.workspace_updated_at),
+            "workspace_created_at": workspace_document["created_at"],
+            "workspace_updated_at": workspace_document["updated_at"],
             "notes": [
                 {
                     "record_id": item.record_id,

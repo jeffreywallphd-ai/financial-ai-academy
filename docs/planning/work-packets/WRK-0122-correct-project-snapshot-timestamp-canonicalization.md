@@ -1,9 +1,9 @@
 ---
 id: WRK-0122
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0007
 updated: 2026-10-17
 parent: SLI-0031
 capability: CAP-0007
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/project/application/service.py", "backend/tests/unit/project/test_project_workspace_service.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0122-correct-project-snapshot-timestamp-canonicalization.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b18988789268cddcb0f57ed097431aa5b61bda1f
+claim_id: WRK-0122:b42f1bd6-e2eb-40bf-8518-b7c429a053d5
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T02:04:25Z
 ---
 
 # Agent Work Packet: Correct Project Snapshot Timestamp Canonicalization
@@ -144,3 +144,10 @@ authority changed. Then return to WRK-0121.
   `snapshot_digest` failures whenever valid fractional seconds ended in zero.
   The packet is intentionally limited to canonical timestamp reuse and one
   deterministic regression.
+- 2026-10-17: Reclaimed from clean base `b189887` after preserving the
+  already-authored WRK-0121 qualifier. Snapshot digest assembly now reuses the
+  contract-projected workspace timestamp strings instead of independently
+  rendering the same datetimes. The deterministic `123450` microsecond
+  regression and the focused Project unit, contract, and API suites passed
+  138 tests with one environment-specific skip; exact-candidate verification
+  and independent review remain before completion.
