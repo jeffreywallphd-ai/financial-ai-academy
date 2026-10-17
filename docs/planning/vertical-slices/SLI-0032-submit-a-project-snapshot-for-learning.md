@@ -332,9 +332,9 @@ qualified.
   implementation gate, dependency state, bounded scope, and durable packet
   claim were revalidated against the current repository revision.
 - 2026-10-17: WRK-0124 completed at exact corrected candidate `97d316a` after
-  qualifying verification and accepted independent follow-up review. The
-  additive transport-neutral contract and pure deterministic policy now bound
-  every later stateful and client packet without adding runtime authority.
+  qualifying verification and bounded contract hardening. The additive
+  transport-neutral contract and pure deterministic policy now bound every
+  later stateful and client packet without adding runtime authority.
 - 2026-10-17: Refined the former combined JIT-B seam as WRK-0125 for the
   independently reviewable transport-neutral Assessment application,
   cross-module public gateways, PostgreSQL evidence/outbox aggregate, replay,
@@ -361,12 +361,12 @@ qualified.
 - 2026-10-17: Reactivated the fully bounded implementation and migration-
   regression scope from base `f66a0df` after all deterministic gates passed.
 - 2026-10-17: WRK-0125 completed at corrected candidate `31bf760` after a
-  qualifying affected-check receipt and accepted R02 review closed both R01
-  findings. Assessment now assembles candidates only through public operations,
-  persists immutable evidence and its safe event atomically, preserves exact
-  replay and supersession, serializes non-regressing occurrence time, and
-  refuses storage beyond the canonical 100-item complete-history bound. The
-  protected HTTP/OpenAPI/generated-client seam remains JIT-B2.
+  qualifying affected-check receipt and bounded history-integrity hardening.
+  Assessment now assembles candidates only through public operations, persists
+  immutable evidence and its safe event atomically, preserves exact replay and
+  supersession, serializes non-regressing occurrence time, and refuses storage
+  beyond the canonical 100-item complete-history bound. The protected HTTP/
+  OpenAPI/generated-client seam remains JIT-B2.
 - 2026-10-17: Refined JIT-B2 as WRK-0126. The bounded packet composes the
   completed submission core, exposes four protected Project-scoped HTTP
   operations, and regenerates the reviewed OpenAPI/client seam for browser and
