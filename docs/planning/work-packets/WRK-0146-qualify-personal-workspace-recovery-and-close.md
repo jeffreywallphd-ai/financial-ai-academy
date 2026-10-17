@@ -1,7 +1,7 @@
 ---
 id: WRK-0146
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -263,3 +263,8 @@ cloud, separate AI authority, artifact execution, or financial action changed.
   confirmed current CAP authority, the completed WRK-0145 dependency, the
   bounded qualification-only scope, resolved decisions, and no active write
   collision.
+- 2026-10-17: Advanced to verification after the generated-browser/headless
+  export comparison, focused capacity suites, normal restart, stopped-source
+  logical capture, populated-target refusal, empty-target restore, restored-
+  session revocation, fresh-session replay, source isolation, redacted report,
+  and bounded cleanup all passed in the disposable local topology.
