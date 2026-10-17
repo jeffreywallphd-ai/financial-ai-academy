@@ -1,7 +1,7 @@
 ---
 id: WRK-0146
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/personal-workspace.e2e.ts", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/operations/community-backup-and-restore.md", "docs/security/community-learner-evidence-protection.md", "docs/planning/capabilities/CAP-0017-maintain-personal-learning-workspace.md", "docs/planning/vertical-slices/SLI-0073-qualify-personal-workspace-durability-boundaries.md", "docs/planning/work-packets/WRK-0146-qualify-personal-workspace-recovery-and-close.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 2797023c5c8824f620acaa36296e7b24d45f4cb4
+claim_id: WRK-0146:6e208252-d4da-4e86-ad4b-fe2d8c11fa59
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T17:46:18Z
 ---
 
 # Agent Work Packet: Qualify Personal Workspace Recovery and Close
@@ -259,3 +259,7 @@ cloud, separate AI authority, artifact execution, or financial action changed.
 - 2026-10-17: Marked ready after packet, dependency, decision-readiness,
   recovery-boundary, exact write-scope, executable-check, documentation, and
   planning validation passed with no material CAP or slice drift.
+- 2026-10-17: Activated from the recorded base after the implementation gate
+  confirmed current CAP authority, the completed WRK-0145 dependency, the
+  bounded qualification-only scope, resolved decisions, and no active write
+  collision.
