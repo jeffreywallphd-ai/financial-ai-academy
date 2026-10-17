@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from copy import deepcopy
 
 import pytest
 from jsonschema import Draft202012Validator, FormatChecker
@@ -22,6 +23,30 @@ FIXTURE_DIR = ROOT / "contracts" / "compatibility" / "personal-workspace" / "v1"
 @pytest.fixture
 def adapter() -> ContractPersonalWorkspaceAdapter:
     return ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
+
+
+def _fixture(name: str) -> dict[str, object]:
+    return json.loads((FIXTURE_DIR / name).read_text(encoding="utf-8"))
+
+
+def _seal(
+    adapter: ContractPersonalWorkspaceAdapter,
+    document: dict[str, object],
+) -> bytes:
+    material = deepcopy(document)
+    material.pop("workspace_digest", None)
+    document["workspace_digest"] = adapter.canonical_digest(material)
+    return json.dumps(document, ensure_ascii=False).encode("utf-8")
+
+
+def _expect_workspace_failure(
+    adapter: ContractPersonalWorkspaceAdapter,
+    document: dict[str, object],
+    code: str,
+) -> None:
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_workspace(_seal(adapter, document))
+    assert failure.value.code == code
 
 
 def test_all_v1_schemas_are_valid_draft_2020_12() -> None:
@@ -98,3 +123,235 @@ def test_workspace_schema_rejects_more_than_declared_record_bound() -> None:
     fixture = json.loads((FIXTURE_DIR / "valid-populated-workspace.json").read_text())
     fixture["records"] = [fixture["records"][0]] * 201
     assert any(error.validator == "maxItems" for error in validator.iter_errors(fixture))
+
+
+def test_reference_matches_curriculum_route_and_title_profile(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = _fixture("valid-populated-workspace.json")
+    document["records"][0]["target"]["title"] = "T" * 240  # type: ignore[index]
+    adapter.parse_workspace(_seal(adapter, document))
+
+    too_long = deepcopy(document)
+    too_long["records"][0]["target"]["title"] = "T" * 241  # type: ignore[index]
+    _expect_workspace_failure(
+        adapter, too_long, "personal_workspace.contract.invalid_shape"
+    )
+
+    protocol_relative = deepcopy(document)
+    protocol_relative["records"][0]["target"]["destination"] = (  # type: ignore[index]
+        "//external.example/private"
+    )
+    _expect_workspace_failure(
+        adapter, protocol_relative, "personal_workspace.contract.invalid_shape"
+    )
+
+    mismatched = deepcopy(document)
+    mismatched["records"][0]["target"]["destination"] = (  # type: ignore[index]
+        "/learn/placements/placement.other"
+    )
+    _expect_workspace_failure(
+        adapter, mismatched, "personal_workspace.contract.invalid_reference"
+    )
+
+
+def test_nullable_bookmark_label_has_one_canonical_representation(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = _fixture("valid-populated-workspace.json")
+    document["records"][1]["label"] = None  # type: ignore[index]
+    parsed_bytes = _seal(adapter, document)
+    parsed = adapter.parse_workspace(parsed_bytes)
+    assert adapter.workspace_document(parsed) == json.loads(parsed_bytes)
+
+    omitted = deepcopy(document)
+    omitted["records"][1].pop("label")  # type: ignore[index]
+    _expect_workspace_failure(
+        adapter, omitted, "personal_workspace.contract.invalid_shape"
+    )
+
+
+@pytest.mark.parametrize(
+    "mutation_change",
+    [
+        "omit_create_bookmark_label",
+        "unsafe_create_note_destination",
+        "mismatched_create_note_destination",
+    ],
+)
+def test_mutation_references_use_the_same_closed_profile(
+    adapter: ContractPersonalWorkspaceAdapter,
+    mutation_change: str,
+) -> None:
+    document = _fixture("valid-create-note-intent.json")
+    mutation = document["mutation"]  # type: ignore[assignment]
+    if mutation_change == "omit_create_bookmark_label":
+        mutation["operation"] = "create_bookmark"  # type: ignore[index]
+        mutation.pop("title")  # type: ignore[union-attr]
+        mutation.pop("body")  # type: ignore[union-attr]
+    elif mutation_change == "unsafe_create_note_destination":
+        mutation["target"]["destination"] = "//external.example/private"  # type: ignore[index]
+    else:
+        mutation["target"]["destination"] = "/learn/placements/placement.other"  # type: ignore[index]
+    with pytest.raises(PersonalWorkspaceContractFailure):
+        adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "record_before_workspace",
+        "record_after_workspace",
+        "collection_before_workspace",
+        "collection_after_workspace",
+        "publication_after_validation",
+        "validation_after_record",
+    ],
+)
+def test_complete_workspace_chronology_fails_closed(
+    adapter: ContractPersonalWorkspaceAdapter,
+    change: str,
+) -> None:
+    document = _fixture("valid-populated-workspace.json")
+    if change == "record_before_workspace":
+        document["records"][0]["created_at"] = "2026-10-17T11:59:59Z"  # type: ignore[index]
+    elif change == "record_after_workspace":
+        document["records"][0]["updated_at"] = "2026-10-17T12:15:01Z"  # type: ignore[index]
+    elif change == "collection_before_workspace":
+        document["collections"][0]["created_at"] = "2026-10-17T11:59:59Z"  # type: ignore[index]
+    elif change == "collection_after_workspace":
+        document["collections"][0]["updated_at"] = "2026-10-17T12:15:01Z"  # type: ignore[index]
+    elif change == "publication_after_validation":
+        document["records"][0]["target"]["provenance"]["published_at"] = (  # type: ignore[index]
+            "2026-10-17T11:01:00Z"
+        )
+    else:
+        document["records"][0]["target"]["validated_at"] = (  # type: ignore[index]
+            "2026-10-17T12:05:01Z"
+        )
+    _expect_workspace_failure(
+        adapter, document, "personal_workspace.contract.invalid_time"
+    )
+
+
+def test_collection_and_membership_edges_are_not_fixture_count_rigid(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    base = _fixture("valid-populated-workspace.json")
+    template_record = base["records"][1]  # type: ignore[index]
+    base["records"] = []
+    for index in range(101):
+        record = deepcopy(template_record)
+        record["record_id"] = f"bookmark.{index:03d}"
+        record["label"] = None
+        base["records"].append(record)  # type: ignore[union-attr]
+
+    template_collection = base["collections"][0]  # type: ignore[index]
+    base["collections"] = []
+    for index in range(50):
+        collection = deepcopy(template_collection)
+        collection["collection_id"] = f"collection.{index:03d}"
+        collection["member_record_ids"] = []
+        base["collections"].append(collection)  # type: ignore[union-attr]
+    base["collections"][0]["member_record_ids"] = [  # type: ignore[index]
+        f"bookmark.{index:03d}" for index in range(100)
+    ]
+    adapter.parse_workspace(_seal(adapter, base))
+
+    too_many_members = deepcopy(base)
+    too_many_members["collections"][0]["member_record_ids"].append(  # type: ignore[index]
+        "bookmark.100"
+    )
+    _expect_workspace_failure(
+        adapter, too_many_members, "personal_workspace.contract.invalid_shape"
+    )
+
+    too_many_collections = deepcopy(base)
+    extra = deepcopy(too_many_collections["collections"][0])  # type: ignore[index]
+    extra["collection_id"] = "collection.050"
+    extra["member_record_ids"] = []
+    too_many_collections["collections"].append(extra)  # type: ignore[union-attr]
+    _expect_workspace_failure(
+        adapter, too_many_collections, "personal_workspace.contract.invalid_shape"
+    )
+
+
+@pytest.mark.parametrize(
+    ("workspace_id", "accepted"),
+    [("abc", True), ("a" * 64, True), ("a" * 65, False)],
+)
+def test_identifier_edges_are_explicit(
+    adapter: ContractPersonalWorkspaceAdapter,
+    workspace_id: str,
+    accepted: bool,
+) -> None:
+    document = _fixture("valid-empty-workspace.json")
+    document["workspace_id"] = workspace_id
+    if accepted:
+        adapter.parse_workspace(_seal(adapter, document))
+    else:
+        _expect_workspace_failure(
+            adapter, document, "personal_workspace.contract.invalid_shape"
+        )
+
+
+@pytest.mark.parametrize(
+    ("field", "limit"),
+    [
+        ("note_title", 120),
+        ("note_body", 8000),
+        ("source_title", 240),
+        ("published_by", 160),
+        ("educational_use_notice", 500),
+    ],
+)
+def test_text_limits_accept_the_edge_and_reject_only_overflow(
+    adapter: ContractPersonalWorkspaceAdapter,
+    field: str,
+    limit: int,
+) -> None:
+    document = _fixture("valid-create-note-intent.json")
+    mutation = document["mutation"]  # type: ignore[assignment]
+    target = mutation["target"]  # type: ignore[index]
+
+    def assign(value: str) -> None:
+        if field == "note_title":
+            mutation["title"] = value  # type: ignore[index]
+        elif field == "note_body":
+            mutation["body"] = value  # type: ignore[index]
+        elif field == "source_title":
+            target["title"] = value  # type: ignore[index]
+        elif field == "published_by":
+            target["provenance"]["published_by"] = value  # type: ignore[index]
+        else:
+            target["provenance"]["educational_use_notice"] = value  # type: ignore[index]
+
+    assign("x" * limit)
+    adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assign("x" * (limit + 1))
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
+def test_record_count_accepts_200_and_rejects_201(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = _fixture("valid-populated-workspace.json")
+    template = document["records"][1]  # type: ignore[index]
+    document["collections"] = []
+    document["records"] = []
+    for index in range(200):
+        record = deepcopy(template)
+        record["record_id"] = f"bookmark.{index:03d}"
+        record["label"] = "x" * (index % 121) or None
+        document["records"].append(record)  # type: ignore[union-attr]
+    adapter.parse_workspace(_seal(adapter, document))
+
+    overflow = deepcopy(document)
+    extra = deepcopy(template)
+    extra["record_id"] = "bookmark.200"
+    overflow["records"].append(extra)  # type: ignore[union-attr]
+    _expect_workspace_failure(
+        adapter, overflow, "personal_workspace.contract.invalid_shape"
+    )

@@ -25,8 +25,10 @@ permission, or provides a mutation path into another module.
 - Canonical digests use compact sorted-key UTF-8 JSON so persistence and API
   adapters can detect changed meaning.
 - Records retain exact Curriculum/package/publication provenance and a last
-  validation time. Unavailable or inaccessible targets remain an adapter and
-  presentation concern; the workspace cannot silently substitute a target.
+  validation time. Learning routes use Curriculum's canonical same-origin
+  `/learn/placements/{placement_id}` shape and must correlate with the exact
+  retained placement. Unavailable or inaccessible targets remain an adapter
+  and presentation concern; the workspace cannot silently substitute a target.
 
 ## Exclusions
 

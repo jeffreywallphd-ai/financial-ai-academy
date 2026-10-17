@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -227,6 +228,43 @@ def test_creation_requires_an_external_identifier(
     with pytest.raises(PersonalWorkspaceContractFailure) as failure:
         adapter.apply_mutation(workspace, intent, occurred_at=T1)
     assert failure.value.code == "personal_workspace.contract.issued_id_required"
+
+
+def test_mutation_refuses_tampered_workspace_instead_of_resealing_it(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-empty-workspace.json").read_bytes()
+    )
+    tampered = replace(workspace, workspace_digest="f" * 64)
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.apply_mutation(
+            tampered,
+            _intent(1, CreateCollectionMutation("Collection")),
+            occurred_at=T1,
+            issued_id="collection.one",
+        )
+    assert failure.value.code == "personal_workspace.contract.digest_mismatch"
+
+
+def test_mutation_refuses_invalid_direct_intent_instead_of_laundering_it(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-empty-workspace.json").read_bytes()
+    )
+    intent = replace(
+        _intent(1, CreateCollectionMutation("Collection")),
+        idempotency_key="INVALID KEY",
+    )
+    with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+        adapter.apply_mutation(
+            workspace,
+            intent,
+            occurred_at=T1,
+            issued_id="collection.one",
+        )
+    assert failure.value.code == "personal_workspace.contract.invalid_shape"
 
 
 def test_pure_core_rejects_naive_or_regressing_time(

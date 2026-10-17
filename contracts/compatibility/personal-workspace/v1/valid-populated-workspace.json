@@ -19,7 +19,7 @@
         "package_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         "source_fingerprint": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         "title": "Introduction to diversification",
-        "destination": "/learn/opportunity.diversification",
+        "destination": "/learn/placements/placement.diversification",
         "target_status": "available",
         "provenance": {"published_by":"Financial AI Academy","published_at":"2026-10-16T14:00:00Z","content_reviewed_on":"2026-10-16","educational_use_notice":"For education and research; not personalized financial advice."},
         "validated_at": "2026-10-17T11:00:00Z"
@@ -39,7 +39,7 @@
         "package_version": "1.0.0",
         "package_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
         "title": "Risk and return",
-        "destination": "/learn/placement.risk",
+        "destination": "/learn/placements/placement.risk",
         "target_status": "available",
         "provenance": {"published_by":"Financial AI Academy","published_at":"2026-10-16T15:00:00Z","content_reviewed_on":"2026-10-16","educational_use_notice":"For education and research; not personalized financial advice."},
         "validated_at": "2026-10-17T11:30:00Z"
@@ -53,5 +53,5 @@
   "collections": [{"collection_id":"collection.foundations","title":"Investing foundations","member_record_ids":["note.one","bookmark.one"],"created_at":"2026-10-17T12:15:00Z","updated_at":"2026-10-17T12:15:00Z"}],
   "created_at": "2026-10-17T12:00:00Z",
   "updated_at": "2026-10-17T12:15:00Z",
-  "workspace_digest": "5c828188a071695b41afa2e124e757bcb1242b39c2acc23c0b3d1b107b6c4104"
+  "workspace_digest": "03da129bbbc5f242f8eb968a23b58e2407c4b9400d022d1c8b466661d530a52b"
 }

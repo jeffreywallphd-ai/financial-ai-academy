@@ -12,23 +12,23 @@
     "mutation": { "$ref": "#/$defs/mutation" }
   },
   "$defs": {
-    "identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]*$" },
-    "version": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^<>\\u0000]*$" },
+    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+    "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$" },
     "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
-    "title": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^\\u0000]*$" },
+    "title": { "type": "string", "minLength": 1, "maxLength": 240, "pattern": "^[^\\u0000]*$" },
     "learner_title": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "^[^\\u0000]*$" },
     "note_body": { "type": "string", "minLength": 1, "maxLength": 8000, "pattern": "^[^\\u0000]*$" },
-    "destination": { "type": "string", "minLength": 1, "maxLength": 2048, "pattern": "^/[^<>\\u0000]*$" },
+    "destination": { "type": "string", "pattern": "^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$" },
     "provenance": {
       "type": "object",
       "additionalProperties": false,
       "required": ["published_by", "published_at", "content_reviewed_on", "educational_use_notice"],
       "properties": {
-        "published_by": { "$ref": "#/$defs/title" },
+        "published_by": { "type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^\\u0000]*$" },
         "published_at": { "$ref": "#/$defs/utc_time" },
         "content_reviewed_on": { "type": "string", "format": "date" },
-        "educational_use_notice": { "type": "string", "minLength": 1, "maxLength": 4000, "pattern": "^[^\\u0000]*$" }
+        "educational_use_notice": { "type": "string", "minLength": 1, "maxLength": 500, "pattern": "^[^\\u0000]*$" }
       }
     },
     "learning_opportunity": {
@@ -93,7 +93,7 @@
         },
         {
           "type": "object", "additionalProperties": false,
-          "required": ["operation", "target"],
+          "required": ["operation", "target", "label"],
           "properties": { "operation": { "const": "create_bookmark" }, "target": { "$ref": "#/$defs/reference" }, "label": { "type": ["string", "null"], "maxLength": 120, "pattern": "^[^\\u0000]*$" } }
         },
         {

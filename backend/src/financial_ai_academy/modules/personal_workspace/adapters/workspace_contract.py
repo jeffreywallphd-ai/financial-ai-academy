@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, is_dataclass, replace
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -73,6 +73,7 @@ class ContractPersonalWorkspaceAdapter:
     def parse_mutation_intent(self, value: bytes) -> WorkspaceMutationIntent:
         document = self._document(value, "mutation-intent")
         self._version(document)
+        self._validate_mutation_semantics(document)
         mutation = document["mutation"]
         operation = mutation["operation"]
         if operation == "create_note":
@@ -134,6 +135,7 @@ class ContractPersonalWorkspaceAdapter:
             "reference": self._portable(value),
         }
         self._shape("learning-reference", document)
+        self._validate_reference_semantics(document["reference"])
         return document
 
     def workspace_document(self, value: PersonalWorkspace) -> dict[str, object]:
@@ -148,6 +150,7 @@ class ContractPersonalWorkspaceAdapter:
     ) -> dict[str, object]:
         document = self._portable(value)
         self._shape("mutation-intent", document)
+        self._validate_mutation_semantics(document)
         return document
 
     def apply_mutation(
@@ -159,6 +162,8 @@ class ContractPersonalWorkspaceAdapter:
         issued_id: str | None = None,
     ) -> PersonalWorkspace:
         occurred_at = self._aware_timestamp(occurred_at, "occurred_at")
+        self.workspace_document(workspace)
+        self.mutation_intent_document(intent)
         if intent.schema_version != VERSION or workspace.schema_version != VERSION:
             self._reject("personal_workspace.contract.unsupported_version", "schema_version")
         if intent.expected_revision != workspace.revision:
@@ -334,7 +339,10 @@ class ContractPersonalWorkspaceAdapter:
     def _shape(self, schema: str, document: Mapping[str, object]) -> None:
         errors = sorted(
             self._validators[schema].iter_errors(document),
-            key=lambda error: (list(error.absolute_path), error.message),
+            key=lambda error: (
+                tuple(str(part) for part in error.absolute_path),
+                error.message,
+            ),
         )
         if errors:
             path = ".".join(str(part) for part in errors[0].absolute_path)
@@ -385,6 +393,7 @@ class ContractPersonalWorkspaceAdapter:
         return WorkspaceBookmark(label=value.get("label"), **common)
 
     def _reference(self, value: Mapping[str, Any]) -> LearningReference:
+        self._validate_reference_semantics(value)
         provenance = PublicationProvenance(
             published_by=value["provenance"]["published_by"],
             published_at=self._timestamp(value["provenance"]["published_at"]),
@@ -423,10 +432,18 @@ class ContractPersonalWorkspaceAdapter:
             self._reject("personal_workspace.contract.duplicate_id", "workspace")
         known = set(record_ids)
         for item in document["records"]:
-            if self._timestamp(item["updated_at"]) < self._timestamp(item["created_at"]):
+            record_created_at = self._timestamp(item["created_at"])
+            record_updated_at = self._timestamp(item["updated_at"])
+            if record_created_at < created_at or record_updated_at < record_created_at:
                 self._reject("personal_workspace.contract.invalid_time", item["record_id"])
-            if self._timestamp(item["updated_at"]) > updated_at:
+            if record_updated_at > updated_at:
                 self._reject("personal_workspace.contract.invalid_time", item["record_id"])
+            self._validate_reference_semantics(item["target"])
+            if self._timestamp(item["target"]["validated_at"]) > record_updated_at:
+                self._reject(
+                    "personal_workspace.contract.invalid_time",
+                    item["record_id"],
+                )
         for collection in document["collections"]:
             members = collection["member_record_ids"]
             self._unique(members, f"collections.{collection['collection_id']}.members")
@@ -435,8 +452,12 @@ class ContractPersonalWorkspaceAdapter:
                     "personal_workspace.contract.dangling_member",
                     collection["collection_id"],
                 )
-            if self._timestamp(collection["updated_at"]) < self._timestamp(
-                collection["created_at"]
+            collection_created_at = self._timestamp(collection["created_at"])
+            collection_updated_at = self._timestamp(collection["updated_at"])
+            if (
+                collection_created_at < created_at
+                or collection_updated_at < collection_created_at
+                or collection_updated_at > updated_at
             ):
                 self._reject(
                     "personal_workspace.contract.invalid_time",
@@ -448,6 +469,35 @@ class ContractPersonalWorkspaceAdapter:
             self._reject(
                 "personal_workspace.contract.digest_mismatch",
                 "workspace_digest",
+            )
+
+    def _validate_mutation_semantics(self, document: Mapping[str, Any]) -> None:
+        mutation = document["mutation"]
+        if mutation["operation"] in {"create_note", "create_bookmark"}:
+            self._validate_reference_semantics(mutation["target"])
+
+    def _validate_reference_semantics(self, value: Mapping[str, Any]) -> None:
+        placement_id = value["placement_id"]
+        if value["destination"] != f"/learn/placements/{placement_id}":
+            self._reject(
+                "personal_workspace.contract.invalid_reference",
+                "destination",
+            )
+        published_at = self._timestamp(value["provenance"]["published_at"])
+        validated_at = self._timestamp(value["validated_at"])
+        try:
+            reviewed_on = date.fromisoformat(
+                value["provenance"]["content_reviewed_on"]
+            )
+        except ValueError:
+            self._reject(
+                "personal_workspace.contract.invalid_time",
+                "content_reviewed_on",
+            )
+        if reviewed_on > published_at.date() or published_at > validated_at:
+            self._reject(
+                "personal_workspace.contract.invalid_time",
+                "reference",
             )
 
     def _new_id(
