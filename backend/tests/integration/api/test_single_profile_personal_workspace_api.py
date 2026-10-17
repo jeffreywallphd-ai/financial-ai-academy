@@ -18,6 +18,8 @@ from financial_ai_academy.modules.personal_workspace.public import (
     CreateNoteCommand,
     MutatePersonalWorkspaceRequest,
     OpenPersonalWorkspaceRequest,
+    PersonalWorkspaceError,
+    PersonalWorkspaceErrorCode,
 )
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
@@ -163,7 +165,12 @@ def test_authenticated_headless_read_returns_closed_workspace_contract() -> None
 def test_authenticated_write_uses_server_learner_and_selector_command() -> None:
     workspaces = Workspaces()
     response = client(
-        ("personal_workspace.read", "personal_workspace.write"), workspaces
+        (
+            "personal_workspace.read",
+            "personal_workspace.write",
+            "curriculum.discovery.read",
+        ),
+        workspaces,
     ).post(
         "/api/v1/personal-workspace/mutations",
         json=note_body(),
@@ -191,6 +198,132 @@ def test_identity_and_server_fields_cannot_be_supplied_by_caller() -> None:
     assert response.status_code == 400
     assert response.json()["code"] == "invalid_request"
     assert workspaces.mutation_requests == []
+
+
+def test_query_selected_learner_is_rejected_before_workspace_access() -> None:
+    workspaces = Workspaces()
+    subject = client(
+        (
+            "personal_workspace.read",
+            "personal_workspace.write",
+            "curriculum.discovery.read",
+        ),
+        workspaces,
+    )
+    opened = subject.get(
+        "/api/v1/personal-workspace?learner_id=learner.other"
+    )
+    mutated = subject.post(
+        "/api/v1/personal-workspace/mutations?learner_id=learner.other",
+        json=note_body(),
+        headers={"origin": ORIGIN},
+    )
+    assert opened.status_code == 400
+    assert mutated.status_code == 400
+    assert opened.json()["code"] == "invalid_request"
+    assert mutated.json()["code"] == "invalid_request"
+    assert workspaces.open_requests == []
+    assert workspaces.mutation_requests == []
+
+
+def test_source_creation_requires_owning_curriculum_read_permission() -> None:
+    opportunity_workspaces = Workspaces()
+    opportunity_denied = client(
+        ("personal_workspace.write",), opportunity_workspaces
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json=note_body(),
+        headers={"origin": ORIGIN},
+    )
+    lesson_body = note_body()
+    lesson_body["mutation"]["selector"] = {  # type: ignore[index]
+        "reference_kind": "placed_lesson",
+        "placement_id": "placement.diversification",
+    }
+    lesson_workspaces = Workspaces()
+    lesson_denied = client(
+        (
+            "personal_workspace.write",
+            "curriculum.discovery.read",
+        ),
+        lesson_workspaces,
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json=lesson_body,
+        headers={"origin": ORIGIN},
+    )
+    lesson_allowed = client(
+        (
+            "personal_workspace.write",
+            "curriculum.lesson.read",
+        ),
+        lesson_workspaces,
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json=lesson_body,
+        headers={"origin": ORIGIN},
+    )
+    assert opportunity_denied.status_code == 403
+    assert lesson_denied.status_code == 403
+    assert lesson_allowed.status_code == 200
+    assert opportunity_workspaces.mutation_requests == []
+    assert len(lesson_workspaces.mutation_requests) == 1
+
+
+def test_non_source_mutation_needs_no_curriculum_permission() -> None:
+    workspaces = Workspaces()
+    body = {
+        "schema_version": "1.0.0",
+        "idempotency_key": "collection-one",
+        "expected_revision": 1,
+        "mutation": {
+            "operation": "create_collection",
+            "title": "Keep learning",
+        },
+    }
+    response = client(("personal_workspace.write",), workspaces).post(
+        "/api/v1/personal-workspace/mutations",
+        json=body,
+        headers={"origin": ORIGIN},
+    )
+    assert response.status_code == 200
+    assert len(workspaces.mutation_requests) == 1
+
+
+def test_personal_workspace_not_found_maps_to_404() -> None:
+    class MissingWorkspaces(Workspaces):
+        def mutate_workspace(self, request: MutatePersonalWorkspaceRequest):
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.NOT_FOUND,
+                "The saved learning item was not found.",
+            )
+
+    response = client(
+        ("personal_workspace.write",), MissingWorkspaces()
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json={
+            "schema_version": "1.0.0",
+            "idempotency_key": "remove-missing",
+            "expected_revision": 1,
+            "mutation": {
+                "operation": "remove_record",
+                "record_id": "record.missing",
+            },
+        },
+        headers={"origin": ORIGIN},
+    )
+    assert response.status_code == 404
+    assert response.json()["code"] == "not_found"
+
+
+def test_openapi_requires_nullable_bookmark_label() -> None:
+    workspaces = Workspaces()
+    schema = client(("personal_workspace.read",), workspaces).app.openapi()
+    bookmark = schema["components"]["schemas"][
+        "PersonalWorkspaceBookmarkModel"
+    ]
+    assert "label" in bookmark["required"]
 
 
 def test_missing_or_insufficient_session_denies_before_workspace_access() -> None:

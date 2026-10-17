@@ -144,6 +144,12 @@ class PersonalWorkspaceService:
         except PersonalWorkspaceContractFailure as error:
             if error.code.endswith("stale_revision"):
                 raise self._stale(command.idempotency_key) from error
+            if error.code.endswith(("record_not_found", "collection_not_found")):
+                raise PersonalWorkspaceError(
+                    PersonalWorkspaceErrorCode.NOT_FOUND,
+                    "The saved learning item was not found.",
+                    reference=error.reference,
+                ) from error
             raise PersonalWorkspaceError(
                 PersonalWorkspaceErrorCode.INVALID_REQUEST,
                 "The workspace change is not valid.",

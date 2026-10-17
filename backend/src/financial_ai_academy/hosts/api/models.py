@@ -492,7 +492,7 @@ class PersonalWorkspaceBookmarkModel(ProjectTimestampModel):
     record_kind: Literal["bookmark"]
     record_id: Identifier
     target: PersonalLearningReferenceModel
-    label: str | None = Field(default=None, max_length=120)
+    label: str | None = Field(max_length=120)
     archived: bool
     created_at: datetime
     updated_at: datetime
@@ -636,6 +636,19 @@ class PersonalWorkspaceMutationRequestModel(ApiModel):
     idempotency_key: Identifier
     expected_revision: int = Field(ge=1)
     mutation: PersonalWorkspaceMutationModel
+
+
+def personal_workspace_source_permission(
+    model: PersonalWorkspaceMutationRequestModel,
+) -> str | None:
+    mutation = model.mutation
+    if not isinstance(
+        mutation, (PersonalCreateNoteModel, PersonalCreateBookmarkModel)
+    ):
+        return None
+    if isinstance(mutation.selector, PersonalLearningOpportunitySelectorModel):
+        return "curriculum.discovery.read"
+    return "curriculum.lesson.read"
 
 
 class ProjectSnapshotCloseRequestModel(ApiModel):

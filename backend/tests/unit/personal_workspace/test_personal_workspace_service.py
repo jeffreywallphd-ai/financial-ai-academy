@@ -16,13 +16,26 @@ from financial_ai_academy.modules.personal_workspace.application.service import 
     PersonalWorkspaceService,
 )
 from financial_ai_academy.modules.personal_workspace.domain.workspace import (
+    ArchiveRecordMutation,
     CreateCollectionMutation,
+    RemoveCollectionMutation,
+    RemoveRecordMutation,
+    RenameCollectionMutation,
+    ReorderRecordsMutation,
+    RestoreRecordMutation,
+    SetCollectionMembersMutation,
+    UpdateBookmarkMutation,
+    UpdateNoteMutation,
+)
+from financial_ai_academy.modules.personal_workspace.ports.learning_reference import (
+    PersonalWorkspaceSourceUnavailable,
 )
 from financial_ai_academy.modules.personal_workspace.ports.repositories import (
     PersonalWorkspaceIdempotencyConflict,
     PersonalWorkspaceRevisionConflict,
 )
 from financial_ai_academy.modules.personal_workspace.public import (
+    CreateBookmarkCommand,
     CreateNoteCommand,
     LearningOpportunitySelector,
     MutatePersonalWorkspaceRequest,
@@ -78,15 +91,18 @@ class Repository:
 
 
 class References:
-    def __init__(self, contract) -> None:
+    def __init__(self, contract, *, unavailable: bool = False) -> None:
         intent = contract.parse_mutation_intent(
             (FIXTURE_DIR / "valid-create-note-intent.json").read_bytes()
         )
         self.reference = intent.mutation.target
         self.calls = 0
+        self.unavailable = unavailable
 
     def resolve(self, selector, *, validated_at):
         self.calls += 1
+        if self.unavailable:
+            raise PersonalWorkspaceSourceUnavailable()
         assert selector == LearningOpportunitySelector(
             opportunity_id="opportunity.diversification",
             placement_id="placement.diversification",
@@ -101,16 +117,18 @@ class Clock:
 
 class Identifiers:
     def __init__(self) -> None:
-        self.values = iter(("record.one", "collection.one", "record.two"))
+        self.values = iter(
+            ("record.note", "record.bookmark", "collection.one")
+        )
 
     def new(self):
         return next(self.values)
 
 
-def service():
+def service(*, unavailable_source: bool = False):
     contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
     repository = Repository()
-    references = References(contract)
+    references = References(contract, unavailable=unavailable_source)
     return (
         PersonalWorkspaceService(
             repository,
@@ -141,6 +159,15 @@ def note_command(*, key="note.one", revision=1, body="Evidence before opinion"):
     )
 
 
+def command(mutation, *, key: str, revision: int):
+    return PersonalWorkspaceMutationCommand(
+        schema_version="1.0.0",
+        idempotency_key=key,
+        expected_revision=revision,
+        mutation=mutation,
+    )
+
+
 def test_empty_read_is_stable_and_does_not_write() -> None:
     operations, repository, references = service()
     first = operations.open_workspace(OpenPersonalWorkspaceRequest("learner.one"))
@@ -157,7 +184,7 @@ def test_create_note_resolves_source_and_materializes_revision_two() -> None:
         MutatePersonalWorkspaceRequest("learner.one", note_command())
     )
     assert accepted.revision == 2
-    assert accepted.records[0].record_id == "record.one"
+    assert accepted.records[0].record_id == "record.note"
     assert accepted.records[0].target.validated_at == NOW
     assert repository.workspace == accepted
     assert repository.writes == 1
@@ -212,9 +239,119 @@ def test_non_source_mutation_does_not_call_curriculum_gateway() -> None:
             ),
         )
     )
-    assert accepted.collections[0].collection_id == "record.one"
+    assert accepted.collections[0].collection_id == "record.note"
     assert references.calls == 0
     assert repository.writes == 1
+
+
+def test_source_denial_writes_nothing() -> None:
+    operations, repository, references = service(unavailable_source=True)
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        operations.mutate_workspace(
+            MutatePersonalWorkspaceRequest("learner.one", note_command())
+        )
+    assert caught.value.code == PersonalWorkspaceErrorCode.SOURCE_UNAVAILABLE
+    assert references.calls == 1
+    assert repository.workspace is None
+    assert repository.replays == {}
+    assert repository.writes == 0
+
+
+def test_missing_workspace_owned_record_has_distinct_not_found_result() -> None:
+    operations, repository, references = service()
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        operations.mutate_workspace(
+            MutatePersonalWorkspaceRequest(
+                "learner.one",
+                command(
+                    RemoveRecordMutation(record_id="record.missing"),
+                    key="remove.missing",
+                    revision=1,
+                ),
+            )
+        )
+    assert caught.value.code == PersonalWorkspaceErrorCode.NOT_FOUND
+    assert repository.writes == 0
+    assert references.calls == 0
+
+
+def test_complete_mutation_union_preserves_order_and_collection_integrity(
+) -> None:
+    operations, repository, references = service()
+
+    def apply(mutation, key: str):
+        current = operations.open_workspace(
+            OpenPersonalWorkspaceRequest("learner.one")
+        )
+        return operations.mutate_workspace(
+            MutatePersonalWorkspaceRequest(
+                "learner.one",
+                command(mutation, key=key, revision=current.revision),
+            )
+        )
+
+    note = operations.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", note_command())
+    )
+    assert note.records[0].record_id == "record.note"
+    bookmark = apply(
+        CreateBookmarkCommand(
+            selector=LearningOpportunitySelector(
+                opportunity_id="opportunity.diversification",
+                placement_id="placement.diversification",
+            ),
+            label=None,
+        ),
+        "bookmark.one",
+    )
+    assert bookmark.records[1].record_id == "record.bookmark"
+    updated_note = apply(
+        UpdateNoteMutation("record.note", "Updated note", "Updated body"),
+        "note.update",
+    )
+    assert updated_note.records[0].title == "Updated note"
+    updated_bookmark = apply(
+        UpdateBookmarkMutation("record.bookmark", "Read again"),
+        "bookmark.update",
+    )
+    assert updated_bookmark.records[1].label == "Read again"
+    collection = apply(CreateCollectionMutation("Key lessons"), "collection.create")
+    assert collection.collections[0].collection_id == "collection.one"
+    members = apply(
+        SetCollectionMembersMutation(
+            "collection.one", ("record.bookmark", "record.note")
+        ),
+        "collection.members",
+    )
+    assert members.collections[0].member_record_ids == (
+        "record.bookmark",
+        "record.note",
+    )
+    reordered = apply(
+        ReorderRecordsMutation(("record.bookmark", "record.note")),
+        "records.reorder",
+    )
+    assert tuple(record.record_id for record in reordered.records) == (
+        "record.bookmark",
+        "record.note",
+    )
+    archived = apply(ArchiveRecordMutation("record.note"), "note.archive")
+    assert archived.records[1].archived is True
+    restored = apply(RestoreRecordMutation("record.note"), "note.restore")
+    assert restored.records[1].archived is False
+    renamed = apply(
+        RenameCollectionMutation("collection.one", "Review later"),
+        "collection.rename",
+    )
+    assert renamed.collections[0].title == "Review later"
+    no_collection = apply(
+        RemoveCollectionMutation("collection.one"), "collection.remove"
+    )
+    assert no_collection.collections == ()
+    final = apply(RemoveRecordMutation("record.bookmark"), "bookmark.remove")
+    assert tuple(record.record_id for record in final.records) == ("record.note",)
+    assert repository.writes == 12
+    assert references.calls == 2
 
 
 @pytest.mark.parametrize(

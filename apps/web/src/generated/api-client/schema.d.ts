@@ -920,7 +920,7 @@ export interface components {
     readonly "PersonalWorkspaceBookmarkModel": {
       readonly "archived": boolean;
       readonly "created_at": string;
-      readonly "label"?: string | null;
+      readonly "label": string | null;
       readonly "record_id": string;
       readonly "record_kind": "bookmark";
       readonly "target": components["schemas"]["PersonalLearningOpportunityReferenceModel"] | components["schemas"]["PersonalPlacedLessonReferenceModel"];

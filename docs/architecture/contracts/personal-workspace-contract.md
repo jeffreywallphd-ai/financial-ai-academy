@@ -44,6 +44,10 @@ permission, or provides a mutation path into another module.
   `POST /api/v1/personal-workspace/mutations` use server-owned learner context
   and explicit read/write permissions. Browser and authenticated headless
   consumers share these reviewed OpenAPI and generated-client contracts.
+- Source-bearing create requests also require the referenced owner's public
+  read permission and reject caller-selected learner query parameters before
+  workspace access. Missing workspace-owned records and collections have a
+  distinct bounded `not_found` result.
 
 ## Exclusions
 

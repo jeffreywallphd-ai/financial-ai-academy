@@ -24,5 +24,7 @@ and cannot confer access to a target. It imports no other module internals and
 has no provider, model, external-network, file, or execution dependency.
 
 The protected API/client delivery is the primary product boundary for browser
-and headless consumers. A later CAP-0017 packet adds the browser experience
-without changing this ownership direction.
+and headless consumers. Source-bearing creates also require the owning
+Curriculum read permission; caller-selected learner query parameters are
+rejected before workspace access. A later CAP-0017 packet adds the browser
+experience without changing this ownership direction.

@@ -9,10 +9,15 @@ snapshot.
 workspace boundary. Reads and writes require the explicit
 `personal_workspace.read` and `personal_workspace.write` permissions and bind
 the learner only from the opaque server session. Create-note and
-create-bookmark inputs carry a closed Curriculum selector; title, route,
+create-bookmark inputs additionally require the owning Curriculum read
+permission: `curriculum.discovery.read` for a learning opportunity and
+`curriculum.lesson.read` for a placed lesson. They carry a closed Curriculum
+selector; title, route,
 package, publication, validation time, record identity, and other server-owned
 facts cannot be selected by a caller. Exact retry returns the accepted
 workspace while stale revision and changed key reuse fail without overwrite.
+Both operations reject every query selector; workspace-owned missing records
+or collections return the bounded `not_found` result.
 The reviewed OpenAPI and generated TypeScript types are identical for browser,
 command-line, service, and future headless consumers. No separate AI authority
 path is defined.

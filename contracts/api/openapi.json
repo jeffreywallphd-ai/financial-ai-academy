@@ -4156,6 +4156,7 @@
           "record_kind",
           "record_id",
           "target",
+          "label",
           "archived",
           "created_at",
           "updated_at"

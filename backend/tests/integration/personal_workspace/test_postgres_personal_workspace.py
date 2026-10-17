@@ -21,6 +21,9 @@ from financial_ai_academy.modules.personal_workspace.adapters.workspace_contract
 from financial_ai_academy.modules.personal_workspace.application.service import (
     PersonalWorkspaceService,
 )
+from financial_ai_academy.modules.personal_workspace.ports.learning_reference import (
+    PersonalWorkspaceSourceUnavailable,
+)
 from financial_ai_academy.modules.personal_workspace.public import (
     CreateNoteCommand,
     LearningOpportunitySelector,
@@ -88,23 +91,28 @@ class Identifier:
 
 
 class ReferenceGateway:
-    def __init__(self, contract) -> None:
+    def __init__(self, contract, *, unavailable: bool = False) -> None:
         intent = contract.parse_mutation_intent(
             (FIXTURES / "valid-create-note-intent.json").read_bytes()
         )
         self.reference = intent.mutation.target
         self.calls = 0
+        self.unavailable = unavailable
 
     def resolve(self, selector, *, validated_at):
         self.calls += 1
+        if self.unavailable:
+            raise PersonalWorkspaceSourceUnavailable()
         assert selector.opportunity_id == "opportunity.diversification"
         return replace(self.reference, validated_at=validated_at)
 
 
-def service(identifier: str = "note.postgres"):
+def service(
+    identifier: str = "note.postgres", *, unavailable_source: bool = False
+):
     assert POSTGRES_DSN is not None
     contract = ContractPersonalWorkspaceAdapter(SCHEMAS)
-    gateway = ReferenceGateway(contract)
+    gateway = ReferenceGateway(contract, unavailable=unavailable_source)
     return (
         PersonalWorkspaceService(
             PostgresPersonalWorkspaceRepository(POSTGRES_DSN, contract),
@@ -210,6 +218,102 @@ def test_concurrent_first_writes_accept_exactly_one_revision() -> None:
         )
     assert sum(hasattr(result, "revision") for result in results) == 1
     assert results.count(PersonalWorkspaceErrorCode.STALE_REVISION) == 1
+
+
+def test_source_denial_and_learner_isolation_write_no_unrelated_state(
+) -> None:
+    assert POSTGRES_DSN is not None
+    denied, denied_gateway = service(unavailable_source=True)
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        denied.mutate_workspace(
+            MutatePersonalWorkspaceRequest("learner.denied", command("denied"))
+        )
+    assert caught.value.code == PersonalWorkspaceErrorCode.SOURCE_UNAVAILABLE
+    assert denied_gateway.calls == 1
+
+    accepted, _ = service()
+    accepted.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", command("accepted"))
+    )
+    other = accepted.open_workspace(
+        OpenPersonalWorkspaceRequest("learner.two")
+    )
+    assert other.learner_id == "learner.two"
+    assert other.revision == 1
+    assert other.records == ()
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT learner_id FROM personal_workspace.workspaces "
+            "ORDER BY learner_id"
+        ).fetchall() == [("learner.one",)]
+        assert connection.execute(
+            "SELECT learner_id FROM personal_workspace.mutations "
+            "ORDER BY learner_id"
+        ).fetchall() == [("learner.one",)]
+
+
+def test_malformed_stored_workspace_fails_as_integrity_error() -> None:
+    assert POSTGRES_DSN is not None
+    subject, _ = service()
+    subject.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", command("accepted"))
+    )
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            """
+            UPDATE personal_workspace.workspaces
+            SET workspace = workspace - 'records'
+            WHERE learner_id = 'learner.one'
+            """
+        )
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        subject.open_workspace(OpenPersonalWorkspaceRequest("learner.one"))
+    assert caught.value.code == PersonalWorkspaceErrorCode.INTEGRITY_FAILURE
+
+
+def test_interrupted_mutation_rolls_back_workspace_and_replay_together() -> None:
+    assert POSTGRES_DSN is not None
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            """
+            CREATE FUNCTION personal_workspace.reject_mutation_for_test()
+            RETURNS trigger LANGUAGE plpgsql AS $$
+            BEGIN
+                RAISE EXCEPTION 'simulated interruption';
+            END;
+            $$;
+            CREATE TRIGGER reject_mutation_for_test
+            BEFORE INSERT ON personal_workspace.mutations
+            FOR EACH ROW EXECUTE FUNCTION
+                personal_workspace.reject_mutation_for_test();
+            """
+        )
+    try:
+        subject, _ = service()
+        with pytest.raises(PersonalWorkspaceError) as caught:
+            subject.mutate_workspace(
+                MutatePersonalWorkspaceRequest(
+                    "learner.one", command("interrupted")
+                )
+            )
+        assert caught.value.code == PersonalWorkspaceErrorCode.UNAVAILABLE
+        with psycopg.connect(POSTGRES_DSN) as connection:
+            assert connection.execute(
+                "SELECT count(*) FROM personal_workspace.workspaces"
+            ).fetchone() == (0,)
+            assert connection.execute(
+                "SELECT count(*) FROM personal_workspace.mutations"
+            ).fetchone() == (0,)
+    finally:
+        with psycopg.connect(POSTGRES_DSN) as connection:
+            connection.execute(
+                "DROP TRIGGER IF EXISTS reject_mutation_for_test "
+                "ON personal_workspace.mutations"
+            )
+            connection.execute(
+                "DROP FUNCTION IF EXISTS "
+                "personal_workspace.reject_mutation_for_test()"
+            )
 
 
 def test_retained_data_refuses_destructive_down() -> None:

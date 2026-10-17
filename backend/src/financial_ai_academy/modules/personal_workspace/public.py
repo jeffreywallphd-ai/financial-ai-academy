@@ -26,6 +26,7 @@ class PersonalWorkspaceErrorCode(StrEnum):
     IMMUTABLE_CONFLICT = "immutable_conflict"
     STALE_REVISION = "stale_revision"
     SOURCE_UNAVAILABLE = "source_unavailable"
+    NOT_FOUND = "not_found"
     INTEGRITY_FAILURE = "integrity_failure"
     UNAVAILABLE = "unavailable"
 

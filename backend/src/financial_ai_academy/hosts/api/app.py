@@ -197,6 +197,7 @@ from .models import (
     project_workspace_response,
     personal_workspace_mutation_command,
     personal_workspace_response,
+    personal_workspace_source_permission,
 )
 
 
@@ -374,6 +375,7 @@ def create_app(services: ApiServices) -> FastAPI:
             PersonalWorkspaceErrorCode.IMMUTABLE_CONFLICT: status.HTTP_409_CONFLICT,
             PersonalWorkspaceErrorCode.STALE_REVISION: status.HTTP_409_CONFLICT,
             PersonalWorkspaceErrorCode.SOURCE_UNAVAILABLE: status.HTTP_409_CONFLICT,
+            PersonalWorkspaceErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
             PersonalWorkspaceErrorCode.INTEGRITY_FAILURE: (
                 status.HTTP_503_SERVICE_UNAVAILABLE
             ),
@@ -811,8 +813,14 @@ def create_app(services: ApiServices) -> FastAPI:
         tags=["personal-workspace"],
     )
     def get_personal_workspace(
+        request: Request,
         context: LearnerContext = Depends(personal_workspace_read_context),
     ) -> PersonalWorkspaceResponseModel:
+        if request.query_params:
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.INVALID_REQUEST,
+                "Saved learning does not accept query selectors.",
+            )
         workspace = personal_workspace_operations().open_workspace(
             OpenPersonalWorkspaceRequest(learner_id=context.learner_id)
         )
@@ -827,8 +835,23 @@ def create_app(services: ApiServices) -> FastAPI:
     )
     def mutate_personal_workspace(
         request_model: PersonalWorkspaceMutationRequestModel,
+        request: Request,
         context: LearnerContext = Depends(personal_workspace_write_context),
     ) -> PersonalWorkspaceResponseModel:
+        if request.query_params:
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.INVALID_REQUEST,
+                "Saved learning does not accept query selectors.",
+            )
+        source_permission = personal_workspace_source_permission(request_model)
+        if (
+            source_permission is not None
+            and source_permission not in context.permissions
+        ):
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read the learning item being saved.",
+            )
         workspace = personal_workspace_operations().mutate_workspace(
             MutatePersonalWorkspaceRequest(
                 learner_id=context.learner_id,
