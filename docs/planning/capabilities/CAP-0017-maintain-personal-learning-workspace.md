@@ -1,13 +1,13 @@
 ---
 id: CAP-0017
 kind: capability
-planning_status: ready
+planning_status: decision-blocked
 authority: noncanonical
 owner: unassigned
-updated: 2026-10-16
+updated: 2026-10-17
 parent: null
 depends_on: ["CAP-0001", "CAP-0007"]
-decision_gates: []
+decision_gates: ["DEC-0021"]
 approval_model: cap-package-v1
 slice_ids: ["SLI-0070", "SLI-0071", "SLI-0072", "SLI-0073"]
 ---
@@ -58,6 +58,9 @@ project, financial, or AI record.
 
 ## Decision Gates and Constraints
 
+- DEC-0021 must select and promote the module ownership and public boundary for
+  general learner notes, bookmarks, collections, and cross-domain references
+  before SLI-0070 begins.
 - Project owns mutable project workspaces and immutable snapshots; other domain
   resources remain independently authoritative.
 - Workspace links carry stable references and provenance only and never grant
@@ -109,4 +112,7 @@ accessibility, and verification documentation.
 - 2026-10-16: Reconciled the complete four-slice package with current project,
   identity, and optional-adapter boundaries. Managed organization policy stays
   out of scope; the manifest remains unchanged.
+- 2026-10-17: Incremental delivery found that a general personal-workspace
+  owner is not authorized by ADR-0012. Added DEC-0021 and blocked delivery
+  without changing the four-slice manifest or capability outcome.
 
