@@ -1,7 +1,7 @@
 ---
 id: SLI-0074
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -207,7 +207,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0147 | Freeze learner-preference v1 profile, mutation, history/export, compatibility, pure domain, transport-neutral parser/projector, privacy, and anti-rigidity contracts | none | none | complete |
 | WRK-0148 | Compose Learner-model application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0147 | none | complete |
 | WRK-0149 | Deliver the plain-language accessible `Learning preferences` browser flow exclusively through the generated client | WRK-0148 | none | complete |
-| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149 | none | ready |
+| WRK-0150 | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, privacy, containment, and slice boundaries | WRK-0149, WRK-0151 | none | verifying |
 | WRK-0151 | Preserve exact canonical learner-preference timestamps in API responses so digest validation remains stable | WRK-0148 | none | complete |
 
 Dependent packets are not reserved, authored, or claimed until their concrete
@@ -314,3 +314,7 @@ approval history.
 - 2026-10-17: Activated WRK-0150 from recorded base `b04f6a2` after confirming
   the completed browser dependency, qualification-only boundary, exact shared
   runner/build/documentation scope, and absence of an active edit collision.
+- 2026-10-17: Entered slice verification after the final packet passed its
+  complete isolated browser/headless/PostgreSQL workflow, including exact
+  replay, all three simultaneous-write outcome classes, normal restart,
+  source-state noninterference, accessibility, recovery, and bounded cleanup.

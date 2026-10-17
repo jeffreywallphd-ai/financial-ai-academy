@@ -138,6 +138,15 @@ cannot replace it, and verifies one atomic
 attempt/response/score/completion/outbox aggregate. After normal restart, the
 runner reopens the same progress and draft, exactly replays both accepted
 documents, and confirms immutable counts and the newer draft remain unchanged.
+The runner next drives the complete Learning preferences browser journey and
+captures only the closed public profile, bounded history, portable export, and
+safe expected correlations. Fresh cookie-backed headless clients read the same
+meaning, exactly replay the browser mutation, and exercise same-key replay,
+same-key conflict, and different-key stale-revision races through the public
+API. Direct PostgreSQL inspection is evidence-only; it correlates the accepted
+rows while privacy-safe fingerprints prove that unrelated learning state did
+not change. The same profile, history, export, replay, and rows are checked
+again after the normal host restart.
 The runner also exercises the generated Saved Learning browser against the
 same live host: it creates a Unicode note and bookmark for the exact approved
 lesson, reorders them, creates ordered collection membership, archives and

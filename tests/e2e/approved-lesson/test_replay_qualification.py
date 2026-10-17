@@ -3419,3 +3419,350 @@ def test_cleanup_failure_without_primary_error_remains_bounded() -> None:
     assert str(captured.value) == (
         "Qualification cleanup failed for: database container (RuntimeError)."
     )
+
+
+def learner_preference_profile(
+    revision: int = 4,
+    *,
+    interest_label: str = "Index funds Σ",
+) -> dict[str, Any]:
+    document: dict[str, Any] = {
+        "schema_version": "1.0.0",
+        "profile_id": "preference.qualification",
+        "learner_id": "11111111-1111-4111-8111-111111111111",
+        "revision": revision,
+        "goals": [
+            {
+                "goal_id": "goal.qualification",
+                "title": "Compare risk Café",
+                "detail": "Keep assumptions visible.",
+                "archived": False,
+                "created_at": "2026-10-17T18:00:00Z",
+                "updated_at": "2026-10-17T18:00:01Z",
+            }
+        ],
+        "experience": [
+            {
+                "experience_id": "experience.qualification",
+                "subject": "Portfolio comparison",
+                "level": "new",
+                "detail": None,
+                "created_at": "2026-10-17T18:00:01Z",
+                "updated_at": "2026-10-17T18:00:01Z",
+            }
+        ],
+        "interests": [
+            {
+                "interest_id": "interest.qualification",
+                "label": interest_label,
+                "created_at": "2026-10-17T18:00:02Z",
+                "updated_at": "2026-10-17T18:00:02Z",
+            }
+        ],
+        "created_at": "2026-10-17T18:00:00Z",
+        "updated_at": "2026-10-17T18:00:02Z",
+    }
+    document["profile_digest"] = runner._canonical_sha256(document)
+    return document
+
+
+def learner_preference_history(
+    profile: dict[str, Any],
+) -> dict[str, Any]:
+    operations = (
+        ("create_goal", "goal", "goal.qualification"),
+        ("create_experience", "experience", "experience.qualification"),
+        ("create_interest", "interest", "interest.qualification"),
+    )
+    changes = [
+        {
+            "schema_version": "1.0.0",
+            "revision": revision,
+            "operation": operation,
+            "object_kind": kind,
+            "object_id": object_id,
+            "occurred_at": f"2026-10-17T18:00:0{revision - 1}Z",
+            "resulting_profile_digest": (
+                profile["profile_digest"] if revision == profile["revision"] else "a" * 64
+            ),
+        }
+        for revision, (operation, kind, object_id) in zip(
+            range(2, profile["revision"] + 1),
+            operations,
+            strict=True,
+        )
+    ]
+    return {
+        "schema_version": "1.0.0",
+        "profile_id": profile["profile_id"],
+        "current_revision": profile["revision"],
+        "changes": changes,
+    }
+
+
+def learner_preference_capture() -> dict[str, Any]:
+    profile = learner_preference_profile()
+    history = learner_preference_history(profile)
+    exact_request = {
+        "schema_version": "1.0.0",
+        "idempotency_key": "11111111-1111-4111-8111-111111111114",
+        "expected_revision": 3,
+        "mutation": {"operation": "create_interest", "label": "Index funds Σ"},
+    }
+    race_revision = profile["revision"]
+    return {
+        "schema_version": "1.0.0",
+        "profile": profile,
+        "history": history,
+        "export": {
+            "schema_version": "1.0.0",
+            "purpose": "A portable copy of the learning preferences you entered.",
+            "limitations": ["These statements are not evidence of competency."],
+            "exported_at": "2026-10-17T18:00:03Z",
+            "profile": profile,
+            "history": history,
+        },
+        "exact_replay_request": exact_request,
+        "exact_replay_response": profile,
+        "races": {
+            "same_key_same_payload": {
+                "requests": [
+                    {
+                        "schema_version": "1.0.0",
+                        "idempotency_key": "11111111-1111-4111-8111-111111111115",
+                        "expected_revision": race_revision,
+                        "mutation": {"operation": "create_interest", "label": "Replay race"},
+                    }
+                    for _ in range(2)
+                ],
+                "expected": ["accepted", "accepted"],
+            },
+            "same_key_changed_payload": {
+                "requests": [
+                    {
+                        "schema_version": "1.0.0",
+                        "idempotency_key": "11111111-1111-4111-8111-111111111116",
+                        "expected_revision": race_revision + 1,
+                        "mutation": {"operation": "create_interest", "label": label},
+                    }
+                    for label in ("Conflict A", "Conflict B")
+                ],
+                "expected": ["accepted", "conflict"],
+            },
+            "different_key_same_revision": {
+                "requests": [
+                    {
+                        "schema_version": "1.0.0",
+                        "idempotency_key": key,
+                        "expected_revision": race_revision + 2,
+                        "mutation": {"operation": "create_interest", "label": label},
+                    }
+                    for key, label in (
+                        ("11111111-1111-4111-8111-111111111117", "Stale A"),
+                        ("11111111-1111-4111-8111-111111111118", "Stale B"),
+                    )
+                ],
+                "expected": ["accepted", "stale"],
+            },
+        },
+        "expected": {
+            "final_goal": "Compare risk Café",
+            "final_experience": "Portfolio comparison",
+            "final_interest": "Index funds Σ",
+            "reset_recorded": True,
+            "populated_export_profile_revision": 3,
+        },
+    }
+
+
+def test_learner_preference_race_clients_share_one_issued_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bootstrap_calls: list[str] = []
+
+    class FakeOpener:
+        def __init__(self, processor: object) -> None:
+            self.cookies = processor.cookiejar
+
+    def build_opener(processor: object) -> FakeOpener:
+        return FakeOpener(processor)
+
+    def bootstrap(opener: FakeOpener, *, origin: str, path: str, **_kwargs):
+        bootstrap_calls.append(f"{origin}{path}")
+        opener.cookies.set_cookie(
+            runner.http.cookiejar.Cookie(
+                version=0,
+                name="financial_ai_academy_session",
+                value="a" * 43,
+                port=None,
+                port_specified=False,
+                domain="127.0.0.1",
+                domain_specified=False,
+                domain_initial_dot=False,
+                path="/",
+                path_specified=True,
+                secure=False,
+                expires=None,
+                discard=True,
+                comment=None,
+                comment_url=None,
+                rest={},
+                rfc2109=False,
+            )
+        )
+        return {"status": "ready"}
+
+    monkeypatch.setattr(runner.urllib.request, "build_opener", build_opener)
+    monkeypatch.setattr(runner, "_request_json", bootstrap)
+
+    clients = runner.open_learner_preference_sessions(
+        "http://127.0.0.1:8123",
+        2,
+    )
+
+    assert bootstrap_calls == [
+        "http://127.0.0.1:8123/api/v1/session/single-profile"
+    ]
+    assert clients[0] is not clients[1]
+    assert clients[0].cookies is not clients[1].cookies
+    assert [cookie.value for cookie in clients[0].cookies] == ["a" * 43]
+    assert [cookie.value for cookie in clients[1].cookies] == ["a" * 43]
+
+
+def test_learner_preference_capture_is_closed_correlated_and_private(
+    tmp_path: Path,
+) -> None:
+    capture = learner_preference_capture()
+    path = tmp_path / "learner-preferences-capture.json"
+    path.write_text(json.dumps(capture), encoding="utf-8")
+    assert runner.load_learner_preference_capture(path, data_root=tmp_path) == capture
+
+    changed = deepcopy(capture)
+    changed["profile"]["extra"] = True
+    path.write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="open or incomplete"):
+        runner.load_learner_preference_capture(path, data_root=tmp_path)
+
+    leaked = deepcopy(capture)
+    leaked["expected"]["token"] = "private"
+    path.write_text(json.dumps(leaked), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="private authority"):
+        runner.load_learner_preference_capture(path, data_root=tmp_path)
+
+    bad_digest = deepcopy(capture)
+    bad_digest["profile"]["profile_digest"] = "0" * 64
+    path.write_text(json.dumps(bad_digest), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="digest"):
+        runner.load_learner_preference_capture(path, data_root=tmp_path)
+
+
+def test_learner_preference_profile_accepts_variable_wording_count_and_order() -> None:
+    profile = learner_preference_profile()
+    duplicate = deepcopy(profile["goals"][0])
+    duplicate["goal_id"] = "goal.duplicate"
+    profile["goals"].insert(0, duplicate)
+    profile["profile_digest"] = runner._canonical_sha256(
+        {key: value for key, value in profile.items() if key != "profile_digest"}
+    )
+    assert runner.stable_learner_preference_profile(profile) == profile
+
+    changed_order = deepcopy(profile)
+    changed_order["goals"].reverse()
+    changed_order["profile_digest"] = runner._canonical_sha256(
+        {key: value for key, value in changed_order.items() if key != "profile_digest"}
+    )
+    assert runner.stable_learner_preference_profile(changed_order) == changed_order
+
+
+def _race_storage(profile: dict[str, Any], *, changes: int, mutations: int) -> dict[str, Any]:
+    return {
+        "profiles": [[
+            profile["profile_id"],
+            profile["learner_id"],
+            profile["revision"],
+            profile,
+            profile["profile_digest"],
+        ]],
+        "changes": [["change", index] for index in range(changes)],
+        "mutations": [["mutation", index] for index in range(mutations)],
+    }
+
+
+def test_learner_preference_race_matrix_requires_one_durable_change() -> None:
+    before_profile = learner_preference_profile()
+    accepted = learner_preference_profile(5, interest_label="Race replay result")
+    before = _race_storage(before_profile, changes=3, mutations=3)
+    after = _race_storage(accepted, changes=4, mutations=4)
+    requests = learner_preference_capture()["races"]["same_key_same_payload"]["requests"]
+    assert runner.assert_learner_preference_race_outcomes(
+        name="same_key_same_payload",
+        requests=requests,
+        results=[(200, accepted), (200, deepcopy(accepted))],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
+
+    conflict_requests = learner_preference_capture()["races"]["same_key_changed_payload"]["requests"]
+    denial = {
+        "error_version": "1.0",
+        "code": "immutable_conflict",
+        "message": "The request key already names a different learning preference change.",
+        "correlation_id": "22222222-2222-4222-8222-222222222222",
+    }
+    assert runner.assert_learner_preference_race_outcomes(
+        name="same_key_changed_payload",
+        requests=conflict_requests,
+        results=[(200, accepted), (409, denial)],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
+
+    duplicate = deepcopy(after)
+    duplicate["changes"].append(["change", 5])
+    with pytest.raises(RuntimeError, match="row count"):
+        runner.assert_learner_preference_race_outcomes(
+            name="same_key_same_payload",
+            requests=requests,
+            results=[(200, accepted), (200, accepted)],
+            before_storage=before,
+            after_storage=duplicate,
+        )
+
+
+def test_learner_preference_restart_requires_exact_profile_history_and_rows() -> None:
+    capture = learner_preference_capture()
+    profile = capture["profile"]
+    history = capture["history"]
+    accepted_profiles = [learner_preference_profile(revision) for revision in (2, 3, 4)]
+    storage = {
+        "profiles": [[
+            profile["profile_id"],
+            profile["learner_id"],
+            profile["revision"],
+            profile,
+            profile["profile_digest"],
+        ]],
+        "changes": [
+            [
+                profile["learner_id"],
+                change["revision"],
+                change,
+                change["resulting_profile_digest"],
+            ]
+            for change in history["changes"]
+        ],
+        "mutations": [
+            [
+                profile["learner_id"],
+                f"mutation.{index}",
+                accepted_profile["revision"],
+                accepted_profile,
+            ]
+            for index, accepted_profile in enumerate(accepted_profiles, start=2)
+        ],
+    }
+    runner.assert_learner_preference_storage(storage, profile=profile, history=history)
+    changed = deepcopy(storage)
+    changed["profiles"][0][2] += 1
+    with pytest.raises(RuntimeError, match="stored profile"):
+        runner.assert_learner_preference_storage(changed, profile=profile, history=history)

@@ -237,6 +237,16 @@ accessible `Technical record` disclosures. The browser adds no learner
 selector, authoritative local copy, inference, evidence, competency, adaptive
 policy, recommendation, provider, financial, or external-action path.
 
+The isolated approved-lesson qualification exercises this complete route with
+Unicode and duplicate learner wording, variable ordering, archive/restore,
+confirmed removal, reset, history, export, keyboard and focus behavior, narrow
+reflow, themes, forced colors, and reduced motion. It then compares the same
+closed profile, history, export, and exact replay through an ordinary
+cookie-backed HTTP client, runs all three simultaneous-write outcome classes,
+and reopens the retained meaning after a normal host restart. The browser and
+headless paths therefore remain two clients of one protected API rather than
+separate authorities.
+
 `/saved-learning` opens the learner's private notes, bookmarks, and collections
 through the generated Personal-workspace client. Available opportunity-detail
 and lesson pages provide `Save to Saved learning` links that carry only the

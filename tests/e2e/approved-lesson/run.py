@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import base64
 import copy
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 import hashlib
 import http.cookiejar
@@ -16,6 +17,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import unicodedata
 import urllib.error
@@ -332,6 +334,66 @@ PERSONAL_WORKSPACE_TARGET_SCHEMAS = (
     "curriculum",
     "learner_model",
     "project",
+)
+LEARNER_PREFERENCE_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "profile",
+        "history",
+        "export",
+        "exact_replay_request",
+        "exact_replay_response",
+        "races",
+        "expected",
+    }
+)
+LEARNER_PREFERENCE_PRIVATE_CAPTURE_KEYS = frozenset(
+    {
+        "authorization",
+        "cookie",
+        "credential",
+        "database",
+        "evidence",
+        "mastery",
+        "password",
+        "permission",
+        "provider",
+        "recommendation",
+        "request_fingerprint",
+        "session_cookie",
+        "storage_path",
+        "suitability",
+        "token",
+    }
+)
+LEARNER_PREFERENCE_PROFILE_KEYS = frozenset(
+    {
+        "schema_version",
+        "profile_id",
+        "learner_id",
+        "revision",
+        "goals",
+        "experience",
+        "interests",
+        "created_at",
+        "updated_at",
+        "profile_digest",
+    }
+)
+LEARNER_PREFERENCE_HISTORY_KEYS = frozenset(
+    {"schema_version", "profile_id", "current_revision", "changes"}
+)
+LEARNER_PREFERENCE_EXPORT_KEYS = frozenset(
+    {"schema_version", "purpose", "limitations", "exported_at", "profile", "history"}
+)
+LEARNER_PREFERENCE_REQUEST_KEYS = frozenset(
+    {"schema_version", "idempotency_key", "expected_revision", "mutation"}
+)
+LEARNER_PREFERENCE_DENIAL_KEYS = frozenset(
+    {"error_version", "code", "message", "correlation_id"}
+)
+LEARNER_PREFERENCE_TABLES = frozenset(
+    {"preference_profiles", "preference_changes", "preference_mutations"}
 )
 PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
     {
@@ -4665,6 +4727,704 @@ def assert_practice_submission_restart_result(
         raise RuntimeError("Practice evidence changed after replay or restart.")
 
 
+def _canonical_sha256(document: object) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            document,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _preference_identifier(value: object) -> bool:
+    return isinstance(value, str) and re.fullmatch(
+        r"[a-z0-9][a-z0-9._-]{2,63}", value
+    ) is not None
+
+
+def _preference_time(value: object, *, label: str) -> datetime:
+    if not isinstance(value, str) or UTC_TIMESTAMP.fullmatch(value) is None:
+        raise RuntimeError(f"{label} is not a canonical UTC timestamp.")
+    return _utc_instant(value, label=label)
+
+
+def stable_learner_preference_profile(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != LEARNER_PREFERENCE_PROFILE_KEYS:
+        raise RuntimeError("Learner preference profile has an open or incomplete shape.")
+    if (
+        document.get("schema_version") != "1.0.0"
+        or not _preference_identifier(document.get("profile_id"))
+        or not isinstance(document.get("learner_id"), str)
+        or not isinstance(document.get("revision"), int)
+        or isinstance(document.get("revision"), bool)
+        or document["revision"] < 1
+        or not isinstance(document.get("profile_digest"), str)
+        or re.fullmatch(r"[a-f0-9]{64}", document["profile_digest"]) is None
+    ):
+        raise RuntimeError("Learner preference profile identity is invalid.")
+    try:
+        learner_id = UUID(document["learner_id"])
+    except ValueError as error:
+        raise RuntimeError("Learner preference profile learner identity is invalid.") from error
+    if str(learner_id) != document["learner_id"]:
+        raise RuntimeError("Learner preference learner identity is not canonical.")
+    created_at = _preference_time(
+        document.get("created_at"), label="Learner preference created time"
+    )
+    updated_at = _preference_time(
+        document.get("updated_at"), label="Learner preference updated time"
+    )
+    if updated_at < created_at:
+        raise RuntimeError("Learner preference profile chronology is invalid.")
+
+    collections = (
+        (
+            "goals",
+            20,
+            frozenset(
+                {"goal_id", "title", "detail", "archived", "created_at", "updated_at"}
+            ),
+            "goal_id",
+            "title",
+        ),
+        (
+            "experience",
+            20,
+            frozenset(
+                {"experience_id", "subject", "level", "detail", "created_at", "updated_at"}
+            ),
+            "experience_id",
+            "subject",
+        ),
+        (
+            "interests",
+            50,
+            frozenset({"interest_id", "label", "created_at", "updated_at"}),
+            "interest_id",
+            "label",
+        ),
+    )
+    identifiers: list[str] = []
+    for name, limit, keys, identifier_key, text_key in collections:
+        entries = document.get(name)
+        if not isinstance(entries, list) or len(entries) > limit:
+            raise RuntimeError(f"Learner preference {name} collection is invalid.")
+        for entry in entries:
+            if not isinstance(entry, dict) or set(entry) != keys:
+                raise RuntimeError(f"Learner preference {name} entry is not closed.")
+            identifier = entry.get(identifier_key)
+            text_value = entry.get(text_key)
+            if (
+                not _preference_identifier(identifier)
+                or not isinstance(text_value, str)
+                or text_value.strip() != text_value
+                or not text_value
+            ):
+                raise RuntimeError(f"Learner preference {name} entry is invalid.")
+            if name == "goals" and (
+                not isinstance(entry.get("archived"), bool)
+                or not (
+                    entry.get("detail") is None
+                    or isinstance(entry.get("detail"), str)
+                )
+            ):
+                raise RuntimeError("Learner preference goal entry is invalid.")
+            if name == "experience" and (
+                entry.get("level") not in {"new", "some_experience", "experienced"}
+                or not (
+                    entry.get("detail") is None
+                    or isinstance(entry.get("detail"), str)
+                )
+            ):
+                raise RuntimeError("Learner preference experience entry is invalid.")
+            entry_created = _preference_time(
+                entry.get("created_at"), label=f"Learner preference {name} created time"
+            )
+            entry_updated = _preference_time(
+                entry.get("updated_at"), label=f"Learner preference {name} updated time"
+            )
+            if not (created_at <= entry_created <= entry_updated <= updated_at):
+                raise RuntimeError(f"Learner preference {name} chronology is invalid.")
+            identifiers.append(str(identifier))
+    if len(identifiers) != len(set(identifiers)):
+        raise RuntimeError("Learner preference identifiers are not unique.")
+    material = {key: copy.deepcopy(value) for key, value in document.items() if key != "profile_digest"}
+    if _canonical_sha256(material) != document["profile_digest"]:
+        raise RuntimeError("Learner preference profile digest is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_learner_preference_history(
+    document: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != LEARNER_PREFERENCE_HISTORY_KEYS or (
+        document.get("schema_version") != "1.0.0"
+        or document.get("profile_id") != profile["profile_id"]
+        or document.get("current_revision") != profile["revision"]
+        or not isinstance(document.get("changes"), list)
+        or len(document["changes"]) > 100
+    ):
+        raise RuntimeError("Learner preference history is invalid.")
+    previous_revision = 0
+    previous_time: datetime | None = None
+    change_keys = frozenset(
+        {
+            "schema_version",
+            "revision",
+            "operation",
+            "object_kind",
+            "object_id",
+            "occurred_at",
+            "resulting_profile_digest",
+        }
+    )
+    for change in document["changes"]:
+        if not isinstance(change, dict) or set(change) != change_keys:
+            raise RuntimeError("Learner preference history change is not closed.")
+        occurred_at = _preference_time(
+            change.get("occurred_at"), label="Learner preference change time"
+        )
+        revision = change.get("revision")
+        if (
+            change.get("schema_version") != "1.0.0"
+            or not isinstance(revision, int)
+            or isinstance(revision, bool)
+            or revision <= previous_revision
+            or revision > profile["revision"]
+            or previous_time is not None
+            and occurred_at < previous_time
+            or not isinstance(change.get("resulting_profile_digest"), str)
+            or re.fullmatch(r"[a-f0-9]{64}", change["resulting_profile_digest"])
+            is None
+        ):
+            raise RuntimeError("Learner preference history correlation is invalid.")
+        previous_revision = revision
+        previous_time = occurred_at
+    latest = document["changes"][-1] if document["changes"] else None
+    if latest is not None and (
+        latest["revision"] != profile["revision"]
+        or latest["resulting_profile_digest"] != profile["profile_digest"]
+    ):
+        raise RuntimeError("Learner preference history does not end at the current profile.")
+    return copy.deepcopy(document)
+
+
+def stable_learner_preference_export(
+    document: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+    history: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != LEARNER_PREFERENCE_EXPORT_KEYS or (
+        document.get("schema_version") != "1.0.0"
+        or not isinstance(document.get("purpose"), str)
+        or not document["purpose"]
+        or not isinstance(document.get("limitations"), list)
+        or not 1 <= len(document["limitations"]) <= 8
+        or not all(isinstance(item, str) and item for item in document["limitations"])
+        or document.get("profile") != profile
+        or document.get("history") != history
+    ):
+        raise RuntimeError("Learner preference export is invalid.")
+    exported_at = _preference_time(
+        document.get("exported_at"), label="Learner preference export time"
+    )
+    if exported_at < _preference_time(
+        profile["updated_at"], label="Learner preference profile update time"
+    ):
+        raise RuntimeError("Learner preference export chronology is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_learner_preference_request(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != LEARNER_PREFERENCE_REQUEST_KEYS or (
+        document.get("schema_version") != "1.0.0"
+        or not _preference_identifier(document.get("idempotency_key"))
+        or not isinstance(document.get("expected_revision"), int)
+        or isinstance(document.get("expected_revision"), bool)
+        or document["expected_revision"] < 1
+        or not isinstance(document.get("mutation"), dict)
+    ):
+        raise RuntimeError("Learner preference mutation request is invalid.")
+    return copy.deepcopy(document)
+
+
+def load_learner_preference_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded learner preference capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 524_288:
+        raise RuntimeError("Learner preference capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict) or set(capture) != LEARNER_PREFERENCE_CAPTURE_ROOT_KEYS:
+        raise RuntimeError("Learner preference capture has an invalid shape.")
+    leaked = LEARNER_PREFERENCE_PRIVATE_CAPTURE_KEYS & _nested_mapping_keys(capture)
+    if leaked:
+        raise RuntimeError("Learner preference capture contains private authority data.")
+    if capture.get("schema_version") != "1.0.0":
+        raise RuntimeError("Learner preference capture version is invalid.")
+    if not all(
+        isinstance(capture.get(key), dict)
+        for key in (
+            "profile",
+            "history",
+            "export",
+            "exact_replay_request",
+            "exact_replay_response",
+            "races",
+            "expected",
+        )
+    ):
+        raise RuntimeError("Learner preference capture documents must be objects.")
+    profile = stable_learner_preference_profile(capture["profile"])
+    history = stable_learner_preference_history(capture["history"], profile=profile)
+    stable_learner_preference_export(capture["export"], profile=profile, history=history)
+    exact_request = stable_learner_preference_request(capture["exact_replay_request"])
+    exact_response = stable_learner_preference_profile(capture["exact_replay_response"])
+    if exact_response != profile or exact_request["expected_revision"] + 1 != profile["revision"]:
+        raise RuntimeError("Learner preference exact replay is not correlated.")
+    races = capture["races"]
+    if set(races) != {
+        "same_key_same_payload",
+        "same_key_changed_payload",
+        "different_key_same_revision",
+    }:
+        raise RuntimeError("Learner preference race matrix is incomplete.")
+    expected_classes = {
+        "same_key_same_payload": ["accepted", "accepted"],
+        "same_key_changed_payload": ["accepted", "conflict"],
+        "different_key_same_revision": ["accepted", "stale"],
+    }
+    for offset, (name, expected_outcomes) in enumerate(expected_classes.items()):
+        case = races.get(name)
+        if not isinstance(case, dict) or set(case) != {"requests", "expected"}:
+            raise RuntimeError("Learner preference race case is not closed.")
+        requests = case.get("requests")
+        if not isinstance(requests, list) or len(requests) != 2:
+            raise RuntimeError("Learner preference race request pair is invalid.")
+        stable_requests = [
+            stable_learner_preference_request(request)
+            if isinstance(request, dict)
+            else (_ for _ in ()).throw(RuntimeError("Learner preference race request is invalid."))
+            for request in requests
+        ]
+        if (
+            sorted(case.get("expected", [])) != sorted(expected_outcomes)
+            or any(
+                request["expected_revision"] != profile["revision"] + offset
+                or request["mutation"].get("operation") != "create_interest"
+                for request in stable_requests
+            )
+        ):
+            raise RuntimeError("Learner preference race expectations are invalid.")
+        keys = [request["idempotency_key"] for request in stable_requests]
+        mutations = [request["mutation"] for request in stable_requests]
+        if name == "same_key_same_payload" and not (
+            keys[0] == keys[1] and mutations[0] == mutations[1]
+        ):
+            raise RuntimeError("Exact replay race does not use the same request.")
+        if name == "same_key_changed_payload" and not (
+            keys[0] == keys[1] and mutations[0] != mutations[1]
+        ):
+            raise RuntimeError("Changed-payload race is not immutable-key scoped.")
+        if name == "different_key_same_revision" and keys[0] == keys[1]:
+            raise RuntimeError("Stale-revision race does not use distinct keys.")
+    return copy.deepcopy(capture)
+
+
+def open_learner_preference_sessions(
+    origin: str,
+    count: int,
+) -> list[urllib.request.OpenerDirector]:
+    if count < 1:
+        raise ValueError("At least one learner preference session client is required.")
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    issued_cookies = tuple(cookies)
+    if not issued_cookies:
+        raise RuntimeError("Learner preference session did not issue a cookie.")
+    openers: list[urllib.request.OpenerDirector] = []
+    for _ in range(count):
+        client_cookies = http.cookiejar.CookieJar()
+        for cookie in issued_cookies:
+            client_cookies.set_cookie(copy.copy(cookie))
+        openers.append(
+            urllib.request.build_opener(
+                urllib.request.HTTPCookieProcessor(client_cookies)
+            )
+        )
+    return openers
+
+
+def open_learner_preference_session(origin: str) -> urllib.request.OpenerDirector:
+    return open_learner_preference_sessions(origin, 1)[0]
+
+
+def _assert_safe_learner_preference_denial(
+    status: int,
+    document: dict[str, Any],
+    *,
+    expected_code: str,
+    requests: list[dict[str, Any]],
+) -> None:
+    if status != 409 or set(document) != LEARNER_PREFERENCE_DENIAL_KEYS or (
+        document.get("error_version") != "1.0"
+        or document.get("code") != expected_code
+    ):
+        raise RuntimeError("Learner preference race denial changed public meaning.")
+    try:
+        correlation_id = UUID(str(document.get("correlation_id")))
+    except ValueError as error:
+        raise RuntimeError("Learner preference denial correlation is invalid.") from error
+    if str(correlation_id) != document.get("correlation_id"):
+        raise RuntimeError("Learner preference denial correlation is not canonical.")
+    serialized = json.dumps(document, ensure_ascii=False, sort_keys=True).casefold()
+    sensitive_values = {
+        str(value).casefold()
+        for request in requests
+        for value in (
+            request.get("idempotency_key"),
+            request.get("mutation", {}).get("label"),
+        )
+        if value
+    }
+    if any(value in serialized for value in sensitive_values) or any(
+        marker in serialized
+        for marker in (
+            "learner_id",
+            "preference_mutations",
+            "request_fingerprint",
+            "postgres",
+            "traceback",
+        )
+    ):
+        raise RuntimeError("Learner preference denial disclosed private details.")
+
+
+def observe_headless_learner_preferences(
+    *,
+    origin: str,
+    expected_profile: dict[str, Any],
+    expected_history: dict[str, Any],
+    expected_export: dict[str, Any],
+    exact_replay_request: dict[str, Any],
+    exact_replay_response: dict[str, Any],
+) -> dict[str, Any]:
+    opener = open_learner_preference_session(origin)
+    profile = stable_learner_preference_profile(
+        _request_json(opener, origin=origin, path="/api/v1/learner-preferences")
+    )
+    history = stable_learner_preference_history(
+        _request_json(opener, origin=origin, path="/api/v1/learner-preferences/history"),
+        profile=profile,
+    )
+    export_document = stable_learner_preference_export(
+        _request_json(opener, origin=origin, path="/api/v1/learner-preferences/export"),
+        profile=profile,
+        history=history,
+    )
+    if profile != expected_profile or history != expected_history or any(
+        export_document[key] != expected_export[key]
+        for key in LEARNER_PREFERENCE_EXPORT_KEYS - {"exported_at"}
+    ):
+        raise RuntimeError("Headless learner preferences changed browser-observed meaning.")
+    replayed = stable_learner_preference_profile(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-preferences/mutations",
+            method="POST",
+            payload=exact_replay_request,
+        )
+    )
+    if replayed != exact_replay_response:
+        raise RuntimeError("Headless learner preference replay changed accepted meaning.")
+    for suffix in ("?learner_id=someone-else", "/history?limit=1", "/export?private=true"):
+        status, denial = _request_json_read_status(
+            opener,
+            origin=origin,
+            path=f"/api/v1/learner-preferences{suffix}",
+        )
+        if status != 400 or denial.get("code") != "invalid_request":
+            raise RuntimeError("Learner preference guessed input was not denied.")
+    return {"profile": profile, "history": history, "export": export_document}
+
+
+def learner_preference_source_fingerprint(postgres_dsn: str) -> dict[str, Any]:
+    with psycopg.connect(postgres_dsn) as connection:
+        tables = [
+            (str(row[0]), str(row[1]))
+            for row in connection.execute(
+                """
+                SELECT table_schema, table_name
+                FROM information_schema.tables
+                WHERE table_type = 'BASE TABLE'
+                  AND table_schema NOT IN ('information_schema', 'pg_catalog', 'identity')
+                  AND table_schema NOT LIKE 'pg\\_%' ESCAPE '\\'
+                ORDER BY table_schema, table_name
+                """
+            ).fetchall()
+            if not (
+                str(row[0]) == "learner_model"
+                and str(row[1]) in LEARNER_PREFERENCE_TABLES
+            )
+        ]
+        digest = hashlib.sha256()
+        row_count = 0
+        for schema, table in tables:
+            rows = connection.execute(
+                sql.SQL(
+                    "SELECT to_jsonb(row_value)::text FROM {}.{} AS row_value "
+                    "ORDER BY to_jsonb(row_value)::text"
+                ).format(sql.Identifier(schema), sql.Identifier(table))
+            ).fetchall()
+            row_count += len(rows)
+            digest.update(f"{schema}.{table}\0{len(rows)}\0".encode("utf-8"))
+            for row in rows:
+                digest.update(str(row[0]).encode("utf-8"))
+                digest.update(b"\0")
+    return {"table_count": len(tables), "row_count": row_count, "sha256": digest.hexdigest()}
+
+
+def learner_preference_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
+    with psycopg.connect(postgres_dsn) as connection:
+        profiles = connection.execute(
+            """
+            SELECT profile_id, learner_id::text, revision, profile, profile_digest
+            FROM learner_model.preference_profiles ORDER BY profile_id
+            """
+        ).fetchall()
+        changes = connection.execute(
+            """
+            SELECT learner_id::text, revision, change, resulting_profile_digest
+            FROM learner_model.preference_changes ORDER BY learner_id, revision
+            """
+        ).fetchall()
+        mutations = connection.execute(
+            """
+            SELECT learner_id::text, idempotency_key, accepted_revision, accepted_profile
+            FROM learner_model.preference_mutations
+            ORDER BY learner_id, accepted_revision, idempotency_key
+            """
+        ).fetchall()
+    return {
+        "profiles": [
+            [str(row[0]), str(row[1]), int(row[2]), copy.deepcopy(row[3]), str(row[4])]
+            for row in profiles
+        ],
+        "changes": [
+            [str(row[0]), int(row[1]), copy.deepcopy(row[2]), str(row[3])]
+            for row in changes
+        ],
+        "mutations": [
+            [str(row[0]), str(row[1]), int(row[2]), copy.deepcopy(row[3])]
+            for row in mutations
+        ],
+    }
+
+
+def assert_learner_preference_storage(
+    snapshot: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+    history: dict[str, Any],
+) -> None:
+    profiles = snapshot.get("profiles")
+    changes = snapshot.get("changes")
+    mutations = snapshot.get("mutations")
+    expected_mutations = profile["revision"] - 1
+    if (
+        not isinstance(profiles, list)
+        or len(profiles) != 1
+        or not isinstance(changes, list)
+        or len(changes) != len(history["changes"])
+        or not isinstance(mutations, list)
+        or len(mutations) != expected_mutations
+    ):
+        raise RuntimeError("Learner preference storage row counts are uncorrelated.")
+    stored = profiles[0]
+    if (
+        stored[0] != profile["profile_id"]
+        or stored[1] != profile["learner_id"]
+        or stored[2] != profile["revision"]
+        or stable_learner_preference_profile(stored[3]) != profile
+        or stored[4] != profile["profile_digest"]
+    ):
+        raise RuntimeError("Learner preference stored profile is uncorrelated.")
+    if [row[2] for row in changes] != history["changes"] or any(
+        row[0] != profile["learner_id"]
+        or row[1] != row[2]["revision"]
+        or row[3] != row[2]["resulting_profile_digest"]
+        for row in changes
+    ):
+        raise RuntimeError("Learner preference stored history is uncorrelated.")
+    if any(
+        row[0] != profile["learner_id"]
+        or row[2] != row[3].get("revision")
+        or stable_learner_preference_profile(row[3]) != row[3]
+        for row in mutations
+    ):
+        raise RuntimeError("Learner preference replay storage is uncorrelated.")
+
+
+def _run_learner_preference_race(
+    *,
+    origin: str,
+    requests: list[dict[str, Any]],
+) -> list[tuple[int, dict[str, Any]]]:
+    openers = open_learner_preference_sessions(origin, len(requests))
+    barrier = threading.Barrier(len(requests))
+
+    def send(
+        opener: urllib.request.OpenerDirector,
+        request: dict[str, Any],
+    ) -> tuple[int, dict[str, Any]]:
+        barrier.wait(timeout=10)
+        return _request_json_status(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-preferences/mutations",
+            method="POST",
+            payload=request,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [
+            pool.submit(send, opener, request)
+            for opener, request in zip(openers, requests, strict=True)
+        ]
+        return [future.result(timeout=20) for future in futures]
+
+
+def assert_learner_preference_race_outcomes(
+    *,
+    name: str,
+    requests: list[dict[str, Any]],
+    results: list[tuple[int, dict[str, Any]]],
+    before_storage: dict[str, Any],
+    after_storage: dict[str, Any],
+) -> dict[str, Any]:
+    if len(results) != 2:
+        raise RuntimeError("Learner preference race returned an invalid outcome count.")
+    accepted = [document for status, document in results if status == 200]
+    denials = [(status, document) for status, document in results if status != 200]
+    expected_accepted = 2 if name == "same_key_same_payload" else 1
+    if len(accepted) != expected_accepted:
+        observed = [
+            f"{status}:{document.get('code', 'accepted')}"
+            for status, document in results
+        ]
+        raise RuntimeError(
+            "Learner preference race acceptance matrix is invalid for "
+            f"{name}: {observed}."
+        )
+    stable_accepted = [stable_learner_preference_profile(item) for item in accepted]
+    if name == "same_key_same_payload" and stable_accepted[0] != stable_accepted[1]:
+        raise RuntimeError("Exact concurrent replays did not converge.")
+    if name != "same_key_same_payload":
+        if len(denials) != 1:
+            raise RuntimeError("Learner preference race denial matrix is invalid.")
+        _assert_safe_learner_preference_denial(
+            denials[0][0],
+            denials[0][1],
+            expected_code=(
+                "immutable_conflict"
+                if name == "same_key_changed_payload"
+                else "stale_revision"
+            ),
+            requests=requests,
+        )
+    for key in ("profiles", "changes", "mutations"):
+        before = before_storage.get(key)
+        after = after_storage.get(key)
+        if not isinstance(before, list) or not isinstance(after, list):
+            raise RuntimeError("Learner preference race storage evidence is invalid.")
+        expected_delta = 0 if key == "profiles" else 1
+        if key == "profiles":
+            if len(before) != 1 or len(after) != 1 or after[0][2] != before[0][2] + 1:
+                raise RuntimeError("Learner preference race profile revision is invalid.")
+        elif len(after) != len(before) + expected_delta:
+            raise RuntimeError("Learner preference race appended an invalid row count.")
+    current = after_storage["profiles"][0][3]
+    if current not in stable_accepted:
+        raise RuntimeError("Learner preference race result did not match durable state.")
+    return stable_learner_preference_profile(current)
+
+
+def qualify_learner_preference_races(
+    *,
+    origin: str,
+    postgres_dsn: str,
+    capture: dict[str, Any],
+) -> dict[str, Any]:
+    outcomes: dict[str, list[str]] = {}
+    current_profile = capture["profile"]
+    for name in (
+        "same_key_same_payload",
+        "same_key_changed_payload",
+        "different_key_same_revision",
+    ):
+        requests = capture["races"][name]["requests"]
+        before = learner_preference_storage_snapshot(postgres_dsn)
+        results = _run_learner_preference_race(origin=origin, requests=requests)
+        after = learner_preference_storage_snapshot(postgres_dsn)
+        current_profile = assert_learner_preference_race_outcomes(
+            name=name,
+            requests=requests,
+            results=results,
+            before_storage=before,
+            after_storage=after,
+        )
+        outcomes[name] = [
+            "accepted"
+            if status == 200
+            else "conflict"
+            if document.get("code") == "immutable_conflict"
+            else "stale"
+            for status, document in results
+        ]
+        if sorted(outcomes[name]) != sorted(capture["races"][name]["expected"]):
+            raise RuntimeError("Learner preference race outcome classes changed.")
+    opener = open_learner_preference_session(origin)
+    history = stable_learner_preference_history(
+        _request_json(opener, origin=origin, path="/api/v1/learner-preferences/history"),
+        profile=current_profile,
+    )
+    export_document = stable_learner_preference_export(
+        _request_json(opener, origin=origin, path="/api/v1/learner-preferences/export"),
+        profile=current_profile,
+        history=history,
+    )
+    storage = learner_preference_storage_snapshot(postgres_dsn)
+    assert_learner_preference_storage(storage, profile=current_profile, history=history)
+    return {
+        "profile": current_profile,
+        "history": history,
+        "export": export_document,
+        "storage": storage,
+        "outcomes": outcomes,
+    }
+
+
 def _storage_counts(connection: psycopg.Connection[Any]) -> dict[str, int]:
     row = connection.execute(COMPLETION_STORAGE_COUNTS).fetchone()
     if row is None or len(row) != 4:
@@ -4838,6 +5598,7 @@ def main() -> int:
     personal_workspace_capture = data_root / "personal-workspace-capture.json"
     project_capture = data_root / "project-workspace-capture.json"
     project_learning_capture = data_root / "project-learning-capture.json"
+    learner_preferences_capture = data_root / "learner-preferences-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -4880,6 +5641,9 @@ def main() -> int:
         )
         environment["FINANCIAL_AI_ACADEMY_PROJECT_LEARNING_CAPTURE"] = str(
             project_learning_capture
+        )
+        environment["FINANCIAL_AI_ACADEMY_LEARNER_PREFERENCES_CAPTURE"] = str(
+            learner_preferences_capture
         )
         run_checked(
             npm_e2e_command(
@@ -4964,6 +5728,51 @@ def main() -> int:
         ):
             raise RuntimeError(
                 "Saved Learning changed Project or learning evidence state."
+            )
+
+        learner_source_before = learner_preference_source_fingerprint(postgres_dsn)
+        empty_preference_storage = learner_preference_storage_snapshot(postgres_dsn)
+        if any(empty_preference_storage.values()):
+            raise RuntimeError("Learner preference qualification did not start empty.")
+        run_checked(
+            npm_e2e_command("learner-preferences.e2e.ts"),
+            env=environment,
+        )
+        learner_capture = load_learner_preference_capture(
+            learner_preferences_capture,
+            data_root=data_root,
+        )
+        learner_storage_after_browser = learner_preference_storage_snapshot(
+            postgres_dsn
+        )
+        assert_learner_preference_storage(
+            learner_storage_after_browser,
+            profile=learner_capture["profile"],
+            history=learner_capture["history"],
+        )
+        learner_browser_headless = observe_headless_learner_preferences(
+            origin=origin,
+            expected_profile=learner_capture["profile"],
+            expected_history=learner_capture["history"],
+            expected_export=learner_capture["export"],
+            exact_replay_request=learner_capture["exact_replay_request"],
+            exact_replay_response=learner_capture["exact_replay_response"],
+        )
+        if (
+            learner_preference_storage_snapshot(postgres_dsn)
+            != learner_storage_after_browser
+        ):
+            raise RuntimeError(
+                "Headless learner preference reads or replay changed durable state."
+            )
+        learner_race_result = qualify_learner_preference_races(
+            origin=origin,
+            postgres_dsn=postgres_dsn,
+            capture=learner_capture,
+        )
+        if learner_preference_source_fingerprint(postgres_dsn) != learner_source_before:
+            raise RuntimeError(
+                "Learner preferences changed unrelated application state."
             )
 
         (
@@ -5153,6 +5962,26 @@ def main() -> int:
             before_storage=personal_storage_before_restart_observation,
             after_storage=personal_storage_after_restart,
         )
+        learner_after_restart = observe_headless_learner_preferences(
+            origin=origin,
+            expected_profile=learner_race_result["profile"],
+            expected_history=learner_race_result["history"],
+            expected_export=learner_race_result["export"],
+            exact_replay_request=learner_capture["exact_replay_request"],
+            exact_replay_response=learner_capture["exact_replay_response"],
+        )
+        learner_storage_after_restart = learner_preference_storage_snapshot(
+            postgres_dsn
+        )
+        assert_learner_preference_storage(
+            learner_storage_after_restart,
+            profile=learner_after_restart["profile"],
+            history=learner_after_restart["history"],
+        )
+        if learner_storage_after_restart != learner_race_result["storage"]:
+            raise RuntimeError(
+                "Learner preference storage changed after normal restart."
+            )
 
         if container_name is not None:
             restored_credential_opener = open_personal_workspace_session(
@@ -5377,6 +6206,21 @@ def main() -> int:
                 "workspace_id": personal_capture["workspace"]["workspace_id"],
             },
             "personal_workspace_recovery": recovery_report,
+            "learner_preferences": {
+                "browser_generated_client": True,
+                "browser_headless_export_parity": True,
+                "browser_headless_profile_history_parity": True,
+                "complete_learner_control_journey": True,
+                "confidential_race_denials": True,
+                "different_key_same_revision_race": True,
+                "exact_headless_replay": True,
+                "normal_restart_without_reseeding": True,
+                "profile_id": learner_race_result["profile"]["profile_id"],
+                "public_api_shared": True,
+                "same_key_changed_payload_race": True,
+                "same_key_same_payload_race": True,
+                "source_state_unchanged": True,
+            },
             "project_workspace": {
                 "artifact_download_exact": True,
                 "browser_generated_client": True,

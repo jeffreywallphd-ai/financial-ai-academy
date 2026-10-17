@@ -22,8 +22,8 @@ portable export. The pure domain and JSON Schema adapter issue no learner
 identity, time, or ID; persist nothing; and call no provider, model, network,
 filesystem, or other module. The application supplies those server facts and
 exposes the same public operations to the protected API, generated browser
-client, and authenticated headless clients. Browser feature UI remains
-separate slice work.
+client, and authenticated headless clients. Browser feature UI remains outside
+this module.
 
 Preferences are not evidence, competency or mastery state, Curriculum
 requirements, Adaptation eligibility, recommendations, permissions,
@@ -99,3 +99,11 @@ Reads, history, and export require `learner_preferences.read`; mutation requires
 query selector and share the generated OpenAPI client with browser and headless
 callers. Export contains the current closed profile and bounded history only;
 it is not an import, recovery, evidence, permission, or recommendation record.
+
+The isolated approved-lesson qualification drives the generated browser client
+and ordinary headless HTTP clients through these same operations. It proves
+exact profile/history/export parity, unchanged replay, same-key replay and
+conflict races, stale-revision serialization, PostgreSQL row correlation,
+normal host restart without reseeding, and unchanged unrelated learning state.
+That evidence does not establish multiple real learners, managed-cloud
+deployment, backup/restore, import, or a separate autonomous AI authority.
