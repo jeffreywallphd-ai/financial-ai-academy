@@ -204,7 +204,7 @@ each packet starts. The dependency-ordered seams are:
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0131 | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | complete |
-| WRK-0132 | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0131 | none | active |
+| WRK-0132 | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0131 | none | ready |
 | JIT-C | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | JIT-B | none | proposed |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | JIT-C | none | proposed |
 
@@ -293,3 +293,6 @@ authority were not delivered or qualified.
   dependency, current CAP package, resolved decision posture, exact bounded
   write scope, and API-first headless parity. No lower-level approval is
   required.
+- 2026-10-17: Returned WRK-0132 to ready after implementation proved local-host
+  composition belongs in the same API seam. The scope refinement remains
+  inside SLI-0070 and requires one new claim manifest, not another approval.

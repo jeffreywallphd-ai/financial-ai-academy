@@ -1,7 +1,7 @@
 ---
 id: WRK-0132
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -247,3 +247,6 @@ separate AI mode, autonomous authority, or financial action was added.
   protected API seam required the already composed Personal-workspace service
   to be passed into the local host. Product scope and public contracts are
   unchanged.
+- 2026-10-17: Released the unsubmitted claim to ready so one new claim can bind
+  the refined deployment-composition scope. Implemented work remains on the
+  same CAP branch; no review or lower-level approval is required.
