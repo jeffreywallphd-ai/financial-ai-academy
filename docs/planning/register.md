@@ -25,7 +25,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | CAP-0014 | Capability | [Build and Evaluate Simulated Portfolios](capabilities/CAP-0014-build-and-evaluate-simulated-portfolios.md) | ready | none | CAP-0012, CAP-0013 | DEC-0013 | unassigned | 2026-10-16 |
 | CAP-0015 | Capability | [Run Backtests and Scenario Analyses](capabilities/CAP-0015-run-backtests-and-scenario-analyses.md) | ready | none | CAP-0012, CAP-0013, CAP-0014 | DEC-0013 | unassigned | 2026-10-16 |
 | CAP-0016 | Capability | [Conduct Financial AI and ML Experiments](capabilities/CAP-0016-conduct-financial-ai-ml-experiments.md) | ready | none | CAP-0007, CAP-0011, CAP-0012 | DEC-0011, DEC-0014 | unassigned | 2026-10-16 |
-| CAP-0017 | Capability | [Maintain a Personal Learning Workspace](capabilities/CAP-0017-maintain-personal-learning-workspace.md) | shaping | none | CAP-0001, CAP-0007 | resolved by ADR-0021 | unassigned | 2026-10-17 |
+| CAP-0017 | Capability | [Maintain a Personal Learning Workspace](capabilities/CAP-0017-maintain-personal-learning-workspace.md) | ready | none | CAP-0001, CAP-0007 | resolved by ADR-0021 | unassigned | 2026-10-17 |
 | CAP-0018 | Capability | [Set Learning Goals and Preferences](capabilities/CAP-0018-set-learning-goals-and-preferences.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-16 |
 | CAP-0019 | Capability | [Export and Retain Portable Learning Records](capabilities/CAP-0019-export-portable-learning-records.md) | ready | none | CAP-0009, CAP-0017, CAP-0026 | none | unassigned | 2026-10-16 |
 | CAP-0020 | Capability | [Understand Platform Methods and Limitations](capabilities/CAP-0020-understand-platform-methods-and-limitations.md) | ready | none | CAP-0001 | none | unassigned | 2026-10-16 |
