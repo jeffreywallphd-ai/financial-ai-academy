@@ -284,6 +284,29 @@ PRIVATE_PROJECT_CAPTURE_KEYS = frozenset(
         "token",
     }
 )
+PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "artifact_sha256",
+        "candidates",
+        "changed_retry_denial",
+        "completion",
+        "evidence",
+        "exact_replay",
+        "history",
+        "independent_project_id",
+        "outcomes",
+        "project",
+        "snapshots",
+        "submission_intents",
+    }
+)
+PRIVATE_PROJECT_LEARNING_CAPTURE_KEYS = PRIVATE_PROJECT_CAPTURE_KEYS | frozenset(
+    {
+        "actor_id",
+        "learner_id",
+        "session_id",
+    }
+)
 UTC_TIMESTAMP = re.compile(
     r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
     r"(?:\.[0-9]{1,6})?Z$"
@@ -1600,6 +1623,232 @@ def load_project_workspace_capture(
     return copy.deepcopy(capture)
 
 
+def _project_learning_evidence_without_learner(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    safe = copy.deepcopy(document)
+    safe.pop("learner_id", None)
+    return safe
+
+
+def _project_learning_outcome_without_learner(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    safe = copy.deepcopy(document)
+    evidence = safe.get("evidence")
+    if isinstance(evidence, dict):
+        safe["evidence"] = _project_learning_evidence_without_learner(evidence)
+    return safe
+
+
+def stable_project_learning_completion(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    required = {
+        "projection_version",
+        "project_id",
+        "completed",
+        "completion_meaning",
+        "source_digest",
+        "rebuilt_at",
+        "history",
+    }
+    if set(document) != required:
+        raise RuntimeError("Project completion has an invalid public shape.")
+    if (
+        document.get("projection_version") != "1.0.0"
+        or document.get("completed") is not True
+        or document.get("completion_meaning")
+        != "bounded_project_activity_completed"
+        or not isinstance(document.get("source_digest"), str)
+        or not re.fullmatch(r"[a-f0-9]{64}", document["source_digest"])
+        or not isinstance(document.get("rebuilt_at"), str)
+        or not UTC_TIMESTAMP.fullmatch(document["rebuilt_at"])
+        or not isinstance(document.get("history"), list)
+        or len(document["history"]) != 2
+    ):
+        raise RuntimeError("Project completion has invalid retained meaning.")
+    return {
+        key: copy.deepcopy(value)
+        for key, value in document.items()
+        if key != "rebuilt_at"
+    }
+
+
+def load_project_learning_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded Project learning capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 2_097_152:
+        raise RuntimeError("Project learning capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if (
+        not isinstance(capture, dict)
+        or set(capture) != PROJECT_LEARNING_CAPTURE_ROOT_KEYS
+    ):
+        raise RuntimeError("Project learning capture has an invalid shape.")
+    leaked = PRIVATE_PROJECT_LEARNING_CAPTURE_KEYS & _nested_mapping_keys(capture)
+    if leaked:
+        raise RuntimeError("Project learning capture contains private runtime data.")
+
+    project = capture.get("project")
+    project_id = project.get("project_id") if isinstance(project, dict) else None
+    origin = project.get("origin") if isinstance(project, dict) else None
+    independent_project_id = capture.get("independent_project_id")
+    if (
+        not isinstance(project_id, str)
+        or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,127}", project_id)
+        or project.get("schema_version") != "1.0.0"
+        or not isinstance(origin, dict)
+        or origin.get("origin_type") != "learning"
+        or not isinstance(independent_project_id, str)
+        or not re.fullmatch(
+            r"[a-z0-9][a-z0-9._-]{0,127}", independent_project_id
+        )
+        or independent_project_id == project_id
+    ):
+        raise RuntimeError("Project learning capture has invalid Project identity.")
+
+    collections = {
+        key: capture.get(key)
+        for key in (
+            "snapshots",
+            "candidates",
+            "submission_intents",
+            "outcomes",
+            "evidence",
+        )
+    }
+    if any(not isinstance(value, list) or len(value) != 2 for value in collections.values()):
+        raise RuntimeError("Project learning capture requires two correlated submissions.")
+    snapshots = collections["snapshots"]
+    candidates = collections["candidates"]
+    intents = collections["submission_intents"]
+    outcomes = collections["outcomes"]
+    evidence_records = collections["evidence"]
+    if not all(
+        isinstance(item, dict)
+        for collection in collections.values()
+        for item in collection
+    ):
+        raise RuntimeError("Project learning capture documents must be objects.")
+
+    for index in range(2):
+        snapshot = snapshots[index]
+        candidate = candidates[index]
+        intent = intents[index]
+        outcome = outcomes[index]
+        evidence = evidence_records[index]
+        candidate_project = candidate.get("project")
+        source = intent.get("source")
+        validation = outcome.get("validation")
+        outcome_evidence = outcome.get("evidence")
+        if (
+            not isinstance(candidate_project, dict)
+            or not isinstance(source, dict)
+            or snapshot.get("snapshot_id") != candidate_project.get("snapshot_id")
+            or snapshot.get("snapshot_digest")
+            != candidate_project.get("snapshot_digest")
+            or candidate_project.get("project_id") != project_id
+            or source.get("project_id") != project_id
+            or source.get("snapshot_id") != snapshot.get("snapshot_id")
+            or source.get("snapshot_digest") != snapshot.get("snapshot_digest")
+            or intent.get("policy_id") != "assessment-project-closure"
+            or intent.get("policy_version") != "1.0.0"
+            or not isinstance(intent.get("submission_id"), str)
+            or not isinstance(validation, dict)
+            or validation.get("status") != "accepted"
+            or not isinstance(outcome_evidence, dict)
+            or outcome_evidence != evidence
+            or evidence.get("project_id") != project_id
+            or evidence.get("snapshot_id") != snapshot.get("snapshot_id")
+            or evidence.get("snapshot_digest") != snapshot.get("snapshot_digest")
+            or evidence.get("submission_id") != intent.get("submission_id")
+            or evidence.get("occurrence") != index + 1
+            or not isinstance(evidence.get("request_fingerprint"), str)
+            or validation.get("request_fingerprint")
+            != evidence.get("request_fingerprint")
+        ):
+            raise RuntimeError("Project learning capture changed submission meaning.")
+        milestones = candidate.get("milestones")
+        resources = candidate.get("resources")
+        mappings = intent.get("milestone_evidence")
+        if (
+            not isinstance(milestones, list)
+            or len(milestones) != 2
+            or not isinstance(resources, list)
+            or len(resources) < 4 + index
+            or not isinstance(mappings, list)
+            or len(mappings) != 2
+            or [mapping.get("milestone_id") for mapping in mappings]
+            != [milestone.get("milestone_id") for milestone in milestones]
+            or any(not mapping.get("resources") for mapping in mappings)
+        ):
+            raise RuntimeError("Project learning capture has incomplete evidence mappings.")
+
+    first_evidence, second_evidence = evidence_records
+    if (
+        first_evidence.get("supersedes_submission_id") not in (None, "")
+        or second_evidence.get("supersedes_submission_id")
+        != first_evidence.get("submission_id")
+        or snapshots[0].get("snapshot_id") == snapshots[1].get("snapshot_id")
+        or snapshots[1].get("workspace_revision", 0)
+        <= snapshots[0].get("workspace_revision", 0)
+    ):
+        raise RuntimeError("Project learning capture lost immutable supersession.")
+
+    exact_replay = capture.get("exact_replay")
+    if exact_replay != outcomes[0]:
+        raise RuntimeError("Project learning exact replay changed accepted evidence.")
+    denial = capture.get("changed_retry_denial")
+    if (
+        not isinstance(denial, dict)
+        or set(denial) != {"status", "document"}
+        or denial.get("status") != 409
+        or not isinstance(denial.get("document"), dict)
+        or denial["document"].get("code") != "conflict"
+        or denial["document"].get("error_version") != "1.0"
+    ):
+        raise RuntimeError("Project learning changed retry was not safely refused.")
+
+    history = capture.get("history")
+    completion = capture.get("completion")
+    if (
+        not isinstance(history, dict)
+        or history.get("project_id") != project_id
+        or not isinstance(history.get("items"), list)
+        or len(history["items"]) != 2
+        or [item.get("occurrence") for item in history["items"]] != [1, 2]
+        or not isinstance(completion, dict)
+        or completion.get("project_id") != project_id
+    ):
+        raise RuntimeError("Project learning capture has invalid retained history.")
+    stable_completion = stable_project_learning_completion(completion)
+    if [item.get("submission_id") for item in history["items"]] != [
+        evidence.get("submission_id") for evidence in evidence_records
+    ] or [item.get("submission_id") for item in stable_completion["history"]] != [
+        evidence.get("submission_id") for evidence in evidence_records
+    ]:
+        raise RuntimeError("Project history and completion sources are uncorrelated.")
+    artifact_digest = capture.get("artifact_sha256")
+    if (
+        not isinstance(artifact_digest, str)
+        or not re.fullmatch(r"[a-f0-9]{64}", artifact_digest)
+        or not any(
+            resource.get("resource_kind") == "artifact"
+            and resource.get("content_digest") == artifact_digest
+            for candidate in candidates
+            for resource in candidate.get("resources", [])
+        )
+    ):
+        raise RuntimeError("Project learning capture lost inert artifact provenance.")
+    return copy.deepcopy(capture)
+
+
 def stable_project_export_bundle(document: dict[str, Any]) -> dict[str, Any]:
     if set(document) != {"files", "manifest"}:
         raise RuntimeError("Project evidence export has an invalid public shape.")
@@ -1698,6 +1947,282 @@ def observe_headless_project_workspace(
         "export_bundle": stable_observed_export,
         "artifact_sha256": hashlib.sha256(artifact_bytes).hexdigest(),
     }
+
+
+def _request_json_read_status(
+    opener: urllib.request.OpenerDirector,
+    *,
+    origin: str,
+    path: str,
+) -> tuple[int, dict[str, Any]]:
+    request = urllib.request.Request(
+        f"{origin}{path}",
+        headers={"Accept": "application/json"},
+        method="GET",
+    )
+    try:
+        response = opener.open(request, timeout=10)
+    except urllib.error.HTTPError as error:
+        status = error.code
+        raw = error.read()
+    else:
+        with response:
+            status = response.status
+            raw = response.read()
+    document = json.loads(raw.decode("utf-8"))
+    if not isinstance(document, dict):
+        raise RuntimeError(f"Headless API request returned a non-object: GET {path}.")
+    return status, document
+
+
+def _project_summary_without_learner(document: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": document.get("schema_version"),
+        "project_id": document.get("project_id"),
+        "title": document.get("title"),
+        "revision": document.get("revision"),
+        "origin": copy.deepcopy(document.get("origin")),
+    }
+
+
+def observe_headless_project_learning(
+    *,
+    origin: str,
+    capture: dict[str, Any],
+) -> dict[str, Any]:
+    expected = copy.deepcopy(capture)
+    project_id = expected["project"]["project_id"]
+    api = f"/api/v1/projects/{project_id}"
+    opener = _supported_practice_opener(origin)
+    project = _request_json(opener, origin=origin, path=api)
+    if _project_summary_without_learner(project) != expected["project"]:
+        raise RuntimeError("Headless Project learning shell changed browser meaning.")
+
+    candidates = []
+    for snapshot in expected["snapshots"]:
+        candidates.append(
+            _request_json(
+                opener,
+                origin=origin,
+                path=(
+                    f"{api}/snapshots/{snapshot['snapshot_id']}"
+                    "/submission-candidate"
+                ),
+            )
+        )
+    if candidates != expected["candidates"]:
+        raise RuntimeError("Headless Project candidates changed browser meaning.")
+
+    history = _request_json(opener, origin=origin, path=f"{api}/submissions")
+    completion = _request_json(opener, origin=origin, path=f"{api}/completion")
+    evidence = [
+        _project_learning_evidence_without_learner(
+            _request_json(
+                opener,
+                origin=origin,
+                path=f"{api}/submissions/{record['submission_id']}",
+            )
+        )
+        for record in expected["evidence"]
+    ]
+    if history != expected["history"] or evidence != expected["evidence"]:
+        raise RuntimeError("Headless Project retained evidence changed browser meaning.")
+    if stable_project_learning_completion(completion) != (
+        stable_project_learning_completion(expected["completion"])
+    ):
+        raise RuntimeError("Headless Project completion changed browser meaning.")
+
+    replayed = []
+    for snapshot, intent, outcome in zip(
+        expected["snapshots"],
+        expected["submission_intents"],
+        expected["outcomes"],
+        strict=True,
+    ):
+        replay = _request_json(
+            opener,
+            origin=origin,
+            path=(
+                f"{api}/snapshots/{snapshot['snapshot_id']}/submissions"
+            ),
+            method="POST",
+            payload=intent,
+        )
+        safe_replay = _project_learning_outcome_without_learner(replay)
+        if safe_replay != outcome:
+            raise RuntimeError("Headless Project exact replay changed evidence.")
+        replayed.append(safe_replay)
+
+    independent_path = (
+        f"/api/v1/projects/{expected['independent_project_id']}/completion"
+    )
+    denial_status, denial = _request_json_read_status(
+        opener,
+        origin=origin,
+        path=independent_path,
+    )
+    if (
+        denial_status != 404
+        or denial.get("error_version") != "1.0"
+        or denial.get("code") != "not_found"
+        or PRIVATE_PROJECT_LEARNING_CAPTURE_KEYS & _nested_mapping_keys(denial)
+    ):
+        raise RuntimeError("Independent Project gained learning meaning.")
+
+    return {
+        "project": _project_summary_without_learner(project),
+        "candidates": candidates,
+        "history": history,
+        "completion": stable_project_learning_completion(completion),
+        "evidence": evidence,
+        "exact_replays": replayed,
+        "independent_denial": {
+            "status": denial_status,
+            "code": denial.get("code"),
+        },
+    }
+
+
+def project_learning_storage_snapshot(
+    postgres_dsn: str,
+    *,
+    project_id: str,
+) -> dict[str, Any]:
+    with psycopg.connect(postgres_dsn) as connection:
+        submissions = connection.execute(
+            """
+            SELECT evidence_id, submission_id, snapshot_id,
+                   request_fingerprint, occurrence, accepted_sequence,
+                   supersedes_submission_id
+              FROM assessment.project_submissions
+             WHERE project_id = %s
+             ORDER BY occurrence
+            """,
+            (project_id,),
+        ).fetchall()
+        events = connection.execute(
+            """
+            SELECT event.event_id, event.evidence_id
+              FROM assessment.project_outbox AS event
+              JOIN assessment.project_submissions AS submission
+                ON submission.evidence_id = event.evidence_id
+             WHERE submission.project_id = %s
+             ORDER BY submission.occurrence
+            """,
+            (project_id,),
+        ).fetchall()
+        projections = connection.execute(
+            """
+            SELECT completed, history_count, source_digest
+              FROM learner_model.project_completion_projections
+             WHERE project_id = %s
+            """,
+            (project_id,),
+        ).fetchall()
+        history = connection.execute(
+            """
+            SELECT event_id, evidence_id, submission_id, snapshot_id,
+                   request_fingerprint, occurrence, accepted_sequence,
+                   supersedes_submission_id
+              FROM learner_model.project_completion_history
+             WHERE project_id = %s
+             ORDER BY occurrence
+            """,
+            (project_id,),
+        ).fetchall()
+        audit = connection.execute(
+            """
+            SELECT event_id, evidence_id, submission_id, snapshot_id,
+                   occurrence, supersedes_submission_id, integrity_digest
+              FROM audit.project_completion_records
+             WHERE project_id = %s
+             ORDER BY occurrence
+            """,
+            (project_id,),
+        ).fetchall()
+    return {
+        "submissions": [list(row) for row in submissions],
+        "events": [list(row) for row in events],
+        "projections": [list(row) for row in projections],
+        "history": [list(row) for row in history],
+        "audit": [list(row) for row in audit],
+    }
+
+
+def assert_project_learning_storage(
+    storage: dict[str, Any],
+    *,
+    capture: dict[str, Any],
+) -> None:
+    evidence = capture["evidence"]
+    completion_history = capture["completion"]["history"]
+    if any(
+        not isinstance(storage.get(key), list)
+        for key in ("submissions", "events", "projections", "history", "audit")
+    ):
+        raise RuntimeError("Project learning storage evidence is unavailable.")
+    if (
+        len(storage["submissions"]) != 2
+        or len(storage["events"]) != 2
+        or len(storage["projections"]) != 1
+        or len(storage["history"]) != 2
+        or len(storage["audit"]) != 2
+    ):
+        raise RuntimeError("Project learning storage counts are incomplete.")
+    for index in range(2):
+        submission = storage["submissions"][index]
+        projected = storage["history"][index]
+        audited = storage["audit"][index]
+        source = completion_history[index]
+        expected = evidence[index]
+        if submission[:3] != [
+            expected["evidence_id"],
+            expected["submission_id"],
+            expected["snapshot_id"],
+        ] or submission[3:] != [
+            expected["request_fingerprint"],
+            index + 1,
+            expected["accepted_sequence"],
+            expected.get("supersedes_submission_id"),
+        ]:
+            raise RuntimeError("Assessment Project evidence is uncorrelated.")
+        if storage["events"][index] != [source["event_id"], expected["evidence_id"]]:
+            raise RuntimeError("Assessment Project event is uncorrelated.")
+        if projected[:7] != [
+            source["event_id"],
+            expected["evidence_id"],
+            expected["submission_id"],
+            expected["snapshot_id"],
+            expected["request_fingerprint"],
+            index + 1,
+            expected["accepted_sequence"],
+        ] or projected[7] != expected.get("supersedes_submission_id"):
+            raise RuntimeError("Learner-model Project history is uncorrelated.")
+        if audited[:6] != [
+            source["event_id"],
+            expected["evidence_id"],
+            expected["submission_id"],
+            expected["snapshot_id"],
+            index + 1,
+            expected.get("supersedes_submission_id"),
+        ] or not re.fullmatch(r"[a-f0-9]{64}", str(audited[6])):
+            raise RuntimeError("Audit Project reference is uncorrelated.")
+    projection = storage["projections"][0]
+    if projection != [True, 2, capture["completion"]["source_digest"]]:
+        raise RuntimeError("Project completion projection is uncorrelated.")
+
+
+def assert_project_learning_restart_result(
+    *,
+    before_observation: dict[str, Any],
+    after_observation: dict[str, Any],
+    before_storage: dict[str, Any],
+    after_storage: dict[str, Any],
+) -> None:
+    if after_observation != before_observation:
+        raise RuntimeError("Project learning evidence changed after normal restart.")
+    if after_storage != before_storage:
+        raise RuntimeError("Project learning storage changed during restart replay.")
 
 
 def project_storage_snapshot(
@@ -2303,6 +2828,7 @@ def main() -> int:
     application_log = data_root / "python-application.log"
     practice_capture = data_root / "practice-submission-capture.json"
     project_capture = data_root / "project-workspace-capture.json"
+    project_learning_capture = data_root / "project-learning-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -2335,6 +2861,9 @@ def main() -> int:
         )
         environment["FINANCIAL_AI_ACADEMY_PROJECT_CAPTURE"] = str(
             project_capture
+        )
+        environment["FINANCIAL_AI_ACADEMY_PROJECT_LEARNING_CAPTURE"] = str(
+            project_learning_capture
         )
         run_checked(
             npm_e2e_command(
@@ -2415,6 +2944,43 @@ def main() -> int:
         if project_storage_after_headless_read != project_storage_before_restart:
             raise RuntimeError("Headless Project reads changed durable state.")
 
+        run_checked(
+            npm_e2e_command("project-learning-submission.e2e.ts"),
+            env=environment,
+        )
+        project_learning = load_project_learning_capture(
+            project_learning_capture,
+            data_root=data_root,
+        )
+        learning_project_id = project_learning["project"]["project_id"]
+        project_learning_storage_before_restart = (
+            project_learning_storage_snapshot(
+                postgres_dsn,
+                project_id=learning_project_id,
+            )
+        )
+        assert_project_learning_storage(
+            project_learning_storage_before_restart,
+            capture=project_learning,
+        )
+        project_learning_before_restart = observe_headless_project_learning(
+            origin=origin,
+            capture=project_learning,
+        )
+        project_learning_storage_after_headless = (
+            project_learning_storage_snapshot(
+                postgres_dsn,
+                project_id=learning_project_id,
+            )
+        )
+        if (
+            project_learning_storage_after_headless
+            != project_learning_storage_before_restart
+        ):
+            raise RuntimeError(
+                "Headless Project learning replay changed durable evidence."
+            )
+
         before_observation = observe_headless_navigation(origin)
         stop_application(application)
         application = None
@@ -2487,6 +3053,26 @@ def main() -> int:
             before_storage=project_storage_before_restart,
             after_storage=project_storage_after_restart,
         )
+        project_learning_after_restart = observe_headless_project_learning(
+            origin=origin,
+            capture=project_learning,
+        )
+        project_learning_storage_after_restart = (
+            project_learning_storage_snapshot(
+                postgres_dsn,
+                project_id=learning_project_id,
+            )
+        )
+        assert_project_learning_storage(
+            project_learning_storage_after_restart,
+            capture=project_learning,
+        )
+        assert_project_learning_restart_result(
+            before_observation=project_learning_before_restart,
+            after_observation=project_learning_after_restart,
+            before_storage=project_learning_storage_before_restart,
+            after_storage=project_learning_storage_after_restart,
+        )
 
         report = {
             "browser": "Playwright pinned Chromium",
@@ -2557,6 +3143,20 @@ def main() -> int:
                 "project_id": project_id,
                 "snapshot_immutable_after_later_work": True,
                 "unicode_evidence_preserved": True,
+            },
+            "project_learning_submission": {
+                "assessment_evidence_occurrences": 2,
+                "audit_references": 2,
+                "browser_generated_client": True,
+                "bounded_correction": True,
+                "exact_headless_replay": True,
+                "headless_public_api": True,
+                "independent_project_denied": True,
+                "learner_model_history_entries": 2,
+                "normal_restart_without_reseeding": True,
+                "project_id": learning_project_id,
+                "retained_supersession": True,
+                "snapshot_evidence_immutable": True,
             },
             "projection_replay": {
                 "assessment_source_preserved": True,

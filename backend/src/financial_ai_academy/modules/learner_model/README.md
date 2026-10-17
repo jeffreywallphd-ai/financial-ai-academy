@@ -56,3 +56,9 @@ complete derived set with a stable source digest. Completion means only that
 Assessment accepted structural Project evidence; the rows contain no workspace
 content, artifact bytes, qualitative grade, mastery, competency, suitability,
 recommendation, or advice meaning.
+
+The isolated browser/headless Project qualification correlates two accepted
+Assessment occurrences with two ordered history references and one rebuildable
+completion root. The exact public history, source digest, and bounded activity-
+completion meaning survive a normal application restart and deterministic
+replay without introducing a browser-owned projection path.

@@ -10,8 +10,8 @@ capability: CAP-0007
 depends_on: ["WRK-0128"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/tests/browser/approved-lesson/project-learning-submission.e2e.ts", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/learner_model/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0129-qualify-project-learning-submission-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
-generated_artifacts: []
+write_scope: ["apps/web/dist/assets/index-DD-OfBVC.css", "apps/web/dist/assets/index-REr9niCz.js", "apps/web/dist/assets/index-REr9niCz.js.map", "apps/web/dist/assets/index-vHollr-O.js", "apps/web/dist/assets/index-vHollr-O.js.map", "apps/web/dist/assets/index-x5Eld_QO.css", "apps/web/dist/index.html", "apps/web/tests/browser/approved-lesson/project-learning-submission.e2e.ts", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/learner_model/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0129-qualify-project-learning-submission-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+generated_artifacts: ["apps/web/dist/assets/index-DD-OfBVC.css", "apps/web/dist/assets/index-REr9niCz.js", "apps/web/dist/assets/index-REr9niCz.js.map", "apps/web/dist/assets/index-vHollr-O.js", "apps/web/dist/assets/index-vHollr-O.js.map", "apps/web/dist/assets/index-x5Eld_QO.css", "apps/web/dist/index.html"]
 base_revision: d2f4d1963ba7a527503eab6fb7fa900868d5d7c6
 claim_id: WRK-0129:8712ef8d-5a92-4540-a8dd-ed9b3d21bf9d
 claimed_by: codex-cap-0007
@@ -227,3 +227,8 @@ autonomous authority was added.
 - 2026-10-17: Activated from clean base `d2f4d19` after the current approved
   CAP package, completed dependency, evidence-only scope, decision readiness,
   packet-start acceptance set, and exclusive edit ownership were revalidated.
+- 2026-10-17: Incrementally refined the active evidence packet to include only
+  the deterministic reviewed static build outputs required by its live
+  Chromium qualifier. The checked-in bundle predated the already accepted
+  Project-learning browser source, so qualification rebuilt the same product
+  source without changing its contract, behavior, or authority.

@@ -94,6 +94,14 @@ non-browser qualification all use these same application operations. A future
 command-line or headless AI consumer can reuse the same API; there is no second
 core or browser-owned policy.
 
+The isolated Project qualification sends two immutable learning-linked
+snapshots through the generated browser client and the same public API used by
+a fresh headless session. It proves bounded correction, exact replay, changed-
+request conflict, occurrence order, immediate supersession, retained history,
+normal-restart durability, independent-Project denial, and exactly two
+Assessment evidence/outbox aggregates without executing saved artifacts or
+granting quality, mastery, competency, or advice meaning.
+
 ## Persistence
 
 The `assessment_0001_knowledge_check_evidence` stream owns

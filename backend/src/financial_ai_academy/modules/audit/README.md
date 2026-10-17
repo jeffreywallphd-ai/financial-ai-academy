@@ -30,6 +30,11 @@ event digest without copying workspace state or becoming completion authority.
 Exact replay is idempotent; changed reuse conflicts and ordinary update/delete
 remain denied.
 
+The isolated browser/headless Project qualification correlates both accepted
+Assessment occurrences with exactly two append-only Audit references, then
+proves their identities and integrity digests remain unchanged across exact
+replay and a normal application restart.
+
 Synchronous reconciliation is not a queue, dispatcher, checkpoint, delivery
 guarantee, export product, retention policy, recovery service, or managed-cloud
 Audit posture.

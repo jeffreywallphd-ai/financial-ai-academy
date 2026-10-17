@@ -505,6 +505,251 @@ def project_workspace_capture() -> dict[str, Any]:
     }
 
 
+def project_learning_capture() -> dict[str, Any]:
+    project_id = "project-learning-qualification"
+    origin = {
+        "package_id": "package-project-learning",
+        "package_version": "1.0.0",
+        "package_digest": "1" * 64,
+        "brief_id": "brief-compare-choices",
+        "brief_version": "1.0.0",
+        "brief_digest": "2" * 64,
+        "curriculum_id": "investing-foundations",
+        "curriculum_version": "1.0.0",
+        "curriculum_digest": "3" * 64,
+        "placement_id": "placement-compare-choices",
+        "placement_version": "1.0.0",
+        "placement_digest": "4" * 64,
+    }
+    milestones = [
+        {
+            "milestone_id": "compare-evidence",
+            "milestone_version": "1.0.0",
+            "sequence": 1,
+            "title": "Compare the evidence",
+        },
+        {
+            "milestone_id": "explain-limits",
+            "milestone_version": "1.0.0",
+            "sequence": 2,
+            "title": "Explain the limits",
+        },
+    ]
+    artifact_digest = "d" * 64
+    resources = [
+        {
+            "resource_kind": "note",
+            "resource_id": "note-purpose",
+            "resource_version": 1,
+            "record_digest": "5" * 64,
+        },
+        {
+            "resource_kind": "note",
+            "resource_id": "note-comparison",
+            "resource_version": 1,
+            "record_digest": "6" * 64,
+        },
+        {
+            "resource_kind": "source",
+            "resource_id": "source-reviewed",
+            "resource_version": 1,
+            "record_digest": "7" * 64,
+        },
+        {
+            "resource_kind": "artifact",
+            "resource_id": "artifact-evidence",
+            "resource_version": 1,
+            "record_digest": "8" * 64,
+            "content_digest": artifact_digest,
+            "byte_count": 96,
+        },
+    ]
+    later_note = {
+        "resource_kind": "note",
+        "resource_id": "note-later-work",
+        "resource_version": 1,
+        "record_digest": "9" * 64,
+    }
+    snapshots = [
+        {
+            "snapshot_id": "snapshot-learning-one",
+            "snapshot_digest": "a" * 64,
+            "workspace_revision": 5,
+            "closed_at": "2026-10-17T05:00:00Z",
+        },
+        {
+            "snapshot_id": "snapshot-learning-two",
+            "snapshot_digest": "b" * 64,
+            "workspace_revision": 7,
+            "closed_at": "2026-10-17T05:10:00Z",
+        },
+    ]
+
+    def candidate(index: int) -> dict[str, Any]:
+        snapshot = snapshots[index]
+        return {
+            "schema_version": "1.0.0",
+            "project": {
+                "project_id": project_id,
+                "project_revision": 1,
+                "project_shell_digest": "c" * 64,
+                **snapshot,
+            },
+            "origin": origin,
+            "policy_id": "assessment-project-closure",
+            "policy_version": "1.0.0",
+            "milestones": milestones,
+            "resources": resources + ([later_note] if index else []),
+        }
+
+    candidates = [candidate(0), candidate(1)]
+
+    def intent(index: int) -> dict[str, Any]:
+        snapshot = snapshots[index]
+        return {
+            "schema_version": "1.0.0",
+            "submission_id": f"submission-learning-{index + 1}",
+            "source": {
+                "project_id": project_id,
+                "snapshot_id": snapshot["snapshot_id"],
+                "snapshot_digest": snapshot["snapshot_digest"],
+                **{
+                    key: origin[key]
+                    for key in (
+                        "brief_id",
+                        "brief_version",
+                        "brief_digest",
+                        "placement_id",
+                        "placement_version",
+                        "placement_digest",
+                    )
+                },
+            },
+            "policy_id": "assessment-project-closure",
+            "policy_version": "1.0.0",
+            "milestone_evidence": [
+                {"milestone_id": milestones[0]["milestone_id"], "resources": [resources[0]]},
+                {
+                    "milestone_id": milestones[1]["milestone_id"],
+                    "resources": [candidates[index]["resources"][-1]],
+                },
+            ],
+        }
+
+    intents = [intent(0), intent(1)]
+
+    def evidence(index: int) -> dict[str, Any]:
+        submission = intents[index]
+        source = submission["source"]
+        record = {
+            "schema_version": "1.0.0",
+            "evidence_id": f"evidence-learning-{index + 1}",
+            "submission_id": submission["submission_id"],
+            "project_id": project_id,
+            "snapshot_id": source["snapshot_id"],
+            "snapshot_digest": source["snapshot_digest"],
+            **{
+                key: source[key]
+                for key in (
+                    "brief_id",
+                    "brief_version",
+                    "brief_digest",
+                    "placement_id",
+                    "placement_version",
+                    "placement_digest",
+                )
+            },
+            "policy_id": "assessment-project-closure",
+            "policy_version": "1.0.0",
+            "milestone_evidence": submission["milestone_evidence"],
+            "milestone_ids": [item["milestone_id"] for item in milestones],
+            "request_fingerprint": ("e" if index == 0 else "f") * 64,
+            "occurrence": index + 1,
+            "accepted_sequence": 41 + index,
+            "submitted_at": f"2026-10-17T05:{index + 1:02d}:00Z",
+        }
+        if index:
+            record["supersedes_submission_id"] = intents[0]["submission_id"]
+        return record
+
+    evidence_records = [evidence(0), evidence(1)]
+    outcomes = [
+        {
+            "validation": {
+                "schema_version": "1.0.0",
+                "status": "accepted",
+                "request_fingerprint": record["request_fingerprint"],
+                "issues": [],
+            },
+            "evidence": record,
+        }
+        for record in evidence_records
+    ]
+    history_items = [
+        {
+            key: record[key]
+            for key in (
+                "evidence_id",
+                "submission_id",
+                "snapshot_id",
+                "snapshot_digest",
+                "request_fingerprint",
+                "occurrence",
+                "submitted_at",
+            )
+        }
+        | (
+            {"supersedes_submission_id": record["supersedes_submission_id"]}
+            if "supersedes_submission_id" in record
+            else {}
+        )
+        for record in evidence_records
+    ]
+    completion_history = [
+        {
+            "event_id": f"event-learning-{index + 1}",
+            **record,
+            "occurred_at": f"2026-10-17T05:{index + 3:02d}:00Z",
+        }
+        for index, record in enumerate(evidence_records)
+    ]
+    return {
+        "project": {
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "title": "Compare investment choices",
+            "revision": 1,
+            "origin": {"origin_type": "learning", **origin},
+        },
+        "independent_project_id": "project-independent-qualification",
+        "artifact_sha256": artifact_digest,
+        "snapshots": snapshots,
+        "candidates": candidates,
+        "submission_intents": intents,
+        "outcomes": outcomes,
+        "exact_replay": outcomes[0],
+        "changed_retry_denial": {
+            "status": 409,
+            "document": {"error_version": "1.0", "code": "conflict"},
+        },
+        "history": {
+            "schema_version": "1.0.0",
+            "project_id": project_id,
+            "items": history_items,
+        },
+        "completion": {
+            "projection_version": "1.0.0",
+            "project_id": project_id,
+            "completed": True,
+            "completion_meaning": "bounded_project_activity_completed",
+            "source_digest": "0" * 64,
+            "rebuilt_at": "2026-10-17T05:20:00Z",
+            "history": completion_history,
+        },
+        "evidence": evidence_records,
+    }
+
+
 def observation(
     *,
     evaluated_at: str = "2026-10-16T12:00:00Z",
@@ -873,6 +1118,199 @@ def test_project_workspace_capture_is_correlated_confined_and_private(
             runner.load_project_workspace_capture(outside, data_root=tmp_path)
     finally:
         outside.unlink()
+
+
+def test_project_learning_capture_is_correlated_confined_and_private(
+    tmp_path: Path,
+) -> None:
+    valid = project_learning_capture()
+    capture = tmp_path / "project-learning-capture.json"
+    capture.write_text(json.dumps(valid), encoding="utf-8")
+    assert runner.load_project_learning_capture(capture, data_root=tmp_path) == valid
+
+    leaked = json.loads(json.dumps(valid))
+    leaked["evidence"][0]["learner_id"] = "private-learner"
+    capture.write_text(json.dumps(leaked), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="private runtime data"):
+        runner.load_project_learning_capture(capture, data_root=tmp_path)
+
+    changed_source = json.loads(json.dumps(valid))
+    changed_source["submission_intents"][0]["source"]["snapshot_id"] = (
+        "snapshot-unrelated"
+    )
+    capture.write_text(json.dumps(changed_source), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="changed submission meaning"):
+        runner.load_project_learning_capture(capture, data_root=tmp_path)
+
+    malformed_candidate = json.loads(json.dumps(valid))
+    malformed_candidate["candidates"][0]["project"] = []
+    capture.write_text(json.dumps(malformed_candidate), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="changed submission meaning"):
+        runner.load_project_learning_capture(capture, data_root=tmp_path)
+
+    broken_supersession = json.loads(json.dumps(valid))
+    broken_supersession["evidence"][1]["supersedes_submission_id"] = (
+        "submission-unrelated"
+    )
+    broken_supersession["outcomes"][1]["evidence"] = broken_supersession[
+        "evidence"
+    ][1]
+    capture.write_text(json.dumps(broken_supersession), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="lost immutable supersession"):
+        runner.load_project_learning_capture(capture, data_root=tmp_path)
+
+    changed_completion = json.loads(json.dumps(valid))
+    changed_completion["completion"]["history"][1]["submission_id"] = (
+        "submission-unrelated"
+    )
+    capture.write_text(json.dumps(changed_completion), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="uncorrelated"):
+        runner.load_project_learning_capture(capture, data_root=tmp_path)
+
+
+def test_headless_project_learning_uses_public_routes_and_exact_replays(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    capture = project_learning_capture()
+    project_id = capture["project"]["project_id"]
+    api = f"/api/v1/projects/{project_id}"
+    calls: list[tuple[str, str, dict[str, object] | None]] = []
+
+    def request_json(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert origin == "http://127.0.0.1:8123"
+        calls.append((method, path, payload))
+        if path == "/api/v1/session/single-profile":
+            return {"expires_at": "later"}
+        if path == api:
+            return capture["project"] | {"learner_id": "single-profile-learner"}
+        for index, snapshot in enumerate(capture["snapshots"]):
+            if path == (
+                f"{api}/snapshots/{snapshot['snapshot_id']}/submission-candidate"
+            ):
+                return capture["candidates"][index]
+            if path == f"{api}/snapshots/{snapshot['snapshot_id']}/submissions":
+                assert method == "POST"
+                assert payload == capture["submission_intents"][index]
+                result = json.loads(json.dumps(capture["outcomes"][index]))
+                result["evidence"]["learner_id"] = "single-profile-learner"
+                return result
+        if path == f"{api}/submissions":
+            return capture["history"]
+        if path == f"{api}/completion":
+            return capture["completion"] | {"rebuilt_at": "2026-10-17T05:30:00Z"}
+        for index, record in enumerate(capture["evidence"]):
+            if path == f"{api}/submissions/{record['submission_id']}":
+                return record | {"learner_id": "single-profile-learner"}
+        raise AssertionError(f"Unexpected request: {method} {path}")
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+    monkeypatch.setattr(
+        runner,
+        "_request_json_read_status",
+        lambda *_args, **_kwargs: (
+            404,
+            {"error_version": "1.0", "code": "not_found"},
+        ),
+    )
+
+    observed = runner.observe_headless_project_learning(
+        origin="http://127.0.0.1:8123",
+        capture=capture,
+    )
+    assert observed["project"] == capture["project"]
+    assert observed["exact_replays"] == capture["outcomes"]
+    assert observed["independent_denial"] == {
+        "status": 404,
+        "code": "not_found",
+    }
+    assert calls[0] == (
+        "POST",
+        "/api/v1/session/single-profile",
+        {"limitation_acknowledged": True},
+    )
+    assert [method for method, _path, _payload in calls].count("POST") == 3
+
+
+def test_project_learning_storage_and_restart_require_exact_correlation() -> None:
+    capture = project_learning_capture()
+    evidence = capture["evidence"]
+    sources = capture["completion"]["history"]
+    storage = {
+        "submissions": [
+            [
+                item["evidence_id"],
+                item["submission_id"],
+                item["snapshot_id"],
+                item["request_fingerprint"],
+                item["occurrence"],
+                item["accepted_sequence"],
+                item.get("supersedes_submission_id"),
+            ]
+            for item in evidence
+        ],
+        "events": [
+            [source["event_id"], item["evidence_id"]]
+            for source, item in zip(sources, evidence, strict=True)
+        ],
+        "projections": [[True, 2, capture["completion"]["source_digest"]]],
+        "history": [
+            [
+                source["event_id"],
+                item["evidence_id"],
+                item["submission_id"],
+                item["snapshot_id"],
+                item["request_fingerprint"],
+                item["occurrence"],
+                item["accepted_sequence"],
+                item.get("supersedes_submission_id"),
+            ]
+            for source, item in zip(sources, evidence, strict=True)
+        ],
+        "audit": [
+            [
+                source["event_id"],
+                item["evidence_id"],
+                item["submission_id"],
+                item["snapshot_id"],
+                item["occurrence"],
+                item.get("supersedes_submission_id"),
+                "a" * 64,
+            ]
+            for source, item in zip(sources, evidence, strict=True)
+        ],
+    }
+    runner.assert_project_learning_storage(storage, capture=capture)
+    runner.assert_project_learning_restart_result(
+        before_observation={"project": capture["project"]},
+        after_observation={"project": json.loads(json.dumps(capture["project"]))},
+        before_storage=storage,
+        after_storage=json.loads(json.dumps(storage)),
+    )
+
+    duplicate = json.loads(json.dumps(storage))
+    duplicate["events"].append(duplicate["events"][0])
+    with pytest.raises(RuntimeError, match="counts are incomplete"):
+        runner.assert_project_learning_storage(duplicate, capture=capture)
+
+    changed_projection = json.loads(json.dumps(storage))
+    changed_projection["projections"][0][2] = "f" * 64
+    with pytest.raises(RuntimeError, match="projection is uncorrelated"):
+        runner.assert_project_learning_storage(changed_projection, capture=capture)
+
+    with pytest.raises(RuntimeError, match="changed after normal restart"):
+        runner.assert_project_learning_restart_result(
+            before_observation={"project": capture["project"]},
+            after_observation={"project": {"project_id": "changed"}},
+            before_storage=storage,
+            after_storage=storage,
+        )
 
 
 def test_headless_project_workspace_uses_only_public_api_and_exact_bytes(
