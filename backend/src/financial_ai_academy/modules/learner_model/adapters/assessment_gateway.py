@@ -6,6 +6,7 @@ from financial_ai_academy.modules.assessment.public import (
     AssessmentOperations,
     ReadCompletedKnowledgeChecksRequest,
     ReadCompletedPracticesRequest,
+    ReadCompletedProjectsRequest,
 )
 
 from ..domain.models import (
@@ -13,6 +14,7 @@ from ..domain.models import (
     SourcePracticeAttempt,
     SourcePracticeHistory,
     SourcePracticeItemSummary,
+    SourceProjectCompletion,
 )
 
 
@@ -117,4 +119,44 @@ class AssessmentCompletionEvidenceSource:
                 )
                 for attempt in source.attempts
             ),
+        )
+
+    def list_for_project(
+        self, *, learner_id: str, project_id: str
+    ) -> tuple[SourceProjectCompletion, ...]:
+        events = self._assessment.read_completed_projects(
+            ReadCompletedProjectsRequest(
+                learner_id=learner_id,
+                project_id=project_id,
+            )
+        )
+        return tuple(
+            SourceProjectCompletion(
+                schema_version=event.schema_version,
+                event_id=event.event_id,
+                event_type=event.event_type,
+                event_version=event.event_version,
+                occurred_at=event.occurred_at,
+                evidence_id=event.evidence_id,
+                learner_id=event.learner_id,
+                occurrence=event.occurrence,
+                accepted_sequence=event.accepted_sequence,
+                submitted_at=event.submitted_at,
+                supersedes_submission_id=event.supersedes_submission_id,
+                submission_id=event.submission_id,
+                project_id=event.project_id,
+                snapshot_id=event.snapshot_id,
+                snapshot_digest=event.snapshot_digest,
+                brief_id=event.brief_id,
+                brief_version=event.brief_version,
+                brief_digest=event.brief_digest,
+                placement_id=event.placement_id,
+                placement_version=event.placement_version,
+                placement_digest=event.placement_digest,
+                policy_id=event.policy_id,
+                policy_version=event.policy_version,
+                milestone_ids=event.milestone_ids,
+                request_fingerprint=event.request_fingerprint,
+            )
+            for event in events
         )

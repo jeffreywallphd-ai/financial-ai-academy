@@ -25,6 +25,7 @@ from ..domain.practice import (
     PracticeScope,
     score_practice,
 )
+from ..domain.project_submission import ProjectCompletionEvent
 from ..ports.definition_parser import (
     AssessmentDefinitionParserPort,
     DefinitionParsingFailure,
@@ -82,6 +83,8 @@ from ..public import (
     OpenPlacedKnowledgeCheckRequest,
     OpenPlacedPracticeRequest,
     OpenProjectSubmissionCandidateRequest,
+    OrderedProjectCompletionEvent,
+    ReadCompletedProjectsRequest,
     ReadCompletedPracticesRequest,
     ReadCompletedKnowledgeChecksRequest,
     ReadPlacedPracticeProgressRequest,
@@ -261,6 +264,78 @@ class AssessmentService:
             raise AssessmentError(
                 AssessmentErrorCode.UNAVAILABLE,
                 "Project evidence history is unavailable.",
+                reference=request.project_id,
+            ) from error
+
+    def read_completed_projects(
+        self, request: ReadCompletedProjectsRequest
+    ) -> tuple[OrderedProjectCompletionEvent, ...]:
+        self._validate_uuid(request.learner_id, learner=True)
+        if not self._valid_identifier(request.project_id):
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "The Project identity is invalid.",
+                reference="project_id",
+            )
+        contract = self._require_project_submission_contract(request.project_id)
+        try:
+            evidence = self._repository.list_project_completion_evidence(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+            )
+            documents = self._repository.list_project_completion_event_documents(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+            )
+            if len(documents) != len(evidence):
+                raise ProjectSubmissionContractFailure(
+                    "assessment.project.inconsistent_event",
+                    "event_count",
+                )
+            if evidence:
+                contract.project_history(evidence)
+            events = tuple(
+                contract.parse_event(document, item)
+                for document, item in zip(documents, evidence, strict=True)
+            )
+            seen: set[str] = set()
+            for event in events:
+                candidate = event.evidence.accepted.candidate
+                if (
+                    event.event_id in seen
+                    or event.evidence.learner_id != request.learner_id
+                    or candidate.project.project_id != request.project_id
+                ):
+                    raise ProjectSubmissionContractFailure(
+                        "assessment.project.inconsistent_event",
+                        "event",
+                    )
+                seen.add(event.event_id)
+            ordered = tuple(
+                sorted(
+                    events,
+                    key=lambda event: (
+                        event.evidence.occurrence,
+                        event.event_id,
+                    ),
+                )
+            )
+            return tuple(
+                self._project_completion_event(event) for event in ordered
+            )
+        except ProjectSubmissionContractFailure as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project completion evidence is unavailable.",
+                reference=error.reference,
+                diagnostic_code=error.code,
+            ) from error
+        except AssessmentError:
+            raise
+        except Exception as error:
+            raise AssessmentError(
+                AssessmentErrorCode.UNAVAILABLE,
+                "Project completion evidence is unavailable.",
                 reference=request.project_id,
             ) from error
 
@@ -1140,6 +1215,43 @@ class AssessmentService:
             "Project submission facts are unavailable.",
             reference=error.reference,
             diagnostic_code=error.code,
+        )
+
+    @staticmethod
+    def _project_completion_event(
+        event: ProjectCompletionEvent,
+    ) -> OrderedProjectCompletionEvent:
+        evidence = event.evidence
+        accepted = evidence.accepted
+        submission = accepted.submission
+        return OrderedProjectCompletionEvent(
+            schema_version=event.schema_version,
+            event_id=event.event_id,
+            event_type=event.event_type,
+            event_version=event.event_version,
+            occurred_at=event.occurred_at,
+            evidence_id=evidence.evidence_id,
+            learner_id=evidence.learner_id,
+            submission_id=submission.submission_id,
+            project_id=submission.project_id,
+            snapshot_id=submission.snapshot_id,
+            snapshot_digest=submission.snapshot_digest,
+            brief_id=submission.brief_id,
+            brief_version=submission.brief_version,
+            brief_digest=submission.brief_digest,
+            placement_id=submission.placement_id,
+            placement_version=submission.placement_version,
+            placement_digest=submission.placement_digest,
+            policy_id=submission.policy_id,
+            policy_version=submission.policy_version,
+            milestone_ids=tuple(
+                item.milestone_id for item in accepted.candidate.milestones
+            ),
+            request_fingerprint=accepted.request_fingerprint,
+            occurrence=evidence.occurrence,
+            accepted_sequence=evidence.accepted_sequence,
+            submitted_at=evidence.submitted_at,
+            supersedes_submission_id=evidence.supersedes_submission_id,
         )
 
     def _server_time(self) -> datetime:

@@ -8,7 +8,9 @@ from ..domain.models import (
     InvalidCompletionEvidence,
     LessonCompletionProjection,
     PracticeHistoryProjection,
+    ProjectCompletionProjection,
     derive_practice_history,
+    derive_project_completion,
     derive_lesson_completion,
 )
 from ..ports.gateways import CompletionEvidenceSourcePort
@@ -21,9 +23,12 @@ from ..public import (
     LessonCompletionView,
     OpenLessonCompletionRequest,
     OpenPracticeHistoryRequest,
+    OpenProjectCompletionRequest,
     PracticeHistoryAttempt,
     PracticeHistoryItemSummary,
     PracticeHistoryView,
+    ProjectCompletionHistoryEntry,
+    ProjectCompletionView,
 )
 
 
@@ -116,6 +121,46 @@ class LearnerModelService:
             ) from error
         return self._practice_view(projection)
 
+    def open_project_completion(
+        self, request: OpenProjectCompletionRequest
+    ) -> ProjectCompletionView:
+        self._validate_project_context(request)
+        try:
+            evidence = self._source.list_for_project(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+            )
+        except LearnerModelError:
+            raise
+        except Exception as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.UNAVAILABLE,
+                "Project completion evidence is temporarily unavailable.",
+                reference=request.project_id,
+            ) from error
+        try:
+            projection = derive_project_completion(
+                learner_id=request.learner_id,
+                project_id=request.project_id,
+                evidence=evidence,
+                rebuilt_at=self._clock.now(),
+            )
+        except InvalidCompletionEvidence as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INCONSISTENT_EVIDENCE,
+                "Project completion evidence could not be reconciled.",
+                reference=error.reference,
+            ) from error
+        try:
+            self._repository.replace_project_completion(projection)
+        except Exception as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.UNAVAILABLE,
+                "The Project completion view is temporarily unavailable.",
+                reference=request.project_id,
+            ) from error
+        return self._project_view(projection)
+
     @staticmethod
     def _validate_context(request: OpenLessonCompletionRequest) -> None:
         try:
@@ -168,6 +213,33 @@ class LearnerModelService:
                 LearnerModelErrorCode.INVALID_CONTEXT,
                 "Practice placement context is invalid.",
                 reference="placement_id",
+            )
+
+    @staticmethod
+    def _validate_project_context(request: OpenProjectCompletionRequest) -> None:
+        try:
+            UUID(request.learner_id)
+        except (ValueError, AttributeError) as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_CONTEXT,
+                "Learner context is not authorized.",
+                reference="learner",
+            ) from error
+        value = request.project_id
+        if (
+            not 3 <= len(value) <= 64
+            or not value[0].isalnum()
+            or not all(
+                character.islower()
+                or character.isdigit()
+                or character in "._-"
+                for character in value
+            )
+        ):
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_CONTEXT,
+                "Project context is invalid.",
+                reference="project_id",
             )
 
     @staticmethod
@@ -251,5 +323,48 @@ class LearnerModelService:
                     completed_at=attempt.completed_at,
                 )
                 for attempt in projection.attempts
+            ),
+        )
+
+    @staticmethod
+    def _project_view(
+        projection: ProjectCompletionProjection,
+    ) -> ProjectCompletionView:
+        return ProjectCompletionView(
+            project_id=projection.project_id,
+            completed=projection.completed,
+            completion_meaning=(
+                "bounded_project_activity_completed"
+                if projection.completed
+                else "not_completed"
+            ),
+            source_digest=projection.source_digest,
+            rebuilt_at=projection.rebuilt_at,
+            history=tuple(
+                ProjectCompletionHistoryEntry(
+                    event_id=item.event_id,
+                    evidence_id=item.evidence_id,
+                    submission_id=item.submission_id,
+                    snapshot_id=item.snapshot_id,
+                    snapshot_digest=item.snapshot_digest,
+                    brief_id=item.brief_id,
+                    brief_version=item.brief_version,
+                    brief_digest=item.brief_digest,
+                    placement_id=item.placement_id,
+                    placement_version=item.placement_version,
+                    placement_digest=item.placement_digest,
+                    policy_id=item.policy_id,
+                    policy_version=item.policy_version,
+                    milestone_ids=item.milestone_ids,
+                    request_fingerprint=item.request_fingerprint,
+                    occurrence=item.occurrence,
+                    accepted_sequence=item.accepted_sequence,
+                    supersedes_submission_id=(
+                        item.supersedes_submission_id
+                    ),
+                    submitted_at=item.submitted_at,
+                    occurred_at=item.occurred_at,
+                )
+                for item in projection.history
             ),
         )

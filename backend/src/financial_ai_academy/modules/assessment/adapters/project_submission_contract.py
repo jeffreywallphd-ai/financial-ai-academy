@@ -270,6 +270,29 @@ class ContractProjectSubmissionAdapter:
         self._shape("completion-event", self.to_event_document(event))
         return event
 
+    def parse_event(
+        self,
+        document: Mapping[str, Any],
+        evidence: ProjectCompletionEvidence,
+    ) -> ProjectCompletionEvent:
+        value = dict(document)
+        self._shape("completion-event", value)
+        self._version(value)
+        event = ProjectCompletionEvent(
+            schema_version=value["schema_version"],
+            event_id=value["event_id"],
+            event_type=value["event_type"],
+            event_version=value["event_version"],
+            occurred_at=self._timestamp(value["occurred_at"], "occurred_at"),
+            evidence=evidence,
+        )
+        if self.to_event_document(event) != value:
+            self._reject(
+                "assessment.project.inconsistent_event",
+                "event",
+            )
+        return event
+
     def project_history(
         self, evidence: Sequence[ProjectCompletionEvidence]
     ) -> ProjectHistory:

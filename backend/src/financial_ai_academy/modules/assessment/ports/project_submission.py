@@ -55,6 +55,12 @@ class ProjectSubmissionContract(Protocol):
         occurred_at: datetime,
     ) -> ProjectCompletionEvent: ...
 
+    def parse_event(
+        self,
+        document: Mapping[str, Any],
+        evidence: ProjectCompletionEvidence,
+    ) -> ProjectCompletionEvent: ...
+
     def project_history(
         self, evidence: Sequence[ProjectCompletionEvidence]
     ) -> ProjectHistory: ...

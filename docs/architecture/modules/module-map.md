@@ -10,14 +10,14 @@
 | Identity | accepted for first learner context | Provider-neutral actors and learners, provider bindings, authentication context, sessions, and application permission inputs | Identity, binding, and session changes |
 | Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
 | Curriculum | accepted; lesson, exact Assessment/practice placement, review-target mapping, protected discovery, and immutable graph read implemented | Competencies, prerequisites, pathways, course structure, exact activity placement, review routing, and rebuildable discovery views | Curriculum-version events remain future work |
-| Assessment | accepted; deterministic knowledge-check/practice core, retry evidence, and safe history source implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check and practice completion evidence |
-| Learner model | accepted; bounded lesson completion and practice-history projections implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
+| Assessment | accepted; deterministic knowledge-check/practice/Project evidence and typed replay implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check, practice, and Project completion evidence |
+| Learner model | accepted; bounded lesson, practice-history, and Project-completion projections implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | accepted; deterministic navigation-state core implemented | Eligibility, ranking orchestration, deterministic policy, recommendations | Deterministic navigation-state projections; durable recommendation decisions and outcomes remain future work |
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
-| Audit | accepted; Assessment completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
+| Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
 ## Boundary Notes
 
@@ -233,6 +233,14 @@ scoring types remain outside this implemented core.
   exact source identities, and atomically replaces its own exact-scope rows.
   Its canonical digest matches the accepted history contract; the projection
   carries no response, feedback text, answer, mastery, or recommendation.
+- Project completion uses the same public-only direction. Assessment validates
+  retained `assessment.project.completed@1.0.0` envelopes against correlated
+  immutable evidence, and Learner model rebuilds one learner/Project projection
+  with ordered event, submission, snapshot, brief, placement, policy,
+  occurrence, supersession, digest, and time references. Exact event replay is
+  deduplicated; changed identity, broken ordering, or inconsistent context
+  fails before replacement. Completion remains bounded Project activity, not
+  qualitative grading, mastery, competency, suitability, or advice.
 
 ## Implemented Audit Completion Seam
 
@@ -248,6 +256,12 @@ scoring types remain outside this implemented core.
   score, completion, or learner-state facts. HTTP exposure, exports, retention
   automation, recovery, background delivery, and managed-cloud posture remain
   outside this seam.
+- Audit also maps the public Project completion event into an owned append-only
+  integrity reference. Canonical digests cover the portable event while rows
+  retain only event/evidence/submission identity, actor/action, exact Project,
+  snapshot, brief, placement, policy, occurrence, supersession, and time
+  references. Exact replay is idempotent and changed same-event meaning is a
+  conflict; workspace content and projection authority remain outside Audit.
 
 ## Implemented Completion-History API Seam
 

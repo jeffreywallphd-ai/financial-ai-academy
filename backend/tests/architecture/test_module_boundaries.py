@@ -187,6 +187,19 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
     assert "references curriculum." not in learner_projection
     assert "references identity." not in learner_projection
 
+    project_projection = (
+        REPOSITORY
+        / "backend/migrations/learner_model/learner_model_0003_project_completion.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    for foreign_schema in (
+        "references assessment.",
+        "references content.",
+        "references curriculum.",
+        "references identity.",
+        "references project.",
+    ):
+        assert foreign_schema not in project_projection
+
     audit_records = (
         REPOSITORY
         / "backend/migrations/audit/audit_0001_assessment_completion_records.up.sql"
@@ -196,6 +209,20 @@ def test_curriculum_migration_has_no_cross_module_foreign_key() -> None:
     assert "references curriculum." not in audit_records
     assert "references identity." not in audit_records
     assert "references learner_model." not in audit_records
+
+    project_audit_records = (
+        REPOSITORY
+        / "backend/migrations/audit/audit_0002_project_completion_records.up.sql"
+    ).read_text(encoding="utf-8").casefold()
+    for foreign_schema in (
+        "references assessment.",
+        "references content.",
+        "references curriculum.",
+        "references identity.",
+        "references learner_model.",
+        "references project.",
+    ):
+        assert foreign_schema not in project_audit_records
 
     project_placement = (
         REPOSITORY

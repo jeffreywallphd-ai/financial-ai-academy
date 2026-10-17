@@ -7,7 +7,11 @@ from collections.abc import Callable
 import psycopg
 from psycopg.types.json import Jsonb
 
-from ..domain.models import LessonCompletionProjection, PracticeHistoryProjection
+from ..domain.models import (
+    LessonCompletionProjection,
+    PracticeHistoryProjection,
+    ProjectCompletionProjection,
+)
 
 
 class PostgresCompletionProjectionRepository:
@@ -17,10 +21,12 @@ class PostgresCompletionProjectionRepository:
         *,
         before_projection: Callable[[], None] | None = None,
         before_practice_projection: Callable[[], None] | None = None,
+        before_project_projection: Callable[[], None] | None = None,
     ) -> None:
         self._dsn = dsn
         self._before_projection = before_projection
         self._before_practice_projection = before_practice_projection
+        self._before_project_projection = before_project_projection
 
     def replace(self, projection: LessonCompletionProjection) -> None:
         lock_key = f"{projection.learner_id}:{projection.placement_id}"
@@ -255,3 +261,103 @@ class PostgresCompletionProjectionRepository:
                     )
                 if self._before_practice_projection is not None:
                     self._before_practice_projection()
+
+    def replace_project_completion(
+        self, projection: ProjectCompletionProjection
+    ) -> None:
+        scope = (projection.learner_id, projection.project_id)
+        lock_key = ":".join(scope)
+        with psycopg.connect(self._dsn) as connection:
+            with connection.transaction():
+                connection.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                    (lock_key,),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO learner_model.project_completion_projections (
+                        learner_id,
+                        project_id,
+                        completed,
+                        history_count,
+                        source_digest,
+                        rebuilt_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (learner_id, project_id) DO UPDATE SET
+                        completed = EXCLUDED.completed,
+                        history_count = EXCLUDED.history_count,
+                        source_digest = EXCLUDED.source_digest,
+                        rebuilt_at = EXCLUDED.rebuilt_at
+                    """,
+                    (
+                        *scope,
+                        projection.completed,
+                        len(projection.history),
+                        projection.source_digest,
+                        projection.rebuilt_at,
+                    ),
+                )
+                connection.execute(
+                    """
+                    DELETE FROM learner_model.project_completion_history
+                    WHERE learner_id = %s AND project_id = %s
+                    """,
+                    scope,
+                )
+                for item in projection.history:
+                    connection.execute(
+                        """
+                        INSERT INTO learner_model.project_completion_history (
+                            learner_id,
+                            project_id,
+                            occurrence,
+                            accepted_sequence,
+                            event_id,
+                            evidence_id,
+                            submission_id,
+                            snapshot_id,
+                            snapshot_digest,
+                            brief_id,
+                            brief_version,
+                            brief_digest,
+                            placement_id,
+                            placement_version,
+                            placement_digest,
+                            policy_id,
+                            policy_version,
+                            milestone_ids,
+                            request_fingerprint,
+                            supersedes_submission_id,
+                            submitted_at,
+                            occurred_at
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        )
+                        """,
+                        (
+                            *scope,
+                            item.occurrence,
+                            item.accepted_sequence,
+                            item.event_id,
+                            item.evidence_id,
+                            item.submission_id,
+                            item.snapshot_id,
+                            item.snapshot_digest,
+                            item.brief_id,
+                            item.brief_version,
+                            item.brief_digest,
+                            item.placement_id,
+                            item.placement_version,
+                            item.placement_digest,
+                            item.policy_id,
+                            item.policy_version,
+                            Jsonb(list(item.milestone_ids)),
+                            item.request_fingerprint,
+                            item.supersedes_submission_id,
+                            item.submitted_at,
+                            item.occurred_at,
+                        ),
+                    )
+                if self._before_project_projection is not None:
+                    self._before_project_projection()

@@ -53,8 +53,19 @@ def migrated_database() -> object:
     root.apply_all()
     applied = {item.migration_id for item in audit.apply_all()}
     assert "audit_0001_assessment_completion_records" in applied
+    assert "audit_0002_project_completion_records" in applied
     yield
     with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            (
+                MIGRATIONS
+                / "audit/audit_0002_project_completion_records.down.sql"
+            ).read_text(encoding="utf-8")
+        )
+        connection.execute(
+            "DELETE FROM platform.schema_migrations WHERE migration_id = %s",
+            ("audit_0002_project_completion_records",),
+        )
         connection.execute(
             (
                 MIGRATIONS

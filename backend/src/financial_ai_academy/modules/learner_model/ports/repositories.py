@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from ..domain.models import LessonCompletionProjection, PracticeHistoryProjection
+from ..domain.models import (
+    LessonCompletionProjection,
+    PracticeHistoryProjection,
+    ProjectCompletionProjection,
+)
 
 
 class CompletionProjectionRepositoryPort(Protocol):
@@ -12,4 +16,8 @@ class CompletionProjectionRepositoryPort(Protocol):
 
     def replace_practice_history(
         self, projection: PracticeHistoryProjection
+    ) -> None: ...
+
+    def replace_project_completion(
+        self, projection: ProjectCompletionProjection
     ) -> None: ...

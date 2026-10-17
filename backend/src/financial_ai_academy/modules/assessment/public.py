@@ -156,6 +156,41 @@ class ReadProjectCompletionHistoryRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class ReadCompletedProjectsRequest:
+    learner_id: str
+    project_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class OrderedProjectCompletionEvent:
+    schema_version: str
+    event_id: str
+    event_type: str
+    event_version: str
+    occurred_at: datetime
+    evidence_id: str
+    learner_id: str
+    submission_id: str
+    project_id: str
+    snapshot_id: str
+    snapshot_digest: str
+    brief_id: str
+    brief_version: str
+    brief_digest: str
+    placement_id: str
+    placement_version: str
+    placement_digest: str
+    policy_id: str
+    policy_version: str
+    milestone_ids: tuple[str, ...]
+    request_fingerprint: str
+    occurrence: int
+    accepted_sequence: int
+    submitted_at: datetime
+    supersedes_submission_id: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectSubmissionOutcome:
     validation: ProjectValidationResult
     evidence: ProjectCompletionEvidence | None
@@ -312,6 +347,10 @@ class AssessmentOperations(Protocol):
     def read_project_completion_history(
         self, request: ReadProjectCompletionHistoryRequest
     ) -> ProjectHistory: ...
+
+    def read_completed_projects(
+        self, request: ReadCompletedProjectsRequest
+    ) -> tuple[OrderedProjectCompletionEvent, ...]: ...
 
     def open_placed_knowledge_check(
         self, request: OpenPlacedKnowledgeCheckRequest

@@ -38,6 +38,7 @@ from financial_ai_academy.modules.assessment.public import (
     AssessmentError,
     AssessmentErrorCode,
     OpenProjectSubmissionCandidateRequest,
+    ReadCompletedProjectsRequest,
     ReadProjectCompletionEvidenceRequest,
     ReadProjectCompletionHistoryRequest,
     SubmitProjectSnapshotRequest,
@@ -75,6 +76,7 @@ class Repository:
     def __init__(self, contract):
         self.contract = contract
         self.items = []
+        self.event_documents = []
 
     def record_project_submission(self, candidate):
         for item in self.items:
@@ -102,6 +104,15 @@ class Repository:
             ),
         )
         self.items.append(evidence)
+        self.event_documents.append(
+            self.contract.to_event_document(
+                self.contract.project_event(
+                    evidence,
+                    event_id=candidate.event_id,
+                    occurred_at=candidate.submitted_at,
+                )
+            )
+        )
         return evidence, True
 
     def list_project_completion_evidence(self, *, learner_id, project_id):
@@ -110,6 +121,18 @@ class Repository:
             for item in self.items
             if item.learner_id == learner_id
             and item.accepted.candidate.project.project_id == project_id
+        )
+
+    def list_project_completion_event_documents(self, *, learner_id, project_id):
+        matching = self.list_project_completion_evidence(
+            learner_id=learner_id,
+            project_id=project_id,
+        )
+        evidence_ids = {item.evidence_id for item in matching}
+        return tuple(
+            document
+            for document in self.event_documents
+            if document["payload"]["evidence_id"] in evidence_ids
         )
 
 
@@ -325,6 +348,27 @@ def test_project_candidate_and_accepted_evidence_share_one_headless_core() -> No
     assert len(repository.items) == 1
     assert history.items == (outcome.evidence,)
     assert reopened == outcome.evidence
+
+
+def test_project_completion_replay_is_typed_ordered_and_empty_safe() -> None:
+    subject, _source, _repository = _subject()
+    request = ReadCompletedProjectsRequest(LEARNER, "project-retirement-plan")
+    assert subject.read_completed_projects(request) == ()
+
+    outcome = subject.submit_project_snapshot(
+        SubmitProjectSnapshotRequest(
+            LEARNER,
+            "project-retirement-plan",
+            "snapshot-retirement-plan-01",
+            _document("submission"),
+        )
+    )
+    events = subject.read_completed_projects(request)
+
+    assert len(events) == 1
+    assert events[0].evidence_id == outcome.evidence.evidence_id  # type: ignore[union-attr]
+    assert not hasattr(events[0], "evidence")
+    assert events[0].event_type == "assessment.project.completed"
 
 
 def test_public_project_source_assembles_exact_versioned_facts() -> None:

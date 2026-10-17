@@ -30,9 +30,9 @@ an accepted result plus bounded server metadata to immutable evidence, a safe
 completion event, and ordered history. The application adapter obtains source
 facts only through the three modules' public operations; validation refusals
 write nothing, while accepted evidence and its safe outbox event commit in one
-Assessment transaction. It does not publish, expose HTTP, execute artifacts,
-grade quality, infer mastery, or provide advice. HTTP and consumer seams remain
-later SLI-0032 packets.
+Assessment transaction. It does not publish, execute artifacts, grade quality,
+infer mastery, or provide advice. Protected HTTP and typed consumer replay are
+implemented; the browser remains later SLI-0032 work.
 
 ## Public operations
 
@@ -48,11 +48,14 @@ later SLI-0032 packets.
 - `submit_project_snapshot(SubmitProjectSnapshotRequest) -> ProjectSubmissionOutcome`
 - `read_project_completion_evidence(ReadProjectCompletionEvidenceRequest) -> ProjectCompletionEvidence`
 - `read_project_completion_history(ReadProjectCompletionHistoryRequest) -> ProjectHistory`
+- `read_completed_projects(ReadCompletedProjectsRequest) -> tuple[OrderedProjectCompletionEvent, ...]`
 - `submit_placed_knowledge_check(SubmitPlacedKnowledgeCheckRequest) -> KnowledgeCheckResult`
 - `read_completed_knowledge_checks(ReadCompletedKnowledgeChecksRequest) -> tuple[KnowledgeCheckCompletionEvent, ...]`
 
-The Project-submission operations are transport-neutral and are not yet
-composed into the protected HTTP host or generated client.
+The Project-submission operations are transport-neutral. Candidate, submit,
+exact-evidence, and history operations are composed into the protected HTTP
+host and generated client; typed completion-event replay remains an internal
+public-module operation for Learner-model and Audit consumers.
 
 The open operation resolves Curriculum and Content only through their public
 facades and returns no correct option, private scoring object, or feedback. The
@@ -137,6 +140,12 @@ events.
 
 The outbox row is durable event evidence only. No dispatcher, worker, broker,
 consumer, or delivery guarantee is implemented.
+
+Project completion replay correlates every retained outbox envelope with its
+immutable Assessment evidence, revalidates both through the existing Project
+contract, and returns stable occurrence order for the exact learner and
+Project. Empty replay is explicit. Malformed, unsupported, duplicate, or
+cross-context records fail closed; reads never acknowledge or mutate evidence.
 
 The completion-event read operation is an explicit synchronous replay source.
 It validates every stored envelope against the executable event v1 schema,

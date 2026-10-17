@@ -13,8 +13,8 @@ Project owns the live workspace, inert artifact manifests, validated domain
 links, and immutable snapshot. Content owns the approved brief and its ordered
 milestones. Curriculum owns exact placement. Assessment consumes only public,
 learner-safe facts and owns the submission intent, structural validation,
-immutable evidence, and completion signal. Learner model and Audit can consume
-a later typed public replay; neither may read Assessment or Project tables.
+immutable evidence, and completion signal. Learner model and Audit consume the
+typed public replay; neither reads Assessment or Project tables.
 
 Only a learning-started Project can produce this evidence. The candidate fixes
 the exact package, brief, Curriculum, placement, Project, snapshot, policy,
@@ -54,8 +54,8 @@ identities, increasing accepted sequence, non-regressing canonical UTC server
 time, contiguous occurrences, and a valid prior reference. Learner identity is
 removed only after those cross-record checks pass.
 
-The safe `assessment.project.completed@1.0.0` event omits learner identity and
-artifact-level mappings. It carries only exact correlation and provenance
+The safe `assessment.project.completed@1.0.0` portable envelope omits learner
+identity and artifact-level mappings. It carries only exact correlation and provenance
 needed by later authorized projections. Neither event nor history is a public
 sharing or grading record.
 
@@ -94,6 +94,10 @@ enforces the complete-history contract's 100-item bound before commit and
 serializes occurrence with a non-regressing authoritative submission time.
 
 The protected HTTP routes and reviewed OpenAPI/generated client are delivered.
-The browser, Learner-model and Audit consumers, dispatcher, provider, execution
-adapter, and managed-cloud profile remain later bounded packets. They must
-consume rather than redefine this contract.
+Assessment now also exposes retained events through a typed, read-only public
+replay operation for one server-supplied learner and Project. Learner model
+rebuilds bounded Project-activity completion, while Audit appends integrity/
+provenance references; exact replay is idempotent and neither consumer copies
+workspace state or reads another module's tables. The browser, dispatcher,
+provider, execution adapter, and managed-cloud profile remain later bounded
+work and must consume rather than redefine this contract.

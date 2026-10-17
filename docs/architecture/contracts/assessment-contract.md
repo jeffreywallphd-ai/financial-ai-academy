@@ -160,10 +160,10 @@ completion event. It carries exact evidence, submission, Project, snapshot,
 brief, placement, policy, milestone, occurrence, time, and fingerprint
 provenance while omitting learner identity and artifact-level mappings. It is
 not a quality, correctness, mastery, competency, reproducibility, suitability,
-performance, or advice signal. Assessment now retains the event atomically
-with immutable Project evidence and can replay exact ordered evidence through
-its transport-neutral application operation. External consumers are not yet
-composed.
+performance, or advice signal. Assessment retains the event atomically with
+immutable Project evidence and replays exact ordered typed events through its
+transport-neutral application operation. Learner model and Audit consume only
+that public operation.
 
 ## Practice Draft and Retry Contracts
 
@@ -327,5 +327,7 @@ source, service, and repository. Four protected Project-scoped HTTP operations
 expose candidate, submit/refusal, exact evidence, and learner-safe ordered
 history through reviewed OpenAPI and generated TypeScript types for browser and
 headless clients. The host derives learner and permission from the session and
-does not reproduce Assessment policy. Learner-model or Audit consumers,
-browser flow, provider, execution path, and AI authority remain absent.
+does not reproduce Assessment policy. Typed Project event replay now feeds
+rebuildable Learner-model completion and append-only Audit references without
+cross-module persistence access. Browser flow, provider, execution path, and AI
+authority remain absent.

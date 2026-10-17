@@ -280,3 +280,19 @@ def test_evidence_rejects_a_forged_fingerprint() -> None:
             ),
         )
     assert captured.value.code == "assessment.project.inconsistent_evidence"
+
+
+def test_completion_event_round_trips_only_with_its_exact_evidence() -> None:
+    adapter, first, second = _history_pair()
+    event = adapter.project_event(
+        first,
+        event_id="event-retirement-01",
+        occurred_at=datetime(2026, 10, 17, 3, 31, tzinfo=timezone.utc),
+    )
+    document = adapter.to_event_document(event)
+
+    assert adapter.parse_event(document, first) == event
+    with pytest.raises(ProjectSubmissionContractFailure) as captured:
+        adapter.parse_event(document, second)
+    assert captured.value.code == "assessment.project.inconsistent_event"
+    assert captured.value.reference == "event"

@@ -21,6 +21,7 @@ from financial_ai_academy.modules.assessment.application.service import Assessme
 from financial_ai_academy.modules.assessment.public import (
     AssessmentError,
     AssessmentErrorCode,
+    ReadCompletedProjectsRequest,
     ReadProjectCompletionHistoryRequest,
     SubmitProjectSnapshotRequest,
 )
@@ -196,9 +197,15 @@ def test_project_evidence_commits_atomically_and_reopens_after_restart() -> None
     history = restarted.read_project_completion_history(
         ReadProjectCompletionHistoryRequest(LEARNER, "project-retirement-plan")
     )
+    events = restarted.read_completed_projects(
+        ReadCompletedProjectsRequest(LEARNER, "project-retirement-plan")
+    )
 
     assert accepted.evidence is not None
     assert history.items == (accepted.evidence,)
+    assert len(events) == 1
+    assert events[0].evidence_id == accepted.evidence.evidence_id  # type: ignore[union-attr]
+    assert not hasattr(events[0], "evidence")
     assert _counts() == (1, 1, 1, 1)
     assert POSTGRES_DSN is not None
     with psycopg.connect(POSTGRES_DSN) as connection:

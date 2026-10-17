@@ -100,8 +100,21 @@ transaction replaces a complete history and its source digest; interrupted
 replacement rolls back to the prior complete projection. The tables contain no
 Assessment foreign key and are not mastery or eligibility evidence.
 
+`learner_model_0003_project_completion` adds rebuildable learner/Project roots
+and ordered safe source-reference rows for accepted Assessment Project events.
+One transaction replaces the complete derived history and source digest;
+interruption preserves the prior complete view. The rows have no Assessment or
+Project foreign key, contain no workspace bytes, and are not mastery, grading,
+eligibility, or advice evidence.
+
 The Audit stream under `audit/` owns append-only Assessment-event integrity and
 provenance references. It has no cross-schema foreign keys. Unlike the
 Learner-model projection, accepted Audit records reject ordinary update/delete;
 teardown is limited to controlled development/test rollback and must not be
 described as harmless evidence rebuilding.
+
+`audit_0002_project_completion_records` adds append-only integrity/provenance
+references for Assessment Project completion events. It reuses Audit-owned
+mutation denial, has no cross-schema foreign key, keeps Assessment authoritative
+for business evidence, and requires reverse-order controlled teardown before
+the first Audit migration.

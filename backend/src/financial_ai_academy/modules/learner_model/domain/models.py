@@ -128,6 +128,10 @@ def _timestamp(value: datetime) -> str:
 _ID = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
 _VERSION = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 _DIGEST = re.compile(r"^[a-f0-9]{64}$")
+_PROJECT_EVENT_ID = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
+_CONTRACT_VERSION = re.compile(
+    r"^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+)
 _ITEM_POLICIES = {
     "single_select": "single-select-exact-match",
     "multiple_select": "multiple-select-exact-set",
@@ -383,4 +387,188 @@ def _practice_attempt_payload(attempt: SourcePracticeAttempt) -> dict[str, objec
             for item in attempt.item_summaries
         ],
         "completed_at": _timestamp(attempt.completed_at),
+    }
+
+
+@dataclass(frozen=True, slots=True)
+class SourceProjectCompletion:
+    schema_version: str
+    event_id: str
+    event_type: str
+    event_version: str
+    occurred_at: datetime
+    evidence_id: str
+    learner_id: str
+    occurrence: int
+    accepted_sequence: int
+    submitted_at: datetime
+    supersedes_submission_id: str | None
+    submission_id: str
+    project_id: str
+    snapshot_id: str
+    snapshot_digest: str
+    brief_id: str
+    brief_version: str
+    brief_digest: str
+    placement_id: str
+    placement_version: str
+    placement_digest: str
+    policy_id: str
+    policy_version: str
+    milestone_ids: tuple[str, ...]
+    request_fingerprint: str
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectCompletionProjection:
+    learner_id: str
+    project_id: str
+    completed: bool
+    source_digest: str
+    rebuilt_at: datetime
+    history: tuple[SourceProjectCompletion, ...]
+
+
+def derive_project_completion(
+    *,
+    learner_id: str,
+    project_id: str,
+    evidence: tuple[SourceProjectCompletion, ...],
+    rebuilt_at: datetime,
+) -> ProjectCompletionProjection:
+    if rebuilt_at.tzinfo is None:
+        raise InvalidCompletionEvidence("rebuilt_at")
+    _project_context(learner_id, project_id)
+    exact_events: dict[str, SourceProjectCompletion] = {}
+    unique: list[SourceProjectCompletion] = []
+    identities: dict[str, set[str]] = {
+        "evidence_id": set(),
+        "submission_id": set(),
+    }
+    for item in evidence:
+        prior = exact_events.get(item.event_id)
+        if prior is not None:
+            if prior != item:
+                raise InvalidCompletionEvidence("event_id")
+            continue
+        exact_events[item.event_id] = item
+        for field, seen in identities.items():
+            value = str(getattr(item, field))
+            if value in seen:
+                raise InvalidCompletionEvidence(field)
+            seen.add(value)
+        unique.append(item)
+    ordered = tuple(sorted(unique, key=lambda item: item.occurrence))
+    if len(ordered) > 100:
+        raise InvalidCompletionEvidence("history")
+    prior_submission: str | None = None
+    prior_sequence = 0
+    prior_time: datetime | None = None
+    for expected_occurrence, item in enumerate(ordered, start=1):
+        _validate_project_completion(item, learner_id, project_id)
+        if item.occurrence != expected_occurrence:
+            raise InvalidCompletionEvidence("occurrence")
+        if item.accepted_sequence <= prior_sequence:
+            raise InvalidCompletionEvidence("accepted_sequence")
+        if prior_time is not None and item.submitted_at < prior_time:
+            raise InvalidCompletionEvidence("submitted_at")
+        if item.supersedes_submission_id != prior_submission:
+            raise InvalidCompletionEvidence("supersedes_submission_id")
+        prior_submission = item.submission_id
+        prior_sequence = item.accepted_sequence
+        prior_time = item.submitted_at
+    payload = [_project_completion_payload(item) for item in ordered]
+    source_digest = hashlib.sha256(
+        json.dumps(
+            payload,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+    return ProjectCompletionProjection(
+        learner_id=learner_id,
+        project_id=project_id,
+        completed=bool(ordered),
+        source_digest=source_digest,
+        rebuilt_at=rebuilt_at.astimezone(timezone.utc),
+        history=ordered,
+    )
+
+
+def _project_context(learner_id: str, project_id: str) -> None:
+    try:
+        UUID(learner_id)
+    except (ValueError, AttributeError) as error:
+        raise InvalidCompletionEvidence("learner_id") from error
+    if _ID.fullmatch(project_id) is None:
+        raise InvalidCompletionEvidence("project_id")
+
+
+def _validate_project_completion(
+    item: SourceProjectCompletion,
+    learner_id: str,
+    project_id: str,
+) -> None:
+    identifiers = (
+        item.event_id,
+        item.evidence_id,
+        item.submission_id,
+        item.snapshot_id,
+        item.brief_id,
+        item.placement_id,
+        item.policy_id,
+        *item.milestone_ids,
+    )
+    versions = (
+        item.brief_version,
+        item.placement_version,
+    )
+    digests = (
+        item.snapshot_digest,
+        item.brief_digest,
+        item.placement_digest,
+        item.request_fingerprint,
+    )
+    if (
+        item.learner_id != learner_id
+        or item.project_id != project_id
+        or item.schema_version != "1.0.0"
+        or item.event_type != "assessment.project.completed"
+        or item.event_version != "1.0.0"
+        or item.policy_id != "assessment-project-closure"
+        or item.policy_version != "1.0.0"
+        or _ID.fullmatch(item.project_id) is None
+        or any(
+            _PROJECT_EVENT_ID.fullmatch(value) is None
+            for value in identifiers
+        )
+        or any(
+            _CONTRACT_VERSION.fullmatch(value) is None for value in versions
+        )
+        or any(_DIGEST.fullmatch(value) is None for value in digests)
+        or not 1 <= len(item.milestone_ids) <= 20
+        or len(set(item.milestone_ids)) != len(item.milestone_ids)
+        or item.occurrence < 1
+        or item.accepted_sequence < 1
+        or item.occurred_at.tzinfo is None
+        or item.submitted_at.tzinfo is None
+        or item.occurred_at < item.submitted_at
+    ):
+        raise InvalidCompletionEvidence("project_evidence")
+    if (
+        item.supersedes_submission_id is not None
+        and _PROJECT_EVENT_ID.fullmatch(item.supersedes_submission_id) is None
+    ):
+        raise InvalidCompletionEvidence("supersedes_submission_id")
+
+
+def _project_completion_payload(
+    item: SourceProjectCompletion,
+) -> dict[str, object]:
+    return {
+        **asdict(item),
+        "occurred_at": _timestamp(item.occurred_at),
+        "submitted_at": _timestamp(item.submitted_at),
+        "milestone_ids": list(item.milestone_ids),
     }

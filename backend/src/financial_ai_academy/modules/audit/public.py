@@ -46,7 +46,24 @@ class AuditReconciliationReceipt:
     source_digest: str
 
 
+@dataclass(frozen=True, slots=True)
+class ReconcileProjectCompletionAuditRequest:
+    learner_id: str
+    project_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectAuditReconciliationReceipt:
+    project_id: str
+    reconciled_event_count: int
+    source_digest: str
+
+
 class AuditOperations(Protocol):
     def reconcile_lesson_completion(
         self, request: ReconcileLessonCompletionAuditRequest
     ) -> AuditReconciliationReceipt: ...
+
+    def reconcile_project_completion(
+        self, request: ReconcileProjectCompletionAuditRequest
+    ) -> ProjectAuditReconciliationReceipt: ...

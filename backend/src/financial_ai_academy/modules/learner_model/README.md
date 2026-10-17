@@ -9,6 +9,7 @@ investment performance.
 
 - `open_lesson_completion(OpenLessonCompletionRequest) -> LessonCompletionView`
 - `open_practice_history(OpenPracticeHistoryRequest) -> PracticeHistoryView`
+- `open_project_completion(OpenProjectCompletionRequest) -> ProjectCompletionView`
 
 The operation obtains validated completion events through the Assessment
 public facade, derives a stable source-set digest and ordered history, and
@@ -45,3 +46,13 @@ reopens the identical public progress meaning after normal host restart.
 Focused PostgreSQL evidence owns idempotent rebuild, interrupted-rebuild
 rollback, migration, and variable attempt-history cases; the live runner does
 not reach into this module's tables or introduce another projection path.
+
+`learner_model_0003_project_completion` adds one replaceable projection root
+per learner and Project plus ordered public source references for every
+accepted Project submission. The operation consumes only Assessment's typed
+Project-event replay, validates contiguous occurrence and immediate
+supersession, deduplicates exact event replay, and atomically replaces the
+complete derived set with a stable source digest. Completion means only that
+Assessment accepted structural Project evidence; the rows contain no workspace
+content, artifact bytes, qualitative grade, mastery, competency, suitability,
+recommendation, or advice meaning.
