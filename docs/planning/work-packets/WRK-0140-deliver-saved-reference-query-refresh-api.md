@@ -1,7 +1,7 @@
 ---
 id: WRK-0140
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -252,6 +252,40 @@ residual gaps. Confirm no browser feature, target mutation, artifact execution,
 new adapter, provider, managed-cloud, separate AI authority, or financial
 action changed, then leave WRK-0141 dependency-ready.
 
+## Completion Evidence
+
+- Exact candidate `0de5a8645f971d8a16157121d4404a5a7c09d7d2` is a strict
+  descendant of the recorded base revision. Its fresh, qualifying,
+  post-run-stable receipt has digest
+  `sha256:9cbd4e7062aa889230b3f2cb621deecbc825c9908c823e31f52bc51cd4fc10b9`.
+- The protected API now exposes a closed learner-owned query operation and a
+  record-only refresh mutation. The server derives learner identity, retained
+  selector, owner adapter, readable reference kinds, validation time, and
+  status; callers cannot supply replacement facts or source authority.
+- Query execution remains entirely inside the Personal-workspace aggregate.
+  Refresh uses only current Curriculum and Project public operations, collapses
+  denied, missing, removed, absent-adapter, and unavailable causes to one
+  unavailable status, and never reads owner storage or mutates a source.
+- PostgreSQL preserves status, revision, provenance, and replay evidence across
+  restart. Exact refresh retry returns before another owner call, immutable
+  artifact drift becomes stale, an unreadable artifact becomes unavailable,
+  and no schema migration was required.
+- The reviewed OpenAPI and generated TypeScript client carry all five closed
+  reference kinds and all three status values. Browser and headless consumers
+  therefore share the same protected query and refresh contract without a
+  separate AI authority path.
+- The focused contract, unit, and protected-API suite passed 248 tests. The
+  disposable PostgreSQL suite passed 13 tests, architecture fitness passed 17,
+  security passed 10 control groups, and OpenAPI reproduction, generated
+  client checks, TypeScript type checking, planning, documentation, Python
+  compilation, and whitespace checks passed. The aggregate readiness gate
+  passed all 29 checks.
+- The browser search, filters, status presentation, refresh controls, and the
+  integrated live browser/headless journey remain intentionally bounded to
+  the next two dependent packets. No browser feature, source mutation,
+  artifact execution, new adapter, dependency, provider, managed-cloud, or
+  financial-action behavior changed in this packet.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0139 completed. The packet
@@ -259,3 +293,9 @@ action changed, then leave WRK-0141 dependency-ready.
   protected API, reviewed OpenAPI, and generated client while leaving browser
   controls and integrated live qualification to dependent packets. No lower-
   level approval is required.
+- 2026-10-17: Completed the API and persistence seam after qualifying the exact
+  corrected candidate. The correction widened Project-artifact API status to
+  the canonical three-state union while preserving the separate available-only
+  Project domain-link contract. Focused, live PostgreSQL, architecture,
+  security, affected-check, and aggregate evidence passed with no remaining
+  substantive packet gap.

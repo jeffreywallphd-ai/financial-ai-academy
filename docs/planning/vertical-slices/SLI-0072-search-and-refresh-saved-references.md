@@ -210,7 +210,7 @@ packet starts. The dependency-ordered seams are:
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0139 | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | complete |
-| WRK-0140 | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | WRK-0139 | none | ready |
+| WRK-0140 | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | WRK-0139 | none | complete |
 | JIT-C | Deliver plain-language browser search, filters, status, per-record refresh, and accessible safe resume through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | JIT-C | none | captured |
 
@@ -304,3 +304,8 @@ approval is requested.
   field-by-field immutable-reference drift evidence; refined JIT-B as WRK-0140
   for application, persistence, protected API, OpenAPI, and generated-client
   delivery without expanding into browser or live-qualification work.
+- 2026-10-17: Completed WRK-0140 with protected deterministic query and
+  record-only refresh, server-derived owner authority, confidential optional-
+  adapter isolation, PostgreSQL restart and exact-replay evidence, and one
+  reviewed OpenAPI/generated-client contract shared by browser and headless
+  consumers. JIT-C is dependency-ready for just-in-time refinement.
