@@ -1,16 +1,16 @@
 ---
 id: WRK-0135
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0017
+owner: unassigned
 updated: 2026-10-17
 parent: SLI-0071
 capability: CAP-0017
 depends_on: []
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["contracts/learning/personal-workspace/v1/learning-reference.schema.json", "contracts/learning/personal-workspace/v1/README.md", "contracts/compatibility/personal-workspace/v1/README.md", "contracts/compatibility/personal-workspace/v1/valid-project-workspace-note.json", "contracts/compatibility/personal-workspace/v1/valid-project-snapshot-bookmark.json", "contracts/compatibility/personal-workspace/v1/valid-project-artifact-bookmark.json", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/domain/workspace.py", "backend/src/financial_ai_academy/modules/personal_workspace/public.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/workspace_contract.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/project_reference.py", "backend/tests/contract/personal_workspace/test_personal_workspace_contract.py", "backend/tests/unit/personal_workspace/test_workspace_contract.py", "backend/tests/unit/personal_workspace/test_project_reference_gateway.py", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0135-freeze-personal-workspace-project-references.md", "docs/planning/register.md"]
+write_scope: ["contracts/learning/personal-workspace/v1/learning-reference.schema.json", "contracts/learning/personal-workspace/v1/workspace.schema.json", "contracts/learning/personal-workspace/v1/mutation-intent.schema.json", "contracts/learning/personal-workspace/v1/README.md", "contracts/compatibility/personal-workspace/v1/README.md", "contracts/compatibility/personal-workspace/v1/valid-project-workspace-note.json", "contracts/compatibility/personal-workspace/v1/valid-project-snapshot-bookmark.json", "contracts/compatibility/personal-workspace/v1/valid-project-artifact-bookmark.json", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/domain/workspace.py", "backend/src/financial_ai_academy/modules/personal_workspace/public.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/learning_reference.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/workspace_contract.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/project_reference.py", "backend/tests/contract/personal_workspace/test_personal_workspace_contract.py", "backend/tests/unit/personal_workspace/test_workspace_contract.py", "backend/tests/unit/personal_workspace/test_project_reference_gateway.py", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/contracts/project-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0135-freeze-personal-workspace-project-references.md", "docs/planning/register.md"]
 generated_artifacts: []
 base_revision: 5cdd5a05f705f848d1a54c524edaa6146576f1a5
 claim_id: WRK-0135:790d9795-6850-4e48-ab5c-2a2924f537e5
@@ -219,3 +219,7 @@ then leave the persistence/API seam dependency-ready.
   freezes the additive Project-reference union and reusable public-operation
   adapter without widening Project authority or starting persistence, API,
   client, UI, or live qualification work. No lower-level approval is required.
+- 2026-10-17: Returned the untouched packet to ready after implementation
+  inspection confirmed that the workspace and mutation-intent schemas embed
+  the same closed reference union. Added those two exact schema paths to the
+  scope; product meaning and the approved slice remain unchanged.
