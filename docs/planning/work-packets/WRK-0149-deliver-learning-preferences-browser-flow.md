@@ -1,7 +1,7 @@
 ---
 id: WRK-0149
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/learner-preferences/api.ts", "apps/web/src/features/learner-preferences/model.ts", "apps/web/src/features/learner-preferences/LearnerPreferencesPage.tsx", "apps/web/src/features/learner-preferences/LearnerPreferencesRoute.tsx", "apps/web/src/styles/learner-preferences.css", "apps/web/tests/component/learnerPreferences.test.tsx", "apps/web/tests/unit/browserBoundary.test.ts", "apps/web/tests/unit/learnerPreferencesModel.test.ts", "docs/architecture/assurance/architecture-verification.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0074-record-learning-goals-experience-interests.md", "docs/planning/work-packets/WRK-0149-deliver-learning-preferences-browser-flow.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 3e01a37d267cce74cc6efe4d25e77ceb0445c5b3
+claim_id: WRK-0149:f3afecc7-1214-44a4-b1c9-41b5a42f595d
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-17T19:03:51Z
 ---
 
 # Agent Work Packet: Deliver the Learning Preferences Browser Flow
@@ -210,3 +210,6 @@ recommendation, provider, external action, or financial behavior changed.
   public client, reuses repository route/session/design patterns, preserves
   API/headless authority, and requires no lower-level approval within the
   current CAP-0018 package.
+- 2026-10-17: Activated from recorded base `3e01a37` after confirming the
+  completed API dependency, exact browser-only scope, current design and
+  language standards, resolved decision posture, and no active collision.
