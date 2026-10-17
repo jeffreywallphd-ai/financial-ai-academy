@@ -235,7 +235,7 @@ packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | complete |
 | WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | complete |
-| WRK-0145 | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | WRK-0144 | none | verifying |
+| WRK-0145 | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | WRK-0144 | none | complete |
 | JIT-D | Qualify cumulative browser/headless parity, maximum bounds, interruption, target isolation, restart, empty-target community database recovery, containment, cleanup, and CAP closure | JIT-C | none | captured |
 
 Dependent packets are not claimed until their predecessor is complete. The
@@ -243,6 +243,12 @@ sequential default avoids shared contract, client, API, UI, and local-live
 qualification collisions. A packet may later declare an exact independent
 test or documentation scope parallel-safe only when accepted inputs and
 reciprocal non-overlap are explicit.
+
+WRK-0145 completed with the exact generated-client export download, closed
+response validation, attempt-bounded authorization recovery, plain-language
+capacity guidance, accessible status, mixed-reference coverage, and proof
+that no Curriculum or Project owner operation was invoked. JIT-D remains the
+single cumulative live recovery and slice-closure seam.
 
 ## Verification and Qualification
 

@@ -1,7 +1,7 @@
 ---
 id: WRK-0145
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -235,3 +235,7 @@ recovery and slice-closure work.
   and target-isolation paths. Type, lint, build, learner-language, design,
   documentation, planning, and whitespace checks also passed before exact-
   candidate verification.
+- 2026-10-17: Completed the packet after exact-candidate qualification
+  confirmed the download, refusal, attempt-bound, accessibility, mixed-
+  reference, target-isolation, capacity, and aggregate-readiness evidence.
+  The cumulative live recovery and slice-closure exercise remains in JIT-D.
