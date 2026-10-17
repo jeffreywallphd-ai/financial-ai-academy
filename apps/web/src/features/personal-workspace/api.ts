@@ -121,6 +121,36 @@ function identifiers(form: FormData, name: string): string[] | undefined {
 
 function sourceSelector(form: FormData) {
   const kind = required(form, "reference_kind", 32);
+  const projectId = identifier(form, "project_id");
+  if (kind === "project_workspace" && projectId) {
+    return { reference_kind: kind, project_id: projectId } as const;
+  }
+  const snapshotId = identifier(form, "snapshot_id");
+  if (kind === "project_snapshot" && projectId && snapshotId) {
+    return {
+      reference_kind: kind,
+      project_id: projectId,
+      snapshot_id: snapshotId,
+    } as const;
+  }
+  const artifactId = identifier(form, "artifact_id");
+  const artifactVersionValue = required(form, "artifact_version", 20);
+  const artifactVersion = artifactVersionValue && /^[1-9][0-9]*$/.test(artifactVersionValue)
+    ? Number(artifactVersionValue)
+    : Number.NaN;
+  if (
+    kind === "project_artifact" &&
+    projectId &&
+    artifactId &&
+    Number.isSafeInteger(artifactVersion)
+  ) {
+    return {
+      reference_kind: kind,
+      project_id: projectId,
+      artifact_id: artifactId,
+      artifact_version: artifactVersion,
+    } as const;
+  }
   const placementId = required(form, "placement_id", 64);
   if (!curriculumIdentifierIsSafe(placementId)) return undefined;
   if (kind === "placed_lesson") {

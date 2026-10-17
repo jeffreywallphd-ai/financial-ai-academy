@@ -183,6 +183,8 @@ describe("Project learner pages", () => {
     const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} snapshots={[]} workspace={workspace} /> }], { initialEntries: [`/projects/${project.project_id}`] });
     render(<RouterProvider router={router} />);
     expect(screen.getByRole("heading", { level: 1, name: project.title })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Save Project to Saved learning" })).toHaveAttribute("href", "/saved-learning/new?kind=project_workspace&project=project-alpha");
+    expect(document.getElementById("workspace")).not.toBeNull();
     expect(screen.getByText(origin.brief_title, { exact: true })).toBeVisible();
     expect(screen.getByText(project.project_id)).not.toBeVisible();
     await user.click(screen.getByText("Technical record"));
@@ -212,9 +214,13 @@ describe("Project learner pages", () => {
     expect(document.querySelector(".project-preserved-text")?.textContent).toBe("Line one\nLine two");
     expect(screen.getByRole("link", { name: "Open source in a new tab" })).toHaveAttribute("href", "https://example.test/source");
     expect(screen.getByRole("button", { name: "Download original file" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Save file to Saved learning" })).toHaveAttribute("href", "/saved-learning/new?kind=project_artifact&project=project-alpha&artifact=artifact-one&version=1");
+    expect(document.getElementById("artifact-artifact-one-v1")).not.toBeNull();
     expect(screen.getAllByText(/does not run, expand, or actively preview/i)).not.toHaveLength(0);
     expect(screen.getByText(/It contains 0 notes/)).toBeVisible();
     expect(screen.getByRole("button", { name: "Save checkpoint" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Save checkpoint to Saved learning" })).toHaveAttribute("href", "/saved-learning/new?kind=project_snapshot&project=project-alpha&snapshot=snapshot-one");
+    expect(document.getElementById("snapshot-snapshot-one")).not.toBeNull();
 
     const filePanel = screen.getByRole("heading", { name: "data/café.csv" }).closest("li")!;
     await user.click(within(filePanel).getByText("Technical record"));

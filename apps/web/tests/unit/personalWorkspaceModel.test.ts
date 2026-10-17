@@ -226,9 +226,46 @@ describe("Personal workspace browser model", () => {
     });
   });
 
+  it("accepts only complete Project selectors and derives their safe destinations", () => {
+    expect(parseSaveSelection(new URL("https://academy.test/saved-learning/new?kind=project_workspace&project=project.research-1"))).toEqual({
+      kind: "project_workspace",
+      projectId: "project.research-1",
+      returnTo: "/projects/project.research-1#workspace",
+    });
+    expect(parseSaveSelection(new URL("https://academy.test/saved-learning/new?kind=project_snapshot&project=project.research-1&snapshot=snapshot.baseline-1"))).toEqual({
+      kind: "project_snapshot",
+      projectId: "project.research-1",
+      snapshotId: "snapshot.baseline-1",
+      returnTo: "/projects/project.research-1#snapshot-snapshot.baseline-1",
+    });
+    expect(parseSaveSelection(new URL("https://academy.test/saved-learning/new?kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=3"))).toEqual({
+      kind: "project_artifact",
+      projectId: "project.research-1",
+      artifactId: "artifact.allocation-inputs",
+      artifactVersion: 3,
+      returnTo: "/projects/project.research-1#artifact-artifact.allocation-inputs-v3",
+    });
+    for (const query of [
+      "kind=project_workspace",
+      "kind=project_workspace&project=Project-Unsafe",
+      "kind=project_snapshot&project=project.research-1",
+      "kind=project_snapshot&project=project.research-1&snapshot=snapshot.baseline-1&artifact=artifact.one",
+      "kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=0",
+      "kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=03",
+      "kind=project_artifact&project=project.research-1&artifact=artifact.allocation-inputs&version=9007199254740992",
+      "kind=project_workspace&project=project.research-1&return=%2Fprojects%2Fanother",
+      "kind=project_workspace&project=project.research-1&project=project.other",
+    ]) {
+      expect(parseSaveSelection(new URL(`https://academy.test/saved-learning/new?${query}`))).toBeUndefined();
+    }
+  });
+
   it.each([
     ["create note", [["operation", "create_note"], ["reference_kind", "learning_opportunity"], ["opportunity_id", "risk-return-basics"], ["placement_id", "risk-return-primary"], ["title", "Risk note"], ["body", "Keep evidence and interpretation separate."]], { operation: "create_note", selector: { reference_kind: "learning_opportunity", opportunity_id: "risk-return-basics", placement_id: "risk-return-primary" }, title: "Risk note", body: "Keep evidence and interpretation separate." }],
     ["create bookmark", [["operation", "create_bookmark"], ["reference_kind", "placed_lesson"], ["placement_id", "cash-flow-primary"], ["label", ""]], { operation: "create_bookmark", selector: { reference_kind: "placed_lesson", placement_id: "cash-flow-primary" }, label: "" }],
+    ["create Project note", [["operation", "create_note"], ["reference_kind", "project_workspace"], ["project_id", "project.research-1"], ["title", "Project note"], ["body", "Review the current workspace."]], { operation: "create_note", selector: { reference_kind: "project_workspace", project_id: "project.research-1" }, title: "Project note", body: "Review the current workspace." }],
+    ["create checkpoint bookmark", [["operation", "create_bookmark"], ["reference_kind", "project_snapshot"], ["project_id", "project.research-1"], ["snapshot_id", "snapshot.baseline-1"], ["label", "Baseline checkpoint"]], { operation: "create_bookmark", selector: { reference_kind: "project_snapshot", project_id: "project.research-1", snapshot_id: "snapshot.baseline-1" }, label: "Baseline checkpoint" }],
+    ["create file bookmark", [["operation", "create_bookmark"], ["reference_kind", "project_artifact"], ["project_id", "project.research-1"], ["artifact_id", "artifact.allocation-inputs"], ["artifact_version", "3"], ["label", "Allocation inputs"]], { operation: "create_bookmark", selector: { reference_kind: "project_artifact", project_id: "project.research-1", artifact_id: "artifact.allocation-inputs", artifact_version: 3 }, label: "Allocation inputs" }],
     ["update note", [["operation", "update_note"], ["record_id", "note-one"], ["title", "Updated"], ["body", "Updated body"]], { operation: "update_note", record_id: "note-one", title: "Updated", body: "Updated body" }],
     ["update bookmark", [["operation", "update_bookmark"], ["record_id", "bookmark-one"], ["label", "Review"]], { operation: "update_bookmark", record_id: "bookmark-one", label: "Review" }],
     ["create collection", [["operation", "create_collection"], ["title", "Next steps"]], { operation: "create_collection", title: "Next steps" }],

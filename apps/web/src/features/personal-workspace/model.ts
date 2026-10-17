@@ -39,6 +39,24 @@ export type SaveSelection =
       kind: "placed_lesson";
       placementId: string;
       returnTo: string;
+    }
+  | {
+      kind: "project_workspace";
+      projectId: string;
+      returnTo: string;
+    }
+  | {
+      kind: "project_snapshot";
+      projectId: string;
+      snapshotId: string;
+      returnTo: string;
+    }
+  | {
+      kind: "project_artifact";
+      projectId: string;
+      artifactId: string;
+      artifactVersion: number;
+      returnTo: string;
     };
 
 export type SaveLearningRouteState =
@@ -437,6 +455,16 @@ function one(search: URLSearchParams, name: string): string | undefined {
   return values.length === 1 && values[0] ? values[0] : undefined;
 }
 
+function absent(search: URLSearchParams, names: readonly string[]): boolean {
+  return names.every((name) => search.getAll(name).length === 0);
+}
+
+function positiveQueryInteger(value: string | undefined): number | undefined {
+  if (!value || !/^[1-9][0-9]*$/.test(value)) return undefined;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
 function returnPathIsSafe(value: string | undefined): value is string {
   const matched = value
     ? /^\/learn\/(?:opportunities|placements)\/([^/?#]+)$/.exec(value)
@@ -451,10 +479,57 @@ function returnPathIsSafe(value: string | undefined): value is string {
 
 export function parseSaveSelection(url: URL): SaveSelection | undefined {
   const kind = one(url.searchParams, "kind");
+  const projectId = one(url.searchParams, "project");
+  if (
+    kind === "project_workspace" &&
+    workspaceIdentifierIsSafe(projectId) &&
+    absent(url.searchParams, ["placement", "opportunity", "snapshot", "artifact", "version", "return"])
+  ) {
+    return {
+      kind,
+      projectId,
+      returnTo: `/projects/${projectId}#workspace`,
+    };
+  }
+  const snapshotId = one(url.searchParams, "snapshot");
+  if (
+    kind === "project_snapshot" &&
+    workspaceIdentifierIsSafe(projectId) &&
+    workspaceIdentifierIsSafe(snapshotId) &&
+    absent(url.searchParams, ["placement", "opportunity", "artifact", "version", "return"])
+  ) {
+    return {
+      kind,
+      projectId,
+      snapshotId,
+      returnTo: `/projects/${projectId}#snapshot-${snapshotId}`,
+    };
+  }
+  const artifactId = one(url.searchParams, "artifact");
+  const artifactVersion = positiveQueryInteger(one(url.searchParams, "version"));
+  if (
+    kind === "project_artifact" &&
+    workspaceIdentifierIsSafe(projectId) &&
+    workspaceIdentifierIsSafe(artifactId) &&
+    artifactVersion !== undefined &&
+    absent(url.searchParams, ["placement", "opportunity", "snapshot", "return"])
+  ) {
+    return {
+      kind,
+      projectId,
+      artifactId,
+      artifactVersion,
+      returnTo: `/projects/${projectId}#artifact-${artifactId}-v${artifactVersion}`,
+    };
+  }
   const placementId = one(url.searchParams, "placement");
   const returnToValue = one(url.searchParams, "return");
   const returnTo = returnPathIsSafe(returnToValue) ? returnToValue : "/learn";
-  if (!placementId || !CURRICULUM_ID.test(placementId)) return undefined;
+  if (
+    !placementId ||
+    !CURRICULUM_ID.test(placementId) ||
+    !absent(url.searchParams, ["project", "snapshot", "artifact", "version"])
+  ) return undefined;
   if (kind === "lesson") {
     return { kind: "placed_lesson", placementId, returnTo };
   }

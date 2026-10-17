@@ -19,6 +19,18 @@ function requestKey() {
   return crypto.randomUUID().toLowerCase();
 }
 
+function savedLearningPath(
+  kind: "project_workspace" | "project_snapshot" | "project_artifact",
+  projectId: string,
+  details: { artifactId?: string; artifactVersion?: number; snapshotId?: string } = {},
+) {
+  const search = new URLSearchParams({ kind, project: projectId });
+  if (details.snapshotId) search.set("snapshot", details.snapshotId);
+  if (details.artifactId) search.set("artifact", details.artifactId);
+  if (details.artifactVersion !== undefined) search.set("version", String(details.artifactVersion));
+  return `/saved-learning/new?${search.toString()}`;
+}
+
 function IntentForm({
   busy,
   children,
@@ -259,11 +271,14 @@ export function ProjectDetailPage({
         <p className="eyebrow">Active Project</p>
         <h1>{project.title}</h1>
         <p>{project.charter}</p>
-        <Link className="button button--secondary" to="/projects">Return to Projects</Link>
+        <div className="project-form__actions">
+          <Link className="button button--secondary" to="/projects">Return to Projects</Link>
+          <Link className="button project-button--primary" to={savedLearningPath("project_workspace", project.project_id)}>Save Project to Saved learning</Link>
+        </div>
       </header>
       <ActionProblem state={actionState} />
       <DownloadNotice status={downloadStatus} />
-      <section className="project-panel">
+      <section className="project-panel" id="workspace">
         <h2>Project source</h2>
         {learning ? <><p>This Project began with the learning brief <strong>{learning.brief_title}</strong>.</p><p>{learning.brief_purpose}</p></> : <p>You started this Project from your own idea.</p>}
         <dl className="project-facts">
@@ -331,9 +346,12 @@ export function ProjectDetailPage({
 
       <section className="project-section" aria-labelledby="project-files-heading">
         <div><p className="eyebrow">Saved evidence</p><h2 id="project-files-heading">Files</h2><p>The Academy stores files for safe download but does not run, expand, or actively preview them.</p></div>
-        {workspace.artifacts.length === 0 ? <p className="project-empty">No files yet.</p> : <ul className="project-work-list">{workspace.artifacts.map((artifact) => <li className="project-panel" key={`${artifact.artifact_id}-${artifact.artifact_version}`}>
+        {workspace.artifacts.length === 0 ? <p className="project-empty">No files yet.</p> : <ul className="project-work-list">{workspace.artifacts.map((artifact) => <li className="project-panel" id={`artifact-${artifact.artifact_id}-v${artifact.artifact_version}`} key={`${artifact.artifact_id}-${artifact.artifact_version}`}>
           <h3>{artifact.logical_path}</h3><dl className="project-facts"><TechnicalFact label="Kind">{artifactKindLabels[artifact.artifact_kind]}</TechnicalFact><TechnicalFact label="Source">{artifact.provenance.source_title}</TechnicalFact><TechnicalFact label="Size">{artifact.byte_count.toLocaleString()} bytes</TechnicalFact>{artifact.result_classification ? <TechnicalFact label="Result type">{artifact.result_classification}</TechnicalFact> : null}</dl>
-          <button className="button button--secondary" disabled={busy} onClick={() => void handleArtifactDownload(artifact)} type="button">Download original file</button>
+          <div className="project-form__actions">
+            <button className="button button--secondary" disabled={busy} onClick={() => void handleArtifactDownload(artifact)} type="button">Download original file</button>
+            <Link className="button button--secondary" to={savedLearningPath("project_artifact", project.project_id, { artifactId: artifact.artifact_id, artifactVersion: artifact.artifact_version })}>Save file to Saved learning</Link>
+          </div>
           <details><summary>Technical record</summary><dl className="project-technical">
             <TechnicalFact label="Artifact"><code>{artifact.artifact_id}@{artifact.artifact_version}</code></TechnicalFact>
             <TechnicalFact label="Logical path"><code>{artifact.logical_path}</code></TechnicalFact>
@@ -375,10 +393,11 @@ export function ProjectDetailPage({
 
       <section className="project-section" id="snapshots" aria-labelledby="project-snapshots-heading">
         <div><p className="eyebrow">Fixed evidence</p><h2 id="project-snapshots-heading">Saved checkpoints</h2><p>A checkpoint keeps one exact version of your Project evidence. You can keep working afterward without changing it.</p></div>
-        {snapshots.length === 0 ? <p className="project-empty">No saved checkpoints yet.</p> : <ol className="project-work-list">{snapshots.map((snapshot) => <li className="project-panel" key={snapshot.snapshot_id}>
+        {snapshots.length === 0 ? <p className="project-empty">No saved checkpoints yet.</p> : <ol className="project-work-list">{snapshots.map((snapshot) => <li className="project-panel" id={`snapshot-${snapshot.snapshot_id}`} key={snapshot.snapshot_id}>
           <h3>Checkpoint from <time dateTime={snapshot.closed_at}>{readableProjectDate(snapshot.closed_at)}</time></h3><p>It contains {snapshot.snapshot.notes.length} notes, {snapshot.snapshot.references.length} sources, and {snapshot.snapshot.artifacts.length} files.</p>
           <div className="project-form__actions">
             <button className="button button--secondary" disabled={busy} onClick={() => void handleSnapshotExport(snapshot.snapshot_id)} type="button">Download evidence record</button>
+            <Link className="button button--secondary" to={savedLearningPath("project_snapshot", project.project_id, { snapshotId: snapshot.snapshot_id })}>Save checkpoint to Saved learning</Link>
             {learning ? <Link className="button project-button--primary" to={`/projects/${encodeURIComponent(project.project_id)}/learning?snapshot=${encodeURIComponent(snapshot.snapshot_id)}`}>Submit for learning</Link> : null}
           </div>
           <details><summary>Technical record</summary><dl className="project-technical">

@@ -167,7 +167,7 @@ npm --prefix apps/web run generate:api -- --check
 npm --prefix apps/web run typecheck
 npm --prefix apps/web run lint
 npm --prefix apps/web run build
-python dev-tools/language/check_user_facing_language.py --changed
+python dev-tools/learner-language/check_learner_language.py
 python dev-tools/design/check_design_system.py
 python dev-tools/security/check_slice_security.py
 python docs/planning/skills/author-agent-work-packet/scripts/validate_work_packet.py docs/planning/work-packets/WRK-0137-deliver-project-saved-learning-browser-flow.md

@@ -228,6 +228,39 @@ describe("Saved learning pages", () => {
     expect(screen.queryByRole("button", { name: /save project/i })).not.toBeInTheDocument();
   });
 
+  it("applies the existing order, archive, restore, and removal controls to Project records", async () => {
+    const submissions: FormData[] = [];
+    const value: PersonalWorkspace = {
+      ...projectWorkspace,
+      records: projectWorkspace.records.map((record, index) => index === 1 ? { ...record, archived: true } : record),
+    };
+    renderWorkspace(submissions, undefined, value);
+    const user = userEvent.setup();
+    const workspaceRecord = screen.getByRole("heading", { name: "Compare allocation assumptions" }).closest("li") as HTMLElement;
+    const checkpointRecord = screen.getByRole("heading", { name: "Baseline checkpoint" }).closest("li") as HTMLElement;
+    const artifactRecord = screen.getByRole("heading", { name: "Allocation inputs" }).closest("li") as HTMLElement;
+
+    await user.click(within(workspaceRecord).getByRole("button", { name: "Archive record" }));
+    await user.click(within(checkpointRecord).getByRole("button", { name: "Restore record" }));
+    await user.click(within(workspaceRecord).getByRole("button", { name: "Move later" }));
+    await user.click(within(artifactRecord).getByText("Remove saved record", { selector: "summary" }));
+    await user.click(within(artifactRecord).getByRole("button", { name: "Remove saved record" }));
+
+    await waitFor(() => expect(submissions).toHaveLength(4));
+    expect(submissions.map((form) => form.get("operation"))).toEqual([
+      "archive_record",
+      "restore_record",
+      "reorder_records",
+      "remove_record",
+    ]);
+    expect(submissions[2]?.getAll("record_ids")).toEqual([
+      "project-snapshot-one",
+      "project-workspace-one",
+      "project-artifact-one",
+    ]);
+    expect(submissions[3]?.get("record_id")).toBe("project-artifact-one");
+  });
+
   it("submits current revision, stable request authority, ordered records, and collection membership", async () => {
     const submissions: FormData[] = [];
     renderWorkspace(submissions);
@@ -364,6 +397,33 @@ describe("Saved learning pages", () => {
     await waitFor(() => expect(submissions).toHaveLength(2));
     expect(submissions[1]?.get("label")).toBe("");
     expect(screen.getByRole("link", { name: "Return to lesson" })).toHaveAttribute("href", "/learn/placements/cash-flow-primary");
+  });
+
+  it.each([
+    ["Project", { kind: "project_workspace", projectId: "project.research-1", returnTo: "/projects/project.research-1#workspace" }, { reference_kind: "project_workspace", project_id: "project.research-1" }],
+    ["checkpoint", { kind: "project_snapshot", projectId: "project.research-1", snapshotId: "snapshot.baseline-1", returnTo: "/projects/project.research-1#snapshot-snapshot.baseline-1" }, { reference_kind: "project_snapshot", project_id: "project.research-1", snapshot_id: "snapshot.baseline-1" }],
+    ["file record", { kind: "project_artifact", projectId: "project.research-1", artifactId: "artifact.allocation-inputs", artifactVersion: 3, returnTo: "/projects/project.research-1#artifact-artifact.allocation-inputs-v3" }, { reference_kind: "project_artifact", project_id: "project.research-1", artifact_id: "artifact.allocation-inputs", artifact_version: "3" }],
+  ] as const)("submits the exact %s selector without learner or Project content", async (objectName, selection, expected) => {
+    const submissions: FormData[] = [];
+    const router = createMemoryRouter([{
+      path: "/saved-learning/new",
+      action: async ({ request }) => {
+        submissions.push(await request.formData());
+        return null;
+      },
+      element: <SaveLearningPage busy={false} selection={selection as SaveSelection} workspace={workspace} />,
+    }], { initialEntries: ["/saved-learning/new"] });
+    render(<RouterProvider router={router} />);
+    const user = userEvent.setup();
+
+    expect(screen.getByRole("heading", { name: `Save this ${objectName}` })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Return to Project" })).toHaveAttribute("href", selection.returnTo);
+    await user.click(screen.getByRole("button", { name: "Save bookmark" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(Object.fromEntries(submissions[0]!.entries())).toEqual(expect.objectContaining(expected));
+    expect(submissions[0]?.has("learner_id")).toBe(false);
+    expect(submissions[0]?.has("project_title")).toBe(false);
+    expect(submissions[0]?.has("project_charter")).toBe(false);
   });
 
   it("retries the complete immutable request after revalidation and uses a fresh request after an edit", async () => {

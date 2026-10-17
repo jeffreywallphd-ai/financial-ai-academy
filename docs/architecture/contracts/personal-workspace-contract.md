@@ -53,6 +53,14 @@ creates a mutation or execution path into another module.
   Curriculum and Project selectors. The server derives learner identity and
   validation time, dispatches to the selector owner's learner-bound public
   operations, and verifies exact returned identities before any write.
+- Authorized Project browser views may construct only the three closed Project
+  selectors and send them to the shared `/saved-learning/new` flow. The browser
+  derives same-origin return anchors from validated identities, never accepts a
+  caller-supplied Project return path, and exposes no learner, authorization,
+  Project-content, artifact-download, or storage fields in the save request.
+- Curriculum and Project records share the same ordering, archive, and
+  collection operations. Mixing those reference kinds does not change the
+  mutation contract or move target ownership into Personal workspace.
 - Repeated empty reads project the same revision-one workspace without writing.
   The first accepted mutation atomically persists revision two. Exact retries
   return the accepted workspace; stale revisions and changed idempotency-key
@@ -68,9 +76,9 @@ creates a mutation or execution path into another module.
 
 ## Exclusions
 
-The protected API and generated client cover Curriculum and Project references;
-the current `Saved learning` browser entry flow covers Curriculum references.
-Project browser entry points and lifecycle-event handling remain later CAP-0017
-packets. The boundary has no collaboration, cloud synchronization, artifact
-preview/download/execution, Project mutation, Portfolio association, Assessment
-or Learner-model effect, AI authority, or personalized financial advice.
+The protected API, generated client, and `Saved learning` browser entry flow
+cover Curriculum and Project references. Project lifecycle-event handling
+remains later CAP-0017 work. The boundary has no collaboration, cloud
+synchronization, artifact preview/download/execution, Project mutation,
+Portfolio association, Assessment or Learner-model effect, AI authority, or
+personalized financial advice.

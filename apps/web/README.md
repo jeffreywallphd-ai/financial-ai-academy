@@ -238,9 +238,13 @@ integrity facts remain available through accessible `Technical record`
 disclosures. The same protected API remains independently usable by
 command-line, service, and future headless clients; the UI adds no alternate
 policy, storage, or AI path. Its generated types also expose the closed Project
-workspace, snapshot, and artifact selectors for headless clients. The current
-browser entry flow creates Curriculum references only; Project save controls
-remain later CAP-0017 work.
+workspace, snapshot, and artifact selectors for headless clients. Authorized
+Project pages now provide contextual controls for the complete Project,
+individual checkpoints, and exact file versions. Those controls carry only the
+closed selector to `/saved-learning/new`; the browser derives the safe return
+anchor and never accepts a caller-supplied Project destination. Curriculum and
+Project records can be organized together without copying Project content or
+adding a browser-only policy path.
 
 `/projects` lists the learner's current Projects and reviewed learning-based
 starting points. `/projects/new` creates either an independent Project or one
@@ -255,7 +259,10 @@ record before display, and keeps exact IDs, versions, revisions, and digests in
 accessible `Technical record` disclosures. Server authorization, optimistic
 revision checks, request replay, provenance rules, snapshot immutability, and
 artifact admission remain authoritative in the public API and are equally
-available to command-line, service, and future headless clients.
+available to command-line, service, and future headless clients. Saved-learning
+controls link back to stable workspace, checkpoint, and file-version anchors;
+malformed, incomplete, or conflicting selectors fail before Project details
+are displayed.
 
 For a learning-started Project, each saved checkpoint links to
 `/projects/:projectId/learning?snapshot=:snapshotId`. That route reads the

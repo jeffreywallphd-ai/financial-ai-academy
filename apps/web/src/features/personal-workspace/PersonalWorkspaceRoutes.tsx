@@ -33,23 +33,25 @@ export function PersonalWorkspaceLoadingState() {
 function Failure({
   onReturn,
   onRetry,
+  returnLabel,
   status,
 }: {
   onReturn: () => void;
   onRetry: () => void;
+  returnLabel: string;
   status: string;
 }) {
   if (status === "unauthorized") {
     return <StatusPanel actionLabel="Try again" description="We couldn't start your learner session. No private saved-learning details were shown." icon="lock" onAction={onRetry} title="Learner session needed" tone="warning" />;
   }
   if (status === "forbidden") {
-    return <StatusPanel actionLabel="Return to learning library" description="This learner profile cannot use Saved learning. No private details were shown." icon="lock" onAction={onReturn} title="Saved learning unavailable" tone="warning" />;
+    return <StatusPanel actionLabel={returnLabel} description="This learner profile cannot use Saved learning. No private details were shown." icon="lock" onAction={onReturn} title="Saved learning unavailable" tone="warning" />;
   }
   if (status === "invalid-selection" || status === "not-found") {
-    return <StatusPanel actionLabel="Return to learning library" description="This learning item is no longer available to save. No other saved work was changed." icon="info-circle" onAction={onReturn} title="Learning item not found" tone="info" />;
+    return <StatusPanel actionLabel={returnLabel} description="This item is not available to save. No other saved work was changed." icon="info-circle" onAction={onReturn} title="Item not available" tone="info" />;
   }
   if (status === "invalid-response") {
-    return <StatusPanel actionLabel="Return to learning library" description="We couldn't safely show this saved-learning response. No partial private details were displayed." icon="error-circle" onAction={onReturn} title="Saved learning could not be shown" tone="danger" />;
+    return <StatusPanel actionLabel={returnLabel} description="We couldn't safely show this saved-learning response. No partial private details were displayed." icon="error-circle" onAction={onReturn} title="Saved learning could not be shown" tone="danger" />;
   }
   if (status === "unavailable") {
     return <StatusPanel actionLabel="Try again" description="Saved learning could not be loaded right now. No old or partial records were displayed." icon="warning-triangle" onAction={onRetry} title="Saved learning temporarily unavailable" tone="warning" />;
@@ -69,7 +71,7 @@ export function PersonalWorkspaceRoute() {
   return state.status === "ready" ? (
     <PersonalWorkspacePage actionState={actionState} busy={navigation.state === "submitting"} workspace={state.workspace} />
   ) : (
-    <Failure onReturn={() => void navigate("/learn")} onRetry={() => revalidator.revalidate()} status={state.status} />
+    <Failure onReturn={() => void navigate("/learn")} onRetry={() => revalidator.revalidate()} returnLabel="Return to learning library" status={state.status} />
   );
 }
 
@@ -85,6 +87,6 @@ export function SaveLearningRoute() {
   return state.status === "ready" ? (
     <SaveLearningPage actionState={actionState} busy={navigation.state === "submitting"} selection={state.selection} workspace={state.workspace} />
   ) : (
-    <Failure onReturn={() => void navigate("/learn")} onRetry={() => revalidator.revalidate()} status={state.status} />
+    <Failure onReturn={() => void navigate("/saved-learning")} onRetry={() => revalidator.revalidate()} returnLabel="Open Saved learning" status={state.status} />
   );
 }

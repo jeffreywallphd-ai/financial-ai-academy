@@ -65,15 +65,131 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
   const references: Record<string, unknown>[] = [];
   const artifacts: Record<string, unknown>[] = [];
   const snapshots: Record<string, unknown>[] = [];
+  let personalRevision = 1;
+  const personalRecords: Record<string, unknown>[] = [{
+    record_kind: "bookmark",
+    record_id: "bookmark-curriculum",
+    label: "Curriculum reminder",
+    archived: false,
+    created_at: "2026-10-17T13:00:00Z",
+    updated_at: "2026-10-17T13:00:00Z",
+    target: {
+      reference_kind: "placed_lesson",
+      owner_module: "curriculum",
+      placement_id: "risk-return-primary",
+      package_id: "risk-return-package",
+      package_version: "1.0.0",
+      package_digest: "a".repeat(64),
+      title: "Risk and return basics",
+      destination: "/learn/placements/risk-return-primary",
+      target_status: "available",
+      validated_at: "2026-10-17T13:00:00Z",
+      provenance: {
+        published_by: "Financial AI Academy",
+        published_at: "2026-10-17T12:00:00Z",
+        content_reviewed_on: "2026-10-17",
+        educational_use_notice: "Educational content only.",
+      },
+    },
+  }];
+  const personalCollections: Record<string, unknown>[] = [];
   let acceptedEvidence: Record<string, unknown> | null = null;
   let artifactBytes = "";
   const workspace = (projectId: string) => ({
     schema_version: "1.0.0", project_id: projectId, learner_id: "learner-a", workspace_revision: workspaceRevision,
     notes, references, artifacts, domain_links: [], created_at: "2026-10-16T20:00:00Z", updated_at: `2026-10-16T20:${String(workspaceRevision).padStart(2, "0")}:00Z`,
   });
+  const personalWorkspace = () => ({
+    schema_version: "1.0.0",
+    workspace_id: "workspace-one",
+    learner_id: "learner-a",
+    revision: personalRevision,
+    records: personalRecords,
+    collections: personalCollections,
+    created_at: "2026-10-17T13:00:00Z",
+    updated_at: `2026-10-17T14:${String(personalRevision).padStart(2, "0")}:00Z`,
+    workspace_digest: String(personalRevision).padStart(64, "0"),
+  });
   await page.route("**/api/v1/session/single-profile", (route) => json(route, 201, {
     status: "ready", authentication_method: "single_profile", expires_at: "2026-10-16T22:00:00Z",
   }));
+  await page.route("**/api/v1/personal-workspace**", (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (request.method() === "GET" && url.pathname === "/api/v1/personal-workspace") {
+      return json(route, 200, personalWorkspace());
+    }
+    if (request.method() === "POST" && url.pathname === "/api/v1/personal-workspace/mutations") {
+      const body = request.postDataJSON() as { mutation: Record<string, unknown> } & Record<string, unknown>;
+      postBodies.push(body);
+      const mutation = body.mutation;
+      const now = `2026-10-17T14:${String(personalRevision).padStart(2, "0")}:00Z`;
+      if (mutation.operation === "create_note" || mutation.operation === "create_bookmark") {
+        const selector = mutation.selector as Record<string, unknown>;
+        const common = {
+          owner_module: "project",
+          project_id: selector.project_id,
+          title: independent.title,
+          lifecycle: independent.lifecycle,
+          project_revision: independent.revision,
+          workspace_revision: workspaceRevision,
+          target_status: "available",
+          validated_at: now,
+        };
+        const target = selector.reference_kind === "project_workspace"
+          ? { reference_kind: "project_workspace", ...common, destination: `/projects/${selector.project_id}#workspace` }
+          : selector.reference_kind === "project_snapshot"
+            ? {
+                reference_kind: "project_snapshot",
+                ...common,
+                snapshot_id: selector.snapshot_id,
+                snapshot_digest: "f".repeat(64),
+                closed_at: "2026-10-17T13:45:00Z",
+                destination: `/projects/${selector.project_id}#snapshot-${selector.snapshot_id}`,
+              }
+            : {
+                reference_kind: "project_artifact",
+                ...common,
+                artifact_id: selector.artifact_id,
+                artifact_version: selector.artifact_version,
+                artifact_kind: "supporting_file",
+                logical_path: "evidence.txt",
+                media_type: "text/plain",
+                inspection_mode: "plain_text",
+                byte_count: 8,
+                content_digest: "e".repeat(64),
+                created_at: "2026-10-17T13:30:00Z",
+                destination: `/projects/${selector.project_id}#artifact-${selector.artifact_id}-v${selector.artifact_version}`,
+              };
+        personalRecords.push(mutation.operation === "create_note" ? {
+          record_kind: "note",
+          record_id: `note-${personalRevision}`,
+          title: mutation.title,
+          body: mutation.body,
+          archived: false,
+          created_at: now,
+          updated_at: now,
+          target,
+        } : {
+          record_kind: "bookmark",
+          record_id: `bookmark-${personalRevision}`,
+          label: mutation.label || null,
+          archived: false,
+          created_at: now,
+          updated_at: now,
+          target,
+        });
+      } else if (mutation.operation === "create_collection") {
+        personalCollections.push({ collection_id: `collection-${personalRevision}`, title: mutation.title, member_record_ids: [], created_at: now, updated_at: now });
+      } else if (mutation.operation === "set_collection_members") {
+        const collection = personalCollections.find((item) => item.collection_id === mutation.collection_id);
+        if (collection) collection.member_record_ids = mutation.member_record_ids;
+      }
+      personalRevision += 1;
+      return json(route, 200, personalWorkspace());
+    }
+    return json(route, 404, { code: "not_found" });
+  });
   await page.route("**/api/v1/projects**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -350,6 +466,75 @@ test("saves Project work, keeps files inert, closes a snapshot, and continues wo
   const checkpointBodies = posts.filter((body) => "expected_project_revision" in body);
   expect(checkpointBodies).toHaveLength(2);
   expect(new Set(checkpointBodies.map((body) => body.idempotency_key)).size).toBe(2);
+});
+
+test("saves exact Project items with curriculum learning and reopens their anchored destinations", async ({ page }) => {
+  const posts: Record<string, unknown>[] = [];
+  await mockProjects(page, posts);
+  await page.goto("/projects/project-independent");
+
+  await page.getByRole("link", { name: "Save Project to Saved learning" }).click();
+  await expect(page.getByRole("heading", { name: "Save this Project" })).toBeVisible();
+  await page.getByLabel(/Personal label/).fill("Workspace record");
+  await page.getByRole("button", { name: "Save bookmark" }).click();
+  await expect(page).toHaveURL(/\/saved-learning$/);
+  const workspaceRecord = page.getByRole("heading", { name: "Workspace record" }).locator("xpath=ancestor::li");
+  await workspaceRecord.getByRole("link", { name: independent.title }).click();
+  await expect(page).toHaveURL(/\/projects\/project-independent#workspace$/);
+
+  await page.getByLabel("File", { exact: true }).setInputFiles({ name: "evidence.txt", mimeType: "text/plain", buffer: Buffer.from("evidence") });
+  await page.getByLabel("File format").selectOption("text/plain");
+  await page.getByLabel("Source title", { exact: true }).last().fill("Learner evidence");
+  await page.getByRole("button", { name: "Add file" }).click();
+  await page.getByRole("link", { name: "Save file to Saved learning" }).click();
+  await expect(page.getByRole("heading", { name: "Save this file record" })).toBeVisible();
+  await page.getByLabel(/Personal label/).fill("Evidence file");
+  await page.getByRole("button", { name: "Save bookmark" }).click();
+  const fileRecord = page.getByRole("heading", { name: "Evidence file" }).locator("xpath=ancestor::li");
+  await fileRecord.getByRole("link", { name: independent.title }).click();
+  await expect(page).toHaveURL(/\/projects\/project-independent#artifact-artifact-1-v1$/);
+
+  await page.getByRole("button", { name: "Save checkpoint" }).click();
+  await page.getByRole("link", { name: "Save checkpoint to Saved learning" }).click();
+  await expect(page.getByRole("heading", { name: "Save this checkpoint" })).toBeVisible();
+  await page.getByLabel(/Personal label/).fill("Baseline checkpoint");
+  await page.getByRole("button", { name: "Save bookmark" }).click();
+  const checkpointRecord = page.getByRole("heading", { name: "Baseline checkpoint" }).locator("xpath=ancestor::li");
+  await checkpointRecord.getByRole("link", { name: independent.title }).click();
+  await expect(page).toHaveURL(/\/projects\/project-independent#snapshot-snapshot-1$/);
+
+  await page.goto("/saved-learning");
+  await page.getByLabel("Collection name").first().fill("Mixed study set");
+  await page.getByRole("button", { name: "Create collection" }).click();
+  const collection = page.getByRole("heading", { name: "Mixed study set" }).locator("xpath=ancestor::section[1]");
+  await collection.getByRole("checkbox", { name: "Curriculum reminder" }).check();
+  await collection.getByRole("checkbox", { name: "Evidence file" }).check();
+  await collection.getByRole("button", { name: "Save collection items" }).click();
+  await expect(collection.getByRole("checkbox", { name: "Curriculum reminder" })).toBeChecked();
+  await expect(collection.getByRole("checkbox", { name: "Evidence file" })).toBeChecked();
+
+  const savedMutations = posts
+    .map((body) => body.mutation as Record<string, unknown> | undefined)
+    .filter((mutation) => mutation?.operation === "create_bookmark");
+  expect(savedMutations.map((mutation) => mutation?.selector)).toEqual([
+    { reference_kind: "project_workspace", project_id: "project-independent" },
+    { reference_kind: "project_artifact", project_id: "project-independent", artifact_id: "artifact-1", artifact_version: 1 },
+    { reference_kind: "project_snapshot", project_id: "project-independent", snapshot_id: "snapshot-1" },
+  ]);
+  for (const body of posts.filter((item) => (item.mutation as Record<string, unknown> | undefined)?.operation === "create_bookmark")) {
+    expect(body).not.toHaveProperty("learner_id");
+    expect(body).not.toHaveProperty("workspace_id");
+  }
+});
+
+test("rejects a guessed or incomplete Project save link without exposing Project details", async ({ page }) => {
+  await mockProjects(page, []);
+  await page.goto("/saved-learning/new?kind=project_artifact&project=project-independent&artifact=artifact-1&version=0");
+
+  await expect(page.getByRole("heading", { name: "Item not available" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Saved learning" })).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(independent.title);
+  await expect(page.locator("main")).not.toContainText("artifact-1");
 });
 
 test("denies every direct learning-evidence route for an independent Project", async ({ page }) => {

@@ -552,6 +552,15 @@ export function PersonalWorkspacePage({
 }
 
 function SelectionFields({ selection }: { selection: SaveSelection }) {
+  if (selection.kind === "project_workspace") {
+    return <><input name="reference_kind" type="hidden" value={selection.kind} /><input name="project_id" type="hidden" value={selection.projectId} /></>;
+  }
+  if (selection.kind === "project_snapshot") {
+    return <><input name="reference_kind" type="hidden" value={selection.kind} /><input name="project_id" type="hidden" value={selection.projectId} /><input name="snapshot_id" type="hidden" value={selection.snapshotId} /></>;
+  }
+  if (selection.kind === "project_artifact") {
+    return <><input name="reference_kind" type="hidden" value={selection.kind} /><input name="project_id" type="hidden" value={selection.projectId} /><input name="artifact_id" type="hidden" value={selection.artifactId} /><input name="artifact_version" type="hidden" value={selection.artifactVersion} /></>;
+  }
   return (
     <>
       <input name="reference_kind" type="hidden" value={selection.kind} />
@@ -572,7 +581,15 @@ export function SaveLearningPage({
   selection: SaveSelection;
   workspace: PersonalWorkspace;
 }) {
-  const objectName = selection.kind === "placed_lesson" ? "lesson" : "learning opportunity";
+  const objectName = selection.kind === "placed_lesson"
+    ? "lesson"
+    : selection.kind === "learning_opportunity"
+      ? "learning opportunity"
+      : selection.kind === "project_workspace"
+        ? "Project"
+        : selection.kind === "project_snapshot"
+          ? "checkpoint"
+          : "file record";
   const retryNoteMutation = preparedMutation(actionState, "create-note");
   const retryNote = retryNoteMutation?.operation === "create_note"
     ? retryNoteMutation
@@ -584,21 +601,41 @@ export function SaveLearningPage({
   const [noteTitle, setNoteTitle] = useState(retryNote?.title ?? "");
   const [noteBody, setNoteBody] = useState(retryNote?.body ?? "");
   const [bookmarkLabel, setBookmarkLabel] = useState(retryBookmark?.label ?? "");
-  const selector = selection.kind === "learning_opportunity"
-    ? {
+  const selector = selection.kind === "learning_opportunity" ? {
         reference_kind: selection.kind,
         opportunity_id: selection.opportunityId,
         placement_id: selection.placementId,
       } as const
-    : { reference_kind: selection.kind, placement_id: selection.placementId } as const;
+    : selection.kind === "placed_lesson" ? {
+        reference_kind: selection.kind,
+        placement_id: selection.placementId,
+      } as const
+      : selection.kind === "project_workspace" ? {
+          reference_kind: selection.kind,
+          project_id: selection.projectId,
+        } as const
+        : selection.kind === "project_snapshot" ? {
+            reference_kind: selection.kind,
+            project_id: selection.projectId,
+            snapshot_id: selection.snapshotId,
+          } as const
+          : {
+              reference_kind: selection.kind,
+              project_id: selection.projectId,
+              artifact_id: selection.artifactId,
+              artifact_version: selection.artifactVersion,
+            } as const;
+  const projectSelection = selection.kind.startsWith("project_");
   return (
     <section className="saved-learning-page saved-learning-save">
       <header className="saved-learning-page__header">
         <p className="eyebrow"><Icon name="learn" />Saved learning</p>
         <h1>Save this {objectName}</h1>
-        <p>Add a personal note or bookmark. The saved item keeps a link to this exact published learning resource.</p>
+        <p>{projectSelection
+          ? "Add a personal note or bookmark. Saved learning keeps a reference to this exact Project item and checks your access again when you save."
+          : "Add a personal note or bookmark. The saved item keeps a link to this exact published learning resource."}</p>
         <div className="saved-learning-actions">
-          <Link className="button button--secondary" to={selection.returnTo}>Return to {objectName}</Link>
+          <Link className="button button--secondary" to={selection.returnTo}>Return to {projectSelection ? "Project" : objectName}</Link>
           <Link className="button button--secondary" to="/saved-learning">Open Saved learning</Link>
         </div>
       </header>
