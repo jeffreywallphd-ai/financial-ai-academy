@@ -404,6 +404,56 @@ LEARNER_PREFERENCE_DENIAL_KEYS = frozenset(
 LEARNER_PREFERENCE_TABLES = frozenset(
     {"preference_profiles", "preference_changes", "preference_mutations"}
 )
+PRESENTATION_PREFERENCE_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "profile",
+        "history",
+        "export",
+        "exact_replay_request",
+        "exact_replay_response",
+        "races",
+        "expected",
+    }
+)
+PRESENTATION_PREFERENCE_EXPECTED_KEYS = frozenset(
+    {
+        "all_combinations",
+        "populated_export_profile_revision",
+        "reset_recorded",
+        "theme_after_reset",
+    }
+)
+PRESENTATION_PREFERENCE_PRIVATE_CAPTURE_KEYS = (
+    LEARNER_PREFERENCE_PRIVATE_CAPTURE_KEYS
+    | frozenset({"diagnosis", "medical_condition", "assistive_technology"})
+)
+PRESENTATION_PREFERENCE_PROFILE_KEYS = frozenset(
+    {
+        "schema_version",
+        "profile_id",
+        "learner_id",
+        "revision",
+        "text_size",
+        "text_spacing",
+        "reading_width",
+        "motion",
+        "created_at",
+        "updated_at",
+        "profile_digest",
+    }
+)
+PRESENTATION_PREFERENCE_HISTORY_KEYS = LEARNER_PREFERENCE_HISTORY_KEYS
+PRESENTATION_PREFERENCE_EXPORT_KEYS = LEARNER_PREFERENCE_EXPORT_KEYS
+PRESENTATION_PREFERENCE_REQUEST_KEYS = LEARNER_PREFERENCE_REQUEST_KEYS
+PRESENTATION_PREFERENCE_DENIAL_KEYS = LEARNER_PREFERENCE_DENIAL_KEYS
+PRESENTATION_PREFERENCE_TABLES = frozenset(
+    {
+        "presentation_preference_profiles",
+        "presentation_preference_changes",
+        "presentation_preference_mutations",
+    }
+)
 PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
     {
         "artifact_sha256",
@@ -5117,14 +5167,21 @@ def _assert_safe_learner_preference_denial(
     status: int,
     document: dict[str, Any],
     *,
-    expected_code: str,
+    expected_code: str | tuple[str, ...],
     requests: list[dict[str, Any]],
 ) -> None:
+    expected_codes = (
+        frozenset(expected_code) if isinstance(expected_code, tuple) else {expected_code}
+    )
     if status != 409 or set(document) != LEARNER_PREFERENCE_DENIAL_KEYS or (
         document.get("error_version") != "1.0"
-        or document.get("code") != expected_code
+        or document.get("code") not in expected_codes
     ):
-        raise RuntimeError("Learner preference race denial changed public meaning.")
+        raise RuntimeError(
+            "Learner preference race denial changed public meaning: "
+            f"status={status}, code={document.get('code')!r}, "
+            f"keys={sorted(document)}."
+        )
     try:
         correlation_id = UUID(str(document.get("correlation_id")))
     except ValueError as error:
@@ -5381,7 +5438,7 @@ def assert_learner_preference_race_outcomes(
             denials[0][0],
             denials[0][1],
             expected_code=(
-                "immutable_conflict"
+                ("immutable_conflict", "stale_revision")
                 if name == "same_key_changed_payload"
                 else "stale_revision"
             ),
@@ -5436,7 +5493,13 @@ def qualify_learner_preference_races(
             else "stale"
             for status, document in results
         ]
-        if sorted(outcomes[name]) != sorted(capture["races"][name]["expected"]):
+        expected = sorted(capture["races"][name]["expected"])
+        allowed = (
+            {("accepted", "conflict"), ("accepted", "stale")}
+            if name == "same_key_changed_payload"
+            else {tuple(expected)}
+        )
+        if tuple(sorted(outcomes[name])) not in allowed:
             raise RuntimeError("Learner preference race outcome classes changed.")
     opener = open_learner_preference_session(origin)
     history = stable_learner_preference_history(
@@ -5450,6 +5513,684 @@ def qualify_learner_preference_races(
     )
     storage = learner_preference_storage_snapshot(postgres_dsn)
     assert_learner_preference_storage(storage, profile=current_profile, history=history)
+    return {
+        "profile": current_profile,
+        "history": history,
+        "export": export_document,
+        "storage": storage,
+        "outcomes": outcomes,
+    }
+
+
+def stable_presentation_settings(document: dict[str, Any]) -> dict[str, str]:
+    if set(document) != {"text_size", "text_spacing", "reading_width", "motion"} or (
+        document.get("text_size") not in {"default", "larger"}
+        or document.get("text_spacing") not in {"default", "increased"}
+        or document.get("reading_width") not in {"standard", "focused"}
+        or document.get("motion") not in {"system", "reduce"}
+    ):
+        raise RuntimeError("Presentation preference settings are invalid.")
+    return {key: str(document[key]) for key in sorted(document)}
+
+
+def stable_presentation_preference_profile(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != PRESENTATION_PREFERENCE_PROFILE_KEYS:
+        raise RuntimeError("Presentation preference profile has an open or incomplete shape.")
+    if (
+        document.get("schema_version") != "1.0.0"
+        or not _preference_identifier(document.get("profile_id"))
+        or not isinstance(document.get("learner_id"), str)
+        or not isinstance(document.get("revision"), int)
+        or isinstance(document.get("revision"), bool)
+        or document["revision"] < 1
+        or not isinstance(document.get("profile_digest"), str)
+        or re.fullmatch(r"[a-f0-9]{64}", document["profile_digest"]) is None
+    ):
+        raise RuntimeError("Presentation preference profile identity is invalid.")
+    try:
+        learner_id = UUID(document["learner_id"])
+    except ValueError as error:
+        raise RuntimeError("Presentation preference learner identity is invalid.") from error
+    if str(learner_id) != document["learner_id"]:
+        raise RuntimeError("Presentation preference learner identity is not canonical.")
+    created_at = _preference_time(
+        document.get("created_at"), label="Presentation preference created time"
+    )
+    updated_at = _preference_time(
+        document.get("updated_at"), label="Presentation preference updated time"
+    )
+    if updated_at < created_at:
+        raise RuntimeError("Presentation preference profile chronology is invalid.")
+    stable_presentation_settings(
+        {
+            "text_size": document.get("text_size"),
+            "text_spacing": document.get("text_spacing"),
+            "reading_width": document.get("reading_width"),
+            "motion": document.get("motion"),
+        }
+    )
+    material = {
+        key: copy.deepcopy(value)
+        for key, value in document.items()
+        if key != "profile_digest"
+    }
+    if _canonical_sha256(material) != document["profile_digest"]:
+        raise RuntimeError("Presentation preference profile digest is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_presentation_preference_history(
+    document: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != PRESENTATION_PREFERENCE_HISTORY_KEYS or (
+        document.get("schema_version") != "1.0.0"
+        or document.get("profile_id") != profile["profile_id"]
+        or document.get("current_revision") != profile["revision"]
+        or not isinstance(document.get("changes"), list)
+        or len(document["changes"]) > 100
+    ):
+        raise RuntimeError("Presentation preference history is invalid.")
+    change_keys = frozenset(
+        {
+            "schema_version",
+            "revision",
+            "operation",
+            "object_kind",
+            "object_id",
+            "occurred_at",
+            "resulting_profile_digest",
+        }
+    )
+    previous_revision = 0
+    previous_time: datetime | None = None
+    for change in document["changes"]:
+        if not isinstance(change, dict) or set(change) != change_keys:
+            raise RuntimeError("Presentation preference history change is not closed.")
+        occurred_at = _preference_time(
+            change.get("occurred_at"), label="Presentation preference change time"
+        )
+        revision = change.get("revision")
+        if (
+            change.get("schema_version") != "1.0.0"
+            or change.get("operation") not in {"replace_preferences", "reset_profile"}
+            or change.get("object_kind") != "profile"
+            or change.get("object_id") is not None
+            or not isinstance(revision, int)
+            or isinstance(revision, bool)
+            or revision <= previous_revision
+            or revision > profile["revision"]
+            or previous_time is not None
+            and occurred_at < previous_time
+            or not isinstance(change.get("resulting_profile_digest"), str)
+            or re.fullmatch(r"[a-f0-9]{64}", change["resulting_profile_digest"])
+            is None
+        ):
+            raise RuntimeError("Presentation preference history correlation is invalid.")
+        previous_revision = revision
+        previous_time = occurred_at
+    latest = document["changes"][-1] if document["changes"] else None
+    if latest is not None and (
+        latest["revision"] != profile["revision"]
+        or latest["resulting_profile_digest"] != profile["profile_digest"]
+    ):
+        raise RuntimeError("Presentation preference history does not end at the profile.")
+    return copy.deepcopy(document)
+
+
+def stable_presentation_preference_export(
+    document: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+    history: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != PRESENTATION_PREFERENCE_EXPORT_KEYS or (
+        document.get("schema_version") != "1.0.0"
+        or not isinstance(document.get("purpose"), str)
+        or not document["purpose"]
+        or not isinstance(document.get("limitations"), list)
+        or not 1 <= len(document["limitations"]) <= 8
+        or not all(isinstance(item, str) and item for item in document["limitations"])
+        or document.get("profile") != profile
+        or document.get("history") != history
+    ):
+        raise RuntimeError("Presentation preference export is invalid.")
+    exported_at = _preference_time(
+        document.get("exported_at"), label="Presentation preference export time"
+    )
+    if exported_at < _preference_time(
+        profile["updated_at"], label="Presentation preference profile update time"
+    ):
+        raise RuntimeError("Presentation preference export chronology is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_presentation_preference_request(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != PRESENTATION_PREFERENCE_REQUEST_KEYS or (
+        document.get("schema_version") != "1.0.0"
+        or not _preference_identifier(document.get("idempotency_key"))
+        or not isinstance(document.get("expected_revision"), int)
+        or isinstance(document.get("expected_revision"), bool)
+        or document["expected_revision"] < 1
+        or not isinstance(document.get("mutation"), dict)
+    ):
+        raise RuntimeError("Presentation preference mutation request is invalid.")
+    mutation = document["mutation"]
+    if mutation.get("operation") == "reset_profile":
+        if set(mutation) != {"operation"}:
+            raise RuntimeError("Presentation preference reset request is open.")
+    elif mutation.get("operation") == "replace_preferences":
+        if set(mutation) != {
+            "operation",
+            "text_size",
+            "text_spacing",
+            "reading_width",
+            "motion",
+        }:
+            raise RuntimeError("Presentation preference replacement request is open.")
+        stable_presentation_settings(
+            {key: mutation[key] for key in mutation if key != "operation"}
+        )
+    else:
+        raise RuntimeError("Presentation preference mutation operation is invalid.")
+    return copy.deepcopy(document)
+
+
+def load_presentation_preference_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded presentation preference capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 524_288:
+        raise RuntimeError("Presentation preference capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict) or set(capture) != PRESENTATION_PREFERENCE_CAPTURE_ROOT_KEYS:
+        raise RuntimeError("Presentation preference capture has an invalid shape.")
+    leaked = PRESENTATION_PREFERENCE_PRIVATE_CAPTURE_KEYS & _nested_mapping_keys(capture)
+    if leaked:
+        raise RuntimeError("Presentation preference capture contains private authority data.")
+    if capture.get("schema_version") != "1.0.0" or not all(
+        isinstance(capture.get(key), dict)
+        for key in (
+            "profile",
+            "history",
+            "export",
+            "exact_replay_request",
+            "exact_replay_response",
+            "races",
+            "expected",
+        )
+    ):
+        raise RuntimeError("Presentation preference capture documents are invalid.")
+    profile = stable_presentation_preference_profile(capture["profile"])
+    history = stable_presentation_preference_history(capture["history"], profile=profile)
+    stable_presentation_preference_export(
+        capture["export"], profile=profile, history=history
+    )
+    exact_request = stable_presentation_preference_request(
+        capture["exact_replay_request"]
+    )
+    exact_response = stable_presentation_preference_profile(
+        capture["exact_replay_response"]
+    )
+    if (
+        exact_response != profile
+        or exact_request["expected_revision"] + 1 != profile["revision"]
+        or exact_request["mutation"] != {"operation": "reset_profile"}
+    ):
+        raise RuntimeError("Presentation preference exact replay is not correlated.")
+
+    expected = capture["expected"]
+    combinations = expected.get("all_combinations")
+    expected_combinations = {
+        (text_size, text_spacing, reading_width, motion)
+        for text_size in ("default", "larger")
+        for text_spacing in ("default", "increased")
+        for reading_width in ("standard", "focused")
+        for motion in ("system", "reduce")
+    }
+    observed_combinations = set()
+    if isinstance(combinations, list):
+        for settings in combinations:
+            if not isinstance(settings, dict):
+                raise RuntimeError("Presentation preference combination is invalid.")
+            stable = stable_presentation_settings(settings)
+            observed_combinations.add(
+                (
+                    stable["text_size"],
+                    stable["text_spacing"],
+                    stable["reading_width"],
+                    stable["motion"],
+                )
+            )
+    populated_revision = expected.get("populated_export_profile_revision")
+    reset_revisions = {
+        change["revision"]
+        for change in history["changes"]
+        if change["operation"] == "reset_profile"
+    }
+    if (
+        set(expected) != PRESENTATION_PREFERENCE_EXPECTED_KEYS
+        or observed_combinations != expected_combinations
+        or expected.get("reset_recorded") is not True
+        or expected.get("theme_after_reset") != "dark"
+        or not isinstance(populated_revision, int)
+        or isinstance(populated_revision, bool)
+        or populated_revision < 1
+        or populated_revision >= profile["revision"]
+        or populated_revision + 1 not in reset_revisions
+        or stable_presentation_settings(
+            {key: profile[key] for key in ("text_size", "text_spacing", "reading_width", "motion")}
+        )
+        != {
+            "motion": "system",
+            "reading_width": "standard",
+            "text_size": "default",
+            "text_spacing": "default",
+        }
+    ):
+        raise RuntimeError("Presentation preference expected summary is not correlated.")
+
+    races = capture["races"]
+    expected_classes = {
+        "same_key_same_payload": ["accepted", "accepted"],
+        "same_key_changed_payload": ["accepted", "conflict"],
+        "different_key_same_revision": ["accepted", "stale"],
+    }
+    if set(races) != set(expected_classes):
+        raise RuntimeError("Presentation preference race matrix is incomplete.")
+    for offset, (name, expected_outcomes) in enumerate(expected_classes.items()):
+        case = races.get(name)
+        if not isinstance(case, dict) or set(case) != {"requests", "expected"}:
+            raise RuntimeError("Presentation preference race case is not closed.")
+        requests = case.get("requests")
+        if not isinstance(requests, list) or len(requests) != 2:
+            raise RuntimeError("Presentation preference race request pair is invalid.")
+        stable_requests = [
+            stable_presentation_preference_request(request)
+            if isinstance(request, dict)
+            else (_ for _ in ()).throw(
+                RuntimeError("Presentation preference race request is invalid.")
+            )
+            for request in requests
+        ]
+        if (
+            sorted(case.get("expected", [])) != sorted(expected_outcomes)
+            or any(
+                request["expected_revision"] != profile["revision"] + offset
+                or request["mutation"].get("operation") != "replace_preferences"
+                for request in stable_requests
+            )
+        ):
+            raise RuntimeError("Presentation preference race expectations are invalid.")
+        keys = [request["idempotency_key"] for request in stable_requests]
+        mutations = [request["mutation"] for request in stable_requests]
+        if name == "same_key_same_payload" and not (
+            keys[0] == keys[1] and mutations[0] == mutations[1]
+        ):
+            raise RuntimeError("Presentation exact replay race does not match.")
+        if name == "same_key_changed_payload" and not (
+            keys[0] == keys[1] and mutations[0] != mutations[1]
+        ):
+            raise RuntimeError("Presentation conflict race is not key-scoped.")
+        if name == "different_key_same_revision" and keys[0] == keys[1]:
+            raise RuntimeError("Presentation stale race does not use distinct keys.")
+    return copy.deepcopy(capture)
+
+
+def _assert_safe_presentation_preference_denial(
+    status: int,
+    document: dict[str, Any],
+    *,
+    expected_code: str | tuple[str, ...],
+    requests: list[dict[str, Any]],
+) -> None:
+    expected_codes = (
+        frozenset(expected_code) if isinstance(expected_code, tuple) else {expected_code}
+    )
+    if status != 409 or set(document) != PRESENTATION_PREFERENCE_DENIAL_KEYS or (
+        document.get("error_version") != "1.0"
+        or document.get("code") not in expected_codes
+    ):
+        raise RuntimeError("Presentation preference denial changed public meaning.")
+    try:
+        correlation_id = UUID(str(document.get("correlation_id")))
+    except ValueError as error:
+        raise RuntimeError("Presentation preference denial correlation is invalid.") from error
+    if str(correlation_id) != document.get("correlation_id"):
+        raise RuntimeError("Presentation preference denial correlation is not canonical.")
+    serialized = json.dumps(document, ensure_ascii=False, sort_keys=True).casefold()
+    keys = {str(request["idempotency_key"]).casefold() for request in requests}
+    if any(key in serialized for key in keys) or any(
+        marker in serialized
+        for marker in (
+            "learner_id",
+            "presentation_preference_mutations",
+            "request_fingerprint",
+            "postgres",
+            "traceback",
+        )
+    ):
+        raise RuntimeError("Presentation preference denial disclosed private details.")
+
+
+def observe_headless_presentation_preferences(
+    *,
+    origin: str,
+    expected_profile: dict[str, Any],
+    expected_history: dict[str, Any],
+    expected_export: dict[str, Any],
+    exact_replay_request: dict[str, Any],
+    exact_replay_response: dict[str, Any],
+) -> dict[str, Any]:
+    opener = open_learner_preference_session(origin)
+    profile = stable_presentation_preference_profile(
+        _request_json(
+            opener, origin=origin, path="/api/v1/learner-presentation-preferences"
+        )
+    )
+    history = stable_presentation_preference_history(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-presentation-preferences/history",
+        ),
+        profile=profile,
+    )
+    export_document = stable_presentation_preference_export(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-presentation-preferences/export",
+        ),
+        profile=profile,
+        history=history,
+    )
+    if profile != expected_profile or history != expected_history or any(
+        export_document[key] != expected_export[key]
+        for key in PRESENTATION_PREFERENCE_EXPORT_KEYS - {"exported_at"}
+    ):
+        raise RuntimeError("Headless presentation preferences changed browser meaning.")
+    replayed = stable_presentation_preference_profile(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-presentation-preferences/mutations",
+            method="POST",
+            payload=exact_replay_request,
+        )
+    )
+    if replayed != exact_replay_response:
+        raise RuntimeError("Headless presentation replay changed accepted meaning.")
+    for suffix in ("?learner_id=someone-else", "/history?limit=1", "/export?private=true"):
+        status, denial = _request_json_read_status(
+            opener,
+            origin=origin,
+            path=f"/api/v1/learner-presentation-preferences{suffix}",
+        )
+        if status != 400 or denial.get("code") != "invalid_request":
+            raise RuntimeError("Presentation preference guessed input was not denied.")
+    return {"profile": profile, "history": history, "export": export_document}
+
+
+def presentation_preference_source_fingerprint(postgres_dsn: str) -> dict[str, Any]:
+    with psycopg.connect(postgres_dsn) as connection:
+        tables = [
+            (str(row[0]), str(row[1]))
+            for row in connection.execute(
+                """
+                SELECT table_schema, table_name
+                FROM information_schema.tables
+                WHERE table_type = 'BASE TABLE'
+                  AND table_schema NOT IN ('information_schema', 'pg_catalog', 'identity')
+                  AND table_schema NOT LIKE 'pg\\_%' ESCAPE '\\'
+                ORDER BY table_schema, table_name
+                """
+            ).fetchall()
+            if not (
+                str(row[0]) == "learner_model"
+                and str(row[1]) in PRESENTATION_PREFERENCE_TABLES
+            )
+        ]
+        digest = hashlib.sha256()
+        row_count = 0
+        for schema, table in tables:
+            rows = connection.execute(
+                sql.SQL(
+                    "SELECT to_jsonb(row_value)::text FROM {}.{} AS row_value "
+                    "ORDER BY to_jsonb(row_value)::text"
+                ).format(sql.Identifier(schema), sql.Identifier(table))
+            ).fetchall()
+            row_count += len(rows)
+            digest.update(f"{schema}.{table}\0{len(rows)}\0".encode("utf-8"))
+            for row in rows:
+                digest.update(str(row[0]).encode("utf-8"))
+                digest.update(b"\0")
+    return {"table_count": len(tables), "row_count": row_count, "sha256": digest.hexdigest()}
+
+
+def presentation_preference_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
+    with psycopg.connect(postgres_dsn) as connection:
+        profiles = connection.execute(
+            """
+            SELECT profile_id, learner_id::text, revision, profile, profile_digest
+            FROM learner_model.presentation_preference_profiles ORDER BY profile_id
+            """
+        ).fetchall()
+        changes = connection.execute(
+            """
+            SELECT learner_id::text, revision, change, resulting_profile_digest
+            FROM learner_model.presentation_preference_changes ORDER BY learner_id, revision
+            """
+        ).fetchall()
+        mutations = connection.execute(
+            """
+            SELECT learner_id::text, idempotency_key, accepted_revision, accepted_profile
+            FROM learner_model.presentation_preference_mutations
+            ORDER BY learner_id, accepted_revision, idempotency_key
+            """
+        ).fetchall()
+    return {
+        "profiles": [
+            [str(row[0]), str(row[1]), int(row[2]), copy.deepcopy(row[3]), str(row[4])]
+            for row in profiles
+        ],
+        "changes": [
+            [str(row[0]), int(row[1]), copy.deepcopy(row[2]), str(row[3])]
+            for row in changes
+        ],
+        "mutations": [
+            [str(row[0]), str(row[1]), int(row[2]), copy.deepcopy(row[3])]
+            for row in mutations
+        ],
+    }
+
+
+def assert_presentation_preference_storage(
+    snapshot: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+    history: dict[str, Any],
+) -> None:
+    profiles = snapshot.get("profiles")
+    changes = snapshot.get("changes")
+    mutations = snapshot.get("mutations")
+    if (
+        not isinstance(profiles, list)
+        or len(profiles) != 1
+        or not isinstance(changes, list)
+        or len(changes) != len(history["changes"])
+        or not isinstance(mutations, list)
+        or len(mutations) != profile["revision"] - 1
+    ):
+        raise RuntimeError("Presentation preference storage row counts are uncorrelated.")
+    stored = profiles[0]
+    if (
+        stored[0] != profile["profile_id"]
+        or stored[1] != profile["learner_id"]
+        or stored[2] != profile["revision"]
+        or stable_presentation_preference_profile(stored[3]) != profile
+        or stored[4] != profile["profile_digest"]
+    ):
+        raise RuntimeError("Presentation preference stored profile is uncorrelated.")
+    if [row[2] for row in changes] != history["changes"] or any(
+        row[0] != profile["learner_id"]
+        or row[1] != row[2]["revision"]
+        or row[3] != row[2]["resulting_profile_digest"]
+        for row in changes
+    ):
+        raise RuntimeError("Presentation preference stored history is uncorrelated.")
+    if any(
+        row[0] != profile["learner_id"]
+        or row[2] != row[3].get("revision")
+        or stable_presentation_preference_profile(row[3]) != row[3]
+        for row in mutations
+    ):
+        raise RuntimeError("Presentation preference replay storage is uncorrelated.")
+
+
+def _run_presentation_preference_race(
+    *,
+    origin: str,
+    requests: list[dict[str, Any]],
+) -> list[tuple[int, dict[str, Any]]]:
+    openers = open_learner_preference_sessions(origin, len(requests))
+    barrier = threading.Barrier(len(requests))
+
+    def send(
+        opener: urllib.request.OpenerDirector,
+        request: dict[str, Any],
+    ) -> tuple[int, dict[str, Any]]:
+        barrier.wait(timeout=10)
+        return _request_json_status(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-presentation-preferences/mutations",
+            method="POST",
+            payload=request,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [
+            pool.submit(send, opener, request)
+            for opener, request in zip(openers, requests, strict=True)
+        ]
+        return [future.result(timeout=20) for future in futures]
+
+
+def assert_presentation_preference_race_outcomes(
+    *,
+    name: str,
+    requests: list[dict[str, Any]],
+    results: list[tuple[int, dict[str, Any]]],
+    before_storage: dict[str, Any],
+    after_storage: dict[str, Any],
+) -> dict[str, Any]:
+    accepted = [document for status, document in results if status == 200]
+    denials = [(status, document) for status, document in results if status != 200]
+    expected_accepted = 2 if name == "same_key_same_payload" else 1
+    if len(results) != 2 or len(accepted) != expected_accepted:
+        raise RuntimeError("Presentation preference race acceptance matrix is invalid.")
+    stable_accepted = [stable_presentation_preference_profile(item) for item in accepted]
+    if name == "same_key_same_payload" and stable_accepted[0] != stable_accepted[1]:
+        raise RuntimeError("Presentation exact concurrent replays did not converge.")
+    if name != "same_key_same_payload":
+        if len(denials) != 1:
+            raise RuntimeError("Presentation preference race denial matrix is invalid.")
+        _assert_safe_presentation_preference_denial(
+            denials[0][0],
+            denials[0][1],
+            expected_code=(
+                ("immutable_conflict", "stale_revision")
+                if name == "same_key_changed_payload"
+                else "stale_revision"
+            ),
+            requests=requests,
+        )
+    for key in ("profiles", "changes", "mutations"):
+        before = before_storage.get(key)
+        after = after_storage.get(key)
+        if not isinstance(before, list) or not isinstance(after, list):
+            raise RuntimeError("Presentation preference race storage is invalid.")
+        if key == "profiles":
+            if len(before) != 1 or len(after) != 1 or after[0][2] != before[0][2] + 1:
+                raise RuntimeError("Presentation preference race revision is invalid.")
+        elif len(after) != len(before) + 1:
+            raise RuntimeError("Presentation preference race appended an invalid row count.")
+    current = after_storage["profiles"][0][3]
+    if current not in stable_accepted:
+        raise RuntimeError("Presentation preference race result did not persist.")
+    return stable_presentation_preference_profile(current)
+
+
+def qualify_presentation_preference_races(
+    *,
+    origin: str,
+    postgres_dsn: str,
+    capture: dict[str, Any],
+) -> dict[str, Any]:
+    outcomes: dict[str, list[str]] = {}
+    current_profile = capture["profile"]
+    for name in (
+        "same_key_same_payload",
+        "same_key_changed_payload",
+        "different_key_same_revision",
+    ):
+        requests = capture["races"][name]["requests"]
+        before = presentation_preference_storage_snapshot(postgres_dsn)
+        results = _run_presentation_preference_race(origin=origin, requests=requests)
+        after = presentation_preference_storage_snapshot(postgres_dsn)
+        current_profile = assert_presentation_preference_race_outcomes(
+            name=name,
+            requests=requests,
+            results=results,
+            before_storage=before,
+            after_storage=after,
+        )
+        outcomes[name] = [
+            "accepted"
+            if status == 200
+            else "conflict"
+            if document.get("code") == "immutable_conflict"
+            else "stale"
+            for status, document in results
+        ]
+        expected = sorted(capture["races"][name]["expected"])
+        allowed = (
+            {("accepted", "conflict"), ("accepted", "stale")}
+            if name == "same_key_changed_payload"
+            else {tuple(expected)}
+        )
+        if tuple(sorted(outcomes[name])) not in allowed:
+            raise RuntimeError("Presentation preference race outcome classes changed.")
+    opener = open_learner_preference_session(origin)
+    history = stable_presentation_preference_history(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-presentation-preferences/history",
+        ),
+        profile=current_profile,
+    )
+    export_document = stable_presentation_preference_export(
+        _request_json(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-presentation-preferences/export",
+        ),
+        profile=current_profile,
+        history=history,
+    )
+    storage = presentation_preference_storage_snapshot(postgres_dsn)
+    assert_presentation_preference_storage(storage, profile=current_profile, history=history)
     return {
         "profile": current_profile,
         "history": history,
@@ -5633,6 +6374,7 @@ def main() -> int:
     project_capture = data_root / "project-workspace-capture.json"
     project_learning_capture = data_root / "project-learning-capture.json"
     learner_preferences_capture = data_root / "learner-preferences-capture.json"
+    presentation_preferences_capture = data_root / "presentation-preferences-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -5678,6 +6420,9 @@ def main() -> int:
         )
         environment["FINANCIAL_AI_ACADEMY_LEARNER_PREFERENCES_CAPTURE"] = str(
             learner_preferences_capture
+        )
+        environment["FINANCIAL_AI_ACADEMY_PRESENTATION_PREFERENCES_CAPTURE"] = str(
+            presentation_preferences_capture
         )
         run_checked(
             npm_e2e_command(
@@ -5807,6 +6552,60 @@ def main() -> int:
         if learner_preference_source_fingerprint(postgres_dsn) != learner_source_before:
             raise RuntimeError(
                 "Learner preferences changed unrelated application state."
+            )
+
+        presentation_source_before = presentation_preference_source_fingerprint(
+            postgres_dsn
+        )
+        empty_presentation_storage = presentation_preference_storage_snapshot(
+            postgres_dsn
+        )
+        if any(empty_presentation_storage.values()):
+            raise RuntimeError(
+                "Presentation preference qualification did not start empty."
+            )
+        run_checked(
+            npm_e2e_command("presentation-preferences.e2e.ts"),
+            env=environment,
+        )
+        presentation_capture = load_presentation_preference_capture(
+            presentation_preferences_capture,
+            data_root=data_root,
+        )
+        presentation_storage_after_browser = (
+            presentation_preference_storage_snapshot(postgres_dsn)
+        )
+        assert_presentation_preference_storage(
+            presentation_storage_after_browser,
+            profile=presentation_capture["profile"],
+            history=presentation_capture["history"],
+        )
+        observe_headless_presentation_preferences(
+            origin=origin,
+            expected_profile=presentation_capture["profile"],
+            expected_history=presentation_capture["history"],
+            expected_export=presentation_capture["export"],
+            exact_replay_request=presentation_capture["exact_replay_request"],
+            exact_replay_response=presentation_capture["exact_replay_response"],
+        )
+        if (
+            presentation_preference_storage_snapshot(postgres_dsn)
+            != presentation_storage_after_browser
+        ):
+            raise RuntimeError(
+                "Headless presentation reads or replay changed durable state."
+            )
+        presentation_race_result = qualify_presentation_preference_races(
+            origin=origin,
+            postgres_dsn=postgres_dsn,
+            capture=presentation_capture,
+        )
+        if (
+            presentation_preference_source_fingerprint(postgres_dsn)
+            != presentation_source_before
+        ):
+            raise RuntimeError(
+                "Presentation preferences changed unrelated application state."
             )
 
         (
@@ -6015,6 +6814,26 @@ def main() -> int:
         if learner_storage_after_restart != learner_race_result["storage"]:
             raise RuntimeError(
                 "Learner preference storage changed after normal restart."
+            )
+        presentation_after_restart = observe_headless_presentation_preferences(
+            origin=origin,
+            expected_profile=presentation_race_result["profile"],
+            expected_history=presentation_race_result["history"],
+            expected_export=presentation_race_result["export"],
+            exact_replay_request=presentation_capture["exact_replay_request"],
+            exact_replay_response=presentation_capture["exact_replay_response"],
+        )
+        presentation_storage_after_restart = (
+            presentation_preference_storage_snapshot(postgres_dsn)
+        )
+        assert_presentation_preference_storage(
+            presentation_storage_after_restart,
+            profile=presentation_after_restart["profile"],
+            history=presentation_after_restart["history"],
+        )
+        if presentation_storage_after_restart != presentation_race_result["storage"]:
+            raise RuntimeError(
+                "Presentation preference storage changed after normal restart."
             )
 
         if container_name is not None:
@@ -6250,6 +7069,23 @@ def main() -> int:
                 "exact_headless_replay": True,
                 "normal_restart_without_reseeding": True,
                 "profile_id": learner_race_result["profile"]["profile_id"],
+                "public_api_shared": True,
+                "same_key_changed_payload_race": True,
+                "same_key_same_payload_race": True,
+                "source_state_unchanged": True,
+            },
+            "presentation_preferences": {
+                "all_sixteen_profiles": True,
+                "browser_generated_client": True,
+                "browser_headless_export_parity": True,
+                "browser_headless_profile_history_parity": True,
+                "confidential_race_denials": True,
+                "different_key_same_revision_race": True,
+                "exact_headless_replay": True,
+                "local_theme_excluded": True,
+                "normal_restart_without_reseeding": True,
+                "profile_id": presentation_race_result["profile"]["profile_id"],
+                "protective_browser_precedence": True,
                 "public_api_shared": True,
                 "same_key_changed_payload_race": True,
                 "same_key_same_payload_race": True,

@@ -62,6 +62,13 @@
   browser/headless API parity, exact replay and simultaneous-write outcomes,
   complete learner-control journey, normal restart, unrelated-state
   noninterference, accessibility, and bounded cleanup
+- Multiple real learners, managed-cloud retention/recovery, presentation-
+  preference import, and a separately governed headless AI mode beyond the
+  directly covered closed four-choice contract, all 16 profiles, protected
+  generated-browser/headless API and export parity, exact replay and safe
+  simultaneous-write outcomes, PostgreSQL row correlation, local-theme
+  exclusion, normal restart, unrelated-state noninterference, protective
+  browser settings, accessibility, and bounded cleanup
 - Discovery rebuild scheduling, concurrent production rebuild operation,
   non-lesson destinations, external search adapters, and managed-cloud
   discovery beyond the directly covered deterministic contract, PostgreSQL

@@ -3741,6 +3741,14 @@ def test_learner_preference_race_matrix_requires_one_durable_change() -> None:
         before_storage=before,
         after_storage=after,
     ) == accepted
+    stale_denial = {**denial, "code": "stale_revision"}
+    assert runner.assert_learner_preference_race_outcomes(
+        name="same_key_changed_payload",
+        requests=conflict_requests,
+        results=[(200, accepted), (409, stale_denial)],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
 
     duplicate = deepcopy(after)
     duplicate["changes"].append(["change", 5])
@@ -3791,3 +3799,277 @@ def test_learner_preference_restart_requires_exact_profile_history_and_rows() ->
     changed["profiles"][0][2] += 1
     with pytest.raises(RuntimeError, match="stored profile"):
         runner.assert_learner_preference_storage(changed, profile=profile, history=history)
+
+
+def presentation_preference_profile(
+    revision: int = 5,
+    *,
+    text_size: str = "default",
+    text_spacing: str = "default",
+    reading_width: str = "standard",
+    motion: str = "system",
+) -> dict[str, Any]:
+    document: dict[str, Any] = {
+        "schema_version": "1.0.0",
+        "profile_id": "presentation.qualification",
+        "learner_id": "11111111-1111-4111-8111-111111111111",
+        "revision": revision,
+        "text_size": text_size,
+        "text_spacing": text_spacing,
+        "reading_width": reading_width,
+        "motion": motion,
+        "created_at": "2026-10-17T18:00:00Z",
+        "updated_at": f"2026-10-17T18:00:{revision:02d}Z",
+    }
+    document["profile_digest"] = runner._canonical_sha256(document)
+    return document
+
+
+def presentation_preference_history(profile: dict[str, Any]) -> dict[str, Any]:
+    changes = [
+        {
+            "schema_version": "1.0.0",
+            "revision": revision,
+            "operation": "reset_profile" if revision == profile["revision"] else "replace_preferences",
+            "object_kind": "profile",
+            "object_id": None,
+            "occurred_at": f"2026-10-17T18:00:{revision:02d}Z",
+            "resulting_profile_digest": (
+                profile["profile_digest"] if revision == profile["revision"] else "a" * 64
+            ),
+        }
+        for revision in range(2, profile["revision"] + 1)
+    ]
+    return {
+        "schema_version": "1.0.0",
+        "profile_id": profile["profile_id"],
+        "current_revision": profile["revision"],
+        "changes": changes,
+    }
+
+
+def presentation_preference_capture() -> dict[str, Any]:
+    profile = presentation_preference_profile()
+    history = presentation_preference_history(profile)
+    combinations = [
+        {
+            "text_size": text_size,
+            "text_spacing": text_spacing,
+            "reading_width": reading_width,
+            "motion": motion,
+        }
+        for text_size in ("default", "larger")
+        for text_spacing in ("default", "increased")
+        for reading_width in ("standard", "focused")
+        for motion in ("system", "reduce")
+    ]
+    exact_request = {
+        "schema_version": "1.0.0",
+        "idempotency_key": "11111111-1111-4111-8111-111111111124",
+        "expected_revision": 4,
+        "mutation": {"operation": "reset_profile"},
+    }
+
+    def replace(key: str, revision: int, settings: dict[str, str]) -> dict[str, Any]:
+        return {
+            "schema_version": "1.0.0",
+            "idempotency_key": key,
+            "expected_revision": revision,
+            "mutation": {"operation": "replace_preferences", **settings},
+        }
+
+    primary = combinations[-1]
+    return {
+        "schema_version": "1.0.0",
+        "profile": profile,
+        "history": history,
+        "export": {
+            "schema_version": "1.0.0",
+            "purpose": "A portable copy of explicit display choices.",
+            "limitations": ["These choices are not medical or competency evidence."],
+            "exported_at": "2026-10-17T18:00:06Z",
+            "profile": profile,
+            "history": history,
+        },
+        "exact_replay_request": exact_request,
+        "exact_replay_response": profile,
+        "races": {
+            "same_key_same_payload": {
+                "requests": [
+                    replace("11111111-1111-4111-8111-111111111125", 5, primary)
+                    for _ in range(2)
+                ],
+                "expected": ["accepted", "accepted"],
+            },
+            "same_key_changed_payload": {
+                "requests": [
+                    replace(
+                        "11111111-1111-4111-8111-111111111126",
+                        6,
+                        {**primary, "text_size": text_size},
+                    )
+                    for text_size in ("default", "larger")
+                ],
+                "expected": ["accepted", "conflict"],
+            },
+            "different_key_same_revision": {
+                "requests": [
+                    replace(key, 7, {**primary, "reading_width": reading_width})
+                    for key, reading_width in (
+                        ("11111111-1111-4111-8111-111111111127", "standard"),
+                        ("11111111-1111-4111-8111-111111111128", "focused"),
+                    )
+                ],
+                "expected": ["accepted", "stale"],
+            },
+        },
+        "expected": {
+            "all_combinations": combinations,
+            "populated_export_profile_revision": 4,
+            "reset_recorded": True,
+            "theme_after_reset": "dark",
+        },
+    }
+
+
+def test_presentation_preference_capture_is_closed_complete_and_private(
+    tmp_path: Path,
+) -> None:
+    capture = presentation_preference_capture()
+    path = tmp_path / "presentation-preferences-capture.json"
+    path.write_text(json.dumps(capture), encoding="utf-8")
+    assert runner.load_presentation_preference_capture(path, data_root=tmp_path) == capture
+
+    leaked = deepcopy(capture)
+    leaked["expected"]["diagnosis"] = "private"
+    path.write_text(json.dumps(leaked), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="private authority"):
+        runner.load_presentation_preference_capture(path, data_root=tmp_path)
+
+    missing_combination = deepcopy(capture)
+    missing_combination["expected"]["all_combinations"].pop()
+    path.write_text(json.dumps(missing_combination), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="expected summary"):
+        runner.load_presentation_preference_capture(path, data_root=tmp_path)
+
+    wrong_theme = deepcopy(capture)
+    wrong_theme["expected"]["theme_after_reset"] = "system"
+    path.write_text(json.dumps(wrong_theme), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="expected summary"):
+        runner.load_presentation_preference_capture(path, data_root=tmp_path)
+
+    bad_digest = deepcopy(capture)
+    bad_digest["profile"]["profile_digest"] = "0" * 64
+    path.write_text(json.dumps(bad_digest), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="digest"):
+        runner.load_presentation_preference_capture(path, data_root=tmp_path)
+
+
+def test_presentation_preference_profile_accepts_every_closed_combination() -> None:
+    for settings in presentation_preference_capture()["expected"]["all_combinations"]:
+        profile = presentation_preference_profile(**settings)
+        assert runner.stable_presentation_preference_profile(profile) == profile
+
+
+def _presentation_race_storage(
+    profile: dict[str, Any],
+    *,
+    changes: int,
+    mutations: int,
+) -> dict[str, Any]:
+    return {
+        "profiles": [[
+            profile["profile_id"],
+            profile["learner_id"],
+            profile["revision"],
+            profile,
+            profile["profile_digest"],
+        ]],
+        "changes": [["change", index] for index in range(changes)],
+        "mutations": [["mutation", index] for index in range(mutations)],
+    }
+
+
+def test_presentation_preference_race_requires_one_durable_change() -> None:
+    before_profile = presentation_preference_profile()
+    accepted = presentation_preference_profile(
+        6,
+        text_size="larger",
+        text_spacing="increased",
+        reading_width="focused",
+        motion="reduce",
+    )
+    before = _presentation_race_storage(before_profile, changes=4, mutations=4)
+    after = _presentation_race_storage(accepted, changes=5, mutations=5)
+    capture = presentation_preference_capture()
+    requests = capture["races"]["same_key_same_payload"]["requests"]
+    assert runner.assert_presentation_preference_race_outcomes(
+        name="same_key_same_payload",
+        requests=requests,
+        results=[(200, accepted), (200, deepcopy(accepted))],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
+
+    denial = {
+        "error_version": "1.0",
+        "code": "immutable_conflict",
+        "message": "The request key already names a different display change.",
+        "correlation_id": "22222222-2222-4222-8222-222222222222",
+    }
+    conflict_requests = capture["races"]["same_key_changed_payload"]["requests"]
+    assert runner.assert_presentation_preference_race_outcomes(
+        name="same_key_changed_payload",
+        requests=conflict_requests,
+        results=[(200, accepted), (409, denial)],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
+    stale_denial = {**denial, "code": "stale_revision"}
+    assert runner.assert_presentation_preference_race_outcomes(
+        name="same_key_changed_payload",
+        requests=conflict_requests,
+        results=[(200, accepted), (409, stale_denial)],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
+
+    duplicate = deepcopy(after)
+    duplicate["mutations"].append(["mutation", 5])
+    with pytest.raises(RuntimeError, match="row count"):
+        runner.assert_presentation_preference_race_outcomes(
+            name="same_key_same_payload",
+            requests=requests,
+            results=[(200, accepted), (200, accepted)],
+            before_storage=before,
+            after_storage=duplicate,
+        )
+
+
+def test_presentation_preference_restart_requires_exact_rows() -> None:
+    capture = presentation_preference_capture()
+    profile = capture["profile"]
+    history = capture["history"]
+    accepted_profiles = [presentation_preference_profile(revision) for revision in range(2, 6)]
+    storage = {
+        "profiles": [[
+            profile["profile_id"],
+            profile["learner_id"],
+            profile["revision"],
+            profile,
+            profile["profile_digest"],
+        ]],
+        "changes": [
+            [profile["learner_id"], change["revision"], change, change["resulting_profile_digest"]]
+            for change in history["changes"]
+        ],
+        "mutations": [
+            [profile["learner_id"], f"presentation.{index}", accepted["revision"], accepted]
+            for index, accepted in enumerate(accepted_profiles, start=2)
+        ],
+    }
+    runner.assert_presentation_preference_storage(storage, profile=profile, history=history)
+    changed = deepcopy(storage)
+    changed["profiles"][0][2] += 1
+    with pytest.raises(RuntimeError, match="stored profile"):
+        runner.assert_presentation_preference_storage(changed, profile=profile, history=history)

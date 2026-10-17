@@ -274,8 +274,14 @@ precedence. The focused unit, component, and Chromium suites cover all 16 safe
 value combinations, draft restore, exact mutation fields, reset/theme
 separation, invalid and unavailable fallback, keyboard/focus semantics, axe,
 narrow reflow, 200-percent text, forced colors, and reduced motion. Final live
-Python-host, PostgreSQL-restart, and complete cross-route qualification remains
-the dependent SLI-0075 qualification packet.
+qualification now drives the same generated browser client and ordinary
+headless HTTP clients against one Python host and PostgreSQL database. It
+applies all 16 safe profiles, confirms preview/cancel/save/reset and local-theme
+separation, reads the exact downloaded export, accepts only safe serialized
+outcomes under simultaneous writes, and rechecks the profile, history, export,
+replay rows, and unrelated source state after a normal host restart. The test
+keeps 320-pixel, 200-percent-text, keyboard, forced-color, reduced-motion, axe,
+and exact-cleanup evidence in the same disposable workflow.
 
 `/saved-learning` opens the learner's private notes, bookmarks, and collections
 through the generated Personal-workspace client. Available opportunity-detail

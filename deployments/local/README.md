@@ -147,6 +147,17 @@ API. Direct PostgreSQL inspection is evidence-only; it correlates the accepted
 rows while privacy-safe fingerprints prove that unrelated learning state did
 not change. The same profile, history, export, replay, and rows are checked
 again after the normal host restart.
+The same run then drives the Display and accessibility route through all 16
+closed presentation profiles. It proves that preview and cancel do not write,
+save and confirmed reset use the protected generated client, the downloaded
+profile/history export matches a direct headless read, the browser-local theme
+is excluded, and simultaneous exact replay, changed-payload, and stale-revision
+requests produce one safe durable meaning. Direct PostgreSQL correlation and a
+fresh headless session recheck the exact rows after the normal restart while
+privacy-safe fingerprints prove unrelated application state did not change.
+Chromium also checks keyboard operation, 320-pixel reflow with 200-percent
+text, forced colors, reduced motion, focus visibility, and axe results before
+the runner removes the capture and disposable topology.
 The runner also exercises the generated Saved Learning browser against the
 same live host: it creates a Unicode note and bookmark for the exact approved
 lesson, reorders them, creates ordered collection membership, archives and

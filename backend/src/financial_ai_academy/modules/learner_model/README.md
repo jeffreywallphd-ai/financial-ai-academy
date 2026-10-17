@@ -132,6 +132,16 @@ TypeScript client are the same boundary for browser and ordinary headless
 callers. Browser-local theme is excluded from the profile, mutation, history,
 digest, and exported state.
 
+The isolated approved-lesson qualification exercises that boundary through the
+generated browser client and fresh cookie-backed headless clients. It proves
+all 16 closed profiles, exact profile/history/export parity, unchanged replay,
+safe same-key and stale-revision outcomes under simultaneous writes, exact
+PostgreSQL row correlation, normal host restart without reseeding, and
+unchanged unrelated application state. It also confirms that the local theme
+never enters the retained or exported learner profile. This evidence does not
+establish multiple real learners, managed-cloud operation, preference import,
+or a separately governed autonomous AI authority.
+
 ## Presentation preference contract core
 
 Learner model also owns the additive pure
