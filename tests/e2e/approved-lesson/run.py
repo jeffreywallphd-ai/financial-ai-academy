@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import copy
 from datetime import datetime
 import hashlib
@@ -241,6 +242,30 @@ PRIVATE_PRACTICE_RESULT_FIELDS = frozenset(
         "learner_id",
         "request_fingerprint",
         "scoring_policy",
+    }
+)
+PROJECT_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "artifact_sha256",
+        "current_workspace",
+        "export_bundle",
+        "learning_state_after",
+        "learning_state_before",
+        "project",
+        "snapshot",
+        "workspace_at_snapshot",
+    }
+)
+PRIVATE_PROJECT_CAPTURE_KEYS = frozenset(
+    {
+        "authorization",
+        "cookie",
+        "credential",
+        "object_key",
+        "password",
+        "session_cookie",
+        "storage_path",
+        "token",
     }
 )
 UTC_TIMESTAMP = re.compile(
@@ -544,6 +569,31 @@ def _request_json_status(
             f"Headless API request returned a non-object: {method} {path}."
         )
     return status, document
+
+
+def _request_bytes(
+    opener: urllib.request.OpenerDirector,
+    *,
+    origin: str,
+    path: str,
+) -> bytes:
+    request = urllib.request.Request(
+        f"{origin}{path}",
+        headers={"Accept": "application/octet-stream"},
+        method="GET",
+    )
+    try:
+        with opener.open(request, timeout=10) as response:
+            if response.status != 200:
+                raise RuntimeError(
+                    f"Headless API request failed: GET {path} "
+                    f"returned {response.status}."
+                )
+            return response.read()
+    except urllib.error.HTTPError as error:
+        raise RuntimeError(
+            f"Headless API request failed: GET {path} returned {error.code}."
+        ) from None
 
 
 def stable_navigation_semantics(
@@ -1411,6 +1461,321 @@ def load_practice_submission_capture(
     )
 
 
+def load_project_workspace_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded Project workspace capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 1_048_576:
+        raise RuntimeError("Project workspace capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict) or set(capture) != PROJECT_CAPTURE_ROOT_KEYS:
+        raise RuntimeError("Project workspace capture has an invalid shape.")
+    leaked = PRIVATE_PROJECT_CAPTURE_KEYS & _nested_mapping_keys(capture)
+    if leaked:
+        raise RuntimeError("Project workspace capture contains private runtime data.")
+
+    document_keys = (
+        "project",
+        "workspace_at_snapshot",
+        "current_workspace",
+        "snapshot",
+        "export_bundle",
+        "learning_state_before",
+        "learning_state_after",
+    )
+    if not all(isinstance(capture[key], dict) for key in document_keys):
+        raise RuntimeError("Project workspace capture documents must be objects.")
+    if capture["learning_state_before"] != capture["learning_state_after"]:
+        raise RuntimeError("Project browser work changed learning state.")
+
+    project = capture["project"]
+    workspace_at_snapshot = capture["workspace_at_snapshot"]
+    current_workspace = capture["current_workspace"]
+    snapshot = capture["snapshot"]
+    export_bundle = capture["export_bundle"]
+    project_id = project.get("project_id")
+    if (
+        not isinstance(project_id, str)
+        or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,127}", project_id)
+        or project.get("schema_version") != "1.0.0"
+        or project.get("origin") != {"origin_type": "independent"}
+    ):
+        raise RuntimeError("Project workspace capture has an invalid Project shell.")
+    if any(
+        workspace.get("project_id") != project_id
+        or workspace.get("schema_version") != "1.0.0"
+        for workspace in (workspace_at_snapshot, current_workspace)
+    ):
+        raise RuntimeError("Project workspace capture changed Project identity.")
+    snapshot_material = snapshot.get("snapshot")
+    if (
+        snapshot.get("schema_version") != "1.0.0"
+        or not isinstance(snapshot.get("snapshot_id"), str)
+        or not isinstance(snapshot.get("snapshot_digest"), str)
+        or not isinstance(snapshot_material, dict)
+        or snapshot_material.get("project_id") != project_id
+        or snapshot_material.get("workspace_revision")
+        != workspace_at_snapshot.get("workspace_revision")
+    ):
+        raise RuntimeError("Project workspace capture has an invalid snapshot.")
+    snapshot_revision = workspace_at_snapshot.get("workspace_revision")
+    current_revision = current_workspace.get("workspace_revision")
+    if (
+        type(snapshot_revision) is not int
+        or type(current_revision) is not int
+        or current_revision <= snapshot_revision
+    ):
+        raise RuntimeError("Project workspace capture did not preserve later work.")
+
+    artifacts = workspace_at_snapshot.get("artifacts")
+    current_artifacts = current_workspace.get("artifacts")
+    if (
+        not isinstance(artifacts, list)
+        or len(artifacts) != 1
+        or current_artifacts != artifacts
+        or not isinstance(artifacts[0], dict)
+    ):
+        raise RuntimeError("Project workspace capture has invalid artifact evidence.")
+    artifact = artifacts[0]
+    artifact_digest = capture.get("artifact_sha256")
+    if (
+        not isinstance(artifact_digest, str)
+        or not re.fullmatch(r"[a-f0-9]{64}", artifact_digest)
+        or artifact.get("content_digest") != artifact_digest
+        or type(artifact.get("byte_count")) is not int
+    ):
+        raise RuntimeError("Project workspace capture has an invalid artifact digest.")
+
+    manifest = export_bundle.get("manifest")
+    files = export_bundle.get("files")
+    if not isinstance(manifest, dict) or not isinstance(files, list) or len(files) != 1:
+        raise RuntimeError("Project workspace capture has an invalid evidence export.")
+    export_material = manifest.get("export")
+    if (
+        not isinstance(export_material, dict)
+        or export_material.get("project_id") != project_id
+        or export_material.get("snapshot_id") != snapshot.get("snapshot_id")
+        or export_material.get("snapshot_digest") != snapshot.get("snapshot_digest")
+        or export_material.get("snapshot_record") != snapshot
+        or export_material.get("workspace_record") != workspace_at_snapshot
+    ):
+        raise RuntimeError("Project evidence export is not bound to its snapshot.")
+    exported_file = files[0]
+    if not isinstance(exported_file, dict):
+        raise RuntimeError("Project evidence export file is invalid.")
+    try:
+        exported_bytes = base64.b64decode(
+            exported_file.get("content_base64", ""), validate=True
+        )
+    except (ValueError, TypeError):
+        raise RuntimeError("Project evidence export file is not valid base64.") from None
+    if (
+        exported_file.get("artifact_id") != artifact.get("artifact_id")
+        or exported_file.get("artifact_version") != artifact.get("artifact_version")
+        or exported_file.get("logical_path") != artifact.get("logical_path")
+        or len(exported_bytes) != artifact.get("byte_count")
+        or hashlib.sha256(exported_bytes).hexdigest() != artifact_digest
+    ):
+        raise RuntimeError("Project evidence export file changed artifact meaning.")
+    return copy.deepcopy(capture)
+
+
+def stable_project_export_bundle(document: dict[str, Any]) -> dict[str, Any]:
+    if set(document) != {"files", "manifest"}:
+        raise RuntimeError("Project evidence export has an invalid public shape.")
+    manifest = document.get("manifest")
+    files = document.get("files")
+    if (
+        not isinstance(manifest, dict)
+        or set(manifest)
+        != {
+            "schema_version",
+            "export_id",
+            "export_digest",
+            "export",
+            "generated_at",
+        }
+        or manifest.get("schema_version") != "1.0.0"
+        or not isinstance(manifest.get("export_digest"), str)
+        or not isinstance(manifest.get("export"), dict)
+        or not isinstance(files, list)
+    ):
+        raise RuntimeError("Project evidence export has an invalid public shape.")
+    return {
+        "schema_version": manifest["schema_version"],
+        "export_digest": manifest["export_digest"],
+        "export": copy.deepcopy(manifest["export"]),
+        "files": copy.deepcopy(files),
+    }
+
+
+def observe_headless_project_workspace(
+    *,
+    origin: str,
+    capture: dict[str, Any],
+) -> dict[str, Any]:
+    expected = copy.deepcopy(capture)
+    project = expected["project"]
+    current_workspace = expected["current_workspace"]
+    snapshot = expected["snapshot"]
+    export_bundle = stable_project_export_bundle(expected["export_bundle"])
+    project_id = project["project_id"]
+    snapshot_id = snapshot["snapshot_id"]
+    artifact = current_workspace["artifacts"][0]
+    api = f"/api/v1/projects/{project_id}"
+    opener = _supported_practice_opener(origin)
+
+    listed = _request_json(opener, origin=origin, path="/api/v1/projects")
+    records = listed.get("records")
+    if not isinstance(records, list) or project not in records:
+        raise RuntimeError("Headless Project list omitted the browser-created Project.")
+    observed_project = _request_json(opener, origin=origin, path=api)
+    observed_workspace = _request_json(
+        opener, origin=origin, path=f"{api}/workspace"
+    )
+    observed_snapshots = _request_json(
+        opener, origin=origin, path=f"{api}/snapshots"
+    )
+    observed_snapshot = _request_json(
+        opener,
+        origin=origin,
+        path=f"{api}/snapshots/{snapshot_id}",
+    )
+    observed_export = _request_json(
+        opener,
+        origin=origin,
+        path=f"{api}/snapshots/{snapshot_id}/export",
+    )
+    artifact_bytes = _request_bytes(
+        opener,
+        origin=origin,
+        path=(
+            f"{api}/artifacts/{artifact['artifact_id']}"
+            f"/versions/{artifact['artifact_version']}"
+        ),
+    )
+    if observed_project != project:
+        raise RuntimeError("Headless Project shell changed browser-observed meaning.")
+    if observed_workspace != current_workspace:
+        raise RuntimeError("Headless Project workspace changed browser-observed meaning.")
+    if observed_snapshots != {"records": [snapshot]}:
+        raise RuntimeError("Headless Project snapshot list changed saved evidence.")
+    if observed_snapshot != snapshot:
+        raise RuntimeError("Headless Project snapshot changed saved evidence.")
+    stable_observed_export = stable_project_export_bundle(observed_export)
+    if stable_observed_export != export_bundle:
+        raise RuntimeError("Headless Project export changed browser-observed evidence.")
+    if (
+        len(artifact_bytes) != artifact["byte_count"]
+        or hashlib.sha256(artifact_bytes).hexdigest()
+        != expected["artifact_sha256"]
+    ):
+        raise RuntimeError("Headless Project artifact download changed exact bytes.")
+    return {
+        "project": observed_project,
+        "workspace": observed_workspace,
+        "snapshot": observed_snapshot,
+        "export_bundle": stable_observed_export,
+        "artifact_sha256": hashlib.sha256(artifact_bytes).hexdigest(),
+    }
+
+
+def project_storage_snapshot(
+    postgres_dsn: str,
+    *,
+    project_id: str,
+) -> dict[str, int]:
+    query = """
+        SELECT
+            (SELECT count(*) FROM project.project_shells
+              WHERE project_id = %s),
+            (SELECT count(*) FROM project.project_workspaces
+              WHERE project_id = %s),
+            (SELECT count(*) FROM project.project_workspace_mutations
+              WHERE project_id = %s),
+            (SELECT count(*) FROM project.project_artifact_objects
+              WHERE project_id = %s),
+            (SELECT count(*) FROM project.project_snapshots
+              WHERE project_id = %s),
+            (SELECT count(*) FROM assessment.attempts),
+            (SELECT count(*) FROM assessment.responses),
+            (SELECT count(*) FROM assessment.scores),
+            (SELECT count(*) FROM assessment.completion_evidence),
+            (SELECT count(*) FROM assessment.outbox),
+            (SELECT count(*) FROM assessment.practice_attempts),
+            (SELECT count(*) FROM assessment.practice_responses),
+            (SELECT count(*) FROM assessment.practice_scores),
+            (SELECT count(*) FROM assessment.practice_completion_evidence),
+            (SELECT count(*) FROM assessment.practice_outbox),
+            (SELECT count(*) FROM learner_model.lesson_completion_projections),
+            (SELECT count(*) FROM learner_model.lesson_completion_history),
+            (SELECT count(*) FROM learner_model.practice_history_projections),
+            (SELECT count(*) FROM learner_model.practice_history_attempts)
+    """
+    with psycopg.connect(postgres_dsn) as connection:
+        row = connection.execute(query, (project_id,) * 5).fetchone()
+    labels = (
+        "project_shells",
+        "project_workspaces",
+        "project_mutations",
+        "project_artifacts",
+        "project_snapshots",
+        "assessment_attempts",
+        "assessment_responses",
+        "assessment_scores",
+        "assessment_completion_evidence",
+        "assessment_outbox",
+        "practice_attempts",
+        "practice_responses",
+        "practice_scores",
+        "practice_completion_evidence",
+        "practice_outbox",
+        "learner_completion_projections",
+        "learner_completion_history",
+        "practice_history_projections",
+        "practice_history_attempts",
+    )
+    if row is None or len(row) != len(labels):
+        raise RuntimeError("Project storage snapshot is unavailable.")
+    return {label: int(row[index]) for index, label in enumerate(labels)}
+
+
+def assert_project_storage(snapshot: dict[str, int]) -> None:
+    expected = {
+        "project_shells": 1,
+        "project_workspaces": 1,
+        "project_mutations": 4,
+        "project_artifacts": 1,
+        "project_snapshots": 1,
+    }
+    if {key: snapshot.get(key) for key in expected} != expected:
+        raise RuntimeError("Project workspace evidence is incomplete or uncorrelated.")
+
+
+def assert_project_restart_result(
+    *,
+    before_observation: dict[str, Any],
+    after_observation: dict[str, Any],
+    before_storage: dict[str, int],
+    after_storage: dict[str, int],
+) -> None:
+    if after_observation != before_observation:
+        raise RuntimeError("Project workspace evidence changed after normal restart.")
+    project_keys = (
+        "project_shells",
+        "project_workspaces",
+        "project_mutations",
+        "project_artifacts",
+        "project_snapshots",
+    )
+    if any(after_storage.get(key) != before_storage.get(key) for key in project_keys):
+        raise RuntimeError("Project storage changed during restart replay.")
+
+
 def _conflicting_practice_submission(
     submission: dict[str, Any],
 ) -> dict[str, Any]:
@@ -1898,6 +2263,7 @@ def main() -> int:
     application: subprocess.Popen[str] | None = None
     application_log = data_root / "python-application.log"
     practice_capture = data_root / "practice-submission-capture.json"
+    project_capture = data_root / "project-workspace-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -1927,6 +2293,9 @@ def main() -> int:
         environment["FINANCIAL_AI_ACADEMY_E2E_BASE_URL"] = origin
         environment["FINANCIAL_AI_ACADEMY_PRACTICE_CAPTURE"] = str(
             practice_capture
+        )
+        environment["FINANCIAL_AI_ACADEMY_PROJECT_CAPTURE"] = str(
+            project_capture
         )
         run_checked(npm_e2e_command(), env=environment)
 
@@ -1967,6 +2336,26 @@ def main() -> int:
             expected_progress=browser_practice_progress,
             draft_save=practice_draft_save,
         )
+        project_workspace_capture = load_project_workspace_capture(
+            project_capture,
+            data_root=data_root,
+        )
+        project_id = project_workspace_capture["project"]["project_id"]
+        project_storage_before_restart = project_storage_snapshot(
+            postgres_dsn,
+            project_id=project_id,
+        )
+        assert_project_storage(project_storage_before_restart)
+        project_before_restart = observe_headless_project_workspace(
+            origin=origin,
+            capture=project_workspace_capture,
+        )
+        project_storage_after_headless_read = project_storage_snapshot(
+            postgres_dsn,
+            project_id=project_id,
+        )
+        if project_storage_after_headless_read != project_storage_before_restart:
+            raise RuntimeError("Headless Project reads changed durable state.")
 
         before_observation = observe_headless_navigation(origin)
         stop_application(application)
@@ -2026,6 +2415,20 @@ def main() -> int:
             after_reset=after_reset,
             after_rebuild=after_rebuild,
         )
+        project_after_restart = observe_headless_project_workspace(
+            origin=origin,
+            capture=project_workspace_capture,
+        )
+        project_storage_after_restart = project_storage_snapshot(
+            postgres_dsn,
+            project_id=project_id,
+        )
+        assert_project_restart_result(
+            before_observation=project_before_restart,
+            after_observation=project_after_restart,
+            before_storage=project_storage_before_restart,
+            after_storage=project_storage_after_restart,
+        )
 
         report = {
             "browser": "Playwright pinned Chromium",
@@ -2084,6 +2487,17 @@ def main() -> int:
                 "public_api_shared": True,
                 "retry_state_server_owned": True,
                 "three_response_types": True,
+            },
+            "project_workspace": {
+                "artifact_download_exact": True,
+                "browser_generated_client": True,
+                "evidence_export_exact": True,
+                "headless_public_api": True,
+                "learning_state_unchanged": True,
+                "normal_restart_without_reseeding": True,
+                "project_id": project_id,
+                "snapshot_immutable_after_later_work": True,
+                "unicode_evidence_preserved": True,
             },
             "projection_replay": {
                 "assessment_source_preserved": True,

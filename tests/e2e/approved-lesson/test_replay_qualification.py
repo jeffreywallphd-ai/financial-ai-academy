@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import importlib.util
 import json
 import sys
@@ -341,6 +343,168 @@ def practice_progress(*, draft: dict[str, Any] | None = None) -> dict[str, Any]:
     }
 
 
+def project_workspace_capture() -> dict[str, Any]:
+    content = b"scenario,value\nbase,1\n"
+    digest = hashlib.sha256(content).hexdigest()
+    project = {
+        "schema_version": "1.0.0",
+        "project_id": "project-qualification",
+        "learner_id": "single-profile-learner",
+        "title": "Unicode evidence Project",
+        "charter": "Preserve exact educational evidence.",
+        "origin": {"origin_type": "independent"},
+        "lifecycle": "active",
+        "revision": 1,
+        "created_at": "2026-10-16T16:00:00Z",
+        "updated_at": "2026-10-16T16:00:00Z",
+    }
+    note = {
+        "note_id": "note-one",
+        "note_version": 1,
+        "title": "Café Σίσυφος Straße İ",
+        "body": "Compare the exact educational evidence.",
+        "created_at": "2026-10-16T16:01:00Z",
+        "updated_at": "2026-10-16T16:01:00Z",
+    }
+    reference = {
+        "reference_id": "reference-one",
+        "reference_version": 1,
+        "title": "Reviewed learning source",
+        "url": "https://example.com/learning/evidence",
+        "source_name": "Example education publisher",
+        "created_at": "2026-10-16T16:02:00Z",
+        "updated_at": "2026-10-16T16:02:00Z",
+    }
+    artifact = {
+        "artifact_id": "artifact-one",
+        "artifact_version": 1,
+        "artifact_kind": "dataset",
+        "logical_path": "Résumé-Σ-data.csv",
+        "media_type": "text/csv",
+        "inspection_mode": "plain_text",
+        "byte_count": len(content),
+        "content_digest": digest,
+        "provenance": {
+            "source_type": "learner_created",
+            "source_title": "Browser qualification dataset",
+        },
+        "assumptions": [],
+        "created_at": "2026-10-16T16:03:00Z",
+    }
+    workspace_at_snapshot = {
+        "schema_version": "1.0.0",
+        "project_id": project["project_id"],
+        "learner_id": project["learner_id"],
+        "workspace_revision": 4,
+        "notes": [note],
+        "references": [reference],
+        "artifacts": [artifact],
+        "domain_links": [],
+        "created_at": "2026-10-16T16:00:00Z",
+        "updated_at": "2026-10-16T16:03:00Z",
+    }
+    snapshot = {
+        "schema_version": "1.0.0",
+        "snapshot_id": "snapshot-one",
+        "snapshot_digest": "a" * 64,
+        "snapshot": {
+            "project_id": project["project_id"],
+            "learner_id": project["learner_id"],
+            "project_revision": 1,
+            "project_shell_digest": "b" * 64,
+            "workspace_revision": 4,
+            "workspace_created_at": workspace_at_snapshot["created_at"],
+            "workspace_updated_at": workspace_at_snapshot["updated_at"],
+            "notes": [
+                {
+                    "record_id": note["note_id"],
+                    "record_version": 1,
+                    "record_digest": "c" * 64,
+                }
+            ],
+            "references": [
+                {
+                    "record_id": reference["reference_id"],
+                    "record_version": 1,
+                    "record_digest": "d" * 64,
+                }
+            ],
+            "artifacts": [
+                {
+                    "artifact_id": artifact["artifact_id"],
+                    "artifact_version": 1,
+                    "manifest_digest": "e" * 64,
+                    "content_digest": digest,
+                    "byte_count": len(content),
+                }
+            ],
+            "domain_links": [],
+        },
+        "closed_at": "2026-10-16T16:04:00Z",
+    }
+    current_workspace = json.loads(json.dumps(workspace_at_snapshot))
+    current_workspace["workspace_revision"] = 5
+    current_workspace["updated_at"] = "2026-10-16T16:05:00Z"
+    current_workspace["notes"].append(
+        {
+            "note_id": "note-two",
+            "note_version": 1,
+            "title": "Work after the checkpoint",
+            "body": "The fixed checkpoint remains unchanged.",
+            "created_at": "2026-10-16T16:05:00Z",
+            "updated_at": "2026-10-16T16:05:00Z",
+        }
+    )
+    export_bundle = {
+        "manifest": {
+            "schema_version": "1.0.0",
+            "export_id": "export-one",
+            "export_digest": "f" * 64,
+            "generated_at": snapshot["closed_at"],
+            "export": {
+                "format": "project-evidence-manifest-v1",
+                "project_id": project["project_id"],
+                "snapshot_id": snapshot["snapshot_id"],
+                "snapshot_digest": snapshot["snapshot_digest"],
+                "snapshot_record": snapshot,
+                "workspace_record": workspace_at_snapshot,
+                "artifact_files": [
+                    {
+                        "artifact_id": artifact["artifact_id"],
+                        "artifact_version": 1,
+                        "logical_path": artifact["logical_path"],
+                        "content_digest": digest,
+                        "byte_count": len(content),
+                    }
+                ],
+                "excluded_artifacts": [],
+            },
+        },
+        "files": [
+            {
+                "artifact_id": artifact["artifact_id"],
+                "artifact_version": 1,
+                "logical_path": artifact["logical_path"],
+                "content_base64": base64.b64encode(content).decode("ascii"),
+            }
+        ],
+    }
+    learning_state = {
+        "navigation": navigation(),
+        "practice_progress": practice_progress(),
+    }
+    return {
+        "project": project,
+        "workspace_at_snapshot": workspace_at_snapshot,
+        "current_workspace": current_workspace,
+        "snapshot": snapshot,
+        "export_bundle": export_bundle,
+        "artifact_sha256": digest,
+        "learning_state_before": learning_state,
+        "learning_state_after": json.loads(json.dumps(learning_state)),
+    }
+
+
 def observation(
     *,
     evaluated_at: str = "2026-10-16T12:00:00Z",
@@ -667,6 +831,160 @@ def test_practice_submission_capture_is_closed_correlated_and_confined(
             )
     finally:
         outside.unlink()
+
+
+def test_project_workspace_capture_is_correlated_confined_and_private(
+    tmp_path: Path,
+) -> None:
+    valid = project_workspace_capture()
+    capture = tmp_path / "project-workspace-capture.json"
+    capture.write_text(json.dumps(valid), encoding="utf-8")
+    assert runner.load_project_workspace_capture(
+        capture,
+        data_root=tmp_path,
+    ) == valid
+
+    leaked = json.loads(json.dumps(valid))
+    leaked["project"]["object_key"] = "private/storage/path"
+    capture.write_text(json.dumps(leaked), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="private runtime data"):
+        runner.load_project_workspace_capture(capture, data_root=tmp_path)
+
+    changed_learning = json.loads(json.dumps(valid))
+    changed_learning["learning_state_after"]["navigation"][
+        "projection_digest"
+    ] = "0" * 64
+    capture.write_text(json.dumps(changed_learning), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="changed learning state"):
+        runner.load_project_workspace_capture(capture, data_root=tmp_path)
+
+    changed_artifact = json.loads(json.dumps(valid))
+    changed_artifact["export_bundle"]["files"][0]["content_base64"] = (
+        base64.b64encode(b"changed").decode("ascii")
+    )
+    capture.write_text(json.dumps(changed_artifact), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="changed artifact meaning"):
+        runner.load_project_workspace_capture(capture, data_root=tmp_path)
+
+    outside = tmp_path.parent / "outside-project-workspace-capture.json"
+    outside.write_text(json.dumps(valid), encoding="utf-8")
+    try:
+        with pytest.raises(RuntimeError, match="escaped its bounded root"):
+            runner.load_project_workspace_capture(outside, data_root=tmp_path)
+    finally:
+        outside.unlink()
+
+
+def test_headless_project_workspace_uses_only_public_api_and_exact_bytes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    capture = project_workspace_capture()
+    project = capture["project"]
+    workspace = capture["current_workspace"]
+    snapshot = capture["snapshot"]
+    export_bundle = capture["export_bundle"]
+    project_id = project["project_id"]
+    snapshot_id = snapshot["snapshot_id"]
+    calls: list[tuple[str, str]] = []
+
+    def request_json(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert origin == "http://127.0.0.1:8123"
+        calls.append((method, path))
+        if path == "/api/v1/session/single-profile":
+            assert method == "POST"
+            assert payload == {"limitation_acknowledged": True}
+            return {"expires_at": "later"}
+        documents = {
+            "/api/v1/projects": {"records": [project]},
+            f"/api/v1/projects/{project_id}": project,
+            f"/api/v1/projects/{project_id}/workspace": workspace,
+            f"/api/v1/projects/{project_id}/snapshots": {
+                "records": [snapshot]
+            },
+            f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}": snapshot,
+            (
+                f"/api/v1/projects/{project_id}/snapshots/"
+                f"{snapshot_id}/export"
+            ): export_bundle,
+        }
+        return json.loads(json.dumps(documents[path]))
+
+    artifact = workspace["artifacts"][0]
+
+    def request_bytes(
+        _opener: object,
+        *,
+        origin: str,
+        path: str,
+    ) -> bytes:
+        assert origin == "http://127.0.0.1:8123"
+        assert path == (
+            f"/api/v1/projects/{project_id}/artifacts/"
+            f"{artifact['artifact_id']}/versions/{artifact['artifact_version']}"
+        )
+        return base64.b64decode(export_bundle["files"][0]["content_base64"])
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+    monkeypatch.setattr(runner, "_request_bytes", request_bytes)
+    observed = runner.observe_headless_project_workspace(
+        origin="http://127.0.0.1:8123",
+        capture=capture,
+    )
+
+    assert observed["project"] == project
+    assert observed["workspace"] == workspace
+    assert observed["snapshot"] == snapshot
+    assert observed["export_bundle"] == runner.stable_project_export_bundle(
+        export_bundle
+    )
+    assert observed["artifact_sha256"] == capture["artifact_sha256"]
+    assert calls[0] == ("POST", "/api/v1/session/single-profile")
+    assert all(method == "GET" for method, _path in calls[1:])
+
+
+def test_project_restart_requires_exact_evidence_and_storage() -> None:
+    observation = {
+        "project": {"project_id": "project-qualification"},
+        "artifact_sha256": "a" * 64,
+    }
+    storage = {
+        "project_shells": 1,
+        "project_workspaces": 1,
+        "project_mutations": 4,
+        "project_artifacts": 1,
+        "project_snapshots": 1,
+        "assessment_attempts": 1,
+    }
+    runner.assert_project_storage(storage)
+    runner.assert_project_restart_result(
+        before_observation=observation,
+        after_observation=json.loads(json.dumps(observation)),
+        before_storage=storage,
+        after_storage=dict(storage),
+    )
+    with pytest.raises(RuntimeError, match="incomplete or uncorrelated"):
+        runner.assert_project_storage(storage | {"project_mutations": 3})
+    with pytest.raises(RuntimeError, match="changed after normal restart"):
+        runner.assert_project_restart_result(
+            before_observation=observation,
+            after_observation=observation | {"artifact_sha256": "b" * 64},
+            before_storage=storage,
+            after_storage=storage,
+        )
+    with pytest.raises(RuntimeError, match="storage changed"):
+        runner.assert_project_restart_result(
+            before_observation=observation,
+            after_observation=observation,
+            before_storage=storage,
+            after_storage=storage | {"project_snapshots": 2},
+        )
 
 
 def test_headless_submission_uses_only_public_session_and_post(
