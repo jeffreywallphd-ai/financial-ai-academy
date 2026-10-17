@@ -205,7 +205,7 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0131 | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | complete |
 | WRK-0132 | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0131 | none | complete |
-| WRK-0133 | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | WRK-0132 | none | ready |
+| WRK-0133 | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | WRK-0132 | none | active |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | JIT-C | none | proposed |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
@@ -316,3 +316,5 @@ authority were not delivered or qualified.
   scope can include contextual save links and tests on the current opportunity
   and lesson pages. This prevents learner-entered internal IDs without changing
   the approved slice or public contract.
+- 2026-10-17: Re-activated WRK-0133 with contextual opportunity/lesson entry
+  files and focused regressions included in the fresh exact scope.
