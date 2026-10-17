@@ -11,8 +11,9 @@ mutation core.
   empty-workspace creation, pure mutation, deterministic record query, and
   trusted reference-refresh transitions;
 - `ContractPersonalWorkspaceAdapter`, which validates closed JSON Schema shapes
-  and semantic invariants, stable query pages, query-bound continuations, and
-  current/stale/unavailable reference history;
+  and semantic invariants, stable query pages, server-authenticated learner-
+  and workspace-bound continuations, and current/stale/unavailable reference
+  history;
 - `PersonalWorkspaceService`, which serves the same read and mutation
   operations to protected HTTP, generated-client, and future headless callers;
 - selector-based Curriculum resolution that keeps target facts under their

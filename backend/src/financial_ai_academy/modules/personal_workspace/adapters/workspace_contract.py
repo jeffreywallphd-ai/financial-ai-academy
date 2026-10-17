@@ -7,8 +7,10 @@ import binascii
 from dataclasses import asdict, is_dataclass, replace
 from datetime import datetime, timezone
 import hashlib
+import hmac
 import json
 from pathlib import Path
+import secrets
 from typing import Any, Mapping, Never
 import unicodedata
 
@@ -50,12 +52,26 @@ from ..ports.workspace_contract import PersonalWorkspaceContractFailure
 
 
 VERSION = "1.0.0"
+_PROCESS_CURSOR_SIGNING_KEY = secrets.token_bytes(32)
 
 
 class ContractPersonalWorkspaceAdapter:
     """Validate portable documents and return immutable workspace values."""
 
-    def __init__(self, schema_dir: Path) -> None:
+    def __init__(
+        self,
+        schema_dir: Path,
+        *,
+        cursor_signing_key: bytes | None = None,
+    ) -> None:
+        signing_key = (
+            _PROCESS_CURSOR_SIGNING_KEY
+            if cursor_signing_key is None
+            else cursor_signing_key
+        )
+        if not isinstance(signing_key, bytes) or len(signing_key) < 32:
+            raise ValueError("cursor_signing_key must contain at least 32 bytes")
+        self._cursor_signing_key = signing_key
         schemas = {
             name: json.loads(
                 (schema_dir / f"{name}.schema.json").read_text(encoding="utf-8")
@@ -175,8 +191,18 @@ class ContractPersonalWorkspaceAdapter:
                 "personal_workspace.contract.query_digest_mismatch",
                 "query_digest",
             )
+        applied_offset = 0
+        applied_scope = None
+        if query.cursor is not None:
+            applied_offset, applied_scope = self._decode_cursor(
+                query.cursor,
+                revision=document["workspace_revision"],
+                query_digest=expected_digest,
+            )
+        next_offset = None
+        next_scope = None
         if document.get("next_cursor") is not None:
-            self._decode_cursor(
+            next_offset, next_scope = self._decode_cursor(
                 document["next_cursor"],
                 revision=document["workspace_revision"],
                 query_digest=expected_digest,
@@ -193,6 +219,15 @@ class ContractPersonalWorkspaceAdapter:
             [record.record_id for record in records],
             "records.record_id",
         )
+        if next_offset is not None and (
+            not records
+            or next_offset != applied_offset + len(records)
+            or (applied_scope is not None and applied_scope != next_scope)
+        ):
+            self._reject(
+                "personal_workspace.contract.invalid_query_result",
+                "next_cursor",
+            )
         return WorkspaceQueryResult(
             schema_version=document["schema_version"],
             workspace_revision=document["workspace_revision"],
@@ -263,10 +298,11 @@ class ContractPersonalWorkspaceAdapter:
         query_digest = self._query_digest(normalized)
         offset = 0
         if normalized.cursor is not None:
-            offset = self._decode_cursor(
+            offset, _scope = self._decode_cursor(
                 normalized.cursor,
                 revision=workspace.revision,
                 query_digest=query_digest,
+                expected_scope=self._cursor_scope(workspace),
             )
 
         known_collections = {
@@ -304,6 +340,7 @@ class ContractPersonalWorkspaceAdapter:
                 revision=workspace.revision,
                 query_digest=query_digest,
                 offset=next_offset,
+                workspace=workspace,
             )
             if next_offset < len(records)
             else None
@@ -733,15 +770,20 @@ class ContractPersonalWorkspaceAdapter:
         revision: int,
         query_digest: str,
         offset: int,
+        workspace: PersonalWorkspace,
     ) -> str:
         material = {
             "offset": offset,
             "query_digest": query_digest,
             "workspace_revision": revision,
+            "workspace_scope": self._cursor_scope(workspace),
         }
-        payload = self._canonical_bytes(material)
-        checksum = hashlib.sha256(payload).hexdigest()
-        document = {**material, "checksum": checksum}
+        mac = hmac.new(
+            self._cursor_signing_key,
+            self._canonical_bytes(material),
+            hashlib.sha256,
+        ).hexdigest()
+        document = {**material, "mac": mac}
         return base64.urlsafe_b64encode(self._canonical_bytes(document)).decode(
             "ascii"
         ).rstrip("=")
@@ -752,7 +794,8 @@ class ContractPersonalWorkspaceAdapter:
         *,
         revision: int,
         query_digest: str,
-    ) -> int:
+        expected_scope: str | None = None,
+    ) -> tuple[int, str]:
         if not cursor or len(cursor) > 512:
             self._reject("personal_workspace.contract.invalid_cursor", "cursor")
         try:
@@ -766,16 +809,18 @@ class ContractPersonalWorkspaceAdapter:
         except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError):
             self._reject("personal_workspace.contract.invalid_cursor", "cursor")
         if not isinstance(document, dict) or set(document) != {
-            "checksum",
+            "mac",
             "offset",
             "query_digest",
             "workspace_revision",
+            "workspace_scope",
         }:
             self._reject("personal_workspace.contract.invalid_cursor", "cursor")
         offset = document["offset"]
         observed_revision = document["workspace_revision"]
         observed_digest = document["query_digest"]
-        checksum = document["checksum"]
+        observed_scope = document["workspace_scope"]
+        mac = document["mac"]
         if (
             not isinstance(offset, int)
             or isinstance(offset, bool)
@@ -783,21 +828,43 @@ class ContractPersonalWorkspaceAdapter:
             or not isinstance(observed_revision, int)
             or isinstance(observed_revision, bool)
             or not isinstance(observed_digest, str)
-            or not isinstance(checksum, str)
+            or not isinstance(observed_scope, str)
+            or len(observed_scope) != 64
+            or any(character not in "0123456789abcdef" for character in observed_scope)
+            or not isinstance(mac, str)
         ):
             self._reject("personal_workspace.contract.invalid_cursor", "cursor")
         material = {
             "offset": offset,
             "query_digest": observed_digest,
             "workspace_revision": observed_revision,
+            "workspace_scope": observed_scope,
         }
+        expected_mac = hmac.new(
+            self._cursor_signing_key,
+            self._canonical_bytes(material),
+            hashlib.sha256,
+        ).hexdigest()
         if (
-            checksum != hashlib.sha256(self._canonical_bytes(material)).hexdigest()
+            not hmac.compare_digest(mac, expected_mac)
             or observed_revision != revision
             or observed_digest != query_digest
+            or (expected_scope is not None and observed_scope != expected_scope)
         ):
             self._reject("personal_workspace.contract.invalid_cursor", "cursor")
-        return offset
+        return offset, observed_scope
+
+    def _cursor_scope(self, workspace: PersonalWorkspace) -> str:
+        return hmac.new(
+            self._cursor_signing_key,
+            self._canonical_bytes(
+                {
+                    "learner_id": workspace.learner_id,
+                    "workspace_id": workspace.workspace_id,
+                }
+            ),
+            hashlib.sha256,
+        ).hexdigest()
 
     @staticmethod
     def _same_selector(
@@ -873,10 +940,12 @@ class ContractPersonalWorkspaceAdapter:
             resolved, ProjectSnapshotReference
         ):
             return (
+                original.project_revision,
                 original.workspace_revision,
                 original.snapshot_digest,
                 original.closed_at,
             ) == (
+                resolved.project_revision,
                 resolved.workspace_revision,
                 resolved.snapshot_digest,
                 resolved.closed_at,

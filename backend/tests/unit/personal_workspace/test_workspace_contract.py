@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import base64
 from dataclasses import replace
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 
@@ -322,6 +324,94 @@ def test_query_pages_are_stable_and_revision_bound(
     assert stale.value.code == "personal_workspace.contract.invalid_cursor"
 
 
+def test_query_cursor_rejects_recomputed_tampering_and_cross_workspace_replay(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_bytes()
+    )
+    first = adapter.query_workspace(workspace, WorkspaceQuery(limit=1))
+    assert first.next_cursor is not None
+
+    padded = first.next_cursor + "=" * (-len(first.next_cursor) % 4)
+    cursor_document = json.loads(
+        base64.urlsafe_b64decode(padded.encode("ascii")).decode("utf-8")
+    )
+    cursor_document["offset"] = 0
+    unsigned = dict(cursor_document)
+    unsigned.pop("mac")
+    cursor_document["mac"] = hashlib.sha256(
+        json.dumps(
+            unsigned,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    ).hexdigest()
+    forged = base64.urlsafe_b64encode(
+        json.dumps(
+            cursor_document,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        ).encode("utf-8")
+    ).decode("ascii").rstrip("=")
+    with pytest.raises(PersonalWorkspaceContractFailure) as tampered:
+        adapter.query_workspace(
+            workspace,
+            WorkspaceQuery(limit=1, cursor=forged),
+        )
+    assert tampered.value.code == "personal_workspace.contract.invalid_cursor"
+
+    other_document = adapter.workspace_document(workspace)
+    other_document["workspace_id"] = "workspace.other"
+    other_document["learner_id"] = "learner.other"
+    other_document.pop("workspace_digest")
+    other = replace(
+        workspace,
+        workspace_id="workspace.other",
+        learner_id="learner.other",
+        workspace_digest=adapter.canonical_digest(other_document),
+    )
+    with pytest.raises(PersonalWorkspaceContractFailure) as replayed:
+        adapter.query_workspace(
+            other,
+            WorkspaceQuery(limit=1, cursor=first.next_cursor),
+        )
+    assert replayed.value.code == "personal_workspace.contract.invalid_cursor"
+
+
+def test_query_result_validates_applied_cursor_and_page_progression(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_bytes()
+    )
+    first = adapter.query_workspace(workspace, WorkspaceQuery(limit=1))
+    assert first.next_cursor is not None
+    second = adapter.query_workspace(
+        workspace,
+        WorkspaceQuery(limit=1, cursor=first.next_cursor),
+    )
+    second_document = adapter.workspace_query_result_document(second)
+    assert adapter.parse_workspace_query_result(
+        json.dumps(second_document).encode("utf-8")
+    ) == second
+
+    second_document["applied_query"]["cursor"] = "A"
+    with pytest.raises(PersonalWorkspaceContractFailure) as malformed:
+        adapter.parse_workspace_query_result(
+            json.dumps(second_document).encode("utf-8")
+        )
+    assert malformed.value.code == "personal_workspace.contract.invalid_cursor"
+
+    first_document = adapter.workspace_query_result_document(first)
+    first_document["records"] = []
+    with pytest.raises(PersonalWorkspaceContractFailure) as stalled:
+        adapter.parse_workspace_query_result(json.dumps(first_document).encode("utf-8"))
+    assert stalled.value.code == "personal_workspace.contract.invalid_query_result"
+
+
 def test_query_filter_order_has_one_canonical_digest(
     adapter: ContractPersonalWorkspaceAdapter,
 ) -> None:
@@ -485,6 +575,98 @@ def test_mutable_project_refresh_updates_safe_facts_but_snapshot_drift_is_stale(
         workspace.records[1].target.snapshot_digest  # type: ignore[union-attr]
         == snapshot.snapshot_digest
     )
+
+
+def test_each_retained_immutable_reference_fact_marks_drift_stale(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    populated = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-populated-workspace.json").read_bytes()
+    )
+    learning_opportunity = populated.records[0].target
+    placed_lesson = populated.records[1].target
+    snapshot = _project_reference(adapter, "valid-project-snapshot-bookmark.json")
+    artifact = _project_reference(adapter, "valid-project-artifact-bookmark.json")
+    assert isinstance(learning_opportunity, LearningOpportunityReference)
+    assert isinstance(snapshot, ProjectSnapshotReference)
+    assert isinstance(artifact, ProjectArtifactReference)
+
+    refresh_at = datetime(2026, 10, 17, 14, 0, tzinfo=timezone.utc)
+    cases = [
+        (
+            learning_opportunity,
+            {
+                "package_id": "package.changed",
+                "package_version": "2.0.0",
+                "package_digest": "f" * 64,
+                "source_fingerprint": "e" * 64,
+                "provenance": replace(
+                    learning_opportunity.provenance,
+                    published_by="Changed publisher",
+                ),
+            },
+        ),
+        (
+            placed_lesson,
+            {
+                "package_id": "package.changed",
+                "package_version": "2.0.0",
+                "package_digest": "f" * 64,
+                "provenance": replace(
+                    placed_lesson.provenance,
+                    content_reviewed_on="2026-10-17",
+                ),
+            },
+        ),
+        (
+            snapshot,
+            {
+                "project_revision": snapshot.project_revision + 1,
+                "workspace_revision": snapshot.workspace_revision + 1,
+                "snapshot_digest": "f" * 64,
+                "closed_at": snapshot.closed_at.replace(minute=31),
+            },
+        ),
+        (
+            artifact,
+            {
+                "artifact_kind": "notebook",
+                "logical_path": "evidence/changed-inputs.csv",
+                "media_type": "text/plain",
+                "inspection_mode": "metadata_only",
+                "byte_count": artifact.byte_count + 1,
+                "content_digest": "f" * 64,
+                "created_at": artifact.created_at.replace(minute=31),
+            },
+        ),
+    ]
+
+    for original, changes in cases:
+        for field, changed_value in changes.items():
+            workspace = adapter.parse_workspace(
+                (FIXTURE_DIR / "valid-empty-workspace.json").read_bytes()
+            )
+            workspace = adapter.apply_mutation(
+                workspace,
+                _intent(1, CreateBookmarkMutation(original, "Saved")),
+                occurred_at=datetime(2026, 10, 17, 13, 30, tzinfo=timezone.utc),
+                issued_id="bookmark.immutable",
+            )
+            changed = replace(
+                original,
+                **{field: changed_value},
+                target_status="available",
+                validated_at=refresh_at,
+            )
+            refreshed = adapter.apply_reference_refresh(
+                workspace,
+                _intent(2, RefreshReferenceMutation("bookmark.immutable")),
+                occurred_at=refresh_at,
+                resolved_reference=changed,
+            )
+            retained = refreshed.records[0].target
+            assert retained.target_status == "stale", field
+            assert getattr(retained, field) == getattr(original, field), field
 
 
 def test_refresh_rejects_caller_only_core_path_and_mismatched_selector(

@@ -37,8 +37,10 @@ creates a mutation or execution path into another module.
 - Record query is pure over one already-authorized workspace. Bounded normalized
   text, closed record/source/reference/status/archive/collection filters,
   stable sorts, record-ID tie-breaking, bounded pages, and opaque continuations
-  are versioned contracts. Continuations bind workspace revision and canonical
-  query digest and cannot switch query meaning or return partial stale data.
+  are versioned contracts. A server-held key authenticates continuations, which
+  bind learner, workspace, workspace revision, and canonical query digest. They
+  grant no authority and fail closed after tampering, cross-workspace replay,
+  query drift, revision drift, or a signing-key scope change.
 - Search covers learner-authored note/bookmark text and already-retained safe
   target labels and identifiers. It never calls a source owner, searches source
   content, or depends on an optional adapter or external search service.
