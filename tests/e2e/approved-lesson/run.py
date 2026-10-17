@@ -1068,6 +1068,15 @@ def _utc_instant(value: object, *, label: str) -> datetime:
     )
 
 
+def _normalized_utc(value: object, *, label: str) -> str:
+    normalized = _utc_instant(value, label=label)
+    if normalized.microsecond:
+        rendered = normalized.strftime("%Y-%m-%dT%H:%M:%S.%f").rstrip("0")
+    else:
+        rendered = normalized.strftime("%Y-%m-%dT%H:%M:%S")
+    return f"{rendered}Z"
+
+
 def _canonical_project_logical_path(value: object) -> bool:
     if (
         not isinstance(value, str)
@@ -1877,7 +1886,32 @@ def stable_personal_workspace(document: dict[str, Any]) -> dict[str, Any]:
         ):
             raise RuntimeError("Personal workspace collection is invalid.")
         collection_ids.add(collection_id)
-    return copy.deepcopy(document)
+    timestamp_fields = {
+        "closed_at",
+        "created_at",
+        "published_at",
+        "updated_at",
+        "validated_at",
+    }
+
+    def normalize(value: object, *, field: str = "") -> object:
+        if isinstance(value, dict):
+            return {
+                key: (
+                    _normalized_utc(item, label=f"Personal workspace {key}")
+                    if key in timestamp_fields
+                    else normalize(item, field=key)
+                )
+                for key, item in value.items()
+            }
+        if isinstance(value, list):
+            return [normalize(item, field=field) for item in value]
+        return copy.deepcopy(value)
+
+    normalized = normalize(document)
+    if not isinstance(normalized, dict):
+        raise RuntimeError("Personal workspace normalization failed.")
+    return normalized
 
 
 def stable_personal_workspace_query(document: object) -> dict[str, Any]:
@@ -3465,6 +3499,24 @@ def assert_personal_workspace_storage(
             for key in PERSONAL_WORKSPACE_ROOT_KEYS
             if stored_workspace.get(key) != expected.get(key)
         )
+        if "records" in changed_fields:
+            stored_records = stored_workspace.get("records", [])
+            expected_records = expected.get("records", [])
+            if len(stored_records) != len(expected_records):
+                changed_fields.append("records.count")
+            elif [record.get("record_id") for record in stored_records] != [
+                record.get("record_id") for record in expected_records
+            ]:
+                changed_fields.append("records.order_or_membership")
+            else:
+                for index, (stored_record, expected_record) in enumerate(
+                    zip(stored_records, expected_records, strict=True)
+                ):
+                    changed_fields.extend(
+                        f"records.{index}.{key}"
+                        for key in sorted(set(stored_record) | set(expected_record))
+                        if stored_record.get(key) != expected_record.get(key)
+                    )
         if "collections" in changed_fields:
             stored_collections = stored_workspace.get("collections", [])
             expected_collections = expected.get("collections", [])

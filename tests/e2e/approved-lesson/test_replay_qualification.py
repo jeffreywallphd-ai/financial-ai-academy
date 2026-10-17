@@ -1667,6 +1667,24 @@ def test_personal_workspace_query_evidence_is_canonical_and_shape_flexible() -> 
     ]
 
 
+def test_personal_workspace_evidence_normalizes_equivalent_utc_precision() -> None:
+    workspace = personal_workspace_capture()["workspace"]
+    workspace["updated_at"] = "2026-10-17T12:10:00.123450Z"
+    workspace["records"][0]["created_at"] = "2026-10-17T12:00:00.120000Z"
+    workspace["records"][0]["target"]["validated_at"] = (
+        "2026-10-17T12:00:00.000010Z"
+    )
+
+    normalized = runner.stable_personal_workspace(workspace)
+
+    assert normalized["updated_at"] == "2026-10-17T12:10:00.12345Z"
+    assert normalized["records"][0]["created_at"] == "2026-10-17T12:00:00.12Z"
+    assert (
+        normalized["records"][0]["target"]["validated_at"]
+        == "2026-10-17T12:00:00.00001Z"
+    )
+
+
 def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:
     capture = personal_workspace_capture()
     snapshot_target = capture["workspace"]["records"][3]["target"]
