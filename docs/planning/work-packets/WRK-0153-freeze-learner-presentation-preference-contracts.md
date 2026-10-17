@@ -1,7 +1,7 @@
 ---
 id: WRK-0153
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/learner_model/README.md", "backend/src/financial_ai_academy/modules/learner_model/adapters/presentation_preference_contract.py", "backend/src/financial_ai_academy/modules/learner_model/domain/presentation_preferences.py", "backend/src/financial_ai_academy/modules/learner_model/ports/presentation_preference_contract.py", "backend/tests/contract/learner_presentation_preferences", "backend/tests/unit/learner_model/test_presentation_preference_contract.py", "backend/tests/unit/learner_model/test_presentation_preferences.py", "contracts/compatibility/learner-presentation-preferences/v1", "contracts/learning/README.md", "contracts/learning/learner-presentation-preferences/v1", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/learner-presentation-preferences-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0153-freeze-learner-presentation-preference-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 236e61531a6b9cf8d1bf992d1a7c1ec29e250cf4
+claim_id: WRK-0153:749de533-426a-430c-857e-28e3f2f4c17c
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-17T21:12:02Z
 ---
 
 # Agent Work Packet: Freeze Learner Presentation Preference Contracts
