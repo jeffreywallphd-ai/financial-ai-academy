@@ -548,7 +548,7 @@ def test_headless_project_submission_refusal_replay_and_history(
                 replace(
                     api_services,
                     identity=_FixedIdentity(
-                        "another-learner",
+                        "22222222-2222-4222-8222-222222222222",
                         ("project.read", "project.write"),
                     ),
                 )
@@ -557,9 +557,16 @@ def test_headless_project_submission_refusal_replay_and_history(
             backend_options={"loop_factory": asyncio.SelectorEventLoop},
         ) as another_learner:
             another_learner.cookies.set(cookie_name, "fixed-session")
+            cross_learner_candidate = another_learner.get(
+                f"/api/v1/projects/{project_id}/snapshots/"
+                f"{snapshot_id}/submission-candidate"
+            )
             cross_learner_exact = another_learner.get(
                 f"/api/v1/projects/{project_id}/submissions/"
                 "project-submission-1"
+            )
+            cross_learner_history = another_learner.get(
+                f"/api/v1/projects/{project_id}/submissions"
             )
             cross_learner_submit = another_learner.post(
                 f"/api/v1/projects/{project_id}/snapshots/"
@@ -626,10 +633,19 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert independent_denied.status_code == 404
     assert readable.status_code == 200
     assert forbidden_submit.status_code == 403
-    assert cross_learner_exact.status_code == 401
-    assert cross_learner_submit.status_code == 401
-    assert cross_learner_exact.json()["code"] == "unauthorized_context"
-    assert cross_learner_submit.json()["code"] == "unauthorized_context"
+    assert cross_learner_candidate.status_code == 404
+    assert cross_learner_exact.status_code == 404
+    assert cross_learner_history.status_code == 404
+    assert cross_learner_submit.status_code == 404
+    assert all(
+        response.json()["code"] == "not_found"
+        for response in (
+            cross_learner_candidate,
+            cross_learner_exact,
+            cross_learner_history,
+            cross_learner_submit,
+        )
+    )
     with psycopg.connect(POSTGRES_DSN) as connection:
         assert connection.execute(
             "SELECT count(*) FROM assessment.project_submissions"

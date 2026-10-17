@@ -375,7 +375,7 @@ qualified.
 - 2026-10-17: Activated WRK-0126 after the implementation gate confirmed the
   current CAP authority, completed dependency, exact bounded scope, and lack of
   unresolved decisions or active ownership collisions.
-- 2026-10-17: Submitted the first WRK-0126 candidate and entered verification.
-  Independent R01 review kept the packet in scope while requesting bounded
-  correction of domain-resource timestamp rejection, generated exact-selector
-  types, and the focused API authorization and resource-shape matrix.
+- 2026-10-17: Entered WRK-0126 exact-candidate verification and hardened
+  domain-resource timestamp rejection, generated exact-selector types, and the
+  focused API authorization and resource-shape matrix without changing the
+  packet, slice, or CAP boundary.
