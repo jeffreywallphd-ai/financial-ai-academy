@@ -236,6 +236,46 @@ describe("Saved learning pages", () => {
   });
 
   it.each([
+    ["invalid-response", "did not pass its integrity check"],
+    ["unauthorized", "private learner access could not be confirmed"],
+    ["forbidden", "private learner access could not be confirmed"],
+    ["unavailable", "temporarily unavailable"],
+    ["unexpected", "temporarily unavailable"],
+  ] as const)("announces %s without creating a download", async (status, message) => {
+    const createObjectURL = vi.fn().mockReturnValue("blob:must-not-download");
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectURL });
+    const exporter: PersonalWorkspaceExporter = async () => ({ status });
+    renderWorkspace([], undefined, workspace, undefined, undefined, exporter);
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Download saved learning" }));
+
+    const messageNode = await screen.findByText(new RegExp(message));
+    const announced = messageNode.closest('[role="status"]') as HTMLElement;
+    expect(announced).toHaveAttribute("aria-live", "polite");
+    expect(createObjectURL).not.toHaveBeenCalled();
+    expect(click).not.toHaveBeenCalled();
+    click.mockRestore();
+  });
+
+  it("exposes a disabled pending state until export preparation finishes", async () => {
+    let finish: ((outcome: { status: "changed" }) => void) | undefined;
+    const exporter: PersonalWorkspaceExporter = () => new Promise((resolve) => {
+      finish = resolve;
+    });
+    renderWorkspace([], undefined, workspace, undefined, undefined, exporter);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: "Download saved learning" }));
+
+    const pending = screen.getByRole("button", { name: "Preparing download…" });
+    expect(pending).toBeDisabled();
+    finish?.({ status: "changed" });
+    expect(await screen.findByText(/Refresh this page/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Download saved learning" })).toBeEnabled();
+  });
+
+  it.each([
     ["record-limit", "Saved learning is full", "up to 200"],
     ["collection-limit", "Collection limit reached", "up to 50"],
     ["collection-member-limit", "Collection is full", "up to 100"],

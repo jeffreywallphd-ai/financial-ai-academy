@@ -228,6 +228,10 @@ recovery and slice-closure work.
   closed-response and displayed-workspace binding, a stable ID-free JSON
   download, accessible technical facts and recovery states, and distinct
   capacity guidance that leaves removal controls available. Focused model and
-  component tests passed 102 checks, focused Chromium passed 19 journeys, and
-  type, lint, build, learner-language, design, documentation, planning, and
-  whitespace checks passed before exact-candidate verification.
+  component tests passed 114 checks, including empty, sparse, reordered,
+  Unicode, optional-label, mixed-reference, denied-renewal, and two-attempt
+  response closure. Focused Chromium passed 22 journeys, including malformed,
+  denied, repeated-unauthorized, no-download, accessibility, mixed-reference,
+  and target-isolation paths. Type, lint, build, learner-language, design,
+  documentation, planning, and whitespace checks also passed before exact-
+  candidate verification.

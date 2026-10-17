@@ -109,6 +109,40 @@ function projectWorkspace() {
   };
 }
 
+function mixedWorkspace() {
+  const workspace = projectWorkspace();
+  const curriculumBookmark = {
+    record_kind: "bookmark",
+    record_id: "bookmark-curriculum",
+    label: null,
+    archived: false,
+    created_at: "2026-10-17T10:00:30Z",
+    updated_at: "2026-10-17T10:00:30Z",
+    target: {
+      reference_kind: "placed_lesson",
+      owner_module: "curriculum",
+      placement_id: "risk-return-primary",
+      package_id: "risk-return-package",
+      package_version: "1.0.0",
+      package_digest: "a".repeat(64),
+      title: "Café risk 📚",
+      destination: "/learn/placements/risk-return-primary",
+      target_status: "available",
+      validated_at: "2026-10-17T10:00:30Z",
+      provenance: {
+        published_by: "Financial AI Academy",
+        published_at: "2026-10-17T10:00:00Z",
+        content_reviewed_on: "2026-10-17",
+        educational_use_notice: "Educational content only.",
+      },
+    },
+  };
+  return {
+    ...workspace,
+    records: [workspace.records[1]!, curriculumBookmark, workspace.records[0]!, workspace.records[2]!],
+  };
+}
+
 async function mockSavedLearning(page: Page, options: {
   applyFirstMutationBeforeFailure?: boolean;
   firstMutationCode?: string;
@@ -125,10 +159,12 @@ async function mockSavedLearning(page: Page, options: {
   let mutationCount = 0;
   const posts: Record<string, unknown>[] = [];
   const exportRequests: { method: string; postData: string | null; search: string }[] = [];
+  const apiRequests: string[] = [];
   const completed = new Map<string, ReturnType<typeof emptyWorkspace>>();
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
+    apiRequests.push(url.pathname);
     if (url.pathname === "/api/v1/session/single-profile") {
       return json(route, 201, { learner_id: "learner-one" });
     }
@@ -363,11 +399,11 @@ async function mockSavedLearning(page: Page, options: {
     }
     return json(route, 404, { code: "not_found" });
   });
-  return { exportRequests, posts, workspace: () => workspace };
+  return { apiRequests, exportRequests, posts, workspace: () => workspace };
 }
 
 test("downloads a current closed Saved learning export through the public API", async ({ page }) => {
-  const mocked = await mockSavedLearning(page, { initialWorkspace: projectWorkspace() });
+  const mocked = await mockSavedLearning(page, { initialWorkspace: mixedWorkspace() });
   await page.goto("/saved-learning");
 
   const downloadPromise = page.waitForEvent("download");
@@ -385,6 +421,7 @@ test("downloads a current closed Saved learning export through the public API", 
     workspace_digest: mocked.workspace().workspace_digest,
   });
   expect(mocked.exportRequests).toEqual([{ method: "GET", postData: null, search: "" }]);
+  expect(mocked.apiRequests.filter((path) => path.startsWith("/api/v1/projects") || path.startsWith("/api/v1/curriculum"))).toEqual([]);
   const status = page.getByText("Your Saved learning download is ready.").locator("xpath=parent::*");
   await expect(status).toContainText("download is ready");
   await status.getByText("Technical record").click();
@@ -397,6 +434,33 @@ test("refuses a download when Saved learning changes or the export is not closed
   await page.getByRole("button", { name: "Download saved learning" }).click();
   await expect(page.getByText(/Refresh this page/)).toBeVisible();
 });
+
+for (const [name, options, message, expectedRequests] of [
+  ["malformed", { invalidExport: true }, "did not pass its integrity check", 1],
+  ["forbidden", { exportStatus: 403 }, "private learner access could not be confirmed", 1],
+  ["repeated unauthorized", { exportStatus: 401 }, "private learner access could not be confirmed", 2],
+] as const) {
+  test(`announces ${name} export refusal without downloading`, async ({ page }) => {
+    let downloads = 0;
+    page.on("download", () => {
+      downloads += 1;
+    });
+    const mocked = await mockSavedLearning(page, {
+      initialWorkspace: mixedWorkspace(),
+      ...options,
+    });
+    await page.goto("/saved-learning");
+
+    await page.getByRole("button", { name: "Download saved learning" }).click();
+
+    const status = page.getByText(new RegExp(message)).locator("xpath=parent::*");
+    await expect(status).toHaveAttribute("role", "status");
+    await expect(status).toHaveAttribute("aria-live", "polite");
+    expect(downloads).toBe(0);
+    expect(mocked.exportRequests).toHaveLength(expectedRequests);
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  });
+}
 
 for (const [code, heading, detail] of [
   ["record_limit", "Saved learning is full", "up to 200"],

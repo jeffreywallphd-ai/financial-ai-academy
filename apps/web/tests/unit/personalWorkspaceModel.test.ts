@@ -210,6 +210,30 @@ describe("Personal workspace browser model", () => {
     }))).toBe(false);
   });
 
+  it.each([
+    ["empty", { ...workspace, records: [], collections: [] }],
+    ["sparse", { ...workspace, records: [note], collections: [] }],
+    ["reordered", {
+      ...workspace,
+      records: [bookmark, note],
+      collections: [{ ...workspace.collections[0], member_record_ids: ["note-one", "bookmark-one"] }],
+    }],
+    ["Unicode and optional label", {
+      ...workspace,
+      records: [
+        { ...note, title: "📚 Café risk", body: "Line one\n\tStraße" },
+        { ...bookmark, label: "" },
+      ],
+    }],
+    ["mixed Curriculum and Project", {
+      ...workspace,
+      records: [note, { ...bookmark, target: projectArtifactTarget }],
+      collections: [],
+    }],
+  ])("accepts a closed %s export without fixture-specific branches", (_name, value) => {
+    expect(personalWorkspaceExportIsSafe(workspaceExport({ workspace: value }))).toBe(true);
+  });
+
   it("exports through the generated GET without query or body authority", async () => {
     const get = vi.fn().mockResolvedValue(accepted(workspaceExport()));
     const exporter = createPersonalWorkspaceExporter(
@@ -263,6 +287,33 @@ describe("Personal workspace browser model", () => {
       );
       expect(await failed(workspace.revision, workspace.workspace_digest)).toEqual({ status: outcome });
     }
+  });
+
+  it("bounds export renewal failure and a repeated unauthorized response", async () => {
+    const renewalFailure = session();
+    vi.mocked(renewalFailure.ensure)
+      .mockResolvedValueOnce({ status: "ready" })
+      .mockResolvedValueOnce({ status: "error", kind: "forbidden" });
+    const deniedGet = vi.fn().mockResolvedValue(accepted({ code: "unauthorized" }, 401));
+    const denied = createPersonalWorkspaceExporter(
+      { GET: deniedGet } as unknown as FinancialAcademyApiClient,
+      renewalFailure,
+    );
+    expect(await denied(workspace.revision, workspace.workspace_digest)).toEqual({ status: "forbidden" });
+    expect(deniedGet).toHaveBeenCalledOnce();
+    expect(renewalFailure.ensure).toHaveBeenCalledTimes(2);
+    expect(renewalFailure.invalidate).toHaveBeenCalledOnce();
+
+    const repeatedProfile = session();
+    const repeatedGet = vi.fn().mockResolvedValue(accepted({ code: "unauthorized" }, 401));
+    const repeated = createPersonalWorkspaceExporter(
+      { GET: repeatedGet } as unknown as FinancialAcademyApiClient,
+      repeatedProfile,
+    );
+    expect(await repeated(workspace.revision, workspace.workspace_digest)).toEqual({ status: "unauthorized" });
+    expect(repeatedGet).toHaveBeenCalledTimes(2);
+    expect(repeatedProfile.ensure).toHaveBeenCalledTimes(2);
+    expect(repeatedProfile.invalidate).toHaveBeenCalledOnce();
   });
 
   it("accepts canonical Unicode boundaries, multiline notes, tabs, and an empty bookmark label", () => {
