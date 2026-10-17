@@ -905,7 +905,7 @@ export interface components {
       readonly "project_id": string;
       readonly "project_revision": number;
       readonly "reference_kind": "project_artifact";
-      readonly "target_status": "available";
+      readonly "target_status": "available" | "stale" | "unavailable";
       readonly "title": string;
       readonly "validated_at": string;
       readonly "workspace_revision": number;
@@ -1377,7 +1377,7 @@ export interface components {
       readonly "resource_id": string;
       readonly "resource_type": string;
       readonly "resource_version"?: string | null;
-      readonly "target_status": "available" | "stale" | "unavailable";
+      readonly "target_status": "available";
       readonly "validated_at": string;
     };
     readonly "ProjectEnvironmentModel": {

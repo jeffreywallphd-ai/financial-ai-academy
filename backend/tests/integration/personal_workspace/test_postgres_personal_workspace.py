@@ -401,6 +401,55 @@ def test_project_reference_variants_survive_restart_and_exact_replay() -> None:
     assert gateway.learner_ids == ["learner.project"] * 3
     assert restarted_gateway.calls == 0
 
+    available_request = MutatePersonalWorkspaceRequest(
+        "learner.project",
+        PersonalWorkspaceMutationCommand(
+            "1.0.0",
+            "refresh-project-artifact-available",
+            reopened.revision,
+            RefreshReferenceMutation("record.project-artifact"),
+        ),
+        frozenset({"project_artifact"}),
+    )
+    available = subject.mutate_workspace(available_request)
+    assert available.records[-1].target.target_status == "available"
+
+    gateway.project_references["artifact-bookmark"] = replace(
+        gateway.project_references["artifact-bookmark"],
+        content_digest="c" * 64,
+    )
+    stale = subject.mutate_workspace(
+        MutatePersonalWorkspaceRequest(
+            "learner.project",
+            PersonalWorkspaceMutationCommand(
+                "1.0.0",
+                "refresh-project-artifact-stale",
+                available.revision,
+                RefreshReferenceMutation("record.project-artifact"),
+            ),
+            frozenset({"project_artifact"}),
+        )
+    )
+    assert stale.records[-1].target.target_status == "stale"
+
+    unavailable_request = MutatePersonalWorkspaceRequest(
+        "learner.project",
+        PersonalWorkspaceMutationCommand(
+            "1.0.0",
+            "refresh-project-artifact-unavailable",
+            stale.revision,
+            RefreshReferenceMutation("record.project-artifact"),
+        ),
+        frozenset(),
+    )
+    unavailable = subject.mutate_workspace(unavailable_request)
+    restarted_after_refresh, replay_gateway = service("unused.identifier")
+    assert restarted_after_refresh.open_workspace(
+        OpenPersonalWorkspaceRequest("learner.project")
+    ) == unavailable
+    assert restarted_after_refresh.mutate_workspace(unavailable_request) == unavailable
+    assert replay_gateway.calls == 0
+
 
 def test_changed_idempotency_and_stale_revision_do_not_overwrite() -> None:
     subject, _gateway = service()

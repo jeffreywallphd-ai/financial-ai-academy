@@ -316,7 +316,7 @@ class ProjectDomainLinkInputModel(ProjectTimestampModel):
 class ProjectDomainLinkResponseModel(ProjectDomainLinkInputModel):
     link_id: Identifier
     owner_reference_digest: Digest
-    target_status: Literal["available", "stale", "unavailable"]
+    target_status: Literal["available"]
     validated_at: datetime
     created_at: datetime
 
@@ -552,7 +552,7 @@ class PersonalProjectArtifactReferenceModel(ProjectTimestampModel):
             r"#artifact-[a-z0-9][a-z0-9._-]{0,127}-v[1-9][0-9]*$"
         )
     )
-    target_status: Literal["available"]
+    target_status: Literal["available", "stale", "unavailable"]
     validated_at: datetime
 
     @field_validator("logical_path")

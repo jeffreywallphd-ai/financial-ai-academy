@@ -67,6 +67,22 @@ assert.match(schema, /PersonalWorkspaceQueryResponseModel/);
 assert.match(schema, /PersonalRefreshReferenceModel/);
 assert.match(schema, /"available" \| "stale" \| "unavailable"/);
 for (const model of [
+  "PersonalLearningOpportunityReferenceModel",
+  "PersonalPlacedLessonReferenceModel",
+  "PersonalProjectWorkspaceReferenceModel",
+  "PersonalProjectSnapshotReferenceModel",
+  "PersonalProjectArtifactReferenceModel",
+]) {
+  const modelSchema =
+    schema.match(
+      new RegExp(`readonly "${model}": \\{[\\s\\S]*?^    \\};`, "m"),
+    )?.[0] ?? "";
+  assert.match(
+    modelSchema,
+    /readonly "target_status": "available" \| "stale" \| "unavailable"/,
+  );
+}
+for (const model of [
   "PersonalProjectWorkspaceReferenceModel",
   "PersonalProjectSnapshotReferenceModel",
   "PersonalProjectArtifactReferenceModel",

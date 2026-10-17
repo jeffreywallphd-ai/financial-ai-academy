@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -14,6 +15,10 @@ from financial_ai_academy.modules.identity.public import (
 )
 from financial_ai_academy.modules.personal_workspace.adapters.workspace_contract import (
     ContractPersonalWorkspaceAdapter,
+)
+from financial_ai_academy.modules.personal_workspace.domain.workspace import (
+    RefreshReferenceMutation,
+    WorkspaceMutationIntent,
 )
 from financial_ai_academy.modules.personal_workspace.public import (
     CreateNoteCommand,
@@ -76,7 +81,12 @@ class Curriculum:
 
 
 class Workspaces:
-    def __init__(self, *, project_response: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        project_response: bool = False,
+        artifact_status: str | None = None,
+    ) -> None:
         contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
         self.empty = contract.parse_workspace(
             (FIXTURE_DIR / "valid-empty-workspace.json").read_bytes()
@@ -103,13 +113,39 @@ class Workspaces:
                     issued_id=f"record.project-{index}",
                 )
             self.populated = workspace
+        if artifact_status is not None:
+            assert project_response
+            artifact = self.populated.records[-1].target
+            resolved = (
+                None
+                if artifact_status == "unavailable"
+                else replace(
+                    artifact,
+                    content_digest="c" * 64,
+                    target_status="available",
+                    validated_at=NOW,
+                )
+            )
+            self.populated = contract.apply_reference_refresh(
+                self.populated,
+                WorkspaceMutationIntent(
+                    "1.0.0",
+                    f"fixture.{artifact_status}",
+                    self.populated.revision,
+                    RefreshReferenceMutation("record.project-3"),
+                ),
+                occurred_at=NOW,
+                resolved_reference=resolved,
+            )
+            assert self.populated.records[-1].target.target_status == artifact_status
+        self.return_populated = project_response
         self.open_requests: list[OpenPersonalWorkspaceRequest] = []
         self.mutation_requests: list[MutatePersonalWorkspaceRequest] = []
         self.query_requests: list[QueryPersonalWorkspaceRequest] = []
 
     def open_workspace(self, request: OpenPersonalWorkspaceRequest):
         self.open_requests.append(request)
-        return self.empty
+        return self.populated if self.return_populated else self.empty
 
     def mutate_workspace(self, request: MutatePersonalWorkspaceRequest):
         self.mutation_requests.append(request)
@@ -356,6 +392,54 @@ def test_refresh_without_owner_read_is_not_rejected_or_disclosed_by_host() -> No
     assert workspaces.mutation_requests[0].readable_reference_kinds == frozenset()
 
 
+@pytest.mark.parametrize("target_status", ("stale", "unavailable"))
+def test_project_artifact_refresh_status_round_trips_through_mutation_get_and_query(
+    target_status: str,
+) -> None:
+    workspaces = Workspaces(
+        project_response=True,
+        artifact_status=target_status,
+    )
+    subject = client(
+        ("personal_workspace.read", "personal_workspace.write", "project.read"),
+        workspaces,
+    )
+    mutation = subject.post(
+        "/api/v1/personal-workspace/mutations",
+        json={
+            "schema_version": "1.0.0",
+            "idempotency_key": f"refresh-artifact-{target_status}",
+            "expected_revision": 4,
+            "mutation": {
+                "operation": "refresh_reference",
+                "record_id": "record.project-3",
+            },
+        },
+        headers={"origin": ORIGIN},
+    )
+    opened = subject.get("/api/v1/personal-workspace")
+    queried = subject.post(
+        "/api/v1/personal-workspace/query",
+        json={
+            "schema_version": "1.0.0",
+            "reference_kinds": ["project_artifact"],
+            "target_statuses": [target_status],
+        },
+        headers={"origin": ORIGIN},
+    )
+
+    assert mutation.status_code == 200
+    assert opened.status_code == 200
+    assert queried.status_code == 200
+    for response in (mutation, opened, queried):
+        artifact_records = [
+            record
+            for record in response.json()["records"]
+            if record["target"]["reference_kind"] == "project_artifact"
+        ]
+        assert artifact_records[0]["target"]["target_status"] == target_status
+
+
 def test_query_selected_learner_is_rejected_before_workspace_access() -> None:
     workspaces = Workspaces()
     subject = client(
@@ -542,12 +626,23 @@ def test_openapi_requires_nullable_bookmark_label() -> None:
         "PersonalWorkspaceBookmarkModel"
     ]
     assert "label" in bookmark["required"]
-    for model_name in (
+    status_models = (
+        "PersonalLearningOpportunityReferenceModel",
+        "PersonalPlacedLessonReferenceModel",
         "PersonalProjectWorkspaceReferenceModel",
         "PersonalProjectSnapshotReferenceModel",
         "PersonalProjectArtifactReferenceModel",
-    ):
+    )
+    for model_name in status_models:
         assert model_name in schema["components"]["schemas"]
+        model = schema["components"]["schemas"][model_name]
+        assert set(model["properties"]["target_status"]["enum"]) == {
+            "available",
+            "stale",
+            "unavailable",
+        }
+
+    for model_name in status_models[-3:]:
         model = schema["components"]["schemas"][model_name]
         assert not {
             "content",

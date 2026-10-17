@@ -3995,7 +3995,11 @@
             "type": "string"
           },
           "target_status": {
-            "const": "available",
+            "enum": [
+              "available",
+              "stale",
+              "unavailable"
+            ],
             "title": "Target Status",
             "type": "string"
           },
@@ -7479,11 +7483,7 @@
             "title": "Resource Version"
           },
           "target_status": {
-            "enum": [
-              "available",
-              "stale",
-              "unavailable"
-            ],
+            "const": "available",
             "title": "Target Status",
             "type": "string"
           },
