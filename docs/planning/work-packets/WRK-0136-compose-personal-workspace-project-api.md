@@ -1,7 +1,7 @@
 ---
 id: WRK-0136
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -227,6 +227,44 @@ artifact content/download/execution, migration, provider, managed-cloud,
 separate AI authority, or financial action changed, then leave JIT-C dependency-
 ready.
 
+## Completion Evidence
+
+- Exact reviewed implementation candidate:
+  `8570856d04da5085ba777233d5252ce84928f876`, a strict descendant of the
+  original submitted candidate after two bounded functional corrections.
+- The application now carries server-owned learner identity through one closed
+  Curriculum/Project dispatcher. Each Project workspace, snapshot, and artifact
+  result must match its selector identity before persistence, and an unavailable
+  owner adapter fails only its own selector through the bounded source-
+  unavailable result.
+- The protected Personal-workspace API and reviewed OpenAPI/generated client
+  expose the three closed Project selector/reference variants through the same
+  browser and headless contract. Project source-bearing creates require
+  `project.read`; no learner-supplied owner, alternate AI endpoint, or UI-only
+  authority was added.
+- Focused backend contract, application, API, and architecture qualification
+  passed 215 tests on the corrected candidate. The focused browser model and
+  component qualification passed 55 tests, including real loader/action
+  acceptance for every Project variant and rejection of malformed paths,
+  chronology, bounds, destinations, enums, and private fields.
+- Existing PostgreSQL JSON aggregate compatibility passed 10 isolated tests on
+  the original implementation candidate before the correction. The correction
+  changed only dispatcher absence handling and browser response validation; it
+  did not change persistence, migration, request/response schemas, OpenAPI, or
+  generated client output. No migration was required.
+- The corrected exact-candidate affected plan passed all 10 selected checks.
+  OpenAPI and generated-client currency, TypeScript typecheck, zero-warning web
+  lint, production build, 17 architecture checks, 10 security control groups,
+  225 planning artifacts, 373 Markdown files, 125 design tokens, 56 icons,
+  whitespace integrity, and the fixed 29-check aggregate readiness gate passed.
+- Ignored local control-plane storage retains the qualifying exact-candidate
+  receipt and closed technical findings. Tracked artifacts contain no approval
+  or reviewer metadata.
+- No Project mutation, artifact content/download/preview/export/execution,
+  destructive migration, provider, managed-cloud, separate AI authority, or
+  financial action changed. Contextual Project save controls and isolated live
+  browser/headless qualification remain in JIT-C and JIT-D.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0135 completed. The packet
@@ -250,3 +288,7 @@ ready.
   malformed and private values failed closed, unavailable owner adapters stayed
   isolated, and the focused backend, web, contract, architecture, security,
   planning, documentation, design, lint, type, and whitespace checks passed.
+- 2026-10-17: Finalized the Project persistence/API/OpenAPI/generated-client
+  seam after exact-candidate affected verification, aggregate readiness, and
+  independent technical verification completed with no open functional gap.
+  JIT-C is dependency-ready without changing CAP-0017 or SLI-0071 meaning.
