@@ -235,7 +235,7 @@ packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | complete |
 | WRK-0144 | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | WRK-0143 | none | complete |
-| JIT-C | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | JIT-B | none | captured |
+| WRK-0145 | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | WRK-0144 | none | ready |
 | JIT-D | Qualify cumulative browser/headless parity, maximum bounds, interruption, target isolation, restart, empty-target community database recovery, containment, cleanup, and CAP closure | JIT-C | none | captured |
 
 Dependent packets are not claimed until their predecessor is complete. The
@@ -349,3 +349,7 @@ records remain ignored; no slice or packet approval is requested.
   operation, closed OpenAPI/generated-client parity, distinct capacity outcomes,
   and PostgreSQL zero-write, replay, removal, and restart evidence. Browser
   controls and cumulative recovery qualification remain in JIT-C and JIT-D.
+- 2026-10-17: Refined JIT-C as WRK-0145 around a generated-client export
+  download, current-workspace response binding, exact quota guidance, removal
+  and retry continuity, technical facts, accessibility, and anti-rigidity. The
+  packet adds no backend, contract, persistence, or recovery-policy change.
