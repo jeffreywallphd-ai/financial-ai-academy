@@ -224,9 +224,18 @@ The reviewed generated client also exposes queryless learning-preference
 profile, history, and export reads plus the closed mutation operation. These
 operations use server-owned learner identity and the same
 `learner_preferences.read` or `learner_preferences.write` authorization for
-browser and headless callers. This API availability does not imply that the
-browser learning-preference screen has been delivered; that user flow remains
-separate slice work.
+browser and headless callers. `/preferences/learning` now consumes only those
+generated operations. The learner can record, edit, order, archive, restore,
+remove, reset, review, and export explicit goals, self-described experience,
+and interests. The route validates the complete profile and correlated bounded
+history before showing private details, uses exact revision and idempotency
+envelopes for changes, and preserves an uncertain unchanged request for safe
+retry. Changed or malformed responses fail closed without showing a partial
+profile or creating a download. Primary content uses learner-task language;
+exact identifiers, revisions, times, and integrity codes remain available in
+accessible `Technical record` disclosures. The browser adds no learner
+selector, authoritative local copy, inference, evidence, competency, adaptive
+policy, recommendation, provider, financial, or external-action path.
 
 `/saved-learning` opens the learner's private notes, bookmarks, and collections
 through the generated Personal-workspace client. Available opportunity-detail

@@ -12,6 +12,7 @@ import "../styles/lesson-reading.css";
 import "../styles/practice-activity.css";
 import "../styles/project-workspace.css";
 import "../styles/personal-workspace.css";
+import "../styles/learner-preferences.css";
 import { ThemeProvider } from "../platform/theme/theme";
 import { router } from "./router";
 

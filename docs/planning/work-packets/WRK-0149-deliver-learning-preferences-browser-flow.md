@@ -213,3 +213,13 @@ recommendation, provider, external action, or financial behavior changed.
 - 2026-10-17: Activated from recorded base `3e01a37` after confirming the
   completed API dependency, exact browser-only scope, current design and
   language standards, resolved decision posture, and no active collision.
+- 2026-10-17: Implemented the complete `/preferences/learning` browser flow
+  through the generated public client, including strict response validation,
+  exact mutation envelopes, safe prepared-request retry, stale-write recovery,
+  bounded history, confirmed reset, integrity-checked export, accessible
+  technical details, and responsive semantic-token presentation. Typecheck,
+  zero-warning lint, the 396-test web suite, static build, architecture,
+  learner-language, design-system, security, documentation, planning,
+  whitespace, and the 29-part aggregate readiness gate passed. Live Chromium,
+  simultaneous PostgreSQL races, restart, containment, and cleanup remain in
+  the dependency-ordered final qualification packet.

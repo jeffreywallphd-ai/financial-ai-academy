@@ -9,6 +9,8 @@ export function AppShell() {
   const navigation = useNavigation();
   const skipLabel = location.pathname.startsWith("/learn/placements/")
     ? "Skip to lesson"
+    : location.pathname.startsWith("/preferences/learning")
+      ? "Skip to learning preferences"
     : location.pathname.startsWith("/saved-learning")
       ? "Skip to saved learning"
     : location.pathname.startsWith("/projects")
@@ -37,6 +39,7 @@ export function AppShell() {
           <NavLink to="/learn">Learning library</NavLink>
           <NavLink to="/saved-learning">Saved learning</NavLink>
           <NavLink to="/projects">Projects</NavLink>
+          <NavLink to="/preferences/learning">Learning preferences</NavLink>
         </nav>
         <ThemeControl />
       </header>

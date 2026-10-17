@@ -71,6 +71,15 @@ import {
   PersonalWorkspaceRoute,
   SaveLearningRoute,
 } from "../features/personal-workspace/PersonalWorkspaceRoutes";
+import {
+  createLearnerPreferencesAction,
+  createLearnerPreferencesExporter,
+  createLearnerPreferencesLoader,
+} from "../features/learner-preferences/api";
+import {
+  LearnerPreferencesLoadingState,
+  LearnerPreferencesRoute,
+} from "../features/learner-preferences/LearnerPreferencesRoute";
 import { SingleProfileSession } from "../platform/auth/singleProfileSession";
 import { AppShell } from "./AppShell";
 
@@ -106,6 +115,9 @@ const personalWorkspaceLoader = createPersonalWorkspaceLoader(client, session);
 const saveLearningLoader = createSaveLearningLoader(client, session);
 const personalWorkspaceAction = createPersonalWorkspaceAction(client, session);
 const personalWorkspaceExporter = createPersonalWorkspaceExporter(client, session);
+const learnerPreferencesLoader = createLearnerPreferencesLoader(client, session);
+const learnerPreferencesAction = createLearnerPreferencesAction(client, session);
+const learnerPreferencesExporter = createLearnerPreferencesExporter(client, session);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -134,6 +146,10 @@ function ProjectDetailRouteWithDependencies() {
 
 function PersonalWorkspaceRouteWithDependencies() {
   return <PersonalWorkspaceRoute exportWorkspace={personalWorkspaceExporter} />;
+}
+
+function LearnerPreferencesRouteWithDependencies() {
+  return <LearnerPreferencesRoute exportPreferences={learnerPreferencesExporter} />;
 }
 
 function UnexpectedRouteError() {
@@ -171,6 +187,13 @@ export const router = createBrowserRouter([
         loader: () => redirect("/learn"),
         Component: LearningCatalogLoadingState,
         HydrateFallback: LearningCatalogLoadingState,
+      },
+      {
+        path: "preferences/learning",
+        loader: learnerPreferencesLoader,
+        action: learnerPreferencesAction,
+        Component: LearnerPreferencesRouteWithDependencies,
+        HydrateFallback: LearnerPreferencesLoadingState,
       },
       {
         path: "saved-learning",

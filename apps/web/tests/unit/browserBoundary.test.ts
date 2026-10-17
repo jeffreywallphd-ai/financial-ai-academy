@@ -49,4 +49,17 @@ describe("static browser boundary", () => {
       /createFinancialAcademyApiClient|FinancialAcademyApiClient/,
     );
   });
+
+  it("keeps learning preferences behind the generated client without browser storage authority", async () => {
+    const featureRoot = resolve(webRoot, "src/features/learner-preferences");
+    const files = await sourceFiles(featureRoot);
+    const source = (
+      await Promise.all(files.map((path) => readFile(path, "utf8")))
+    ).join("\n");
+
+    expect(source).toMatch(/FinancialAcademyApiClient/);
+    expect(source).toMatch(/\/api\/v1\/learner-preferences/);
+    expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|document\.cookie|\bfetch\s*\(/);
+    expect(source).not.toMatch(/financial_ai_academy|psycopg|postgresql/);
+  });
 });
