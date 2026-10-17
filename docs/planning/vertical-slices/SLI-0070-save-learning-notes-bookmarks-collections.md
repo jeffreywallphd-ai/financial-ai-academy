@@ -203,7 +203,7 @@ each packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | proposed |
+| WRK-0131 | Freeze Personal-workspace v1 learning-reference, record, mutation, compatibility, pure domain, public-operation, and anti-rigidity contracts | none | none | ready |
 | JIT-B | Compose Curriculum public resolution, Personal-workspace application/persistence/migrations, protected API, reviewed OpenAPI, and generated client | JIT-A | none | proposed |
 | JIT-C | Deliver the plain-language accessible `Saved learning` browser flow exclusively through the generated client | JIT-B | none | proposed |
 | JIT-D | Qualify contracts, PostgreSQL, API/headless access, browser behavior, restart, accessibility, provenance, containment, and capability boundaries | JIT-C | none | proposed |
@@ -278,3 +278,6 @@ authority were not delivered or qualified.
   save/resume flow. The outcome, four-slice manifest, order, decision posture,
   and non-goals remain unchanged, so the refinement conforms to the current
   CAP package and needs no slice-level approval.
+- 2026-10-17: Refined JIT-A as WRK-0131 around the additive Personal-workspace
+  contract family and pure core. Persistence, API, client, UI, Project/domain
+  adapters, and execution remain outside the packet.
