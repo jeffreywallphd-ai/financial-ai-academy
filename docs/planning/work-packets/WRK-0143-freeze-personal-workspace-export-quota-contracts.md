@@ -1,7 +1,7 @@
 ---
 id: WRK-0143
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["contracts/learning/personal-workspace/v1/workspace-export.schema.json", "contracts/learning/personal-workspace/v1/README.md", "contracts/learning/README.md", "contracts/compatibility/personal-workspace/v1/valid-workspace-export.json", "contracts/compatibility/personal-workspace/v1/workspace-export-denials.json", "contracts/compatibility/personal-workspace/v1/README.md", "backend/src/financial_ai_academy/modules/personal_workspace/domain/workspace.py", "backend/src/financial_ai_academy/modules/personal_workspace/ports/workspace_contract.py", "backend/src/financial_ai_academy/modules/personal_workspace/adapters/workspace_contract.py", "backend/src/financial_ai_academy/modules/personal_workspace/README.md", "backend/tests/contract/personal_workspace/test_personal_workspace_contract.py", "backend/tests/unit/personal_workspace/test_workspace_contract.py", "backend/tests/architecture/test_module_boundaries.py", "docs/architecture/contracts/personal-workspace-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0073-qualify-personal-workspace-durability-boundaries.md", "docs/planning/work-packets/WRK-0143-freeze-personal-workspace-export-quota-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 75dccce2b9938fed304386b6ec2e81bf2b25ec32
+claim_id: WRK-0143:5860fa87-9352-4224-83dd-817dcbefc9af
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T16:42:17Z
 ---
 
 # Agent Work Packet: Freeze Personal Workspace Export and Quota Contracts
@@ -241,3 +241,6 @@ provider, execution, AI, financial, or external-action behavior changed.
   contract seam from later application, API/client, browser, and live recovery
   work, stays inside the current CAP manifest and decisions, and requires no
   lower-level approval.
+- 2026-10-17: Activated from recorded base `75dccce` after confirming current
+  CAP binding, resolved decision posture, exact contract-only write scope,
+  completed predecessor slices, and no active coordination collision.

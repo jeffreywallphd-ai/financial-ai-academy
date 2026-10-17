@@ -1,7 +1,7 @@
 ---
 id: SLI-0073
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -328,3 +328,6 @@ records remain ignored; no slice or packet approval is requested.
   envelope, canonical digest, exact quota meanings, pure removal cleanup,
   compatibility, privacy, and anti-rigidity evidence. Application, persistence,
   API/client, browser, and live recovery behavior remain later packet seams.
+- 2026-10-17: Activated WRK-0143 from the recorded base after revalidating the
+  current CAP package, completed slice dependencies, exact contract-only scope,
+  decision readiness, and absence of an active write collision.
