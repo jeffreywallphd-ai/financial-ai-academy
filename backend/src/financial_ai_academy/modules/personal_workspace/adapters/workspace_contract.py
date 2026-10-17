@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, is_dataclass, replace
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
@@ -485,16 +485,7 @@ class ContractPersonalWorkspaceAdapter:
             )
         published_at = self._timestamp(value["provenance"]["published_at"])
         validated_at = self._timestamp(value["validated_at"])
-        try:
-            reviewed_on = date.fromisoformat(
-                value["provenance"]["content_reviewed_on"]
-            )
-        except ValueError:
-            self._reject(
-                "personal_workspace.contract.invalid_time",
-                "content_reviewed_on",
-            )
-        if reviewed_on > published_at.date() or published_at > validated_at:
+        if published_at > validated_at:
             self._reject(
                 "personal_workspace.contract.invalid_time",
                 "reference",

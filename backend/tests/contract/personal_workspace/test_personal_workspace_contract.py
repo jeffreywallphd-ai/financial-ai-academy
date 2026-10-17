@@ -277,22 +277,103 @@ def test_collection_and_membership_edges_are_not_fixture_count_rigid(
 
 
 @pytest.mark.parametrize(
-    ("workspace_id", "accepted"),
-    [("abc", True), ("a" * 64, True), ("a" * 65, False)],
+    ("field", "value", "accepted"),
+    [
+        (field, value, accepted)
+        for field in ("workspace_id", "learner_id")
+        for value, accepted in (("a", True), ("a" * 128, True), ("a" * 129, False))
+    ],
 )
-def test_identifier_edges_are_explicit(
+def test_platform_identifier_edges_are_explicit(
     adapter: ContractPersonalWorkspaceAdapter,
-    workspace_id: str,
+    field: str,
+    value: str,
     accepted: bool,
 ) -> None:
     document = _fixture("valid-empty-workspace.json")
-    document["workspace_id"] = workspace_id
+    document[field] = value
     if accepted:
         adapter.parse_workspace(_seal(adapter, document))
     else:
         _expect_workspace_failure(
             adapter, document, "personal_workspace.contract.invalid_shape"
         )
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "accepted"),
+    [
+        (field, value, accepted)
+        for field in ("opportunity_id", "placement_id", "package_id")
+        for value, accepted in (
+            ("aa", False),
+            ("aaa", True),
+            ("a" * 64, True),
+            ("a" * 65, False),
+        )
+    ],
+)
+def test_curriculum_source_identifiers_keep_the_owner_profile(
+    adapter: ContractPersonalWorkspaceAdapter,
+    field: str,
+    value: str,
+    accepted: bool,
+) -> None:
+    document = _fixture("valid-create-note-intent.json")
+    target = document["mutation"]["target"]  # type: ignore[index]
+    target[field] = value
+    if field == "placement_id":
+        target["destination"] = f"/learn/placements/{value}"
+    encoded = json.dumps(document).encode("utf-8")
+    if accepted:
+        adapter.parse_mutation_intent(encoded)
+    else:
+        with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+            adapter.parse_mutation_intent(encoded)
+        assert failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "accepted"),
+    [
+        (field, value, accepted)
+        for field in ("idempotency_key", "record_id")
+        for value, accepted in (("a", True), ("a" * 128, True), ("a" * 129, False))
+    ],
+)
+def test_mutation_platform_identifiers_keep_the_platform_profile(
+    adapter: ContractPersonalWorkspaceAdapter,
+    field: str,
+    value: str,
+    accepted: bool,
+) -> None:
+    document: dict[str, object] = {
+        "schema_version": "1.0.0",
+        "idempotency_key": "intent.valid",
+        "expected_revision": 1,
+        "mutation": {"operation": "remove_record", "record_id": "record.valid"},
+    }
+    if field == "idempotency_key":
+        document[field] = value
+    else:
+        document["mutation"][field] = value  # type: ignore[index]
+    encoded = json.dumps(document).encode("utf-8")
+    if accepted:
+        adapter.parse_mutation_intent(encoded)
+    else:
+        with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+            adapter.parse_mutation_intent(encoded)
+        assert failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
+def test_owner_allowed_review_date_does_not_gain_consumer_ordering(
+    adapter: ContractPersonalWorkspaceAdapter,
+) -> None:
+    document = _fixture("valid-create-note-intent.json")
+    document["mutation"]["target"]["provenance"]["content_reviewed_on"] = (  # type: ignore[index]
+        "2026-10-17"
+    )
+    adapter.parse_mutation_intent(json.dumps(document).encode("utf-8"))
 
 
 @pytest.mark.parametrize(

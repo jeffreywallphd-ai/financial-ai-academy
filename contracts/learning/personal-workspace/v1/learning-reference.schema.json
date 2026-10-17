@@ -10,7 +10,7 @@
     "reference": { "$ref": "#/$defs/reference" }
   },
   "$defs": {
-    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+    "curriculum_identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
     "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$" },
     "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
@@ -34,8 +34,8 @@
       "properties": {
         "reference_kind": { "enum": ["learning_opportunity", "placed_lesson"] },
         "owner_module": { "const": "curriculum" },
-        "placement_id": { "$ref": "#/$defs/identifier" },
-        "package_id": { "$ref": "#/$defs/identifier" },
+        "placement_id": { "$ref": "#/$defs/curriculum_identifier" },
+        "package_id": { "$ref": "#/$defs/curriculum_identifier" },
         "package_version": { "$ref": "#/$defs/version" },
         "package_digest": { "$ref": "#/$defs/digest" },
         "title": { "$ref": "#/$defs/title" },
@@ -55,9 +55,9 @@
           "properties": {
             "reference_kind": { "const": "learning_opportunity" },
             "owner_module": { "const": "curriculum" },
-            "opportunity_id": { "$ref": "#/$defs/identifier" },
-            "placement_id": { "$ref": "#/$defs/identifier" },
-            "package_id": { "$ref": "#/$defs/identifier" },
+            "opportunity_id": { "$ref": "#/$defs/curriculum_identifier" },
+            "placement_id": { "$ref": "#/$defs/curriculum_identifier" },
+            "package_id": { "$ref": "#/$defs/curriculum_identifier" },
             "package_version": { "$ref": "#/$defs/version" },
             "package_digest": { "$ref": "#/$defs/digest" },
             "source_fingerprint": { "$ref": "#/$defs/digest" },
@@ -80,8 +80,8 @@
           "properties": {
             "reference_kind": { "const": "placed_lesson" },
             "owner_module": { "const": "curriculum" },
-            "placement_id": { "$ref": "#/$defs/identifier" },
-            "package_id": { "$ref": "#/$defs/identifier" },
+            "placement_id": { "$ref": "#/$defs/curriculum_identifier" },
+            "package_id": { "$ref": "#/$defs/curriculum_identifier" },
             "package_version": { "$ref": "#/$defs/version" },
             "package_digest": { "$ref": "#/$defs/digest" },
             "title": { "$ref": "#/$defs/title" },

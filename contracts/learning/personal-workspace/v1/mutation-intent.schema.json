@@ -7,12 +7,13 @@
   "required": ["schema_version", "idempotency_key", "expected_revision", "mutation"],
   "properties": {
     "schema_version": { "const": "1.0.0" },
-    "idempotency_key": { "$ref": "#/$defs/identifier" },
+    "idempotency_key": { "$ref": "#/$defs/platform_identifier" },
     "expected_revision": { "type": "integer", "minimum": 1 },
     "mutation": { "$ref": "#/$defs/mutation" }
   },
   "$defs": {
-    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+    "platform_identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
+    "curriculum_identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
     "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$" },
     "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
@@ -38,9 +39,9 @@
       "properties": {
         "reference_kind": { "const": "learning_opportunity" },
         "owner_module": { "const": "curriculum" },
-        "opportunity_id": { "$ref": "#/$defs/identifier" },
-        "placement_id": { "$ref": "#/$defs/identifier" },
-        "package_id": { "$ref": "#/$defs/identifier" },
+        "opportunity_id": { "$ref": "#/$defs/curriculum_identifier" },
+        "placement_id": { "$ref": "#/$defs/curriculum_identifier" },
+        "package_id": { "$ref": "#/$defs/curriculum_identifier" },
         "package_version": { "$ref": "#/$defs/version" },
         "package_digest": { "$ref": "#/$defs/digest" },
         "source_fingerprint": { "$ref": "#/$defs/digest" },
@@ -58,8 +59,8 @@
       "properties": {
         "reference_kind": { "const": "placed_lesson" },
         "owner_module": { "const": "curriculum" },
-        "placement_id": { "$ref": "#/$defs/identifier" },
-        "package_id": { "$ref": "#/$defs/identifier" },
+        "placement_id": { "$ref": "#/$defs/curriculum_identifier" },
+        "package_id": { "$ref": "#/$defs/curriculum_identifier" },
         "package_version": { "$ref": "#/$defs/version" },
         "package_digest": { "$ref": "#/$defs/digest" },
         "title": { "$ref": "#/$defs/title" },
@@ -76,7 +77,7 @@
       "required": ["operation", "record_id"],
       "properties": {
         "operation": { "enum": ["archive_record", "restore_record", "remove_record"] },
-        "record_id": { "$ref": "#/$defs/identifier" }
+        "record_id": { "$ref": "#/$defs/platform_identifier" }
       }
     },
     "mutation": {
@@ -89,7 +90,7 @@
         {
           "type": "object", "additionalProperties": false,
           "required": ["operation", "record_id", "title", "body"],
-          "properties": { "operation": { "const": "update_note" }, "record_id": { "$ref": "#/$defs/identifier" }, "title": { "$ref": "#/$defs/learner_title" }, "body": { "$ref": "#/$defs/note_body" } }
+          "properties": { "operation": { "const": "update_note" }, "record_id": { "$ref": "#/$defs/platform_identifier" }, "title": { "$ref": "#/$defs/learner_title" }, "body": { "$ref": "#/$defs/note_body" } }
         },
         {
           "type": "object", "additionalProperties": false,
@@ -99,7 +100,7 @@
         {
           "type": "object", "additionalProperties": false,
           "required": ["operation", "record_id", "label"],
-          "properties": { "operation": { "const": "update_bookmark" }, "record_id": { "$ref": "#/$defs/identifier" }, "label": { "type": ["string", "null"], "maxLength": 120, "pattern": "^[^\\u0000]*$" } }
+          "properties": { "operation": { "const": "update_bookmark" }, "record_id": { "$ref": "#/$defs/platform_identifier" }, "label": { "type": ["string", "null"], "maxLength": 120, "pattern": "^[^\\u0000]*$" } }
         },
         {
           "type": "object", "additionalProperties": false,
@@ -109,22 +110,22 @@
         {
           "type": "object", "additionalProperties": false,
           "required": ["operation", "collection_id", "title"],
-          "properties": { "operation": { "const": "rename_collection" }, "collection_id": { "$ref": "#/$defs/identifier" }, "title": { "$ref": "#/$defs/learner_title" } }
+          "properties": { "operation": { "const": "rename_collection" }, "collection_id": { "$ref": "#/$defs/platform_identifier" }, "title": { "$ref": "#/$defs/learner_title" } }
         },
         {
           "type": "object", "additionalProperties": false,
           "required": ["operation", "collection_id"],
-          "properties": { "operation": { "const": "remove_collection" }, "collection_id": { "$ref": "#/$defs/identifier" } }
+          "properties": { "operation": { "const": "remove_collection" }, "collection_id": { "$ref": "#/$defs/platform_identifier" } }
         },
         {
           "type": "object", "additionalProperties": false,
           "required": ["operation", "collection_id", "member_record_ids"],
-          "properties": { "operation": { "const": "set_collection_members" }, "collection_id": { "$ref": "#/$defs/identifier" }, "member_record_ids": { "type": "array", "maxItems": 100, "uniqueItems": true, "items": { "$ref": "#/$defs/identifier" } } }
+          "properties": { "operation": { "const": "set_collection_members" }, "collection_id": { "$ref": "#/$defs/platform_identifier" }, "member_record_ids": { "type": "array", "maxItems": 100, "uniqueItems": true, "items": { "$ref": "#/$defs/platform_identifier" } } }
         },
         {
           "type": "object", "additionalProperties": false,
           "required": ["operation", "record_ids"],
-          "properties": { "operation": { "const": "reorder_records" }, "record_ids": { "type": "array", "maxItems": 200, "uniqueItems": true, "items": { "$ref": "#/$defs/identifier" } } }
+          "properties": { "operation": { "const": "reorder_records" }, "record_ids": { "type": "array", "maxItems": 200, "uniqueItems": true, "items": { "$ref": "#/$defs/platform_identifier" } } }
         },
         { "allOf": [{ "$ref": "#/$defs/record_id_operation" }, { "properties": { "operation": { "const": "archive_record" } } }] },
         { "allOf": [{ "$ref": "#/$defs/record_id_operation" }, { "properties": { "operation": { "const": "restore_record" } } }] },

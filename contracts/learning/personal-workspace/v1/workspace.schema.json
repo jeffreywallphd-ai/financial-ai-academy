@@ -7,8 +7,8 @@
   "required": ["schema_version", "workspace_id", "learner_id", "revision", "records", "collections", "created_at", "updated_at", "workspace_digest"],
   "properties": {
     "schema_version": { "const": "1.0.0" },
-    "workspace_id": { "$ref": "#/$defs/identifier" },
-    "learner_id": { "$ref": "#/$defs/identifier" },
+    "workspace_id": { "$ref": "#/$defs/platform_identifier" },
+    "learner_id": { "$ref": "#/$defs/platform_identifier" },
     "revision": { "type": "integer", "minimum": 1 },
     "records": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/record" } },
     "collections": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/collection" } },
@@ -17,7 +17,8 @@
     "workspace_digest": { "$ref": "#/$defs/digest" }
   },
   "$defs": {
-    "identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+    "platform_identifier": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
+    "curriculum_identifier": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
     "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$" },
     "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "utc_time": { "type": "string", "format": "date-time", "pattern": "Z$" },
@@ -43,9 +44,9 @@
       "properties": {
         "reference_kind": { "const": "learning_opportunity" },
         "owner_module": { "const": "curriculum" },
-        "opportunity_id": { "$ref": "#/$defs/identifier" },
-        "placement_id": { "$ref": "#/$defs/identifier" },
-        "package_id": { "$ref": "#/$defs/identifier" },
+        "opportunity_id": { "$ref": "#/$defs/curriculum_identifier" },
+        "placement_id": { "$ref": "#/$defs/curriculum_identifier" },
+        "package_id": { "$ref": "#/$defs/curriculum_identifier" },
         "package_version": { "$ref": "#/$defs/version" },
         "package_digest": { "$ref": "#/$defs/digest" },
         "source_fingerprint": { "$ref": "#/$defs/digest" },
@@ -63,8 +64,8 @@
       "properties": {
         "reference_kind": { "const": "placed_lesson" },
         "owner_module": { "const": "curriculum" },
-        "placement_id": { "$ref": "#/$defs/identifier" },
-        "package_id": { "$ref": "#/$defs/identifier" },
+        "placement_id": { "$ref": "#/$defs/curriculum_identifier" },
+        "package_id": { "$ref": "#/$defs/curriculum_identifier" },
         "package_version": { "$ref": "#/$defs/version" },
         "package_digest": { "$ref": "#/$defs/digest" },
         "title": { "$ref": "#/$defs/title" },
@@ -81,7 +82,7 @@
       "required": ["record_kind", "record_id", "title", "body", "target", "archived", "created_at", "updated_at"],
       "properties": {
         "record_kind": { "const": "note" },
-        "record_id": { "$ref": "#/$defs/identifier" },
+        "record_id": { "$ref": "#/$defs/platform_identifier" },
         "title": { "$ref": "#/$defs/learner_title" },
         "body": { "$ref": "#/$defs/note_body" },
         "target": { "$ref": "#/$defs/reference" },
@@ -96,7 +97,7 @@
       "required": ["record_kind", "record_id", "target", "label", "archived", "created_at", "updated_at"],
       "properties": {
         "record_kind": { "const": "bookmark" },
-        "record_id": { "$ref": "#/$defs/identifier" },
+        "record_id": { "$ref": "#/$defs/platform_identifier" },
         "target": { "$ref": "#/$defs/reference" },
         "label": { "type": ["string", "null"], "maxLength": 120, "pattern": "^[^\\u0000]*$" },
         "archived": { "type": "boolean" },
@@ -110,9 +111,9 @@
       "additionalProperties": false,
       "required": ["collection_id", "title", "member_record_ids", "created_at", "updated_at"],
       "properties": {
-        "collection_id": { "$ref": "#/$defs/identifier" },
+        "collection_id": { "$ref": "#/$defs/platform_identifier" },
         "title": { "$ref": "#/$defs/learner_title" },
-        "member_record_ids": { "type": "array", "maxItems": 100, "uniqueItems": true, "items": { "$ref": "#/$defs/identifier" } },
+        "member_record_ids": { "type": "array", "maxItems": 100, "uniqueItems": true, "items": { "$ref": "#/$defs/platform_identifier" } },
         "created_at": { "$ref": "#/$defs/utc_time" },
         "updated_at": { "$ref": "#/$defs/utc_time" }
       }

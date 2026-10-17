@@ -230,6 +230,34 @@ def test_creation_requires_an_external_identifier(
     assert failure.value.code == "personal_workspace.contract.issued_id_required"
 
 
+@pytest.mark.parametrize(
+    ("issued_id", "accepted"),
+    [("a", True), ("a" * 128, True), ("a" * 129, False)],
+)
+def test_issued_ids_use_the_platform_identifier_profile(
+    adapter: ContractPersonalWorkspaceAdapter,
+    issued_id: str,
+    accepted: bool,
+) -> None:
+    workspace = adapter.parse_workspace(
+        (FIXTURE_DIR / "valid-empty-workspace.json").read_bytes()
+    )
+    intent = adapter.parse_mutation_intent(
+        (FIXTURE_DIR / "valid-create-note-intent.json").read_bytes()
+    )
+    if accepted:
+        result = adapter.apply_mutation(
+            workspace, intent, occurred_at=T1, issued_id=issued_id
+        )
+        assert result.records[0].record_id == issued_id
+    else:
+        with pytest.raises(PersonalWorkspaceContractFailure) as failure:
+            adapter.apply_mutation(
+                workspace, intent, occurred_at=T1, issued_id=issued_id
+            )
+        assert failure.value.code == "personal_workspace.contract.invalid_shape"
+
+
 def test_mutation_refuses_tampered_workspace_instead_of_resealing_it(
     adapter: ContractPersonalWorkspaceAdapter,
 ) -> None:

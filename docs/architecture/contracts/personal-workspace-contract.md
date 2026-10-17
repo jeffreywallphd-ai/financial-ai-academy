@@ -17,6 +17,10 @@ permission, or provides a mutation path into another module.
 
 - One workspace is revisioned, bounded to 200 records and 50 collections.
 - A collection is bounded to 100 unique record references.
+- Workspace, learner, record, collection, selector, and idempotency identities
+  use the normalized 1-to-128-character platform profile. Retained Curriculum
+  opportunity, placement, and package identities keep Curriculum's 3-to-64-
+  character producer profile.
 - Notes and labels are bounded learner text; no rich markup or executable
   content is admitted.
 - A mutation includes an idempotency key and expected revision. Creation needs
