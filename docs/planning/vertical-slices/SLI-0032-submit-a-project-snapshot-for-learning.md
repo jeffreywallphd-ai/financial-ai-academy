@@ -237,8 +237,9 @@ scope is refined just in time.
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
-| JIT-B | Deliver Assessment-owned application/persistence, Project/Content/Curriculum public adapters, atomic evidence/event storage, replay, supersession, and protected API/generated client | JIT-A | none | captured |
-| JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B | none | captured |
+| WRK-0125 | Deliver Assessment-owned application/persistence, Project/Content/Curriculum public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | ready |
+| JIT-B2 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | captured |
+| JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B2 | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
 | JIT-E | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | JIT-D | none | captured |
 
@@ -334,3 +335,9 @@ qualified.
   qualifying verification and accepted independent follow-up review. The
   additive transport-neutral contract and pure deterministic policy now bound
   every later stateful and client packet without adding runtime authority.
+- 2026-10-17: Refined the former combined JIT-B seam as WRK-0125 for the
+  independently reviewable transport-neutral Assessment application,
+  cross-module public gateways, PostgreSQL evidence/outbox aggregate, replay,
+  ordering, and supersession boundary. Protected API/OpenAPI/generated-client
+  delivery remains the dependent JIT-B2 increment; the approved CAP/SLI
+  outcome and decision boundaries are unchanged.
