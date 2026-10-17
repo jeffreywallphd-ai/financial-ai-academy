@@ -1,7 +1,7 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -294,3 +294,9 @@ changed, then leave SLI-0075 closure-ready.
   `WRK-0156:ab94757e-96ba-48da-a2c2-aebd9c86fd35` from recorded base
   `6594770` so the passing candidate can receive an exact verification receipt
   and independent review.
+- 2026-10-17: Re-entered verification after strengthening persisted replay
+  evidence to require one mutation per exact revision, unique valid keys,
+  same-revision history-digest correlation, and the captured exact replay row.
+  Focused qualification passed 75 cases and the complete Chromium, headless
+  API, PostgreSQL restart, concurrency, isolation, accessibility, and cleanup
+  workflow passed unchanged. No product behavior or contract changed.
