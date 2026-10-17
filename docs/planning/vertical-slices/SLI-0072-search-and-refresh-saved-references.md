@@ -212,7 +212,7 @@ packet starts. The dependency-ordered seams are:
 | WRK-0139 | Freeze query, continuation, status-transition, and refresh contracts plus pure search/status behavior and anti-rigidity evidence | SLI-0071 | none | complete |
 | WRK-0140 | Deliver owner refresh orchestration, PostgreSQL/API/OpenAPI/generated-client support, replay/concurrency, and confidential optional-adapter isolation | WRK-0139 | none | complete |
 | WRK-0141 | Deliver plain-language browser search, filters, status, per-record refresh, and accessible safe resume through the generated client | WRK-0140 | none | complete |
-| WRK-0142 | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | WRK-0141 | none | ready |
+| WRK-0142 | Qualify browser/headless parity, deterministic pages, live refresh/recovery, PostgreSQL restart, containment, cleanup, and slice closure | WRK-0141 | none | active |
 
 Dependent packets are not claimed until their predecessor is complete. The
 sequential default avoids shared contract/client/API/UI collisions; a later

@@ -1,7 +1,7 @@
 ---
 id: WRK-0142
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/tests/browser/approved-lesson/personal-workspace.e2e.ts", "deployments/local/README.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/vertical-slices/SLI-0072-search-and-refresh-saved-references.md", "docs/planning/work-packets/WRK-0142-qualify-saved-reference-live-parity.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 6c2164363ece014fec25e94281fa73950761d096
+claim_id: WRK-0142:7d3bcf09-1bf4-47dc-aa2d-fb66c1fbd856
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T16:02:33Z
 ---
 
 # Agent Work Packet: Qualify Saved-Reference Live Parity
@@ -246,3 +246,6 @@ financial action changed, then leave SLI-0072 closure-ready.
 - 2026-10-17: Marked ready after packet, dependency, decision-readiness,
   closed-capture, public-API, exact write-scope, documentation, and planning
   validation passed without material CAP or slice drift.
+- 2026-10-17: Activated from recorded base `6c21643` after validating the
+  completed dependency, current CAP authority, qualification-only scope,
+  exact file ownership, and absence of an active coordination collision.
