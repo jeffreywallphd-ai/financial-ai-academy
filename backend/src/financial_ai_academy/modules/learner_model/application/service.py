@@ -267,6 +267,18 @@ class LearnerModelService:
                 contract,
             )
             if intent.expected_revision != current.revision:
+                replay = repository.get_preference_replay(
+                    request.learner_id, intent.idempotency_key
+                )
+                if replay is not None:
+                    accepted_fingerprint, profile = replay
+                    if accepted_fingerprint != fingerprint:
+                        raise LearnerModelError(
+                            LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                            "That request key already names a different change.",
+                            reference=intent.idempotency_key,
+                        )
+                    return self._revalidate_preference(profile, contract)
                 raise self._preference_stale(intent.idempotency_key)
             issued_id = self._issued_preference_id(
                 intent.mutation.operation, identifiers
@@ -417,6 +429,20 @@ class LearnerModelService:
                 contract,
             )
             if intent.expected_revision != current.revision:
+                replay = repository.get_presentation_preference_replay(
+                    request.learner_id, intent.idempotency_key
+                )
+                if replay is not None:
+                    accepted_fingerprint, profile = replay
+                    if accepted_fingerprint != fingerprint:
+                        raise LearnerModelError(
+                            LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                            "That request key already names a different display change.",
+                            reference=intent.idempotency_key,
+                        )
+                    return self._revalidate_presentation_preference(
+                        profile, contract
+                    )
                 raise self._presentation_preference_stale(intent.idempotency_key)
             accepted, change = contract.apply_mutation(
                 current, intent, occurred_at=self._clock.now()

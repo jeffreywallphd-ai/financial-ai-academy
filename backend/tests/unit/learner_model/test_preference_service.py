@@ -51,9 +51,17 @@ class Repository:
         self.changes: list[PreferenceChange] = []
         self.replays: dict[str, tuple[str, LearnerPreferenceProfile]] = {}
         self.save_count = 0
+        self.commit_on_profile_read: (
+            tuple[str, str, LearnerPreferenceProfile] | None
+        ) = None
 
     def get_preferences(self, learner_id: str):
         assert learner_id == LEARNER_ID
+        if self.commit_on_profile_read is not None:
+            key, fingerprint, profile = self.commit_on_profile_read
+            self.profile = profile
+            self.replays[key] = (fingerprint, profile)
+            self.commit_on_profile_read = None
         return self.profile
 
     def get_preference_history(self, learner_id: str):
@@ -206,6 +214,74 @@ def test_changed_key_and_stale_revision_write_nothing() -> None:
         )
     assert stale_error.value.code is LearnerModelErrorCode.STALE_REVISION
     assert repository.save_count == 1
+
+
+def test_replay_is_refreshed_when_winner_commits_between_application_reads() -> None:
+    winner, winner_repository = service()
+    accepted_command = intent(
+        1, "create_interest", label="Market microstructure"
+    )
+    accepted = winner.mutate_preferences(
+        MutateLearnerPreferencesRequest(LEARNER_ID, accepted_command)
+    )
+    fingerprint = winner_repository.replays[accepted_command.idempotency_key][0]
+
+    exact_repository = Repository()
+    exact_repository.commit_on_profile_read = (
+        accepted_command.idempotency_key,
+        fingerprint,
+        accepted,
+    )
+    exact_subject, _ = service(exact_repository)
+    replayed = exact_subject.mutate_preferences(
+        MutateLearnerPreferencesRequest(LEARNER_ID, accepted_command)
+    )
+    assert replayed == accepted
+    assert exact_repository.save_count == 0
+
+    changed_repository = Repository()
+    changed_repository.commit_on_profile_read = (
+        accepted_command.idempotency_key,
+        fingerprint,
+        accepted,
+    )
+    changed_subject, _ = service(changed_repository)
+    changed_command = PreferenceMutationIntent(
+        schema_version="1.0.0",
+        idempotency_key=accepted_command.idempotency_key,
+        expected_revision=1,
+        mutation=PreferenceMutation(
+            operation="create_interest", label="Different meaning"
+        ),
+    )
+    with pytest.raises(LearnerModelError) as changed:
+        changed_subject.mutate_preferences(
+            MutateLearnerPreferencesRequest(LEARNER_ID, changed_command)
+        )
+    assert changed.value.code is LearnerModelErrorCode.IMMUTABLE_CONFLICT
+    assert changed_repository.save_count == 0
+
+    stale_repository = Repository()
+    stale_repository.commit_on_profile_read = (
+        accepted_command.idempotency_key,
+        fingerprint,
+        accepted,
+    )
+    stale_subject, _ = service(stale_repository)
+    stale_command = PreferenceMutationIntent(
+        schema_version="1.0.0",
+        idempotency_key="intent.distinct-stale",
+        expected_revision=1,
+        mutation=PreferenceMutation(
+            operation="create_interest", label="Different key"
+        ),
+    )
+    with pytest.raises(LearnerModelError) as stale:
+        stale_subject.mutate_preferences(
+            MutateLearnerPreferencesRequest(LEARNER_ID, stale_command)
+        )
+    assert stale.value.code is LearnerModelErrorCode.STALE_REVISION
+    assert stale_repository.save_count == 0
 
 
 @pytest.mark.parametrize(

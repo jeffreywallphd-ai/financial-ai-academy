@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
-from threading import Event
+from threading import Barrier, Event
 
 import psycopg
 import pytest
@@ -225,6 +225,23 @@ def test_stale_changed_key_and_other_learner_write_nothing() -> None:
         OpenPresentationPreferencesRequest(LEARNER_ID)
     ).profile_id
     assert counts() == before
+
+
+def test_concurrent_exact_replays_converge_on_one_durable_change() -> None:
+    command = intent("display.concurrent-exact", 1)
+    barrier = Barrier(2)
+
+    def submit():
+        barrier.wait(timeout=5)
+        return mutate(service(), command)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = [executor.submit(submit) for _ in range(2)]
+        accepted = [result.result(timeout=10) for result in results]
+
+    assert accepted[0] == accepted[1]
+    assert accepted[0].revision == 2
+    assert counts() == (1, 1, 1)
 
 
 def test_history_is_bounded_and_export_omits_browser_theme() -> None:

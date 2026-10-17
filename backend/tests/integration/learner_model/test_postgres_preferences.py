@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
+from threading import Barrier
 
 import psycopg
 import pytest
@@ -191,6 +193,28 @@ def test_stale_and_changed_key_reuse_write_nothing() -> None:
         mutate(service(), stale)
     assert stale_error.value.code is LearnerModelErrorCode.STALE_REVISION
     assert counts() == before
+
+
+def test_concurrent_exact_replays_converge_on_one_durable_change() -> None:
+    command = intent(
+        "intent.concurrent-exact",
+        1,
+        "create_interest",
+        label="Market structure",
+    )
+    barrier = Barrier(2)
+
+    def submit():
+        barrier.wait(timeout=5)
+        return mutate(service(), command)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = [executor.submit(submit) for _ in range(2)]
+        accepted = [result.result(timeout=10) for result in results]
+
+    assert accepted[0] == accepted[1]
+    assert accepted[0].revision == 2
+    assert counts() == (1, 1, 1)
 
 
 def test_profiles_and_replays_are_learner_isolated() -> None:

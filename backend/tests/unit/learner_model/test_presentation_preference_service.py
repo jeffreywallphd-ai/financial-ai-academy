@@ -54,9 +54,17 @@ class Repository:
         self.replays: dict[str, tuple[str, PresentationPreferenceProfile]] = {}
         self.save_count = 0
         self.snapshot_count = 0
+        self.commit_on_profile_read: (
+            tuple[str, str, PresentationPreferenceProfile] | None
+        ) = None
 
     def get_presentation_preferences(self, learner_id: str):
         assert learner_id == LEARNER_ID
+        if self.commit_on_profile_read is not None:
+            key, fingerprint, profile = self.commit_on_profile_read
+            self.profile = profile
+            self.replays[key] = (fingerprint, profile)
+            self.commit_on_profile_read = None
         return self.profile
 
     def get_presentation_preference_history(self, learner_id: str):
@@ -253,6 +261,66 @@ def test_changed_key_and_stale_revision_write_nothing() -> None:
         )
     assert stale.value.code is LearnerModelErrorCode.STALE_REVISION
     assert repository.save_count == 1
+
+
+def test_replay_is_refreshed_when_winner_commits_between_application_reads() -> None:
+    winner, winner_repository = service()
+    accepted_command = intent(1, adjusted=True, key="intent.presentation-race")
+    accepted = winner.mutate_presentation_preferences(
+        MutatePresentationPreferencesRequest(LEARNER_ID, accepted_command)
+    )
+    fingerprint = winner_repository.replays[accepted_command.idempotency_key][0]
+
+    exact_repository = Repository()
+    exact_repository.commit_on_profile_read = (
+        accepted_command.idempotency_key,
+        fingerprint,
+        accepted,
+    )
+    exact_subject, _ = service(exact_repository)
+    replayed = exact_subject.mutate_presentation_preferences(
+        MutatePresentationPreferencesRequest(LEARNER_ID, accepted_command)
+    )
+    assert replayed == accepted
+    assert exact_repository.save_count == 0
+
+    changed_repository = Repository()
+    changed_repository.commit_on_profile_read = (
+        accepted_command.idempotency_key,
+        fingerprint,
+        accepted,
+    )
+    changed_subject, _ = service(changed_repository)
+    with pytest.raises(LearnerModelError) as changed:
+        changed_subject.mutate_presentation_preferences(
+            MutatePresentationPreferencesRequest(
+                LEARNER_ID,
+                intent(
+                    1,
+                    adjusted=False,
+                    key=accepted_command.idempotency_key,
+                ),
+            )
+        )
+    assert changed.value.code is LearnerModelErrorCode.IMMUTABLE_CONFLICT
+    assert changed_repository.save_count == 0
+
+    stale_repository = Repository()
+    stale_repository.commit_on_profile_read = (
+        accepted_command.idempotency_key,
+        fingerprint,
+        accepted,
+    )
+    stale_subject, _ = service(stale_repository)
+    with pytest.raises(LearnerModelError) as stale:
+        stale_subject.mutate_presentation_preferences(
+            MutatePresentationPreferencesRequest(
+                LEARNER_ID,
+                intent(1, adjusted=False, key="intent.presentation-stale"),
+            )
+        )
+    assert stale.value.code is LearnerModelErrorCode.STALE_REVISION
+    assert stale_repository.save_count == 0
 
 
 def test_history_retains_newest_one_hundred_varied_revisions() -> None:
