@@ -210,7 +210,7 @@ each packet starts. The dependency-ordered seams are:
 | WRK-0135 | Freeze additive Project-reference contracts, reuse Project public reads through a Personal-workspace Project adapter, and prove pure core and anti-rigidity behavior | SLI-0070, CAP-0007 | none | complete |
 | WRK-0136 | Deliver Personal-workspace persistence/API/OpenAPI/generated-client support and authorization revalidation for all Project reference variants | WRK-0135 | none | complete |
 | WRK-0137 | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | WRK-0136 | none | complete |
-| JIT-D | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | JIT-C | none | captured |
+| WRK-0138 | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | WRK-0137 | none | ready |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
 authored. Dependent packets are not claimed until their predecessor is complete.
@@ -343,3 +343,8 @@ decision still requiring approval. No lower-level completion approval exists.
   accessibility, responsive, theme, containment, and malformed-input checks
   passed. The isolated live topology seam may now start as WRK-0138 without
   changing slice meaning.
+- 2026-10-17: Refined JIT-D as WRK-0138 around a bounded handoff from the
+  existing live Project capture into Saved Learning, ordinary headless HTTP,
+  exact PostgreSQL correlation, restart, denial, target non-mutation, inert
+  containment, cleanup, and slice closure. Product contracts and authority
+  remain frozen.
