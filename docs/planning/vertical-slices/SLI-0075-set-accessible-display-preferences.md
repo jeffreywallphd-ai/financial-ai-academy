@@ -215,7 +215,7 @@ packet starts. Proposed dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | captured |
+| WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | ready |
 | JIT-B | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | JIT-A | none | captured |
 | JIT-C | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | JIT-B | none | captured |
 | JIT-D | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | JIT-C | none | captured |
@@ -294,3 +294,6 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
   SLI-0076 scored 12/14 because its downstream consumers are not yet delivered;
   SLI-0077 remains dependency-ineligible. The refinement preserves the approved
   CAP-0018 manifest and needs no slice-level approval.
+- 2026-10-17: Authored WRK-0153 just in time to freeze the additive
+  learner-owned presentation-preference contract and pure core before any
+  persistence, API, browser, or runtime-presentation work starts.
