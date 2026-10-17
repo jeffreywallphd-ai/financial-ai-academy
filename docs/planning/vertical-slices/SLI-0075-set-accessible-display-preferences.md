@@ -218,7 +218,7 @@ packet starts. Proposed dependency-ordered seams are:
 | WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
 | WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | complete |
 | WRK-0155 | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | complete |
-| WRK-0157 | Close the shared learner and presentation exact-replay split-read race window | WRK-0155 | none | active |
+| WRK-0157 | Close the shared learner and presentation exact-replay split-read race window | WRK-0155 | none | verifying |
 | WRK-0156 | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155, WRK-0157 | none | ready |
 
 Detailed packet plans will declare exact files, generated artifacts, checks,
@@ -370,3 +370,6 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
 - 2026-10-17: Returned the slice to active delivery after repeated live
   schedules exposed a shared exact-replay split-read window. WRK-0157 is the
   bounded application correction; WRK-0156 resumes only after it completes.
+- 2026-10-17: WRK-0157 entered verification after refreshing committed replay
+  before stale classification closed the shared split-read window in focused,
+  real-PostgreSQL, and complete live browser/headless evidence.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0157
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018-correction
 updated: 2026-10-17
@@ -202,3 +202,11 @@ assumptions; and residual gaps. Then return WRK-0156 to verification.
 - 2026-10-17: Activated from recorded base `ef05048` after deterministic
   packet validation, current CAP and slice conformance, satisfied WRK-0155
   dependency, exact write-scope declaration, and collision-free file leasing.
+- 2026-10-17: Entered verification after both preference mutation paths began
+  refreshing replay when a winning revision commits between their initial
+  replay and profile reads. Deterministic split-read tests preserve exact,
+  changed-key, and distinct-stale classifications; 15 focused unit, 15 fresh-
+  PostgreSQL integration, 83 Learner-model unit, 17 architecture, and 10
+  security control groups passed. The complete Chromium/headless/PostgreSQL
+  workflow also passed its exact and conflicting races, restart, isolation,
+  accessibility, and cleanup paths without a contract or schema change.
