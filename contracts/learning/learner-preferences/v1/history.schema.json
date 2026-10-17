@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/learner-preferences/v1/history.schema.json",
+  "title": "Learner preference change history v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "current_revision", "changes"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "profile_id": {"$ref": "#/$defs/id"},
+    "current_revision": {"type": "integer", "minimum": 1},
+    "changes": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/change"}}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "revision", "operation", "object_kind", "object_id", "occurred_at", "resulting_profile_digest"],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "revision": {"type": "integer", "minimum": 1},
+        "operation": {"enum": ["create_goal", "update_goal", "archive_goal", "restore_goal", "remove_goal", "reorder_goals", "create_experience", "update_experience", "remove_experience", "reorder_experience", "create_interest", "rename_interest", "remove_interest", "reorder_interests", "reset_profile"]},
+        "object_kind": {"type": ["string", "null"], "enum": ["goal", "experience", "interest", "profile", null]},
+        "object_id": {"type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+        "occurred_at": {"type": "string", "format": "date-time", "pattern": "Z$"},
+        "resulting_profile_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    }
+  }
+}

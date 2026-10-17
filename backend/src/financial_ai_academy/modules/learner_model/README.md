@@ -11,6 +11,20 @@ investment performance.
 - `open_practice_history(OpenPracticeHistoryRequest) -> PracticeHistoryView`
 - `open_project_completion(OpenProjectCompletionRequest) -> ProjectCompletionView`
 
+SLI-0074 adds a transport-neutral `learner-preferences/v1` contract core for
+explicit learner-entered goals, self-described experience, interests, closed
+revision-bound mutations, bounded non-content change summaries, reset, and
+portable export. The pure domain and JSON Schema adapter issue no learner
+identity, time, or ID; persist nothing; and call no provider, model, network,
+filesystem, or other module. Protected application, persistence, API,
+generated-client, and browser operations remain later packet work.
+
+Preferences are not evidence, competency or mastery state, Curriculum
+requirements, Adaptation eligibility, recommendations, permissions,
+experiment consent, financial suitability, or inferred traits. Consumers must
+use later public operations and cannot query Learner-model storage or treat a
+learner's stated choice as another module's authority.
+
 The operation obtains validated completion events through the Assessment
 public facade, derives a stable source-set digest and ordered history, and
 atomically replaces only its own PostgreSQL projection. Empty evidence produces

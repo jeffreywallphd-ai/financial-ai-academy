@@ -207,3 +207,20 @@ distinguishes exact record, collection, and membership capacity. The delivered
 application/API/browser boundary already supports protected workspace/query/
 mutation behavior; protected export composition and complete durability/
 recovery qualification remain SLI-0073 packet boundaries.
+
+## Learner Preferences v1
+
+[`learner-preferences/v1/`](learner-preferences/v1/README.md) defines explicit
+learner-entered goals, self-described experience, interests, closed revision-
+bound mutations, bounded non-content change summaries, and a portable export.
+Its synthetic compatibility corpus lives in
+[`../compatibility/learner-preferences/v1/`](../compatibility/learner-preferences/v1/README.md).
+
+```powershell
+backend/.venv/Scripts/python.exe -m pytest backend/tests/contract/learner_preferences backend/tests/unit/learner_model/test_preference_contract.py backend/tests/unit/learner_model/test_preferences.py
+```
+
+The pure family preserves explicit learner input and creates no evidence,
+competency, eligibility, permission, recommendation, inferred trait, provider,
+or model authority. Persistence, protected API, generated client, browser, and
+live qualification remain later SLI-0074 packet seams.

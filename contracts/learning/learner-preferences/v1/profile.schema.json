@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/learner-preferences/v1/profile.schema.json",
+  "title": "Learner preference profile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "learner_id", "revision", "goals", "experience", "interests", "created_at", "updated_at", "profile_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "profile_id": {"$ref": "#/$defs/id"},
+    "learner_id": {"type": "string", "format": "uuid"},
+    "revision": {"type": "integer", "minimum": 1},
+    "goals": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/goal"}},
+    "experience": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/experience"}},
+    "interests": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/interest"}},
+    "created_at": {"$ref": "#/$defs/time"},
+    "updated_at": {"$ref": "#/$defs/time"},
+    "profile_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "time": {"type": "string", "format": "date-time", "pattern": "Z$"},
+    "detail2000": {"type": ["string", "null"], "minLength": 1, "maxLength": 2000},
+    "detail1000": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000},
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goal_id", "title", "detail", "archived", "created_at", "updated_at"],
+      "properties": {
+        "goal_id": {"$ref": "#/$defs/id"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 160},
+        "detail": {"$ref": "#/$defs/detail2000"},
+        "archived": {"type": "boolean"},
+        "created_at": {"$ref": "#/$defs/time"},
+        "updated_at": {"$ref": "#/$defs/time"}
+      }
+    },
+    "experience": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experience_id", "subject", "level", "detail", "created_at", "updated_at"],
+      "properties": {
+        "experience_id": {"$ref": "#/$defs/id"},
+        "subject": {"type": "string", "minLength": 1, "maxLength": 120},
+        "level": {"enum": ["new", "some_experience", "experienced"]},
+        "detail": {"$ref": "#/$defs/detail1000"},
+        "created_at": {"$ref": "#/$defs/time"},
+        "updated_at": {"$ref": "#/$defs/time"}
+      }
+    },
+    "interest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interest_id", "label", "created_at", "updated_at"],
+      "properties": {
+        "interest_id": {"$ref": "#/$defs/id"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 120},
+        "created_at": {"$ref": "#/$defs/time"},
+        "updated_at": {"$ref": "#/$defs/time"}
+      }
+    }
+  }
+}

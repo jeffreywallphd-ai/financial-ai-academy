@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.local/contracts/learning/learner-preferences/v1/mutation-intent.schema.json",
+  "title": "Learner preference mutation intent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "idempotency_key", "expected_revision", "mutation"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "idempotency_key": {"$ref": "#/$defs/id"},
+    "expected_revision": {"type": "integer", "minimum": 1},
+    "mutation": {
+      "oneOf": [
+        {"$ref": "#/$defs/createGoal"},
+        {"$ref": "#/$defs/updateGoal"},
+        {"$ref": "#/$defs/goalSelector"},
+        {"$ref": "#/$defs/reorderGoals"},
+        {"$ref": "#/$defs/createExperience"},
+        {"$ref": "#/$defs/updateExperience"},
+        {"$ref": "#/$defs/removeExperience"},
+        {"$ref": "#/$defs/reorderExperience"},
+        {"$ref": "#/$defs/createInterest"},
+        {"$ref": "#/$defs/renameInterest"},
+        {"$ref": "#/$defs/removeInterest"},
+        {"$ref": "#/$defs/reorderInterests"},
+        {"$ref": "#/$defs/resetProfile"}
+      ]
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "nullableDetail2000": {"type": ["string", "null"], "minLength": 1, "maxLength": 2000},
+    "nullableDetail1000": {"type": ["string", "null"], "minLength": 1, "maxLength": 1000},
+    "createGoal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "title", "detail"],
+      "properties": {"operation": {"const": "create_goal"}, "title": {"type": "string", "minLength": 1, "maxLength": 160}, "detail": {"$ref": "#/$defs/nullableDetail2000"}}
+    },
+    "updateGoal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "entry_id", "title", "detail"],
+      "properties": {"operation": {"const": "update_goal"}, "entry_id": {"$ref": "#/$defs/id"}, "title": {"type": "string", "minLength": 1, "maxLength": 160}, "detail": {"$ref": "#/$defs/nullableDetail2000"}}
+    },
+    "goalSelector": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "entry_id"],
+      "properties": {"operation": {"enum": ["archive_goal", "restore_goal", "remove_goal"]}, "entry_id": {"$ref": "#/$defs/id"}}
+    },
+    "reorderGoals": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "ordered_ids"],
+      "properties": {"operation": {"const": "reorder_goals"}, "ordered_ids": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}}
+    },
+    "createExperience": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "subject", "level", "detail"],
+      "properties": {"operation": {"const": "create_experience"}, "subject": {"type": "string", "minLength": 1, "maxLength": 120}, "level": {"enum": ["new", "some_experience", "experienced"]}, "detail": {"$ref": "#/$defs/nullableDetail1000"}}
+    },
+    "updateExperience": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "entry_id", "subject", "level", "detail"],
+      "properties": {"operation": {"const": "update_experience"}, "entry_id": {"$ref": "#/$defs/id"}, "subject": {"type": "string", "minLength": 1, "maxLength": 120}, "level": {"enum": ["new", "some_experience", "experienced"]}, "detail": {"$ref": "#/$defs/nullableDetail1000"}}
+    },
+    "removeExperience": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "entry_id"],
+      "properties": {"operation": {"const": "remove_experience"}, "entry_id": {"$ref": "#/$defs/id"}}
+    },
+    "reorderExperience": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "ordered_ids"],
+      "properties": {"operation": {"const": "reorder_experience"}, "ordered_ids": {"type": "array", "maxItems": 20, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}}
+    },
+    "createInterest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "label"],
+      "properties": {"operation": {"const": "create_interest"}, "label": {"type": "string", "minLength": 1, "maxLength": 120}}
+    },
+    "renameInterest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "entry_id", "label"],
+      "properties": {"operation": {"const": "rename_interest"}, "entry_id": {"$ref": "#/$defs/id"}, "label": {"type": "string", "minLength": 1, "maxLength": 120}}
+    },
+    "removeInterest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "entry_id"],
+      "properties": {"operation": {"const": "remove_interest"}, "entry_id": {"$ref": "#/$defs/id"}}
+    },
+    "reorderInterests": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation", "ordered_ids"],
+      "properties": {"operation": {"const": "reorder_interests"}, "ordered_ids": {"type": "array", "maxItems": 50, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}}}
+    },
+    "resetProfile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["operation"],
+      "properties": {"operation": {"const": "reset_profile"}}
+    }
+  }
+}

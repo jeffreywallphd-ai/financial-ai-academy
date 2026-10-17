@@ -11,7 +11,7 @@
 | Content | accepted; lesson read core implemented | Versioned learning resources, provenance, publication state, safe body nodes, and private content storage references | Content-version events remain future work |
 | Curriculum | accepted; lesson, exact Assessment/practice placement, review-target mapping, protected discovery, and immutable graph read implemented | Competencies, prerequisites, pathways, course structure, exact activity placement, review routing, and rebuildable discovery views | Curriculum-version events remain future work |
 | Assessment | accepted; deterministic knowledge-check/practice/Project evidence and typed replay implemented | Items, attempts, responses, deterministic scoring evidence, review state, and bounded completion evidence | Assessment knowledge-check, practice, and Project completion evidence |
-| Learner model | accepted; bounded lesson, practice-history, and Project-completion projections implemented | Derived mastery, preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
+| Learner model | accepted; bounded lesson, practice-history, Project-completion, and explicit learner-preference contract cores implemented | Derived mastery, explicit learner goals/preferences, accommodations, completion, and progress projections | Learner-state changes remain future work |
 | Adaptation | accepted; deterministic navigation-state core implemented | Eligibility, ranking orchestration, deterministic policy, recommendations | Deterministic navigation-state projections; durable recommendation decisions and outcomes remain future work |
 | Market data | accepted for initial financial lane; implementation pending | Canonical instruments, observations, calendars, corporate actions, coverage, quality, normalization, and provider provenance | Canonical market-data events |
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
@@ -79,6 +79,15 @@ inert artifact bytes/manifests, immutable snapshots, and evidence exports
 through one protected API and generated client. It has no workspace browser UI,
 Assessment submission, live Portfolio link, execution, provider, or AI-
 authoritative behavior.
+
+The additive Learner-preference contract core owns only explicit learner-
+entered goals, self-described experience, interests, revision-bound mutations,
+bounded non-content change summaries, and portable export meaning. It creates
+no database, public API, browser route, inferred profile, evidence, competency,
+eligibility, recommendation, permission, provider, or model effect. Later
+SLI-0074 packets may persist and expose the same contract through protected
+public operations but cannot reinterpret a preference as another owner's
+authority.
 
 ADR-0021 accepts Personal workspace as a separate focused module for notes,
 bookmarks, collections, and typed cross-domain references. The initial seam is

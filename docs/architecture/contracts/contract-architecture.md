@@ -86,6 +86,20 @@ generated-client contract to browser and headless consumers. It adds no
 browser view, cross-module mutation, collaboration, execution, or downstream
 learning-state effect.
 
+Explicit learner goals, self-described experience, and interests additionally
+follow the [learner-preferences contract](learner-preferences-contract.md).
+Learner model owns the learner-entered versioned profile, closed mutation
+meaning, bounded non-content change summaries, and portable export. These
+values are never inferred and do not become Assessment evidence, competency or
+mastery state, Curriculum requirements, Adaptation eligibility,
+recommendations, permissions, experiment consent, or financial suitability.
+
+The additive `learner-preferences-v1` family fixes closed portable profile,
+mutation, history, export, canonical digest, and pure deterministic mutation
+semantics. The pure adapter issues no identity or time, persists nothing, and
+has no provider, model, network, UI, or cross-module effect. Protected
+persistence/API and browser composition remain separate later delivery seams.
+
 Portable financial methods, portfolio records, and simulation results
 additionally follow
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the

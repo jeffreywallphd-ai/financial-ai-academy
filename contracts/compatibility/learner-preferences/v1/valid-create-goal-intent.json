@@ -1,0 +1,1 @@
+{"schema_version":"1.0.0","idempotency_key":"intent.create-goal-1","expected_revision":1,"mutation":{"operation":"create_goal","title":"Explain risk with evidence","detail":null}}
