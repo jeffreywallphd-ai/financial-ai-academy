@@ -1,7 +1,7 @@
 ---
 id: WRK-0143
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -248,3 +248,31 @@ provider, execution, AI, financial, or external-action behavior changed.
   privacy denials, exact capacity classifications, removal isolation, focused
   contract/core/architecture checks, documentation, planning, security, and
   whitespace validation passed within the contract-only boundary.
+- 2026-10-17: Completed after quota classification was constrained to the
+  workspace and export contexts, malformed or duplicate membership overflow
+  retained its non-capacity meaning, and query-result overflow retained its
+  existing non-quota failure.
+
+## Completion Evidence
+
+- Candidate `3106cae` is a strict descendant of the original contract
+  candidate and stays within the declared contract, adapter, focused-test,
+  documentation, and planning scope.
+- The versioned export envelope is closed over `schema_version`,
+  `workspace_digest`, `generated_at`, and `workspace`; the outer digest must
+  match the canonical embedded workspace and generation cannot predate the
+  workspace update.
+- Exact maxima remain 200 records, 50 collections, and 100 unique canonical
+  members per collection. Valid overflow has distinct bounded capacity meaning;
+  malformed, duplicate, query-result, and unrelated schema failures do not.
+- Record removal changes only workspace records, order, and membership;
+  collection removal preserves records and target references.
+- The focused Personal-workspace contract, pure-core, and module-boundary suite
+  passed 185 tests. Controller-selected planning, documentation, and
+  architecture checks produced a fresh, stable, qualifying exact-candidate
+  receipt with digest
+  `sha256:2a2de2ee4a614aa2d959223ecf9f1d0a7c0c9f96b0de8e22a38ee42c740f01d5`.
+- No persistence, application service, protected API, OpenAPI, generated
+  client, browser, recovery tool, target-domain mutation, managed-cloud,
+  provider, execution, AI, financial, or external-action behavior changed.
+  Those selected SLI-0073 seams remain for the dependent packets.

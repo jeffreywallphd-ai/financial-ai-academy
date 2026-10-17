@@ -233,7 +233,7 @@ packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | ready |
+| WRK-0143 | Freeze the owner export view, quota outcome, removal/recovery semantics, compatibility fixtures, and pure contract behavior | SLI-0070 through SLI-0072 | none | complete |
 | JIT-B | Deliver application, PostgreSQL, protected API, OpenAPI, generated-client, replay, and authorization behavior for export and actionable quota boundaries | JIT-A | none | captured |
 | JIT-C | Deliver plain-language browser export, quota, removal, retry, technical-record, and accessibility behavior through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify cumulative browser/headless parity, maximum bounds, interruption, target isolation, restart, empty-target community database recovery, containment, cleanup, and CAP closure | JIT-C | none | captured |
@@ -331,3 +331,8 @@ records remain ignored; no slice or packet approval is requested.
 - 2026-10-17: Activated WRK-0143 from the recorded base after revalidating the
   current CAP package, completed slice dependencies, exact contract-only scope,
   decision readiness, and absence of an active write collision.
+- 2026-10-17: Completed WRK-0143 with the closed owner export envelope,
+  canonical digest and chronology checks, exact quota meanings, removal
+  isolation, compatibility fixtures, anti-rigidity coverage, and corrected
+  validation precedence. Application, persistence, public API/client, browser,
+  and live recovery delivery remain in the dependent packet seams.
