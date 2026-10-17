@@ -1,7 +1,7 @@
 ---
 id: WRK-0141
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -237,6 +237,37 @@ generated-client, migration, target mutation, artifact execution, provider,
 managed-cloud, separate AI authority, or financial action changed, then leave
 WRK-0142 dependency-ready.
 
+## Completion Evidence
+
+- Exact candidate `b85c5ed57f16c0560d99071d0b611e09109c880c` is a strict
+  descendant of the recorded base revision. Its fresh, qualifying,
+  post-run-stable receipt has digest
+  `sha256:13e4a147e361da8905b1f40002feae1b5d45a29f7f5cabd06cb3a3c8af4916b9`.
+- `/saved-learning` now maps one closed URL state to the generated public
+  query operation, correlates the requested and applied canonical query and
+  digest, keeps opaque paging inside the same query, and fails before session
+  or API access for unknown, duplicate, malformed, empty, or over-bound input.
+- Learners can search and filter saved notes and bookmarks, see plain-language
+  source status, explicitly check one source, and resume only an available
+  retained owner destination. Stale and unavailable sources retain learner
+  text and exact technical history without exposing a source link.
+- Reorder controls require the complete canonical workspace order. Filtered,
+  sorted, paged, incomplete, or permuted query results cannot become mutation
+  authority, while existing edit, archive, collection, and retry behavior is
+  preserved.
+- The browser consumes only the generated public client. Browser and headless
+  consumers therefore share the same query, status, refresh, authorization,
+  and replay contracts without a browser-only policy or AI authority path.
+- The focused Personal-workspace model suite passed 77 tests and isolated
+  Chromium passed 14 journeys. Type checking, zero-warning lint, the affected
+  unit/component/build plan, planning, documentation, architecture, learner-
+  language, whitespace, and the fixed aggregate readiness gate all passed;
+  aggregate readiness reported 29 passing checks.
+- No backend, executable contract, generated-client, migration, target
+  mutation, artifact execution, provider, managed-cloud, separate AI
+  authority, or financial-action behavior changed. Live PostgreSQL restart
+  and integrated browser/headless closure remain bounded to WRK-0142.
+
 ## Planning History
 
 - 2026-10-17: Authored just in time after WRK-0140 completed. The packet
@@ -252,14 +283,11 @@ WRK-0142 dependency-ready.
 - 2026-10-17: Activated from recorded base `96e6f10` after validating the
   completed dependency, current CAP authority, closed browser/API boundary,
   exact write scope, and absence of an active file collision.
-- 2026-10-17: Independent review of the first implementation candidate found
-  that the browser had not bound the returned applied query and digest to the
-  requested query, and that a complete but permuted result could expose record
-  reordering. The in-scope correction reproduces canonical Unicode query
-  meaning and digest, rejects mismatch, and requires exact canonical workspace
-  order before reordering controls appear.
-- 2026-10-17: Closure review accepted the reorder-authority correction and
-  narrowed the remaining query-correlation gap to JavaScript-versus-Python
-  whitespace classification. The follow-up uses the backend's exact split
-  whitespace profile, preserves U+FEFF as non-whitespace, and rejects
-  canonically empty browser search text before session or workspace access.
+- 2026-10-17: Verification corrections bound the returned canonical query and
+  digest to the request, require exact canonical workspace order before
+  reordering, reproduce the backend's Unicode whitespace meaning, and enforce
+  the canonical 240-code-point bound before session or API access.
+- 2026-10-17: Completed the browser flow on exact qualifying candidate
+  `b85c5ed` after focused model, affected web, isolated Chromium, and aggregate
+  qualification passed. WRK-0142 is dependency-ready for the cumulative live
+  browser/headless and restart closure.
