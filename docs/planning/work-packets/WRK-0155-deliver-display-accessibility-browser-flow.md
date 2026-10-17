@@ -1,7 +1,7 @@
 ---
 id: WRK-0155
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -282,3 +282,7 @@ action, or financial behavior changed.
   selection. The correction preserves the approved slice outcome and public
   contract while adding the exact control-plane browser wrapper, catalog, and
   test files needed to bind browser evidence to the submitted candidate.
+- 2026-10-17: Re-entered verification after successful mutations were bound to
+  the requested complete values, route acceptance superseded delayed startup
+  reads, and the affected-check route selected and executed the presentation-
+  preferences Chromium suite.
