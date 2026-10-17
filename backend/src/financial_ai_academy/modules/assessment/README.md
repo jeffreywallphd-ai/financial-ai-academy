@@ -126,7 +126,10 @@ learner/Project lock rows, immutable Project evidence, and a safe Project
 outbox. Exact replay returns the original IDs and time; changed identity reuse
 conflicts. A distinct later snapshot receives the next locked Project
 occurrence and points to the immediately prior submission without rewriting
-history. Accepted sequence is server-owned and increasing across Project
+history. A stream is capped at the contract's 100-item complete-history bound,
+and a server time observed before lock acquisition is reconciled with the
+immediately prior accepted time inside that serialized transaction so history
+cannot regress. Accepted sequence is server-owned and increasing across Project
 evidence. Reads re-parse and revalidate the retained candidate, submission,
 fingerprint, and projected evidence before returning it. Ordinary row mutation
 is rejected, and development downgrade refuses to remove retained evidence or

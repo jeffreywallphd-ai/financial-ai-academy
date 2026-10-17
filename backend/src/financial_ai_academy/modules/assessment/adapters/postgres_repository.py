@@ -36,6 +36,7 @@ from ..ports.repositories import (
     PracticeDraftConflict,
     PracticeSubmissionConflict,
     ProjectSubmissionConflict,
+    ProjectSubmissionHistoryLimitReached,
     ProjectSubmissionRecordCandidate,
     StoredPracticeCompletionEvent,
     SubmissionConflict,
@@ -120,7 +121,7 @@ class PostgresAssessmentRepository:
                 ).fetchone()
                 prior = connection.execute(
                     """
-                    SELECT submission_id, occurrence
+                    SELECT submission_id, occurrence, submitted_at
                     FROM assessment.project_submissions
                     WHERE learner_id = %s AND project_id = %s
                     ORDER BY occurrence DESC
@@ -129,7 +130,17 @@ class PostgresAssessmentRepository:
                     (candidate.learner_id, project_id),
                 ).fetchone()
                 occurrence = 1 if prior is None else int(prior["occurrence"]) + 1
+                if occurrence > 100:
+                    raise ProjectSubmissionHistoryLimitReached(
+                        "Project submission history is full."
+                    )
                 supersedes = None if prior is None else str(prior["submission_id"])
+                submitted_at = candidate.submitted_at
+                if prior is not None:
+                    prior_submitted_at = prior["submitted_at"]
+                    if not isinstance(prior_submitted_at, datetime):
+                        raise ValueError("Stored Project submission time is invalid.")
+                    submitted_at = max(submitted_at, prior_submitted_at)
                 accepted_sequence = int(
                     connection.execute(
                         "SELECT nextval('assessment.project_submission_accepted_sequence') AS value"
@@ -140,14 +151,14 @@ class PostgresAssessmentRepository:
                     learner_id=candidate.learner_id,
                     occurrence=occurrence,
                     accepted_sequence=accepted_sequence,
-                    submitted_at=candidate.submitted_at,
+                    submitted_at=submitted_at,
                     supersedes_submission_id=supersedes,
                 )
                 evidence = contract.project_evidence(accepted, metadata)
                 event = contract.project_event(
                     evidence,
                     event_id=candidate.event_id,
-                    occurred_at=candidate.submitted_at,
+                    occurred_at=submitted_at,
                 )
                 candidate_document = contract.to_candidate_document(
                     accepted.candidate

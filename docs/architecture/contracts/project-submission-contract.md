@@ -69,7 +69,9 @@ facts from the exact workspace retained with the snapshot. Brief descriptions
 longer than the assessment title field receive a deterministic display-label
 projection; milestone identity and version remain exact. Refusals have no
 persistence side effect, exact replay preserves original server metadata, and
-later snapshots append superseding history without mutation.
+later snapshots append superseding history without mutation. The repository
+enforces the complete-history contract's 100-item bound before commit and
+serializes occurrence with a non-regressing authoritative submission time.
 
 The protected HTTP route, reviewed OpenAPI/client, browser, Learner-model and
 Audit consumers, dispatcher, provider, execution adapter, and managed-cloud

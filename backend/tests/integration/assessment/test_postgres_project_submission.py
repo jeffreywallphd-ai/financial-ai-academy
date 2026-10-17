@@ -5,6 +5,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import Event
 from uuid import UUID
 
 import psycopg
@@ -262,6 +263,68 @@ def test_later_snapshot_appends_supersession_without_mutation() -> None:
     assert second.supersedes_submission_id == "submission-retirement-01"
     assert history.items == (first, second)
     assert _counts() == (2, 1, 2, 2)
+
+
+def test_concurrent_occurrence_reconciles_reversed_server_times() -> None:
+    first_locked = Event()
+    allow_first_commit = Event()
+    second_called = Event()
+
+    def pause_before_first_outbox() -> None:
+        first_locked.set()
+        assert allow_first_commit.wait(timeout=5)
+
+    first_service = _service(start=100, minute=10, before_outbox=pause_before_first_outbox)
+    second_service = _service(start=300, minute=0)
+    second_submission = _approved("submission")
+    second_submission["submission_id"] = "submission-retirement-02"
+
+    def submit_second():
+        second_called.set()
+        return second_service.submit_project_snapshot(
+            _request(submission_document=second_submission)
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first_future = executor.submit(first_service.submit_project_snapshot, _request())
+        assert first_locked.wait(timeout=5)
+        second_future = executor.submit(submit_second)
+        assert second_called.wait(timeout=5)
+        allow_first_commit.set()
+        first = first_future.result().evidence
+        second = second_future.result().evidence
+
+    history = _service(start=500).read_project_completion_history(
+        ReadProjectCompletionHistoryRequest(LEARNER, "project-retirement-plan")
+    )
+    assert first is not None and second is not None
+    assert [item.occurrence for item in history.items] == [1, 2]
+    assert history.items[0].submitted_at == NOW + timedelta(minutes=10)
+    assert history.items[1].submitted_at == history.items[0].submitted_at
+
+
+def test_project_history_bound_refuses_101st_submission_atomically() -> None:
+    service = _service(start=1000)
+    for occurrence in range(1, 101):
+        submission = _approved("submission")
+        submission["submission_id"] = f"submission-retirement-{occurrence:03d}"
+        outcome = service.submit_project_snapshot(
+            _request(submission_document=submission)
+        )
+        assert outcome.evidence is not None
+        assert outcome.evidence.occurrence == occurrence
+
+    overflow = _approved("submission")
+    overflow["submission_id"] = "submission-retirement-101"
+    with pytest.raises(AssessmentError) as captured:
+        service.submit_project_snapshot(_request(submission_document=overflow))
+
+    assert captured.value.code is AssessmentErrorCode.ATTEMPT_LIMIT_REACHED
+    history = service.read_project_completion_history(
+        ReadProjectCompletionHistoryRequest(LEARNER, "project-retirement-plan")
+    )
+    assert len(history.items) == 100
+    assert _counts() == (100, 1, 100, 100)
 
 
 def test_outbox_failure_rolls_back_and_evidence_is_append_only() -> None:

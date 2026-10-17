@@ -49,6 +49,10 @@ class ProjectSubmissionConflict(RuntimeError):
     pass
 
 
+class ProjectSubmissionHistoryLimitReached(RuntimeError):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class ProjectSubmissionRecordCandidate:
     accepted: AcceptedProjectSubmission

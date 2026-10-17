@@ -46,7 +46,8 @@ CREATE TABLE assessment.project_submissions (
         CHECK (snapshot_id ~ '^[a-z0-9][a-z0-9._-]{0,127}$'),
     CONSTRAINT assessment_project_fingerprint_profile
         CHECK (request_fingerprint ~ '^[a-f0-9]{64}$'),
-    CONSTRAINT assessment_project_occurrence_positive CHECK (occurrence >= 1),
+    CONSTRAINT assessment_project_occurrence_profile
+        CHECK (occurrence BETWEEN 1 AND 100),
     CONSTRAINT assessment_project_sequence_positive CHECK (accepted_sequence >= 1),
     CONSTRAINT assessment_project_candidate_object
         CHECK (jsonb_typeof(candidate) = 'object'),

@@ -47,6 +47,7 @@ from ..ports.repositories import (
     PracticeDraftConflict,
     PracticeSubmissionConflict,
     ProjectSubmissionConflict,
+    ProjectSubmissionHistoryLimitReached,
     ProjectSubmissionRecordCandidate,
     SubmissionConflict,
 )
@@ -188,6 +189,13 @@ class AssessmentService:
                 "The submission identity was already used for different input.",
                 reference="submission_id",
                 diagnostic_code="assessment.project.conflicting_submission",
+            ) from error
+        except ProjectSubmissionHistoryLimitReached as error:
+            raise AssessmentError(
+                AssessmentErrorCode.ATTEMPT_LIMIT_REACHED,
+                "This Project has reached its submission-history limit.",
+                reference=request.project_id,
+                diagnostic_code="assessment.project.history_limit_reached",
             ) from error
         except ProjectSubmissionContractFailure as error:
             raise AssessmentError(

@@ -274,3 +274,13 @@ for just-in-time refinement.
   security (10 control groups), planning, documentation, packet validation,
   compilation, and whitespace checks pass. Exact-candidate verification and
   independent technical review remain before completion.
+- 2026-10-17: Independent R01 requested two substantive history-integrity
+  corrections at exact candidate `ed7b499`: serialize non-regressing accepted
+  time with occurrence assignment under the Project stream lock, and refuse a
+  101st accepted record before persistence exceeds the canonical complete-
+  history bound. The correction reconciles time and its event timestamp inside
+  the locked transaction, enforces the bound in application persistence and
+  SQL, and adds deliberately reversed concurrent-time plus 100/101 boundary
+  coverage. Focused Project PostgreSQL checks now pass 6/6 and the complete
+  affected Assessment PostgreSQL set passes 37/37; fresh exact-candidate
+  verification and R01 closure remain.
