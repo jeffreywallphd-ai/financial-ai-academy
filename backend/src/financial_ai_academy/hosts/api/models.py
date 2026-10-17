@@ -56,6 +56,7 @@ from financial_ai_academy.modules.curriculum.public import (
 from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
     PracticeHistoryView,
+    ProjectCompletionView,
 )
 from financial_ai_academy.modules.project.public import (
     IndependentProjectOrigin,
@@ -1993,6 +1994,45 @@ class LessonCompletionResponseModel(ApiModel):
     history: list[LessonCompletionHistoryEntryModel]
 
 
+class ProjectActivityCompletionHistoryEntryModel(ApiModel):
+    event_id: Identifier
+    evidence_id: Identifier
+    submission_id: Identifier
+    snapshot_id: Identifier
+    snapshot_digest: Digest
+    brief_id: Identifier
+    brief_version: ProjectSubmissionVersion
+    brief_digest: Digest
+    placement_id: Identifier
+    placement_version: ProjectSubmissionVersion
+    placement_digest: Digest
+    policy_id: Literal["assessment-project-closure"]
+    policy_version: Literal["1.0.0"]
+    milestone_ids: list[Identifier] = Field(min_length=1, max_length=20)
+    request_fingerprint: Digest
+    occurrence: int = Field(ge=1, le=100)
+    accepted_sequence: int = Field(ge=1)
+    supersedes_submission_id: Identifier | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
+    submitted_at: datetime
+    occurred_at: datetime
+
+
+class ProjectActivityCompletionResponseModel(ApiModel):
+    projection_version: Literal["1.0.0"] = "1.0.0"
+    project_id: Identifier
+    completed: bool
+    completion_meaning: Literal[
+        "not_completed", "bounded_project_activity_completed"
+    ]
+    source_digest: Digest
+    rebuilt_at: datetime
+    history: list[ProjectActivityCompletionHistoryEntryModel] = Field(
+        max_length=100
+    )
+
+
 class HealthResponseModel(ApiModel):
     status: Literal["ok", "ready", "not_ready"]
 
@@ -2346,6 +2386,43 @@ def lesson_completion_response(
                 score=entry.score,
                 max_score=entry.max_score,  # type: ignore[arg-type]
                 completed_at=entry.completed_at,
+            )
+            for entry in view.history
+        ],
+    )
+
+
+def project_activity_completion_response(
+    view: ProjectCompletionView,
+) -> ProjectActivityCompletionResponseModel:
+    return ProjectActivityCompletionResponseModel(
+        project_id=view.project_id,
+        completed=view.completed,
+        completion_meaning=view.completion_meaning,  # type: ignore[arg-type]
+        source_digest=view.source_digest,
+        rebuilt_at=view.rebuilt_at,
+        history=[
+            ProjectActivityCompletionHistoryEntryModel(
+                event_id=entry.event_id,
+                evidence_id=entry.evidence_id,
+                submission_id=entry.submission_id,
+                snapshot_id=entry.snapshot_id,
+                snapshot_digest=entry.snapshot_digest,
+                brief_id=entry.brief_id,
+                brief_version=entry.brief_version,
+                brief_digest=entry.brief_digest,
+                placement_id=entry.placement_id,
+                placement_version=entry.placement_version,
+                placement_digest=entry.placement_digest,
+                policy_id=entry.policy_id,  # type: ignore[arg-type]
+                policy_version=entry.policy_version,  # type: ignore[arg-type]
+                milestone_ids=list(entry.milestone_ids),
+                request_fingerprint=entry.request_fingerprint,
+                occurrence=entry.occurrence,
+                accepted_sequence=entry.accepted_sequence,
+                supersedes_submission_id=entry.supersedes_submission_id,
+                submitted_at=entry.submitted_at,
+                occurred_at=entry.occurred_at,
             )
             for entry in view.history
         ],

@@ -4,11 +4,13 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
-Project learning submission uses four protected operations on the same shared
+Project learning submission uses five protected operations on the same shared
 API: `GET /api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate`,
 `POST /api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions`,
 `GET /api/v1/projects/{project_id}/submissions`, and
-`GET /api/v1/projects/{project_id}/submissions/{submission_id}`. Reads require
+`GET /api/v1/projects/{project_id}/submissions/{submission_id}`, plus the
+Audit-reconciled Learner-model projection at
+`GET /api/v1/projects/{project_id}/completion`. Reads require
 `project.read`; submission requires `project.write`. All derive learner
 identity from the opaque session and reject query-selected authority. The POST
 accepts only the closed v1 milestone-to-snapshot mapping. A structural refusal

@@ -402,6 +402,9 @@ def test_headless_project_submission_refusal_replay_and_history(
             f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate"
         )
         candidate = candidate_response.json()
+        empty_completion = subject.get(
+            f"/api/v1/projects/{project_id}/completion"
+        )
         valid = _submission(candidate, "project-submission-1")
         refused_document = {
             **valid,
@@ -475,6 +478,10 @@ def test_headless_project_submission_refusal_replay_and_history(
             f"/api/v1/projects/{project_id}/submissions/project-submission-1"
         )
         history = subject.get(f"/api/v1/projects/{project_id}/submissions")
+        completion = subject.get(f"/api/v1/projects/{project_id}/completion")
+        completion_query_denied = subject.get(
+            f"/api/v1/projects/{project_id}/completion?learner_id=another-learner"
+        )
 
         independent = subject.post(
             "/api/v1/projects",
@@ -536,6 +543,9 @@ def test_headless_project_submission_refusal_replay_and_history(
             readable = read_only.get(
                 f"/api/v1/projects/{project_id}/submissions/project-submission-1"
             )
+            readable_completion = read_only.get(
+                f"/api/v1/projects/{project_id}/completion"
+            )
             forbidden_submit = read_only.post(
                 f"/api/v1/projects/{project_id}/snapshots/"
                 f"{snapshot_id}/submissions",
@@ -568,6 +578,9 @@ def test_headless_project_submission_refusal_replay_and_history(
             cross_learner_history = another_learner.get(
                 f"/api/v1/projects/{project_id}/submissions"
             )
+            cross_learner_completion = another_learner.get(
+                f"/api/v1/projects/{project_id}/completion"
+            )
             cross_learner_submit = another_learner.post(
                 f"/api/v1/projects/{project_id}/snapshots/"
                 f"{snapshot_id}/submissions",
@@ -578,6 +591,10 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert bootstrapped.status_code == 201
     assert unauthorized.status_code == 401
     assert candidate_response.status_code == 200, candidate_response.text
+    assert empty_completion.status_code == 200, empty_completion.text
+    assert empty_completion.json()["completed"] is False
+    assert empty_completion.json()["completion_meaning"] == "not_completed"
+    assert empty_completion.json()["history"] == []
     assert reference.status_code == artifact.status_code == 200
     assert candidate["milestones"][0]["title"]
     assert candidate["resources"][0]["resource_kind"] == "note"
@@ -613,6 +630,37 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert accepted_response.json()["validation"]["status"] == "accepted"
     assert exact.json() == accepted_response.json()["evidence"]
     assert history.status_code == exact.status_code == 200
+    assert completion.status_code == 200, completion.text
+    assert completion_query_denied.status_code == 400
+    assert completion.json()["project_id"] == project_id
+    assert completion.json()["completed"] is True
+    assert completion.json()["completion_meaning"] == (
+        "bounded_project_activity_completed"
+    )
+    assert completion.json()["history"] == [
+        {
+            "event_id": completion.json()["history"][0]["event_id"],
+            "evidence_id": exact.json()["evidence_id"],
+            "submission_id": exact.json()["submission_id"],
+            "snapshot_id": exact.json()["snapshot_id"],
+            "snapshot_digest": exact.json()["snapshot_digest"],
+            "brief_id": exact.json()["brief_id"],
+            "brief_version": exact.json()["brief_version"],
+            "brief_digest": exact.json()["brief_digest"],
+            "placement_id": exact.json()["placement_id"],
+            "placement_version": exact.json()["placement_version"],
+            "placement_digest": exact.json()["placement_digest"],
+            "policy_id": exact.json()["policy_id"],
+            "policy_version": exact.json()["policy_version"],
+            "milestone_ids": exact.json()["milestone_ids"],
+            "request_fingerprint": exact.json()["request_fingerprint"],
+            "occurrence": exact.json()["occurrence"],
+            "accepted_sequence": exact.json()["accepted_sequence"],
+            "submitted_at": exact.json()["submitted_at"],
+            "occurred_at": completion.json()["history"][0]["occurred_at"],
+        }
+    ]
+    assert "learner_id" not in completion.text
     assert history.json()["items"] == [
         {
             key: value
@@ -632,10 +680,12 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert "learner_id" not in history.text
     assert independent_denied.status_code == 404
     assert readable.status_code == 200
+    assert readable_completion.status_code == 200
     assert forbidden_submit.status_code == 403
     assert cross_learner_candidate.status_code == 404
     assert cross_learner_exact.status_code == 404
     assert cross_learner_history.status_code == 404
+    assert cross_learner_completion.status_code == 404
     assert cross_learner_submit.status_code == 404
     assert all(
         response.json()["code"] == "not_found"
@@ -643,6 +693,7 @@ def test_headless_project_submission_refusal_replay_and_history(
             cross_learner_candidate,
             cross_learner_exact,
             cross_learner_history,
+            cross_learner_completion,
             cross_learner_submit,
         )
     )
@@ -653,4 +704,10 @@ def test_headless_project_submission_refusal_replay_and_history(
         assert connection.execute(
             "SELECT count(*) FROM assessment.project_outbox "
             "WHERE event_type = 'assessment.project.completed'"
+        ).fetchone() == (1,)
+        assert connection.execute(
+            "SELECT count(*) FROM audit.project_completion_records"
+        ).fetchone() == (1,)
+        assert connection.execute(
+            "SELECT count(*) FROM learner_model.project_completion_history"
         ).fetchone() == (1,)

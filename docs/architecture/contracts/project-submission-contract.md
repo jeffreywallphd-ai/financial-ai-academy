@@ -65,7 +65,8 @@ The local composition root now wires Project, Content, and Curriculum public
 operations into Assessment's project-submission source and supplies the same
 contract adapter to the application service and PostgreSQL repository. The
 protected API exposes exact candidate read, snapshot submission, complete
-history read, and exact evidence read under the Project resource. Learner
+history read, exact evidence read, and the reconciled Project-activity
+completion projection under the Project resource. Learner
 identity comes only from the opaque server session; reads require the existing
 `project.read` permission and submission requires `project.write`. Route/body
 Project or snapshot mismatch fails before persistence, and query-selected
@@ -74,7 +75,11 @@ learner authority is rejected.
 HTTP responses are closed projections of the v1 contract. Candidate and exact
 evidence expose only the current session-bound safe facts needed for
 correlation, while ordered history omits learner identity and every Project
-body or artifact byte. A deterministic validation refusal is a bounded normal
+body or artifact byte. The completion read first verifies the learner-owned
+Project, reconciles Audit from the public Assessment replay, and opens the
+Learner-model projection. It carries only bounded completion meaning, exact
+correlation/provenance references, source digest, and rebuild time; it does not
+claim quality, mastery, competency, or advice. A deterministic validation refusal is a bounded normal
 response with no evidence and no write. The reviewed OpenAPI and generated
 TypeScript client are the common browser and headless boundary; neither defines
 an alternate AI authority path.
@@ -93,11 +98,15 @@ later snapshots append superseding history without mutation. The repository
 enforces the complete-history contract's 100-item bound before commit and
 serializes occurrence with a non-regressing authoritative submission time.
 
-The protected HTTP routes and reviewed OpenAPI/generated client are delivered.
+The protected HTTP routes, reconciled completion read, and reviewed
+OpenAPI/generated client are delivered.
 Assessment now also exposes retained events through a typed, read-only public
 replay operation for one server-supplied learner and Project. Learner model
 rebuilds bounded Project-activity completion, while Audit appends integrity/
 provenance references; exact replay is idempotent and neither consumer copies
-workspace state or reads another module's tables. The browser, dispatcher,
+workspace state or reads another module's tables. The browser now uses those
+same generated operations to select candidate-owned evidence for every
+milestone, retain a stable retry identity, display bounded refusals, reopen
+exact accepted evidence, and show non-mastery completion meaning. Dispatcher,
 provider, execution adapter, and managed-cloud profile remain later bounded
 work and must consume rather than redefine this contract.

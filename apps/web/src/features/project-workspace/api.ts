@@ -10,8 +10,14 @@ import {
   projectListIsSafe,
   projectEvidenceExportBindingsAreSafe,
   projectEvidenceExportBundleIsSafe,
+  projectActivityCompletionIsSafe,
+  projectCompletionEvidenceIsSafe,
+  projectCompletionHistoryIsSafe,
+  projectLearningSelection,
   projectSnapshotListIsSafe,
   projectShellIsSafe,
+  projectSubmissionCandidateIsSafe,
+  projectSubmissionOutcomeIsSafe,
   projectWorkspaceIsSafe,
   type ProjectCreateActionState,
   type ProjectCreateRouteState,
@@ -19,6 +25,8 @@ import {
   type ProjectDownloadOutcome,
   type ProjectExportOutcome,
   type ProjectListRouteState,
+  type ProjectLearningActionState,
+  type ProjectLearningRouteState,
   type ProjectArtifact,
   type ProjectWorkspaceActionState,
 } from "./model";
@@ -119,6 +127,249 @@ export function createProjectDetailLoader(client: FinancialAcademyApiClient, ses
     const established = await ensure(session, request.signal);
     if (established.status === "error") return { status: established.kind };
     return readProjectDetail(client, session, request.signal, params.projectId, true);
+  };
+}
+
+function learningFailure(status: number): Exclude<ProjectLearningRouteState, { status: "ready" }> {
+  if (status === 400 || status === 422) return { status: "invalid-selection" };
+  if (status === 401) return { status: "unauthorized" };
+  if (status === 403) return { status: "forbidden" };
+  if (status === 404) return { status: "not-found" };
+  if (status === 409 || status === 503) return { status: "unavailable" };
+  return { status: "unexpected" };
+}
+
+async function readProjectLearning(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  signal: AbortSignal,
+  projectId: string,
+  selection: NonNullable<ReturnType<typeof projectLearningSelection>>,
+  retryUnauthorized: boolean,
+): Promise<ProjectLearningRouteState> {
+  try {
+    const projectResult = await client.GET("/api/v1/projects/{project_id}", {
+      params: { path: { project_id: projectId } }, signal,
+    });
+    const completionResult = await client.GET("/api/v1/projects/{project_id}/completion", {
+      params: { path: { project_id: projectId } }, signal,
+    });
+    const common = [projectResult, completionResult];
+    const failed = common.find((result) => result.response.status !== 200);
+    if (failed) {
+      if (failed.response.status === 401 && retryUnauthorized) {
+        session.invalidate();
+        const renewed = await ensure(session, signal);
+        if (renewed.status === "error") return { status: renewed.kind };
+        return readProjectLearning(client, session, signal, projectId, selection, false);
+      }
+      return learningFailure(failed.response.status);
+    }
+    if (!projectResult.data || !projectShellIsSafe(projectResult.data) || projectResult.data.project_id !== projectId
+      || !completionResult.data || !projectActivityCompletionIsSafe(completionResult.data, projectId)) {
+      return { status: "invalid-response" };
+    }
+    let history: components["schemas"]["ProjectCompletionHistoryResponseModel"] = {
+      schema_version: "1.0.0", project_id: projectId, items: [],
+    };
+    if (completionResult.data.completed) {
+      const historyResult = await client.GET("/api/v1/projects/{project_id}/submissions", {
+        params: { path: { project_id: projectId } }, signal,
+      });
+      if (historyResult.response.status === 401 && retryUnauthorized) {
+        session.invalidate();
+        const renewed = await ensure(session, signal);
+        if (renewed.status === "error") return { status: renewed.kind };
+        return readProjectLearning(client, session, signal, projectId, selection, false);
+      }
+      if (historyResult.response.status !== 200) return learningFailure(historyResult.response.status);
+      if (!historyResult.data || !projectCompletionHistoryIsSafe(historyResult.data, projectId)) return { status: "invalid-response" };
+      history = historyResult.data;
+    }
+    const completionHistory = completionResult.data.history;
+    if (history.items.length !== completionHistory.length || history.items.some((item, index) => {
+      const projected = completionHistory[index];
+      return !projected || item.submission_id !== projected.submission_id || item.evidence_id !== projected.evidence_id
+        || item.snapshot_id !== projected.snapshot_id || item.snapshot_digest !== projected.snapshot_digest
+        || item.request_fingerprint !== projected.request_fingerprint || item.occurrence !== projected.occurrence
+        || item.submitted_at !== projected.submitted_at || item.supersedes_submission_id !== projected.supersedes_submission_id;
+    })) {
+      return { status: "invalid-response" };
+    }
+
+    if (selection.mode === "snapshot") {
+      if (projectResult.data.origin.origin_type !== "learning") return { status: "not-found" };
+      const candidateResult = await client.GET("/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate", {
+        params: { path: { project_id: projectId, snapshot_id: selection.snapshotId } }, signal,
+      });
+      if (candidateResult.response.status === 401 && retryUnauthorized) {
+        session.invalidate();
+        const renewed = await ensure(session, signal);
+        if (renewed.status === "error") return { status: renewed.kind };
+        return readProjectLearning(client, session, signal, projectId, selection, false);
+      }
+      if (candidateResult.response.status !== 200) return learningFailure(candidateResult.response.status);
+      if (!candidateResult.data || !projectSubmissionCandidateIsSafe(candidateResult.data, projectResult.data, selection.snapshotId)) {
+        return { status: "invalid-response" };
+      }
+      return {
+        status: "ready", project: projectResult.data, history, completion: completionResult.data,
+        selection, candidate: candidateResult.data, submissionId: crypto.randomUUID().toLowerCase(),
+      };
+    }
+
+    if (selection.mode === "submission") {
+      const evidenceResult = await client.GET("/api/v1/projects/{project_id}/submissions/{submission_id}", {
+        params: { path: { project_id: projectId, submission_id: selection.submissionId } }, signal,
+      });
+      if (evidenceResult.response.status === 401 && retryUnauthorized) {
+        session.invalidate();
+        const renewed = await ensure(session, signal);
+        if (renewed.status === "error") return { status: renewed.kind };
+        return readProjectLearning(client, session, signal, projectId, selection, false);
+      }
+      if (evidenceResult.response.status !== 200) return learningFailure(evidenceResult.response.status);
+      if (!evidenceResult.data || !projectCompletionEvidenceIsSafe(evidenceResult.data, projectId, selection.submissionId)
+        || evidenceResult.data.learner_id !== projectResult.data.learner_id
+        || !history.items.some((item) => item.submission_id === selection.submissionId
+          && item.evidence_id === evidenceResult.data?.evidence_id
+          && item.request_fingerprint === evidenceResult.data?.request_fingerprint)) {
+        return { status: "invalid-response" };
+      }
+      return {
+        status: "ready", project: projectResult.data, history, completion: completionResult.data,
+        selection, evidence: evidenceResult.data, submissionId: crypto.randomUUID().toLowerCase(),
+      };
+    }
+
+    return {
+      status: "ready", project: projectResult.data, history, completion: completionResult.data,
+      selection, submissionId: crypto.randomUUID().toLowerCase(),
+    };
+  } catch (error) {
+    if (signal.aborted) throw error;
+    return { status: "unavailable" };
+  }
+}
+
+export function createProjectLearningLoader(client: FinancialAcademyApiClient, session: SingleProfileSession) {
+  return async ({ request, params }: LoaderFunctionArgs): Promise<ProjectLearningRouteState> => {
+    const projectId = params.projectId;
+    const selection = projectLearningSelection(request.url);
+    if (!projectIdentifierIsSafe(projectId) || selection === null) return { status: "invalid-selection" };
+    const established = await ensure(session, request.signal);
+    if (established.status === "error") return { status: established.kind };
+    return readProjectLearning(client, session, request.signal, projectId, selection, true);
+  };
+}
+
+function learningActionError(
+  kind: ProjectLearningActionState["kind"],
+  submissionId: string,
+  selections: readonly string[],
+  issues?: ProjectLearningActionState["issues"],
+): ProjectLearningActionState {
+  return { status: "error", kind, submissionId, selections, ...(issues ? { issues } : {}) };
+}
+
+export function createProjectLearningAction(client: FinancialAcademyApiClient, session: SingleProfileSession) {
+  return async ({ request, params }: ActionFunctionArgs): Promise<Response | ProjectLearningActionState> => {
+    const projectId = params.projectId;
+    const selection = projectLearningSelection(request.url);
+    const form = await request.formData();
+    const submissionId = oneFormValue(form, "submission_id") ?? "invalid";
+    const selections = form.getAll("selection").filter((value): value is string => typeof value === "string");
+    if (!projectIdentifierIsSafe(projectId) || selection?.mode !== "snapshot" || !projectIdentifierIsSafe(submissionId)
+      || [...form.keys()].some((key) => key !== "submission_id" && key !== "selection")
+      || selections.length < 1 || new Set(selections).size !== selections.length) {
+      return learningActionError("invalid-input", submissionId, selections);
+    }
+    const established = await ensure(session, request.signal);
+    if (established.status === "error") return learningActionError(established.kind, submissionId, selections);
+    try {
+      const openCandidate = () => Promise.all([
+        client.GET("/api/v1/projects/{project_id}", { params: { path: { project_id: projectId } }, signal: request.signal }),
+        client.GET("/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate", {
+          params: { path: { project_id: projectId, snapshot_id: selection.snapshotId } }, signal: request.signal,
+        }),
+      ]);
+      let [projectResult, candidateResult] = await openCandidate();
+      if (projectResult.response.status === 401 || candidateResult.response.status === 401) {
+        session.invalidate();
+        const renewed = await ensure(session, request.signal);
+        if (renewed.status === "error") return learningActionError(renewed.kind, submissionId, selections);
+        [projectResult, candidateResult] = await openCandidate();
+      }
+      if (projectResult.response.status !== 200 || candidateResult.response.status !== 200) {
+        const status = projectResult.response.status !== 200 ? projectResult.response.status : candidateResult.response.status;
+        const kind = learningFailure(status).status;
+        return learningActionError(kind === "invalid-selection" ? "invalid-input" : kind, submissionId, selections);
+      }
+      if (!projectResult.data || !projectShellIsSafe(projectResult.data) || !candidateResult.data
+        || !projectSubmissionCandidateIsSafe(candidateResult.data, projectResult.data, selection.snapshotId)) {
+        return learningActionError("invalid-response", submissionId, selections);
+      }
+      const candidate = candidateResult.data;
+      const byMilestone = new Map<string, number[]>();
+      for (const selected of selections) {
+        const match = /^([a-z0-9][a-z0-9._-]{0,127}):([0-9]+)$/.exec(selected);
+        const index = match ? Number(match[2]) : -1;
+        if (!match || !Number.isSafeInteger(index) || index < 0 || index >= candidate.resources.length) {
+          return learningActionError("invalid-input", submissionId, selections);
+        }
+        const milestoneId = match[1]!;
+        const indexes = byMilestone.get(milestoneId) ?? [];
+        indexes.push(index);
+        byMilestone.set(milestoneId, indexes);
+      }
+      const milestoneIds = new Set(candidate.milestones.map((item) => item.milestone_id));
+      if ([...byMilestone].some(([id, indexes]) => !milestoneIds.has(id) || indexes.length > 50)
+        || candidate.milestones.some((item) => (byMilestone.get(item.milestone_id)?.length ?? 0) < 1)) {
+        return learningActionError("invalid-input", submissionId, selections);
+      }
+      const body: components["schemas"]["ProjectSubmissionRequestModel"] = {
+        schema_version: "1.0.0",
+        submission_id: submissionId,
+        source: {
+          project_id: candidate.project.project_id,
+          snapshot_id: candidate.project.snapshot_id,
+          snapshot_digest: candidate.project.snapshot_digest,
+          brief_id: candidate.origin.brief_id,
+          brief_version: candidate.origin.brief_version,
+          brief_digest: candidate.origin.brief_digest,
+          placement_id: candidate.origin.placement_id,
+          placement_version: candidate.origin.placement_version,
+          placement_digest: candidate.origin.placement_digest,
+        },
+        policy_id: candidate.policy_id,
+        policy_version: candidate.policy_version,
+        milestone_evidence: candidate.milestones.map((milestone) => ({
+          milestone_id: milestone.milestone_id,
+          resources: (byMilestone.get(milestone.milestone_id) ?? []).map((index) => candidate.resources[index]!),
+        })),
+      };
+      const result = await postWithRenewal(() => client.POST("/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions", {
+        params: { path: { project_id: projectId, snapshot_id: selection.snapshotId } }, body, signal: request.signal,
+      }), session, request.signal);
+      if (result.response.status === 200) {
+        if (!result.data || !projectSubmissionOutcomeIsSafe(result.data, projectId, submissionId)) {
+          return learningActionError("invalid-response", submissionId, selections);
+        }
+        return result.data.validation.status === "accepted"
+          ? redirect(`/projects/${encodeURIComponent(projectId)}/learning?submission=${encodeURIComponent(submissionId)}`)
+          : learningActionError("refused", submissionId, selections, result.data.validation.issues);
+      }
+      if (result.response.status === 400 || result.response.status === 422) return learningActionError("invalid-input", submissionId, selections);
+      if (result.response.status === 401) return learningActionError("unauthorized", submissionId, selections);
+      if (result.response.status === 403) return learningActionError("forbidden", submissionId, selections);
+      if (result.response.status === 404) return learningActionError("not-found", submissionId, selections);
+      if (result.response.status === 409) return learningActionError("conflict", submissionId, selections);
+      if (result.response.status === 503) return learningActionError("unavailable", submissionId, selections);
+      return learningActionError("unexpected", submissionId, selections);
+    } catch (error) {
+      if (request.signal.aborted) throw error;
+      return learningActionError("unavailable", submissionId, selections);
+    }
   };
 }
 

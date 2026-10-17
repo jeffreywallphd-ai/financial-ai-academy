@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest";
 import { ProjectCreatePage } from "../../src/features/project-workspace/ProjectCreatePage";
 import { ProjectDetailPage } from "../../src/features/project-workspace/ProjectDetailPage";
 import { ProjectListPage } from "../../src/features/project-workspace/ProjectListPage";
-import type { LearningProjectStartOption, ProjectShell, ProjectSnapshot, ProjectWorkspace } from "../../src/features/project-workspace/model";
+import { ProjectSubmissionPage } from "../../src/features/project-workspace/ProjectSubmissionPage";
+import type { LearningProjectStartOption, ProjectActivityCompletion, ProjectCompletionHistory, ProjectShell, ProjectSnapshot, ProjectSubmissionCandidate, ProjectWorkspace } from "../../src/features/project-workspace/model";
 
 const origin = {
   origin_type: "learning" as const,
@@ -54,8 +55,51 @@ const workspace: ProjectWorkspace = {
 };
 const downloadArtifact = async () => ({ status: "unavailable" as const });
 const exportSnapshot = async () => ({ status: "unavailable" as const });
+const submissionCandidate: ProjectSubmissionCandidate = {
+  schema_version: "1.0.0",
+  project: { project_id: project.project_id, project_revision: 1, project_shell_digest: "e".repeat(64), snapshot_id: "snapshot-one", snapshot_digest: "f".repeat(64), workspace_revision: 1, closed_at: workspace.updated_at },
+  origin: {
+    package_id: origin.package_id, package_version: origin.package_version, package_digest: origin.package_digest,
+    brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
+    curriculum_id: origin.curriculum_id, curriculum_version: origin.curriculum_version, curriculum_digest: origin.curriculum_digest,
+    placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
+  },
+  policy_id: "assessment-project-closure", policy_version: "1.0.0",
+  milestones: [{ milestone_id: "milestone-one", milestone_version: "1.0.0", sequence: 1, title: "Compare the evidence" }],
+  resources: [{ resource_kind: "note", resource_id: "note-one", resource_version: 1, record_digest: "a".repeat(64) }],
+};
+const submissionHistory: ProjectCompletionHistory = { schema_version: "1.0.0", project_id: project.project_id, items: [] };
+const projectCompletion: ProjectActivityCompletion = { projection_version: "1.0.0", project_id: project.project_id, completed: false, completion_meaning: "not_completed", source_digest: "b".repeat(64), rebuilt_at: workspace.updated_at, history: [] };
 
 describe("Project learner pages", () => {
+  it("presents a checkpoint as plain-language, keyboard-reachable milestone choices", async () => {
+    const submissions: FormData[] = [];
+    const router = createMemoryRouter([{ path: "/projects/:projectId/learning", action: async ({ request }) => { submissions.push(await request.formData()); return null; }, element: <ProjectSubmissionPage actionState={undefined} busy={false} candidate={submissionCandidate} completion={projectCompletion} evidence={undefined} history={submissionHistory} project={project} selection={{ mode: "snapshot", snapshotId: "snapshot-one" }} submissionId="submission-one" /> }], { initialEntries: [`/projects/${project.project_id}/learning?snapshot=snapshot-one`] });
+    render(<RouterProvider router={router} />);
+    const user = userEvent.setup();
+
+    expect(screen.getByRole("heading", { level: 2, name: "Choose evidence for each milestone" })).toBeVisible();
+    expect(screen.getByRole("group", { name: /Compare the evidence/ })).toBeVisible();
+    expect(document.body.textContent).not.toMatch(/idempotency|database|object storage/i);
+    await user.click(screen.getByLabelText("note 1"));
+    await user.click(screen.getByRole("button", { name: "Submit checkpoint" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(submissions[0]?.get("submission_id")).toBe("submission-one");
+    expect(submissions[0]?.getAll("selection")).toEqual(["milestone-one:0"]);
+  });
+
+  it("keeps refused choices selected and rotates authority only after a correction", async () => {
+    const router = createMemoryRouter([{ path: "/projects/:projectId/learning", element: <ProjectSubmissionPage actionState={{ status: "error", kind: "refused", submissionId: "submission-one", selections: ["milestone-one:0"], issues: [{ code: "assessment.project.missing_milestone", reference: "milestone-one", message: "Add evidence for this milestone." }] }} busy={false} candidate={submissionCandidate} completion={projectCompletion} evidence={undefined} history={submissionHistory} project={project} selection={{ mode: "snapshot", snapshotId: "snapshot-one" }} submissionId="new-submission" /> }], { initialEntries: [`/projects/${project.project_id}/learning?snapshot=snapshot-one`] });
+    render(<RouterProvider router={router} />);
+    expect(screen.getByRole("heading", { name: "Checkpoint not submitted" })).toHaveFocus();
+    expect(screen.getByLabelText("note 1")).toBeChecked();
+    expect(screen.getByText("Add evidence for this milestone.")).toBeVisible();
+    const request = () => document.querySelector<HTMLInputElement>('input[name="submission_id"]')?.value;
+    expect(request()).toBe("submission-one");
+    await userEvent.setup().click(screen.getByLabelText("note 1"));
+    expect(request()).not.toBe("submission-one");
+  });
+
   it("renders zero or several records without assuming one fixture", () => {
     const { rerender } = render(<MemoryRouter><ProjectListPage options={[]} projects={[]} /></MemoryRouter>);
     expect(screen.getByText("You have not started a Project yet.")).toBeVisible();

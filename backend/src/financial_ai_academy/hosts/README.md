@@ -34,8 +34,11 @@ the same Project resource. An exact snapshot candidate is read at
 `/snapshots/{snapshot_id}/submission-candidate`; a closed mapping is posted to
 `/snapshots/{snapshot_id}/submissions`; retained ordered history and exact
 evidence are read from `/submissions` and `/submissions/{submission_id}`. The
-host only binds session learner, permission, and route selectors before calling
-Assessment public operations. Candidate assembly, deterministic validation,
+bounded Project-activity completion projection is read at `/completion`; the
+host first proves Project ownership, asks Audit to reconcile the public replay,
+and then opens the Learner-model projection. The host only binds session
+learner, permission, and route selectors before calling public operations.
+Candidate assembly, deterministic validation,
 side-effect-free refusal, replay, occurrence, supersession, and persistence
 remain in the shared application core. Responses contain no workspace body,
 artifact bytes, storage path, execution control, grading, mastery, or provider

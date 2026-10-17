@@ -52,6 +52,7 @@ from financial_ai_academy.modules.audit.public import (
     AuditErrorCode,
     AuditOperations,
     ReconcileLessonCompletionAuditRequest,
+    ReconcileProjectCompletionAuditRequest,
 )
 from financial_ai_academy.modules.content.public import (
     LessonErrorCode,
@@ -88,6 +89,7 @@ from financial_ai_academy.modules.learner_model.public import (
     LearnerModelErrorCode,
     LearnerModelOperations,
     OpenLessonCompletionRequest,
+    OpenProjectCompletionRequest,
     OpenPracticeHistoryRequest,
     PracticeHistoryView,
 )
@@ -141,6 +143,7 @@ from .models import (
     ProjectEvidenceExportBundleResponseModel,
     ProjectCompletionEvidenceResponseModel,
     ProjectCompletionHistoryResponseModel,
+    ProjectActivityCompletionResponseModel,
     ProjectListResponseModel,
     ProjectSnapshotCloseRequestModel,
     ProjectSnapshotListResponseModel,
@@ -173,6 +176,7 @@ from .models import (
     project_evidence_export_response,
     project_completion_evidence_response,
     project_completion_history_response,
+    project_activity_completion_response,
     project_list_response,
     project_snapshot_close_intent,
     project_snapshot_list_response,
@@ -1133,6 +1137,47 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         )
         return project_completion_evidence_response(evidence)
+
+    @app.get(
+        "/api/v1/projects/{project_id}/completion",
+        response_model=ProjectActivityCompletionResponseModel,
+        response_model_exclude_none=True,
+        operation_id="getProjectCompletion",
+        responses=_ERROR_RESPONSES,
+        tags=["projects", "learner-model"],
+    )
+    def get_project_completion(
+        request: Request,
+        project_id: str = Path(min_length=1, max_length=128),
+        context: LearnerContext = Depends(project_read_context),
+    ) -> ProjectActivityCompletionResponseModel:
+        if request.query_params:
+            raise AssessmentError(
+                AssessmentErrorCode.INVALID_SUBMISSION,
+                "Project completion does not accept query input.",
+                reference="query",
+            )
+        project_operations().open_project(
+            OpenProjectRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+            )
+        )
+        _audit_service(services.audit).reconcile_project_completion(
+            ReconcileProjectCompletionAuditRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+            )
+        )
+        view = _learner_model_service(
+            services.learner_model
+        ).open_project_completion(
+            OpenProjectCompletionRequest(
+                learner_id=context.learner_id,
+                project_id=project_id,
+            )
+        )
+        return project_activity_completion_response(view)
 
     @app.get(
         "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",

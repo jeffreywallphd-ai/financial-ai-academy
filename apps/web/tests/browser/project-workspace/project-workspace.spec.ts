@@ -65,6 +65,7 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
   const references: Record<string, unknown>[] = [];
   const artifacts: Record<string, unknown>[] = [];
   const snapshots: Record<string, unknown>[] = [];
+  let acceptedEvidence: Record<string, unknown> | null = null;
   let artifactBytes = "";
   const workspace = (projectId: string) => ({
     schema_version: "1.0.0", project_id: projectId, learner_id: "learner-a", workspace_revision: workspaceRevision,
@@ -121,6 +122,67 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
       return json(route, 200, record);
     }
     if (request.method() === "GET" && snapshotCollectionMatch) return json(route, 200, { records: snapshots });
+    const candidateMatch = /^\/api\/v1\/projects\/([^/]+)\/snapshots\/([^/]+)\/submission-candidate$/.exec(url.pathname);
+    if (request.method() === "GET" && candidateMatch) {
+      const snapshotRecord = snapshots.find((item) => item.snapshot_id === candidateMatch[2]) as { snapshot_digest?: string; closed_at?: string; snapshot?: { workspace_revision?: number } } | undefined;
+      if (!snapshotRecord) return json(route, 404, { code: "not_found" });
+      const resources = notes.map((note) => ({ resource_kind: "note", resource_id: note.note_id, resource_version: 1, record_digest: canonicalDigest(note) }));
+      return json(route, 200, {
+        schema_version: "1.0.0",
+        project: { project_id: candidateMatch[1], project_revision: 1, project_shell_digest: "e".repeat(64), snapshot_id: candidateMatch[2], snapshot_digest: snapshotRecord.snapshot_digest, workspace_revision: snapshotRecord.snapshot?.workspace_revision, closed_at: snapshotRecord.closed_at },
+        origin: {
+          package_id: origin.package_id, package_version: origin.package_version, package_digest: origin.package_digest,
+          brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
+          curriculum_id: origin.curriculum_id, curriculum_version: origin.curriculum_version, curriculum_digest: origin.curriculum_digest,
+          placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
+        },
+        policy_id: "assessment-project-closure", policy_version: "1.0.0",
+        milestones: [{ milestone_id: "milestone-one", milestone_version: "1.0.0", sequence: 1, title: "Compare the evidence" }],
+        resources,
+      });
+    }
+    const submissionCollectionMatch = /^\/api\/v1\/projects\/([^/]+)\/snapshots\/([^/]+)\/submissions$/.exec(url.pathname);
+    if (request.method() === "POST" && submissionCollectionMatch) {
+      const body = request.postDataJSON() as Record<string, unknown>;
+      postBodies.push(body);
+      acceptedEvidence = {
+        schema_version: "1.0.0", evidence_id: "evidence-one", learner_id: "learner-a", submission_id: body.submission_id,
+        project_id: submissionCollectionMatch[1], snapshot_id: submissionCollectionMatch[2], snapshot_digest: (body.source as Record<string, unknown>).snapshot_digest,
+        brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
+        placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
+        policy_id: "assessment-project-closure", policy_version: "1.0.0", milestone_evidence: body.milestone_evidence,
+        milestone_ids: ["milestone-one"], request_fingerprint: "f".repeat(64), occurrence: 1, accepted_sequence: 1,
+        submitted_at: "2026-10-16T20:05:00Z",
+      };
+      return json(route, 200, { validation: { schema_version: "1.0.0", status: "accepted", request_fingerprint: "f".repeat(64), issues: [] }, evidence: acceptedEvidence });
+    }
+    const exactSubmissionMatch = /^\/api\/v1\/projects\/([^/]+)\/submissions\/([^/]+)$/.exec(url.pathname);
+    if (request.method() === "GET" && exactSubmissionMatch) return acceptedEvidence && acceptedEvidence.submission_id === exactSubmissionMatch[2]
+      ? json(route, 200, acceptedEvidence)
+      : json(route, 404, { code: "not_found" });
+    const historyMatch = /^\/api\/v1\/projects\/([^/]+)\/submissions$/.exec(url.pathname);
+    if (request.method() === "GET" && historyMatch) return json(route, 200, {
+      schema_version: "1.0.0", project_id: historyMatch[1], items: acceptedEvidence ? [{
+        evidence_id: acceptedEvidence.evidence_id, submission_id: acceptedEvidence.submission_id,
+        snapshot_id: acceptedEvidence.snapshot_id, snapshot_digest: acceptedEvidence.snapshot_digest,
+        request_fingerprint: acceptedEvidence.request_fingerprint, occurrence: 1, submitted_at: acceptedEvidence.submitted_at,
+      }] : [],
+    });
+    const completionMatch = /^\/api\/v1\/projects\/([^/]+)\/completion$/.exec(url.pathname);
+    if (request.method() === "GET" && completionMatch) return json(route, 200, {
+      projection_version: "1.0.0", project_id: completionMatch[1], completed: acceptedEvidence !== null,
+      completion_meaning: acceptedEvidence ? "bounded_project_activity_completed" : "not_completed",
+      source_digest: "b".repeat(64), rebuilt_at: "2026-10-16T20:06:00Z",
+      history: acceptedEvidence ? [{
+        event_id: "event-one", evidence_id: acceptedEvidence.evidence_id, submission_id: acceptedEvidence.submission_id,
+        snapshot_id: acceptedEvidence.snapshot_id, snapshot_digest: acceptedEvidence.snapshot_digest,
+        brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
+        placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
+        policy_id: "assessment-project-closure", policy_version: "1.0.0", milestone_ids: ["milestone-one"],
+        request_fingerprint: acceptedEvidence.request_fingerprint, occurrence: 1, accepted_sequence: 1,
+        submitted_at: acceptedEvidence.submitted_at, occurred_at: "2026-10-16T20:05:00Z",
+      }] : [],
+    });
     const exportMatch = /^\/api\/v1\/projects\/([^/]+)\/snapshots\/([^/]+)\/export$/.exec(url.pathname);
     if (request.method() === "GET" && exportMatch) {
       const snapshotRecord = snapshots.find((item) => item.snapshot_id === exportMatch[2]);
@@ -281,4 +343,31 @@ test("saves Project work, keeps files inert, closes a snapshot, and continues wo
   const checkpointBodies = posts.filter((body) => "expected_project_revision" in body);
   expect(checkpointBodies).toHaveLength(2);
   expect(new Set(checkpointBodies.map((body) => body.idempotency_key)).size).toBe(2);
+});
+
+test("submits a learning Project checkpoint and reopens the accepted evidence", async ({ page }) => {
+  const posts: Record<string, unknown>[] = [];
+  await mockProjects(page, posts);
+  await page.goto(`/projects/new?placement=${origin.placement_id}`);
+  await page.getByLabel(/What do you want/i).fill("Apply the learning brief to evidence.");
+  await page.getByRole("button", { name: "Create Project" }).click();
+  await page.getByLabel("Note title").fill("Comparison evidence");
+  await page.getByLabel("Note", { exact: true }).fill("A bounded comparison with no recommendation.");
+  await page.getByRole("button", { name: "Save note" }).click();
+  await page.getByRole("button", { name: "Save checkpoint" }).click();
+  await page.getByRole("link", { name: "Submit for learning" }).click();
+
+  await expect(page.getByRole("heading", { name: "Choose evidence for each milestone" })).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+  await page.getByLabel("note 1").check();
+  const submission = page.waitForRequest((request) => request.method() === "POST" && new URL(request.url()).pathname.endsWith("/submissions"));
+  await page.getByRole("button", { name: "Submit checkpoint" }).click();
+  const submitted = await submission;
+
+  await expect(page).toHaveURL(/\/learning\?submission=/);
+  await expect(page.getByRole("heading", { name: "Submitted checkpoint" })).toBeVisible();
+  await expect(page.getByText(/does not grade its quality, show mastery, or provide financial advice/i)).toBeVisible();
+  const body = submitted.postDataJSON() as Record<string, unknown>;
+  expect(body).not.toHaveProperty("learner_id");
+  expect(body).toEqual(expect.objectContaining({ policy_id: "assessment-project-closure", milestone_evidence: [expect.objectContaining({ milestone_id: "milestone-one" })] }));
 });

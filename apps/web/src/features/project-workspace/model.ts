@@ -10,6 +10,37 @@ export type ProjectArtifact = components["schemas"]["ProjectArtifactResponseMode
 export type ProjectReference = components["schemas"]["ProjectReferenceResponseModel"];
 export type ProjectNote = components["schemas"]["ProjectNoteResponseModel"];
 export type ProjectEvidenceExportBundle = components["schemas"]["ProjectEvidenceExportBundleResponseModel"];
+export type ProjectSubmissionCandidate = components["schemas"]["ProjectSubmissionCandidateResponseModel"];
+export type ProjectSubmissionOutcome = components["schemas"]["ProjectSubmissionOutcomeResponseModel"];
+export type ProjectCompletionEvidence = components["schemas"]["ProjectCompletionEvidenceResponseModel"];
+export type ProjectCompletionHistory = components["schemas"]["ProjectCompletionHistoryResponseModel"];
+export type ProjectActivityCompletion = components["schemas"]["ProjectActivityCompletionResponseModel"];
+
+export type ProjectLearningSelection =
+  | { mode: "overview" }
+  | { mode: "snapshot"; snapshotId: string }
+  | { mode: "submission"; submissionId: string };
+
+export type ProjectLearningRouteState =
+  | {
+      status: "ready";
+      project: ProjectShell;
+      history: ProjectCompletionHistory;
+      completion: ProjectActivityCompletion;
+      selection: ProjectLearningSelection;
+      candidate?: ProjectSubmissionCandidate;
+      evidence?: ProjectCompletionEvidence;
+      submissionId: string;
+    }
+  | { status: "invalid-selection" | "not-found" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected" };
+
+export type ProjectLearningActionState = {
+  status: "error";
+  kind: "invalid-input" | "refused" | "conflict" | "not-found" | "unauthorized" | "forbidden" | "unavailable" | "invalid-response" | "unexpected";
+  submissionId: string;
+  selections: readonly string[];
+  issues?: readonly components["schemas"]["ProjectValidationIssueResponseModel"][];
+};
 
 export type ProjectListRouteState =
   | { status: "ready"; projects: readonly ProjectShell[]; options: readonly LearningProjectStartOption[] }
@@ -492,4 +523,170 @@ export async function projectEvidenceExportBindingsAreSafe(value: ProjectEvidenc
 
 export function readableProjectDate(value: string): string {
   return new Intl.DateTimeFormat("en", { day: "numeric", month: "short", timeZone: "UTC", year: "numeric" }).format(new Date(value));
+}
+
+const SUBMISSION_VERSION = /^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$/;
+
+function submissionVersion(value: unknown): value is string {
+  return typeof value === "string" && value.length <= 64 && SUBMISSION_VERSION.test(value);
+}
+
+function submissionResourceIsSafe(value: unknown): value is components["schemas"]["ProjectMilestoneEvidenceRequestModel"]["resources"][number] {
+  if (!record(value) || !projectIdentifierIsSafe(value.resource_id) || !digest(value.record_digest)) return false;
+  if (value.resource_kind === "note" || value.resource_kind === "source") {
+    return exactKeys(value, ["resource_kind", "resource_id", "resource_version", "record_digest"])
+      && positiveInteger(value.resource_version);
+  }
+  if (value.resource_kind === "artifact") {
+    return exactKeys(value, ["resource_kind", "resource_id", "resource_version", "record_digest", "content_digest", "byte_count"])
+      && positiveInteger(value.resource_version) && digest(value.content_digest)
+      && Number.isInteger(value.byte_count) && Number(value.byte_count) >= 0 && Number(value.byte_count) <= 10_485_760;
+  }
+  if (value.resource_kind !== "domain_resource" || !digest(value.owner_reference_digest)) return false;
+  return exactKeys(value, ["resource_kind", "resource_id", "record_digest", "owner_reference_digest", "resource_version"])
+    ? boundedText(value.resource_version, 1, 128)
+    : exactKeys(value, ["resource_kind", "resource_id", "record_digest", "owner_reference_digest", "resource_as_of"])
+      && utcTimestamp(value.resource_as_of);
+}
+
+export function projectSubmissionCandidateIsSafe(
+  value: unknown,
+  project?: ProjectShell,
+  snapshotId?: string,
+): value is ProjectSubmissionCandidate {
+  if (!record(value) || !exactKeys(value, ["schema_version", "project", "origin", "policy_id", "policy_version", "milestones", "resources"])
+    || value.schema_version !== "1.0.0" || value.policy_id !== "assessment-project-closure" || value.policy_version !== "1.0.0"
+    || !record(value.project) || !exactKeys(value.project, ["project_id", "project_revision", "project_shell_digest", "snapshot_id", "snapshot_digest", "workspace_revision", "closed_at"])
+    || !projectIdentifierIsSafe(value.project.project_id) || !positiveInteger(value.project.project_revision)
+    || !digest(value.project.project_shell_digest) || !projectIdentifierIsSafe(value.project.snapshot_id)
+    || !digest(value.project.snapshot_digest) || !positiveInteger(value.project.workspace_revision) || !utcTimestamp(value.project.closed_at)
+    || !record(value.origin) || !exactKeys(value.origin, ["package_id", "package_version", "package_digest", "brief_id", "brief_version", "brief_digest", "curriculum_id", "curriculum_version", "curriculum_digest", "placement_id", "placement_version", "placement_digest"])
+    || ![value.origin.package_id, value.origin.brief_id, value.origin.curriculum_id, value.origin.placement_id].every(projectIdentifierIsSafe)
+    || ![value.origin.package_version, value.origin.brief_version, value.origin.curriculum_version, value.origin.placement_version].every(submissionVersion)
+    || ![value.origin.package_digest, value.origin.brief_digest, value.origin.curriculum_digest, value.origin.placement_digest].every(digest)
+    || !Array.isArray(value.milestones) || value.milestones.length < 1 || value.milestones.length > 20
+    || !value.milestones.every((item) => record(item) && exactKeys(item, ["milestone_id", "milestone_version", "sequence", "title"])
+      && projectIdentifierIsSafe(item.milestone_id) && submissionVersion(item.milestone_version)
+      && Number.isInteger(item.sequence) && Number(item.sequence) >= 1 && Number(item.sequence) <= 20
+      && boundedText(item.title, 1, 160))
+    || !Array.isArray(value.resources) || value.resources.length < 1 || value.resources.length > 200
+    || !value.resources.every(submissionResourceIsSafe)) return false;
+  if (new Set(value.milestones.map((item) => item.milestone_id)).size !== value.milestones.length
+    || value.milestones.some((item, index) => item.sequence !== index + 1)
+    || new Set(value.resources.map((item) => JSON.stringify(item))).size !== value.resources.length) return false;
+  if (project && (project.origin.origin_type !== "learning" || value.project.project_id !== project.project_id
+    || value.project.project_revision !== project.revision
+    || value.origin.package_id !== project.origin.package_id || value.origin.package_version !== project.origin.package_version
+    || value.origin.package_digest !== project.origin.package_digest || value.origin.brief_id !== project.origin.brief_id
+    || value.origin.brief_version !== project.origin.brief_version || value.origin.brief_digest !== project.origin.brief_digest
+    || value.origin.curriculum_id !== project.origin.curriculum_id || value.origin.curriculum_version !== project.origin.curriculum_version
+    || value.origin.curriculum_digest !== project.origin.curriculum_digest || value.origin.placement_id !== project.origin.placement_id
+    || value.origin.placement_version !== project.origin.placement_version || value.origin.placement_digest !== project.origin.placement_digest)) return false;
+  return snapshotId === undefined || value.project.snapshot_id === snapshotId;
+}
+
+function projectHistoryItemIsSafe(value: unknown): boolean {
+  return record(value) && exactOptionalKeys(value,
+    ["evidence_id", "submission_id", "snapshot_id", "snapshot_digest", "request_fingerprint", "occurrence", "submitted_at"],
+    ["supersedes_submission_id"],
+  ) && projectIdentifierIsSafe(value.evidence_id) && projectIdentifierIsSafe(value.submission_id)
+    && projectIdentifierIsSafe(value.snapshot_id) && digest(value.snapshot_digest) && digest(value.request_fingerprint)
+    && positiveInteger(value.occurrence) && Number(value.occurrence) <= 100 && utcTimestamp(value.submitted_at)
+    && (value.supersedes_submission_id === undefined || value.supersedes_submission_id === null || projectIdentifierIsSafe(value.supersedes_submission_id));
+}
+
+export function projectCompletionHistoryIsSafe(value: unknown, projectId: string): value is ProjectCompletionHistory {
+  return record(value) && exactKeys(value, ["schema_version", "project_id", "items"])
+    && value.schema_version === "1.0.0" && value.project_id === projectId
+    && Array.isArray(value.items) && value.items.length <= 100 && value.items.every(projectHistoryItemIsSafe)
+    && new Set(value.items.map((item) => item.submission_id)).size === value.items.length;
+}
+
+function projectCompletionEntryIsSafe(value: unknown): boolean {
+  return record(value) && exactOptionalKeys(value, [
+    "event_id", "evidence_id", "submission_id", "snapshot_id", "snapshot_digest", "brief_id", "brief_version", "brief_digest",
+    "placement_id", "placement_version", "placement_digest", "policy_id", "policy_version", "milestone_ids", "request_fingerprint",
+    "occurrence", "accepted_sequence", "submitted_at", "occurred_at",
+  ], ["supersedes_submission_id"])
+    && [value.event_id, value.evidence_id, value.submission_id, value.snapshot_id, value.brief_id, value.placement_id].every(projectIdentifierIsSafe)
+    && [value.snapshot_digest, value.brief_digest, value.placement_digest, value.request_fingerprint].every(digest)
+    && submissionVersion(value.brief_version) && submissionVersion(value.placement_version)
+    && value.policy_id === "assessment-project-closure" && value.policy_version === "1.0.0"
+    && Array.isArray(value.milestone_ids) && value.milestone_ids.length >= 1 && value.milestone_ids.length <= 20
+    && value.milestone_ids.every(projectIdentifierIsSafe) && new Set(value.milestone_ids).size === value.milestone_ids.length
+    && positiveInteger(value.occurrence) && Number(value.occurrence) <= 100 && positiveInteger(value.accepted_sequence)
+    && utcTimestamp(value.submitted_at) && utcTimestamp(value.occurred_at)
+    && (value.supersedes_submission_id === undefined || value.supersedes_submission_id === null || projectIdentifierIsSafe(value.supersedes_submission_id));
+}
+
+export function projectActivityCompletionIsSafe(value: unknown, projectId: string): value is ProjectActivityCompletion {
+  if (!record(value) || !exactOptionalKeys(value, ["project_id", "completed", "completion_meaning", "source_digest", "rebuilt_at", "history"], ["projection_version"])
+    || (value.projection_version !== undefined && value.projection_version !== "1.0.0") || value.project_id !== projectId
+    || typeof value.completed !== "boolean" || !digest(value.source_digest) || !utcTimestamp(value.rebuilt_at)
+    || !Array.isArray(value.history) || value.history.length > 100 || !value.history.every(projectCompletionEntryIsSafe)) return false;
+  return value.completed
+    ? value.completion_meaning === "bounded_project_activity_completed" && value.history.length > 0
+    : value.completion_meaning === "not_completed" && value.history.length === 0;
+}
+
+function milestoneEvidenceIsSafe(value: unknown): boolean {
+  return record(value) && exactKeys(value, ["milestone_id", "resources"])
+    && projectIdentifierIsSafe(value.milestone_id) && Array.isArray(value.resources)
+    && value.resources.length >= 1 && value.resources.length <= 50 && value.resources.every(submissionResourceIsSafe);
+}
+
+export function projectCompletionEvidenceIsSafe(value: unknown, projectId: string, submissionId?: string): value is ProjectCompletionEvidence {
+  if (!(record(value) && exactOptionalKeys(value, [
+    "schema_version", "evidence_id", "learner_id", "submission_id", "project_id", "snapshot_id", "snapshot_digest", "brief_id", "brief_version",
+    "brief_digest", "placement_id", "placement_version", "placement_digest", "policy_id", "policy_version", "milestone_evidence", "milestone_ids",
+    "request_fingerprint", "occurrence", "accepted_sequence", "submitted_at",
+  ], ["supersedes_submission_id"])
+    && value.schema_version === "1.0.0" && value.project_id === projectId && (submissionId === undefined || value.submission_id === submissionId)
+    && [value.evidence_id, value.learner_id, value.submission_id, value.snapshot_id, value.brief_id, value.placement_id].every(projectIdentifierIsSafe)
+    && [value.snapshot_digest, value.brief_digest, value.placement_digest, value.request_fingerprint].every(digest)
+    && submissionVersion(value.brief_version) && submissionVersion(value.placement_version)
+    && value.policy_id === "assessment-project-closure" && value.policy_version === "1.0.0"
+    && Array.isArray(value.milestone_evidence) && value.milestone_evidence.length >= 1 && value.milestone_evidence.length <= 20
+    && value.milestone_evidence.every(milestoneEvidenceIsSafe)
+    && Array.isArray(value.milestone_ids) && value.milestone_ids.length >= 1 && value.milestone_ids.length <= 20
+    && value.milestone_ids.every(projectIdentifierIsSafe)
+    && positiveInteger(value.occurrence) && positiveInteger(value.accepted_sequence) && utcTimestamp(value.submitted_at)
+    && (value.supersedes_submission_id === undefined || value.supersedes_submission_id === null || projectIdentifierIsSafe(value.supersedes_submission_id)))) return false;
+  const mappingIds = value.milestone_evidence.map((item) => item.milestone_id);
+  const milestoneIds = value.milestone_ids as string[];
+  return new Set(mappingIds).size === mappingIds.length
+    && mappingIds.length === milestoneIds.length
+    && mappingIds.every((id, index) => id === milestoneIds[index]);
+}
+
+export function projectSubmissionOutcomeIsSafe(value: unknown, projectId: string, submissionId: string): value is ProjectSubmissionOutcome {
+  if (!record(value) || !exactKeys(value, ["validation", "evidence"]) || !record(value.validation)
+    || !Array.isArray(value.validation.issues) || value.validation.issues.length > 100
+    || !value.validation.issues.every((issue) => record(issue) && exactKeys(issue, ["code", "reference", "message"])
+      && typeof issue.code === "string" && /^assessment\.project\.[a-z0-9_]+$/.test(issue.code)
+      && boundedText(issue.reference, 1, 120) && boundedText(issue.message, 1, 160))) return false;
+  if (value.validation.status === "accepted") {
+    return exactKeys(value.validation, ["schema_version", "status", "request_fingerprint", "issues"])
+      && value.validation.schema_version === "1.0.0" && digest(value.validation.request_fingerprint)
+      && value.validation.issues.length === 0 && projectCompletionEvidenceIsSafe(value.evidence, projectId, submissionId)
+      && value.evidence.request_fingerprint === value.validation.request_fingerprint;
+  }
+  return value.validation.status === "refused"
+    && exactKeys(value.validation, ["schema_version", "status", "issues"])
+    && value.validation.schema_version === "1.0.0" && value.validation.issues.length >= 1 && value.evidence === null;
+}
+
+export function projectLearningSelection(url: string): ProjectLearningSelection | null {
+  const parameters = new URL(url).searchParams;
+  if ([...parameters.keys()].some((key) => key !== "snapshot" && key !== "submission")) return null;
+  const snapshots = parameters.getAll("snapshot");
+  const submissions = parameters.getAll("submission");
+  if (snapshots.length === 0 && submissions.length === 0) return { mode: "overview" };
+  if (snapshots.length === 1 && submissions.length === 0 && projectIdentifierIsSafe(snapshots[0])) {
+    return { mode: "snapshot", snapshotId: snapshots[0] };
+  }
+  if (submissions.length === 1 && snapshots.length === 0 && projectIdentifierIsSafe(submissions[0])) {
+    return { mode: "submission", submissionId: submissions[0] };
+  }
+  return null;
 }

@@ -157,6 +157,15 @@ export interface paths {
       };
       readonly get: operations["downloadProjectArtifact"];
     };
+  readonly "/api/v1/projects/{project_id}/completion": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getProjectCompletion"];
+    };
   readonly "/api/v1/projects/{project_id}/snapshots": {
       readonly parameters: {
         readonly query?: never;
@@ -964,6 +973,37 @@ export interface components {
       readonly "request_fingerprint": string;
       readonly "schema_version": "1.0.0";
       readonly "status": "accepted";
+    };
+    readonly "ProjectActivityCompletionHistoryEntryModel": {
+      readonly "accepted_sequence": number;
+      readonly "brief_digest": string;
+      readonly "brief_id": string;
+      readonly "brief_version": string;
+      readonly "event_id": string;
+      readonly "evidence_id": string;
+      readonly "milestone_ids": ReadonlyArray<string>;
+      readonly "occurred_at": string;
+      readonly "occurrence": number;
+      readonly "placement_digest": string;
+      readonly "placement_id": string;
+      readonly "placement_version": string;
+      readonly "policy_id": "assessment-project-closure";
+      readonly "policy_version": "1.0.0";
+      readonly "request_fingerprint": string;
+      readonly "snapshot_digest": string;
+      readonly "snapshot_id": string;
+      readonly "submission_id": string;
+      readonly "submitted_at": string;
+      readonly "supersedes_submission_id"?: string | null;
+    };
+    readonly "ProjectActivityCompletionResponseModel": {
+      readonly "completed": boolean;
+      readonly "completion_meaning": "not_completed" | "bounded_project_activity_completed";
+      readonly "history": ReadonlyArray<components["schemas"]["ProjectActivityCompletionHistoryEntryModel"]>;
+      readonly "project_id": string;
+      readonly "projection_version"?: "1.0.0";
+      readonly "rebuilt_at": string;
+      readonly "source_digest": string;
     };
     readonly "ProjectArtifactInputModel": {
       readonly "artifact_kind": "dataset" | "notebook" | "code" | "environment" | "result" | "reflection" | "supporting_file";
@@ -2457,6 +2497,67 @@ export interface operations {
           readonly content: {
             readonly "application/json": unknown;
             readonly "application/octet-stream": string;
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 422: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["HTTPValidationError"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getProjectCompletion: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "project_id": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ProjectActivityCompletionResponseModel"];
           };
         };
         readonly 400: {

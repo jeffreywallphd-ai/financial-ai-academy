@@ -48,6 +48,8 @@ import {
   createProjectCreateLoader,
   createProjectDetailLoader,
   createProjectListLoader,
+  createProjectLearningAction,
+  createProjectLearningLoader,
   createProjectSnapshotExporter,
   createProjectWorkspaceAction,
 } from "../features/project-workspace/api";
@@ -55,6 +57,7 @@ import {
   ProjectCreateRoute,
   ProjectDetailRoute,
   ProjectListRoute,
+  ProjectLearningRoute,
   ProjectLoadingState,
 } from "../features/project-workspace/ProjectRoutes";
 import { SingleProfileSession } from "../platform/auth/singleProfileSession";
@@ -86,6 +89,8 @@ const projectArtifactDownloader = createProjectArtifactDownloader(client, sessio
 const projectSnapshotExporter = createProjectSnapshotExporter(client, session);
 const projectCreateLoader = createProjectCreateLoader(client, session);
 const projectCreateAction = createProjectCreateAction(client, session);
+const projectLearningLoader = createProjectLearningLoader(client, session);
+const projectLearningAction = createProjectLearningAction(client, session);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -159,6 +164,13 @@ export const router = createBrowserRouter([
         loader: projectCreateLoader,
         action: projectCreateAction,
         Component: ProjectCreateRoute,
+        HydrateFallback: ProjectLoadingState,
+      },
+      {
+        path: "projects/:projectId/learning",
+        loader: projectLearningLoader,
+        action: projectLearningAction,
+        Component: ProjectLearningRoute,
         HydrateFallback: ProjectLoadingState,
       },
       {

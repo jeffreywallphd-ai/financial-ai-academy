@@ -262,6 +262,9 @@ void client.POST(
 void client.GET("/api/v1/projects/{project_id}/submissions", {
   params: { path: { project_id: "project-1" } },
 });
+void client.GET("/api/v1/projects/{project_id}/completion", {
+  params: { path: { project_id: "project-1" } },
+});
 void client.GET(
   "/api/v1/projects/{project_id}/submissions/{submission_id}",
   {

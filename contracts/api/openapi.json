@@ -4726,6 +4726,225 @@
         "title": "ProjectAcceptedValidationResponseModel",
         "type": "object"
       },
+      "ProjectActivityCompletionHistoryEntryModel": {
+        "additionalProperties": false,
+        "properties": {
+          "accepted_sequence": {
+            "minimum": 1.0,
+            "title": "Accepted Sequence",
+            "type": "integer"
+          },
+          "brief_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Brief Digest",
+            "type": "string"
+          },
+          "brief_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Brief Id",
+            "type": "string"
+          },
+          "brief_version": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$",
+            "title": "Brief Version",
+            "type": "string"
+          },
+          "event_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "evidence_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "milestone_ids": {
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Milestone Ids",
+            "type": "array"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "occurrence": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Occurrence",
+            "type": "integer"
+          },
+          "placement_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Placement Digest",
+            "type": "string"
+          },
+          "placement_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "placement_version": {
+            "maxLength": 64,
+            "minLength": 1,
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$",
+            "title": "Placement Version",
+            "type": "string"
+          },
+          "policy_id": {
+            "const": "assessment-project-closure",
+            "title": "Policy Id",
+            "type": "string"
+          },
+          "policy_version": {
+            "const": "1.0.0",
+            "title": "Policy Version",
+            "type": "string"
+          },
+          "request_fingerprint": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Request Fingerprint",
+            "type": "string"
+          },
+          "snapshot_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Snapshot Digest",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "submission_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Submission Id",
+            "type": "string"
+          },
+          "submitted_at": {
+            "format": "date-time",
+            "title": "Submitted At",
+            "type": "string"
+          },
+          "supersedes_submission_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[a-z0-9][a-z0-9._-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Submission Id"
+          }
+        },
+        "required": [
+          "event_id",
+          "evidence_id",
+          "submission_id",
+          "snapshot_id",
+          "snapshot_digest",
+          "brief_id",
+          "brief_version",
+          "brief_digest",
+          "placement_id",
+          "placement_version",
+          "placement_digest",
+          "policy_id",
+          "policy_version",
+          "milestone_ids",
+          "request_fingerprint",
+          "occurrence",
+          "accepted_sequence",
+          "submitted_at",
+          "occurred_at"
+        ],
+        "title": "ProjectActivityCompletionHistoryEntryModel",
+        "type": "object"
+      },
+      "ProjectActivityCompletionResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "completed": {
+            "title": "Completed",
+            "type": "boolean"
+          },
+          "completion_meaning": {
+            "enum": [
+              "not_completed",
+              "bounded_project_activity_completed"
+            ],
+            "title": "Completion Meaning",
+            "type": "string"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ProjectActivityCompletionHistoryEntryModel"
+            },
+            "maxItems": 100,
+            "title": "History",
+            "type": "array"
+          },
+          "project_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "projection_version": {
+            "const": "1.0.0",
+            "default": "1.0.0",
+            "title": "Projection Version",
+            "type": "string"
+          },
+          "rebuilt_at": {
+            "format": "date-time",
+            "title": "Rebuilt At",
+            "type": "string"
+          },
+          "source_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "project_id",
+          "completed",
+          "completion_meaning",
+          "source_digest",
+          "rebuilt_at",
+          "history"
+        ],
+        "title": "ProjectActivityCompletionResponseModel",
+        "type": "object"
+      },
       "ProjectArtifactInputModel": {
         "additionalProperties": false,
         "properties": {
@@ -10197,6 +10416,116 @@
         "summary": "Download Project Artifact",
         "tags": [
           "projects"
+        ]
+      }
+    },
+    "/api/v1/projects/{project_id}/completion": {
+      "get": {
+        "operationId": "getProjectCompletion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectActivityCompletionResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Project Completion",
+        "tags": [
+          "projects",
+          "learner-model"
         ]
       }
     },

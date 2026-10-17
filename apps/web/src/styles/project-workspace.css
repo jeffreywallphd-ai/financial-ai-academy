@@ -227,6 +227,31 @@
   gap: var(--faa-space-3);
 }
 
+.project-submission-milestone {
+  display: grid;
+  gap: var(--faa-space-3);
+  padding: var(--faa-space-4) !important;
+  border: var(--faa-border-width) solid var(--faa-color-border) !important;
+  border-radius: var(--faa-radius-control);
+}
+
+.project-submission-options {
+  display: grid;
+  gap: var(--faa-space-2);
+}
+
+.project-submission-options label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--faa-space-2);
+}
+
+.project-submission-options input[type="checkbox"] {
+  width: auto;
+  min-height: auto;
+  margin-top: var(--faa-space-1);
+}
+
 .project-optional,
 .project-download-status {
   color: var(--faa-color-text-secondary);

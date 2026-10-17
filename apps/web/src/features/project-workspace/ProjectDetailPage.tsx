@@ -377,7 +377,10 @@ export function ProjectDetailPage({
         <div><p className="eyebrow">Fixed evidence</p><h2 id="project-snapshots-heading">Saved checkpoints</h2><p>A checkpoint keeps one exact version of your Project evidence. You can keep working afterward without changing it.</p></div>
         {snapshots.length === 0 ? <p className="project-empty">No saved checkpoints yet.</p> : <ol className="project-work-list">{snapshots.map((snapshot) => <li className="project-panel" key={snapshot.snapshot_id}>
           <h3>Checkpoint from <time dateTime={snapshot.closed_at}>{readableProjectDate(snapshot.closed_at)}</time></h3><p>It contains {snapshot.snapshot.notes.length} notes, {snapshot.snapshot.references.length} sources, and {snapshot.snapshot.artifacts.length} files.</p>
-          <button className="button button--secondary" disabled={busy} onClick={() => void handleSnapshotExport(snapshot.snapshot_id)} type="button">Download evidence record</button>
+          <div className="project-form__actions">
+            <button className="button button--secondary" disabled={busy} onClick={() => void handleSnapshotExport(snapshot.snapshot_id)} type="button">Download evidence record</button>
+            {learning ? <Link className="button project-button--primary" to={`/projects/${encodeURIComponent(project.project_id)}/learning?snapshot=${encodeURIComponent(snapshot.snapshot_id)}`}>Submit for learning</Link> : null}
+          </div>
           <details><summary>Technical record</summary><dl className="project-technical">
             <TechnicalFact label="Snapshot ID"><code>{snapshot.snapshot_id}</code></TechnicalFact>
             <TechnicalFact label="Snapshot fingerprint"><code>{snapshot.snapshot_digest}</code></TechnicalFact>

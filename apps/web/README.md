@@ -235,10 +235,26 @@ revision checks, request replay, provenance rules, snapshot immutability, and
 artifact admission remain authoritative in the public API and are equally
 available to command-line, service, and future headless clients.
 
+For a learning-started Project, each saved checkpoint links to
+`/projects/:projectId/learning?snapshot=:snapshotId`. That route reads the
+current candidate, retained submission history, and the Audit-reconciled
+Learner-model completion projection through generated clients. It lets the
+learner map only candidate-owned saved items to every milestone, reopens the
+candidate immediately before submission, and reuses the exact request identity
+and choices after a bounded refusal or uncertain response. An accepted request
+redirects to the exact submission view; earlier submissions remain directly
+reopenable. Primary copy states that structural acceptance is not a quality
+grade, mastery judgment, competency claim, or financial advice. Exact policy,
+snapshot, evidence, provenance, fingerprint, and time facts remain in
+accessible `Technical record` disclosures. Independent Projects expose no
+learning-submission action. The same API remains usable headlessly without
+rendering this route.
+
 Project files are never executed, expanded, installed, sent to a provider, or
 actively rendered. The route does not create live Portfolio state, financial
-actions or advice, Assessment evidence, mastery/completion state, learner-model
-updates, managed-cloud protection, or a separate AI mode. Typed records owned
+actions or advice, mastery or competency state, managed-cloud protection, or a
+separate AI mode. Assessment evidence and bounded Project-activity completion
+remain server-owned results of the public API. Typed records owned
 by other modules can be displayed only when the API returns an admitted link;
 the browser does not invent one.
 

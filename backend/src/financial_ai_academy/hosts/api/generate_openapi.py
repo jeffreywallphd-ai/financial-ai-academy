@@ -36,13 +36,17 @@ from financial_ai_academy.modules.identity.public import (
 )
 from financial_ai_academy.modules.audit.public import (
     AuditReconciliationReceipt,
+    ProjectAuditReconciliationReceipt,
     ReconcileLessonCompletionAuditRequest,
+    ReconcileProjectCompletionAuditRequest,
 )
 from financial_ai_academy.modules.learner_model.public import (
     LessonCompletionView,
     OpenLessonCompletionRequest,
     OpenPracticeHistoryRequest,
+    OpenProjectCompletionRequest,
     PracticeHistoryView,
+    ProjectCompletionView,
 )
 from financial_ai_academy.modules.curriculum.public import (
     BrowseLearningOpportunitiesRequest,
@@ -170,6 +174,11 @@ class _SchemaAudit:
     ) -> AuditReconciliationReceipt:
         raise NotImplementedError
 
+    def reconcile_project_completion(
+        self, request: ReconcileProjectCompletionAuditRequest
+    ) -> ProjectAuditReconciliationReceipt:
+        raise NotImplementedError
+
 
 class _SchemaLearnerModel:
     def open_lesson_completion(
@@ -180,6 +189,11 @@ class _SchemaLearnerModel:
     def open_practice_history(
         self, request: OpenPracticeHistoryRequest
     ) -> PracticeHistoryView:
+        raise NotImplementedError
+
+    def open_project_completion(
+        self, request: OpenProjectCompletionRequest
+    ) -> ProjectCompletionView:
         raise NotImplementedError
 
 
