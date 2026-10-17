@@ -120,8 +120,8 @@ class PublicLearningReferenceGateway:
 
     def __init__(
         self,
-        curriculum: LearningReferenceGatewayPort,
-        project: LearningReferenceGatewayPort,
+        curriculum: LearningReferenceGatewayPort | None,
+        project: LearningReferenceGatewayPort | None,
     ) -> None:
         self._curriculum = curriculum
         self._project = project
@@ -147,6 +147,8 @@ class PublicLearningReferenceGateway:
         ):
             gateway = self._project
         else:
+            raise PersonalWorkspaceSourceUnavailable()
+        if gateway is None:
             raise PersonalWorkspaceSourceUnavailable()
         return gateway.resolve(
             selector,

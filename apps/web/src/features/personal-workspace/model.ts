@@ -70,6 +70,26 @@ const PLATFORM_ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
 const SEMANTIC_VERSION = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const UTC_DATE_TIME = /^(\d{4}-\d{2}-\d{2})[Tt](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?Z$/;
+const PROJECT_ARTIFACT_KINDS = new Set([
+  "code",
+  "dataset",
+  "environment",
+  "notebook",
+  "reflection",
+  "result",
+  "supporting_file",
+]);
+const PROJECT_MEDIA_TYPES = new Set([
+  "application/json",
+  "application/octet-stream",
+  "application/pdf",
+  "application/x-ipynb+json",
+  "text/csv",
+  "text/markdown",
+  "text/plain",
+  "text/x-python",
+]);
+const PROJECT_INSPECTION_MODES = new Set(["metadata_only", "plain_text"]);
 
 function hasNullCharacter(value: string): boolean {
   return value.includes("\u0000");
@@ -116,7 +136,8 @@ function utcDateTimeIsSafe(value: unknown): value is string {
     dateIsSafe(date) &&
       Number(hour) <= 23 &&
       Number(minute) <= 59 &&
-      Number(second) <= 60,
+      Number(second) <= 59 &&
+      Number.isFinite(Date.parse(value)),
   );
 }
 
@@ -130,6 +151,147 @@ function referenceDestinationIsSafe(value: unknown): value is string {
   if (typeof value !== "string") return false;
   const matched = /^\/learn\/placements\/([^/?#]+)$/.exec(value);
   return Boolean(matched?.[1] && CURRICULUM_ID.test(matched[1]));
+}
+
+function positiveInteger(value: unknown): value is number {
+  return Number.isSafeInteger(value) && Number(value) >= 1;
+}
+
+function projectLogicalPathIsSafe(value: unknown): value is string {
+  if (
+    typeof value !== "string" ||
+    Array.from(value).length < 1 ||
+    Array.from(value).length > 240 ||
+    value.normalize("NFC") !== value
+  ) {
+    return false;
+  }
+  const reserved = /^(?:con|prn|aux|nul|com[1-9¹²³]|lpt[1-9¹²³])(?:\..*)?$/i;
+  return (
+    !value.includes("\\") &&
+    !value.startsWith("/") &&
+    value.split("/").every(
+      (segment) =>
+        segment !== "" &&
+        segment !== "." &&
+        segment !== ".." &&
+        segment === segment.trim() &&
+        !segment.endsWith(".") &&
+        ![...segment].some(
+          (character) =>
+            character.charCodeAt(0) < 32 || '<>:"|?*'.includes(character),
+        ) &&
+        !reserved.test(segment),
+    )
+  );
+}
+
+function projectReferenceBaseIsSafe(
+  candidate: Record<string, unknown>,
+): boolean {
+  return (
+    candidate.owner_module === "project" &&
+    candidate.lifecycle === "active" &&
+    candidate.target_status === "available" &&
+    workspaceIdentifierIsSafe(candidate.project_id) &&
+    boundedString(candidate.title, 1, 240) &&
+    positiveInteger(candidate.project_revision) &&
+    positiveInteger(candidate.workspace_revision) &&
+    utcDateTimeIsSafe(candidate.validated_at)
+  );
+}
+
+function projectReferenceIsSafe(candidate: Record<string, unknown>): boolean {
+  if (!projectReferenceBaseIsSafe(candidate)) return false;
+  const projectId = String(candidate.project_id);
+  if (candidate.reference_kind === "project_workspace") {
+    return (
+      hasOnlyKeys(candidate, [
+        "reference_kind",
+        "owner_module",
+        "project_id",
+        "title",
+        "lifecycle",
+        "project_revision",
+        "workspace_revision",
+        "destination",
+        "target_status",
+        "validated_at",
+      ]) && candidate.destination === `/projects/${projectId}#workspace`
+    );
+  }
+  if (candidate.reference_kind === "project_snapshot") {
+    return (
+      hasOnlyKeys(candidate, [
+        "reference_kind",
+        "owner_module",
+        "project_id",
+        "snapshot_id",
+        "title",
+        "lifecycle",
+        "project_revision",
+        "workspace_revision",
+        "snapshot_digest",
+        "closed_at",
+        "destination",
+        "target_status",
+        "validated_at",
+      ]) &&
+      workspaceIdentifierIsSafe(candidate.snapshot_id) &&
+      typeof candidate.snapshot_digest === "string" &&
+      DIGEST.test(candidate.snapshot_digest) &&
+      utcDateTimeIsSafe(candidate.closed_at) &&
+      Date.parse(String(candidate.closed_at)) <=
+        Date.parse(String(candidate.validated_at)) &&
+      candidate.destination ===
+        `/projects/${projectId}#snapshot-${String(candidate.snapshot_id)}`
+    );
+  }
+  if (candidate.reference_kind === "project_artifact") {
+    return (
+      hasOnlyKeys(candidate, [
+        "reference_kind",
+        "owner_module",
+        "project_id",
+        "artifact_id",
+        "artifact_version",
+        "title",
+        "lifecycle",
+        "project_revision",
+        "workspace_revision",
+        "artifact_kind",
+        "logical_path",
+        "media_type",
+        "inspection_mode",
+        "byte_count",
+        "content_digest",
+        "created_at",
+        "destination",
+        "target_status",
+        "validated_at",
+      ]) &&
+      workspaceIdentifierIsSafe(candidate.artifact_id) &&
+      positiveInteger(candidate.artifact_version) &&
+      typeof candidate.artifact_kind === "string" &&
+      PROJECT_ARTIFACT_KINDS.has(candidate.artifact_kind) &&
+      projectLogicalPathIsSafe(candidate.logical_path) &&
+      typeof candidate.media_type === "string" &&
+      PROJECT_MEDIA_TYPES.has(candidate.media_type) &&
+      typeof candidate.inspection_mode === "string" &&
+      PROJECT_INSPECTION_MODES.has(candidate.inspection_mode) &&
+      Number.isSafeInteger(candidate.byte_count) &&
+      Number(candidate.byte_count) >= 0 &&
+      Number(candidate.byte_count) <= 10_485_760 &&
+      typeof candidate.content_digest === "string" &&
+      DIGEST.test(candidate.content_digest) &&
+      utcDateTimeIsSafe(candidate.created_at) &&
+      Date.parse(String(candidate.created_at)) <=
+        Date.parse(String(candidate.validated_at)) &&
+      candidate.destination ===
+        `/projects/${projectId}#artifact-${String(candidate.artifact_id)}-v${String(candidate.artifact_version)}`
+    );
+  }
+  return false;
 }
 
 function provenanceIsSafe(value: unknown): boolean {
@@ -146,6 +308,13 @@ function provenanceIsSafe(value: unknown): boolean {
 
 function referenceIsSafe(value: unknown): boolean {
   const candidate = record(value);
+  if (
+    candidate?.reference_kind === "project_workspace" ||
+    candidate?.reference_kind === "project_snapshot" ||
+    candidate?.reference_kind === "project_artifact"
+  ) {
+    return projectReferenceIsSafe(candidate);
+  }
   if (
     !candidate ||
     !hasOnlyKeys(candidate, candidate.reference_kind === "learning_opportunity"

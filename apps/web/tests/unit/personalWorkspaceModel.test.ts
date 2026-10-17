@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { FinancialAcademyApiClient } from "../../src/generated/api-client";
-import { createPersonalWorkspaceAction } from "../../src/features/personal-workspace/api";
+import {
+  createPersonalWorkspaceAction,
+  createPersonalWorkspaceLoader,
+} from "../../src/features/personal-workspace/api";
 import {
   parseSaveSelection,
   personalWorkspaceIsSafe,
@@ -63,6 +66,45 @@ const bookmark = {
   },
 };
 
+const projectWorkspaceTarget = {
+  reference_kind: "project_workspace",
+  owner_module: "project",
+  project_id: "project.research-1",
+  title: "Allocation research",
+  lifecycle: "active",
+  project_revision: 4,
+  workspace_revision: 7,
+  destination: "/projects/project.research-1#workspace",
+  target_status: "available",
+  validated_at: "2026-10-17T10:03:00Z",
+};
+
+const projectSnapshotTarget = {
+  ...projectWorkspaceTarget,
+  reference_kind: "project_snapshot",
+  snapshot_id: "snapshot.baseline-1",
+  snapshot_digest: "e".repeat(64),
+  closed_at: "2026-10-17T10:02:00Z",
+  destination:
+    "/projects/project.research-1#snapshot-snapshot.baseline-1",
+};
+
+const projectArtifactTarget = {
+  ...projectWorkspaceTarget,
+  reference_kind: "project_artifact",
+  artifact_id: "artifact.inputs-1",
+  artifact_version: 3,
+  artifact_kind: "dataset",
+  logical_path: "evidence/allocation-inputs.csv",
+  media_type: "text/csv",
+  inspection_mode: "plain_text",
+  byte_count: 4096,
+  content_digest: "f".repeat(64),
+  created_at: "2026-10-17T10:02:00Z",
+  destination:
+    "/projects/project.research-1#artifact-artifact.inputs-1-v3",
+};
+
 const workspace = {
   schema_version: "1.0.0",
   workspace_id: "workspace-one",
@@ -80,6 +122,14 @@ const workspace = {
   updated_at: "2026-10-17T10:04:00Z",
   workspace_digest: "d".repeat(64),
 };
+
+function workspaceWithTarget(target: Record<string, unknown>) {
+  return {
+    ...workspace,
+    records: [{ ...note, target }],
+    collections: [],
+  };
+}
 
 function session(): SingleProfileSession {
   return {
@@ -109,6 +159,29 @@ describe("Personal workspace browser model", () => {
         { ...bookmark, label: "" },
       ],
     })).toBe(true);
+  });
+
+  it.each([
+    ["Project workspace", projectWorkspaceTarget],
+    ["Project snapshot", projectSnapshotTarget],
+    ["Project artifact", projectArtifactTarget],
+  ])("accepts a closed %s reference returned by the public API", (_name, target) => {
+    expect(personalWorkspaceIsSafe(workspaceWithTarget(target))).toBe(true);
+  });
+
+  it.each([
+    ["private Project field", { ...projectWorkspaceTarget, storage_key: "private/object" }],
+    ["mismatched Project destination", { ...projectWorkspaceTarget, destination: "/projects/project.other#workspace" }],
+    ["invalid snapshot time", { ...projectSnapshotTarget, closed_at: "2026-10-17T10:04:00Z" }],
+    ["invalid validation time", { ...projectWorkspaceTarget, validated_at: "2026-10-17T10:03:60Z" }],
+    ["noncanonical artifact path", { ...projectArtifactTarget, logical_path: "../secret.csv" }],
+    ["invalid artifact time", { ...projectArtifactTarget, created_at: "2026-10-17T10:04:00Z" }],
+    ["overlong artifact", { ...projectArtifactTarget, byte_count: 10_485_761 }],
+    ["unknown artifact kind", { ...projectArtifactTarget, artifact_kind: "executable" }],
+    ["unknown media type", { ...projectArtifactTarget, media_type: "application/x-msdownload" }],
+    ["unknown inspection mode", { ...projectArtifactTarget, inspection_mode: "execute" }],
+  ])("rejects a %s without accepting a partial Project reference", (_name, target) => {
+    expect(personalWorkspaceIsSafe(workspaceWithTarget(target))).toBe(false);
   });
 
   it.each([
@@ -218,6 +291,64 @@ describe("Personal workspace browser model", () => {
         },
       },
     }));
+  });
+
+  it("accepts valid Project references through the real loader and action response guards", async () => {
+    const projectWorkspace = workspaceWithTarget(projectSnapshotTarget);
+    const get = vi.fn().mockResolvedValue(accepted(projectWorkspace));
+    const loader = createPersonalWorkspaceLoader(
+      { GET: get } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    expect(await loader({ request: new Request("http://localhost/saved-learning") } as never)).toEqual({
+      status: "ready",
+      workspace: projectWorkspace,
+    });
+
+    const post = vi.fn().mockResolvedValue(accepted(projectWorkspace));
+    const action = createPersonalWorkspaceAction(
+      { POST: post } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    const form = new FormData();
+    form.set("form_intent", "update-note");
+    form.set("idempotency_key", "request-project-response");
+    form.set("expected_revision", "4");
+    form.set("operation", "update_note");
+    form.set("record_id", "note-one");
+    form.set("title", "Updated");
+    form.set("body", "Updated body");
+    expect(await action({ request: new Request("http://localhost/saved-learning", { method: "POST", body: form }) } as never)).toBeInstanceOf(Response);
+  });
+
+  it("rejects private or malformed Project fields through the real loader and action response guards", async () => {
+    const privateWorkspace = workspaceWithTarget({
+      ...projectWorkspaceTarget,
+      permission_claim: "project.owner",
+    });
+    const loader = createPersonalWorkspaceLoader(
+      { GET: vi.fn().mockResolvedValue(accepted(privateWorkspace)) } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    expect(await loader({ request: new Request("http://localhost/saved-learning") } as never)).toEqual({ status: "invalid-response" });
+
+    const malformedWorkspace = workspaceWithTarget({
+      ...projectArtifactTarget,
+      logical_path: "C:\\private\\secret.csv",
+    });
+    const action = createPersonalWorkspaceAction(
+      { POST: vi.fn().mockResolvedValue(accepted(malformedWorkspace)) } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    const form = new FormData();
+    form.set("form_intent", "update-note");
+    form.set("idempotency_key", "request-invalid-project-response");
+    form.set("expected_revision", "4");
+    form.set("operation", "update_note");
+    form.set("record_id", "note-one");
+    form.set("title", "Updated");
+    form.set("body", "Updated body");
+    expect(await action({ request: new Request("http://localhost/saved-learning", { method: "POST", body: form }) } as never)).toEqual(expect.objectContaining({ kind: "invalid-response" }));
   });
 
   it("accepts canonical Unicode request lengths and rejects invalid identifiers and excess members", async () => {

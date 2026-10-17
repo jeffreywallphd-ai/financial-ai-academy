@@ -231,3 +231,39 @@ def test_closed_dispatch_forwards_server_context_to_exact_owner(
     assert result is expected.result
     assert expected.calls == [(selector, "learner.demo", NOW)]
     assert other.calls == []
+
+
+@pytest.mark.parametrize(
+    ("selector", "curriculum_available"),
+    [
+        (PlacedLessonSelector("placement.risk"), False),
+        (ProjectWorkspaceSelector("project.demo"), True),
+    ],
+)
+def test_unavailable_owner_adapter_fails_only_its_selector(
+    selector, curriculum_available: bool
+) -> None:
+    available = RecordingGateway(object())
+    gateway = PublicLearningReferenceGateway(
+        available if curriculum_available else None,
+        None if curriculum_available else available,
+    )
+
+    with pytest.raises(PersonalWorkspaceSourceUnavailable):
+        gateway.resolve(
+            selector,
+            learner_id="learner.demo",
+            validated_at=NOW,
+        )
+
+    unrelated = (
+        PlacedLessonSelector("placement.risk")
+        if curriculum_available
+        else ProjectWorkspaceSelector("project.demo")
+    )
+    assert gateway.resolve(
+        unrelated,
+        learner_id="learner.demo",
+        validated_at=NOW,
+    ) is available.result
+    assert available.calls == [(unrelated, "learner.demo", NOW)]

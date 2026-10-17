@@ -311,3 +311,10 @@ decision still requiring approval. No lower-level completion approval exists.
 - 2026-10-17: Moved WRK-0136 to verification after the closed Project dispatcher,
   API/generated client, PostgreSQL compatibility, and exhaustive safe-reference
   display passed focused checks. Independent disposition remains required.
+- 2026-10-17: Returned WRK-0136 to active delivery for bounded corrections to
+  the browser's closed Project-reference response guard and optional owner-
+  adapter behavior. The correction preserves the approved slice outcome,
+  public API, authority model, and packet boundaries.
+- 2026-10-17: Returned WRK-0136 to verification after its real browser
+  response boundary accepted each closed Project variant, rejected malformed
+  or private facts, and optional owner adapters failed in isolation.
