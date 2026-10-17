@@ -236,7 +236,7 @@ scope is refined just in time.
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | captured |
+| WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | ready |
 | JIT-B | Deliver Assessment-owned application/persistence, Project/Content/Curriculum public adapters, atomic evidence/event storage, replay, supersession, and protected API/generated client | JIT-A | none | captured |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
@@ -323,3 +323,7 @@ qualified.
   path for both generated-browser and headless clients. The five packet seams
   remain additive, deterministic, API-first, and inside ADR-0012 and ADR-0011;
   no new decision gate or CAP material change was exposed.
+- 2026-10-17: Refined JIT-A as WRK-0124. The packet freezes the complete
+  transport-neutral Assessment Project submission/evidence family and pure
+  milestone-to-snapshot validation policy while persistence, API, projections,
+  Audit consumption, browser behavior, and live qualification remain deferred.
