@@ -289,6 +289,13 @@ function domainLinkIsSafe(value: unknown): boolean {
     && utcTimestamp(value.validated_at) && utcTimestamp(value.created_at);
 }
 
+function logicalPathComparisonKey(value: string): string {
+  // The Project contract owns NFC plus Unicode case-folded path identity. The
+  // upper/lower expansion catches full folds such as ß/ss as well as ordinary
+  // case aliases without changing the displayed logical path.
+  return value.normalize("NFC").toLocaleUpperCase("und").toLocaleLowerCase("und");
+}
+
 export function projectWorkspaceIsSafe(value: unknown, project?: ProjectShell): value is ProjectWorkspace {
   if (!record(value) || !exactKeys(value, [
     "schema_version", "project_id", "learner_id", "workspace_revision", "notes", "references",
@@ -304,7 +311,8 @@ export function projectWorkspaceIsSafe(value: unknown, project?: ProjectShell): 
     || !Array.isArray(value.domain_links) || value.domain_links.length > 50 || !value.domain_links.every(domainLinkIsSafe)) return false;
   return new Set(value.notes.map((item) => item.note_id)).size === value.notes.length
     && new Set(value.references.map((item) => item.reference_id)).size === value.references.length
-    && new Set(value.artifacts.map((item) => `${item.artifact_id}@${item.artifact_version}`)).size === value.artifacts.length
+    && new Set(value.artifacts.map((item) => item.artifact_id)).size === value.artifacts.length
+    && new Set(value.artifacts.map((item) => logicalPathComparisonKey(item.logical_path))).size === value.artifacts.length
     && new Set(value.domain_links.map((item) => item.link_id)).size === value.domain_links.length;
 }
 
@@ -463,7 +471,9 @@ export async function projectEvidenceExportBindingsAreSafe(value: ProjectEvidenc
     const reference = snapshot.snapshot.artifacts[index]!;
     const artifact = workspace.artifacts[index]!;
     if (reference.artifact_id !== artifact.artifact_id || reference.artifact_version !== artifact.artifact_version
-      || reference.manifest_digest !== await canonicalDigest(artifact)) return false;
+      || reference.manifest_digest !== await canonicalDigest(artifact)
+      || reference.content_digest !== artifact.content_digest
+      || reference.byte_count !== artifact.byte_count) return false;
   }
   for (let index = 0; index < workspace.domain_links.length; index += 1) {
     const reference = snapshot.snapshot.domain_links[index]!;

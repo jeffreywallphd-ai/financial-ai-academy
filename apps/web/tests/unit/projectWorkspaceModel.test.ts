@@ -222,6 +222,29 @@ describe("Project response validation", () => {
     expect(projectWorkspaceIsSafe({ ...workspace, artifacts: [{ ...baseArtifact, provenance: { source_type: "external", source_title: "Evidence" } }] }, project)).toBe(false);
   });
 
+  it("rejects repeated artifact identities and case-folded logical path aliases", () => {
+    const baseArtifact: ProjectArtifact = {
+      artifact_id: "artifact-one", artifact_version: 1, artifact_kind: "supporting_file", logical_path: "Data/Foo.csv",
+      media_type: "text/csv", inspection_mode: "plain_text", byte_count: 2, content_digest: "e".repeat(64),
+      provenance: { source_type: "learner_created", source_title: "Evidence" }, assumptions: [], created_at: workspace.created_at,
+    };
+    expect(projectWorkspaceIsSafe({
+      ...workspace,
+      artifacts: [baseArtifact, { ...baseArtifact, artifact_version: 2, logical_path: "Data/Bar.csv" }],
+    }, project)).toBe(false);
+    expect(projectWorkspaceIsSafe({
+      ...workspace,
+      artifacts: [baseArtifact, { ...baseArtifact, artifact_id: "artifact-two", logical_path: "data/foo.csv" }],
+    }, project)).toBe(false);
+    expect(projectWorkspaceIsSafe({
+      ...workspace,
+      artifacts: [
+        { ...baseArtifact, logical_path: "Data/Straße.csv" },
+        { ...baseArtifact, artifact_id: "artifact-two", logical_path: "data/STRASSE.csv" },
+      ],
+    }, project)).toBe(false);
+  });
+
   it("rejects a snapshot list that is duplicated, uncorrelated, or technically extended", () => {
     expect(projectSnapshotListIsSafe({ records: [snapshot, snapshot] }, project)).toBe(false);
     expect(projectSnapshotListIsSafe({ records: [{ ...snapshot, snapshot: { ...snapshot.snapshot, learner_id: "learner-other" } }] }, project)).toBe(false);
@@ -446,6 +469,40 @@ describe("Project generated-client loaders and action", () => {
       files: valid.files.map((file, index) => index === 0 ? { ...file, logical_path: "notes/other.txt" } : file),
     };
     get.mockResolvedValueOnce(response(200, changedFile));
+    expect(await exportSnapshot(project.project_id, snapshot.snapshot_id)).toEqual({ status: "invalid-response" });
+  });
+
+  it("rejects changed excluded-artifact snapshot facts even when all outer digests are updated", async () => {
+    const artifact: ProjectArtifact = {
+      artifact_id: "artifact-one", artifact_version: 1, artifact_kind: "supporting_file", logical_path: "notes/evidence.txt",
+      media_type: "text/plain", inspection_mode: "plain_text", byte_count: 8, content_digest: "e".repeat(64),
+      provenance: { source_type: "learner_created", source_title: "Evidence" }, assumptions: [], created_at: workspace.created_at,
+    };
+    const valid = await exportBundle({ ...workspace, artifacts: [artifact] });
+    const changedSnapshotMaterial = {
+      ...valid.manifest.export.snapshot_record.snapshot,
+      artifacts: valid.manifest.export.snapshot_record.snapshot.artifacts.map((reference, index) => index === 0
+        ? { ...reference, byte_count: reference.byte_count + 1, content_digest: "f".repeat(64) }
+        : reference),
+    };
+    const changedSnapshotRecord = {
+      ...valid.manifest.export.snapshot_record,
+      snapshot: changedSnapshotMaterial,
+      snapshot_digest: await canonicalDigest(changedSnapshotMaterial),
+    };
+    const changedMaterial = {
+      ...valid.manifest.export,
+      snapshot_digest: changedSnapshotRecord.snapshot_digest,
+      snapshot_record: changedSnapshotRecord,
+    };
+    const changed = {
+      ...valid,
+      manifest: { ...valid.manifest, export: changedMaterial, export_digest: await canonicalDigest(changedMaterial) },
+    };
+    const get = vi.fn().mockResolvedValue(response(200, changed));
+    const exportSnapshot = createProjectSnapshotExporter({ GET: get } as unknown as FinancialAcademyApiClient, session());
+
+    expect(valid.manifest.export.excluded_artifacts).toHaveLength(1);
     expect(await exportSnapshot(project.project_id, snapshot.snapshot_id)).toEqual({ status: "invalid-response" });
   });
 });
