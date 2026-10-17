@@ -10,7 +10,7 @@ capability: CAP-0017
 depends_on: [WRK-0136]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/src/features/personal-workspace/api.ts", "apps/web/src/features/personal-workspace/model.ts", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "docs/architecture/contracts/personal-workspace-contract.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0137-deliver-project-saved-learning-browser-flow.md", "docs/planning/register.md"]
+write_scope: ["apps/web/README.md", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/src/features/personal-workspace/PersonalWorkspaceRoutes.tsx", "apps/web/src/features/personal-workspace/api.ts", "apps/web/src/features/personal-workspace/model.ts", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "docs/architecture/contracts/personal-workspace-contract.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0137-deliver-project-saved-learning-browser-flow.md", "docs/planning/register.md"]
 generated_artifacts: []
 base_revision: 2c408443c8adf95d8cb803d96d8b47a707d948dd
 claim_id: WRK-0137:cafa3d30-634c-464d-969a-a501cc8b5fae
@@ -230,3 +230,7 @@ leave WRK-0138 dependency-ready.
 - 2026-10-17: Activated from recorded base `2c40844` after validating the
   completed dependency, exact write scope, design and language constraints,
   current CAP authority, and absence of active coordination overlap.
+- 2026-10-17: Added the existing Saved Learning route wrapper to scope before
+  product edits because its invalid-selection text and return action were
+  Curriculum-specific. The bounded change makes shared failure behavior source-
+  neutral without changing routing, authority, or slice meaning.
