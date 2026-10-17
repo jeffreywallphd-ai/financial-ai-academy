@@ -114,6 +114,20 @@ forced colors, and more-protective reduced-motion behavior keep precedence. Its
 pure adapter issues no identity or time, persists nothing, and changes no
 runtime token, browser state, UI, provider, model, or other module.
 
+Explicit AI-help choice additionally follows the
+[learner-assistance-preferences contract](learner-assistance-preferences-contract.md).
+Learner model owns the portable `off|on_request` profile, complete
+replacement/reset, bounded non-content history, and export. `on_request` is
+learner intent only; provider admission, selection, data permission, and every
+model call remain separate governed controls. The pure adapter issues no
+identity or time, persists nothing, and performs no provider, model, network,
+notification, or cross-module action.
+
+The platform browser adapter separately owns the versioned local learning-
+reminder envelope. Its `in_app_when_available` value records future local
+intent only. It has no learner identity, public API, headless meaning,
+permission-prompt, schedule, queue, worker, destination, or delivery authority.
+
 Portable financial methods, portfolio records, and simulation results
 additionally follow
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the

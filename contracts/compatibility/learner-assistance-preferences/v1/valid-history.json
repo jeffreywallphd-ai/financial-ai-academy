@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "assistance.local-learner",
+  "current_revision": 2,
+  "changes": [
+    {
+      "schema_version": "1.0.0",
+      "revision": 2,
+      "operation": "replace_preferences",
+      "object_kind": "profile",
+      "object_id": null,
+      "occurred_at": "2026-10-17T23:01:00Z",
+      "resulting_profile_digest": "cabd8b0c017edda15593be28b69307a4ee5e1eeb5de770f8475d14ab7205c50e"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "Portable review of an explicit AI-help preference",
+  "limitations": [
+    "This choice does not enable a provider or authorize data transfer.",
+    "This record is not evidence that AI help is available or was used."
+  ],
+  "exported_at": "2026-10-17T23:02:00Z",
+  "profile": {
+    "schema_version": "1.0.0",
+    "profile_id": "assistance.local-learner",
+    "learner_id": "11111111-1111-4111-8111-111111111111",
+    "revision": 2,
+    "assistance_mode": "on_request",
+    "created_at": "2026-10-17T23:00:00Z",
+    "updated_at": "2026-10-17T23:01:00Z",
+    "profile_digest": "cabd8b0c017edda15593be28b69307a4ee5e1eeb5de770f8475d14ab7205c50e"
+  },
+  "history": {
+    "schema_version": "1.0.0",
+    "profile_id": "assistance.local-learner",
+    "current_revision": 2,
+    "changes": [
+      {
+        "schema_version": "1.0.0",
+        "revision": 2,
+        "operation": "replace_preferences",
+        "object_kind": "profile",
+        "object_id": null,
+        "occurred_at": "2026-10-17T23:01:00Z",
+        "resulting_profile_digest": "cabd8b0c017edda15593be28b69307a4ee5e1eeb5de770f8475d14ab7205c50e"
+      }
+    ]
+  }
+}

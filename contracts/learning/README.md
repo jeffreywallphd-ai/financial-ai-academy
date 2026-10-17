@@ -242,3 +242,21 @@ presentation baseline. It excludes browser-local theme, arbitrary styling,
 diagnosis, inferred need, evidence, policy, recommendation, provider, and model
 authority. Persistence, public API, runtime application, browser UI, and live
 qualification remain later SLI-0075 packet seams.
+
+## Learner Assistance Preferences v1
+
+[`learner-assistance-preferences/v1/`](learner-assistance-preferences/v1/README.md)
+defines the explicit `off|on_request` AI-help choice, closed revision-bound
+replacement/reset, bounded non-content history, and portable export. Its
+synthetic compatibility corpus lives in
+[`../compatibility/learner-assistance-preferences/v1/`](../compatibility/learner-assistance-preferences/v1/README.md).
+
+```powershell
+backend/.venv/Scripts/python.exe -m pytest backend/tests/contract/learner_assistance_preferences backend/tests/unit/learner_model/test_assistance_preference_contract.py backend/tests/unit/learner_model/test_assistance_preferences.py
+```
+
+The pure family is preference only. It admits no provider, grants no data
+permission, invokes no model, and creates no evidence, recommendation, output,
+or notification authority. Persistence, public API, generated client, browser
+composition, and live qualification remain later SLI-0076 packet seams. The
+separately owned browser-local reminder envelope has no API or headless meaning.

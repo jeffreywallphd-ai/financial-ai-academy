@@ -1,7 +1,7 @@
 ---
 id: WRK-0158
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/platform/reminders/localReminderPreference.ts", "apps/web/tests/unit/localReminderPreference.test.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "backend/src/financial_ai_academy/modules/learner_model/adapters/assistance_preference_contract.py", "backend/src/financial_ai_academy/modules/learner_model/domain/assistance_preferences.py", "backend/src/financial_ai_academy/modules/learner_model/ports/assistance_preference_contract.py", "backend/tests/contract/learner_assistance_preferences", "backend/tests/unit/learner_model/test_assistance_preference_contract.py", "backend/tests/unit/learner_model/test_assistance_preferences.py", "contracts/compatibility/learner-assistance-preferences/v1", "contracts/learning/README.md", "contracts/learning/learner-assistance-preferences/v1", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/learner-assistance-preferences-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0158-freeze-ai-help-and-local-reminder-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 921716c06aba80a709997e4e092d8ed0f29f40b4
+claim_id: WRK-0158:559600bb-4c37-4bb6-bd42-af2dc7d307cf
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-17T23:53:38Z
 ---
 
 # Agent Work Packet: Freeze AI Help and Local Reminder Contracts

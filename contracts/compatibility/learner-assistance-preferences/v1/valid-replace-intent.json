@@ -1,0 +1,9 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "intent.assistance-001",
+  "expected_revision": 1,
+  "mutation": {
+    "operation": "replace_preferences",
+    "assistance_mode": "on_request"
+  }
+}

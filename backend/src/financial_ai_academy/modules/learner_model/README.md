@@ -161,3 +161,24 @@ replay, and durability without widening the pure core. Browser-local theme
 remains platform-owned and outside this contract. A later presentation adapter
 must preserve browser zoom, forced colors, and any more-protective reduced-
 motion behavior.
+
+## Assistance preference contract core
+
+Learner model also owns the additive pure
+`learner-assistance-preferences/v1` family for the learner's explicit AI-help
+choice. `off` is the default. `on_request` means only that a later governed
+feature may offer an action the learner starts deliberately; it does not admit
+or select a provider, grant data permission, call a model, create output, or
+promise availability.
+
+The profile is complete and revision-bound. Mutations replace the one closed
+value or reset it to `off`. Bounded history contains no prior preference value,
+and export contains only the exact profile, correlated summaries, purpose, and
+limitations. The pure domain and JSON Schema adapter issue no identity or time
+and have no database, network, filesystem, provider, model, notification, UI,
+or cross-module effect. Application persistence and protected API composition
+remain a later packet.
+
+The platform-owned browser-local learning-reminder envelope is outside this
+module and has no learner identity, public API, or headless meaning. Its future
+local intent cannot authorize scheduling or delivery.

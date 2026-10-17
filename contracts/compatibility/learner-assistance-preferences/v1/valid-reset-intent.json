@@ -1,0 +1,8 @@
+{
+  "schema_version": "1.0.0",
+  "idempotency_key": "intent.assistance-002",
+  "expected_revision": 2,
+  "mutation": {
+    "operation": "reset_profile"
+  }
+}
