@@ -1,9 +1,9 @@
 ---
 id: WRK-0157
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0018-correction
 updated: 2026-10-17
 parent: SLI-0075
 capability: CAP-0018
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/learner_model/application/service.py", "backend/tests/integration/learner_model/test_postgres_preferences.py", "backend/tests/integration/learner_model/test_postgres_presentation_preferences.py", "backend/tests/unit/learner_model/test_preference_service.py", "backend/tests/unit/learner_model/test_presentation_preference_service.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0156-qualify-presentation-preferences-live-flow.md", "docs/planning/work-packets/WRK-0157-close-preference-exact-replay-race-window.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: ef0504809c5b64d4dc6ae4cbee54c72e297c6ab8
+claim_id: WRK-0157:22688bc0-e878-46b1-8452-2da37858d6ad
+claimed_by: codex-cap-0018-correction
+claimed_at: 2026-10-17T23:25:14Z
 ---
 
 # Agent Work Packet: Close the Preference Exact-Replay Race Window
@@ -199,3 +199,6 @@ assumptions; and residual gaps. Then return WRK-0156 to verification.
   a split-read race shared by learner and presentation preferences. The packet
   restores already documented exact-replay ordering within SLI-0075 and does
   not change the approved CAP package or require lower-level approval.
+- 2026-10-17: Activated from recorded base `ef05048` after deterministic
+  packet validation, current CAP and slice conformance, satisfied WRK-0155
+  dependency, exact write-scope declaration, and collision-free file leasing.
