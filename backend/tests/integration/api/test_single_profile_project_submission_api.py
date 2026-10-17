@@ -592,6 +592,7 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert unauthorized.status_code == 401
     assert candidate_response.status_code == 200, candidate_response.text
     assert empty_completion.status_code == 200, empty_completion.text
+    assert empty_completion.json()["projection_version"] == "1.0.0"
     assert empty_completion.json()["completed"] is False
     assert empty_completion.json()["completion_meaning"] == "not_completed"
     assert empty_completion.json()["history"] == []
@@ -631,6 +632,7 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert exact.json() == accepted_response.json()["evidence"]
     assert history.status_code == exact.status_code == 200
     assert completion.status_code == 200, completion.text
+    assert completion.json()["projection_version"] == "1.0.0"
     assert completion_query_denied.status_code == 400
     assert completion.json()["project_id"] == project_id
     assert completion.json()["completed"] is True

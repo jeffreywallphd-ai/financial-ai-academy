@@ -240,10 +240,29 @@
   gap: var(--faa-space-2);
 }
 
-.project-submission-options label {
+.project-submission-option {
+  display: grid;
+  gap: var(--faa-space-2);
+  padding: var(--faa-space-3);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+}
+
+.project-submission-option label {
   display: flex;
   align-items: flex-start;
   gap: var(--faa-space-2);
+}
+
+.project-resource-record,
+.project-resource-list p {
+  margin: var(--faa-space-0);
+}
+
+.project-resource-list {
+  display: grid;
+  gap: var(--faa-space-3);
+  padding-inline-start: var(--faa-space-4);
 }
 
 .project-submission-options input[type="checkbox"] {

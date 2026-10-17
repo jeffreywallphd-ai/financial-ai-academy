@@ -18,7 +18,9 @@ returns ordered safe issues with `evidence: null` and writes nothing; an
 accepted result returns immutable exact evidence. History omits learner
 identity and Project content while retaining exact correlation, provenance,
 occurrence, time, and supersession facts. Browser and authenticated headless
-clients use the same reviewed operation and generated types.
+clients use the same reviewed operation and generated types. The completion
+document always includes its required `projection_version`; a missing version
+is an invalid response rather than an implicit default.
 
 `POST /api/v1/projects`, `GET /api/v1/projects`, and
 `GET /api/v1/projects/{project_id}` are the protected Project shell boundary.

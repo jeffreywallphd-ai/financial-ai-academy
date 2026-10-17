@@ -4919,7 +4919,6 @@
           },
           "projection_version": {
             "const": "1.0.0",
-            "default": "1.0.0",
             "title": "Projection Version",
             "type": "string"
           },
@@ -4935,6 +4934,7 @@
           }
         },
         "required": [
+          "projection_version",
           "project_id",
           "completed",
           "completion_meaning",

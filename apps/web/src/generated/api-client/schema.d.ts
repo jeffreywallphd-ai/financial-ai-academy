@@ -1001,7 +1001,7 @@ export interface components {
       readonly "completion_meaning": "not_completed" | "bounded_project_activity_completed";
       readonly "history": ReadonlyArray<components["schemas"]["ProjectActivityCompletionHistoryEntryModel"]>;
       readonly "project_id": string;
-      readonly "projection_version"?: "1.0.0";
+      readonly "projection_version": "1.0.0";
       readonly "rebuilt_at": string;
       readonly "source_digest": string;
     };

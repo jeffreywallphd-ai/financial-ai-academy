@@ -620,8 +620,8 @@ function projectCompletionEntryIsSafe(value: unknown): boolean {
 }
 
 export function projectActivityCompletionIsSafe(value: unknown, projectId: string): value is ProjectActivityCompletion {
-  if (!record(value) || !exactOptionalKeys(value, ["project_id", "completed", "completion_meaning", "source_digest", "rebuilt_at", "history"], ["projection_version"])
-    || (value.projection_version !== undefined && value.projection_version !== "1.0.0") || value.project_id !== projectId
+  if (!record(value) || !exactKeys(value, ["projection_version", "project_id", "completed", "completion_meaning", "source_digest", "rebuilt_at", "history"])
+    || value.projection_version !== "1.0.0" || value.project_id !== projectId
     || typeof value.completed !== "boolean" || !digest(value.source_digest) || !utcTimestamp(value.rebuilt_at)
     || !Array.isArray(value.history) || value.history.length > 100 || !value.history.every(projectCompletionEntryIsSafe)) return false;
   return value.completed

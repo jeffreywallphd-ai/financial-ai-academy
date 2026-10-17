@@ -126,7 +126,11 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
     if (request.method() === "GET" && candidateMatch) {
       const snapshotRecord = snapshots.find((item) => item.snapshot_id === candidateMatch[2]) as { snapshot_digest?: string; closed_at?: string; snapshot?: { workspace_revision?: number } } | undefined;
       if (!snapshotRecord) return json(route, 404, { code: "not_found" });
-      const resources = notes.map((note) => ({ resource_kind: "note", resource_id: note.note_id, resource_version: 1, record_digest: canonicalDigest(note) }));
+      const resources = [
+        ...notes.map((note) => ({ resource_kind: "note", resource_id: note.note_id, resource_version: 1, record_digest: canonicalDigest(note) })),
+        ...references.map((reference) => ({ resource_kind: "source", resource_id: reference.reference_id, resource_version: 1, record_digest: canonicalDigest(reference) })),
+        ...artifacts.map((artifact) => ({ resource_kind: "artifact", resource_id: artifact.artifact_id, resource_version: 1, record_digest: canonicalDigest(artifact), content_digest: artifact.content_digest, byte_count: artifact.byte_count })),
+      ];
       return json(route, 200, {
         schema_version: "1.0.0",
         project: { project_id: candidateMatch[1], project_revision: 1, project_shell_digest: "e".repeat(64), snapshot_id: candidateMatch[2], snapshot_digest: snapshotRecord.snapshot_digest, workspace_revision: snapshotRecord.snapshot?.workspace_revision, closed_at: snapshotRecord.closed_at },
@@ -137,7 +141,10 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
           placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
         },
         policy_id: "assessment-project-closure", policy_version: "1.0.0",
-        milestones: [{ milestone_id: "milestone-one", milestone_version: "1.0.0", sequence: 1, title: "Compare the evidence" }],
+        milestones: [
+          { milestone_id: "milestone-one", milestone_version: "1.0.0", sequence: 1, title: "Compare the evidence" },
+          { milestone_id: "milestone-two", milestone_version: "1.0.0", sequence: 2, title: "Explain the comparison" },
+        ],
         resources,
       });
     }
@@ -151,7 +158,7 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
         brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
         placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
         policy_id: "assessment-project-closure", policy_version: "1.0.0", milestone_evidence: body.milestone_evidence,
-        milestone_ids: ["milestone-one"], request_fingerprint: "f".repeat(64), occurrence: 1, accepted_sequence: 1,
+        milestone_ids: (body.milestone_evidence as { milestone_id: string }[]).map((item) => item.milestone_id), request_fingerprint: "f".repeat(64), occurrence: 1, accepted_sequence: 1,
         submitted_at: "2026-10-16T20:05:00Z",
       };
       return json(route, 200, { validation: { schema_version: "1.0.0", status: "accepted", request_fingerprint: "f".repeat(64), issues: [] }, evidence: acceptedEvidence });
@@ -178,7 +185,7 @@ async function mockProjects(page: Page, postBodies: Record<string, unknown>[], o
         snapshot_id: acceptedEvidence.snapshot_id, snapshot_digest: acceptedEvidence.snapshot_digest,
         brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
         placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
-        policy_id: "assessment-project-closure", policy_version: "1.0.0", milestone_ids: ["milestone-one"],
+        policy_id: "assessment-project-closure", policy_version: "1.0.0", milestone_ids: acceptedEvidence.milestone_ids,
         request_fingerprint: acceptedEvidence.request_fingerprint, occurrence: 1, accepted_sequence: 1,
         submitted_at: acceptedEvidence.submitted_at, occurred_at: "2026-10-16T20:05:00Z",
       }] : [],
@@ -345,21 +352,49 @@ test("saves Project work, keeps files inert, closes a snapshot, and continues wo
   expect(new Set(checkpointBodies.map((body) => body.idempotency_key)).size).toBe(2);
 });
 
+test("denies every direct learning-evidence route for an independent Project", async ({ page }) => {
+  await mockProjects(page, []);
+  for (const query of ["", "?snapshot=snapshot-one", "?submission=submission-one"]) {
+    await page.goto(`/projects/project-independent/learning${query}`);
+    await expect(page.getByRole("heading", { name: "Project not found" })).toBeVisible();
+    await expect(page.locator("main")).not.toContainText(/learning record|accepted checkpoint|submit for learning/i);
+  }
+});
+
 test("submits a learning Project checkpoint and reopens the accepted evidence", async ({ page }) => {
   const posts: Record<string, unknown>[] = [];
   await mockProjects(page, posts);
+  await page.setViewportSize({ width: 375, height: 720 });
   await page.goto(`/projects/new?placement=${origin.placement_id}`);
   await page.getByLabel(/What do you want/i).fill("Apply the learning brief to evidence.");
   await page.getByRole("button", { name: "Create Project" }).click();
   await page.getByLabel("Note title").fill("Comparison evidence");
   await page.getByLabel("Note", { exact: true }).fill("A bounded comparison with no recommendation.");
   await page.getByRole("button", { name: "Save note" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: "Comparison evidence" })).toBeVisible();
+  const secondNote = page.getByRole("group", { name: "Add a note" });
+  await secondNote.getByLabel("Note title").fill("Explanation evidence");
+  await secondNote.getByLabel("Note", { exact: true }).fill("An explanation kept separate from the comparison.");
+  await secondNote.getByRole("button", { name: "Save note" }).click();
+  await expect(page.getByRole("heading", { level: 3, name: "Explanation evidence" })).toBeVisible();
   await page.getByRole("button", { name: "Save checkpoint" }).click();
   await page.getByRole("link", { name: "Submit for learning" }).click();
 
   await expect(page.getByRole("heading", { name: "Choose evidence for each milestone" })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-  await page.getByLabel("note 1").check();
+  const dimensions = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, content: document.documentElement.scrollWidth }));
+  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
+  const lightText = await page.locator("main").innerText();
+  await page.getByLabel("Theme").selectOption("dark");
+  expect(await page.locator("main").innerText()).toBe(lightText);
+  await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "active" });
+  await page.getByLabel("Saved note note-1 — version 1").first().check();
+  await page.getByLabel("Saved note note-2 — version 1").nth(1).check();
+  const submitButton = page.getByRole("button", { name: "Submit checkpoint" });
+  await submitButton.focus();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  expect(await submitButton.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
   const submission = page.waitForRequest((request) => request.method() === "POST" && new URL(request.url()).pathname.endsWith("/submissions"));
   await page.getByRole("button", { name: "Submit checkpoint" }).click();
   const submitted = await submission;
@@ -369,5 +404,8 @@ test("submits a learning Project checkpoint and reopens the accepted evidence", 
   await expect(page.getByText(/does not grade its quality, show mastery, or provide financial advice/i)).toBeVisible();
   const body = submitted.postDataJSON() as Record<string, unknown>;
   expect(body).not.toHaveProperty("learner_id");
-  expect(body).toEqual(expect.objectContaining({ policy_id: "assessment-project-closure", milestone_evidence: [expect.objectContaining({ milestone_id: "milestone-one" })] }));
+  expect(body).toEqual(expect.objectContaining({ policy_id: "assessment-project-closure", milestone_evidence: [
+    expect.objectContaining({ milestone_id: "milestone-one", resources: [expect.objectContaining({ resource_id: "note-1" })] }),
+    expect.objectContaining({ milestone_id: "milestone-two", resources: [expect.objectContaining({ resource_id: "note-2" })] }),
+  ] }));
 });

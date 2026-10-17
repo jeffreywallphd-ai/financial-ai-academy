@@ -8,7 +8,7 @@ import { ProjectCreatePage } from "../../src/features/project-workspace/ProjectC
 import { ProjectDetailPage } from "../../src/features/project-workspace/ProjectDetailPage";
 import { ProjectListPage } from "../../src/features/project-workspace/ProjectListPage";
 import { ProjectSubmissionPage } from "../../src/features/project-workspace/ProjectSubmissionPage";
-import type { LearningProjectStartOption, ProjectActivityCompletion, ProjectCompletionHistory, ProjectShell, ProjectSnapshot, ProjectSubmissionCandidate, ProjectWorkspace } from "../../src/features/project-workspace/model";
+import type { LearningProjectStartOption, ProjectActivityCompletion, ProjectCompletionEvidence, ProjectCompletionHistory, ProjectShell, ProjectSnapshot, ProjectSubmissionCandidate, ProjectWorkspace } from "../../src/features/project-workspace/model";
 
 const origin = {
   origin_type: "learning" as const,
@@ -68,36 +68,103 @@ const submissionCandidate: ProjectSubmissionCandidate = {
   milestones: [{ milestone_id: "milestone-one", milestone_version: "1.0.0", sequence: 1, title: "Compare the evidence" }],
   resources: [{ resource_kind: "note", resource_id: "note-one", resource_version: 1, record_digest: "a".repeat(64) }],
 };
+const variedSubmissionCandidate: ProjectSubmissionCandidate = {
+  ...submissionCandidate,
+  milestones: [
+    submissionCandidate.milestones[0]!,
+    { milestone_id: "milestone-two", milestone_version: "1.0.0", sequence: 2, title: "Explain the comparison" },
+  ],
+  resources: [
+    submissionCandidate.resources[0]!,
+    { resource_kind: "source", resource_id: "source-one", resource_version: 3, record_digest: "b".repeat(64) },
+    { resource_kind: "artifact", resource_id: "artifact-one", resource_version: 2, record_digest: "c".repeat(64), content_digest: "d".repeat(64), byte_count: 256 },
+    { resource_kind: "domain_resource", resource_id: "observation-one", resource_as_of: workspace.updated_at, record_digest: "e".repeat(64), owner_reference_digest: "f".repeat(64) },
+  ],
+};
 const submissionHistory: ProjectCompletionHistory = { schema_version: "1.0.0", project_id: project.project_id, items: [] };
 const projectCompletion: ProjectActivityCompletion = { projection_version: "1.0.0", project_id: project.project_id, completed: false, completion_meaning: "not_completed", source_digest: "b".repeat(64), rebuilt_at: workspace.updated_at, history: [] };
 
 describe("Project learner pages", () => {
   it("presents a checkpoint as plain-language, keyboard-reachable milestone choices", async () => {
     const submissions: FormData[] = [];
-    const router = createMemoryRouter([{ path: "/projects/:projectId/learning", action: async ({ request }) => { submissions.push(await request.formData()); return null; }, element: <ProjectSubmissionPage actionState={undefined} busy={false} candidate={submissionCandidate} completion={projectCompletion} evidence={undefined} history={submissionHistory} project={project} selection={{ mode: "snapshot", snapshotId: "snapshot-one" }} submissionId="submission-one" /> }], { initialEntries: [`/projects/${project.project_id}/learning?snapshot=snapshot-one`] });
+    const router = createMemoryRouter([{ path: "/projects/:projectId/learning", action: async ({ request }) => { submissions.push(await request.formData()); return null; }, element: <ProjectSubmissionPage actionState={undefined} busy={false} candidate={variedSubmissionCandidate} completion={projectCompletion} evidence={undefined} history={submissionHistory} project={project} selection={{ mode: "snapshot", snapshotId: "snapshot-one" }} submissionId="submission-one" /> }], { initialEntries: [`/projects/${project.project_id}/learning?snapshot=snapshot-one`] });
     render(<RouterProvider router={router} />);
     const user = userEvent.setup();
 
     expect(screen.getByRole("heading", { level: 2, name: "Choose evidence for each milestone" })).toBeVisible();
     expect(screen.getByRole("group", { name: /Compare the evidence/ })).toBeVisible();
     expect(document.body.textContent).not.toMatch(/idempotency|database|object storage/i);
-    await user.click(screen.getByLabelText("note 1"));
+    await user.click(screen.getAllByLabelText("Saved note note-one — version 1")[0]!);
+    await user.click(screen.getAllByLabelText("Saved source source-one — version 3")[1]!);
     await user.click(screen.getByRole("button", { name: "Submit checkpoint" }));
     await waitFor(() => expect(submissions).toHaveLength(1));
     expect(submissions[0]?.get("submission_id")).toBe("submission-one");
-    expect(submissions[0]?.getAll("selection")).toEqual(["milestone-one:0"]);
+    expect(submissions[0]?.getAll("selection")).toEqual(["milestone-one:0", "milestone-two:1"]);
   });
 
   it("keeps refused choices selected and rotates authority only after a correction", async () => {
     const router = createMemoryRouter([{ path: "/projects/:projectId/learning", element: <ProjectSubmissionPage actionState={{ status: "error", kind: "refused", submissionId: "submission-one", selections: ["milestone-one:0"], issues: [{ code: "assessment.project.missing_milestone", reference: "milestone-one", message: "Add evidence for this milestone." }] }} busy={false} candidate={submissionCandidate} completion={projectCompletion} evidence={undefined} history={submissionHistory} project={project} selection={{ mode: "snapshot", snapshotId: "snapshot-one" }} submissionId="new-submission" /> }], { initialEntries: [`/projects/${project.project_id}/learning?snapshot=snapshot-one`] });
     render(<RouterProvider router={router} />);
     expect(screen.getByRole("heading", { name: "Checkpoint not submitted" })).toHaveFocus();
-    expect(screen.getByLabelText("note 1")).toBeChecked();
+    expect(screen.getByLabelText("Saved note note-one — version 1")).toBeChecked();
     expect(screen.getByText("Add evidence for this milestone.")).toBeVisible();
     const request = () => document.querySelector<HTMLInputElement>('input[name="submission_id"]')?.value;
     expect(request()).toBe("submission-one");
-    await userEvent.setup().click(screen.getByLabelText("note 1"));
+    await userEvent.setup().click(screen.getByLabelText("Saved note note-one — version 1"));
     expect(request()).not.toBe("submission-one");
+  });
+
+  it("keeps uncertain unchanged retries on the same submission authority", async () => {
+    const submissions: FormData[] = [];
+    const router = createMemoryRouter([{ path: "/projects/:projectId/learning", action: async ({ request }) => { submissions.push(await request.formData()); return null; }, element: <ProjectSubmissionPage actionState={{ status: "error", kind: "unavailable", submissionId: "submission-one", selections: ["milestone-one:0"] }} busy={false} candidate={submissionCandidate} completion={projectCompletion} evidence={undefined} history={submissionHistory} project={project} selection={{ mode: "snapshot", snapshotId: "snapshot-one" }} submissionId="new-submission" /> }], { initialEntries: [`/projects/${project.project_id}/learning?snapshot=snapshot-one`] });
+    render(<RouterProvider router={router} />);
+
+    expect(screen.getByLabelText("Saved note note-one — version 1")).toBeChecked();
+    expect(document.querySelector<HTMLInputElement>('input[name="submission_id"]')?.value).toBe("submission-one");
+    await userEvent.setup().click(screen.getByRole("button", { name: "Submit checkpoint" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(submissions[0]?.get("submission_id")).toBe("submission-one");
+  });
+
+  it("keeps complete safe evidence identity and provenance in progressive disclosure", async () => {
+    const evidence: ProjectCompletionEvidence = {
+      schema_version: "1.0.0", evidence_id: "evidence-one", learner_id: project.learner_id,
+      submission_id: "submission-one", project_id: project.project_id,
+      snapshot_id: submissionCandidate.project.snapshot_id, snapshot_digest: submissionCandidate.project.snapshot_digest,
+      brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
+      placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
+      policy_id: "assessment-project-closure", policy_version: "1.0.0",
+      milestone_evidence: [{ milestone_id: "milestone-one", resources: variedSubmissionCandidate.resources }],
+      milestone_ids: ["milestone-one"], request_fingerprint: "9".repeat(64), occurrence: 2,
+      accepted_sequence: 3, supersedes_submission_id: "submission-zero", submitted_at: workspace.updated_at,
+    };
+    render(<MemoryRouter><ProjectSubmissionPage actionState={undefined} busy={false} candidate={undefined} completion={{ ...projectCompletion, completed: true, completion_meaning: "bounded_project_activity_completed", history: [{
+      event_id: "event-one", evidence_id: evidence.evidence_id, submission_id: evidence.submission_id,
+      snapshot_id: evidence.snapshot_id, snapshot_digest: evidence.snapshot_digest,
+      brief_id: evidence.brief_id, brief_version: evidence.brief_version, brief_digest: evidence.brief_digest,
+      placement_id: evidence.placement_id, placement_version: evidence.placement_version, placement_digest: evidence.placement_digest,
+      policy_id: evidence.policy_id, policy_version: evidence.policy_version, milestone_ids: evidence.milestone_ids,
+      request_fingerprint: evidence.request_fingerprint, occurrence: evidence.occurrence,
+      accepted_sequence: evidence.accepted_sequence, supersedes_submission_id: "submission-zero",
+      submitted_at: evidence.submitted_at, occurred_at: evidence.submitted_at,
+    }] }} evidence={evidence} history={{ schema_version: "1.0.0", project_id: project.project_id, items: [{
+      evidence_id: evidence.evidence_id, submission_id: evidence.submission_id, snapshot_id: evidence.snapshot_id,
+      snapshot_digest: evidence.snapshot_digest, request_fingerprint: evidence.request_fingerprint,
+      occurrence: evidence.occurrence, supersedes_submission_id: "submission-zero", submitted_at: evidence.submitted_at,
+    }] }} project={project} selection={{ mode: "submission", submissionId: evidence.submission_id }} submissionId="new-submission" /></MemoryRouter>);
+    const user = userEvent.setup();
+
+    await user.click(screen.getAllByText("Technical record").at(-1)!);
+    expect(screen.getByText("Saved file artifact-one — version 2")).toBeVisible();
+    expect(screen.getByText("Connected record observation-one — as of Oct 16, 2026")).toBeVisible();
+    await user.click(screen.getByText("Submission technical record"));
+    expect(screen.getAllByText(evidence.snapshot_digest)).not.toHaveLength(0);
+    expect(screen.getAllByText(evidence.brief_digest)).not.toHaveLength(0);
+    expect(screen.getAllByText(evidence.placement_digest)).not.toHaveLength(0);
+    expect(screen.getByText("submission-zero")).toBeVisible();
+    for (const disclosure of screen.getAllByText("Technical identity")) await user.click(disclosure);
+    expect(screen.getByText("256 bytes")).toBeVisible();
+    expect(screen.getAllByText("f".repeat(64))).not.toHaveLength(0);
   });
 
   it("renders zero or several records without assuming one fixture", () => {

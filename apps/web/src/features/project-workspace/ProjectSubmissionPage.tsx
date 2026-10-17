@@ -12,15 +12,47 @@ import type {
 } from "./model";
 import { readableProjectDate } from "./model";
 
-function resourceLabel(resource: ProjectSubmissionCandidate["resources"][number], index: number) {
-  const kind = resource.resource_kind === "artifact"
-    ? "file"
+type SubmissionResource = ProjectSubmissionCandidate["resources"][number];
+
+function resourceKind(resource: SubmissionResource) {
+  return resource.resource_kind === "artifact"
+    ? "Saved file"
     : resource.resource_kind === "source"
-      ? "source"
+      ? "Saved source"
       : resource.resource_kind === "note"
-        ? "note"
-        : "connected record";
-  return `${kind} ${index + 1}`;
+        ? "Saved note"
+        : "Connected record";
+}
+
+function resourceVersion(resource: SubmissionResource) {
+  if (resource.resource_kind === "domain_resource") {
+    return "resource_version" in resource
+      ? `version ${resource.resource_version}`
+      : `as of ${readableProjectDate(resource.resource_as_of)}`;
+  }
+  return `version ${resource.resource_version}`;
+}
+
+function resourceLabel(resource: SubmissionResource) {
+  return `${resourceKind(resource)} ${resource.resource_id} — ${resourceVersion(resource)}`;
+}
+
+function ResourceTechnicalRecord({ resource }: { resource: SubmissionResource }) {
+  return <details className="project-resource-record"><summary>Technical identity</summary><dl className="project-technical">
+    <div><dt>Type</dt><dd><code>{resource.resource_kind}</code></dd></div>
+    <div><dt>Resource ID</dt><dd><code>{resource.resource_id}</code></dd></div>
+    {resource.resource_kind === "domain_resource" && "resource_as_of" in resource
+      ? <div><dt>Resource time</dt><dd><time dateTime={resource.resource_as_of}>{resource.resource_as_of}</time></dd></div>
+      : <div><dt>Resource version</dt><dd><code>{resource.resource_version}</code></dd></div>}
+    <div><dt>Record fingerprint</dt><dd><code>{resource.record_digest}</code></dd></div>
+    {resource.resource_kind === "artifact" ? <>
+      <div><dt>File fingerprint</dt><dd><code>{resource.content_digest}</code></dd></div>
+      <div><dt>File size</dt><dd>{resource.byte_count} bytes</dd></div>
+    </> : null}
+    {resource.resource_kind === "domain_resource"
+      ? <div><dt>Owner reference fingerprint</dt><dd><code>{resource.owner_reference_digest}</code></dd></div>
+      : null}
+  </dl></details>;
 }
 
 function SubmissionError({ state }: { state: ProjectLearningActionState }) {
@@ -115,7 +147,10 @@ function CandidateForm({
           <div className="project-submission-options">
             {candidate.resources.map((resource, index) => {
               const value = `${milestone.milestone_id}:${index}`;
-              return <label key={value}><input checked={selected.has(value)} name="selection" onChange={(event) => changeSelection(value, event.currentTarget.checked)} type="checkbox" value={value} /> <span>{resourceLabel(resource, index)}</span></label>;
+              return <div className="project-submission-option" key={value}>
+                <label><input checked={selected.has(value)} name="selection" onChange={(event) => changeSelection(value, event.currentTarget.checked)} type="checkbox" value={value} /> <span>{resourceLabel(resource)}</span></label>
+                <ResourceTechnicalRecord resource={resource} />
+              </div>;
             })}
           </div>
         </fieldset>)}
@@ -123,10 +158,22 @@ function CandidateForm({
       </fieldset>
     </Form>
     <details><summary>Technical record</summary><dl className="project-technical">
+      <div><dt>Project ID</dt><dd><code>{candidate.project.project_id}</code></dd></div>
+      <div><dt>Project revision</dt><dd><code>{candidate.project.project_revision}</code></dd></div>
+      <div><dt>Project fingerprint</dt><dd><code>{candidate.project.project_shell_digest}</code></dd></div>
+      <div><dt>Workspace revision</dt><dd><code>{candidate.project.workspace_revision}</code></dd></div>
       <div><dt>Checkpoint ID</dt><dd><code>{candidate.project.snapshot_id}</code></dd></div>
       <div><dt>Checkpoint fingerprint</dt><dd><code>{candidate.project.snapshot_digest}</code></dd></div>
+      <div><dt>Checkpoint closed</dt><dd><time dateTime={candidate.project.closed_at}>{candidate.project.closed_at}</time></dd></div>
+      <div><dt>Learning package</dt><dd><code>{candidate.origin.package_id}@{candidate.origin.package_version}</code></dd></div>
+      <div><dt>Learning package fingerprint</dt><dd><code>{candidate.origin.package_digest}</code></dd></div>
+      <div><dt>Project brief</dt><dd><code>{candidate.origin.brief_id}@{candidate.origin.brief_version}</code></dd></div>
+      <div><dt>Project brief fingerprint</dt><dd><code>{candidate.origin.brief_digest}</code></dd></div>
+      <div><dt>Curriculum</dt><dd><code>{candidate.origin.curriculum_id}@{candidate.origin.curriculum_version}</code></dd></div>
+      <div><dt>Curriculum fingerprint</dt><dd><code>{candidate.origin.curriculum_digest}</code></dd></div>
       <div><dt>Review policy</dt><dd><code>{candidate.policy_id}@{candidate.policy_version}</code></dd></div>
       <div><dt>Learning placement</dt><dd><code>{candidate.origin.placement_id}@{candidate.origin.placement_version}</code></dd></div>
+      <div><dt>Learning placement fingerprint</dt><dd><code>{candidate.origin.placement_digest}</code></dd></div>
     </dl></details>
   </section>;
 }
@@ -139,12 +186,23 @@ function Evidence({ evidence }: { evidence: ProjectCompletionEvidence }) {
       <h3>Milestone evidence</h3><p>{milestone.resources.length} saved {milestone.resources.length === 1 ? "item" : "items"} submitted.</p>
       <details><summary>Technical record</summary><dl className="project-technical">
         <div><dt>Milestone ID</dt><dd><code>{milestone.milestone_id}</code></dd></div>
-        <div><dt>Resources</dt><dd><ul>{milestone.resources.map((resource, index) => <li key={`${resource.resource_kind}:${resource.resource_id}:${index}`}><code>{resource.resource_kind}:{resource.resource_id}</code></li>)}</ul></dd></div>
+        <div><dt>Resources</dt><dd><ul className="project-resource-list">{milestone.resources.map((resource, index) => <li key={`${resource.resource_kind}:${resource.resource_id}:${index}`}><p>{resourceLabel(resource)}</p><ResourceTechnicalRecord resource={resource} /></li>)}</ul></dd></div>
       </dl></details>
     </li>)}</ol>
     <details><summary>Submission technical record</summary><dl className="project-technical">
       <div><dt>Submission ID</dt><dd><code>{evidence.submission_id}</code></dd></div>
       <div><dt>Evidence ID</dt><dd><code>{evidence.evidence_id}</code></dd></div>
+      <div><dt>Project ID</dt><dd><code>{evidence.project_id}</code></dd></div>
+      <div><dt>Checkpoint ID</dt><dd><code>{evidence.snapshot_id}</code></dd></div>
+      <div><dt>Checkpoint fingerprint</dt><dd><code>{evidence.snapshot_digest}</code></dd></div>
+      <div><dt>Project brief</dt><dd><code>{evidence.brief_id}@{evidence.brief_version}</code></dd></div>
+      <div><dt>Project brief fingerprint</dt><dd><code>{evidence.brief_digest}</code></dd></div>
+      <div><dt>Learning placement</dt><dd><code>{evidence.placement_id}@{evidence.placement_version}</code></dd></div>
+      <div><dt>Learning placement fingerprint</dt><dd><code>{evidence.placement_digest}</code></dd></div>
+      <div><dt>Review policy</dt><dd><code>{evidence.policy_id}@{evidence.policy_version}</code></dd></div>
+      <div><dt>Occurrence</dt><dd><code>{evidence.occurrence}</code></dd></div>
+      <div><dt>Accepted sequence</dt><dd><code>{evidence.accepted_sequence}</code></dd></div>
+      <div><dt>Replaces submission</dt><dd><code>{evidence.supersedes_submission_id ?? "none"}</code></dd></div>
       <div><dt>Request fingerprint</dt><dd><code>{evidence.request_fingerprint}</code></dd></div>
       <div><dt>Submitted</dt><dd><time dateTime={evidence.submitted_at}>{evidence.submitted_at}</time></dd></div>
     </dl></details>

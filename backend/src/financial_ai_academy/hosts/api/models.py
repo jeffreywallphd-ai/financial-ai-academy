@@ -2020,7 +2020,7 @@ class ProjectActivityCompletionHistoryEntryModel(ApiModel):
 
 
 class ProjectActivityCompletionResponseModel(ApiModel):
-    projection_version: Literal["1.0.0"] = "1.0.0"
+    projection_version: Literal["1.0.0"]
     project_id: Identifier
     completed: bool
     completion_meaning: Literal[
@@ -2396,6 +2396,7 @@ def project_activity_completion_response(
     view: ProjectCompletionView,
 ) -> ProjectActivityCompletionResponseModel:
     return ProjectActivityCompletionResponseModel(
+        projection_version="1.0.0",
         project_id=view.project_id,
         completed=view.completed,
         completion_meaning=view.completion_meaning,  # type: ignore[arg-type]

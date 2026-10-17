@@ -246,8 +246,12 @@ redirects to the exact submission view; earlier submissions remain directly
 reopenable. Primary copy states that structural acceptance is not a quality
 grade, mastery judgment, competency claim, or financial advice. Exact policy,
 snapshot, evidence, provenance, fingerprint, and time facts remain in
-accessible `Technical record` disclosures. Independent Projects expose no
-learning-submission action. The same API remains usable headlessly without
+accessible `Technical record` disclosures. Saved-resource choices include a
+distinct plain-language kind, identifier, and version or observation time;
+their complete safe record, content, and owner-reference fingerprints remain
+available through nested technical disclosures. Independent Projects expose
+no learning-submission action and every direct learning-evidence selector
+fails before a completion or evidence read. The same API remains usable headlessly without
 rendering this route.
 
 Project files are never executed, expanded, installed, sent to a provider, or

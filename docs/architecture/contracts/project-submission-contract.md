@@ -78,7 +78,8 @@ correlation, while ordered history omits learner identity and every Project
 body or artifact byte. The completion read first verifies the learner-owned
 Project, reconciles Audit from the public Assessment replay, and opens the
 Learner-model projection. It carries only bounded completion meaning, exact
-correlation/provenance references, source digest, and rebuild time; it does not
+correlation/provenance references, required projection version, source digest,
+and rebuild time; it does not
 claim quality, mastery, competency, or advice. A deterministic validation refusal is a bounded normal
 response with no evidence and no write. The reviewed OpenAPI and generated
 TypeScript client are the common browser and headless boundary; neither defines
@@ -107,6 +108,11 @@ provenance references; exact replay is idempotent and neither consumer copies
 workspace state or reads another module's tables. The browser now uses those
 same generated operations to select candidate-owned evidence for every
 milestone, retain a stable retry identity, display bounded refusals, reopen
-exact accepted evidence, and show non-mastery completion meaning. Dispatcher,
+exact accepted evidence, and show non-mastery completion meaning. Every
+learning-evidence route rejects independent Projects before requesting a
+completion projection. Candidate choices use distinguishable saved-resource
+labels, while accessible disclosures retain the complete safe resource,
+snapshot, brief, placement, policy, sequence, and supersession provenance.
+Dispatcher,
 provider, execution adapter, and managed-cloud profile remain later bounded
 work and must consume rather than redefine this contract.

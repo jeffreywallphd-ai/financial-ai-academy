@@ -151,22 +151,33 @@ async function readProjectLearning(
     const projectResult = await client.GET("/api/v1/projects/{project_id}", {
       params: { path: { project_id: projectId } }, signal,
     });
-    const completionResult = await client.GET("/api/v1/projects/{project_id}/completion", {
-      params: { path: { project_id: projectId } }, signal,
-    });
-    const common = [projectResult, completionResult];
-    const failed = common.find((result) => result.response.status !== 200);
-    if (failed) {
-      if (failed.response.status === 401 && retryUnauthorized) {
+    if (projectResult.response.status !== 200) {
+      if (projectResult.response.status === 401 && retryUnauthorized) {
         session.invalidate();
         const renewed = await ensure(session, signal);
         if (renewed.status === "error") return { status: renewed.kind };
         return readProjectLearning(client, session, signal, projectId, selection, false);
       }
-      return learningFailure(failed.response.status);
+      return learningFailure(projectResult.response.status);
     }
-    if (!projectResult.data || !projectShellIsSafe(projectResult.data) || projectResult.data.project_id !== projectId
-      || !completionResult.data || !projectActivityCompletionIsSafe(completionResult.data, projectId)) {
+    if (!projectResult.data || !projectShellIsSafe(projectResult.data) || projectResult.data.project_id !== projectId) {
+      return { status: "invalid-response" };
+    }
+    if (projectResult.data.origin.origin_type !== "learning") return { status: "not-found" };
+
+    const completionResult = await client.GET("/api/v1/projects/{project_id}/completion", {
+      params: { path: { project_id: projectId } }, signal,
+    });
+    if (completionResult.response.status !== 200) {
+      if (completionResult.response.status === 401 && retryUnauthorized) {
+        session.invalidate();
+        const renewed = await ensure(session, signal);
+        if (renewed.status === "error") return { status: renewed.kind };
+        return readProjectLearning(client, session, signal, projectId, selection, false);
+      }
+      return learningFailure(completionResult.response.status);
+    }
+    if (!completionResult.data || !projectActivityCompletionIsSafe(completionResult.data, projectId)) {
       return { status: "invalid-response" };
     }
     let history: components["schemas"]["ProjectCompletionHistoryResponseModel"] = {
@@ -198,7 +209,6 @@ async function readProjectLearning(
     }
 
     if (selection.mode === "snapshot") {
-      if (projectResult.data.origin.origin_type !== "learning") return { status: "not-found" };
       const candidateResult = await client.GET("/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submission-candidate", {
         params: { path: { project_id: projectId, snapshot_id: selection.snapshotId } }, signal,
       });

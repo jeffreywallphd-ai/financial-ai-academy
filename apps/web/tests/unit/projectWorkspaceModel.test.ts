@@ -114,6 +114,17 @@ const submissionCandidate = {
   milestones: [{ milestone_id: "milestone-one", milestone_version: "1.0.0", sequence: 1, title: "Compare evidence" }],
   resources: [{ resource_kind: "note" as const, resource_id: "note-one", resource_version: 2, record_digest: "b".repeat(64) }],
 };
+const variedSubmissionCandidate = {
+  ...submissionCandidate,
+  milestones: [
+    submissionCandidate.milestones[0],
+    { milestone_id: "milestone-two", milestone_version: "1.0.0", sequence: 2, title: "Explain the comparison" },
+  ],
+  resources: [
+    ...submissionCandidate.resources,
+    { resource_kind: "artifact" as const, resource_id: "artifact-one", resource_version: 1, record_digest: "d".repeat(64), content_digest: "e".repeat(64), byte_count: 128 },
+  ],
+};
 const emptyHistory = { schema_version: "1.0.0" as const, project_id: learningProject.project_id, items: [] };
 const emptyCompletion = {
   projection_version: "1.0.0" as const, project_id: learningProject.project_id, completed: false,
@@ -176,20 +187,15 @@ function session() {
 describe("Project response validation", () => {
   it("validates closed Project learning candidates, empty history, and bounded completion", () => {
     expect(projectSubmissionCandidateIsSafe(submissionCandidate, learningProject, snapshot.snapshot_id)).toBe(true);
-    const variedCandidate = {
-      ...submissionCandidate,
-      milestones: [
-        submissionCandidate.milestones[0],
-        { milestone_id: "milestone-unicode", milestone_version: "2.0.0-beta.1", sequence: 2, title: "Explain café evidence" },
-      ],
-      resources: [
-        ...submissionCandidate.resources,
-        { resource_kind: "domain_resource", resource_id: "market-observation", resource_as_of: "2026-10-16T20:00:00Z", record_digest: "c".repeat(64), owner_reference_digest: "d".repeat(64) },
-      ],
-    };
-    expect(projectSubmissionCandidateIsSafe(variedCandidate, learningProject, snapshot.snapshot_id)).toBe(true);
+    expect(projectSubmissionCandidateIsSafe(variedSubmissionCandidate, learningProject, snapshot.snapshot_id)).toBe(true);
+    expect(projectSubmissionCandidateIsSafe({
+      ...variedSubmissionCandidate,
+      resources: [...variedSubmissionCandidate.resources, { resource_kind: "domain_resource", resource_id: "market-observation", resource_as_of: "2026-10-16T20:00:00Z", record_digest: "c".repeat(64), owner_reference_digest: "d".repeat(64) }],
+    }, learningProject, snapshot.snapshot_id)).toBe(true);
     expect(projectCompletionHistoryIsSafe(emptyHistory, learningProject.project_id)).toBe(true);
     expect(projectActivityCompletionIsSafe(emptyCompletion, learningProject.project_id)).toBe(true);
+    const { projection_version: _projectionVersion, ...missingProjectionVersion } = emptyCompletion;
+    expect(projectActivityCompletionIsSafe(missingProjectionVersion, learningProject.project_id)).toBe(false);
     expect(projectSubmissionCandidateIsSafe({ ...submissionCandidate, private_path: "hidden" }, learningProject, snapshot.snapshot_id)).toBe(false);
     expect(projectSubmissionCandidateIsSafe({ ...submissionCandidate, resources: [submissionCandidate.resources[0], submissionCandidate.resources[0]] }, learningProject, snapshot.snapshot_id)).toBe(false);
     expect(projectActivityCompletionIsSafe({ ...emptyCompletion, completed: true }, learningProject.project_id)).toBe(false);
@@ -347,6 +353,74 @@ describe("Project generated-client loaders and action", () => {
     expect(get).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["overview", ""],
+    ["snapshot", `?snapshot=${snapshot.snapshot_id}`],
+    ["submission", "?submission=submission-one"],
+  ])("denies every independent Project learning %s before loading completion data", async (_mode, query) => {
+    const get = vi.fn().mockResolvedValueOnce(response(200, project));
+    const loader = createProjectLearningLoader({ GET: get } as unknown as FinancialAcademyApiClient, session());
+    const result = await loader({
+      request: new Request(`http://localhost/projects/${project.project_id}/learning${query}`),
+      params: { projectId: project.project_id },
+    } as never);
+
+    expect(result).toEqual({ status: "not-found" });
+    expect(get).toHaveBeenCalledOnce();
+    expect(get).toHaveBeenCalledWith("/api/v1/projects/{project_id}", expect.anything());
+  });
+
+  it("accepts several retained submissions and rejects a safe but uncorrelated completion history", async () => {
+    const first = {
+      event_id: "event-one", evidence_id: "evidence-one", submission_id: "submission-one",
+      snapshot_id: snapshot.snapshot_id, snapshot_digest: snapshot.snapshot_digest,
+      brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
+      placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
+      policy_id: "assessment-project-closure" as const, policy_version: "1.0.0" as const,
+      milestone_ids: ["milestone-one"], request_fingerprint: "1".repeat(64), occurrence: 1,
+      accepted_sequence: 1, submitted_at: snapshot.closed_at, occurred_at: snapshot.closed_at,
+    };
+    const second = {
+      ...first, event_id: "event-two", evidence_id: "evidence-two", submission_id: "submission-two",
+      request_fingerprint: "2".repeat(64), occurrence: 2, accepted_sequence: 2,
+      supersedes_submission_id: "submission-one",
+    };
+    const completion = {
+      ...emptyCompletion, completed: true, completion_meaning: "bounded_project_activity_completed" as const,
+      history: [first, second],
+    };
+    const history = {
+      schema_version: "1.0.0" as const, project_id: learningProject.project_id,
+      items: [
+        {
+          evidence_id: first.evidence_id, submission_id: first.submission_id, snapshot_id: first.snapshot_id,
+          snapshot_digest: first.snapshot_digest, request_fingerprint: first.request_fingerprint,
+          occurrence: first.occurrence, submitted_at: first.submitted_at,
+        },
+        {
+          evidence_id: second.evidence_id, submission_id: second.submission_id, snapshot_id: second.snapshot_id,
+          snapshot_digest: second.snapshot_digest, request_fingerprint: second.request_fingerprint,
+          occurrence: second.occurrence, submitted_at: second.submitted_at,
+          supersedes_submission_id: second.supersedes_submission_id,
+        },
+      ],
+    };
+    const get = vi.fn()
+      .mockResolvedValueOnce(response(200, learningProject))
+      .mockResolvedValueOnce(response(200, completion))
+      .mockResolvedValueOnce(response(200, history));
+    const loader = createProjectLearningLoader({ GET: get } as unknown as FinancialAcademyApiClient, session());
+    const request = { request: new Request(`http://localhost/projects/${learningProject.project_id}/learning`), params: { projectId: learningProject.project_id } } as never;
+
+    expect(await loader(request)).toEqual(expect.objectContaining({ status: "ready", history }));
+
+    get.mockReset();
+    get.mockResolvedValueOnce(response(200, learningProject))
+      .mockResolvedValueOnce(response(200, completion))
+      .mockResolvedValueOnce(response(200, { ...history, items: [history.items[0], { ...history.items[1], snapshot_digest: "9".repeat(64) }] }));
+    expect(await loader(request)).toEqual({ status: "invalid-response" });
+  });
+
   it("reopens the candidate and submits only candidate-owned evidence", async () => {
     const evidence = {
       schema_version: "1.0.0", evidence_id: "evidence-one", learner_id: "learner-a", submission_id: "submission-one",
@@ -354,16 +428,20 @@ describe("Project generated-client loaders and action", () => {
       brief_id: origin.brief_id, brief_version: origin.brief_version, brief_digest: origin.brief_digest,
       placement_id: origin.placement_id, placement_version: origin.placement_version, placement_digest: origin.placement_digest,
       policy_id: "assessment-project-closure", policy_version: "1.0.0",
-      milestone_evidence: [{ milestone_id: "milestone-one", resources: submissionCandidate.resources }], milestone_ids: ["milestone-one"],
+      milestone_evidence: [
+        { milestone_id: "milestone-one", resources: [variedSubmissionCandidate.resources[0]] },
+        { milestone_id: "milestone-two", resources: [variedSubmissionCandidate.resources[1]] },
+      ], milestone_ids: ["milestone-one", "milestone-two"],
       request_fingerprint: "f".repeat(64), occurrence: 1, accepted_sequence: 1, submitted_at: snapshot.closed_at,
     };
     const outcome = { validation: { schema_version: "1.0.0", status: "accepted", request_fingerprint: "f".repeat(64), issues: [] }, evidence };
-    const get = vi.fn().mockResolvedValueOnce(response(200, learningProject)).mockResolvedValueOnce(response(200, submissionCandidate));
+    const get = vi.fn().mockResolvedValueOnce(response(200, learningProject)).mockResolvedValueOnce(response(200, variedSubmissionCandidate));
     const post = vi.fn().mockResolvedValue(response(200, outcome));
     const action = createProjectLearningAction({ GET: get, POST: post } as unknown as FinancialAcademyApiClient, session());
     const form = new FormData();
     form.set("submission_id", "submission-one");
     form.append("selection", "milestone-one:0");
+    form.append("selection", "milestone-two:1");
     const result = await action({
       request: new Request(`http://localhost/projects/${learningProject.project_id}/learning?snapshot=${snapshot.snapshot_id}`, { method: "POST", body: form }),
       params: { projectId: learningProject.project_id },
@@ -373,7 +451,13 @@ describe("Project generated-client loaders and action", () => {
     expect((result as Response).headers.get("location")).toBe(`/projects/${learningProject.project_id}/learning?submission=submission-one`);
     const body = post.mock.calls[0]?.[1]?.body as Record<string, unknown>;
     expect(body).not.toHaveProperty("learner_id");
-    expect(body).toEqual(expect.objectContaining({ submission_id: "submission-one", milestone_evidence: [{ milestone_id: "milestone-one", resources: submissionCandidate.resources }] }));
+    expect(body).toEqual(expect.objectContaining({
+      submission_id: "submission-one",
+      milestone_evidence: [
+        { milestone_id: "milestone-one", resources: [variedSubmissionCandidate.resources[0]] },
+        { milestone_id: "milestone-two", resources: [variedSubmissionCandidate.resources[1]] },
+      ],
+    }));
   });
 
   it("retains the exact request and choices after a refused submission", async () => {
