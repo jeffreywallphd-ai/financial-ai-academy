@@ -180,6 +180,64 @@ def test_arbitrary_or_weaker_replacement_fields_fail_closed(
     assert failure.value.code == "learner_presentation_preferences.invalid_shape"
 
 
+@pytest.mark.parametrize(
+    ("fixture_name", "path", "value"),
+    [
+        ("valid-default-profile.json", ("schema_version",), "2.0.0"),
+        ("valid-default-profile.json", ("created_at",), "not-a-time"),
+        ("valid-default-profile.json", ("profile_digest",), "not-a-digest"),
+        (
+            "valid-replace-intent.json",
+            ("mutation", "operation"),
+            "set_custom_css",
+        ),
+    ],
+)
+def test_version_operation_time_and_digest_denials_are_fixed(
+    adapter: ContractPresentationPreferenceAdapter,
+    fixture_name: str,
+    path: tuple[str, ...],
+    value: object,
+) -> None:
+    document = json.loads(_fixture(fixture_name))
+    target = document
+    for part in path[:-1]:
+        target = target[part]
+    target[path[-1]] = value
+    parser = (
+        adapter.parse_mutation_intent
+        if fixture_name.endswith("intent.json")
+        else adapter.parse_profile
+    )
+    with pytest.raises(PresentationPreferenceContractFailure) as failure:
+        parser(json.dumps(document).encode("utf-8"))
+    assert failure.value.code == "learner_presentation_preferences.invalid_shape"
+
+
+def test_history_bound_rejects_the_one_hundred_and_first_summary(
+    adapter: ContractPresentationPreferenceAdapter,
+) -> None:
+    document = json.loads(_fixture("valid-history.json"))
+    document["current_revision"] = 101
+    document["changes"] = []
+    template = json.loads(_fixture("valid-history.json"))["changes"][0]
+    for revision in range(2, 102):
+        change = deepcopy(template)
+        change["revision"] = revision
+        document["changes"].append(change)
+    assert len(document["changes"]) == 100
+    adapter.parse_history(json.dumps(document).encode("utf-8"))
+
+    overflow = deepcopy(document)
+    overflow["current_revision"] = 102
+    extra = deepcopy(template)
+    extra["revision"] = 102
+    overflow["changes"].append(extra)
+    with pytest.raises(PresentationPreferenceContractFailure) as failure:
+        adapter.parse_history(json.dumps(overflow).encode("utf-8"))
+    assert failure.value.code == "learner_presentation_preferences.history_limit"
+
+
 def test_incomplete_replacement_and_changed_history_fail_closed(
     adapter: ContractPresentationPreferenceAdapter,
 ) -> None:

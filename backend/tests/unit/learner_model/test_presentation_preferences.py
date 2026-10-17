@@ -119,6 +119,58 @@ def test_reset_restores_safe_defaults_and_produces_noncontent_history() -> None:
         "system",
     )
     assert change.operation == "reset_profile"
+    assert reset.profile_digest == (
+        "3bcf7586639a1ec1fab0cee30c22f8321f6960d0bcbf160d92f1cfc3d4232fb8"
+    )
+
+
+@pytest.mark.parametrize(
+    ("profile_id", "learner_id", "started_at", "mutation_count"),
+    [
+        (
+            "presentation.alpha-01",
+            "22222222-2222-4222-8222-222222222222",
+            datetime(2027, 1, 5, 8, 30, tzinfo=timezone.utc),
+            3,
+        ),
+        (
+            "presentation.beta-99",
+            "33333333-3333-4333-8333-333333333333",
+            datetime(2028, 6, 9, 17, 45, tzinfo=timezone.utc),
+            7,
+        ),
+    ],
+)
+def test_valid_generated_identity_time_and_higher_revision_shapes_are_not_rigid(
+    profile_id: str,
+    learner_id: str,
+    started_at: datetime,
+    mutation_count: int,
+) -> None:
+    profile = default_presentation_preference_profile(
+        profile_id=profile_id,
+        learner_id=learner_id,
+        created_at=started_at,
+    )
+    for offset in range(1, mutation_count + 1):
+        adjusted = offset % 2 == 1
+        profile, _ = apply_presentation_preference_mutation(
+            profile,
+            _intent(
+                profile.revision,
+                "replace_preferences",
+                text_size="larger" if adjusted else "default",
+                text_spacing="increased" if adjusted else "default",
+                reading_width="focused" if adjusted else "standard",
+                motion="reduce" if adjusted else "system",
+            ),
+            occurred_at=started_at + timedelta(minutes=offset * 7),
+        )
+        validate_presentation_preference_profile(profile)
+    assert profile.profile_id == profile_id
+    assert profile.learner_id == learner_id
+    assert profile.revision == mutation_count + 1
+    assert profile.updated_at == started_at + timedelta(minutes=mutation_count * 7)
 
 
 @pytest.mark.parametrize(
