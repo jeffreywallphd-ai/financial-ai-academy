@@ -33,6 +33,8 @@ _READ_PERMISSIONS = (
     "project.create",
     "project.read",
     "project.write",
+    "personal_workspace.read",
+    "personal_workspace.write",
 )
 
 

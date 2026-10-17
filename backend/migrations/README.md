@@ -28,6 +28,12 @@ development rollback applies the workspace down migration before the shell
 down migration and refuses to discard any retained workspace, artifact,
 mutation, or snapshot record.
 
+The Personal-workspace stream owns one learner aggregate and its canonical
+mutation replays without a cross-schema foreign key. Empty reads do not create
+rows; the first accepted revision-bound mutation atomically materializes the
+aggregate. Controlled development rollback refuses to discard retained
+workspace or replay rows.
+
 The Curriculum Assessment-reference stream under `curriculum/` is applied
 after the root stream. The Assessment evidence/outbox stream under
 `assessment/` is applied after Curriculum. Migration IDs are globally unique

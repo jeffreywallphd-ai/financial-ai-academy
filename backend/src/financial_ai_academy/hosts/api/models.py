@@ -89,6 +89,26 @@ from financial_ai_academy.modules.project.domain.workspace import (
     ReplaceReferenceMutation,
     WorkspaceMutationIntent,
 )
+from financial_ai_academy.modules.personal_workspace.domain.workspace import (
+    ArchiveRecordMutation as PersonalArchiveRecordMutation,
+    CreateCollectionMutation as PersonalCreateCollectionMutation,
+    RemoveCollectionMutation as PersonalRemoveCollectionMutation,
+    RemoveRecordMutation as PersonalRemoveRecordMutation,
+    RenameCollectionMutation as PersonalRenameCollectionMutation,
+    ReorderRecordsMutation as PersonalReorderRecordsMutation,
+    RestoreRecordMutation as PersonalRestoreRecordMutation,
+    SetCollectionMembersMutation as PersonalSetCollectionMembersMutation,
+    UpdateBookmarkMutation as PersonalUpdateBookmarkMutation,
+    UpdateNoteMutation as PersonalUpdateNoteMutation,
+)
+from financial_ai_academy.modules.personal_workspace.public import (
+    CreateBookmarkCommand as PersonalCreateBookmarkCommand,
+    CreateNoteCommand as PersonalCreateNoteCommand,
+    LearningOpportunitySelector as PersonalLearningOpportunitySelector,
+    PersonalWorkspace,
+    PersonalWorkspaceMutationCommand,
+    PlacedLessonSelector as PersonalPlacedLessonSelector,
+)
 
 
 class ApiModel(BaseModel):
@@ -395,6 +415,227 @@ class ProjectWorkspaceResponseModel(ProjectTimestampModel):
     domain_links: list[ProjectDomainLinkResponseModel] = Field(max_length=50)
     created_at: datetime
     updated_at: datetime
+
+
+CurriculumIdentifier = Annotated[
+    str,
+    Field(
+        min_length=3,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+    ),
+]
+
+
+class PersonalWorkspaceProvenanceModel(ProjectTimestampModel):
+    published_by: str = Field(min_length=1, max_length=160)
+    published_at: datetime
+    content_reviewed_on: date
+    educational_use_notice: str = Field(min_length=1, max_length=500)
+
+
+class PersonalLearningOpportunityReferenceModel(ProjectTimestampModel):
+    reference_kind: Literal["learning_opportunity"]
+    owner_module: Literal["curriculum"]
+    opportunity_id: CurriculumIdentifier
+    placement_id: CurriculumIdentifier
+    package_id: CurriculumIdentifier
+    package_version: str
+    package_digest: Digest
+    source_fingerprint: Digest
+    title: str = Field(min_length=1, max_length=240)
+    destination: str = Field(
+        pattern=r"^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$"
+    )
+    target_status: Literal["available"]
+    provenance: PersonalWorkspaceProvenanceModel
+    validated_at: datetime
+
+
+class PersonalPlacedLessonReferenceModel(ProjectTimestampModel):
+    reference_kind: Literal["placed_lesson"]
+    owner_module: Literal["curriculum"]
+    placement_id: CurriculumIdentifier
+    package_id: CurriculumIdentifier
+    package_version: str
+    package_digest: Digest
+    title: str = Field(min_length=1, max_length=240)
+    destination: str = Field(
+        pattern=r"^/learn/placements/[a-z0-9][a-z0-9._-]{2,63}$"
+    )
+    target_status: Literal["available"]
+    provenance: PersonalWorkspaceProvenanceModel
+    validated_at: datetime
+
+
+PersonalLearningReferenceModel = Annotated[
+    Union[
+        PersonalLearningOpportunityReferenceModel,
+        PersonalPlacedLessonReferenceModel,
+    ],
+    Field(discriminator="reference_kind"),
+]
+
+
+class PersonalWorkspaceNoteModel(ProjectTimestampModel):
+    record_kind: Literal["note"]
+    record_id: Identifier
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=8000)
+    target: PersonalLearningReferenceModel
+    archived: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class PersonalWorkspaceBookmarkModel(ProjectTimestampModel):
+    record_kind: Literal["bookmark"]
+    record_id: Identifier
+    target: PersonalLearningReferenceModel
+    label: str | None = Field(default=None, max_length=120)
+    archived: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+PersonalWorkspaceRecordModel = Annotated[
+    Union[PersonalWorkspaceNoteModel, PersonalWorkspaceBookmarkModel],
+    Field(discriminator="record_kind"),
+]
+
+
+class PersonalWorkspaceCollectionModel(ProjectTimestampModel):
+    collection_id: Identifier
+    title: str = Field(min_length=1, max_length=120)
+    member_record_ids: list[Identifier] = Field(max_length=100)
+    created_at: datetime
+    updated_at: datetime
+
+
+class PersonalWorkspaceResponseModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    workspace_id: Identifier
+    learner_id: Identifier
+    revision: int = Field(ge=1)
+    records: list[PersonalWorkspaceRecordModel] = Field(max_length=200)
+    collections: list[PersonalWorkspaceCollectionModel] = Field(max_length=50)
+    created_at: datetime
+    updated_at: datetime
+    workspace_digest: Digest
+
+
+class PersonalLearningOpportunitySelectorModel(ApiModel):
+    reference_kind: Literal["learning_opportunity"]
+    opportunity_id: CurriculumIdentifier
+    placement_id: CurriculumIdentifier
+
+
+class PersonalPlacedLessonSelectorModel(ApiModel):
+    reference_kind: Literal["placed_lesson"]
+    placement_id: CurriculumIdentifier
+
+
+PersonalLearningReferenceSelectorModel = Annotated[
+    Union[
+        PersonalLearningOpportunitySelectorModel,
+        PersonalPlacedLessonSelectorModel,
+    ],
+    Field(discriminator="reference_kind"),
+]
+
+
+class PersonalCreateNoteModel(ApiModel):
+    operation: Literal["create_note"]
+    selector: PersonalLearningReferenceSelectorModel
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=8000)
+
+
+class PersonalUpdateNoteModel(ApiModel):
+    operation: Literal["update_note"]
+    record_id: Identifier
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=8000)
+
+
+class PersonalCreateBookmarkModel(ApiModel):
+    operation: Literal["create_bookmark"]
+    selector: PersonalLearningReferenceSelectorModel
+    label: str | None = Field(max_length=120)
+
+
+class PersonalUpdateBookmarkModel(ApiModel):
+    operation: Literal["update_bookmark"]
+    record_id: Identifier
+    label: str | None = Field(max_length=120)
+
+
+class PersonalCreateCollectionModel(ApiModel):
+    operation: Literal["create_collection"]
+    title: str = Field(min_length=1, max_length=120)
+
+
+class PersonalRenameCollectionModel(ApiModel):
+    operation: Literal["rename_collection"]
+    collection_id: Identifier
+    title: str = Field(min_length=1, max_length=120)
+
+
+class PersonalRemoveCollectionModel(ApiModel):
+    operation: Literal["remove_collection"]
+    collection_id: Identifier
+
+
+class PersonalSetCollectionMembersModel(ApiModel):
+    operation: Literal["set_collection_members"]
+    collection_id: Identifier
+    member_record_ids: list[Identifier] = Field(max_length=100)
+
+
+class PersonalReorderRecordsModel(ApiModel):
+    operation: Literal["reorder_records"]
+    record_ids: list[Identifier] = Field(max_length=200)
+
+
+class PersonalArchiveRecordModel(ApiModel):
+    operation: Literal["archive_record"]
+    record_id: Identifier
+
+
+class PersonalRestoreRecordModel(ApiModel):
+    operation: Literal["restore_record"]
+    record_id: Identifier
+
+
+class PersonalRemoveRecordModel(ApiModel):
+    operation: Literal["remove_record"]
+    record_id: Identifier
+
+
+PersonalWorkspaceMutationModel = Annotated[
+    Union[
+        PersonalCreateNoteModel,
+        PersonalUpdateNoteModel,
+        PersonalCreateBookmarkModel,
+        PersonalUpdateBookmarkModel,
+        PersonalCreateCollectionModel,
+        PersonalRenameCollectionModel,
+        PersonalRemoveCollectionModel,
+        PersonalSetCollectionMembersModel,
+        PersonalReorderRecordsModel,
+        PersonalArchiveRecordModel,
+        PersonalRestoreRecordModel,
+        PersonalRemoveRecordModel,
+    ],
+    Field(discriminator="operation"),
+]
+
+
+class PersonalWorkspaceMutationRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: Identifier
+    expected_revision: int = Field(ge=1)
+    mutation: PersonalWorkspaceMutationModel
 
 
 class ProjectSnapshotCloseRequestModel(ApiModel):
@@ -2814,6 +3055,83 @@ def learning_project_start_option_list_response(
             for option in options
         ]
     )
+
+
+def _personal_reference_selector(
+    selector: PersonalLearningReferenceSelectorModel,
+):
+    if isinstance(selector, PersonalLearningOpportunitySelectorModel):
+        return PersonalLearningOpportunitySelector(
+            opportunity_id=selector.opportunity_id,
+            placement_id=selector.placement_id,
+        )
+    return PersonalPlacedLessonSelector(placement_id=selector.placement_id)
+
+
+def personal_workspace_mutation_command(
+    model: PersonalWorkspaceMutationRequestModel,
+) -> PersonalWorkspaceMutationCommand:
+    mutation = model.mutation
+    if isinstance(mutation, PersonalCreateNoteModel):
+        value = PersonalCreateNoteCommand(
+            selector=_personal_reference_selector(mutation.selector),
+            title=mutation.title,
+            body=mutation.body,
+        )
+    elif isinstance(mutation, PersonalUpdateNoteModel):
+        value = PersonalUpdateNoteMutation(
+            record_id=mutation.record_id,
+            title=mutation.title,
+            body=mutation.body,
+        )
+    elif isinstance(mutation, PersonalCreateBookmarkModel):
+        value = PersonalCreateBookmarkCommand(
+            selector=_personal_reference_selector(mutation.selector),
+            label=mutation.label,
+        )
+    elif isinstance(mutation, PersonalUpdateBookmarkModel):
+        value = PersonalUpdateBookmarkMutation(
+            record_id=mutation.record_id,
+            label=mutation.label,
+        )
+    elif isinstance(mutation, PersonalCreateCollectionModel):
+        value = PersonalCreateCollectionMutation(title=mutation.title)
+    elif isinstance(mutation, PersonalRenameCollectionModel):
+        value = PersonalRenameCollectionMutation(
+            collection_id=mutation.collection_id,
+            title=mutation.title,
+        )
+    elif isinstance(mutation, PersonalRemoveCollectionModel):
+        value = PersonalRemoveCollectionMutation(
+            collection_id=mutation.collection_id
+        )
+    elif isinstance(mutation, PersonalSetCollectionMembersModel):
+        value = PersonalSetCollectionMembersMutation(
+            collection_id=mutation.collection_id,
+            member_record_ids=tuple(mutation.member_record_ids),
+        )
+    elif isinstance(mutation, PersonalReorderRecordsModel):
+        value = PersonalReorderRecordsMutation(
+            record_ids=tuple(mutation.record_ids)
+        )
+    elif isinstance(mutation, PersonalArchiveRecordModel):
+        value = PersonalArchiveRecordMutation(record_id=mutation.record_id)
+    elif isinstance(mutation, PersonalRestoreRecordModel):
+        value = PersonalRestoreRecordMutation(record_id=mutation.record_id)
+    else:
+        value = PersonalRemoveRecordMutation(record_id=mutation.record_id)
+    return PersonalWorkspaceMutationCommand(
+        schema_version=model.schema_version,
+        idempotency_key=model.idempotency_key,
+        expected_revision=model.expected_revision,
+        mutation=value,
+    )
+
+
+def personal_workspace_response(
+    workspace: PersonalWorkspace,
+) -> PersonalWorkspaceResponseModel:
+    return PersonalWorkspaceResponseModel.model_validate(asdict(workspace))
 
 
 def _body_node(node: content_public.BodyNode) -> BodyNodeModel:

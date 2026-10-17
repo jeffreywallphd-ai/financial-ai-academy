@@ -113,6 +113,23 @@ from financial_ai_academy.modules.project.adapters.system import (
     UuidGenerator as ProjectUuidGenerator,
 )
 from financial_ai_academy.modules.project.application.service import ProjectService
+from financial_ai_academy.modules.personal_workspace.adapters.learning_reference import (
+    PublicCurriculumLearningReferenceGateway,
+)
+from financial_ai_academy.modules.personal_workspace.adapters.postgres_repository import (
+    PostgresPersonalWorkspaceRepository,
+)
+from financial_ai_academy.modules.personal_workspace.adapters.system import (
+    StableWorkspaceSeed,
+    UtcClock as PersonalWorkspaceUtcClock,
+    UuidGenerator as PersonalWorkspaceUuidGenerator,
+)
+from financial_ai_academy.modules.personal_workspace.adapters.workspace_contract import (
+    ContractPersonalWorkspaceAdapter,
+)
+from financial_ai_academy.modules.personal_workspace.application.service import (
+    PersonalWorkspaceService,
+)
 from financial_ai_academy.platform.database.migrations import (
     PostgresMigrationRunner,
 )
@@ -136,6 +153,7 @@ class ApplicationServices:
     audit: AuditService
     identity: IdentityService
     project: ProjectService
+    personal_workspace: PersonalWorkspaceService
     request_policy: SingleProfileRequestPolicy
 
 
@@ -167,6 +185,10 @@ def build_application_services(
         PostgresMigrationRunner(
             settings.postgres_dsn, settings.migrations_dir / "project"
         ).apply_all()
+        PostgresMigrationRunner(
+            settings.postgres_dsn,
+            settings.migrations_dir / "personal_workspace",
+        ).apply_all()
     project_contract = ContractProjectAdapter(settings.project_schema_dir)
     object_storage = FilesystemObjectStorage(settings.object_storage_root)
     content = ContentService(
@@ -189,6 +211,19 @@ def build_application_services(
         ProjectUtcClock(),
         ProjectUuidGenerator(),
         ProjectFilesystemObjectStorage(object_storage),
+    )
+    personal_workspace_contract = ContractPersonalWorkspaceAdapter(
+        settings.personal_workspace_schema_dir
+    )
+    personal_workspace = PersonalWorkspaceService(
+        PostgresPersonalWorkspaceRepository(
+            settings.postgres_dsn, personal_workspace_contract
+        ),
+        personal_workspace_contract,
+        PublicCurriculumLearningReferenceGateway(curriculum),
+        PersonalWorkspaceUtcClock(),
+        PersonalWorkspaceUuidGenerator(),
+        StableWorkspaceSeed(),
     )
     project_submission_contract = ContractProjectSubmissionAdapter(
         settings.assessment_project_schema_dir
@@ -246,5 +281,6 @@ def build_application_services(
         audit=audit,
         identity=identity,
         project=project,
+        personal_workspace=personal_workspace,
         request_policy=request_policy,
     )

@@ -111,6 +111,13 @@ from financial_ai_academy.modules.project.public import (
     ResolveLearningProjectStartOptionRequest,
     UploadProjectArtifactRequest,
 )
+from financial_ai_academy.modules.personal_workspace.public import (
+    MutatePersonalWorkspaceRequest,
+    OpenPersonalWorkspaceRequest,
+    PersonalWorkspaceError,
+    PersonalWorkspaceErrorCode,
+    PersonalWorkspaceOperations,
+)
 from financial_ai_academy.platform.security.single_profile_policy import (
     RequestPolicyViolation,
     SingleProfileRequestPolicy,
@@ -154,6 +161,8 @@ from .models import (
     ProjectShellResponseModel,
     ProjectWorkspaceMutationRequestModel,
     ProjectWorkspaceResponseModel,
+    PersonalWorkspaceMutationRequestModel,
+    PersonalWorkspaceResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     activity_launch_response,
@@ -186,6 +195,8 @@ from .models import (
     project_shell_response,
     project_workspace_mutation_intent,
     project_workspace_response,
+    personal_workspace_mutation_command,
+    personal_workspace_response,
 )
 
 
@@ -199,6 +210,7 @@ class ApiServices:
     adaptation: AdaptationOperations | None = None
     audit: AuditOperations | None = None
     project: ProjectOperations | None = None
+    personal_workspace: PersonalWorkspaceOperations | None = None
 
 
 _ERROR_RESPONSES = {
@@ -345,6 +357,29 @@ def create_app(services: ApiServices) -> FastAPI:
             ),
             ProjectErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
             ProjectErrorCode.UNAVAILABLE: status.HTTP_503_SERVICE_UNAVAILABLE,
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.message,
+            request.state.correlation_id,
+        )
+
+    @app.exception_handler(PersonalWorkspaceError)
+    async def personal_workspace_error_handler(
+        request: Request, error: PersonalWorkspaceError
+    ) -> JSONResponse:
+        http_status = {
+            PersonalWorkspaceErrorCode.INVALID_REQUEST: status.HTTP_400_BAD_REQUEST,
+            PersonalWorkspaceErrorCode.IMMUTABLE_CONFLICT: status.HTTP_409_CONFLICT,
+            PersonalWorkspaceErrorCode.STALE_REVISION: status.HTTP_409_CONFLICT,
+            PersonalWorkspaceErrorCode.SOURCE_UNAVAILABLE: status.HTTP_409_CONFLICT,
+            PersonalWorkspaceErrorCode.INTEGRITY_FAILURE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            PersonalWorkspaceErrorCode.UNAVAILABLE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
         }[error.code]
         return _error_response(
             http_status,
@@ -662,6 +697,34 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         return services.project
 
+    def personal_workspace_read_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "personal_workspace.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read saved learning.",
+            )
+        return context
+
+    def personal_workspace_write_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "personal_workspace.write" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot change saved learning.",
+            )
+        return context
+
+    def personal_workspace_operations() -> PersonalWorkspaceOperations:
+        if services.personal_workspace is None:
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.UNAVAILABLE,
+                "The personal workspace is unavailable.",
+            )
+        return services.personal_workspace
+
     @app.get(
         "/health",
         response_model=HealthResponseModel,
@@ -739,6 +802,40 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         )
         return project_shell_response(shell)
+
+    @app.get(
+        "/api/v1/personal-workspace",
+        response_model=PersonalWorkspaceResponseModel,
+        operation_id="getPersonalWorkspace",
+        responses=_ERROR_RESPONSES,
+        tags=["personal-workspace"],
+    )
+    def get_personal_workspace(
+        context: LearnerContext = Depends(personal_workspace_read_context),
+    ) -> PersonalWorkspaceResponseModel:
+        workspace = personal_workspace_operations().open_workspace(
+            OpenPersonalWorkspaceRequest(learner_id=context.learner_id)
+        )
+        return personal_workspace_response(workspace)
+
+    @app.post(
+        "/api/v1/personal-workspace/mutations",
+        response_model=PersonalWorkspaceResponseModel,
+        operation_id="mutatePersonalWorkspace",
+        responses=_ERROR_RESPONSES,
+        tags=["personal-workspace"],
+    )
+    def mutate_personal_workspace(
+        request_model: PersonalWorkspaceMutationRequestModel,
+        context: LearnerContext = Depends(personal_workspace_write_context),
+    ) -> PersonalWorkspaceResponseModel:
+        workspace = personal_workspace_operations().mutate_workspace(
+            MutatePersonalWorkspaceRequest(
+                learner_id=context.learner_id,
+                command=personal_workspace_mutation_command(request_model),
+            )
+        )
+        return personal_workspace_response(workspace)
 
     @app.get(
         "/api/v1/projects",
