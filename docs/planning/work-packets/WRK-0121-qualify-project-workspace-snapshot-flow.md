@@ -1,13 +1,13 @@
 ---
 id: WRK-0121
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
 parent: SLI-0031
 capability: CAP-0007
-depends_on: [WRK-0122]
+depends_on: [WRK-0123]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/project-workspace.e2e.ts", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0121-qualify-project-workspace-snapshot-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
@@ -204,3 +204,8 @@ autonomous authority was added.
   exact verification and no open technical findings. The packet resumes the
   isolated live Project qualifier without expanding product authority or its
   declared write scope.
+- 2026-10-17: Released again after the live export check proved that FastAPI
+  expanded a canonical fractional timestamp with a trailing zero and thereby
+  changed the exact public JSON used by clients to verify `export_digest`.
+  WRK-0123 owns the Project-only API serialization correction; this packet
+  resumes after that prerequisite completes.
