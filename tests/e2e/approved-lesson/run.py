@@ -347,6 +347,15 @@ LEARNER_PREFERENCE_CAPTURE_ROOT_KEYS = frozenset(
         "expected",
     }
 )
+LEARNER_PREFERENCE_EXPECTED_KEYS = frozenset(
+    {
+        "final_goal",
+        "final_experience",
+        "final_interest",
+        "reset_recorded",
+        "populated_export_profile_revision",
+    }
+)
 LEARNER_PREFERENCE_PRIVATE_CAPTURE_KEYS = frozenset(
     {
         "authorization",
@@ -4991,6 +5000,31 @@ def load_learner_preference_capture(
     profile = stable_learner_preference_profile(capture["profile"])
     history = stable_learner_preference_history(capture["history"], profile=profile)
     stable_learner_preference_export(capture["export"], profile=profile, history=history)
+    expected = capture["expected"]
+    populated_revision = expected.get("populated_export_profile_revision")
+    reset_revisions = {
+        change["revision"]
+        for change in history["changes"]
+        if change["operation"] == "reset_profile"
+    }
+    if (
+        set(expected) != LEARNER_PREFERENCE_EXPECTED_KEYS
+        or not isinstance(expected.get("final_goal"), str)
+        or expected["final_goal"] not in {goal["title"] for goal in profile["goals"]}
+        or not isinstance(expected.get("final_experience"), str)
+        or expected["final_experience"]
+        not in {entry["subject"] for entry in profile["experience"]}
+        or not isinstance(expected.get("final_interest"), str)
+        or expected["final_interest"]
+        not in {interest["label"] for interest in profile["interests"]}
+        or expected.get("reset_recorded") is not True
+        or not isinstance(populated_revision, int)
+        or isinstance(populated_revision, bool)
+        or populated_revision < 1
+        or populated_revision >= profile["revision"]
+        or populated_revision + 1 not in reset_revisions
+    ):
+        raise RuntimeError("Learner preference expected summary is not correlated.")
     exact_request = stable_learner_preference_request(capture["exact_replay_request"])
     exact_response = stable_learner_preference_profile(capture["exact_replay_response"])
     if exact_response != profile or exact_request["expected_revision"] + 1 != profile["revision"]:

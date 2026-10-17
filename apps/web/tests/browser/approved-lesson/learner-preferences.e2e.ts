@@ -145,7 +145,10 @@ test("preserves learner-controlled preferences through the live public API", asy
     firstGoal.getByRole("button", { name: `Restore goal: ${GOAL}, item 1` }),
   );
 
-  await firstGoal.getByLabel(`Edit goal: ${GOAL}, item 1`).click();
+  const editFirstGoal = firstGoal.getByLabel(`Edit goal: ${GOAL}, item 1`);
+  await editFirstGoal.focus();
+  await expect(editFirstGoal).toBeFocused();
+  await page.keyboard.press("Enter");
   await firstGoal.locator('input[name="title"]').fill(UPDATED_GOAL);
   await submitMutation(page, firstGoal.getByRole("button", { name: "Save goal" }));
   await expect(page.getByRole("heading", { level: 3, name: UPDATED_GOAL })).toBeVisible();

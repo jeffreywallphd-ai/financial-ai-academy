@@ -264,3 +264,8 @@ leave SLI-0074 closure-ready.
   state noninterference, and cleanup workflow passed. Focused harness, learner-
   preference, full web, typecheck, lint, and build checks also passed; final
   controller-selected candidate verification and independent review remain.
+- 2026-10-17: Tightened the qualification boundary so its expected summary is
+  closed and correlated with the final profile and reset history, and made the
+  live browser journey activate a named control through the keyboard. Focused
+  harness, TypeScript, lint, and the learner-preference Chromium journey passed
+  after these bounded evidence corrections.

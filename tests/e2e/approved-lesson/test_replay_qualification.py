@@ -3422,7 +3422,7 @@ def test_cleanup_failure_without_primary_error_remains_bounded() -> None:
 
 
 def learner_preference_profile(
-    revision: int = 4,
+    revision: int = 5,
     *,
     interest_label: str = "Index funds Σ",
 ) -> dict[str, Any]:
@@ -3470,6 +3470,7 @@ def learner_preference_history(
     profile: dict[str, Any],
 ) -> dict[str, Any]:
     operations = (
+        ("reset_profile", "profile", profile["profile_id"]),
         ("create_goal", "goal", "goal.qualification"),
         ("create_experience", "experience", "experience.qualification"),
         ("create_interest", "interest", "interest.qualification"),
@@ -3506,7 +3507,7 @@ def learner_preference_capture() -> dict[str, Any]:
     exact_request = {
         "schema_version": "1.0.0",
         "idempotency_key": "11111111-1111-4111-8111-111111111114",
-        "expected_revision": 3,
+        "expected_revision": 4,
         "mutation": {"operation": "create_interest", "label": "Index funds Σ"},
     }
     race_revision = profile["revision"]
@@ -3518,7 +3519,7 @@ def learner_preference_capture() -> dict[str, Any]:
             "schema_version": "1.0.0",
             "purpose": "A portable copy of the learning preferences you entered.",
             "limitations": ["These statements are not evidence of competency."],
-            "exported_at": "2026-10-17T18:00:03Z",
+            "exported_at": "2026-10-17T18:00:05Z",
             "profile": profile,
             "history": history,
         },
@@ -3570,7 +3571,7 @@ def learner_preference_capture() -> dict[str, Any]:
             "final_experience": "Portfolio comparison",
             "final_interest": "Index funds Σ",
             "reset_recorded": True,
-            "populated_export_profile_revision": 3,
+            "populated_export_profile_revision": 1,
         },
     }
 
@@ -3649,6 +3650,30 @@ def test_learner_preference_capture_is_closed_correlated_and_private(
     with pytest.raises(RuntimeError, match="private authority"):
         runner.load_learner_preference_capture(path, data_root=tmp_path)
 
+    extra_expected = deepcopy(capture)
+    extra_expected["expected"]["extra"] = True
+    path.write_text(json.dumps(extra_expected), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="expected summary"):
+        runner.load_learner_preference_capture(path, data_root=tmp_path)
+
+    wrong_goal = deepcopy(capture)
+    wrong_goal["expected"]["final_goal"] = "A goal that is not in the profile"
+    path.write_text(json.dumps(wrong_goal), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="expected summary"):
+        runner.load_learner_preference_capture(path, data_root=tmp_path)
+
+    missing_reset = deepcopy(capture)
+    missing_reset["expected"]["reset_recorded"] = False
+    path.write_text(json.dumps(missing_reset), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="expected summary"):
+        runner.load_learner_preference_capture(path, data_root=tmp_path)
+
+    wrong_populated_revision = deepcopy(capture)
+    wrong_populated_revision["expected"]["populated_export_profile_revision"] = 2
+    path.write_text(json.dumps(wrong_populated_revision), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="expected summary"):
+        runner.load_learner_preference_capture(path, data_root=tmp_path)
+
     bad_digest = deepcopy(capture)
     bad_digest["profile"]["profile_digest"] = "0" * 64
     path.write_text(json.dumps(bad_digest), encoding="utf-8")
@@ -3690,9 +3715,9 @@ def _race_storage(profile: dict[str, Any], *, changes: int, mutations: int) -> d
 
 def test_learner_preference_race_matrix_requires_one_durable_change() -> None:
     before_profile = learner_preference_profile()
-    accepted = learner_preference_profile(5, interest_label="Race replay result")
-    before = _race_storage(before_profile, changes=3, mutations=3)
-    after = _race_storage(accepted, changes=4, mutations=4)
+    accepted = learner_preference_profile(6, interest_label="Race replay result")
+    before = _race_storage(before_profile, changes=4, mutations=4)
+    after = _race_storage(accepted, changes=5, mutations=5)
     requests = learner_preference_capture()["races"]["same_key_same_payload"]["requests"]
     assert runner.assert_learner_preference_race_outcomes(
         name="same_key_same_payload",
@@ -3733,7 +3758,7 @@ def test_learner_preference_restart_requires_exact_profile_history_and_rows() ->
     capture = learner_preference_capture()
     profile = capture["profile"]
     history = capture["history"]
-    accepted_profiles = [learner_preference_profile(revision) for revision in (2, 3, 4)]
+    accepted_profiles = [learner_preference_profile(revision) for revision in (2, 3, 4, 5)]
     storage = {
         "profiles": [[
             profile["profile_id"],
