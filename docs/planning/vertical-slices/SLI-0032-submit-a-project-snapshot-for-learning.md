@@ -239,8 +239,8 @@ scope is refined just in time.
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
 | WRK-0125 | Deliver safe Project snapshot facts, Assessment-owned application/persistence, public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | complete |
 | WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | complete |
-| WRK-0127 | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | WRK-0126 | none | verifying |
-| JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
+| WRK-0127 | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | WRK-0126 | none | complete |
+| WRK-0128 | Deliver the protected Project-completion read and accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | WRK-0127 | none | ready |
 | JIT-E | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | JIT-D | none | captured |
 
 ## Verification and Qualification
@@ -394,3 +394,8 @@ qualified.
   submission identity and canonical Project identifier boundaries are proven
   across unit and PostgreSQL checks. Browser delivery and slice-wide live
   qualification remain in the dependent JIT-D and JIT-E packets.
+- 2026-10-17: Refined JIT-D as WRK-0128. The packet adds the missing protected
+  Project-completion read as a thin Learner-model/Audit host composition and
+  delivers the accessible generated-client checkpoint submission, correction,
+  retained-evidence, and history flow. It changes no completed domain or
+  persistence contract and leaves cumulative live qualification to JIT-E.
