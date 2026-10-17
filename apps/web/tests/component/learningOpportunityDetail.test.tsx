@@ -69,6 +69,12 @@ describe("LearningOpportunityDetailPage", () => {
     expect(
       screen.getByRole("link", { name: "Return to learning library" }),
     ).toHaveAttribute("href", "/learn?query=cash");
+    expect(
+      screen.getByRole("link", { name: "Save to Saved learning" }),
+    ).toHaveAttribute(
+      "href",
+      "/saved-learning/new?kind=opportunity&opportunity=cash-flow-basics-primary&placement=cash-flow-basics-primary&return=%2Flearn%2Fopportunities%2Fcash-flow-basics-primary",
+    );
     expect(document.body.textContent).not.toMatch(/recommended for you/i);
     expect(document.body.textContent).not.toMatch(/eligible/i);
   });
@@ -84,6 +90,9 @@ describe("LearningOpportunityDetailPage", () => {
     ).toBeVisible();
     expect(
       within(actions).queryByRole("link", { name: "Open lesson" }),
+    ).toBeNull();
+    expect(
+      within(actions).queryByRole("link", { name: "Save to Saved learning" }),
     ).toBeNull();
     expect(
       within(actions).getByRole("link", { name: "Return to learning library" }),

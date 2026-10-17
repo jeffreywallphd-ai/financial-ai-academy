@@ -195,13 +195,22 @@ export function LearningOpportunityDetailPage({
             <p>{opportunity.availability_reason}</p>
             <div className="opportunity-detail__actions">
               {canOpen ? (
-                <Link
-                  className="button catalog-open-link"
-                  to={opportunity.destination}
-                >
-                  <Icon name="learn" />
-                  Open lesson
-                </Link>
+                <>
+                  <Link
+                    className="button catalog-open-link"
+                    to={opportunity.destination}
+                  >
+                    <Icon name="learn" />
+                    Open lesson
+                  </Link>
+                  <Link
+                    className="button button--secondary"
+                    to={`/saved-learning/new?kind=opportunity&opportunity=${encodeURIComponent(opportunity.opportunity_id)}&placement=${encodeURIComponent(opportunity.placement_id)}&return=${encodeURIComponent(`/learn/opportunities/${opportunity.opportunity_id}`)}`}
+                  >
+                    <Icon name="learn" />
+                    Save to Saved learning
+                  </Link>
+                </>
               ) : null}
               <Link className="button button--secondary" to={returnTo}>
                 Return to learning library

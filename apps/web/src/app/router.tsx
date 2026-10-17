@@ -60,6 +60,16 @@ import {
   ProjectLearningRoute,
   ProjectLoadingState,
 } from "../features/project-workspace/ProjectRoutes";
+import {
+  createPersonalWorkspaceAction,
+  createPersonalWorkspaceLoader,
+  createSaveLearningLoader,
+} from "../features/personal-workspace/api";
+import {
+  PersonalWorkspaceLoadingState,
+  PersonalWorkspaceRoute,
+  SaveLearningRoute,
+} from "../features/personal-workspace/PersonalWorkspaceRoutes";
 import { SingleProfileSession } from "../platform/auth/singleProfileSession";
 import { AppShell } from "./AppShell";
 
@@ -91,6 +101,9 @@ const projectCreateLoader = createProjectCreateLoader(client, session);
 const projectCreateAction = createProjectCreateAction(client, session);
 const projectLearningLoader = createProjectLearningLoader(client, session);
 const projectLearningAction = createProjectLearningAction(client, session);
+const personalWorkspaceLoader = createPersonalWorkspaceLoader(client, session);
+const saveLearningLoader = createSaveLearningLoader(client, session);
+const personalWorkspaceAction = createPersonalWorkspaceAction(client, session);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -152,6 +165,20 @@ export const router = createBrowserRouter([
         loader: () => redirect("/learn"),
         Component: LearningCatalogLoadingState,
         HydrateFallback: LearningCatalogLoadingState,
+      },
+      {
+        path: "saved-learning",
+        loader: personalWorkspaceLoader,
+        action: personalWorkspaceAction,
+        Component: PersonalWorkspaceRoute,
+        HydrateFallback: PersonalWorkspaceLoadingState,
+      },
+      {
+        path: "saved-learning/new",
+        loader: saveLearningLoader,
+        action: personalWorkspaceAction,
+        Component: SaveLearningRoute,
+        HydrateFallback: PersonalWorkspaceLoadingState,
       },
       {
         path: "projects",

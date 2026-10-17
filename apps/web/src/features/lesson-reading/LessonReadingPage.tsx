@@ -45,6 +45,13 @@ export function LessonReadingPage({
               Return to learning path
             </Link>
           ) : null}
+          <Link
+            className="button button--secondary lesson-return"
+            to={`/saved-learning/new?kind=lesson&placement=${encodeURIComponent(lesson.placement_id)}&return=${encodeURIComponent(`/learn/placements/${lesson.placement_id}`)}`}
+          >
+            <Icon name="learn" />
+            Save to Saved learning
+          </Link>
         </header>
 
         <section

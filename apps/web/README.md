@@ -220,6 +220,22 @@ backend code, parses CommonMark, uses an unsafe HTML sink, or accesses a
 database/provider. Theme preference is the only local browser preference
 persisted by this slice.
 
+`/saved-learning` opens the learner's private notes, bookmarks, and collections
+through the generated Personal-workspace client. Available opportunity-detail
+and lesson pages provide `Save to Saved learning` links that carry only the
+closed resource selector to `/saved-learning/new`; learners never type internal
+resource identifiers. The flow supports note/bookmark creation and editing,
+ordered collection membership, record reordering, archive/restore, and bounded
+removal. It closes every complete workspace response before display, uses the
+current server revision and stable request identity for mutations, and never
+selects learner, source, package, publication, digest, time, or permission
+authority in the browser. Plain task language leads the flow while exact
+workspace, record, collection, package, publication, validation, version, and
+integrity facts remain available through accessible `Technical record`
+disclosures. The same protected API remains independently usable by
+command-line, service, and future headless clients; the UI adds no alternate
+policy, storage, or AI path.
+
 `/projects` lists the learner's current Projects and reviewed learning-based
 starting points. `/projects/new` creates either an independent Project or one
 bound to the exact current learning brief. `/projects/:projectId` consumes the

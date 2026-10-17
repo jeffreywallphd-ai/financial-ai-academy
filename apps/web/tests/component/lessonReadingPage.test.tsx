@@ -11,7 +11,7 @@ import { lessonFixture } from "./lessonFixture";
 describe("LessonReadingPage", () => {
   it("renders the complete lesson with publication details and an accessible technical record", async () => {
     const user = userEvent.setup();
-    render(<LessonReadingPage lesson={lessonFixture} />);
+    render(<MemoryRouter><LessonReadingPage lesson={lessonFixture} /></MemoryRouter>);
 
     expect(
       screen.getByRole("heading", {
@@ -44,10 +44,14 @@ describe("LessonReadingPage", () => {
       "src",
       "/api/v1/content/assets/risk-spectrum",
     );
+    expect(screen.getByRole("link", { name: "Save to Saved learning" })).toHaveAttribute(
+      "href",
+      `/saved-learning/new?kind=lesson&placement=${lessonFixture.placement_id}&return=%2Flearn%2Fplacements%2F${lessonFixture.placement_id}`,
+    );
   });
 
   it("marks external reviewed sources and prevents opener access", () => {
-    render(<LessonReadingPage lesson={lessonFixture} />);
+    render(<MemoryRouter><LessonReadingPage lesson={lessonFixture} /></MemoryRouter>);
 
     const source = screen.getByRole("link", {
       name: /Introduction to investing.*opens in a new tab/i,

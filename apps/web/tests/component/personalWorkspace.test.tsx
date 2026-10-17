@@ -1,0 +1,243 @@
+import { render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import {
+  createMemoryRouter,
+  RouterProvider,
+} from "react-router";
+import { describe, expect, it } from "vitest";
+
+import {
+  PersonalWorkspacePage,
+  SaveLearningPage,
+} from "../../src/features/personal-workspace/PersonalWorkspacePage";
+import type {
+  PersonalWorkspace,
+  SaveSelection,
+  WorkspaceActionState,
+} from "../../src/features/personal-workspace/model";
+
+
+const provenance = {
+  published_by: "Financial AI Academy",
+  published_at: "2026-10-17T10:00:00Z",
+  content_reviewed_on: "2026-10-17",
+  educational_use_notice: "Educational content only.",
+};
+
+const workspace: PersonalWorkspace = {
+  schema_version: "1.0.0",
+  workspace_id: "workspace-one",
+  learner_id: "learner-one",
+  revision: 4,
+  records: [
+    {
+      record_kind: "note",
+      record_id: "note-one",
+      title: "Risk and return",
+      body: "Keep risk and possible reward separate from a promise of results.",
+      archived: false,
+      created_at: "2026-10-17T10:01:00Z",
+      updated_at: "2026-10-17T10:01:00Z",
+      target: {
+        reference_kind: "learning_opportunity",
+        owner_module: "curriculum",
+        opportunity_id: "risk-return-basics",
+        placement_id: "risk-return-primary",
+        package_id: "risk-return-package",
+        package_version: "1.0.0",
+        package_digest: "a".repeat(64),
+        source_fingerprint: "b".repeat(64),
+        title: "Risk and return basics",
+        destination: "/learn/placements/risk-return-primary",
+        target_status: "available",
+        validated_at: "2026-10-17T10:01:00Z",
+        provenance,
+      },
+    },
+    {
+      record_kind: "bookmark",
+      record_id: "bookmark-one",
+      label: null,
+      archived: true,
+      created_at: "2026-10-17T10:02:00Z",
+      updated_at: "2026-10-17T10:03:00Z",
+      target: {
+        reference_kind: "placed_lesson",
+        owner_module: "curriculum",
+        placement_id: "cash-flow-primary",
+        package_id: "cash-flow-package",
+        package_version: "2.0.0",
+        package_digest: "c".repeat(64),
+        title: "Cash flow basics",
+        destination: "/learn/placements/cash-flow-primary",
+        target_status: "available",
+        validated_at: "2026-10-17T10:02:00Z",
+        provenance,
+      },
+    },
+  ],
+  collections: [{
+    collection_id: "collection-one",
+    title: "Foundations",
+    member_record_ids: ["bookmark-one", "note-one"],
+    created_at: "2026-10-17T10:03:00Z",
+    updated_at: "2026-10-17T10:04:00Z",
+  }],
+  created_at: "2026-10-17T10:00:00Z",
+  updated_at: "2026-10-17T10:04:00Z",
+  workspace_digest: "d".repeat(64),
+};
+
+function renderWorkspace(
+  submissions: FormData[] = [],
+  actionState?: WorkspaceActionState,
+  value: PersonalWorkspace = workspace,
+) {
+  const router = createMemoryRouter([{
+    path: "/saved-learning",
+    action: async ({ request }) => {
+      submissions.push(await request.formData());
+      return null;
+    },
+    element: <PersonalWorkspacePage actionState={actionState} busy={false} workspace={value} />,
+  }], { initialEntries: ["/saved-learning"] });
+  return render(<RouterProvider router={router} />);
+}
+
+describe("Saved learning pages", () => {
+  it("leads with learner meaning and keeps exact facts in keyboard-reachable technical records", async () => {
+    renderWorkspace();
+    const user = userEvent.setup();
+
+    expect(screen.getByRole("heading", { level: 1, name: "Saved learning" })).toBeVisible();
+    expect(screen.getByRole("heading", { level: 3, name: "Risk and return" })).toBeVisible();
+    expect(screen.getByText("Bookmark · Archived")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Risk and return basics" })).toHaveAttribute("href", "/learn/placements/risk-return-primary");
+    expect(document.body.textContent).not.toMatch(/database|foreign key|idempotency/i);
+
+    const note = screen.getByRole("heading", { name: "Risk and return" }).closest("li");
+    await user.click(within(note as HTMLElement).getByText("Technical record"));
+    expect(within(note as HTMLElement).getByText("risk-return-basics")).toBeVisible();
+    expect(within(note as HTMLElement).getByText("a".repeat(64))).toBeVisible();
+  });
+
+  it("submits current revision, stable request authority, ordered records, and collection membership", async () => {
+    const submissions: FormData[] = [];
+    renderWorkspace(submissions);
+    const user = userEvent.setup();
+    const note = screen.getByRole("heading", { name: "Risk and return" }).closest("li");
+
+    const title = within(note as HTMLElement).getByLabelText("Note title");
+    await user.clear(title);
+    await user.type(title, "Risk notes updated");
+    await user.click(within(note as HTMLElement).getByRole("button", { name: "Save note changes" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(submissions[0]?.get("operation")).toBe("update_note");
+    expect(submissions[0]?.get("expected_revision")).toBe("4");
+    expect(submissions[0]?.get("record_id")).toBe("note-one");
+    expect(submissions[0]?.get("idempotency_key")).toMatch(/^[a-f0-9-]{36}$/);
+
+    await user.click(within(note as HTMLElement).getByRole("button", { name: "Move later" }));
+    await waitFor(() => expect(submissions).toHaveLength(2));
+    expect(submissions[1]?.getAll("record_ids")).toEqual(["bookmark-one", "note-one"]);
+
+    const collection = screen.getByRole("heading", { name: "Foundations" }).closest("section");
+    await user.click(within(collection as HTMLElement).getByRole("button", { name: "Save collection items" }));
+    await waitFor(() => expect(submissions).toHaveLength(3));
+    expect(submissions[2]?.getAll("member_record_ids")).toEqual(["note-one", "bookmark-one"]);
+  });
+
+  it("exposes every saved-record and collection change through bounded forms", async () => {
+    const submissions: FormData[] = [];
+    renderWorkspace(submissions);
+    const user = userEvent.setup();
+    const note = screen.getByRole("heading", { name: "Risk and return" }).closest("li") as HTMLElement;
+    const bookmark = screen.getByRole("heading", { name: "Cash flow basics" }).closest("li") as HTMLElement;
+    const collection = screen.getByRole("heading", { name: "Foundations" }).closest("section") as HTMLElement;
+
+    const label = within(bookmark).getByLabelText("Personal label");
+    await user.type(label, "Review next week");
+    await user.click(within(bookmark).getByRole("button", { name: "Save bookmark changes" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(Object.fromEntries(submissions[0]!.entries())).toEqual(expect.objectContaining({
+      operation: "update_bookmark",
+      record_id: "bookmark-one",
+      label: "Review next week",
+    }));
+
+    await user.click(within(note).getByRole("button", { name: "Archive record" }));
+    await user.click(within(bookmark).getByRole("button", { name: "Restore record" }));
+    await waitFor(() => expect(submissions).toHaveLength(3));
+    expect(submissions[1]?.get("operation")).toBe("archive_record");
+    expect(submissions[2]?.get("operation")).toBe("restore_record");
+
+    await user.click(within(note).getByText("Remove saved record", { selector: "summary" }));
+    await user.click(within(note).getByRole("button", { name: "Remove saved record" }));
+    await waitFor(() => expect(submissions).toHaveLength(4));
+    expect(Object.fromEntries(submissions[3]!.entries())).toEqual(expect.objectContaining({
+      operation: "remove_record",
+      record_id: "note-one",
+    }));
+
+    await user.type(screen.getAllByLabelText("Collection name")[0]!, "Next steps");
+    await user.click(screen.getByRole("button", { name: "Create collection" }));
+    const existingName = within(collection).getByLabelText("Collection name");
+    await user.clear(existingName);
+    await user.type(existingName, "Core ideas");
+    await user.click(within(collection).getByRole("button", { name: "Rename collection" }));
+    await user.click(within(collection).getByText("Remove collection", { selector: "summary" }));
+    await user.click(within(collection).getByRole("button", { name: "Remove collection" }));
+    await waitFor(() => expect(submissions).toHaveLength(7));
+    expect(submissions.slice(4).map((form) => form.get("operation"))).toEqual([
+      "create_collection",
+      "rename_collection",
+      "remove_collection",
+    ]);
+  });
+
+  it("explains an empty workspace and destructive boundaries without technical language", () => {
+    renderWorkspace([], undefined, { ...workspace, records: [], collections: [], revision: 1 });
+    expect(screen.getByText(/not saved any learning yet/i)).toBeVisible();
+    expect(screen.getByText(/No collections yet/i)).toBeVisible();
+    expect(screen.getByRole("link", { name: "Choose learning to save" })).toHaveAttribute("href", "/learn");
+  });
+
+  it("focuses a task-first stale response and preserves a safe next action", () => {
+    renderWorkspace([], { status: "error", kind: "stale", intent: "update:note-one", idempotencyKey: "request-one" });
+    expect(screen.getByRole("heading", { name: "Saved learning changed" })).toHaveFocus();
+    expect(screen.getByRole("alert")).toHaveTextContent(/Refresh the page/);
+  });
+
+  it("creates notes and bookmarks from a fixed lesson selector without learner or source facts", async () => {
+    const submissions: FormData[] = [];
+    const selection: SaveSelection = { kind: "placed_lesson", placementId: "cash-flow-primary", returnTo: "/learn/placements/cash-flow-primary" };
+    const router = createMemoryRouter([{
+      path: "/saved-learning/new",
+      action: async ({ request }) => {
+        submissions.push(await request.formData());
+        return null;
+      },
+      element: <SaveLearningPage busy={false} selection={selection} workspace={workspace} />,
+    }], { initialEntries: ["/saved-learning/new"] });
+    render(<RouterProvider router={router} />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("Note title"), "Cash flow reminder");
+    await user.type(screen.getByLabelText("Note", { exact: true }), "Separate cash movement from accounting income.");
+    await user.click(screen.getByRole("button", { name: "Save note" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    expect(Object.fromEntries(submissions[0]!.entries())).toEqual(expect.objectContaining({
+      operation: "create_note",
+      reference_kind: "placed_lesson",
+      placement_id: "cash-flow-primary",
+      expected_revision: "4",
+    }));
+    expect(submissions[0]?.has("learner_id")).toBe(false);
+    expect(submissions[0]?.has("package_digest")).toBe(false);
+
+    await user.click(screen.getByRole("button", { name: "Save bookmark" }));
+    await waitFor(() => expect(submissions).toHaveLength(2));
+    expect(submissions[1]?.get("label")).toBe("");
+    expect(screen.getByRole("link", { name: "Return to lesson" })).toHaveAttribute("href", "/learn/placements/cash-flow-primary");
+  });
+});
