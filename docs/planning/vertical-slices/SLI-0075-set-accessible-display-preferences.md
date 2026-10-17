@@ -216,7 +216,7 @@ packet starts. Proposed dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
-| WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | ready |
+| WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | active |
 | JIT-C | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | JIT-B | none | captured |
 | JIT-D | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | JIT-C | none | captured |
 
