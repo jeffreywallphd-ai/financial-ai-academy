@@ -1,7 +1,7 @@
 ---
 id: WRK-0132
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/scripts/generate-api-client.mjs", "apps/web/src/generated/api-client", "apps/web/tests/contract", "backend/migrations/personal_workspace", "backend/migrations/README.md", "backend/src/financial_ai_academy/bootstrap", "backend/src/financial_ai_academy/hosts/api", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/personal_workspace", "backend/tests/architecture", "backend/tests/integration/api", "backend/tests/integration/personal_workspace", "backend/tests/unit/identity", "backend/tests/unit/personal_workspace", "backend/tests/unit/test_bootstrap_settings.py", "contracts/api", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/personal-workspace-contract.md", "docs/architecture/modules/module-map.md", "docs/assurance/known-verification-gaps.md", "docs/operations/local-development.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0070-save-learning-notes-bookmarks-collections.md", "docs/planning/work-packets/WRK-0132-deliver-personal-workspace-persistence-api.md"]
 generated_artifacts: ["contracts/api/openapi.json", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 7102251488f164cee414a9b2711965b344b4dba9
+claim_id: WRK-0132:a0bbe1e5-39f4-42e3-aa85-d4d31851281a
+claimed_by: codex-cap-0017
+claimed_at: 2026-10-17T11:03:26Z
 ---
 
 # Agent Work Packet: Deliver Personal Workspace Persistence and Public API
@@ -240,3 +240,6 @@ separate AI mode, autonomous authority, or financial action was added.
   complete persistence and public-API seam, keeps source facts server-resolved,
   and preserves equal generated-client access for headless use. No lower-level
   approval is required.
+- 2026-10-17: Activated after validating the completed dependency, current CAP
+  package binding, decision readiness, selector-based source authority, exact
+  file ownership, and generated-client/headless contract.
