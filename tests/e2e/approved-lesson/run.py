@@ -313,6 +313,18 @@ PERSONAL_WORKSPACE_PRIVATE_CAPTURE_KEYS = frozenset(
         "token",
     }
 )
+PERSONAL_WORKSPACE_TARGET_COUNT_KEYS = (
+    "content_packages",
+    "curriculum_placements",
+    "curriculum_discovery_records",
+    "assessment_attempts",
+    "assessment_practice_attempts",
+    "assessment_project_submissions",
+    "learner_lesson_projections",
+    "learner_practice_projections",
+    "learner_project_projections",
+    "project_shells",
+)
 PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
     {
         "artifact_sha256",
@@ -1773,6 +1785,7 @@ def _assert_safe_personal_workspace_denial(
     document: dict[str, Any],
     *,
     expected_code: str,
+    capture: dict[str, Any],
 ) -> None:
     if status != 409:
         raise RuntimeError("Personal workspace conflict returned an unexpected status.")
@@ -1783,14 +1796,43 @@ def _assert_safe_personal_workspace_denial(
     )
     if document.get("error_version") != "1.0" or document.get("code") != expected_code:
         raise RuntimeError("Personal workspace conflict changed public meaning.")
-    private = PERSONAL_WORKSPACE_PRIVATE_CAPTURE_KEYS | {
-        "learner_id",
-        "workspace_id",
-        "record_id",
-        "note_body",
+    correlation_id = document.get("correlation_id")
+    try:
+        parsed_correlation = UUID(str(correlation_id))
+    except ValueError as error:
+        raise RuntimeError("Personal workspace denial correlation is invalid.") from error
+    if str(parsed_correlation) != correlation_id:
+        raise RuntimeError("Personal workspace denial correlation is invalid.")
+    workspace = capture["workspace"]
+    replay = capture["exact_replay_request"]
+    sensitive_values = {
+        str(workspace["learner_id"]),
+        str(workspace["workspace_id"]),
+        str(replay["idempotency_key"]),
+        str(replay["mutation"]["record_id"]),
+        *(str(record["record_id"]) for record in workspace["records"]),
+        *(
+            str(value)
+            for record in workspace["records"]
+            for value in (
+                record.get("title"),
+                record.get("body"),
+                record.get("label"),
+            )
+            if value
+        ),
     }
-    message = str(document.get("message", "")).lower()
-    if any(value in message for value in private):
+    serialized = json.dumps(
+        document, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).casefold()
+    private_markers = PERSONAL_WORKSPACE_PRIVATE_CAPTURE_KEYS | {
+        "personal_workspace",
+        "request_fingerprint",
+        "storage_path",
+    }
+    if any(value.casefold() in serialized for value in sensitive_values) or any(
+        marker.casefold() in serialized for marker in private_markers
+    ):
         raise RuntimeError("Personal workspace denial disclosed private details.")
 
 
@@ -1836,7 +1878,10 @@ def observe_headless_personal_workspace(
         payload=changed,
     )
     _assert_safe_personal_workspace_denial(
-        changed_status, changed_denial, expected_code="immutable_conflict"
+        changed_status,
+        changed_denial,
+        expected_code="immutable_conflict",
+        capture=capture,
     )
     stale = copy.deepcopy(changed)
     stale["idempotency_key"] = str(uuid4())
@@ -1848,7 +1893,10 @@ def observe_headless_personal_workspace(
         payload=stale,
     )
     _assert_safe_personal_workspace_denial(
-        stale_status, stale_denial, expected_code="stale_revision"
+        stale_status,
+        stale_denial,
+        expected_code="stale_revision",
+        capture=capture,
     )
     return observed
 
@@ -2578,7 +2626,7 @@ def assert_project_learning_restart_result(
         raise RuntimeError("Project learning storage changed during restart replay.")
 
 
-def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, int]:
+def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
     query = """
         SELECT
             (SELECT count(*) FROM personal_workspace.workspaces),
@@ -2610,26 +2658,108 @@ def personal_workspace_storage_snapshot(postgres_dsn: str) -> dict[str, int]:
     )
     with psycopg.connect(postgres_dsn) as connection:
         row = connection.execute(query).fetchone()
+        workspace_rows = connection.execute(
+            """
+            SELECT workspace_id, revision, workspace
+            FROM personal_workspace.workspaces
+            ORDER BY workspace_id
+            """
+        ).fetchall()
+        mutation_rows = connection.execute(
+            """
+            SELECT workspace_id, idempotency_key,
+                   accepted_workspace, accepted_revision
+            FROM personal_workspace.mutations
+            ORDER BY accepted_revision, idempotency_key
+            """
+        ).fetchall()
     if row is None or len(row) != len(labels):
         raise RuntimeError("Personal workspace storage snapshot is unavailable.")
-    return {label: int(row[index]) for index, label in enumerate(labels)}
+    return {
+        **{label: int(row[index]) for index, label in enumerate(labels)},
+        "workspace_rows": [
+            {
+                "workspace_id": str(item[0]),
+                "revision": int(item[1]),
+                "workspace": copy.deepcopy(item[2]),
+            }
+            for item in workspace_rows
+        ],
+        "mutation_rows": [
+            {
+                "workspace_id": str(item[0]),
+                "idempotency_key": str(item[1]),
+                "accepted_workspace": copy.deepcopy(item[2]),
+                "accepted_revision": int(item[3]),
+            }
+            for item in mutation_rows
+        ],
+    }
 
 
-def assert_personal_workspace_storage(snapshot: dict[str, int]) -> None:
+def assert_personal_workspace_storage(
+    snapshot: dict[str, Any],
+    *,
+    capture: dict[str, Any],
+) -> None:
     if snapshot.get("personal_workspaces") != 1 or snapshot.get(
         "personal_mutations"
     ) != 7:
         raise RuntimeError("Personal workspace storage is incomplete or uncorrelated.")
+    expected = capture["workspace"]
+    workspace_rows = snapshot.get("workspace_rows")
+    mutation_rows = snapshot.get("mutation_rows")
+    if (
+        not isinstance(workspace_rows, list)
+        or len(workspace_rows) != 1
+        or not isinstance(mutation_rows, list)
+        or len(mutation_rows) != 7
+    ):
+        raise RuntimeError("Personal workspace storage is incomplete or uncorrelated.")
+    workspace_row = workspace_rows[0]
+    if (
+        not isinstance(workspace_row, dict)
+        or not isinstance(workspace_row.get("workspace"), dict)
+        or workspace_row.get("workspace_id") != expected["workspace_id"]
+        or workspace_row.get("revision") != expected["revision"]
+        or stable_personal_workspace(workspace_row.get("workspace")) != expected
+    ):
+        raise RuntimeError("Personal workspace aggregate is uncorrelated.")
+    if any(
+        not isinstance(row, dict)
+        or row.get("workspace_id") != expected["workspace_id"]
+        or not isinstance(row.get("accepted_workspace"), dict)
+        or row["accepted_workspace"].get("workspace_id") != expected["workspace_id"]
+        or row["accepted_workspace"].get("revision") != row.get("accepted_revision")
+        for row in mutation_rows
+    ):
+        raise RuntimeError("Personal workspace mutation history is uncorrelated.")
+    replay_key = capture["exact_replay_request"]["idempotency_key"]
+    replay_rows = [
+        row
+        for row in mutation_rows
+        if isinstance(row, dict) and row.get("idempotency_key") == replay_key
+    ]
+    if (
+        len(replay_rows) != 1
+        or not isinstance(replay_rows[0].get("accepted_workspace"), dict)
+        or replay_rows[0].get("accepted_revision") != expected["revision"]
+        or stable_personal_workspace(replay_rows[0].get("accepted_workspace"))
+        != expected
+    ):
+        raise RuntimeError("Personal workspace replay evidence is uncorrelated.")
 
 
 def assert_personal_workspace_target_state_unchanged(
     *,
-    before_storage: dict[str, int],
-    after_storage: dict[str, int],
+    before_storage: dict[str, Any],
+    after_storage: dict[str, Any],
 ) -> None:
-    keys = set(before_storage) - {"personal_workspaces", "personal_mutations"}
-    if set(after_storage) != set(before_storage) or any(
-        after_storage[key] != before_storage[key] for key in keys
+    if any(
+        key not in before_storage
+        or key not in after_storage
+        or after_storage[key] != before_storage[key]
+        for key in PERSONAL_WORKSPACE_TARGET_COUNT_KEYS
     ):
         raise RuntimeError(
             "Personal workspace journey changed target or learning evidence state."
@@ -2640,8 +2770,8 @@ def assert_personal_workspace_restart_result(
     *,
     before_observation: dict[str, Any],
     after_observation: dict[str, Any],
-    before_storage: dict[str, int],
-    after_storage: dict[str, int],
+    before_storage: dict[str, Any],
+    after_storage: dict[str, Any],
 ) -> None:
     if after_observation != before_observation:
         raise RuntimeError("Personal workspace changed after normal restart.")
@@ -3321,7 +3451,10 @@ def main() -> int:
         personal_storage_before_restart = personal_workspace_storage_snapshot(
             postgres_dsn
         )
-        assert_personal_workspace_storage(personal_storage_before_restart)
+        assert_personal_workspace_storage(
+            personal_storage_before_restart,
+            capture=personal_capture,
+        )
         assert_personal_workspace_target_state_unchanged(
             before_storage=personal_storage_before,
             after_storage=personal_storage_before_restart,
@@ -3537,6 +3670,9 @@ def main() -> int:
             before_storage=project_learning_storage_before_restart,
             after_storage=project_learning_storage_after_restart,
         )
+        personal_storage_before_restart_observation = (
+            personal_workspace_storage_snapshot(postgres_dsn)
+        )
         personal_after_restart = observe_headless_personal_workspace(
             origin=origin,
             capture=personal_capture,
@@ -3548,6 +3684,10 @@ def main() -> int:
             before_observation=personal_before_restart,
             after_observation=personal_after_restart,
             before_storage=personal_storage_before_restart,
+            after_storage=personal_storage_after_restart,
+        )
+        assert_personal_workspace_target_state_unchanged(
+            before_storage=personal_storage_before_restart_observation,
             after_storage=personal_storage_after_restart,
         )
 

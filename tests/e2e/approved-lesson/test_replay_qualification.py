@@ -425,6 +425,53 @@ def personal_workspace_capture() -> dict[str, Any]:
     }
 
 
+def correlated_personal_workspace_storage() -> dict[str, Any]:
+    capture = personal_workspace_capture()
+    workspace = capture["workspace"]
+    mutation_rows = [
+        {
+            "workspace_id": workspace["workspace_id"],
+            "idempotency_key": f"prior-key-{revision}",
+            "accepted_workspace": {
+                "workspace_id": workspace["workspace_id"],
+                "revision": revision,
+            },
+            "accepted_revision": revision,
+        }
+        for revision in range(2, 8)
+    ]
+    mutation_rows.append(
+        {
+            "workspace_id": workspace["workspace_id"],
+            "idempotency_key": capture["exact_replay_request"]["idempotency_key"],
+            "accepted_workspace": json.loads(json.dumps(workspace)),
+            "accepted_revision": workspace["revision"],
+        }
+    )
+    return {
+        "personal_workspaces": 1,
+        "personal_mutations": 7,
+        "content_packages": 1,
+        "curriculum_placements": 3,
+        "curriculum_discovery_records": 3,
+        "assessment_attempts": 1,
+        "assessment_practice_attempts": 1,
+        "assessment_project_submissions": 2,
+        "learner_lesson_projections": 1,
+        "learner_practice_projections": 1,
+        "learner_project_projections": 1,
+        "project_shells": 2,
+        "workspace_rows": [
+            {
+                "workspace_id": workspace["workspace_id"],
+                "revision": workspace["revision"],
+                "workspace": json.loads(json.dumps(workspace)),
+            }
+        ],
+        "mutation_rows": mutation_rows,
+    }
+
+
 def project_workspace_capture() -> dict[str, Any]:
     content = b"scenario,value\nbase,1\n"
     digest = hashlib.sha256(content).hexdigest()
@@ -1258,23 +1305,53 @@ def test_headless_personal_workspace_uses_public_api_and_bounded_conflicts(
     ]
 
 
+def test_personal_workspace_denials_reject_actual_sensitive_values() -> None:
+    capture = personal_workspace_capture()
+    sensitive_values = (
+        capture["workspace"]["learner_id"],
+        capture["workspace"]["workspace_id"],
+        capture["workspace"]["records"][0]["record_id"],
+        capture["expected"]["note_body"],
+        capture["exact_replay_request"]["idempotency_key"],
+        "personal_workspace.mutations",
+    )
+    for leaked_value in sensitive_values:
+        with pytest.raises(RuntimeError, match="disclosed private details"):
+            runner._assert_safe_personal_workspace_denial(
+                409,
+                {
+                    "error_version": "1.0",
+                    "code": "immutable_conflict",
+                    "message": f"Unable to apply {leaked_value}",
+                    "correlation_id": "22222222-2222-4222-8222-222222222222",
+                },
+                expected_code="immutable_conflict",
+                capture=capture,
+            )
+    with pytest.raises(RuntimeError, match="correlation is invalid"):
+        runner._assert_safe_personal_workspace_denial(
+            409,
+            {
+                "error_version": "1.0",
+                "code": "immutable_conflict",
+                "message": "The saved request could not be applied.",
+                "correlation_id": "not-a-correlation",
+            },
+            expected_code="immutable_conflict",
+            capture=capture,
+        )
+
+
 def test_personal_workspace_restart_preserves_state_and_target_counts() -> None:
-    before_target = {
+    capture = personal_workspace_capture()
+    after = correlated_personal_workspace_storage()
+    before_target = after | {
         "personal_workspaces": 0,
         "personal_mutations": 0,
-        "content_packages": 1,
-        "curriculum_placements": 3,
-        "curriculum_discovery_records": 3,
-        "assessment_attempts": 1,
-        "assessment_practice_attempts": 1,
-        "assessment_project_submissions": 2,
-        "learner_lesson_projections": 1,
-        "learner_practice_projections": 1,
-        "learner_project_projections": 1,
-        "project_shells": 2,
+        "workspace_rows": [],
+        "mutation_rows": [],
     }
-    after = before_target | {"personal_workspaces": 1, "personal_mutations": 7}
-    runner.assert_personal_workspace_storage(after)
+    runner.assert_personal_workspace_storage(after, capture=capture)
     runner.assert_personal_workspace_target_state_unchanged(
         before_storage=before_target,
         after_storage=after,
@@ -1285,15 +1362,9 @@ def test_personal_workspace_restart_preserves_state_and_target_counts() -> None:
         before_storage=after,
         after_storage=dict(after),
     )
-    runner.assert_personal_workspace_restart_result(
-        before_observation=personal_workspace_capture()["workspace"],
-        after_observation=personal_workspace_capture()["workspace"],
-        before_storage=after,
-        after_storage=after | {"assessment_attempts": 2},
-    )
     with pytest.raises(RuntimeError, match="target or learning evidence"):
         runner.assert_personal_workspace_target_state_unchanged(
-            before_storage=before_target,
+            before_storage=after,
             after_storage=after | {"assessment_attempts": 2},
         )
     with pytest.raises(RuntimeError, match="changed during restart"):
@@ -1302,6 +1373,37 @@ def test_personal_workspace_restart_preserves_state_and_target_counts() -> None:
             after_observation=personal_workspace_capture()["workspace"],
             before_storage=after,
             after_storage=after | {"personal_mutations": 8},
+        )
+
+
+def test_personal_workspace_storage_requires_exact_row_correlation() -> None:
+    capture = personal_workspace_capture()
+    correlated = correlated_personal_workspace_storage()
+
+    wrong_aggregate = json.loads(json.dumps(correlated))
+    wrong_aggregate["workspace_rows"][0]["workspace_id"] = "other-workspace"
+    with pytest.raises(RuntimeError, match="aggregate is uncorrelated"):
+        runner.assert_personal_workspace_storage(
+            wrong_aggregate,
+            capture=capture,
+        )
+
+    wrong_history = json.loads(json.dumps(correlated))
+    wrong_history["mutation_rows"][0]["workspace_id"] = "other-workspace"
+    with pytest.raises(RuntimeError, match="history is uncorrelated"):
+        runner.assert_personal_workspace_storage(
+            wrong_history,
+            capture=capture,
+        )
+
+    wrong_replay = json.loads(json.dumps(correlated))
+    wrong_replay["mutation_rows"][-1]["accepted_workspace"]["workspace_digest"] = (
+        "c" * 64
+    )
+    with pytest.raises(RuntimeError, match="replay evidence is uncorrelated"):
+        runner.assert_personal_workspace_storage(
+            wrong_replay,
+            capture=capture,
         )
 
 

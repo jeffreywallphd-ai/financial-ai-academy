@@ -144,10 +144,12 @@ restores a record, reloads the route, and captures only bounded public state.
 A fresh non-browser session reads the identical workspace, exactly replays the
 last accepted mutation, proves changed-key and stale-revision conflicts are
 confidential and side-effect free, and observes the same complete state after
-restart. Direct before/after PostgreSQL counts prove this journey creates only
-one Personal-workspace aggregate and its seven accepted mutation rows while
-leaving Content, Curriculum, Assessment, Learner model, and Project counts
-unchanged. The companion isolated browser fixture, rather than the
+restart. Direct PostgreSQL correlation binds the public workspace ID,
+revision, accepted document, restore request key, and restore result to one
+Personal-workspace aggregate and its seven workspace-scoped mutation rows.
+Bounded before/after snapshots also prove that the journey leaves Content,
+Curriculum, Assessment, Learner model, and Project counts unchanged. The
+companion isolated browser fixture, rather than the
 live approved graph, qualifies same-kind shared branches and variable reference
 counts without changing production fixture meaning.
 
