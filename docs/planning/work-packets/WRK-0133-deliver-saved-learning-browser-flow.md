@@ -1,7 +1,7 @@
 ---
 id: WRK-0133
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0017
 updated: 2026-10-17
@@ -65,7 +65,7 @@ and focused tests. Canonical sources govern over this packet.
   learner to type internal resource identifiers.
 - The generated OpenAPI client and WRK-0132 schemas remain unchanged. Browser
   validation closes the response shapes and cross-record relationships before
-  rendering; compatible extra response fields may be ignored.
+  rendering; additional fields are rejected as the versioned contract requires.
 - React Router loaders and actions own session retry, status mapping, and
   mutation dispatch. Components receive closed route state and do not call the
   backend, inspect cookies, or generate an alternate domain model.
@@ -171,8 +171,8 @@ revision, canonical UTC times, lowercase digest, unique record and collection
 IDs, closed note/bookmark and opportunity/placed-lesson unions, same-origin
 learning destinations, required-but-nullable bookmark labels, complete
 publication provenance, and collection membership that references existing
-unique records. It may ignore compatible additional fields but never render a
-partial invalid result.
+unique records. It rejects additional fields as the versioned executable
+contract requires and never renders a partial invalid result.
 
 ## Dependencies and Parallel Safety
 
@@ -196,7 +196,7 @@ It must complete before JIT-D is authored and claimed.
 | Source/owned record absent | Server returns bounded 404 | Learner saves a stale source or changes a missing owned item | Page reports the item is unavailable, discloses no hidden source or learner detail, and offers a safe return | component/browser |
 | Session/permission denial | Session cannot be established or permission is missing | Page loads or action runs | No workspace content is shown; task-focused recovery is available where safe | unit/browser |
 | Invalid/partial response | Payload has an unknown union, unsafe route, duplicate IDs, dangling membership, bad time/digest, or missing required-nullable label | Browser receives it | Whole view fails closed; no partial private workspace is rendered | unit/component/browser |
-| Flexible valid shapes | Valid Unicode, long-within-limit text, zero/many records and collections, different orders, both reference kinds, nullable labels, and compatible extra fields | Browser validates and renders | Meaning remains usable without fixture-count, exact-copy, or incidental-order assumptions | parameterized unit/component |
+| Flexible valid shapes | Valid Unicode, long-within-limit text, zero/many records and collections, different orders, both reference kinds, and nullable or empty labels | Browser validates and renders | Meaning remains usable without fixture-count, exact-copy, or incidental-order assumptions | parameterized unit/component |
 | Technical record | Valid record and workspace provenance exists | Learner opens disclosures by keyboard | Exact IDs, versions, digests, publication and validation facts remain labeled, selectable, and complete | component/browser |
 | Accessible/theme parity | Empty, ready, error, and mutation states | Keyboard, narrow viewport, 200% zoom, forced colors, reduced motion, light/dark/system, and axe checks run | Equivalent content, actions, hierarchy, focus, and status meaning remain available | Chromium/design |
 
@@ -250,6 +250,50 @@ work. Confirm no backend, contract, generated-client, persistence, target-
 domain, execution, provider, managed-cloud, separate-AI, or financial behavior
 changed.
 
+## Completion Evidence
+
+- Exact implementation candidate:
+  `55911c5ec5cc7b2fe74e36aedcf7ed16eb0f8647`.
+- The generated-client, Personal-workspace model, and component qualification
+  passed 39 focused tests. The complete web unit/component regression passed
+  306 tests, and focused Chromium passed 11 scenarios covering note and
+  bookmark creation/update, record reorder/archive/restore/removal, collection
+  create/rename/order/membership/removal, reload, exact uncertain retry,
+  edited retry, stale/idempotency/source failures, 401/403/404 reads,
+  opportunity and lesson entry links, invalid-response denial, themes,
+  accessibility, reflow, 200-percent text, reduced motion, and forced colors.
+- TypeScript typecheck, zero-warning lint, production build, generated-client
+  reproduction, design-system validation, learner-language validation,
+  documentation and planning integrity, and `git diff --check` passed. The
+  exact-candidate receipt is internally valid, fresh, stable, and qualifying;
+  the aggregate readiness gate passed all 29 checks.
+- Browser validation now matches the closed Personal-workspace contract for
+  lowercase platform/curriculum identifiers, semantic versions, exact bounds
+  by Unicode code point, NUL exclusion, multiline/tab-safe text, required
+  nullable or empty bookmark labels, closed record/reference unions, exact
+  destinations, chronology, unique IDs, and collection closure.
+- Every new browser mutation uses the generated public client. Unchanged
+  uncertain retries preserve the complete original mutation, expected
+  revision, and idempotency key; edits and repeated operations use fresh
+  identity. Collection membership remains ordered and independently
+  controllable for each collection.
+- The required technical-review gate has no open blocking finding. Detailed
+  receipts, findings, closure evidence, and technical-review records remain in
+  ignored local control-plane storage and are not copied into tracked files.
+- This UI packet changed no backend, executable contract, generated client,
+  database, migration, permission, source resolver, or target-domain state.
+  The protected API remains independently usable by authenticated browser,
+  command-line, service, and future headless clients; no alternate AI authority
+  path was added.
+- Live local-stack and real-PostgreSQL qualification were not repeated because
+  this packet changed only the generated-client consumer and browser surface.
+  Their previously qualified API/persistence boundary remains unchanged;
+  cumulative live qualification remains assigned to JIT-D.
+- No arbitrary file access, execution, network/provider integration,
+  credential handling, collaboration, tenancy, managed-cloud behavior,
+  Project/Assessment/Learner-model mutation, financial action, or personalized
+  advice behavior was added.
+
 ## Planning History
 
 - 2026-10-17: Authored JIT-C immediately after WRK-0132 completed. The packet
@@ -271,3 +315,9 @@ changed.
 - 2026-10-17: Re-activated with a fresh claim and packet-start manifest after
   the refined contextual-entry scope passed dependency, authority, collision,
   interface, packet, and planning validation.
+- 2026-10-17: Moved the exact implementation candidate into verification after
+  the complete web and Chromium suites, generated-client/typecheck/lint/build,
+  design, language, documentation, planning, whitespace, exact-candidate, and
+  aggregate gates passed with no remaining blocking technical finding.
+- 2026-10-17: Finalized WRK-0133 as complete after the independent review round
+  closed all five earlier findings and introduced no new blocking finding.
