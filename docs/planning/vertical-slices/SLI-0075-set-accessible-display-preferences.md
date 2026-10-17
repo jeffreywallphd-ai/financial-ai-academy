@@ -217,7 +217,7 @@ packet starts. Proposed dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0153 | Freeze learner presentation-preference contracts, safe value semantics, platform-theme boundary, compatibility vectors, pure core, and design-system application rules | none | none | complete |
 | WRK-0154 | Compose Learner-model application, PostgreSQL persistence/migrations, protected API, reviewed OpenAPI, and generated client | WRK-0153 | none | complete |
-| WRK-0155 | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | active |
+| WRK-0155 | Deliver global presentation application plus the plain-language display/settings preview and existing local theme control | WRK-0154 | none | verifying |
 | JIT-D | Qualify contracts, browser/headless parity, restart, accessibility/device precedence, privacy, isolation, anti-rigidity, and cleanup | WRK-0155 | none | captured |
 
 Detailed packet plans will declare exact files, generated artifacts, checks,
@@ -336,3 +336,6 @@ profiles, and residual gaps without tracked approval or reviewer metadata.
   Project browser self-qualification route and make its presentation-profile
   and saved-learning query dependencies deterministic without widening the
   product outcome.
+- 2026-10-17: WRK-0155 re-entered verification with the Project check's
+  documented self-qualification routes restored and both focused Chromium
+  boundaries passing.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0155
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -298,3 +298,6 @@ action, or financial behavior changed.
   browser check self-qualification triggers and give that existing browser
   harness deterministic responses for the new global presentation read and
   the current saved-learning query contract.
+- 2026-10-17: Re-entered verification after restoring both documented Project
+  self-qualification triggers; the isolated presentation suite passed three
+  journeys and the Project suite passed all eleven journeys.
