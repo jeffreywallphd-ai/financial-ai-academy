@@ -1,7 +1,7 @@
 ---
 id: WRK-0125
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/migrations/README.md", "backend/migrations/assessment/assessment_0004_project_submission_evidence.down.sql", "backend/migrations/assessment/assessment_0004_project_submission_evidence.up.sql", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/assessment/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/assessment/adapters/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/application/service.py", "backend/src/financial_ai_academy/modules/assessment/ports/project_submission_gateways.py", "backend/src/financial_ai_academy/modules/assessment/ports/repositories.py", "backend/src/financial_ai_academy/modules/assessment/public.py", "backend/tests/integration/assessment/test_postgres_project_submission.py", "backend/tests/unit/assessment/test_project_submission_service.py", "docs/architecture/contracts/assessment-contract.md", "docs/architecture/contracts/project-submission-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0125-compose-project-submission-persistence.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 4810c3a83d65b564342c50dd840df244e374cc92
+claim_id: WRK-0125:1d5e50e1-ab03-4e12-ae08-f4eda430527b
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T03:26:49Z
 ---
 
 # Agent Work Packet: Compose Project Submission Persistence
@@ -239,3 +239,6 @@ for just-in-time refinement.
   seam was split into one independently reviewable application/persistence
   packet and a dependent protected API/generated-client packet. This refinement
   preserves the approved CAP/SLI outcome and adds no lower-level approval gate.
+- 2026-10-17: Claimed from base revision `4810c3a` after the implementation
+  gate confirmed current CAP authority, dependency completion, decision
+  readiness, exact scope, and no active ownership collision.

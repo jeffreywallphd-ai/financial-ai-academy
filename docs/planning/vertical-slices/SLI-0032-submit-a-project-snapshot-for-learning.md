@@ -237,7 +237,7 @@ scope is refined just in time.
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
-| WRK-0125 | Deliver Assessment-owned application/persistence, Project/Content/Curriculum public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | ready |
+| WRK-0125 | Deliver Assessment-owned application/persistence, Project/Content/Curriculum public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | active |
 | JIT-B2 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | captured |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B2 | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
@@ -341,3 +341,7 @@ qualified.
   ordering, and supersession boundary. Protected API/OpenAPI/generated-client
   delivery remains the dependent JIT-B2 increment; the approved CAP/SLI
   outcome and decision boundaries are unchanged.
+- 2026-10-17: Activated WRK-0125 after the implementation gate confirmed the
+  current CAP package, completed dependency, decision readiness, bounded scope,
+  and absence of active ownership collisions. No lower-level approval was
+  added.
