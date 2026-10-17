@@ -24,15 +24,14 @@
 - Manual screen-reader operation, actual browser 200-percent zoom controls, non-Chromium browsers, and non-Windows visual baselines beyond the directly covered axe, keyboard/focus, narrow/zoom-equivalent reflow, reduced-motion, forced-color, and Chromium theme evidence
 - Community coordinated-backup, recovery-set validation, empty-target restore, projection reconciliation, restored-session/recovery revocation, failure-path, redaction, and supported-platform qualification
 - PostgreSQL integration and migration checks beyond the directly covered Content, Curriculum, single-profile Identity, Assessment, Learner-model, Audit, and Project streams with PostgreSQL 18.4 empty-database apply/reapply/teardown and focused rollback paths
-- Project browser workspace behavior, submissions, live domain-resource and
-  Portfolio associations, external execution, collaboration, managed cloud,
-  production recovery, import/restore, retention cleanup, and a separate
-  headless AI mode beyond the directly covered Project shell/workspace/
-  artifact/snapshot/export contracts, PostgreSQL and local object persistence,
-  protected browser/headless API parity, safe downloads, generated client,
-  focused shell Chromium flow, and tracked static production build. A
-  Project-specific workspace browser flow against the full live Python/static/
-  PostgreSQL topology remains unqualified.
+- Project submissions, live domain-resource and Portfolio associations,
+  external execution, collaboration, managed cloud, production recovery,
+  import/restore, retention cleanup, and a separate headless AI mode beyond the
+  directly covered Project shell/workspace/artifact/snapshot/export contracts,
+  PostgreSQL and local object persistence, protected generated-browser/headless
+  API parity, exact downloads and export, normal restart, zero learning-state
+  side effects, full live Python/static/PostgreSQL topology, and tracked static
+  production build
 - Managed-cloud deployment composition and direct local/cloud artifact-parity comparison beyond the qualified local approved-lesson topology
 - Discovery rebuild scheduling, concurrent production rebuild operation,
   non-lesson destinations, external search adapters, and managed-cloud

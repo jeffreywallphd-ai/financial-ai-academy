@@ -1,9 +1,9 @@
 ---
 id: WRK-0121
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0007
 updated: 2026-10-17
 parent: SLI-0031
 capability: CAP-0007
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/project-workspace.e2e.ts", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0031-save-project-work-and-close-a-snapshot.md", "docs/planning/work-packets/WRK-0121-qualify-project-workspace-snapshot-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: a9ce6a84a33eeb12c6d964a04bbd7cf59a57e54f
-claim_id: WRK-0121:91b1889c-6186-406b-b090-f0ed7f397268
+base_revision: 7977d7051a0cb9062525f61c40670de97f8f7835
+claim_id: WRK-0121:ad1ab5d1-9e50-4d27-aadb-be307b2ba251
 claimed_by: codex-cap-0007
-claimed_at: 2026-10-17T02:43:02Z
+claimed_at: 2026-10-17T02:51:42Z
 ---
 
 # Agent Work Packet: Qualify Project Workspace and Snapshot Flow
@@ -213,3 +213,8 @@ autonomous authority was added.
   packet-start or any file lease when the current instruction redirected work
   to CAP-0012, CAP-0024, and CAP-0027 package revalidation. No implementation
   or qualification result changed; the packet remains ready to resume.
+- 2026-10-17: Reclaimed from clean base `7977d70`; packet-start confirmed the
+  unchanged evidence-only acceptance set. All 28 focused qualifier tests and
+  the isolated PostgreSQL 18.4/Python/static/generated-client/headless/pinned-
+  Chromium workflow passed, including all 11 browser scenarios and bounded
+  teardown. Exact-candidate checks and independent review remain before close.

@@ -239,7 +239,7 @@ refined just in time.
 | WRK-0120 | Deliver the accessible generated-client workspace, artifact, download, snapshot, and continue-working browser flow | WRK-0119 | none | complete |
 | WRK-0122 | Correct snapshot timestamp canonicalization and cover trailing-zero fractional precision | WRK-0120 | none | complete |
 | WRK-0123 | Preserve canonical Project timestamps through FastAPI response serialization and prove public export-digest parity | WRK-0122 | none | complete |
-| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0123 | none | ready |
+| WRK-0121 | Qualify the full contract, PostgreSQL, object, API/headless, browser, snapshot-integrity, export, denial, restart, accessibility, and containment boundary | WRK-0123 | none | active |
 
 ## Verification and Qualification
 
@@ -409,3 +409,8 @@ created, and no managed-cloud or production-recovery profile was qualified.
   Node 24 and npm 10.8.2 runtimes. Independent review accepted the Project-only
   serialization seam with no findings; OpenAPI and generated-client output
   remain unchanged. WRK-0121 may resume integrated qualification.
+- 2026-10-17: Reclaimed WRK-0121 from the current CAP binding after WRK-0123
+  completed. Its 28 focused qualifier tests and isolated PostgreSQL 18.4,
+  Python/static, generated-client, headless HTTP, and pinned-Chromium workflow
+  passed all 11 browser scenarios, including the complete Project workspace,
+  restart, immutable-snapshot, exact-export, and zero-learning-effect path.
