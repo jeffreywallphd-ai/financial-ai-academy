@@ -1,7 +1,7 @@
 ---
 id: WRK-0129
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0007
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/project-learning-submission.e2e.ts", "backend/src/financial_ai_academy/modules/assessment/README.md", "backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/learner_model/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0032-submit-a-project-snapshot-for-learning.md", "docs/planning/work-packets/WRK-0129-qualify-project-learning-submission-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d2f4d1963ba7a527503eab6fb7fa900868d5d7c6
+claim_id: WRK-0129:8712ef8d-5a92-4540-a8dd-ed9b3d21bf9d
+claimed_by: codex-cap-0007
+claimed_at: 2026-10-17T05:20:37Z
 ---
 
 # Agent Work Packet: Qualify Project Learning Submission Flow
@@ -224,3 +224,6 @@ autonomous authority was added.
   HTTP, PostgreSQL, restart, projection, Audit, containment, accessibility, and
   cleanup evidence. It changes no product contract or authority and exposes no
   new decision gate or lower-level approval.
+- 2026-10-17: Activated from clean base `d2f4d19` after the current approved
+  CAP package, completed dependency, evidence-only scope, decision readiness,
+  packet-start acceptance set, and exclusive edit ownership were revalidated.
