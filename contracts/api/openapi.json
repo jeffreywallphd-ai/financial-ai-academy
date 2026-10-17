@@ -5830,16 +5830,7 @@
           },
           "resources": {
             "items": {
-              "discriminator": {
-                "mapping": {
-                  "artifact": "#/components/schemas/ProjectSubmissionArtifactResourceModel",
-                  "domain_resource": "#/components/schemas/ProjectSubmissionDomainResourceModel",
-                  "note": "#/components/schemas/ProjectSubmissionVersionedResourceModel",
-                  "source": "#/components/schemas/ProjectSubmissionVersionedResourceModel"
-                },
-                "propertyName": "resource_kind"
-              },
-              "oneOf": [
+              "anyOf": [
                 {
                   "$ref": "#/components/schemas/ProjectSubmissionVersionedResourceModel"
                 },
@@ -5847,7 +5838,10 @@
                   "$ref": "#/components/schemas/ProjectSubmissionArtifactResourceModel"
                 },
                 {
-                  "$ref": "#/components/schemas/ProjectSubmissionDomainResourceModel"
+                  "$ref": "#/components/schemas/ProjectSubmissionDomainResourceVersionModel"
+                },
+                {
+                  "$ref": "#/components/schemas/ProjectSubmissionDomainResourceAsOfModel"
                 }
               ]
             },
@@ -6386,16 +6380,7 @@
           },
           "resources": {
             "items": {
-              "discriminator": {
-                "mapping": {
-                  "artifact": "#/components/schemas/ProjectSubmissionArtifactResourceModel",
-                  "domain_resource": "#/components/schemas/ProjectSubmissionDomainResourceModel",
-                  "note": "#/components/schemas/ProjectSubmissionVersionedResourceModel",
-                  "source": "#/components/schemas/ProjectSubmissionVersionedResourceModel"
-                },
-                "propertyName": "resource_kind"
-              },
-              "oneOf": [
+              "anyOf": [
                 {
                   "$ref": "#/components/schemas/ProjectSubmissionVersionedResourceModel"
                 },
@@ -6403,7 +6388,10 @@
                   "$ref": "#/components/schemas/ProjectSubmissionArtifactResourceModel"
                 },
                 {
-                  "$ref": "#/components/schemas/ProjectSubmissionDomainResourceModel"
+                  "$ref": "#/components/schemas/ProjectSubmissionDomainResourceVersionModel"
+                },
+                {
+                  "$ref": "#/components/schemas/ProjectSubmissionDomainResourceAsOfModel"
                 }
               ]
             },
@@ -6430,7 +6418,7 @@
         "title": "ProjectSubmissionCandidateResponseModel",
         "type": "object"
       },
-      "ProjectSubmissionDomainResourceModel": {
+      "ProjectSubmissionDomainResourceAsOfModel": {
         "additionalProperties": false,
         "properties": {
           "owner_reference_digest": {
@@ -6444,16 +6432,12 @@
             "type": "string"
           },
           "resource_as_of": {
-            "anyOf": [
-              {
-                "format": "date-time",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Resource As Of"
+            "format": "date-time",
+            "maxLength": 27,
+            "minLength": 20,
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?Z$",
+            "title": "Resource As Of",
+            "type": "string"
           },
           "resource_id": {
             "maxLength": 128,
@@ -6467,27 +6451,60 @@
             "title": "Resource Kind",
             "type": "string"
           },
+          "resource_version": false
+        },
+        "required": [
+          "resource_kind",
+          "resource_id",
+          "record_digest",
+          "owner_reference_digest",
+          "resource_as_of"
+        ],
+        "title": "ProjectSubmissionDomainResourceAsOfModel",
+        "type": "object"
+      },
+      "ProjectSubmissionDomainResourceVersionModel": {
+        "additionalProperties": false,
+        "properties": {
+          "owner_reference_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Owner Reference Digest",
+            "type": "string"
+          },
+          "record_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Record Digest",
+            "type": "string"
+          },
+          "resource_as_of": false,
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_kind": {
+            "const": "domain_resource",
+            "title": "Resource Kind",
+            "type": "string"
+          },
           "resource_version": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 1,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Resource Version"
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^<>\\u0000]*$",
+            "title": "Resource Version",
+            "type": "string"
           }
         },
         "required": [
           "resource_kind",
           "resource_id",
           "record_digest",
-          "owner_reference_digest"
+          "owner_reference_digest",
+          "resource_version"
         ],
-        "title": "ProjectSubmissionDomainResourceModel",
+        "title": "ProjectSubmissionDomainResourceVersionModel",
         "type": "object"
       },
       "ProjectSubmissionMilestoneResponseModel": {

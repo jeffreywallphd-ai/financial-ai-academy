@@ -238,7 +238,7 @@ scope is refined just in time.
 | --- | --- | --- | --- | --- |
 | WRK-0124 | Freeze additive Assessment project-submission, validation-issue, evidence, event, and history contracts plus pure deterministic policy | SLI-0031 | none | complete |
 | WRK-0125 | Deliver safe Project snapshot facts, Assessment-owned application/persistence, public adapters, atomic evidence/event storage, replay, and supersession | WRK-0124 | none | complete |
-| WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | active |
+| WRK-0126 | Expose protected candidate, validation/submission, exact-evidence, and history operations through reviewed OpenAPI and the generated TypeScript client | WRK-0125 | none | verifying |
 | JIT-C | Deliver Learner-model project-completion projection and Audit evidence-reference consumption through Assessment's typed public replay surface | JIT-B2 | none | captured |
 | JIT-D | Deliver the accessible generated-client snapshot submission, correction, retained-evidence, and completion-history browser flow | JIT-C | none | captured |
 | JIT-E | Qualify contract, persistence, public API/headless, browser, projection, Audit, restart, denial, accessibility, and no-execution behavior and close the slice | JIT-D | none | captured |
@@ -375,3 +375,7 @@ qualified.
 - 2026-10-17: Activated WRK-0126 after the implementation gate confirmed the
   current CAP authority, completed dependency, exact bounded scope, and lack of
   unresolved decisions or active ownership collisions.
+- 2026-10-17: Submitted the first WRK-0126 candidate and entered verification.
+  Independent R01 review kept the packet in scope while requesting bounded
+  correction of domain-resource timestamp rejection, generated exact-selector
+  types, and the focused API authorization and resource-shape matrix.

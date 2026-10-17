@@ -1120,7 +1120,7 @@ export interface components {
     };
     readonly "ProjectMilestoneEvidenceRequestModel": {
       readonly "milestone_id": string;
-      readonly "resources": ReadonlyArray<components["schemas"]["ProjectSubmissionVersionedResourceModel"] | components["schemas"]["ProjectSubmissionArtifactResourceModel"] | components["schemas"]["ProjectSubmissionDomainResourceModel"]>;
+      readonly "resources": ReadonlyArray<components["schemas"]["ProjectSubmissionVersionedResourceModel"] | components["schemas"]["ProjectSubmissionArtifactResourceModel"] | components["schemas"]["ProjectSubmissionDomainResourceVersionModel"] | components["schemas"]["ProjectSubmissionDomainResourceAsOfModel"]>;
     };
     readonly "ProjectNoteResponseModel": {
       readonly "body": string;
@@ -1203,16 +1203,24 @@ export interface components {
       readonly "policy_id": "assessment-project-closure";
       readonly "policy_version": "1.0.0";
       readonly "project": components["schemas"]["ProjectSubmissionProjectResponseModel"];
-      readonly "resources": ReadonlyArray<components["schemas"]["ProjectSubmissionVersionedResourceModel"] | components["schemas"]["ProjectSubmissionArtifactResourceModel"] | components["schemas"]["ProjectSubmissionDomainResourceModel"]>;
+      readonly "resources": ReadonlyArray<components["schemas"]["ProjectSubmissionVersionedResourceModel"] | components["schemas"]["ProjectSubmissionArtifactResourceModel"] | components["schemas"]["ProjectSubmissionDomainResourceVersionModel"] | components["schemas"]["ProjectSubmissionDomainResourceAsOfModel"]>;
       readonly "schema_version": "1.0.0";
     };
-    readonly "ProjectSubmissionDomainResourceModel": {
+    readonly "ProjectSubmissionDomainResourceAsOfModel": {
       readonly "owner_reference_digest": string;
       readonly "record_digest": string;
-      readonly "resource_as_of"?: string | null;
+      readonly "resource_as_of": string;
       readonly "resource_id": string;
       readonly "resource_kind": "domain_resource";
-      readonly "resource_version"?: string | null;
+      readonly "resource_version"?: never;
+    };
+    readonly "ProjectSubmissionDomainResourceVersionModel": {
+      readonly "owner_reference_digest": string;
+      readonly "record_digest": string;
+      readonly "resource_as_of"?: never;
+      readonly "resource_id": string;
+      readonly "resource_kind": "domain_resource";
+      readonly "resource_version": string;
     };
     readonly "ProjectSubmissionMilestoneResponseModel": {
       readonly "milestone_id": string;

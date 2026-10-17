@@ -28,6 +28,8 @@ type ProjectSnapshotClose =
   components["schemas"]["ProjectSnapshotCloseRequestModel"];
 type ProjectSubmission =
   components["schemas"]["ProjectSubmissionRequestModel"];
+type ProjectSubmissionResource =
+  components["schemas"]["ProjectMilestoneEvidenceRequestModel"]["resources"][number];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -213,6 +215,41 @@ const projectSubmission: ProjectSubmission = {
     },
   ],
 };
+
+const versionedDomainResource: ProjectSubmissionResource = {
+  resource_kind: "domain_resource",
+  resource_id: "market-observation",
+  resource_version: "1.0.0",
+  record_digest: "e".repeat(64),
+  owner_reference_digest: "f".repeat(64),
+};
+const asOfDomainResource: ProjectSubmissionResource = {
+  resource_kind: "domain_resource",
+  resource_id: "market-observation",
+  resource_as_of: "2026-10-17T04:00:00Z",
+  record_digest: "e".repeat(64),
+  owner_reference_digest: "f".repeat(64),
+};
+// @ts-expect-error A domain resource requires one exact selector.
+const missingDomainSelector: ProjectSubmissionResource = {
+  resource_kind: "domain_resource",
+  resource_id: "market-observation",
+  record_digest: "e".repeat(64),
+  owner_reference_digest: "f".repeat(64),
+};
+const conflictingDomainSelectors: ProjectSubmissionResource = {
+  resource_kind: "domain_resource",
+  resource_id: "market-observation",
+  resource_version: "1.0.0",
+  // @ts-expect-error A domain resource cannot carry both exact selectors.
+  resource_as_of: "2026-10-17T04:00:00Z",
+  record_digest: "e".repeat(64),
+  owner_reference_digest: "f".repeat(64),
+};
+void versionedDomainResource;
+void asOfDomainResource;
+void missingDomainSelector;
+void conflictingDomainSelectors;
 void client.POST(
   "/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
   {

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import copy
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+import hashlib
 import os
 from pathlib import Path
 
@@ -14,6 +17,7 @@ from financial_ai_academy.bootstrap.composition import build_application_service
 from financial_ai_academy.bootstrap.settings import SingleProfileApplicationSettings
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
+from financial_ai_academy.modules.identity.public import LearnerContext
 from financial_ai_academy.modules.content.public import AdmitLessonPackageRequest
 from financial_ai_academy.modules.curriculum.public import (
     CreateLessonPlacementRequest,
@@ -53,6 +57,30 @@ BRIEF_DIGEST = (
 
 def _headers() -> dict[str, str]:
     return {"Origin": ORIGIN, "Sec-Fetch-Site": "same-origin"}
+
+
+class _FixedIdentity:
+    def __init__(
+        self, learner_id: str, permissions: tuple[str, ...]
+    ) -> None:
+        self._learner_id = learner_id
+        self._permissions = permissions
+
+    def resolve_session(self, cookie_value: str | None) -> LearnerContext:
+        assert cookie_value == "fixed-session"
+        authenticated_at = datetime(2026, 10, 17, tzinfo=timezone.utc)
+        return LearnerContext(
+            actor_id=f"actor-{self._learner_id}",
+            learner_id=self._learner_id,
+            session_id="fixed-session",
+            authenticated_at=authenticated_at,
+            expires_at=authenticated_at + timedelta(hours=1),
+            authentication_method="single_profile",
+            permissions=self._permissions,
+        )
+
+    def health(self) -> bool:
+        return True
 
 
 def _graph(
@@ -166,7 +194,11 @@ def _submission(
         "milestone_evidence": [
             {
                 "milestone_id": milestone["milestone_id"],
-                "resources": [resources[index % len(resources)]],
+                "resources": (
+                    resources
+                    if index == 0
+                    else [resources[index % len(resources)]]
+                ),
             }
             for index, milestone in enumerate(milestones)
         ],
@@ -246,18 +278,17 @@ def test_headless_project_submission_refusal_replay_and_history(
             project_brief_schema_version="1.0.0",
         )
     )
-    app = create_app(
-        ApiServices(
-            identity=services.identity,
-            curriculum=services.curriculum,
-            request_policy=services.request_policy,
-            assessment=services.assessment,
-            learner_model=services.learner_model,
-            adaptation=services.adaptation,
-            audit=services.audit,
-            project=services.project,
-        )
+    api_services = ApiServices(
+        identity=services.identity,
+        curriculum=services.curriculum,
+        request_policy=services.request_policy,
+        assessment=services.assessment,
+        learner_model=services.learner_model,
+        adaptation=services.adaptation,
+        audit=services.audit,
+        project=services.project,
     )
+    app = create_app(api_services)
     with TestClient(
         app,
         base_url=ORIGIN,
@@ -300,6 +331,60 @@ def test_headless_project_submission_refusal_replay_and_history(
                 },
             },
         )
+        reference = subject.post(
+            f"/api/v1/projects/{project_id}/workspace/mutations",
+            headers=_headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "submission-source",
+                "expected_workspace_revision": workspace.json()[
+                    "workspace_revision"
+                ],
+                "mutation": {
+                    "operation": "add_reference",
+                    "title": "Reviewed educational source",
+                    "url": "https://example.edu/evidence",
+                    "source_name": "Example University",
+                    "source_version": "2026.10",
+                    "source_digest": "d" * 64,
+                },
+            },
+        )
+        artifact_content = b"scenario,value\nbase,1\n"
+        artifact = subject.post(
+            f"/api/v1/projects/{project_id}/artifacts",
+            headers=_headers(),
+            json={
+                "intent": {
+                    "schema_version": "1.0.0",
+                    "idempotency_key": "submission-artifact",
+                    "expected_workspace_revision": reference.json()[
+                        "workspace_revision"
+                    ],
+                    "mutation": {
+                        "operation": "add_artifact",
+                        "artifact": {
+                            "artifact_kind": "dataset",
+                            "logical_path": "data/scenario.csv",
+                            "media_type": "text/csv",
+                            "inspection_mode": "plain_text",
+                            "byte_count": len(artifact_content),
+                            "content_digest": hashlib.sha256(
+                                artifact_content
+                            ).hexdigest(),
+                            "provenance": {
+                                "source_type": "learner_created",
+                                "source_title": "Submission scenario",
+                            },
+                            "assumptions": [],
+                        },
+                    },
+                },
+                "content_base64": base64.b64encode(artifact_content).decode(
+                    "ascii"
+                ),
+            },
+        )
         snapshot = subject.post(
             f"/api/v1/projects/{project_id}/snapshots",
             headers=_headers(),
@@ -307,7 +392,9 @@ def test_headless_project_submission_refusal_replay_and_history(
                 "schema_version": "1.0.0",
                 "idempotency_key": "submission-snapshot",
                 "expected_project_revision": 1,
-                "expected_workspace_revision": workspace.json()["workspace_revision"],
+                "expected_workspace_revision": artifact.json()[
+                    "workspace_revision"
+                ],
             },
         )
         snapshot_id = snapshot.json()["snapshot_id"]
@@ -339,6 +426,41 @@ def test_headless_project_submission_refusal_replay_and_history(
             headers=_headers(),
             json=valid,
         )
+        invalid_selectors = []
+        for suffix, selector in (
+            ("naive", {"resource_as_of": "2026-10-17T04:00:00"}),
+            ("missing", {}),
+            (
+                "both",
+                {
+                    "resource_version": "1.0.0",
+                    "resource_as_of": "2026-10-17T04:00:00Z",
+                },
+            ),
+        ):
+            invalid = copy.deepcopy(valid)
+            invalid["submission_id"] = f"invalid-selector-{suffix}"
+            invalid["milestone_evidence"][0]["resources"] = [
+                {
+                    "resource_kind": "domain_resource",
+                    "resource_id": "domain-example",
+                    "record_digest": "e" * 64,
+                    "owner_reference_digest": "f" * 64,
+                    **selector,
+                }
+            ]
+            invalid_selectors.append(
+                subject.post(
+                    f"/api/v1/projects/{project_id}/snapshots/"
+                    f"{snapshot_id}/submissions",
+                    headers=_headers(),
+                    json=invalid,
+                )
+            )
+        with psycopg.connect(POSTGRES_DSN) as connection:
+            pre_accept_submission_rows = connection.execute(
+                "SELECT count(*) FROM assessment.project_submissions"
+            ).fetchone()
         accepted_response = subject.post(
             f"/api/v1/projects/{project_id}/snapshots/{snapshot_id}/submissions",
             headers=_headers(),
@@ -354,11 +476,109 @@ def test_headless_project_submission_refusal_replay_and_history(
         )
         history = subject.get(f"/api/v1/projects/{project_id}/submissions")
 
+        independent = subject.post(
+            "/api/v1/projects",
+            headers=_headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "independent-submission-project",
+                "title": "Independent evidence",
+                "charter": "Keep this Project outside a learning placement.",
+                "origin": {"origin_type": "independent"},
+            },
+        )
+        independent_id = independent.json()["project_id"]
+        independent_workspace = subject.post(
+            f"/api/v1/projects/{independent_id}/workspace/mutations",
+            headers=_headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "independent-note",
+                "expected_workspace_revision": 1,
+                "mutation": {
+                    "operation": "add_note",
+                    "title": "Independent note",
+                    "body": "This is not learning evidence.",
+                },
+            },
+        )
+        independent_snapshot = subject.post(
+            f"/api/v1/projects/{independent_id}/snapshots",
+            headers=_headers(),
+            json={
+                "schema_version": "1.0.0",
+                "idempotency_key": "independent-snapshot",
+                "expected_project_revision": 1,
+                "expected_workspace_revision": independent_workspace.json()[
+                    "workspace_revision"
+                ],
+            },
+        )
+        independent_denied = subject.get(
+            f"/api/v1/projects/{independent_id}/snapshots/"
+            f"{independent_snapshot.json()['snapshot_id']}/submission-candidate"
+        )
+
+        cookie_name = services.request_policy.settings.cookie_name
+        with TestClient(
+            create_app(
+                replace(
+                    api_services,
+                    identity=_FixedIdentity(
+                        created.json()["learner_id"], ("project.read",)
+                    ),
+                )
+            ),
+            base_url=ORIGIN,
+            backend_options={"loop_factory": asyncio.SelectorEventLoop},
+        ) as read_only:
+            read_only.cookies.set(cookie_name, "fixed-session")
+            readable = read_only.get(
+                f"/api/v1/projects/{project_id}/submissions/project-submission-1"
+            )
+            forbidden_submit = read_only.post(
+                f"/api/v1/projects/{project_id}/snapshots/"
+                f"{snapshot_id}/submissions",
+                headers=_headers(),
+                json=valid,
+            )
+
+        with TestClient(
+            create_app(
+                replace(
+                    api_services,
+                    identity=_FixedIdentity(
+                        "another-learner",
+                        ("project.read", "project.write"),
+                    ),
+                )
+            ),
+            base_url=ORIGIN,
+            backend_options={"loop_factory": asyncio.SelectorEventLoop},
+        ) as another_learner:
+            another_learner.cookies.set(cookie_name, "fixed-session")
+            cross_learner_exact = another_learner.get(
+                f"/api/v1/projects/{project_id}/submissions/"
+                "project-submission-1"
+            )
+            cross_learner_submit = another_learner.post(
+                f"/api/v1/projects/{project_id}/snapshots/"
+                f"{snapshot_id}/submissions",
+                headers=_headers(),
+                json=valid,
+            )
+
     assert bootstrapped.status_code == 201
     assert unauthorized.status_code == 401
     assert candidate_response.status_code == 200, candidate_response.text
+    assert reference.status_code == artifact.status_code == 200
     assert candidate["milestones"][0]["title"]
     assert candidate["resources"][0]["resource_kind"] == "note"
+    assert {resource["resource_kind"] for resource in candidate["resources"]} == {
+        "note",
+        "source",
+        "artifact",
+    }
     assert {"body", "path", "object_key", "content"}.isdisjoint(
         candidate["resources"][0]
     )
@@ -371,6 +591,16 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert selected_learner.status_code == 400
     assert query_denied.status_code == 400
     assert mismatch.status_code == 409
+    assert [response.status_code for response in invalid_selectors] == [
+        400,
+        400,
+        400,
+    ]
+    assert all(
+        response.json()["code"] == "invalid_request"
+        for response in invalid_selectors
+    )
+    assert pre_accept_submission_rows == (0,)
     assert accepted_response.status_code == replay.status_code == 200
     assert accepted_response.json() == replay.json()
     assert accepted_response.json()["validation"]["status"] == "accepted"
@@ -393,6 +623,13 @@ def test_headless_project_submission_refusal_replay_and_history(
         }
     ]
     assert "learner_id" not in history.text
+    assert independent_denied.status_code == 404
+    assert readable.status_code == 200
+    assert forbidden_submit.status_code == 403
+    assert cross_learner_exact.status_code == 401
+    assert cross_learner_submit.status_code == 401
+    assert cross_learner_exact.json()["code"] == "unauthorized_context"
+    assert cross_learner_submit.json()["code"] == "unauthorized_context"
     with psycopg.connect(POSTGRES_DSN) as connection:
         assert connection.execute(
             "SELECT count(*) FROM assessment.project_submissions"

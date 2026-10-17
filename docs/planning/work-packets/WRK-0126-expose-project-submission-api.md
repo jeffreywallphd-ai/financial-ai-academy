@@ -209,3 +209,9 @@ JIT-C ready for just-in-time refinement.
 - 2026-10-17: Expanded the test-only scope to keep the bootstrap settings
   directory-resolution fixture synchronized with the new required Assessment
   Project schema directory. No runtime or approval boundary changed.
+- 2026-10-17: Submitted exact candidate `e4cbe9b`; its fresh affected-check
+  receipt qualified, then independent R01 review requested three bounded
+  corrections: reject noncanonical domain-resource time before serialization,
+  encode exact-selector alternatives in reviewed generated types, and complete
+  the promised API denial and valid-resource matrix. The CAP, slice, public
+  route, persistence, and decision boundaries remain unchanged.

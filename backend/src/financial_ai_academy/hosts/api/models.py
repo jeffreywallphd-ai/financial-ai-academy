@@ -6,6 +6,7 @@ from dataclasses import asdict
 import base64
 import binascii
 from datetime import date, datetime, timezone
+import re
 from typing import Annotated, Literal, Union
 from uuid import UUID
 
@@ -13,9 +14,12 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    GetJsonSchemaHandler,
     field_serializer,
     field_validator,
 )
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema
 
 from financial_ai_academy.modules.adaptation.public import (
     ActivityLaunchResolution,
@@ -552,43 +556,80 @@ class ProjectSubmissionArtifactResourceModel(ApiModel):
     byte_count: int = Field(ge=0, le=10485760)
 
 
-class ProjectSubmissionDomainResourceModel(ProjectTimestampModel):
+PROJECT_SUBMISSION_UTC_TIME_PATTERN = (
+    r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:"
+    r"[0-9]{2}(?:\.[0-9]{1,6})?Z$"
+)
+
+
+class ProjectSubmissionDomainResourceBaseModel(ProjectTimestampModel):
     resource_kind: Literal["domain_resource"]
     resource_id: Identifier
     record_digest: Digest
     owner_reference_digest: Digest
-    resource_version: str | None = Field(
-        default=None,
+
+
+class ProjectSubmissionDomainResourceVersionModel(
+    ProjectSubmissionDomainResourceBaseModel
+):
+    resource_version: str = Field(
         min_length=1,
         max_length=128,
-        exclude_if=lambda value: value is None,
-    )
-    resource_as_of: datetime | None = Field(
-        default=None,
-        exclude_if=lambda value: value is None,
-        validate_default=True,
+        pattern=r"^[^<>\u0000]*$",
     )
 
-    @field_validator("resource_as_of")
     @classmethod
-    def domain_resource_has_one_exact_selector(
-        cls, value: datetime | None, info
-    ) -> datetime | None:
-        version = info.data.get("resource_version")
-        if (version is None) == (value is None):
+    def __get_pydantic_json_schema__(
+        cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        schema = handler(core_schema)
+        schema.setdefault("properties", {})["resource_as_of"] = False
+        return schema
+
+
+class ProjectSubmissionDomainResourceAsOfModel(
+    ProjectSubmissionDomainResourceBaseModel
+):
+    resource_as_of: datetime = Field(
+        json_schema_extra={
+            "minLength": 20,
+            "maxLength": 27,
+            "pattern": PROJECT_SUBMISSION_UTC_TIME_PATTERN,
+        },
+    )
+
+    @field_validator("resource_as_of", mode="before")
+    @classmethod
+    def domain_resource_has_canonical_utc_time(cls, value: object) -> object:
+        if isinstance(value, str) and re.fullmatch(
+            PROJECT_SUBMISSION_UTC_TIME_PATTERN, value
+        ) is None:
             raise ValueError(
-                "domain resources require exactly one version or as-of time"
+                "domain resource as-of time must use canonical UTC JSON"
             )
         return value
 
+    @field_validator("resource_as_of")
+    @classmethod
+    def domain_resource_time_has_offset(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("domain resource as-of time must include an offset")
+        return value
 
-ProjectSubmissionResourceModel = Annotated[
-    Union[
-        ProjectSubmissionVersionedResourceModel,
-        ProjectSubmissionArtifactResourceModel,
-        ProjectSubmissionDomainResourceModel,
-    ],
-    Field(discriminator="resource_kind"),
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        schema = handler(core_schema)
+        schema.setdefault("properties", {})["resource_version"] = False
+        return schema
+
+
+ProjectSubmissionResourceModel = Union[
+    ProjectSubmissionVersionedResourceModel,
+    ProjectSubmissionArtifactResourceModel,
+    ProjectSubmissionDomainResourceVersionModel,
+    ProjectSubmissionDomainResourceAsOfModel,
 ]
 
 
@@ -2537,10 +2578,17 @@ def _project_submission_resource_response(
             content_digest=resource.content_digest,
             byte_count=resource.byte_count,
         )
-    return ProjectSubmissionDomainResourceModel(
+    domain_shared = {
         **shared,
-        owner_reference_digest=resource.owner_reference_digest,
-        resource_version=resource.resource_version,
+        "owner_reference_digest": resource.owner_reference_digest,
+    }
+    if resource.resource_version is not None:
+        return ProjectSubmissionDomainResourceVersionModel(
+            **domain_shared,
+            resource_version=resource.resource_version,
+        )
+    return ProjectSubmissionDomainResourceAsOfModel(
+        **domain_shared,
         resource_as_of=resource.resource_as_of,
     )
 
