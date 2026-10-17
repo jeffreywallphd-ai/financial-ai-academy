@@ -22,6 +22,7 @@ from financial_ai_academy.modules.personal_workspace.domain.workspace import (
 )
 from financial_ai_academy.modules.personal_workspace.public import (
     CreateNoteCommand,
+    ExportPersonalWorkspaceRequest,
     MutatePersonalWorkspaceRequest,
     OpenPersonalWorkspaceRequest,
     PersonalWorkspaceError,
@@ -86,6 +87,7 @@ class Workspaces:
         *,
         project_response: bool = False,
         artifact_status: str | None = None,
+        mutation_error: PersonalWorkspaceErrorCode | None = None,
     ) -> None:
         contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
         self.empty = contract.parse_workspace(
@@ -139,7 +141,9 @@ class Workspaces:
             )
             assert self.populated.records[-1].target.target_status == artifact_status
         self.return_populated = project_response
+        self.mutation_error = mutation_error
         self.open_requests: list[OpenPersonalWorkspaceRequest] = []
+        self.export_requests: list[ExportPersonalWorkspaceRequest] = []
         self.mutation_requests: list[MutatePersonalWorkspaceRequest] = []
         self.query_requests: list[QueryPersonalWorkspaceRequest] = []
 
@@ -149,7 +153,19 @@ class Workspaces:
 
     def mutate_workspace(self, request: MutatePersonalWorkspaceRequest):
         self.mutation_requests.append(request)
+        if self.mutation_error is not None:
+            raise PersonalWorkspaceError(
+                self.mutation_error,
+                "Saved learning is full. Remove saved work before trying again.",
+                reference="capacity",
+            )
         return self.populated
+
+    def export_workspace(self, request: ExportPersonalWorkspaceRequest):
+        self.export_requests.append(request)
+        contract = ContractPersonalWorkspaceAdapter(SCHEMA_DIR)
+        workspace = self.populated if self.return_populated else self.empty
+        return contract.export_workspace(workspace, generated_at=NOW)
 
     def query_workspace(self, request: QueryPersonalWorkspaceRequest):
         self.query_requests.append(request)
@@ -240,6 +256,53 @@ def test_authenticated_headless_read_returns_closed_workspace_contract() -> None
     assert workspaces.open_requests == [
         OpenPersonalWorkspaceRequest(learner_id="learner.demo")
     ]
+
+
+def test_authenticated_headless_export_returns_closed_server_owned_view() -> None:
+    workspaces = Workspaces(project_response=True)
+    response = client(("personal_workspace.read",), workspaces).get(
+        "/api/v1/personal-workspace/export"
+    )
+
+    assert response.status_code == 200
+    exported = response.json()
+    assert set(exported) == {
+        "schema_version",
+        "workspace_digest",
+        "generated_at",
+        "workspace",
+    }
+    assert exported["schema_version"] == "1.0.0"
+    assert exported["generated_at"] == "2026-10-17T13:00:00Z"
+    assert exported["workspace_digest"] == exported["workspace"][
+        "workspace_digest"
+    ]
+    assert tuple(
+        record["target"]["reference_kind"]
+        for record in exported["workspace"]["records"]
+    ) == ("project_workspace", "project_snapshot", "project_artifact")
+    assert not {
+        "session",
+        "permissions",
+        "storage_key",
+        "replay",
+        "artifact_bytes",
+        "provider",
+    }.intersection(exported)
+    assert workspaces.export_requests == [
+        ExportPersonalWorkspaceRequest(learner_id="learner.demo")
+    ]
+
+
+def test_export_rejects_query_selectors_before_workspace_access() -> None:
+    workspaces = Workspaces()
+    response = client(("personal_workspace.read",), workspaces).get(
+        "/api/v1/personal-workspace/export?learner_id=learner.other"
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "invalid_request"
+    assert workspaces.export_requests == []
 
 
 def test_authenticated_write_uses_server_learner_and_selector_command() -> None:
@@ -689,3 +752,62 @@ def test_write_requires_same_origin_and_write_permission() -> None:
     assert forbidden.status_code == 403
     assert no_permission.mutation_requests == []
     assert wrong_origin.mutation_requests == []
+
+
+@pytest.mark.parametrize(
+    "error_code",
+    (
+        PersonalWorkspaceErrorCode.RECORD_LIMIT,
+        PersonalWorkspaceErrorCode.COLLECTION_LIMIT,
+        PersonalWorkspaceErrorCode.COLLECTION_MEMBER_LIMIT,
+    ),
+)
+def test_capacity_outcomes_are_conflicts_with_distinct_public_codes(
+    error_code: PersonalWorkspaceErrorCode,
+) -> None:
+    workspaces = Workspaces(mutation_error=error_code)
+    body = note_body()
+    if error_code == PersonalWorkspaceErrorCode.COLLECTION_MEMBER_LIMIT:
+        body = {
+            "schema_version": "1.0.0",
+            "idempotency_key": "collection.members-over-limit",
+            "expected_revision": 4,
+            "mutation": {
+                "operation": "set_collection_members",
+                "collection_id": "collection.foundations",
+                "member_record_ids": [
+                    f"record.{index:03d}" for index in range(101)
+                ],
+            },
+        }
+    response = client(
+        ("personal_workspace.write", "curriculum.discovery.read"),
+        workspaces,
+    ).post(
+        "/api/v1/personal-workspace/mutations",
+        json=body,
+        headers={"origin": ORIGIN},
+    )
+
+    assert response.status_code == 409
+    assert response.json()["code"] == error_code.value
+    assert "Remove" in response.json()["message"]
+    if error_code == PersonalWorkspaceErrorCode.COLLECTION_MEMBER_LIMIT:
+        mutation = workspaces.mutation_requests[0].command.mutation
+        assert len(mutation.member_record_ids) == 101  # type: ignore[union-attr]
+
+
+def test_export_requires_read_permission_before_workspace_access() -> None:
+    missing = Workspaces()
+    missing_response = client(
+        ("personal_workspace.read",), missing, authenticated=False
+    ).get("/api/v1/personal-workspace/export")
+    denied = Workspaces()
+    denied_response = client(("personal_workspace.write",), denied).get(
+        "/api/v1/personal-workspace/export"
+    )
+
+    assert missing_response.status_code == 401
+    assert denied_response.status_code == 403
+    assert missing.export_requests == []
+    assert denied.export_requests == []

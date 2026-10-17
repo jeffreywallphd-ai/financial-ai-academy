@@ -112,6 +112,7 @@ from financial_ai_academy.modules.project.public import (
     UploadProjectArtifactRequest,
 )
 from financial_ai_academy.modules.personal_workspace.public import (
+    ExportPersonalWorkspaceRequest,
     MutatePersonalWorkspaceRequest,
     OpenPersonalWorkspaceRequest,
     PersonalWorkspaceError,
@@ -164,6 +165,7 @@ from .models import (
     ProjectWorkspaceMutationRequestModel,
     ProjectWorkspaceResponseModel,
     PersonalWorkspaceMutationRequestModel,
+    PersonalWorkspaceExportResponseModel,
     PersonalWorkspaceQueryRequestModel,
     PersonalWorkspaceQueryResponseModel,
     PersonalWorkspaceResponseModel,
@@ -200,6 +202,7 @@ from .models import (
     project_workspace_mutation_intent,
     project_workspace_response,
     personal_workspace_mutation_command,
+    personal_workspace_export_response,
     personal_workspace_query,
     personal_workspace_query_response,
     personal_workspace_response,
@@ -397,6 +400,11 @@ def create_app(services: ApiServices) -> FastAPI:
             PersonalWorkspaceErrorCode.STALE_REVISION: status.HTTP_409_CONFLICT,
             PersonalWorkspaceErrorCode.SOURCE_UNAVAILABLE: status.HTTP_409_CONFLICT,
             PersonalWorkspaceErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
+            PersonalWorkspaceErrorCode.RECORD_LIMIT: status.HTTP_409_CONFLICT,
+            PersonalWorkspaceErrorCode.COLLECTION_LIMIT: status.HTTP_409_CONFLICT,
+            PersonalWorkspaceErrorCode.COLLECTION_MEMBER_LIMIT: (
+                status.HTTP_409_CONFLICT
+            ),
             PersonalWorkspaceErrorCode.INTEGRITY_FAILURE: (
                 status.HTTP_503_SERVICE_UNAVAILABLE
             ),
@@ -846,6 +854,27 @@ def create_app(services: ApiServices) -> FastAPI:
             OpenPersonalWorkspaceRequest(learner_id=context.learner_id)
         )
         return personal_workspace_response(workspace)
+
+    @app.get(
+        "/api/v1/personal-workspace/export",
+        response_model=PersonalWorkspaceExportResponseModel,
+        operation_id="exportPersonalWorkspace",
+        responses=_ERROR_RESPONSES,
+        tags=["personal-workspace"],
+    )
+    def export_personal_workspace(
+        request: Request,
+        context: LearnerContext = Depends(personal_workspace_read_context),
+    ) -> PersonalWorkspaceExportResponseModel:
+        if request.query_params:
+            raise PersonalWorkspaceError(
+                PersonalWorkspaceErrorCode.INVALID_REQUEST,
+                "Saved learning export does not accept query selectors.",
+            )
+        exported = personal_workspace_operations().export_workspace(
+            ExportPersonalWorkspaceRequest(learner_id=context.learner_id)
+        )
+        return personal_workspace_export_response(exported)
 
     @app.post(
         "/api/v1/personal-workspace/query",

@@ -35,9 +35,13 @@ from financial_ai_academy.modules.personal_workspace.ports.repositories import (
     PersonalWorkspaceIdempotencyConflict,
     PersonalWorkspaceRevisionConflict,
 )
+from financial_ai_academy.modules.personal_workspace.ports.workspace_contract import (
+    PersonalWorkspaceContractFailure,
+)
 from financial_ai_academy.modules.personal_workspace.public import (
     CreateBookmarkCommand,
     CreateNoteCommand,
+    ExportPersonalWorkspaceRequest,
     LearningOpportunitySelector,
     MutatePersonalWorkspaceRequest,
     OpenPersonalWorkspaceRequest,
@@ -186,6 +190,74 @@ def test_empty_read_is_stable_and_does_not_write() -> None:
     assert first.revision == 1
     assert repository.writes == 0
     assert references.calls == 0
+
+
+def test_export_uses_server_time_and_does_not_materialize_empty_workspace() -> None:
+    operations, repository, references = service()
+
+    exported = operations.export_workspace(
+        ExportPersonalWorkspaceRequest("learner.one")
+    )
+
+    assert exported.generated_at == NOW
+    assert exported.workspace.learner_id == "learner.one"
+    assert exported.workspace_digest == exported.workspace.workspace_digest
+    assert exported.workspace.records == ()
+    assert repository.writes == 0
+    assert repository.replays == {}
+    assert references.calls == 0
+
+
+@pytest.mark.parametrize(
+    ("contract_code", "public_code", "public_limit"),
+    [
+        (
+            "personal_workspace.contract.record_limit",
+            PersonalWorkspaceErrorCode.RECORD_LIMIT,
+            "200 items",
+        ),
+        (
+            "personal_workspace.contract.collection_limit",
+            PersonalWorkspaceErrorCode.COLLECTION_LIMIT,
+            "50 collections",
+        ),
+        (
+            "personal_workspace.contract.collection_member_limit",
+            PersonalWorkspaceErrorCode.COLLECTION_MEMBER_LIMIT,
+            "100 items",
+        ),
+    ],
+)
+def test_capacity_outcomes_are_distinct_safe_and_write_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+    contract_code: str,
+    public_code: PersonalWorkspaceErrorCode,
+    public_limit: str,
+) -> None:
+    operations, repository, references = service()
+    secret = "private-note-must-not-appear"
+
+    def reject_capacity(*args, **kwargs):
+        raise PersonalWorkspaceContractFailure(contract_code, secret)
+
+    monkeypatch.setattr(operations._contract, "apply_mutation", reject_capacity)
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        operations.mutate_workspace(
+            MutatePersonalWorkspaceRequest(
+                "learner.one",
+                note_command(body=secret),
+            )
+        )
+
+    assert caught.value.code == public_code
+    assert public_limit in caught.value.message
+    assert "Remove" in caught.value.message
+    assert secret not in caught.value.message
+    assert caught.value.reference == "capacity"
+    assert repository.workspace is None
+    assert repository.replays == {}
+    assert repository.writes == 0
+    assert references.calls == 1
 
 
 def test_create_note_resolves_source_and_materializes_revision_two() -> None:

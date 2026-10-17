@@ -246,6 +246,12 @@ anchor and never accepts a caller-supplied Project destination. Curriculum and
 Project records can be organized together without copying Project content or
 adding a browser-only policy path.
 
+The reviewed generated client also exposes `exportPersonalWorkspace` as a
+direct JSON operation. It accepts no learner, time, digest, storage, or query
+input and returns the same closed server-generated export to authenticated
+browser and headless callers. No download control is exposed in this browser
+slice; the API contract remains available without rendering a route.
+
 The Saved learning screen and reviewed generated client use the protected
 `queryPersonalWorkspace` operation and additive `refresh_reference` mutation
 shared by browser, command-line, service, and future headless clients. The

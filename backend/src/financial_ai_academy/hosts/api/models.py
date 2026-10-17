@@ -110,6 +110,7 @@ from financial_ai_academy.modules.personal_workspace.public import (
     LearningOpportunitySelector as PersonalLearningOpportunitySelector,
     PersonalWorkspace,
     PersonalWorkspaceMutationCommand,
+    WorkspaceExportView as PersonalWorkspaceExportView,
     PlacedLessonSelector as PersonalPlacedLessonSelector,
     ProjectArtifactSelector as PersonalProjectArtifactSelector,
     ProjectSnapshotSelector as PersonalProjectSnapshotSelector,
@@ -622,6 +623,13 @@ class PersonalWorkspaceResponseModel(ProjectTimestampModel):
     workspace_digest: Digest
 
 
+class PersonalWorkspaceExportResponseModel(ProjectTimestampModel):
+    schema_version: Literal["1.0.0"]
+    workspace_digest: Digest
+    generated_at: datetime
+    workspace: PersonalWorkspaceResponseModel
+
+
 class PersonalWorkspaceQueryRequestModel(ApiModel):
     schema_version: Literal["1.0.0"]
     text: str = Field(
@@ -786,7 +794,9 @@ class PersonalRemoveCollectionModel(ApiModel):
 class PersonalSetCollectionMembersModel(ApiModel):
     operation: Literal["set_collection_members"]
     collection_id: Identifier
-    member_record_ids: list[Identifier] = Field(max_length=100)
+    # Admit the bounded next-item attempt so the application can return the
+    # specific collection capacity outcome instead of a generic shape error.
+    member_record_ids: list[Identifier] = Field(max_length=200)
 
 
 class PersonalReorderRecordsModel(ApiModel):
@@ -3365,6 +3375,12 @@ def personal_workspace_response(
     workspace: PersonalWorkspace,
 ) -> PersonalWorkspaceResponseModel:
     return PersonalWorkspaceResponseModel.model_validate(asdict(workspace))
+
+
+def personal_workspace_export_response(
+    export: PersonalWorkspaceExportView,
+) -> PersonalWorkspaceExportResponseModel:
+    return PersonalWorkspaceExportResponseModel.model_validate(asdict(export))
 
 
 def personal_workspace_query(

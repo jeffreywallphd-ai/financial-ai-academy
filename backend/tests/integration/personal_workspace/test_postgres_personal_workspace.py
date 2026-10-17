@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from copy import deepcopy
 from dataclasses import replace
 from datetime import datetime, timezone
+import json
 import os
 from pathlib import Path
 
@@ -26,7 +28,9 @@ from financial_ai_academy.modules.personal_workspace.ports.learning_reference im
 )
 from financial_ai_academy.modules.personal_workspace.public import (
     CreateBookmarkCommand,
+    CreateCollectionMutation,
     CreateNoteCommand,
+    ExportPersonalWorkspaceRequest,
     LearningOpportunitySelector,
     MutatePersonalWorkspaceRequest,
     OpenPersonalWorkspaceRequest,
@@ -37,7 +41,9 @@ from financial_ai_academy.modules.personal_workspace.public import (
     ProjectSnapshotSelector,
     ProjectWorkspaceSelector,
     QueryPersonalWorkspaceRequest,
+    RemoveRecordMutation,
     RefreshReferenceMutation,
+    SetCollectionMembersMutation,
     WorkspaceQuery,
 )
 from financial_ai_academy.platform.database.migrations import (
@@ -216,6 +222,210 @@ def test_first_mutation_survives_restart_and_exact_retry_skips_source() -> None:
     assert accepted.revision == 2
     assert gateway.calls == 1
     assert restarted_gateway.calls == 0
+
+
+def test_export_and_removal_survive_restart_without_new_persistence_shape() -> None:
+    assert POSTGRES_DSN is not None
+    subject, gateway = service()
+    empty = subject.export_workspace(
+        ExportPersonalWorkspaceRequest("learner.one")
+    )
+    assert empty.workspace.revision == 1
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT count(*) FROM personal_workspace.workspaces"
+        ).fetchone() == (0,)
+
+    accepted = subject.mutate_workspace(
+        MutatePersonalWorkspaceRequest("learner.one", command("note.one"))
+    )
+    first_export = subject.export_workspace(
+        ExportPersonalWorkspaceRequest("learner.one")
+    )
+    restarted, restarted_gateway = service("unused.identifier")
+    restarted_export = restarted.export_workspace(
+        ExportPersonalWorkspaceRequest("learner.one")
+    )
+    assert first_export.workspace == accepted
+    assert restarted_export == first_export
+    assert first_export.workspace_digest == accepted.workspace_digest
+
+    removal = MutatePersonalWorkspaceRequest(
+        "learner.one",
+        PersonalWorkspaceMutationCommand(
+            "1.0.0",
+            "remove.saved-note",
+            accepted.revision,
+            RemoveRecordMutation("note.postgres"),
+        ),
+    )
+    removed = restarted.mutate_workspace(removal)
+    replayed = service("unused.replay")[0].mutate_workspace(removal)
+    after_removal = service("unused.export")[0].export_workspace(
+        ExportPersonalWorkspaceRequest("learner.one")
+    )
+    assert removed == replayed == after_removal.workspace
+    assert after_removal.workspace.records == ()
+    assert after_removal.workspace_digest != first_export.workspace_digest
+    assert gateway.calls == 1
+    assert restarted_gateway.calls == 0
+
+
+def test_record_capacity_denial_writes_no_aggregate_or_replay_change() -> None:
+    assert POSTGRES_DSN is not None
+    contract = ContractPersonalWorkspaceAdapter(SCHEMAS)
+    document = json.loads(
+        (FIXTURES / "valid-populated-workspace.json").read_text(encoding="utf-8")
+    )
+    template = document["records"][1]
+    document["workspace_id"] = "workspace.full"
+    document["learner_id"] = "learner.full"
+    document["revision"] = 2
+    document["records"] = []
+    document["collections"] = []
+    for index in range(200):
+        record = deepcopy(template)
+        record["record_id"] = f"bookmark.{index:03d}"
+        record["label"] = None if index % 2 == 0 else f"Saved {index}"
+        document["records"].append(record)
+    document.pop("workspace_digest", None)
+    document["workspace_digest"] = contract.canonical_digest(document)
+    full = contract.parse_workspace(
+        json.dumps(document, ensure_ascii=False).encode("utf-8")
+    )
+    repository = PostgresPersonalWorkspaceRepository(POSTGRES_DSN, contract)
+    repository.save_if_revision(
+        idempotency_key="seed.full",
+        request_fingerprint="a" * 64,
+        expected_revision=1,
+        workspace=full,
+    )
+    subject = PersonalWorkspaceService(
+        repository,
+        contract,
+        ReferenceGateway(contract),
+        Clock(),
+        Identifier("bookmark.overflow"),
+        StableWorkspaceSeed(),
+    )
+
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        subject.mutate_workspace(
+            MutatePersonalWorkspaceRequest(
+                "learner.full",
+                command("record.overflow", revision=2),
+            )
+        )
+
+    assert caught.value.code == PersonalWorkspaceErrorCode.RECORD_LIMIT
+    exported = subject.export_workspace(
+        ExportPersonalWorkspaceRequest("learner.full")
+    )
+    assert len(exported.workspace.records) == 200
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT revision FROM personal_workspace.workspaces "
+            "WHERE learner_id = 'learner.full'"
+        ).fetchone() == (2,)
+        assert connection.execute(
+            "SELECT count(*) FROM personal_workspace.mutations "
+            "WHERE learner_id = 'learner.full'"
+        ).fetchone() == (1,)
+
+
+@pytest.mark.parametrize(
+    "capacity_kind",
+    ("collection", "collection_member"),
+)
+def test_collection_capacity_denials_write_no_aggregate_or_replay_change(
+    capacity_kind: str,
+) -> None:
+    assert POSTGRES_DSN is not None
+    contract = ContractPersonalWorkspaceAdapter(SCHEMAS)
+    document = json.loads(
+        (FIXTURES / "valid-populated-workspace.json").read_text(encoding="utf-8")
+    )
+    document["workspace_id"] = f"workspace.full-{capacity_kind}"
+    document["learner_id"] = f"learner.full-{capacity_kind}"
+    document["revision"] = 2
+    template_record = document["records"][1]
+    template_collection = document["collections"][0]
+
+    if capacity_kind == "collection":
+        document["collections"] = []
+        for index in range(50):
+            collection = deepcopy(template_collection)
+            collection["collection_id"] = f"collection.{index:03d}"
+            collection["title"] = f"Collection {index}"
+            document["collections"].append(collection)
+        mutation = CreateCollectionMutation("Overflow collection")
+        expected_code = PersonalWorkspaceErrorCode.COLLECTION_LIMIT
+    else:
+        document["records"] = []
+        for index in range(101):
+            record = deepcopy(template_record)
+            record["record_id"] = f"bookmark.{index:03d}"
+            document["records"].append(record)
+        document["collections"] = [deepcopy(template_collection)]
+        document["collections"][0]["member_record_ids"] = [
+            f"bookmark.{index:03d}" for index in range(100)
+        ]
+        mutation = SetCollectionMembersMutation(
+            "collection.foundations",
+            tuple(f"bookmark.{index:03d}" for index in range(101)),
+        )
+        expected_code = PersonalWorkspaceErrorCode.COLLECTION_MEMBER_LIMIT
+
+    document.pop("workspace_digest", None)
+    document["workspace_digest"] = contract.canonical_digest(document)
+    full = contract.parse_workspace(
+        json.dumps(document, ensure_ascii=False).encode("utf-8")
+    )
+    repository = PostgresPersonalWorkspaceRepository(POSTGRES_DSN, contract)
+    repository.save_if_revision(
+        idempotency_key=f"seed.full-{capacity_kind}",
+        request_fingerprint="b" * 64,
+        expected_revision=1,
+        workspace=full,
+    )
+    subject = PersonalWorkspaceService(
+        repository,
+        contract,
+        ReferenceGateway(contract),
+        Clock(),
+        Identifier("collection.overflow"),
+        StableWorkspaceSeed(),
+    )
+
+    with pytest.raises(PersonalWorkspaceError) as caught:
+        subject.mutate_workspace(
+            MutatePersonalWorkspaceRequest(
+                document["learner_id"],
+                PersonalWorkspaceMutationCommand(
+                    "1.0.0",
+                    f"overflow.{capacity_kind}",
+                    2,
+                    mutation,
+                ),
+            )
+        )
+
+    assert caught.value.code == expected_code
+    exported = subject.export_workspace(
+        ExportPersonalWorkspaceRequest(document["learner_id"])
+    )
+    assert exported.workspace == full
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        assert connection.execute(
+            "SELECT revision FROM personal_workspace.workspaces "
+            "WHERE learner_id = %s",
+            (document["learner_id"],),
+        ).fetchone() == (2,)
+        assert connection.execute(
+            "SELECT count(*) FROM personal_workspace.mutations "
+            "WHERE learner_id = %s",
+            (document["learner_id"],),
+        ).fetchone() == (1,)
 
 
 def test_query_survives_restart_without_writing_or_resolving_source() -> None:

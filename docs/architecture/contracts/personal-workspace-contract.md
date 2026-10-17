@@ -95,6 +95,7 @@ creates a mutation or execution path into another module.
   return the accepted workspace; stale revisions and changed idempotency-key
   reuse fail without replacing it.
 - `GET /api/v1/personal-workspace`,
+  `GET /api/v1/personal-workspace/export`,
   `POST /api/v1/personal-workspace/query`, and
   `POST /api/v1/personal-workspace/mutations` use server-owned learner context
   and explicit read/write permissions. Query is source-independent and
@@ -106,6 +107,13 @@ creates a mutation or execution path into another module.
   read permission and reject caller-selected learner query parameters before
   workspace access. Missing workspace-owned records and collections have a
   distinct bounded `not_found` result.
+- The export operation revalidates the current aggregate, supplies generation
+  time from the server clock, and returns the closed owner export without a
+  persistence write. Its GET accepts no caller-selected learner, generation
+  time, digest, storage destination, body, or query. The three capacity
+  outcomes map to distinct safe public codes and HTTP 409 responses; denial
+  creates neither an aggregate replacement nor a replay row. Existing JSON
+  persistence requires no migration for this behavior.
 
 ## Exclusions
 
@@ -117,8 +125,9 @@ reproduces canonical Unicode query meaning and its digest, shows only exact
 records from the matching current workspace revision, and requires exact
 canonical workspace order before exposing reorder authority. Live browser and
 headless query/refresh restart behavior is qualified. Protected export
-composition, public quota mapping, export UI, and the complete community
-recovery exercise remain later SLI-0073 work. The boundary has no collaboration, cloud
+composition, public quota mapping, generated-client parity, zero-write capacity
+denial, and ordinary PostgreSQL restart behavior are qualified. Export UI and
+the complete community recovery exercise remain later SLI-0073 work. The boundary has no collaboration, cloud
 synchronization, artifact preview/download/execution, Project mutation,
 Portfolio association, Assessment or Learner-model effect, AI authority, or
 personalized financial advice.

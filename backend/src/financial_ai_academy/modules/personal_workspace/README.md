@@ -68,5 +68,13 @@ meaning, records immutable drift as `stale`, and can recover an exact later
 result to `available`. Existing JSON aggregate and replay persistence admits
 these additive states without a table migration. Query/refresh browser controls
 and the isolated live browser/headless restart journey are implemented.
-Protected export composition, public quota mapping, export UI, and complete
-community recovery qualification remain later SLI-0073 packets.
+The transport-neutral `export_workspace` operation and protected
+`GET /api/v1/personal-workspace/export` route now return the same closed v1
+owner export to browser, command-line, service, and future headless clients.
+The server alone supplies learner identity and generation time; an absent
+workspace exports as the virtual revision-one aggregate without a write.
+Capacity refusals now expose distinct `record_limit`, `collection_limit`, and
+`collection_member_limit` meanings with safe next actions, and PostgreSQL
+qualification proves that denial changes neither aggregate nor replay state.
+Export UI and the complete community recovery qualification remain later
+SLI-0073 packets.

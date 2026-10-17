@@ -95,6 +95,19 @@ void client.GET("/api/v1/projects/{project_id}", {
 });
 
 void client.GET("/api/v1/personal-workspace");
+const savedLearningExport = client.GET(
+  "/api/v1/personal-workspace/export",
+);
+void savedLearningExport.then((result) => {
+  const exported = result.data;
+  if (exported !== undefined) {
+    const sameDigest =
+      exported.workspace_digest === exported.workspace.workspace_digest;
+    const generatedAt = exported.generated_at;
+    void sameDigest;
+    void generatedAt;
+  }
+});
 const savedLearningNote: PersonalWorkspaceMutation = {
   schema_version: "1.0.0",
   idempotency_key: "saved-learning-note-1",

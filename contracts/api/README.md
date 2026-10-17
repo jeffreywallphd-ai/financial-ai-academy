@@ -4,7 +4,8 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
-`GET /api/v1/personal-workspace` and
+`GET /api/v1/personal-workspace`,
+`GET /api/v1/personal-workspace/export`, and
 `POST /api/v1/personal-workspace/query`, together with
 `POST /api/v1/personal-workspace/mutations`, are the protected Personal
 workspace boundary. Reads and queries require `personal_workspace.read`;
@@ -22,6 +23,14 @@ storage, mutation, export, or execution fields. Exact retry returns the accepted
 workspace while stale revision and changed key reuse fail without overwrite.
 Both operations reject every query selector; workspace-owned missing records
 or collections return the bounded `not_found` result.
+The export GET requires `personal_workspace.read`, accepts no body or query
+selectors, and returns only `schema_version`, `workspace_digest`, server-issued
+`generated_at`, and the complete closed workspace. It exports a virtual empty
+workspace without materializing it and includes no session, permission, replay,
+storage, target-content, artifact-byte, provider, or execution data. Capacity
+refusals use HTTP 409 with exact `record_limit`, `collection_limit`, or
+`collection_member_limit` codes and safe removal guidance; they do not replace
+the current aggregate or create replay state.
 The query POST accepts one closed v1 body and returns normalized query meaning,
 bounded records, workspace revision, query digest, and an authenticated opaque
 continuation. It never calls Curriculum or Project and accepts no learner,

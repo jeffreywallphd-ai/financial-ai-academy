@@ -21,6 +21,7 @@ from ..domain.workspace import (
     RefreshReferenceMutation,
     WorkspaceMutationIntent,
     WorkspaceQueryResult,
+    WorkspaceExportView,
 )
 from ..ports.learning_reference import (
     LearningReferenceGatewayPort,
@@ -39,6 +40,7 @@ from ..ports.workspace_contract import (
 from ..public import (
     CreateBookmarkCommand,
     CreateNoteCommand,
+    ExportPersonalWorkspaceRequest,
     LearningOpportunitySelector,
     MutatePersonalWorkspaceRequest,
     OpenPersonalWorkspaceRequest,
@@ -166,6 +168,9 @@ class PersonalWorkspaceService:
         except PersonalWorkspaceContractFailure as error:
             if error.code.endswith("stale_revision"):
                 raise self._stale(command.idempotency_key) from error
+            capacity = self._capacity(error.code)
+            if capacity is not None:
+                raise capacity from error
             if error.code.endswith(("record_not_found", "collection_not_found")):
                 raise PersonalWorkspaceError(
                     PersonalWorkspaceErrorCode.NOT_FOUND,
@@ -179,6 +184,24 @@ class PersonalWorkspaceService:
             ) from error
         except Exception as error:
             raise self._unavailable(command.idempotency_key) from error
+
+    def export_workspace(
+        self, request: ExportPersonalWorkspaceRequest
+    ) -> WorkspaceExportView:
+        self._validate_learner(request.learner_id)
+        try:
+            workspace = self._repository.get_workspace(request.learner_id)
+            current = self._revalidate(workspace or self._empty(request.learner_id))
+            return self._contract.export_workspace(
+                current,
+                generated_at=self._clock.now(),
+            )
+        except PersonalWorkspaceError:
+            raise
+        except PersonalWorkspaceContractFailure as error:
+            raise self._integrity(error.reference) from error
+        except Exception as error:
+            raise self._unavailable() from error
 
     def query_workspace(
         self, request: QueryPersonalWorkspaceRequest
@@ -409,6 +432,28 @@ class PersonalWorkspaceService:
             "Saved workspace data could not be verified.",
             reference=reference,
         )
+
+    @staticmethod
+    def _capacity(code: str) -> PersonalWorkspaceError | None:
+        outcomes = {
+            "personal_workspace.contract.record_limit": (
+                PersonalWorkspaceErrorCode.RECORD_LIMIT,
+                "Saved learning can hold 200 items. Remove an item before adding another.",
+            ),
+            "personal_workspace.contract.collection_limit": (
+                PersonalWorkspaceErrorCode.COLLECTION_LIMIT,
+                "Saved learning can hold 50 collections. Remove a collection before adding another.",
+            ),
+            "personal_workspace.contract.collection_member_limit": (
+                PersonalWorkspaceErrorCode.COLLECTION_MEMBER_LIMIT,
+                "A collection can hold 100 items. Remove an item before adding another.",
+            ),
+        }
+        outcome = outcomes.get(code)
+        if outcome is None:
+            return None
+        error_code, message = outcome
+        return PersonalWorkspaceError(error_code, message, reference="capacity")
 
     @staticmethod
     def _unavailable(reference: str = "personal-workspace") -> PersonalWorkspaceError:

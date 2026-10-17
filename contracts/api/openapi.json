@@ -4473,7 +4473,7 @@
               "pattern": "^[a-z0-9][a-z0-9._-]*$",
               "type": "string"
             },
-            "maxItems": 100,
+            "maxItems": 200,
             "title": "Member Record Ids",
             "type": "array"
           },
@@ -4694,6 +4694,37 @@
           "updated_at"
         ],
         "title": "PersonalWorkspaceCollectionModel",
+        "type": "object"
+      },
+      "PersonalWorkspaceExportResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "workspace": {
+            "$ref": "#/components/schemas/PersonalWorkspaceResponseModel"
+          },
+          "workspace_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Workspace Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "workspace_digest",
+          "generated_at",
+          "workspace"
+        ],
+        "title": "PersonalWorkspaceExportResponseModel",
         "type": "object"
       },
       "PersonalWorkspaceMutationRequestModel": {
@@ -11432,6 +11463,92 @@
           }
         ],
         "summary": "Get Personal Workspace",
+        "tags": [
+          "personal-workspace"
+        ]
+      }
+    },
+    "/api/v1/personal-workspace/export": {
+      "get": {
+        "operationId": "exportPersonalWorkspace",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonalWorkspaceExportResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Export Personal Workspace",
         "tags": [
           "personal-workspace"
         ]

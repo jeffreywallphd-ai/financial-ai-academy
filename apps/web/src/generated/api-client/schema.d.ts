@@ -129,6 +129,15 @@ export interface paths {
       };
       readonly get: operations["getPersonalWorkspace"];
     };
+  readonly "/api/v1/personal-workspace/export": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["exportPersonalWorkspace"];
+    };
   readonly "/api/v1/personal-workspace/mutations": {
       readonly parameters: {
         readonly query?: never;
@@ -1008,6 +1017,12 @@ export interface components {
       readonly "member_record_ids": ReadonlyArray<string>;
       readonly "title": string;
       readonly "updated_at": string;
+    };
+    readonly "PersonalWorkspaceExportResponseModel": {
+      readonly "generated_at": string;
+      readonly "schema_version": "1.0.0";
+      readonly "workspace": components["schemas"]["PersonalWorkspaceResponseModel"];
+      readonly "workspace_digest": string;
     };
     readonly "PersonalWorkspaceMutationRequestModel": {
       readonly "expected_revision": number;
@@ -2507,6 +2522,59 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["PersonalWorkspaceResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly exportPersonalWorkspace: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PersonalWorkspaceExportResponseModel"];
           };
         };
         readonly 400: {

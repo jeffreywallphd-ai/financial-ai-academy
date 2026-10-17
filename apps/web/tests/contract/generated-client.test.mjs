@@ -64,6 +64,9 @@ assert.match(schema, /\/api\/v1\/personal-workspace\/query/);
 assert.match(schema, /operations\["queryPersonalWorkspace"\]/);
 assert.match(schema, /PersonalWorkspaceQueryRequestModel/);
 assert.match(schema, /PersonalWorkspaceQueryResponseModel/);
+assert.match(schema, /\/api\/v1\/personal-workspace\/export/);
+assert.match(schema, /operations\["exportPersonalWorkspace"\]/);
+assert.match(schema, /PersonalWorkspaceExportResponseModel/);
 assert.match(schema, /PersonalRefreshReferenceModel/);
 assert.match(schema, /"available" \| "stale" \| "unavailable"/);
 for (const model of [

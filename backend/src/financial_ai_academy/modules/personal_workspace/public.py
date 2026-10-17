@@ -21,6 +21,7 @@ from .domain.workspace import (
     UpdateNoteMutation,
     WorkspaceQuery,
     WorkspaceQueryResult,
+    WorkspaceExportView,
     WorkspaceSort,
 )
 
@@ -32,6 +33,9 @@ class PersonalWorkspaceErrorCode(StrEnum):
     SOURCE_UNAVAILABLE = "source_unavailable"
     NOT_FOUND = "not_found"
     INTEGRITY_FAILURE = "integrity_failure"
+    RECORD_LIMIT = "record_limit"
+    COLLECTION_LIMIT = "collection_limit"
+    COLLECTION_MEMBER_LIMIT = "collection_member_limit"
     UNAVAILABLE = "unavailable"
 
 
@@ -160,6 +164,11 @@ class OpenPersonalWorkspaceRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class ExportPersonalWorkspaceRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
 class MutatePersonalWorkspaceRequest:
     learner_id: str
     command: PersonalWorkspaceMutationCommand
@@ -177,6 +186,10 @@ class PersonalWorkspaceOperations(Protocol):
         self, request: OpenPersonalWorkspaceRequest
     ) -> PersonalWorkspace: ...
 
+    def export_workspace(
+        self, request: ExportPersonalWorkspaceRequest
+    ) -> WorkspaceExportView: ...
+
     def mutate_workspace(
         self, request: MutatePersonalWorkspaceRequest
     ) -> PersonalWorkspace: ...
@@ -189,6 +202,7 @@ class PersonalWorkspaceOperations(Protocol):
 __all__ = [
     "CreateBookmarkCommand",
     "CreateNoteCommand",
+    "ExportPersonalWorkspaceRequest",
     "LearningOpportunitySelector",
     "LearningReferenceSelector",
     "MutatePersonalWorkspaceRequest",
@@ -207,6 +221,7 @@ __all__ = [
     "ProjectWorkspaceSelector",
     "WorkspaceQuery",
     "WorkspaceQueryResult",
+    "WorkspaceExportView",
     "WorkspaceSort",
     "WorkspaceCommandMutation",
 ]
