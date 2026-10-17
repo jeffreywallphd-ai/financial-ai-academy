@@ -209,7 +209,7 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0135 | Freeze additive Project-reference contracts, reuse Project public reads through a Personal-workspace Project adapter, and prove pure core and anti-rigidity behavior | SLI-0070, CAP-0007 | none | complete |
 | WRK-0136 | Deliver Personal-workspace persistence/API/OpenAPI/generated-client support and authorization revalidation for all Project reference variants | WRK-0135 | none | complete |
-| WRK-0137 | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | WRK-0136 | none | ready |
+| WRK-0137 | Deliver contextual Project save entry points and mixed-reference organization/resume behavior through the generated client | WRK-0136 | none | active |
 | JIT-D | Qualify browser/headless parity, exact Project/PostgreSQL correlation, restart, denial, containment, inert behavior, cleanup, and slice closure | JIT-C | none | captured |
 
 Exact `WRK-*` identifiers replace these seam labels as each bounded packet is
@@ -333,3 +333,6 @@ decision still requiring approval. No lower-level completion approval exists.
 - 2026-10-17: Returned WRK-0137 to ready before product edits so its start
   manifest can bind the added shared failure-route scope. Product meaning and
   the approved slice outcome are unchanged.
+- 2026-10-17: Re-activated WRK-0137 from the refined recorded base with the
+  source-neutral failure route inside its exact leased scope and no product
+  changes or active collision.

@@ -1,9 +1,9 @@
 ---
 id: WRK-0137
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0017
 updated: 2026-10-17
 parent: SLI-0071
 capability: CAP-0017
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/src/features/personal-workspace/PersonalWorkspaceRoutes.tsx", "apps/web/src/features/personal-workspace/api.ts", "apps/web/src/features/personal-workspace/model.ts", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/personalWorkspaceModel.test.ts", "docs/architecture/contracts/personal-workspace-contract.md", "docs/planning/vertical-slices/SLI-0071-organize-project-workspaces-snapshots-resources.md", "docs/planning/work-packets/WRK-0137-deliver-project-saved-learning-browser-flow.md", "docs/planning/register.md"]
 generated_artifacts: []
-base_revision: 2c408443c8adf95d8cb803d96d8b47a707d948dd
-claim_id: WRK-0137:cafa3d30-634c-464d-969a-a501cc8b5fae
+base_revision: 65ed242c708b282e22b53cdd23bb1094c0dec684
+claim_id: WRK-0137:3b835712-87a3-464c-b819-679e5fa13a93
 claimed_by: codex-cap-0017
-claimed_at: 2026-10-17T13:41:53Z
+claimed_at: 2026-10-17T13:43:11Z
 ---
 
 # Agent Work Packet: Deliver the Project Saved-Learning Browser Flow
@@ -236,3 +236,5 @@ leave WRK-0138 dependency-ready.
   neutral without changing routing, authority, or slice meaning.
 - 2026-10-17: Released the untouched implementation claim so a fresh claim and
   start manifest can bind the refined scope. No product file had changed.
+- 2026-10-17: Re-activated from recorded base `65ed242` with a fresh start
+  manifest covering the complete refined scope and no active file collision.
