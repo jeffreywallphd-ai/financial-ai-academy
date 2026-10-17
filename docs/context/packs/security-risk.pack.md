@@ -29,6 +29,10 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - ADR-0019 keeps instructor overrides as visible time-bounded append-only
   projection overlays with two-person activation; DEC-0016 remains required for
   tenant, membership, role, and permission isolation.
+- ADR-0020 admits Alpha Vantage only through an exact current educational use
+  profile and provider-neutral adapter. Education quota support does not grant
+  undocumented persistence, cloud, export, redistribution, real-time, or AI/ML
+  rights.
 - Keep mutable Project workspaces, immutable snapshots, Assessment submissions, and linked domain-resource authorization distinct; a Project link never grants persistence, provider, or privileged-operation access
 
 ## Canonical Sources
@@ -46,6 +50,7 @@ Work affects identity, tenancy, privacy, financial claims, market-data terms, ex
 - `docs/architecture/deployment/provider-admission-and-job-delivery.md`
 - `docs/architecture/contracts/job-delivery-contract.md`
 - `docs/adr/ADR-0019-append-only-bounded-projection-overrides.md`
+- `docs/adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md`
 - `docs/architecture/learning/instructor-review-and-projection-override.md`
 - `docs/architecture/contracts/content-authoring-workflow-contract.md`
 - `docs/architecture/contracts/content-package-contract.md`

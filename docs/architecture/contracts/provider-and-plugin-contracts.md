@@ -62,6 +62,19 @@ current evidence; credentials do not enable an adapter. Invocation requires the
 selected provider instance and every operation data class to be explicitly
 permitted, with a deterministic no-model fallback.
 
+Market-data providers additionally follow
+[ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and
+[ADR-0020](../../adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md).
+The platform contract owns instrument and coverage identity, bounded queries,
+canonical observations, calendars, corporate actions, adjustments, quality,
+times, provenance, attribution, and applicable-use references. Provider SDK
+types, endpoint names, identifiers, quota messages, and raw payloads remain
+inside adapters. Every configured operation is checked against an exact current
+provider/plan/dataset/deployment/audience/use profile; missing or ambiguous
+rights deny only that operation. Alpha Vantage is the first adapter target, not
+a required provider or contract shape, and conformance also runs against an
+independent fake/reference adapter.
+
 An admitted model or job provider is not thereby an experiment executor.
 [ADR-0016](../../adr/ADR-0016-learner-managed-experiment-execution.md) admits
 only learner-managed execution with validated result import. A future analytics

@@ -1,14 +1,14 @@
 ---
 id: DEC-0012
 kind: decision-request
-planning_status: captured
+planning_status: verifying
 authority: noncanonical
 owner: unassigned
 updated: 2026-10-16
 parent: null
 depends_on: []
 decision_gates: []
-decision_record: null
+decision_record: ../../adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md
 ---
 
 # Decision Request: Set the Market-Data Provider and Licensed-Use Baseline
@@ -55,11 +55,11 @@ redistribution, or AI/ML rights.
 
 | Decision | Readiness | Viable options | Recommendation | Blocking DEC |
 | --- | --- | --- | --- | --- |
-| Initial sourcing architecture | decision-required | A. Reviewed free/open provider baseline plus per-adapter use profiles; B. User-supplied local imports only; C. Staged hybrid with rights-profiled public, BYOK, and managed sources | Option C is the strongest architecture, but do not admit a provider until the applicable rights matrix and qualified review are complete. | DEC-0012 |
-| Community-provider posture | decision-required | Government/public sources with dataset-specific profiles; Tiingo through a plan-aware user-supplied-key path; user imports only | Evaluate government sources first and Tiingo as the leading BYOK candidate; retain imports as the universal fallback. | DEC-0012 |
-| Managed-cloud provider posture | decision-required | Negotiate Twelve Data; negotiate Massive; omit a managed provider initially | Use Twelve Data as the first negotiation target and Massive as the higher-cost enterprise alternative; defer selection until written rights and price/SLA evidence exist. | DEC-0012 |
-| Data-use enforcement | constrained | Versioned default-deny use profiles for every provider/plan/deployment/use combination | Use the accepted provider-neutral manifest and provenance boundaries; an unspecified right remains denied. | none |
-| Alpha Vantage admission | constrained | Exclude unless written commercial terms expressly cover the intended product uses | Do not use as the current product baseline; public terms do not establish the required research/testing and commercial rights. | none |
+| Initial sourcing architecture | ready | C. Staged hybrid with rights-profiled imports, public sources, Alpha Vantage, and later managed sources | Use Option C under ADR-0020. | none |
+| Community-provider posture | constrained | Alpha Vantage first through an explicitly configured educational profile; authoritative public sources and validated imports remain available | Implement Alpha Vantage first without making it mandatory or provider-shaped. | none |
+| Managed-cloud provider posture | constrained | No managed-cloud market-data provider is admitted by this decision | Keep managed use disabled until an exact written rights profile and qualified review exist. | none |
+| Data-use enforcement | ready | Versioned default-deny use profiles for every provider/plan/deployment/use combination | An unspecified, ambiguous, expired, or conflicting right remains denied. | none |
+| Alpha Vantage admission | constrained | Narrow educational/local integration for exact allowlisted datasets and uses covered by current evidence | Treat published education support as quota evidence; separately gate persistence, backup, export, redistribution, real-time, shared service, and AI/ML use. | none |
 
 The constrained paths follow [ADR-0002](../../adr/ADR-0002-contract-driven-provider-architecture.md),
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md),
@@ -110,7 +110,7 @@ admission.
 | Tiingo | Strongest current community/BYOK candidate for historical market data, subject to plan-aware enforcement. | [Terms](https://app.tiingo.com/tos/) were updated 2026-10-06: the free Starter posture forbids persistent raw/derived storage; eligible paid plans permit retention only while subscribed, require raw-data deletion after cancellation/downgrade, and constrain derived outputs to non-reconstructible results. See also [developer/BYOK guidance](https://www.tiingo.com/documentation/appendix/developers), [pricing](https://www.tiingo.com/about/pricing), [end-of-day data](https://www.tiingo.com/documentation/end-of-day), and [corporate actions](https://www.tiingo.com/documentation/corporate-actions/splits). | Written confirmation for the exact desktop/community distribution, credential flow, transient caches, canonical storage, backups, exports, derived results, and platform support responsibilities. |
 | Twelve Data | Best first managed-cloud negotiation target because its terms expose relevant rights categories. | [Terms](https://twelvedata.com/terms), updated 2026-01-01, distinguish internal, display, redistribution, non-display, and derived uses. [Usage guidance](https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage), [business pricing](https://twelvedata.com/pricing-business), [credit limits](https://support.twelvedata.com/en/articles/5615854-credits), and [adjustment guidance](https://support.twelvedata.com/en/articles/5179064-are-the-prices-adjusted) clarify plan and data behavior. | A written order form and rights matrix covering every intended managed use, user count/audience, machine-readable output, caching/retention/backups, exports, derived data, AI/ML, attribution, SLA, price, and exit deletion. |
 | Massive | Credible higher-cost enterprise alternative when an order form expands the needed rights. | [Business terms](https://massive.com/legal/businesses-terms-of-service), updated 2026-10-06, state that standard business rights prohibit machine-readable end-user feeds and AI/ML training unless an order form expressly permits them. See [business](https://massive.com/business) and [individual](https://massive.com/pricing?product=stocks) pricing, [SLA](https://massive.com/legal/businesses-terms-of-service-sla), and [stocks overview](https://www.massive.com/docs/rest/stocks/overview). | Written order-form rights for all required uses, entitlements/exchanges, derived-data definitions, redistribution/export, AI/ML, retention/backup/deletion, SLA, support, and full cost. |
-| Alpha Vantage | Not suitable as the initial product baseline without written commercial terms. | [Public terms](https://www.alphavantage.co/terms_of_service/) describe personal/non-commercial use and characterize research/testing as commercial. [Premium plans](https://www.alphavantage.co/premium/), [documentation](https://www.alphavantage.co/documentation/), and [real-time policy](https://www.alphavantage.co/realtime_data_policy/) do not by themselves establish this product's required rights. | A written commercial agreement covering the complete rights matrix; otherwise keep the adapter unadmitted. |
+| Alpha Vantage | First external integration target for a narrow educational/local path, not an exclusive or automatically enabled baseline. | [Public terms](https://www.alphavantage.co/terms_of_service/) include private individual investment analysis, research, testing, and monitoring within the non-commercial grant while treating organizational and shared access separately. [Support guidance](https://www.alphavantage.co/support/) documents unlimited requests for verified open-source or educational projects. [Documentation](https://www.alphavantage.co/documentation/) and the [real-time policy](https://www.alphavantage.co/realtime_data_policy/) describe coverage and separate exchange-controlled real-time use. | Record the exact credential owner, dataset, deployment, audience, quota, attribution, retention, export, and exit profile. Public education support does not by itself authorize storage, backup, managed cloud, redistribution, real-time data, or AI/ML use. |
 | User-supplied imports | Universal local fallback and useful for private research datasets. | No provider contract can supply rights for arbitrary user material; the platform can validate format, provenance, and a user rights assertion only. | Product policy for accepted formats, source/right declarations, prohibited data, cloud upload, retention, export, deletion, and dispute/takedown handling. |
 
 ## Default-Deny Use Profiles
@@ -136,7 +136,7 @@ review date, re-review deadline and triggers, responsible owning role, feature
 flags, and exact disable/delete actions. Runtime policy enforces the profile;
 adapters and product code do not interpret prose terms.
 
-## Product Questions Required for a Final Choice
+## Product Questions for Profile Expansion
 
 1. Which datasets are required for the first learner outcome: macroeconomic
    series, filings/fundamentals, U.S. end-of-day equities, corporate actions,
@@ -156,7 +156,7 @@ adapters and product code do not interpret prose terms.
 7. What degraded behavior is acceptable when a provider, series, entitlement,
    or right is unavailable?
 
-## Evidence Required Before Selection or Admission
+## Evidence Required Before Profile Activation or Expansion
 
 - An archived copy and digest of each applicable official term, policy, dataset
   notice, plan, order form, exchange entitlement, and attribution rule, with
@@ -177,23 +177,24 @@ adapters and product code do not interpret prose terms.
 
 ## Recommendation
 
-Choose **Option C's sourcing architecture** as the proposed direction because
-it provides a useful progressive path without making one provider or license a
-system-wide dependency. Keep final provider admission and every rights profile
-deferred until the written matrices, product answers, archived terms, and
-qualified review above are complete.
+Use **Option C's staged sourcing architecture** and make Alpha Vantage the
+first external integration target. Preserve validated imports and add
+authoritative public or commercial providers through the same platform-owned
+contracts as evidence and product needs justify them.
 
-For current evaluation order:
+The Alpha Vantage adapter starts narrow: explicitly configured educational or
+research use, allowlisted historical/end-of-day datasets, and transient
+processing unless the exact recorded profile grants more. It is not a bundled
+credential, exclusive source, managed-cloud authorization, real-time
+entitlement, storage grant, redistribution right, or AI/ML dataset.
+The initial plan posture is the free API with its standard published quota, or
+the higher education/open-source quota only when the exact supplied credential
+has current verification evidence; the platform does not assume a shared key.
 
-1. qualify SEC, BLS, and BEA direct sources and an allowlisted subset of FRED;
-2. negotiate the Tiingo community/BYOK use profile;
-3. request a managed-cloud rights matrix and order form from Twelve Data;
-4. compare Massive when broader enterprise rights justify its cost; and
-5. exclude Alpha Vantage unless written commercial terms resolve the public
-   terms mismatch.
-
-This is a recommendation for evidence gathering, not a provider selection or
-license interpretation.
+[ADR-0020](../../adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md)
+records the provider-neutral contracts, default-deny rights profiles, initial
+Alpha Vantage boundary, fallback behavior, provider evolution path, and
+verification requirements.
 
 ## Recurring Terms Review and Provider Exit
 
@@ -218,11 +219,12 @@ required wherever public terms do not expressly cover the intended use.
 
 ## Decision Record and Promotion
 
-After an explicit selection and qualified review, promote the sourcing
-architecture and admitted use profiles to an ADR, the external-source register,
-provider manifest/licensing guidance, and decision readiness. Keep provider and
-plan evidence versioned so later admissions or rights changes do not silently
-broaden the decision.
+[ADR-0020](../../adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md)
+establishes the staged hybrid and Alpha Vantage-first integration boundary.
+The external-source register, licensing guidance, and decision readiness carry
+the current public-evidence and default-deny posture. Each activated provider
+profile still requires versioned evidence so later admissions or rights changes
+do not silently broaden the decision.
 
 ## Dependent Planning Updates
 
@@ -236,3 +238,8 @@ analysis, experiment, or AI/ML path that consumes market data.
   rights profiles, product questions, qualified-review evidence, and recurring
   terms-review/provider-exit obligations. The request remains captured pending
   written rights matrices and qualified licensing review.
+- 2026-10-16: ADR-0020 selected Option C with Alpha Vantage as the first narrow
+  educational integration. Provider-neutral contracts, synthetic fixtures,
+  explicit configuration, and default-deny use profiles keep later providers
+  additive and reserve undocumented storage, cloud, redistribution, real-time,
+  export, and AI/ML uses.

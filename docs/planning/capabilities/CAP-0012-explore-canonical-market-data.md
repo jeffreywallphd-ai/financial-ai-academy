@@ -33,7 +33,7 @@ never leak into downstream domain behavior.
 
 - Market-data-owned instrument, calendar, observation, corporate-action,
   quality, coverage, and provenance contracts selected by DEC-0013.
-- Approved provider admission and licensed uses selected by DEC-0012, including
+- Constrained provider admission and licensed uses selected by ADR-0020, including
   attribution, quota, retention, redistribution, and degraded behavior.
 - Bounded query, compare, chart, tabular inspection, and permitted export with
   explicit source/effective/retrieval times and adjustment policy.
@@ -52,6 +52,7 @@ never leak into downstream domain behavior.
 
 - [Data Architecture](../../architecture/data/data-architecture.md)
 - [ADR-0015: Market Data and Portfolio Ownership with a Method Registry](../../adr/ADR-0015-market-data-portfolio-method-registry.md)
+- [ADR-0020: Staged Market-Data Sourcing with Alpha Vantage First](../../adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md)
 - [Financial Method and Simulation Architecture](../../architecture/finance/financial-method-and-simulation-architecture.md)
 - [Market-Data Licensing and Attribution](../../risk-compliance/market-data-licensing-and-attribution.md)
 - [Module Map](../../architecture/modules/module-map.md)
@@ -61,8 +62,9 @@ never leak into downstream domain behavior.
 
 ## Decision Gates and Constraints
 
-- DEC-0012 selects only reviewed provider/use combinations; technical access is
-  never treated as license authority.
+- ADR-0020 selects the staged hybrid and Alpha Vantage as the first narrow
+  educational adapter. Technical access is never treated as license authority;
+  every activated use still requires an exact current default-deny profile.
 - ADR-0015 establishes Market data ownership, canonical instrument and
   observation meaning, calendars, adjustments, and consumer contracts.
 - Raw provider data enters no learning, analysis, portfolio, or adaptation path

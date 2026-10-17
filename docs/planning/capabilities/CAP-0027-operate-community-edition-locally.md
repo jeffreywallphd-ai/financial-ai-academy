@@ -38,7 +38,7 @@ and recovery is qualified within ADR-0008 rather than promised abstractly.
 - Deterministic migrations and upgrades with preflight, backup, rollback
   boundaries, compatibility, and failure diagnostics.
 - ADR-0008 coordinated backup and empty-target restore qualification.
-- Admitted free-data/external model providers under ADR-0013, DEC-0012, and
+- Admitted free-data/external model providers under ADR-0013, ADR-0020, and
   ADR-0018 with explicit unavailable/degraded behavior.
 
 ### Out of Scope
@@ -55,6 +55,7 @@ and recovery is qualified within ADR-0008 rather than promised abstractly.
 - [ADR-0009](../../adr/ADR-0009-initial-application-framework-runtime-baseline.md)
 - [Local and Cloud Capability Parity](../../architecture/deployment/local-cloud-capability-parity.md)
 - [ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [ADR-0020](../../adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md)
 - [Provider and Durable-Job Operations](../../operations/provider-and-job-operations.md)
 - [CAP-0024](CAP-0024-connect-and-govern-replaceable-providers.md)
 
@@ -62,7 +63,7 @@ and recovery is qualified within ADR-0008 rather than promised abstractly.
 
 - ADR-0008 fixes private-host, coordinated user-invoked recovery sets,
   maintenance-mode empty-target restore, credential revocation, and no RPO/RTO.
-- Provider setup is limited to postures accepted by ADR-0013, DEC-0012, and
+- Provider setup is limited to postures accepted by ADR-0013, ADR-0020, and
   ADR-0018; access does not imply licensed use or safe extension execution.
 - ADR-0009 fixes the Python API and static React client runtime shape; Node is
   build/test tooling and no deployment-specific domain fork is permitted.

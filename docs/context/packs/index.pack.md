@@ -39,6 +39,10 @@ Baseline context for every non-trivial task.
   learner projections with immutable base/evidence, two-person activation,
   learner-visible history, and no grade, credential, permission, or financial
   mutation; DEC-0016 authorization remains unresolved
+- ADR-0020 uses staged rights-profiled market-data sourcing with Alpha Vantage
+  as the first narrow educational integration behind provider-neutral contracts;
+  unspecified storage, cloud, export, redistribution, real-time, and AI/ML uses
+  remain denied, and later providers are independently admitted adapters
 
 ## Workflow
 

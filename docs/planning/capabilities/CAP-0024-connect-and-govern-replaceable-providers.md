@@ -35,7 +35,7 @@ authority or corrupting durable state.
 - Versioned provider capability/manifest, configuration reference, health,
   quota, cost, attribution, licensing, data-use, provenance, and disablement.
 - ADR-0018 allowlisted-adapter trust and PostgreSQL at-least-once job posture;
-  market and model specifics selected in DEC-0012 and DEC-0011.
+  market and model specifics selected in ADR-0020 and ADR-0013.
 - Secret indirection, startup validation, health-gated use, bounded retries,
   circuit/degraded behavior, audit, and local/cloud capability discovery.
 - Conformance kits for platform-owned ports and truthful operator interfaces.
@@ -54,6 +54,7 @@ authority or corrupting durable state.
 - [Security Architecture](../../security/README.md)
 - [Decision Readiness](../../adr/decision-readiness.md)
 - [ADR-0018](../../adr/ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
+- [ADR-0020](../../adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md)
 - [Provider Admission and Job Delivery](../../architecture/deployment/provider-admission-and-job-delivery.md)
 - [Durable Job Delivery Contract](../../architecture/contracts/job-delivery-contract.md)
 - [CAP-0026](CAP-0026-preserve-provenance-and-accountable-history.md)
@@ -63,7 +64,7 @@ authority or corrupting durable state.
 - ADR-0018 fixes exact allowlisted reviewed packaged adapters and PostgreSQL-
   backed at-least-once delivery. Out-of-process hosts, elevated trust classes,
   external brokers, different guarantees, and sandboxes require another decision.
-  ADR-0013 and DEC-0012 select approved model and market-data use postures.
+  ADR-0013 and ADR-0020 select constrained model and market-data use postures.
 - Platform contracts own canonical meaning. Adapters translate provider payloads
   and never supply domain authority or license interpretation.
 - Secrets remain behind platform resolution; provider capability and health are

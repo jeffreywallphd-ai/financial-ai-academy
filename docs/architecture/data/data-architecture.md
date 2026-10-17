@@ -37,4 +37,10 @@
   Registered pure methods retain exact versions and inputs but own no store or
   workflow. PostgreSQL, Parquet, and DuckDB placement never transfers semantic
   ownership between those boundaries.
+- Under ADR-0020, provider-specific market payloads enter these zones only
+  through provider-neutral contracts and an exact active use profile. Alpha
+  Vantage is the first adapter target, while validated imports and later
+  providers preserve the same canonical records. A profile that permits
+  transient retrieval does not imply raw, canonical, derived, backup, export,
+  or published-zone retention.
 

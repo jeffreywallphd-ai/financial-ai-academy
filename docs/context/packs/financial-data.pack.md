@@ -16,6 +16,10 @@ Work affects instruments, market observations, provider ingestion, portfolios, v
   simulated accounting/valuation/backtests to Portfolio, and reusable pure
   calculations to an owner-declared versioned platform method registry; it adds
   no Analysis module.
+- ADR-0020 selects staged rights-profiled sourcing with Alpha Vantage as the
+  first narrow educational adapter. Provider-neutral contracts, validated
+  imports, synthetic fixtures, and default-deny profiles keep later providers
+  additive and undocumented uses disabled.
 
 ## Canonical Sources
 
@@ -24,6 +28,7 @@ Work affects instruments, market observations, provider ingestion, portfolios, v
 - `docs/standards/change-impact-matrix.md`
 - `docs/adr/ADR-0012-reusable-project-workspace.md`
 - `docs/adr/ADR-0015-market-data-portfolio-method-registry.md`
+- `docs/adr/ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md`
 - `docs/architecture/finance/financial-method-and-simulation-architecture.md`
 
 ## Stop When

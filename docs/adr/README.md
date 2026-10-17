@@ -37,6 +37,7 @@ Create or update an ADR when a change selects or reverses a durable architecture
 - [ADR-0017: Platform-Native Human-Reviewed Content Authoring](ADR-0017-platform-native-human-reviewed-content-authoring.md)
 - [ADR-0018: Allowlisted Adapters with PostgreSQL At-Least-Once Jobs](ADR-0018-allowlisted-adapters-postgresql-at-least-once-jobs.md)
 - [ADR-0019: Append-Only Bounded Learner-Projection Overrides](ADR-0019-append-only-bounded-projection-overrides.md)
+- [ADR-0020: Staged Market-Data Sourcing with Alpha Vantage First](ADR-0020-staged-market-data-sourcing-with-alpha-vantage-first.md)
 
 ## Superseded Decisions
 
