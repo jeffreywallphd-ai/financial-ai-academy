@@ -1,13 +1,13 @@
 ---
 id: WRK-0156
 kind: work-packet
-planning_status: verifying
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
 parent: SLI-0075
 capability: CAP-0018
-depends_on: [WRK-0155]
+depends_on: [WRK-0155, WRK-0157]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/presentation-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0075-set-accessible-display-preferences.md", "docs/planning/work-packets/WRK-0156-qualify-presentation-preferences-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
@@ -300,3 +300,8 @@ changed, then leave SLI-0075 closure-ready.
   Focused qualification passed 75 cases and the complete Chromium, headless
   API, PostgreSQL restart, concurrency, isolation, accessibility, and cleanup
   workflow passed unchanged. No product behavior or contract changed.
+- 2026-10-17: Returned to ready when repeated exact-candidate runs exposed an
+  application split-read window in which a concurrent exact duplicate can see
+  the winning revision before its replay lookup is refreshed. WRK-0157 owns
+  the bounded shared application correction; this packet resumes afterward
+  without widening its qualification scope.
