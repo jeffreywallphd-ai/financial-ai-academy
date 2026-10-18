@@ -220,6 +220,7 @@ def test_headless_project_submission_refusal_replay_and_history(
     assert POSTGRES_DSN is not None
     with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
         for schema in (
+            "personal_workspace",
             "project",
             "identity",
             "audit",

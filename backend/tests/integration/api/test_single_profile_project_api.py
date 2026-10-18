@@ -505,6 +505,7 @@ def test_composed_api_creates_independent_and_exact_learning_projects(
     assert POSTGRES_DSN is not None
     with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
         for schema in (
+            "personal_workspace",
             "project",
             "identity",
             "audit",
