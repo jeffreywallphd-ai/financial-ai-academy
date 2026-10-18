@@ -1,7 +1,7 @@
 ---
 id: WRK-0185
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/adapters/__init__.py", "backend/src/financial_ai_academy/modules/audit/adapters/cross_domain_provenance_contract.py", "backend/src/financial_ai_academy/modules/audit/domain/__init__.py", "backend/src/financial_ai_academy/modules/audit/domain/cross_domain_provenance.py", "backend/tests/unit/audit/test_cross_domain_provenance.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0107-extend-provenance-across-domain-owners.md", "docs/planning/work-packets/WRK-0185-extend-cross-domain-provenance-core.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 2766747da18f165e3b1f6aef70354796e46c8871
+claim_id: WRK-0185:a25f46e5-f74e-4e61-8df5-d6c36568e56c
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T09:15:52Z
 ---
 
 # Agent Work Packet: Extend the Cross-Domain Provenance Core
@@ -217,3 +217,6 @@ changed.
   keeps v1 unchanged, and leaves conformance-kit integration, synthetic owners,
   real Project integration, and cumulative slice qualification to WRK-0186
   through WRK-0188 without adding a lower-level approval.
+- 2026-10-18: Activated from clean base `2766747` after confirming current CAP
+  authority, completed dependency, resolved decisions, exact isolated write
+  scope, and no active ownership collision.
