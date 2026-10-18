@@ -219,8 +219,9 @@ each packet starts. The proposed dependency-ordered seams are:
 | WRK-0158 | Freeze AI-help preference contracts, closed semantics, local-reminder envelope and adapter rules, privacy limits, compatibility vectors, and pure core | none | none | complete |
 | WRK-0159 | Compose Learner-model application, PostgreSQL persistence and migration, protected API, reviewed OpenAPI, and generated client | WRK-0158 | none | complete |
 | WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | complete |
-| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162 | none | ready |
+| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162, WRK-0163 | none | ready |
 | WRK-0162 | Accept canonical assistance API timestamp precision in the browser validator | WRK-0160 | none | complete |
+| WRK-0163 | Correlate equivalent Project completion and history timestamp precision without losing microseconds | WRK-0129 | none | active |
 
 Detailed packet plans declare exact files, generated artifacts, checks, and
 stop conditions immediately before each packet starts. Packet identifiers are
@@ -317,3 +318,13 @@ state that no AI or notification execution was implemented or implied.
   timestamp validation, microsecond chronology across profile, history, and
   export boundaries, digest-valid negative fixtures, and a qualifying affected
   check receipt. WRK-0161 is unblocked to resume complete live qualification.
+- 2026-10-18: Reactivated WRK-0161 from recorded base `80b8eef` after its
+  corrective dependency completed. Its qualification-only scope and CAP
+  authority remain unchanged.
+- 2026-10-18: The resumed live workflow passed the assistance browser and
+  headless race phases, then found that the Project loader rejected two valid
+  spellings of the same microsecond timestamp. WRK-0163 owns the exact bounded
+  correlation correction; WRK-0161 is ready and depends on its completion.
+- 2026-10-18: Activated WRK-0163 from recorded base `80b8eef` after validating
+  completed Project qualification, current CAP authority, exact file ownership,
+  and no active coordination collision.

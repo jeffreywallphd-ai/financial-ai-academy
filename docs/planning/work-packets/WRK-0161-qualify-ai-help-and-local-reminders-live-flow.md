@@ -3,19 +3,19 @@ id: WRK-0161
 kind: work-packet
 planning_status: ready
 authority: noncanonical
-owner: codex-cap-0018
+owner: unassigned
 updated: 2026-10-18
 parent: SLI-0076
 capability: CAP-0018
-depends_on: [WRK-0160, WRK-0162]
+depends_on: [WRK-0160, WRK-0162, WRK-0163]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/assistance-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "dev-tools/control-plane/check_assistance_preferences.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0161-qualify-ai-help-and-local-reminders-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: 860802c5d8557ea161f60bac7a93712972d9380a
-claim_id: WRK-0161:33bf5fd4-7aa6-4cfc-b61b-fd01874caef5
+base_revision: 80b8eef62c09e0bf47953a13da0ff859832e4eb6
+claim_id: WRK-0161:9cffd43f-89aa-43e2-8ef6-693a80018442
 claimed_by: codex-cap-0018
-claimed_at: 2026-10-18T01:00:45Z
+claimed_at: 2026-10-18T01:15:28Z
 ---
 
 # Agent Work Packet: Qualify AI Help and Local Reminders Live Flow
@@ -216,4 +216,12 @@ financial behavior changed, then leave SLI-0076 closure-ready.
   digest-bound microsecond API timestamp that the assistance browser validator
   rejected. WRK-0162 owns the bounded product correction; this packet resumes
   afterward without weakening evidence or widening qualification scope.
+- 2026-10-18: Reactivated from recorded base `80b8eef` after WRK-0162
+  completed. The original live qualification changes were restored without
+  widening file ownership, behavior, or decision authority.
+- 2026-10-18: Returned to ready after the assistance browser and headless race
+  phases passed, then the complete live workflow exposed equivalent fractional-
+  second widths across the existing Project completion and history responses.
+  WRK-0163 owns that bounded compatibility correction; this packet resumes
+  afterward without weakening correlation or widening qualification scope.
 
