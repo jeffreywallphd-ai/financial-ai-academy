@@ -98,6 +98,59 @@ def test_unicode_and_incomplete_link_are_valid_without_fabricated_node() -> None
     assert admitted.incomplete_links[0].target_resource_id.endswith("été")
 
 
+def test_every_declared_source_is_represented_exactly_once() -> None:
+    admitted = lineage_view_from_mapping(_load("lineage-view.json"))
+    evidence = next(node for node in admitted.nodes if node.node_id == "evidence")
+    audit = next(node for node in admitted.nodes if node.node_id == "audit")
+    extra_source = ProvenanceSource(
+        RelationKind.DEFINED_BY,
+        audit.envelope.resource,
+    )
+    changed_evidence = replace(
+        evidence,
+        envelope=replace(
+            evidence.envelope,
+            sources=(*evidence.envelope.sources, extra_source),
+        ),
+    )
+    with pytest.raises(InvalidProvenance):
+        build_lineage_view(
+            root=admitted.root,
+            nodes=tuple(
+                changed_evidence if node.node_id == "evidence" else node
+                for node in admitted.nodes
+            ),
+            edges=admitted.edges,
+        )
+
+    incomplete = lineage_view_from_mapping(_load("incomplete-lineage-view.json"))
+    incomplete_root = incomplete.nodes[0]
+    with pytest.raises(InvalidProvenance):
+        build_lineage_view(
+            root=incomplete.root,
+            nodes=(
+                replace(
+                    incomplete_root,
+                    envelope=replace(incomplete_root.envelope, sources=()),
+                ),
+            ),
+            edges=(),
+            incomplete_links=incomplete.incomplete_links,
+        )
+    with pytest.raises(InvalidProvenance):
+        build_lineage_view(
+            root=incomplete.root,
+            nodes=incomplete.nodes,
+            edges=(),
+            incomplete_links=(
+                replace(
+                    incomplete.incomplete_links[0],
+                    target_resource_id="fabricated-source",
+                ),
+            ),
+        )
+
+
 def test_changed_exact_identity_cycle_and_disconnected_graph_fail_closed() -> None:
     admitted = lineage_view_from_mapping(_load("lineage-view.json"))
     changed = replace(
@@ -211,3 +264,40 @@ def test_closed_adapter_and_domain_reject_private_keys_and_bad_types() -> None:
                 ),
             )
         )
+
+
+def test_kind_specific_identity_timestamp_precision_and_identifiers_fail_closed() -> None:
+    lesson_mapping = _load("published-lesson-envelope.json")
+    lesson_mapping["resource"]["recorded_at"] = "2026-08-05T12:00:00.1234567Z"  # type: ignore[index]
+    with pytest.raises(InvalidProvenance):
+        envelope_from_mapping(lesson_mapping)
+
+    lesson = envelope_from_mapping(_load("published-lesson-envelope.json"))
+    with pytest.raises(InvalidProvenance):
+        validate_envelope(
+            replace(
+                lesson,
+                resource=replace(
+                    lesson.resource,
+                    resource_version=None,
+                    occurrence=1,
+                ),
+            )
+        )
+
+    completion = envelope_from_mapping(_load("knowledge-check-envelope.json"))
+    with pytest.raises(InvalidProvenance):
+        validate_envelope(
+            replace(
+                completion,
+                resource=replace(
+                    completion.resource,
+                    resource_version="1.0.0",
+                    occurrence=None,
+                ),
+            )
+        )
+
+    for unsafe in ("audit.\x00test", "audit.\u200btest", "\u202etest", "🙂test"):
+        with pytest.raises(InvalidProvenance):
+            validate_envelope(replace(lesson, producer_id=unsafe))

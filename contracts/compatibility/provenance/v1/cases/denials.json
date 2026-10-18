@@ -46,5 +46,38 @@
     "target": "published_lesson_envelope",
     "ops": [{"op": "repeat", "path": ["sources"], "count": 21}],
     "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "unsupported-timestamp-precision",
+    "target": "published_lesson_envelope",
+    "ops": [{"op": "set", "path": ["resource", "recorded_at"], "value": "2026-08-05T12:00:00.1234567Z"}],
+    "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "versioned-kind-with-occurrence",
+    "target": "published_lesson_envelope",
+    "ops": [
+      {"op": "remove", "path": ["resource", "resource_version"]},
+      {"op": "set", "path": ["resource", "occurrence"], "value": 1}
+    ],
+    "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "unsafe-zero-width-identifier",
+    "target": "published_lesson_envelope",
+    "ops": [{"op": "set", "path": ["producer", "producer_id"], "value": "content.\u200blesson"}],
+    "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "fabricated-incomplete-link",
+    "target": "incomplete_lineage_view",
+    "ops": [{"op": "set", "path": ["incomplete_links", 0, "target_resource_id"], "value": "fabricated-source"}],
+    "expected_code": "provenance.invalid"
+  },
+  {
+    "id": "undeclared-incomplete-link",
+    "target": "incomplete_lineage_view",
+    "ops": [{"op": "set", "path": ["nodes", 0, "envelope", "sources"], "value": []}],
+    "expected_code": "provenance.invalid"
   }
 ]

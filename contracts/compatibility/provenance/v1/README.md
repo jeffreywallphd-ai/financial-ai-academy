@@ -10,3 +10,9 @@ Conformance proves only the language-neutral schemas, pure validation,
 canonicalization, graph integrity, and safe diagnostics. It does not qualify
 owner adapters, persistence, authorization, HTTP, generated clients, browser
 presentation, export, retention, or live operation.
+
+The incomplete fixture retains the last-known exact reference with
+`validation_status: incomplete` and correlates it to one bounded incomplete
+link. Denials cover undeclared or fabricated links, omitted source
+representation, kind-specific exact identities, unsupported timestamp
+precision, and unsafe identifier characters.

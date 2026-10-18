@@ -8,6 +8,7 @@ from enum import StrEnum
 import hashlib
 import json
 import re
+import unicodedata
 
 
 _VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$")
@@ -47,6 +48,17 @@ _OWNER_KINDS = {
         ResourceKind.COMPLETION_EVIDENCE,
     },
     OwnerModule.AUDIT: {ResourceKind.AUDIT_REFERENCE},
+}
+
+_VERSIONED_KINDS = {
+    ResourceKind.EDUCATIONAL_SOURCE,
+    ResourceKind.PUBLISHED_LESSON,
+    ResourceKind.ASSESSMENT_DEFINITION,
+}
+_OCCURRENCE_KINDS = {
+    ResourceKind.KNOWLEDGE_CHECK_EVENT,
+    ResourceKind.COMPLETION_EVIDENCE,
+    ResourceKind.AUDIT_REFERENCE,
 }
 
 
@@ -317,6 +329,7 @@ def _normalize_view(value: LineageView) -> LineageView:
         raise InvalidProvenance("root.resource")
     nodes_by_id = {node.node_id: node for node in nodes}
     edge_keys: set[tuple[str, str, str]] = set()
+    represented_sources: set[tuple[str, ...]] = set()
     for index, edge in enumerate(value.edges):
         if (
             not isinstance(edge.source_node_id, str)
@@ -334,16 +347,32 @@ def _normalize_view(value: LineageView) -> LineageView:
             raise InvalidProvenance(f"edges.{index}")
         source = nodes_by_id[edge.source_node_id]
         target = nodes_by_id[edge.target_node_id]
-        if not any(
-            item.relation is edge.relation
-            and item.reference == target.envelope.resource
+        matching_sources = [
+            item
             for item in source.envelope.sources
+            if (
+                item.relation is edge.relation
+                and item.reference == target.envelope.resource
+            )
+        ]
+        if (
+            len(matching_sources) != 1
+            or matching_sources[0].reference.validation_status
+            is not ValidationStatus.VALIDATED
         ):
             raise InvalidProvenance(f"edges.{index}.source_reference")
+        represented_sources.add(
+            (
+                edge.source_node_id,
+                edge.relation.value,
+                *_reference_key(matching_sources[0].reference),
+            )
+        )
         edge_keys.add(key)
     _reject_cycle(node_ids, value.edges)
     depths = _validate_reachability(root_node_id, node_ids, value.edges)
     incomplete_keys: set[tuple[str, ...]] = set()
+    represented_incomplete_sources: set[tuple[str, ...]] = set()
     for index, link in enumerate(value.incomplete_links):
         if (
             not isinstance(link.source_node_id, str)
@@ -378,7 +407,41 @@ def _normalize_view(value: LineageView) -> LineageView:
             for edge in value.edges
         ):
             raise InvalidProvenance(f"incomplete_links.{index}")
+        source = nodes_by_id[link.source_node_id]
+        matching_sources = [
+            item
+            for item in source.envelope.sources
+            if item.relation is link.relation
+            and item.reference.owner_module is link.target_owner_module
+            and item.reference.resource_kind is link.target_resource_kind
+            and item.reference.resource_id == link.target_resource_id
+            and item.reference.validation_status is ValidationStatus.INCOMPLETE
+        ]
+        if len(matching_sources) != 1:
+            raise InvalidProvenance(f"incomplete_links.{index}.source_reference")
+        source_key = (
+            link.source_node_id,
+            link.relation.value,
+            *_reference_key(matching_sources[0].reference),
+        )
+        if source_key in represented_sources or source_key in represented_incomplete_sources:
+            raise InvalidProvenance(f"incomplete_links.{index}.source_reference")
+        represented_incomplete_sources.add(source_key)
         incomplete_keys.add(key)
+    for node in nodes:
+        for source in node.envelope.sources:
+            source_key = (
+                node.node_id,
+                source.relation.value,
+                *_reference_key(source.reference),
+            )
+            expected = (
+                represented_sources
+                if source.reference.validation_status is ValidationStatus.VALIDATED
+                else represented_incomplete_sources
+            )
+            if source_key not in expected:
+                raise InvalidProvenance(f"nodes.{node.node_id}.sources")
     return replace(
         value,
         nodes=tuple(
@@ -412,18 +475,22 @@ def _validate_reference(value: ResourceReference, reference: str) -> None:
         raise InvalidProvenance(f"{reference}.owner_kind")
     if not _valid_identifier(value.resource_id):
         raise InvalidProvenance(f"{reference}.resource_id")
-    if value.resource_version is not None and (
-        not isinstance(value.resource_version, str)
-        or _VERSION.fullmatch(value.resource_version) is None
-    ):
-        raise InvalidProvenance(f"{reference}.resource_version")
-    if value.occurrence is not None and (
-        not isinstance(value.occurrence, int)
-        or isinstance(value.occurrence, bool)
-        or value.occurrence < 1
-    ):
-        raise InvalidProvenance(f"{reference}.occurrence")
-    if value.resource_version is None and value.occurrence is None:
+    if value.resource_kind in _VERSIONED_KINDS:
+        if (
+            not isinstance(value.resource_version, str)
+            or _VERSION.fullmatch(value.resource_version) is None
+            or value.occurrence is not None
+        ):
+            raise InvalidProvenance(f"{reference}.exact_identity")
+    elif value.resource_kind in _OCCURRENCE_KINDS:
+        if (
+            not isinstance(value.occurrence, int)
+            or isinstance(value.occurrence, bool)
+            or value.occurrence < 1
+            or value.resource_version is not None
+        ):
+            raise InvalidProvenance(f"{reference}.exact_identity")
+    else:
         raise InvalidProvenance(f"{reference}.exact_identity")
     if (
         not isinstance(value.integrity_digest, str)
@@ -467,7 +534,13 @@ def _valid_identifier(value: object) -> bool:
         return False
     if not value[0].isalnum():
         return False
-    return all(not character.isspace() and character not in "/\\?#" for character in value)
+    return all(
+        character.isprintable()
+        and not character.isspace()
+        and not unicodedata.category(character).startswith("C")
+        and character not in "/\\?#"
+        for character in value
+    )
 
 
 def _validate_reachability(

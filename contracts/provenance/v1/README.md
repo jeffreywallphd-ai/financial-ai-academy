@@ -12,6 +12,19 @@ source, and incomplete-link ordering enforced by the Audit pure domain. The
 `view_digest` is lowercase SHA-256 over the complete canonical view without its
 own digest field.
 
+Educational sources, published lessons, and assessment definitions use only a
+`resource_version`. Knowledge-check events, completion evidence, and Audit
+references use only an `occurrence`. Recorded times use an RFC 3339 offset and
+at most six fractional digits; higher precision is rejected instead of silently
+truncated. The schema rejects known unsafe control/format characters, while the
+pure domain performs the authoritative Unicode alphanumeric-first and character
+category validation.
+
+Every envelope source in a lineage view is accounted for exactly once. A
+`validated` source has one exact edge and an `incomplete` source has one
+matching incomplete link. Incomplete links therefore describe declared source
+references; they cannot create an undeclared relationship.
+
 V1 admits only exact `published_lesson` and server-scoped
 `knowledge_check_completion` roots. It contains no lesson body, answer,
 feedback, learner identity, provider payload, secret, storage locator, arbitrary

@@ -25,9 +25,13 @@ owner's business records.
 ## Closed Version 1 Meaning
 
 Each reference contains a closed owner and resource kind, a stable resource ID,
-an applicable version or occurrence, a lowercase SHA-256 integrity digest, an
-aware recorded time, and a validation status. Owner-kind combinations are
-closed:
+the one applicable exact-identity field, a lowercase SHA-256 integrity digest,
+an aware recorded time, and a validation status. Educational sources,
+published lessons, and assessment definitions require `resource_version` and
+forbid `occurrence`. Knowledge-check events, completion evidence, and Audit
+references require `occurrence` and forbid `resource_version`. Recorded times
+use an RFC 3339 offset with zero to six fractional digits; unsupported precision
+is rejected instead of truncated. Owner-kind combinations are closed:
 
 - Content: `educational_source`, `published_lesson`
 - Assessment: `assessment_definition`, `knowledge_check_event`,
@@ -35,14 +39,20 @@ closed:
 - Audit: `audit_reference`
 
 Relations are closed to `published_from`, `defined_by`, `produced`, and
-`recorded_as`. Every complete edge must match an exact source reference on its
-source envelope. A missing optional target is represented as one bounded
-incomplete link, never as an invented node.
+`recorded_as`. Every source reference is represented exactly once: a
+`validated` source by one exact edge and an `incomplete` source by one matching
+bounded incomplete link. Every edge and incomplete link must correlate back to
+that declared source. A missing optional target is therefore retained as an
+exact incomplete reference plus the bounded reason link, never as an invented
+node or relationship.
 
 The graph admits at most 64 nodes, 128 edges, 32 incomplete links, 20 sources
 per envelope, and 12 edges from the root. IDs are bounded to 128 Unicode
 characters, start with an alphanumeric character, and exclude whitespace,
-paths, query or fragment syntax. Versions are bounded ASCII tokens. Duplicate
+Unicode control and format characters, paths, query or fragment syntax.
+Language-neutral schemas provide the portable structural prefilter; Audit's
+pure semantic validator is authoritative for the Unicode alphanumeric-first and
+character-category rules. Versions are bounded ASCII tokens. Duplicate
 node IDs, duplicate exact references, changed same-identity digests,
 uncorrelated roots, dangling or disconnected nodes, unmatched edges, cycles,
 unsafe owner-kind combinations, and exceeded bounds fail the whole view.

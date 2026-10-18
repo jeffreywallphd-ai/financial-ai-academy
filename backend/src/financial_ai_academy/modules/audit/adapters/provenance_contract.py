@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import re
 from typing import Any, Mapping
 
 from ..domain import (
@@ -25,6 +26,11 @@ from ..domain import (
     lineage_view_payload,
     validate_envelope,
     validate_lineage_view,
+)
+
+
+_TIMESTAMP = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
 
 
@@ -63,7 +69,7 @@ def _enum(enum_type, value: object, reference: str):
 
 
 def _timestamp(value: object, reference: str) -> datetime:
-    if not isinstance(value, str):
+    if not isinstance(value, str) or _TIMESTAMP.fullmatch(value) is None:
         _reject(reference)
     try:
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
