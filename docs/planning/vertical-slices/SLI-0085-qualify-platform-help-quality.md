@@ -177,7 +177,7 @@ time immediately before work starts. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | [WRK-0178](../work-packets/WRK-0178-build-guidance-quality-gate.md) | Build the deterministic contributor-facing Guidance quality gate, source-authority binding, flexible valid-extension fixtures, and affected-check integration | SLI-0082 through SLI-0084 | none | complete |
-| [WRK-0179](../work-packets/WRK-0179-qualify-platform-help-cumulatively.md) | Run and close cumulative browser/headless, accessibility, offline-local, restart, containment, anti-rigidity, documentation, and control-plane qualification | WRK-0178 | none | active |
+| [WRK-0179](../work-packets/WRK-0179-qualify-platform-help-cumulatively.md) | Run and close cumulative browser/headless, accessibility, offline-local, restart, containment, anti-rigidity, documentation, and control-plane qualification | WRK-0178 | none | verifying |
 
 Sequential delivery is required because both packets share the quality command,
 Guidance resources, affected-check catalog, and cumulative evidence. A bounded
@@ -269,3 +269,6 @@ disposition, and final completion-gate binding.
 - 2026-10-18: WRK-0179 cumulative focused and live qualification passed and
   reconciled direct evidence without changing public Guidance or stored state;
   exact-candidate verification remains before packet and slice closure.
+- 2026-10-18: Submitted exact candidate `b15e538` and moved WRK-0179 to
+  verification; the frozen candidate remains unchanged while its selected
+  checks and independent technical review run.
