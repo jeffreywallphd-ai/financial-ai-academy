@@ -1,7 +1,7 @@
 ---
 id: WRK-0184
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -258,6 +258,28 @@ rollback status; assumptions; residual gaps; CAP conformance; and any unresolved
 decision. Confirm no production module, persistence, public API/client, UI,
 provider/model, tenant/admin, external-action, or financial authority changed.
 
+## Completion Evidence
+
+- Exact implementation candidate:
+  `77af7bbf1c1b9c1903810008fec5dc1029766a00`.
+- Qualifying affected-check receipt:
+  `sha256:037b55eb0f43a29ad13223212282430fd0f77240424be5f75404aab02bffd16c`.
+- The closed v2 catalog covers all nine profiles. Financial results select one
+  explicit account or analysis identity variant, and Market-observation
+  resource IDs derive from the canonical exact identity tuple. The reusable
+  CLI rejects both missing and extra approved profiles.
+- Provenance v1/v2 qualification passed 44 tests. Combined provenance and
+  Guidance contract qualification passed 64 tests; architecture passed 18
+  tests, security passed ten control groups, and documentation, planning,
+  whitespace, and all 30 aggregate-readiness checks passed.
+- The v1 schemas and approved-corpus fingerprints remain exact. The v2 runner
+  imports no product module, provider, model, persistence, host, or network
+  dependency, and diagnostics remain bounded.
+- No migration, rollback action, dependency, production owner adapter,
+  persistence, public API/client, UI, provider/model, tenant/administrator,
+  external-action, or financial-authority behavior changed. Later packets may
+  consume this frozen contract but may not reinterpret its accepted fixtures.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after SLI-0107 refinement. The packet
@@ -289,3 +311,7 @@ provider/model, tenant/admin, external-action, or financial authority changed.
   from the exact tuple digest, and the CLI rejects missing or extra approved
   profiles. The correction did not expand the packet, product behavior, or
   decision surface.
+- 2026-10-18: Completed at exact candidate `77af7bb` after exact-candidate
+  qualification, focused contract checks, architecture/security isolation,
+  documentation/planning integrity, and aggregate readiness all passed with no
+  remaining technical gap in the packet scope.
