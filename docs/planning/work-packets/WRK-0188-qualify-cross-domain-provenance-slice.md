@@ -1,7 +1,7 @@
 ---
 id: WRK-0188
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/tests/contract/provenance_v2/test_slice_qualification.py", "contracts/compatibility/provenance/v2/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0107-extend-provenance-across-domain-owners.md", "docs/planning/work-packets/WRK-0188-qualify-cross-domain-provenance-slice.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 5bd836d548239f20f713a5c17f6f33e05ea2ec8a
+claim_id: WRK-0188:04b5670a-6b5e-47ea-a534-35a0b645e84c
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T09:47:56Z
 ---
 
 # Qualify the Cross-Domain Provenance Slice
@@ -137,3 +137,6 @@ current.
   cumulative mixed-adapter and flexible partial-suite evidence, not a new
   product feature, then closes SLI-0107 if the frozen contracts and all gates
   remain current. No lower-level approval exists or is required.
+- 2026-10-18: Activated from clean base `5bd836d` after confirming current CAP
+  authority, completed WRK-0187, resolved decisions, exact isolated write
+  scope, and no active file-ownership collision.
