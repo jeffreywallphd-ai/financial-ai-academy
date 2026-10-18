@@ -225,3 +225,7 @@ changed.
   financial variants, Market tuple-derived identity, runner digest parity,
   duplicate/conflict denial, timezone/source-order equivalence, Unicode/count
   flexibility, confidential failures, per-call isolation, and unchanged v1.
+- 2026-10-18: Hardened the closed seam with exact concrete type admission, an
+  immutable profile-rule map, deterministic bounded denial for invalid or
+  overflowing aware times, and source-count rejection before element parsing.
+  Focused regression coverage now exercises those adversarial inputs directly.

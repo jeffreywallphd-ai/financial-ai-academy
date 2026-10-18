@@ -57,8 +57,11 @@ def cross_domain_envelope_from_mapping(
     _exact_keys(item, {"schema_version", "resource", "producer", "sources"}, "envelope")
     producer_value = _mapping(item["producer"], "producer")
     _exact_keys(producer_value, {"producer_id", "producer_version"}, "producer")
+    source_values = _sequence(item["sources"], "sources")
+    if len(source_values) > 20:
+        raise InvalidCrossDomainProvenance("sources")
     sources: list[CrossDomainSource] = []
-    for index, source_value in enumerate(_sequence(item["sources"], "sources")):
+    for index, source_value in enumerate(source_values):
         source = _mapping(source_value, f"sources.{index}")
         _exact_keys(source, {"relation", "reference"}, f"sources.{index}")
         sources.append(

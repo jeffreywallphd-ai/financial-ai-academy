@@ -8,6 +8,7 @@ from enum import StrEnum
 from hashlib import sha256
 import json
 import re
+from types import MappingProxyType
 from typing import TypeAlias
 import unicodedata
 
@@ -223,7 +224,7 @@ class _ProfileRule:
     relations: frozenset[CrossDomainRelation]
 
 
-_PROFILE_RULES = {
+_PROFILE_RULES = MappingProxyType({
     CrossDomainProfile.ADMINISTRATIVE_ACTION: _ProfileRule(
         CrossDomainOwnerModule.AUDIT,
         CrossDomainResourceKind.ADMINISTRATIVE_ACTION,
@@ -359,19 +360,19 @@ _PROFILE_RULES = {
             }
         ),
     ),
-}
+})
 
 
 def validate_cross_domain_envelope(
     value: CrossDomainProvenanceEnvelope,
 ) -> CrossDomainProvenanceEnvelope:
-    if not isinstance(value, CrossDomainProvenanceEnvelope):
+    if type(value) is not CrossDomainProvenanceEnvelope:
         raise InvalidCrossDomainProvenance("envelope")
-    if value.schema_version != "2.0.0":
+    if type(value.schema_version) is not str or value.schema_version != "2.0.0":
         raise InvalidCrossDomainProvenance("schema_version")
     resource = _validate_resource(value.resource, "resource")
     producer = _validate_producer(value.producer)
-    if not isinstance(value.sources, tuple) or len(value.sources) > 20:
+    if type(value.sources) is not tuple or len(value.sources) > 20:
         raise InvalidCrossDomainProvenance("sources")
     rule = _PROFILE_RULES[resource.profile]
     seen: dict[bytes, bytes] = {
@@ -379,9 +380,9 @@ def validate_cross_domain_envelope(
     }
     sources: list[CrossDomainSource] = []
     for index, source in enumerate(value.sources):
-        if not isinstance(source, CrossDomainSource):
+        if type(source) is not CrossDomainSource:
             raise InvalidCrossDomainProvenance(f"sources.{index}")
-        if not isinstance(source.relation, CrossDomainRelation):
+        if type(source.relation) is not CrossDomainRelation:
             raise InvalidCrossDomainProvenance(f"sources.{index}.relation")
         if source.relation not in rule.relations:
             raise InvalidCrossDomainProvenance(f"sources.{index}.relation")
@@ -434,7 +435,7 @@ def market_observation_resource_id(identity: MarketObservationIdentity) -> str:
 
 
 def _validate_producer(value: CrossDomainProducer) -> CrossDomainProducer:
-    if not isinstance(value, CrossDomainProducer):
+    if type(value) is not CrossDomainProducer:
         raise InvalidCrossDomainProvenance("producer")
     _identifier(value.producer_id, "producer.producer_id")
     _version(value.producer_version, "producer.producer_version")
@@ -444,14 +445,14 @@ def _validate_producer(value: CrossDomainProducer) -> CrossDomainProducer:
 def _validate_resource(
     value: CrossDomainResourceReference, reference: str
 ) -> CrossDomainResourceReference:
-    if not isinstance(value, CrossDomainResourceReference):
+    if type(value) is not CrossDomainResourceReference:
         raise InvalidCrossDomainProvenance(reference)
-    if not isinstance(value.profile, CrossDomainProfile):
+    if type(value.profile) is not CrossDomainProfile:
         raise InvalidCrossDomainProvenance(f"{reference}.profile")
     rule = _PROFILE_RULES[value.profile]
     if value.owner_module is not rule.owner or value.resource_kind is not rule.kind:
         raise InvalidCrossDomainProvenance(f"{reference}.owner_kind")
-    if not isinstance(value.identity, rule.identity_types):
+    if type(value.identity) not in rule.identity_types:
         raise InvalidCrossDomainProvenance(f"{reference}.identity")
     identity = _validate_identity(value.identity, f"{reference}.identity")
     expected_id = _identity_resource_id(identity)
@@ -461,11 +462,11 @@ def _validate_resource(
     _digest(value.integrity_digest, f"{reference}.integrity_digest")
     recorded_at = _aware_time(value.recorded_at, f"{reference}.recorded_at")
     if (
-        not isinstance(value.provenance_label, CrossDomainProvenanceLabel)
+        type(value.provenance_label) is not CrossDomainProvenanceLabel
         or value.provenance_label not in rule.labels
     ):
         raise InvalidCrossDomainProvenance(f"{reference}.provenance_label")
-    if not isinstance(value.validation_status, CrossDomainValidationStatus):
+    if type(value.validation_status) is not CrossDomainValidationStatus:
         raise InvalidCrossDomainProvenance(f"{reference}.validation_status")
     return replace(value, identity=identity, recorded_at=recorded_at)
 
@@ -473,7 +474,8 @@ def _validate_resource(
 def _validate_identity(
     value: CrossDomainIdentity, reference: str
 ) -> CrossDomainIdentity:
-    if isinstance(value, AdministrativeActionIdentity):
+    value_type = type(value)
+    if value_type is AdministrativeActionIdentity:
         _identifier(value.action_id, f"{reference}.action_id")
         _identifier(value.policy_id, f"{reference}.policy_id")
         _version(value.policy_version, f"{reference}.policy_version")
@@ -481,21 +483,21 @@ def _validate_identity(
         return replace(
             value, action_at=_aware_time(value.action_at, f"{reference}.action_at")
         )
-    if isinstance(value, DatasetSnapshotIdentity):
+    if value_type is DatasetSnapshotIdentity:
         _identifier(value.dataset_id, f"{reference}.dataset_id")
         _version(value.dataset_version, f"{reference}.dataset_version")
         return value
-    if isinstance(value, (FinancialAnalysisIdentity, FinancialAccountIdentity)):
-        expected_kind = "analysis" if isinstance(value, FinancialAnalysisIdentity) else "account"
+    if value_type in (FinancialAnalysisIdentity, FinancialAccountIdentity):
+        expected_kind = "analysis" if value_type is FinancialAnalysisIdentity else "account"
         if value.subject_kind != expected_kind:
             raise InvalidCrossDomainProvenance(f"{reference}.subject_kind")
-        identifier = value.analysis_id if isinstance(value, FinancialAnalysisIdentity) else value.account_id
+        identifier = value.analysis_id if value_type is FinancialAnalysisIdentity else value.account_id
         _identifier(identifier, f"{reference}.{expected_kind}_id")
         _identifier(value.method_id, f"{reference}.method_id")
         _version(value.method_version, f"{reference}.method_version")
         _digest(value.source_set_digest, f"{reference}.source_set_digest")
         return replace(value, as_of=_aware_time(value.as_of, f"{reference}.as_of"))
-    if isinstance(value, MarketObservationIdentity):
+    if value_type is MarketObservationIdentity:
         _identifier(value.instrument_id, f"{reference}.instrument_id")
         _identifier(value.method_id, f"{reference}.method_id")
         _version(value.method_version, f"{reference}.method_version")
@@ -504,23 +506,23 @@ def _validate_identity(
             value,
             observed_at=_aware_time(value.observed_at, f"{reference}.observed_at"),
         )
-    if isinstance(value, ModelExecutionIdentity):
+    if value_type is ModelExecutionIdentity:
         _identifier(value.execution_id, f"{reference}.execution_id")
         _identifier(value.model_id, f"{reference}.model_id")
         _version(value.model_version, f"{reference}.model_version")
         _positive(value.occurrence, f"{reference}.occurrence")
         return value
-    if isinstance(value, ModelVersionIdentity):
+    if value_type is ModelVersionIdentity:
         _identifier(value.model_id, f"{reference}.model_id")
         _version(value.model_version, f"{reference}.model_version")
         return value
-    if isinstance(value, ProjectSnapshotIdentity):
+    if value_type is ProjectSnapshotIdentity:
         _identifier(value.project_id, f"{reference}.project_id")
         _identifier(value.snapshot_id, f"{reference}.snapshot_id")
         _positive(value.project_revision, f"{reference}.project_revision")
         _positive(value.workspace_revision, f"{reference}.workspace_revision")
         return value
-    if isinstance(value, RecommendationRecordIdentity):
+    if value_type is RecommendationRecordIdentity:
         _identifier(value.recommendation_id, f"{reference}.recommendation_id")
         _identifier(value.policy_id, f"{reference}.policy_id")
         _version(value.policy_version, f"{reference}.policy_version")
@@ -529,7 +531,7 @@ def _validate_identity(
             value,
             decision_at=_aware_time(value.decision_at, f"{reference}.decision_at"),
         )
-    if isinstance(value, SimulationResultIdentity):
+    if value_type is SimulationResultIdentity:
         _identifier(value.simulation_id, f"{reference}.simulation_id")
         _identifier(value.method_id, f"{reference}.method_id")
         _version(value.method_version, f"{reference}.method_version")
@@ -539,31 +541,33 @@ def _validate_identity(
 
 
 def _identity_resource_id(value: CrossDomainIdentity) -> str:
-    if isinstance(value, AdministrativeActionIdentity):
+    value_type = type(value)
+    if value_type is AdministrativeActionIdentity:
         return value.action_id
-    if isinstance(value, DatasetSnapshotIdentity):
+    if value_type is DatasetSnapshotIdentity:
         return value.dataset_id
-    if isinstance(value, FinancialAnalysisIdentity):
+    if value_type is FinancialAnalysisIdentity:
         return value.analysis_id
-    if isinstance(value, FinancialAccountIdentity):
+    if value_type is FinancialAccountIdentity:
         return value.account_id
-    if isinstance(value, MarketObservationIdentity):
+    if value_type is MarketObservationIdentity:
         return sha256(_canonical_bytes(_identity_payload(value))).hexdigest()
-    if isinstance(value, ModelExecutionIdentity):
+    if value_type is ModelExecutionIdentity:
         return value.execution_id
-    if isinstance(value, ModelVersionIdentity):
+    if value_type is ModelVersionIdentity:
         return value.model_id
-    if isinstance(value, ProjectSnapshotIdentity):
+    if value_type is ProjectSnapshotIdentity:
         return value.snapshot_id
-    if isinstance(value, RecommendationRecordIdentity):
+    if value_type is RecommendationRecordIdentity:
         return value.recommendation_id
-    if isinstance(value, SimulationResultIdentity):
+    if value_type is SimulationResultIdentity:
         return value.simulation_id
     raise InvalidCrossDomainProvenance("identity")
 
 
 def _identity_payload(value: CrossDomainIdentity) -> dict[str, object]:
-    if isinstance(value, AdministrativeActionIdentity):
+    value_type = type(value)
+    if value_type is AdministrativeActionIdentity:
         return {
             "action_id": value.action_id,
             "policy_id": value.policy_id,
@@ -571,9 +575,9 @@ def _identity_payload(value: CrossDomainIdentity) -> dict[str, object]:
             "action_at": _timestamp(value.action_at),
             "occurrence": value.occurrence,
         }
-    if isinstance(value, DatasetSnapshotIdentity):
+    if value_type is DatasetSnapshotIdentity:
         return {"dataset_id": value.dataset_id, "dataset_version": value.dataset_version}
-    if isinstance(value, FinancialAnalysisIdentity):
+    if value_type is FinancialAnalysisIdentity:
         return {
             "subject_kind": value.subject_kind,
             "analysis_id": value.analysis_id,
@@ -582,7 +586,7 @@ def _identity_payload(value: CrossDomainIdentity) -> dict[str, object]:
             "method_version": value.method_version,
             "source_set_digest": value.source_set_digest,
         }
-    if isinstance(value, FinancialAccountIdentity):
+    if value_type is FinancialAccountIdentity:
         return {
             "subject_kind": value.subject_kind,
             "account_id": value.account_id,
@@ -591,7 +595,7 @@ def _identity_payload(value: CrossDomainIdentity) -> dict[str, object]:
             "method_version": value.method_version,
             "source_set_digest": value.source_set_digest,
         }
-    if isinstance(value, MarketObservationIdentity):
+    if value_type is MarketObservationIdentity:
         return {
             "instrument_id": value.instrument_id,
             "observed_at": _timestamp(value.observed_at),
@@ -599,23 +603,23 @@ def _identity_payload(value: CrossDomainIdentity) -> dict[str, object]:
             "method_version": value.method_version,
             "source_set_digest": value.source_set_digest,
         }
-    if isinstance(value, ModelExecutionIdentity):
+    if value_type is ModelExecutionIdentity:
         return {
             "execution_id": value.execution_id,
             "model_id": value.model_id,
             "model_version": value.model_version,
             "occurrence": value.occurrence,
         }
-    if isinstance(value, ModelVersionIdentity):
+    if value_type is ModelVersionIdentity:
         return {"model_id": value.model_id, "model_version": value.model_version}
-    if isinstance(value, ProjectSnapshotIdentity):
+    if value_type is ProjectSnapshotIdentity:
         return {
             "project_id": value.project_id,
             "snapshot_id": value.snapshot_id,
             "project_revision": value.project_revision,
             "workspace_revision": value.workspace_revision,
         }
-    if isinstance(value, RecommendationRecordIdentity):
+    if value_type is RecommendationRecordIdentity:
         return {
             "recommendation_id": value.recommendation_id,
             "policy_id": value.policy_id,
@@ -623,7 +627,7 @@ def _identity_payload(value: CrossDomainIdentity) -> dict[str, object]:
             "decision_at": _timestamp(value.decision_at),
             "occurrence": value.occurrence,
         }
-    if isinstance(value, SimulationResultIdentity):
+    if value_type is SimulationResultIdentity:
         return {
             "simulation_id": value.simulation_id,
             "method_id": value.method_id,
@@ -663,7 +667,7 @@ def _identity_key(value: CrossDomainResourceReference) -> bytes:
 
 def _identifier(value: object, reference: str) -> str:
     if (
-        not isinstance(value, str)
+        type(value) is not str
         or not value
         or len(value) > 128
         or not value[0].isalnum()
@@ -679,27 +683,34 @@ def _identifier(value: object, reference: str) -> str:
 
 
 def _version(value: object, reference: str) -> str:
-    if not isinstance(value, str) or _VERSION.fullmatch(value) is None:
+    if type(value) is not str or _VERSION.fullmatch(value) is None:
         raise InvalidCrossDomainProvenance(reference)
     return value
 
 
 def _digest(value: object, reference: str) -> str:
-    if not isinstance(value, str) or _DIGEST.fullmatch(value) is None:
+    if type(value) is not str or _DIGEST.fullmatch(value) is None:
         raise InvalidCrossDomainProvenance(reference)
     return value
 
 
 def _positive(value: object, reference: str) -> int:
-    if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+    if type(value) is not int or value < 1:
         raise InvalidCrossDomainProvenance(reference)
     return value
 
 
 def _aware_time(value: object, reference: str) -> datetime:
-    if not isinstance(value, datetime) or value.tzinfo is None:
+    if type(value) is not datetime or value.tzinfo is None:
         raise InvalidCrossDomainProvenance(reference)
-    return value.astimezone(timezone.utc)
+    try:
+        if value.utcoffset() is None:
+            raise InvalidCrossDomainProvenance(reference)
+        return value.astimezone(timezone.utc)
+    except InvalidCrossDomainProvenance:
+        raise
+    except Exception as error:
+        raise InvalidCrossDomainProvenance(reference) from error
 
 
 def _timestamp(value: datetime) -> str:

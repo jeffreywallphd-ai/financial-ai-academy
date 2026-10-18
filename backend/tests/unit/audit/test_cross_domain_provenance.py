@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import replace
+from datetime import datetime, tzinfo
 import importlib.util
 import json
 from pathlib import Path
@@ -14,7 +15,12 @@ from financial_ai_academy.modules.audit.adapters import (
     cross_domain_envelope_to_mapping,
 )
 from financial_ai_academy.modules.audit.domain import (
+    CrossDomainProducer,
     CrossDomainProfile,
+    CrossDomainProvenanceEnvelope,
+    CrossDomainResourceReference,
+    CrossDomainSource,
+    DatasetSnapshotIdentity,
     FinancialAccountIdentity,
     InvalidCrossDomainProvenance,
     MarketObservationIdentity,
@@ -154,6 +160,138 @@ def test_private_unknown_and_malformed_input_fail_with_bounded_diagnostics() -> 
     with pytest.raises(InvalidCrossDomainProvenance) as invalid:
         cross_domain_envelope_from_mapping(malformed)
     assert invalid.value.reference == "resource.identity.subject_kind"
+
+
+def test_extended_closed_values_cannot_hide_uncanonicalized_state() -> None:
+    class ExtendedDatasetIdentity(DatasetSnapshotIdentity):
+        __slots__ = ("provider_payload",)
+
+    class ExtendedResource(CrossDomainResourceReference):
+        pass
+
+    class ExtendedEnvelope(CrossDomainProvenanceEnvelope):
+        pass
+
+    admitted = cross_domain_envelope_from_mapping(
+        _load("dataset-snapshot-envelope.json")
+    )
+    extended_identity = ExtendedDatasetIdentity(
+        admitted.resource.identity.dataset_id,  # type: ignore[union-attr]
+        admitted.resource.identity.dataset_version,  # type: ignore[union-attr]
+    )
+    object.__setattr__(extended_identity, "provider_payload", "private-value")
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        validate_cross_domain_envelope(
+            replace(
+                admitted,
+                resource=replace(admitted.resource, identity=extended_identity),
+            )
+        )
+    assert invalid.value.reference == "resource.identity"
+
+    extended_resource = ExtendedResource(
+        admitted.resource.profile,
+        admitted.resource.owner_module,
+        admitted.resource.resource_kind,
+        admitted.resource.resource_id,
+        admitted.resource.identity,
+        admitted.resource.integrity_digest,
+        admitted.resource.recorded_at,
+        admitted.resource.provenance_label,
+        admitted.resource.validation_status,
+    )
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        validate_cross_domain_envelope(replace(admitted, resource=extended_resource))
+    assert invalid.value.reference == "resource"
+
+    extended_envelope = ExtendedEnvelope(
+        admitted.schema_version,
+        admitted.resource,
+        admitted.producer,
+        admitted.sources,
+    )
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        validate_cross_domain_envelope(extended_envelope)
+    assert invalid.value.reference == "envelope"
+
+    class ExtendedProducer(CrossDomainProducer):
+        pass
+
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        validate_cross_domain_envelope(
+            replace(
+                admitted,
+                producer=ExtendedProducer(
+                    admitted.producer.producer_id,
+                    admitted.producer.producer_version,
+                ),
+            )
+        )
+    assert invalid.value.reference == "producer"
+
+    class ExtendedSource(CrossDomainSource):
+        pass
+
+    with_sources = cross_domain_envelope_from_mapping(
+        _load("model-execution-envelope.json")
+    )
+    source = with_sources.sources[0]
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        validate_cross_domain_envelope(
+            replace(
+                with_sources,
+                sources=(ExtendedSource(source.relation, source.reference),),
+            )
+        )
+    assert invalid.value.reference == "sources.0"
+
+
+def test_profile_rules_are_process_immutable() -> None:
+    from financial_ai_academy.modules.audit.domain import cross_domain_provenance
+
+    rules = cross_domain_provenance._PROFILE_RULES
+    with pytest.raises(TypeError):
+        rules[CrossDomainProfile.DATASET_SNAPSHOT] = rules[  # type: ignore[index]
+            CrossDomainProfile.PROJECT_SNAPSHOT
+        ]
+    assert len(rules) == 9
+
+
+def test_invalid_aware_times_fail_with_bounded_deterministic_errors() -> None:
+    class MissingOffset(tzinfo):
+        def utcoffset(self, value: datetime | None) -> None:
+            return None
+
+        def dst(self, value: datetime | None) -> None:
+            return None
+
+    admitted = cross_domain_envelope_from_mapping(
+        _load("dataset-snapshot-envelope.json")
+    )
+    missing_offset = datetime(2026, 1, 1, tzinfo=MissingOffset())
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        validate_cross_domain_envelope(
+            replace(
+                admitted,
+                resource=replace(admitted.resource, recorded_at=missing_offset),
+            )
+        )
+    assert invalid.value.reference == "resource.recorded_at"
+
+    underflow = _load("dataset-snapshot-envelope.json")
+    underflow["resource"]["recorded_at"] = "0001-01-01T00:00:00+23:59"  # type: ignore[index]
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        cross_domain_envelope_from_mapping(underflow)
+    assert invalid.value.reference == "resource.recorded_at"
+
+
+def test_source_limit_rejects_before_parsing_source_elements() -> None:
+    oversized = _load("dataset-snapshot-envelope.json")
+    oversized["sources"] = ["private-value"] * 21
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        cross_domain_envelope_from_mapping(oversized)
+    assert invalid.value.reference == "sources"
+    assert "private-value" not in str(invalid.value)
 
 
 def test_one_invalid_profile_does_not_disable_unrelated_valid_profiles() -> None:
