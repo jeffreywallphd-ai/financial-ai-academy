@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
+from .domain.provenance import LineageView
+
 
 class AuditErrorCode(StrEnum):
     INVALID_CONTEXT = "invalid_context"
@@ -59,6 +61,21 @@ class ProjectAuditReconciliationReceipt:
     source_digest: str
 
 
+@dataclass(frozen=True, slots=True)
+class ReadPublishedLessonLineageRequest:
+    package_id: str
+    package_version: str
+    package_digest: str
+
+
+@dataclass(frozen=True, slots=True)
+class ReadKnowledgeCheckCompletionLineageRequest:
+    learner_id: str
+    placement_id: str
+    evidence_id: str
+    occurrence: int
+
+
 class AuditOperations(Protocol):
     def reconcile_lesson_completion(
         self, request: ReconcileLessonCompletionAuditRequest
@@ -67,3 +84,11 @@ class AuditOperations(Protocol):
     def reconcile_project_completion(
         self, request: ReconcileProjectCompletionAuditRequest
     ) -> ProjectAuditReconciliationReceipt: ...
+
+    def read_published_lesson_lineage(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> LineageView: ...
+
+    def read_knowledge_check_completion_lineage(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> LineageView: ...

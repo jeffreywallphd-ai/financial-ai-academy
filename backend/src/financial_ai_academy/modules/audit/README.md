@@ -52,5 +52,14 @@ This pure seam does not read a repository, compose live owner records, resolve
 identity or permission, expose HTTP, or change the existing reconciliation
 operations. Content and Assessment remain authoritative for their records, and
 a lineage reference grants no access or grading, mastery, causal, legal, or
-financial meaning. Runtime owner adapters and protected lineage reads are
-dependent work, not behavior hidden in the contract adapter.
+financial meaning. The shared-core lineage service now reads exact published
+lessons through Content's public operation, completion events through
+Assessment's public replay seam, and retained integrity references only from
+the Audit-owned table. The Content adapter omits lesson body, assets, source
+locators, and authoring state.
+
+Completion lineage reconciles idempotently, selects one exact evidence
+occurrence, reads its retained Audit reference under the server-bound learner
+and placement context, and composes a validated canonical view. It adds no
+table or cross-module foreign key. Protected HTTP, OpenAPI, and generated-client
+transport remain dependent work rather than behavior hidden in the core.

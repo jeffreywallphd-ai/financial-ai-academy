@@ -1,5 +1,12 @@
 """Audit domain."""
 
+from .learning_lineage import (
+    ContentLineageFragment,
+    InvalidLearningLineage,
+    compose_knowledge_check_completion_lineage,
+    compose_published_lesson_lineage,
+)
+
 from .provenance import (
     IncompleteLink,
     IncompleteReason,
@@ -26,8 +33,10 @@ from .provenance import (
 )
 
 __all__ = [
+    "ContentLineageFragment",
     "IncompleteLink",
     "IncompleteReason",
+    "InvalidLearningLineage",
     "InvalidProvenance",
     "LineageEdge",
     "LineageNode",
@@ -42,6 +51,8 @@ __all__ = [
     "RootKind",
     "ValidationStatus",
     "build_lineage_view",
+    "compose_knowledge_check_completion_lineage",
+    "compose_published_lesson_lineage",
     "envelope_payload",
     "lineage_view_digest",
     "lineage_view_payload",

@@ -148,6 +148,61 @@ class PostgresAuditRepository:
                 if self._before_commit is not None:
                     self._before_commit()
 
+    def read_assessment_completion_record(
+        self,
+        *,
+        actor_id: str,
+        placement_id: str,
+        evidence_id: str,
+    ) -> AssessmentCompletionAuditRecord | None:
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    audit_id,
+                    event_id,
+                    evidence_id,
+                    attempt_id,
+                    actor_id,
+                    action,
+                    placement_id,
+                    package_id,
+                    package_version,
+                    package_digest,
+                    assessment_id,
+                    assessment_version,
+                    definition_digest,
+                    occurred_at,
+                    integrity_digest,
+                    recorded_at
+                FROM audit.assessment_completion_records
+                WHERE actor_id = %s
+                  AND placement_id = %s
+                  AND evidence_id = %s
+                """,
+                (actor_id, placement_id, evidence_id),
+            ).fetchone()
+        if row is None:
+            return None
+        return AssessmentCompletionAuditRecord(
+            audit_id=str(row["audit_id"]),
+            event_id=str(row["event_id"]),
+            evidence_id=str(row["evidence_id"]),
+            attempt_id=str(row["attempt_id"]),
+            actor_id=str(row["actor_id"]),
+            action=str(row["action"]),
+            placement_id=str(row["placement_id"]),
+            package_id=str(row["package_id"]),
+            package_version=str(row["package_version"]),
+            package_digest=str(row["package_digest"]),
+            assessment_id=str(row["assessment_id"]),
+            assessment_version=str(row["assessment_version"]),
+            definition_digest=str(row["definition_digest"]),
+            occurred_at=row["occurred_at"],
+            integrity_digest=str(row["integrity_digest"]),
+            recorded_at=row["recorded_at"],
+        )
+
     @staticmethod
     def _assert_same(
         connection: psycopg.Connection,

@@ -80,7 +80,15 @@ code and field reference, not rejected values or storage details. The pure
 contract core performs no persistence, network, filesystem, provider, model,
 identity, authorization, API, browser, or external action.
 
-Owner adapters, Audit composition and persistence reads, protected HTTP,
-generated clients, browser presentation, export, retention, and live
-qualification are separate delivery seams. Their absence does not weaken the
-frozen v1 contract or imply that those runtime capabilities already exist.
+The shared Python core implements the first owner-adapter and composition seam.
+Content issues exact lesson/source envelopes through its public operation;
+Assessment completion events enter through its public replay surface; and
+Audit reconciles then reads only its append-only assessment-completion record.
+One exact completion occurrence correlates evidence, event, retained Audit
+reference, definition, lesson, and zero-to-many educational sources without
+copying body, answer, feedback, learner, locator, or provider payloads.
+
+Protected HTTP, generated clients, browser presentation, export, retention,
+and live-host qualification remain separate delivery seams. A shared-core
+lineage request does not itself grant authorization, and implemented local
+composition does not imply those transport or operational capabilities exist.

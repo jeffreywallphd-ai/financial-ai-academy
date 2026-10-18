@@ -1,5 +1,7 @@
 """Audit adapters."""
 
+from .learning_lineage import ContentLearningLineageSource
+
 from .provenance_contract import (
     envelope_from_mapping,
     envelope_payload,
@@ -10,6 +12,7 @@ from .provenance_contract import (
 )
 
 __all__ = [
+    "ContentLearningLineageSource",
     "envelope_from_mapping",
     "envelope_payload",
     "lineage_request_from_mapping",
