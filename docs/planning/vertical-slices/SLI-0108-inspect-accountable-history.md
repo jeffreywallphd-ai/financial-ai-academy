@@ -189,7 +189,7 @@ The dependency-ordered seams are:
 | [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | complete |
 | [WRK-0191](../work-packets/WRK-0191-expose-protected-accountable-history-api.md) | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | complete |
 | [WRK-0192](../work-packets/WRK-0192-present-accountable-history-to-learners.md) | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | complete |
-| WRK-0193 | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | captured |
+| [WRK-0193](../work-packets/WRK-0193-qualify-live-accountable-history.md) | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | ready |
 
 Sequential delivery is required because each packet freezes the meaning consumed
 by the next. No safe parallel packet exists inside this small shared contract and
@@ -296,3 +296,8 @@ conformance.
   architecture, security, documentation, planning, language, design, and
   anti-rigidity evidence. WRK-0193 is dependency-ready for cumulative live
   qualification.
+- 2026-10-18: Authored dependency-ready WRK-0193 just in time as a qualification-
+  only packet over the existing generated client, protected routes, disposable
+  local topology, and focused browser evidence. It adds no product behavior or
+  lower-level approval and stops for any durable retention, tenancy, legal,
+  encryption, recovery, or managed-cloud choice.
