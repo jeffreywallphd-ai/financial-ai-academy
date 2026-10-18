@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from ..domain.assistance_preferences import (
+    AssistancePreferenceChange,
+    AssistancePreferenceHistory,
+    AssistancePreferenceProfile,
+)
 from ..domain.models import (
     LessonCompletionProjection,
     PracticeHistoryProjection,
@@ -81,6 +86,36 @@ class PresentationPreferenceRepositoryPort(Protocol):
         profile: PresentationPreferenceProfile,
         change: PresentationPreferenceChange,
     ) -> PresentationPreferenceProfile: ...
+
+
+class AssistancePreferenceRepositoryPort(Protocol):
+    def get_assistance_preferences(
+        self, learner_id: str
+    ) -> AssistancePreferenceProfile | None: ...
+
+    def get_assistance_preference_history(
+        self, learner_id: str
+    ) -> AssistancePreferenceHistory | None: ...
+
+    def get_assistance_preference_snapshot(
+        self, learner_id: str
+    ) -> (
+        tuple[AssistancePreferenceProfile, AssistancePreferenceHistory] | None
+    ): ...
+
+    def get_assistance_preference_replay(
+        self, learner_id: str, idempotency_key: str
+    ) -> tuple[str, AssistancePreferenceProfile] | None: ...
+
+    def save_assistance_preferences_if_revision(
+        self,
+        *,
+        idempotency_key: str,
+        request_fingerprint: str,
+        expected_revision: int,
+        profile: AssistancePreferenceProfile,
+        change: AssistancePreferenceChange,
+    ) -> AssistancePreferenceProfile: ...
 
 
 class CompletionProjectionRepositoryPort(Protocol):

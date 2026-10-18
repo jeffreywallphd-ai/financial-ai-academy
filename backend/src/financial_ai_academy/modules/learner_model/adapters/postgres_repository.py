@@ -9,6 +9,11 @@ import psycopg
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
+from ..domain.assistance_preferences import (
+    AssistancePreferenceChange,
+    AssistancePreferenceHistory,
+    AssistancePreferenceProfile,
+)
 from ..domain.models import (
     LessonCompletionProjection,
     PracticeHistoryProjection,
@@ -24,6 +29,7 @@ from ..domain.presentation_preferences import (
     PresentationPreferenceHistory,
     PresentationPreferenceProfile,
 )
+from ..ports.assistance_preference_contract import AssistancePreferenceContract
 from ..ports.preference_contract import LearnerPreferenceContract
 from ..ports.presentation_preference_contract import PresentationPreferenceContract
 from ..ports.repositories import (
@@ -45,6 +51,9 @@ class PostgresCompletionProjectionRepository:
         presentation_preference_contract: PresentationPreferenceContract | None = None,
         before_presentation_preference_save: Callable[[], None] | None = None,
         after_presentation_preference_snapshot: Callable[[], None] | None = None,
+        assistance_preference_contract: AssistancePreferenceContract | None = None,
+        before_assistance_preference_save: Callable[[], None] | None = None,
+        after_assistance_preference_snapshot: Callable[[], None] | None = None,
     ) -> None:
         self._dsn = dsn
         self._before_projection = before_projection
@@ -58,6 +67,11 @@ class PostgresCompletionProjectionRepository:
         )
         self._after_presentation_preference_snapshot = (
             after_presentation_preference_snapshot
+        )
+        self._assistance_preference_contract = assistance_preference_contract
+        self._before_assistance_preference_save = before_assistance_preference_save
+        self._after_assistance_preference_snapshot = (
+            after_assistance_preference_snapshot
         )
 
     def replace(self, projection: LessonCompletionProjection) -> None:
@@ -807,6 +821,223 @@ class PostgresCompletionProjectionRepository:
                 )
         return profile
 
+    def get_assistance_preferences(
+        self, learner_id: str
+    ) -> AssistancePreferenceProfile | None:
+        contract = self._assistance_preferences()
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT profile FROM learner_model.assistance_preference_profiles
+                WHERE learner_id = %s
+                """,
+                (learner_id,),
+            ).fetchone()
+        return (
+            self._parse_assistance_profile(contract, row["profile"])
+            if row
+            else None
+        )
+
+    def get_assistance_preference_history(
+        self, learner_id: str
+    ) -> AssistancePreferenceHistory | None:
+        snapshot = self.get_assistance_preference_snapshot(learner_id)
+        return snapshot[1] if snapshot is not None else None
+
+    def get_assistance_preference_snapshot(
+        self, learner_id: str
+    ) -> (
+        tuple[AssistancePreferenceProfile, AssistancePreferenceHistory] | None
+    ):
+        contract = self._assistance_preferences()
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    profiles.profile,
+                    profiles.profile_id,
+                    profiles.revision,
+                    COALESCE(
+                        jsonb_agg(changes.change ORDER BY changes.revision)
+                            FILTER (WHERE changes.revision IS NOT NULL),
+                        '[]'::jsonb
+                    ) AS changes
+                FROM learner_model.assistance_preference_profiles AS profiles
+                LEFT JOIN learner_model.assistance_preference_changes AS changes
+                    ON changes.learner_id = profiles.learner_id
+                WHERE profiles.learner_id = %s
+                GROUP BY profiles.profile, profiles.profile_id, profiles.revision
+                """,
+                (learner_id,),
+            ).fetchone()
+            if self._after_assistance_preference_snapshot is not None:
+                self._after_assistance_preference_snapshot()
+        if row is None:
+            return None
+        profile = self._parse_assistance_profile(contract, row["profile"])
+        document = {
+            "schema_version": "1.0.0",
+            "profile_id": row["profile_id"],
+            "current_revision": row["revision"],
+            "changes": row["changes"],
+        }
+        return profile, contract.parse_history(self._json_bytes(document))
+
+    def get_assistance_preference_replay(
+        self, learner_id: str, idempotency_key: str
+    ) -> tuple[str, AssistancePreferenceProfile] | None:
+        contract = self._assistance_preferences()
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            row = connection.execute(
+                """
+                SELECT request_fingerprint, accepted_profile
+                FROM learner_model.assistance_preference_mutations
+                WHERE learner_id = %s AND idempotency_key = %s
+                """,
+                (learner_id, idempotency_key),
+            ).fetchone()
+        if row is None:
+            return None
+        return (
+            str(row["request_fingerprint"]),
+            self._parse_assistance_profile(contract, row["accepted_profile"]),
+        )
+
+    def save_assistance_preferences_if_revision(
+        self,
+        *,
+        idempotency_key: str,
+        request_fingerprint: str,
+        expected_revision: int,
+        profile: AssistancePreferenceProfile,
+        change: AssistancePreferenceChange,
+    ) -> AssistancePreferenceProfile:
+        contract = self._assistance_preferences()
+        profile_document = contract.profile_document(profile)
+        change_document = contract.history_document(
+            AssistancePreferenceHistory(
+                schema_version="1.0.0",
+                profile_id=profile.profile_id,
+                current_revision=profile.revision,
+                changes=(change,),
+            )
+        )["changes"][0]
+        with psycopg.connect(self._dsn, row_factory=dict_row) as connection:
+            with connection.transaction():
+                connection.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                    (f"learner-assistance-preferences:{profile.learner_id}",),
+                )
+                replay = connection.execute(
+                    """
+                    SELECT request_fingerprint, accepted_profile
+                    FROM learner_model.assistance_preference_mutations
+                    WHERE learner_id = %s AND idempotency_key = %s
+                    """,
+                    (profile.learner_id, idempotency_key),
+                ).fetchone()
+                if replay is not None:
+                    if str(replay["request_fingerprint"]) != request_fingerprint:
+                        raise LearnerPreferenceIdempotencyConflict()
+                    return self._parse_assistance_profile(
+                        contract, replay["accepted_profile"]
+                    )
+                current = connection.execute(
+                    """
+                    SELECT profile_id, revision
+                    FROM learner_model.assistance_preference_profiles
+                    WHERE learner_id = %s FOR UPDATE
+                    """,
+                    (profile.learner_id,),
+                ).fetchone()
+                current_revision = int(current["revision"]) if current else 1
+                if (
+                    current_revision != expected_revision
+                    or profile.revision != expected_revision + 1
+                    or (current and current["profile_id"] != profile.profile_id)
+                ):
+                    raise LearnerPreferenceRevisionConflict()
+                if current is None:
+                    connection.execute(
+                        """
+                        INSERT INTO learner_model.assistance_preference_profiles (
+                            profile_id, learner_id, revision, profile,
+                            profile_digest, created_at, updated_at
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            profile.profile_id,
+                            profile.learner_id,
+                            profile.revision,
+                            Jsonb(profile_document),
+                            profile.profile_digest,
+                            profile.created_at,
+                            profile.updated_at,
+                        ),
+                    )
+                else:
+                    connection.execute(
+                        """
+                        UPDATE learner_model.assistance_preference_profiles
+                        SET revision = %s, profile = %s, profile_digest = %s,
+                            updated_at = %s
+                        WHERE learner_id = %s
+                        """,
+                        (
+                            profile.revision,
+                            Jsonb(profile_document),
+                            profile.profile_digest,
+                            profile.updated_at,
+                            profile.learner_id,
+                        ),
+                    )
+                connection.execute(
+                    """
+                    INSERT INTO learner_model.assistance_preference_changes (
+                        learner_id, revision, change, occurred_at,
+                        resulting_profile_digest
+                    ) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        profile.learner_id,
+                        change.revision,
+                        Jsonb(change_document),
+                        change.occurred_at,
+                        change.resulting_profile_digest,
+                    ),
+                )
+                connection.execute(
+                    """
+                    DELETE FROM learner_model.assistance_preference_changes
+                    WHERE learner_id = %s AND revision IN (
+                        SELECT revision
+                        FROM learner_model.assistance_preference_changes
+                        WHERE learner_id = %s
+                        ORDER BY revision DESC OFFSET 100
+                    )
+                    """,
+                    (profile.learner_id, profile.learner_id),
+                )
+                if self._before_assistance_preference_save is not None:
+                    self._before_assistance_preference_save()
+                connection.execute(
+                    """
+                    INSERT INTO learner_model.assistance_preference_mutations (
+                        learner_id, idempotency_key, request_fingerprint,
+                        accepted_profile, accepted_revision
+                    ) VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        profile.learner_id,
+                        idempotency_key,
+                        request_fingerprint,
+                        Jsonb(profile_document),
+                        profile.revision,
+                    ),
+                )
+        return profile
+
     def _preferences(self) -> LearnerPreferenceContract:
         if self._preference_contract is None:
             raise RuntimeError("Learner preference contract is unavailable.")
@@ -816,6 +1047,11 @@ class PostgresCompletionProjectionRepository:
         if self._presentation_preference_contract is None:
             raise RuntimeError("Presentation preference contract is unavailable.")
         return self._presentation_preference_contract
+
+    def _assistance_preferences(self) -> AssistancePreferenceContract:
+        if self._assistance_preference_contract is None:
+            raise RuntimeError("Assistance preference contract is unavailable.")
+        return self._assistance_preference_contract
 
     @staticmethod
     def _json_bytes(value: object) -> bytes:
@@ -831,4 +1067,9 @@ class PostgresCompletionProjectionRepository:
     def _parse_presentation_profile(
         self, contract: PresentationPreferenceContract, value: object
     ) -> PresentationPreferenceProfile:
+        return contract.parse_profile(self._json_bytes(value))
+
+    def _parse_assistance_profile(
+        self, contract: AssistancePreferenceContract, value: object
+    ) -> AssistancePreferenceProfile:
         return contract.parse_profile(self._json_bytes(value))

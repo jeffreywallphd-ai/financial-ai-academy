@@ -86,6 +86,9 @@ from financial_ai_academy.modules.identity.application.service import IdentitySe
 from financial_ai_academy.modules.learner_model.adapters.assessment_gateway import (
     AssessmentCompletionEvidenceSource,
 )
+from financial_ai_academy.modules.learner_model.adapters.assistance_preference_contract import (
+    ContractAssistancePreferenceAdapter,
+)
 from financial_ai_academy.modules.learner_model.adapters.postgres_repository import (
     PostgresCompletionProjectionRepository,
 )
@@ -96,6 +99,7 @@ from financial_ai_academy.modules.learner_model.adapters.presentation_preference
     ContractPresentationPreferenceAdapter,
 )
 from financial_ai_academy.modules.learner_model.adapters.system import (
+    StableAssistancePreferenceSeed,
     StablePreferenceSeed,
     StablePresentationPreferenceSeed,
     UtcClock as LearnerModelUtcClock,
@@ -275,10 +279,14 @@ def build_application_services(
     learner_presentation_preference_contract = ContractPresentationPreferenceAdapter(
         settings.learner_presentation_preference_schema_dir
     )
+    learner_assistance_preference_contract = ContractAssistancePreferenceAdapter(
+        settings.learner_assistance_preference_schema_dir
+    )
     learner_model_repository = PostgresCompletionProjectionRepository(
         settings.postgres_dsn,
         preference_contract=learner_preference_contract,
         presentation_preference_contract=learner_presentation_preference_contract,
+        assistance_preference_contract=learner_assistance_preference_contract,
     )
     learner_model = LearnerModelService(
         AssessmentCompletionEvidenceSource(assessment),
@@ -291,6 +299,9 @@ def build_application_services(
         learner_model_repository,
         learner_presentation_preference_contract,
         StablePresentationPreferenceSeed(),
+        learner_model_repository,
+        learner_assistance_preference_contract,
+        StableAssistancePreferenceSeed(),
     )
     adaptation = AdaptationService(
         PublicCurriculumNavigationGateway(curriculum),

@@ -18,6 +18,10 @@ investment performance.
 - `mutate_presentation_preferences(MutatePresentationPreferencesRequest) -> PresentationPreferenceProfile`
 - `read_presentation_preference_history(ReadPresentationPreferenceHistoryRequest) -> PresentationPreferenceHistory`
 - `export_presentation_preferences(ExportPresentationPreferencesRequest) -> PresentationPreferenceExport`
+- `open_assistance_preferences(OpenAssistancePreferencesRequest) -> AssistancePreferenceProfile`
+- `mutate_assistance_preferences(MutateAssistancePreferencesRequest) -> AssistancePreferenceProfile`
+- `read_assistance_preference_history(ReadAssistancePreferenceHistoryRequest) -> AssistancePreferenceHistory`
+- `export_assistance_preferences(ExportAssistancePreferencesRequest) -> AssistancePreferenceExport`
 
 SLI-0074 adds a transport-neutral `learner-preferences/v1` contract core for
 explicit learner-entered goals, self-described experience, interests, closed
@@ -176,8 +180,22 @@ value or reset it to `off`. Bounded history contains no prior preference value,
 and export contains only the exact profile, correlated summaries, purpose, and
 limitations. The pure domain and JSON Schema adapter issue no identity or time
 and have no database, network, filesystem, provider, model, notification, UI,
-or cross-module effect. Application persistence and protected API composition
-remain a later packet.
+or cross-module effect.
+
+`learner_model_0006_assistance_preferences` owns the additive materialized
+profile, exact mutation replays, and newest 100 non-content summaries. An
+absent row projects deterministic revision-one `off` without writing. One
+per-learner advisory lock and transaction keep profile, summary, and replay
+atomic; changed-key reuse, stale revision, and interrupted writes preserve the
+current state. Coherent snapshot reads bind history and export to one current
+revision, and the development down migration refuses retained data.
+
+The four protected operations use server-owned learner identity. Reads require
+`learner_assistance_preferences.read`; mutation requires
+`learner_assistance_preferences.write`. The reviewed OpenAPI and generated
+TypeScript client are the same boundary for browser and ordinary headless
+callers. `on_request` remains learner intent only: the API admits no provider,
+permission, model call, AI output, local reminder, evidence, or recommendation.
 
 The platform-owned browser-local learning-reminder envelope is outside this
 module and has no learner identity, public API, or headless meaning. Its future

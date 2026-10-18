@@ -630,6 +630,255 @@
         "title": "AssetImageModel",
         "type": "object"
       },
+      "AssistancePreferenceChangeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "object_id": {
+            "title": "Object Id",
+            "type": "null"
+          },
+          "object_kind": {
+            "const": "profile",
+            "title": "Object Kind",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "operation": {
+            "enum": [
+              "replace_preferences",
+              "reset_profile"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "resulting_profile_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Resulting Profile Digest",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "revision",
+          "operation",
+          "object_kind",
+          "object_id",
+          "occurred_at",
+          "resulting_profile_digest"
+        ],
+        "title": "AssistancePreferenceChangeModel",
+        "type": "object"
+      },
+      "AssistancePreferenceExportResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "exported_at": {
+            "format": "date-time",
+            "title": "Exported At",
+            "type": "string"
+          },
+          "history": {
+            "$ref": "#/components/schemas/AssistancePreferenceHistoryResponseModel"
+          },
+          "limitations": {
+            "items": {
+              "maxLength": 320,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Limitations",
+            "type": "array"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/AssistancePreferenceProfileResponseModel"
+          },
+          "purpose": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "purpose",
+          "limitations",
+          "exported_at",
+          "profile",
+          "history"
+        ],
+        "title": "AssistancePreferenceExportResponseModel",
+        "type": "object"
+      },
+      "AssistancePreferenceHistoryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/AssistancePreferenceChangeModel"
+            },
+            "maxItems": 100,
+            "title": "Changes",
+            "type": "array"
+          },
+          "current_revision": {
+            "minimum": 1.0,
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "profile_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "profile_id",
+          "current_revision",
+          "changes"
+        ],
+        "title": "AssistancePreferenceHistoryResponseModel",
+        "type": "object"
+      },
+      "AssistancePreferenceMutationRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "mutation": {
+            "discriminator": {
+              "mapping": {
+                "replace_preferences": "#/components/schemas/ReplaceAssistancePreferencesMutationModel",
+                "reset_profile": "#/components/schemas/ResetAssistancePreferencesMutationModel"
+              },
+              "propertyName": "operation"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ReplaceAssistancePreferencesMutationModel"
+              },
+              {
+                "$ref": "#/components/schemas/ResetAssistancePreferencesMutationModel"
+              }
+            ],
+            "title": "Mutation"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "idempotency_key",
+          "expected_revision",
+          "mutation"
+        ],
+        "title": "AssistancePreferenceMutationRequestModel",
+        "type": "object"
+      },
+      "AssistancePreferenceProfileResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assistance_mode": {
+            "enum": [
+              "off",
+              "on_request"
+            ],
+            "title": "Assistance Mode",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "learner_id": {
+            "format": "uuid",
+            "title": "Learner Id",
+            "type": "string"
+          },
+          "profile_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Profile Digest",
+            "type": "string"
+          },
+          "profile_id": {
+            "maxLength": 64,
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Profile Id",
+            "type": "string"
+          },
+          "revision": {
+            "minimum": 1.0,
+            "title": "Revision",
+            "type": "integer"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "profile_id",
+          "learner_id",
+          "revision",
+          "assistance_mode",
+          "created_at",
+          "updated_at",
+          "profile_digest"
+        ],
+        "title": "AssistancePreferenceProfileResponseModel",
+        "type": "object"
+      },
       "AvailablePracticeReviewTargetModel": {
         "additionalProperties": false,
         "properties": {
@@ -10127,6 +10376,30 @@
         "title": "ReorderLearnerInterestsMutationModel",
         "type": "object"
       },
+      "ReplaceAssistancePreferencesMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "assistance_mode": {
+            "enum": [
+              "off",
+              "on_request"
+            ],
+            "title": "Assistance Mode",
+            "type": "string"
+          },
+          "operation": {
+            "const": "replace_preferences",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation",
+          "assistance_mode"
+        ],
+        "title": "ReplaceAssistancePreferencesMutationModel",
+        "type": "object"
+      },
       "ReplacePresentationPreferencesMutationModel": {
         "additionalProperties": false,
         "properties": {
@@ -10317,6 +10590,21 @@
           "expected_reference_version"
         ],
         "title": "ReplaceProjectReferenceModel",
+        "type": "object"
+      },
+      "ResetAssistancePreferencesMutationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "operation": {
+            "const": "reset_profile",
+            "title": "Operation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operation"
+        ],
+        "title": "ResetAssistancePreferencesMutationModel",
         "type": "object"
       },
       "ResetLearnerPreferenceProfileMutationModel": {
@@ -12617,6 +12905,360 @@
         "summary": "Submit Placed Practice",
         "tags": [
           "assessment"
+        ]
+      }
+    },
+    "/api/v1/learner-assistance-preferences": {
+      "get": {
+        "operationId": "getLearnerAssistancePreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistancePreferenceProfileResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Learner Assistance Preferences",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-assistance-preferences/export": {
+      "get": {
+        "operationId": "exportLearnerAssistancePreferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistancePreferenceExportResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Export Learner Assistance Preferences",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-assistance-preferences/history": {
+      "get": {
+        "operationId": "getLearnerAssistancePreferenceHistory",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistancePreferenceHistoryResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Learner Assistance Preference History",
+        "tags": [
+          "learner-model"
+        ]
+      }
+    },
+    "/api/v1/learner-assistance-preferences/mutations": {
+      "post": {
+        "operationId": "mutateLearnerAssistancePreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistancePreferenceMutationRequestModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistancePreferenceProfileResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Mutate Learner Assistance Preferences",
+        "tags": [
+          "learner-model"
         ]
       }
     },

@@ -255,6 +255,16 @@ The client accepts only the closed text-size, text-spacing, reading-width, and
 motion values. It does not carry arbitrary CSS, medical or inferred labels,
 evidence, policy, provider, or browser-local theme. The display settings UI and
 runtime token application remain clients of this same headless boundary.
+
+The generated client also exposes four protected learner AI-help choice
+operations for profile, closed replacement or reset, bounded history, and
+export. They use server-owned learner identity and
+`learner_assistance_preferences.read|write` for browser and headless callers.
+The only values are `off` and `on_request`; no request can select a provider,
+grant data permission, call a model, create output, or carry the browser-local
+reminder choice. The later `AI help and reminders` screen remains a client of
+this API plus the separate local adapter, not an alternate authority.
+
 `/preferences/display` validates one coherent profile/history export before it
 shows private details, previews complete drafts through the four semantic root
 attributes, sends one exact complete replacement or confirmed reset, and keeps

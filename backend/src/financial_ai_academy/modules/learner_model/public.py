@@ -7,6 +7,12 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Protocol
 
+from .domain.assistance_preferences import (
+    AssistancePreferenceExport,
+    AssistancePreferenceHistory,
+    AssistancePreferenceMutationIntent,
+    AssistancePreferenceProfile,
+)
 from .domain.preferences import (
     LearnerPreferenceProfile,
     PreferenceExport,
@@ -187,6 +193,27 @@ class ExportPresentationPreferencesRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class OpenAssistancePreferencesRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class MutateAssistancePreferencesRequest:
+    learner_id: str
+    intent: AssistancePreferenceMutationIntent
+
+
+@dataclass(frozen=True, slots=True)
+class ReadAssistancePreferenceHistoryRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class ExportAssistancePreferencesRequest:
+    learner_id: str
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectCompletionHistoryEntry:
     event_id: str
     evidence_id: str
@@ -264,3 +291,19 @@ class LearnerModelOperations(Protocol):
     def export_presentation_preferences(
         self, request: ExportPresentationPreferencesRequest
     ) -> PresentationPreferenceExport: ...
+
+    def open_assistance_preferences(
+        self, request: OpenAssistancePreferencesRequest
+    ) -> AssistancePreferenceProfile: ...
+
+    def mutate_assistance_preferences(
+        self, request: MutateAssistancePreferencesRequest
+    ) -> AssistancePreferenceProfile: ...
+
+    def read_assistance_preference_history(
+        self, request: ReadAssistancePreferenceHistoryRequest
+    ) -> AssistancePreferenceHistory: ...
+
+    def export_assistance_preferences(
+        self, request: ExportAssistancePreferencesRequest
+    ) -> AssistancePreferenceExport: ...

@@ -55,6 +55,10 @@ from financial_ai_academy.modules.curriculum.public import (
     curriculum_graph_payload,
 )
 from financial_ai_academy.modules.learner_model.public import (
+    AssistancePreferenceExport,
+    AssistancePreferenceHistory,
+    AssistancePreferenceMutationIntent,
+    AssistancePreferenceProfile,
     LearnerPreferenceProfile,
     LessonCompletionView,
     PreferenceExport,
@@ -66,6 +70,9 @@ from financial_ai_academy.modules.learner_model.public import (
     PresentationPreferenceProfile,
     PracticeHistoryView,
     ProjectCompletionView,
+)
+from financial_ai_academy.modules.learner_model.domain.assistance_preferences import (
+    AssistancePreferenceMutation,
 )
 from financial_ai_academy.modules.learner_model.domain.preferences import (
     PreferenceMutation,
@@ -2826,6 +2833,71 @@ class PresentationPreferenceExportResponseModel(LearnerPreferenceTimestampModel)
     history: PresentationPreferenceHistoryResponseModel
 
 
+class AssistancePreferenceProfileResponseModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    profile_id: LearnerPreferenceIdentifier
+    learner_id: UUID
+    revision: int = Field(ge=1)
+    assistance_mode: Literal["off", "on_request"]
+    created_at: datetime
+    updated_at: datetime
+    profile_digest: LearnerPreferenceDigest
+
+
+class ReplaceAssistancePreferencesMutationModel(ApiModel):
+    operation: Literal["replace_preferences"]
+    assistance_mode: Literal["off", "on_request"]
+
+
+class ResetAssistancePreferencesMutationModel(ApiModel):
+    operation: Literal["reset_profile"]
+
+
+AssistancePreferenceMutationModel = Annotated[
+    Union[
+        ReplaceAssistancePreferencesMutationModel,
+        ResetAssistancePreferencesMutationModel,
+    ],
+    Field(discriminator="operation"),
+]
+
+
+class AssistancePreferenceMutationRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    idempotency_key: LearnerPreferenceIdentifier
+    expected_revision: int = Field(ge=1)
+    mutation: AssistancePreferenceMutationModel
+
+
+class AssistancePreferenceChangeModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    revision: int = Field(ge=1)
+    operation: Literal["replace_preferences", "reset_profile"]
+    object_kind: Literal["profile"]
+    object_id: None
+    occurred_at: datetime
+    resulting_profile_digest: LearnerPreferenceDigest
+
+
+class AssistancePreferenceHistoryResponseModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    profile_id: LearnerPreferenceIdentifier
+    current_revision: int = Field(ge=1)
+    changes: list[AssistancePreferenceChangeModel] = Field(max_length=100)
+
+
+class AssistancePreferenceExportResponseModel(LearnerPreferenceTimestampModel):
+    schema_version: Literal["1.0.0"]
+    purpose: str = Field(min_length=1, max_length=240)
+    limitations: list[LearnerPreferenceLimitation] = Field(
+        min_length=1,
+        max_length=8,
+    )
+    exported_at: datetime
+    profile: AssistancePreferenceProfileResponseModel
+    history: AssistancePreferenceHistoryResponseModel
+
+
 class HealthResponseModel(ApiModel):
     status: Literal["ok", "ready", "not_ready"]
 
@@ -3304,6 +3376,43 @@ def presentation_preference_export_response(
     export: PresentationPreferenceExport,
 ) -> PresentationPreferenceExportResponseModel:
     return PresentationPreferenceExportResponseModel.model_validate(asdict(export))
+
+
+def assistance_preference_mutation_intent(
+    model: AssistancePreferenceMutationRequestModel,
+) -> AssistancePreferenceMutationIntent:
+    values = model.mutation.model_dump()
+    return AssistancePreferenceMutationIntent(
+        schema_version=model.schema_version,
+        idempotency_key=model.idempotency_key,
+        expected_revision=model.expected_revision,
+        mutation=AssistancePreferenceMutation(
+            operation=values["operation"],
+            assistance_mode=values.get("assistance_mode"),
+        ),
+    )
+
+
+def assistance_preference_profile_response(
+    profile: AssistancePreferenceProfile,
+) -> AssistancePreferenceProfileResponseModel:
+    return AssistancePreferenceProfileResponseModel.model_validate(
+        asdict(profile)
+    )
+
+
+def assistance_preference_history_response(
+    history: AssistancePreferenceHistory,
+) -> AssistancePreferenceHistoryResponseModel:
+    return AssistancePreferenceHistoryResponseModel.model_validate(
+        asdict(history)
+    )
+
+
+def assistance_preference_export_response(
+    export: AssistancePreferenceExport,
+) -> AssistancePreferenceExportResponseModel:
+    return AssistancePreferenceExportResponseModel.model_validate(asdict(export))
 
 
 def _inline_node(node: content_public.InlineNode) -> InlineNodeModel:

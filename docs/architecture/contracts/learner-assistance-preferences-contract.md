@@ -72,6 +72,30 @@ capability must define and govern its own permission, scheduling, destination,
 retry, revocation, and delivery contracts rather than reinterpret this setting
 as execution authority.
 
+## Persistence and Public API
+
+`learner_model_0006_assistance_preferences` stores the current learner-owned
+profile, accepted request replays, and newest 100 non-content change summaries
+inside the Learner-model schema. An absent row projects deterministic revision
+one `off` without a read-side write. A per-learner advisory lock and one
+transaction keep profile, summary, and replay atomic; exact retry returns the
+accepted profile, while changed-key reuse, stale revision, and interrupted
+writes change nothing. Retained data blocks the development down migration.
+
+The protected profile, mutation, history, and export operations use the opaque
+server session as the only learner selector. Reads require
+`learner_assistance_preferences.read`; mutation requires
+`learner_assistance_preferences.write`. The reviewed OpenAPI and generated
+TypeScript client serve browser, command-line, service, and future headless
+clients without a second authority path. Public requests cannot carry learner,
+provider, model, credential, data permission, prompt, content, tool, output,
+evidence, policy, local reminder, or generated server facts.
+
+The public boundary records a choice only. No accepted request admits a
+provider, grants egress, calls a model, creates output, schedules work, prompts
+for notification permission, or sends a reminder. Those effects require later
+governed capabilities and cannot be inferred from `on_request`.
+
 ## Failure and Compatibility
 
 Unknown versions, operations, fields, values, invalid identity/time/digest,

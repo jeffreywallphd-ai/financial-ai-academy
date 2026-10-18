@@ -4,6 +4,18 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/learner-assistance-preferences`, `GET
+/api/v1/learner-assistance-preferences/history`, `GET
+/api/v1/learner-assistance-preferences/export`, and `POST
+/api/v1/learner-assistance-preferences/mutations` are the protected AI-help
+choice boundary. Reads require `learner_assistance_preferences.read`; mutation
+requires `learner_assistance_preferences.write`. All four derive learner
+identity from the opaque server session and reject query-selected identity.
+The only stored values are `off` and `on_request`; the latter records learner
+intent but does not admit a provider, grant data permission, call a model,
+create output, or promise availability. Browser and headless clients use the
+same reviewed operations. The browser-local reminder setting is not API state.
+
 `GET /api/v1/learner-presentation-preferences`, `GET
 /api/v1/learner-presentation-preferences/history`, `GET
 /api/v1/learner-presentation-preferences/export`, and `POST

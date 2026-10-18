@@ -149,6 +149,8 @@ def test_bootstrap_persists_stable_binding_and_rotates_sessions() -> None:
         "curriculum.discovery.read",
         "curriculum.graph.read",
         "curriculum.lesson.read",
+        "learner_assistance_preferences.read",
+        "learner_assistance_preferences.write",
         "learner_preferences.read",
         "learner_preferences.write",
         "learner_presentation_preferences.read",

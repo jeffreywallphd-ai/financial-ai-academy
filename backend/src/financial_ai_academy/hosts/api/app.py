@@ -85,19 +85,23 @@ from financial_ai_academy.modules.identity.public import (
     SingleProfileBootstrapRequest,
 )
 from financial_ai_academy.modules.learner_model.public import (
+    ExportAssistancePreferencesRequest,
     ExportLearnerPreferencesRequest,
     ExportPresentationPreferencesRequest,
     LearnerModelError,
     LearnerModelErrorCode,
     LearnerModelOperations,
+    MutateAssistancePreferencesRequest,
     MutateLearnerPreferencesRequest,
     MutatePresentationPreferencesRequest,
+    OpenAssistancePreferencesRequest,
     OpenLearnerPreferencesRequest,
     OpenPresentationPreferencesRequest,
     OpenLessonCompletionRequest,
     OpenProjectCompletionRequest,
     OpenPracticeHistoryRequest,
     PracticeHistoryView,
+    ReadAssistancePreferenceHistoryRequest,
     ReadLearnerPreferenceHistoryRequest,
     ReadPresentationPreferenceHistoryRequest,
 )
@@ -136,6 +140,10 @@ from financial_ai_academy.platform.security.single_profile_policy import (
 
 from .models import (
     ActivityLaunchResponseModel,
+    AssistancePreferenceExportResponseModel,
+    AssistancePreferenceHistoryResponseModel,
+    AssistancePreferenceMutationRequestModel,
+    AssistancePreferenceProfileResponseModel,
     ApiErrorEnvelope,
     CurriculumGraphResponseModel,
     DiscoveryTopic,
@@ -187,6 +195,10 @@ from .models import (
     PersonalWorkspaceResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
+    assistance_preference_export_response,
+    assistance_preference_history_response,
+    assistance_preference_mutation_intent,
+    assistance_preference_profile_response,
     activity_launch_response,
     curriculum_graph_response,
     knowledge_check_presentation_response,
@@ -833,6 +845,26 @@ def create_app(services: ApiServices) -> FastAPI:
             raise IdentityError(
                 IdentityErrorCode.FORBIDDEN,
                 "The learner session cannot change display choices.",
+            )
+        return context
+
+    def assistance_preferences_read_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "learner_assistance_preferences.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read the AI-help choice.",
+            )
+        return context
+
+    def assistance_preferences_write_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "learner_assistance_preferences.write" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot change the AI-help choice.",
             )
         return context
 
@@ -2147,6 +2179,110 @@ def create_app(services: ApiServices) -> FastAPI:
         )
         return presentation_preference_export_response(exported)
 
+    @app.get(
+        "/api/v1/learner-assistance-preferences",
+        response_model=AssistancePreferenceProfileResponseModel,
+        operation_id="getLearnerAssistancePreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def get_learner_assistance_preferences(
+        request: Request,
+        context: LearnerContext = Depends(assistance_preferences_read_context),
+    ) -> AssistancePreferenceProfileResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "The AI-help choice does not accept query input.",
+                reference="query",
+            )
+        profile = _learner_model_service(
+            services.learner_model
+        ).open_assistance_preferences(
+            OpenAssistancePreferencesRequest(learner_id=context.learner_id)
+        )
+        return assistance_preference_profile_response(profile)
+
+    @app.post(
+        "/api/v1/learner-assistance-preferences/mutations",
+        response_model=AssistancePreferenceProfileResponseModel,
+        operation_id="mutateLearnerAssistancePreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def mutate_learner_assistance_preferences(
+        request: Request,
+        request_model: AssistancePreferenceMutationRequestModel,
+        context: LearnerContext = Depends(assistance_preferences_write_context),
+    ) -> AssistancePreferenceProfileResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "AI-help choice changes do not accept query input.",
+                reference="query",
+            )
+        profile = _learner_model_service(
+            services.learner_model
+        ).mutate_assistance_preferences(
+            MutateAssistancePreferencesRequest(
+                learner_id=context.learner_id,
+                intent=assistance_preference_mutation_intent(request_model),
+            )
+        )
+        return assistance_preference_profile_response(profile)
+
+    @app.get(
+        "/api/v1/learner-assistance-preferences/history",
+        response_model=AssistancePreferenceHistoryResponseModel,
+        operation_id="getLearnerAssistancePreferenceHistory",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def get_learner_assistance_preference_history(
+        request: Request,
+        context: LearnerContext = Depends(assistance_preferences_read_context),
+    ) -> AssistancePreferenceHistoryResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "AI-help choice history does not accept query input.",
+                reference="query",
+            )
+        history = _learner_model_service(
+            services.learner_model
+        ).read_assistance_preference_history(
+            ReadAssistancePreferenceHistoryRequest(
+                learner_id=context.learner_id
+            )
+        )
+        return assistance_preference_history_response(history)
+
+    @app.get(
+        "/api/v1/learner-assistance-preferences/export",
+        response_model=AssistancePreferenceExportResponseModel,
+        operation_id="exportLearnerAssistancePreferences",
+        responses=_ERROR_RESPONSES,
+        tags=["learner-model"],
+    )
+    def export_learner_assistance_preferences(
+        request: Request,
+        context: LearnerContext = Depends(assistance_preferences_read_context),
+    ) -> AssistancePreferenceExportResponseModel:
+        if request.query_params:
+            raise LearnerModelError(
+                LearnerModelErrorCode.INVALID_REQUEST,
+                "The AI-help choice export does not accept query input.",
+                reference="query",
+            )
+        exported = _learner_model_service(
+            services.learner_model
+        ).export_assistance_preferences(
+            ExportAssistancePreferencesRequest(
+                learner_id=context.learner_id
+            )
+        )
+        return assistance_preference_export_response(exported)
+
     def reviewed_openapi() -> dict[str, object]:
         if app.openapi_schema is None:
             schema = get_openapi(
@@ -2195,6 +2331,12 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/learner-presentation-preferences/mutations"
             ]["post"]
             presentation_preference_mutation_operation["responses"].pop(
+                "422", None
+            )
+            assistance_preference_mutation_operation = schema["paths"][
+                "/api/v1/learner-assistance-preferences/mutations"
+            ]["post"]
+            assistance_preference_mutation_operation["responses"].pop(
                 "422", None
             )
             app.openapi_schema = schema

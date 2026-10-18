@@ -5,11 +5,16 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import UUID, uuid4, uuid5
 
-from ..ports.system import PreferenceSeed, PresentationPreferenceSeed
+from ..ports.system import (
+    AssistancePreferenceSeed,
+    PreferenceSeed,
+    PresentationPreferenceSeed,
+)
 
 
 _PREFERENCE_NAMESPACE = UUID("372c8e50-c9e8-47f1-941a-c467ff5df948")
 _PRESENTATION_PREFERENCE_NAMESPACE = UUID("305d4e9d-9dd0-4132-bf02-00bcb50a337d")
+_ASSISTANCE_PREFERENCE_NAMESPACE = UUID("1e5e4d0d-5602-474f-a13b-ed56e2c3f6a0")
 _LOGICAL_INCEPTION = datetime(2000, 1, 1, tzinfo=timezone.utc)
 
 
@@ -41,6 +46,19 @@ class StablePresentationPreferenceSeed:
             profile_id=(
                 "presentation."
                 f"{uuid5(_PRESENTATION_PREFERENCE_NAMESPACE, learner_id)}"
+            ),
+            created_at=_LOGICAL_INCEPTION,
+        )
+
+
+class StableAssistancePreferenceSeed:
+    """Project an unmaterialized AI-help profile without a read write."""
+
+    def for_learner(self, learner_id: str) -> AssistancePreferenceSeed:
+        return AssistancePreferenceSeed(
+            profile_id=(
+                "assistance."
+                f"{uuid5(_ASSISTANCE_PREFERENCE_NAMESPACE, learner_id)}"
             ),
             created_at=_LOGICAL_INCEPTION,
         )

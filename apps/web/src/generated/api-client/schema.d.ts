@@ -120,6 +120,42 @@ export interface paths {
       };
       readonly post: operations["submitPlacedPractice"];
     };
+  readonly "/api/v1/learner-assistance-preferences": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getLearnerAssistancePreferences"];
+    };
+  readonly "/api/v1/learner-assistance-preferences/export": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["exportLearnerAssistancePreferences"];
+    };
+  readonly "/api/v1/learner-assistance-preferences/history": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getLearnerAssistancePreferenceHistory"];
+    };
+  readonly "/api/v1/learner-assistance-preferences/mutations": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["mutateLearnerAssistancePreferences"];
+    };
   readonly "/api/v1/learner-preferences": {
       readonly parameters: {
         readonly query?: never;
@@ -490,6 +526,45 @@ export interface components {
       readonly "alt_text": string;
       readonly "asset_id": string;
       readonly "kind"?: "asset_image";
+    };
+    readonly "AssistancePreferenceChangeModel": {
+      readonly "object_id": null;
+      readonly "object_kind": "profile";
+      readonly "occurred_at": string;
+      readonly "operation": "replace_preferences" | "reset_profile";
+      readonly "resulting_profile_digest": string;
+      readonly "revision": number;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "AssistancePreferenceExportResponseModel": {
+      readonly "exported_at": string;
+      readonly "history": components["schemas"]["AssistancePreferenceHistoryResponseModel"];
+      readonly "limitations": ReadonlyArray<string>;
+      readonly "profile": components["schemas"]["AssistancePreferenceProfileResponseModel"];
+      readonly "purpose": string;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "AssistancePreferenceHistoryResponseModel": {
+      readonly "changes": ReadonlyArray<components["schemas"]["AssistancePreferenceChangeModel"]>;
+      readonly "current_revision": number;
+      readonly "profile_id": string;
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "AssistancePreferenceMutationRequestModel": {
+      readonly "expected_revision": number;
+      readonly "idempotency_key": string;
+      readonly "mutation": components["schemas"]["ReplaceAssistancePreferencesMutationModel"] | components["schemas"]["ResetAssistancePreferencesMutationModel"];
+      readonly "schema_version": "1.0.0";
+    };
+    readonly "AssistancePreferenceProfileResponseModel": {
+      readonly "assistance_mode": "off" | "on_request";
+      readonly "created_at": string;
+      readonly "learner_id": string;
+      readonly "profile_digest": string;
+      readonly "profile_id": string;
+      readonly "revision": number;
+      readonly "schema_version": "1.0.0";
+      readonly "updated_at": string;
     };
     readonly "AvailablePracticeReviewTargetModel": {
       readonly "destination": components["schemas"]["PracticeReviewDestinationModel"];
@@ -1847,6 +1922,10 @@ export interface components {
       readonly "operation": "reorder_interests";
       readonly "ordered_ids": ReadonlyArray<string>;
     };
+    readonly "ReplaceAssistancePreferencesMutationModel": {
+      readonly "assistance_mode": "off" | "on_request";
+      readonly "operation": "replace_preferences";
+    };
     readonly "ReplacePresentationPreferencesMutationModel": {
       readonly "motion": "system" | "reduce";
       readonly "operation": "replace_preferences";
@@ -1872,6 +1951,9 @@ export interface components {
       readonly "title": string;
       readonly "url": string;
       readonly "use_constraints"?: string | null;
+    };
+    readonly "ResetAssistancePreferencesMutationModel": {
+      readonly "operation": "reset_profile";
     };
     readonly "ResetLearnerPreferenceProfileMutationModel": {
       readonly "operation": "reset_profile";
@@ -2716,6 +2798,222 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["PracticeSubmissionResultResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getLearnerAssistancePreferences: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["AssistancePreferenceProfileResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly exportLearnerAssistancePreferences: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["AssistancePreferenceExportResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getLearnerAssistancePreferenceHistory: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["AssistancePreferenceHistoryResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly mutateLearnerAssistancePreferences: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["AssistancePreferenceMutationRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["AssistancePreferenceProfileResponseModel"];
           };
         };
         readonly 400: {

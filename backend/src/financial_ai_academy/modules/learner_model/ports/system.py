@@ -33,3 +33,13 @@ class PresentationPreferenceSeed:
 
 class PresentationPreferenceSeedPort(Protocol):
     def for_learner(self, learner_id: str) -> PresentationPreferenceSeed: ...
+
+
+@dataclass(frozen=True, slots=True)
+class AssistancePreferenceSeed:
+    profile_id: str
+    created_at: datetime
+
+
+class AssistancePreferenceSeedPort(Protocol):
+    def for_learner(self, learner_id: str) -> AssistancePreferenceSeed: ...

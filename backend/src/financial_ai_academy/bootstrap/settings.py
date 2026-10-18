@@ -73,6 +73,15 @@ class SingleProfileApplicationSettings:
             / "v1"
         )
 
+    @property
+    def learner_assistance_preference_schema_dir(self) -> Path:
+        """Return the Learner-model AI-help preference v1 schemas."""
+        return (
+            self.lesson_schema_dir.parents[1]
+            / "learner-assistance-preferences"
+            / "v1"
+        )
+
     def validate(self) -> SingleProfileRequestPolicy:
         if not self.postgres_dsn.startswith(
             ("postgresql://", "postgres://")
@@ -99,6 +108,10 @@ class SingleProfileApplicationSettings:
         if not self.learner_presentation_preference_schema_dir.is_dir():
             raise ValueError(
                 "Learner presentation preference schema directory is unavailable."
+            )
+        if not self.learner_assistance_preference_schema_dir.is_dir():
+            raise ValueError(
+                "Learner assistance preference schema directory is unavailable."
             )
         if not self.migrations_dir.is_dir():
             raise ValueError("Migration directory is unavailable.")

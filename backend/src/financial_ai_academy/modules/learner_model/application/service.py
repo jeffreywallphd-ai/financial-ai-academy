@@ -6,6 +6,13 @@ import hashlib
 import json
 from uuid import UUID
 
+from ..domain.assistance_preferences import (
+    AssistancePreferenceExport,
+    AssistancePreferenceHistory,
+    AssistancePreferenceProfile,
+    InvalidAssistancePreference,
+    validate_assistance_preference_history,
+)
 from ..domain.models import (
     InvalidCompletionEvidence,
     LessonCompletionProjection,
@@ -30,6 +37,10 @@ from ..domain.presentation_preferences import (
     validate_presentation_preference_history,
 )
 from ..ports.gateways import CompletionEvidenceSourcePort
+from ..ports.assistance_preference_contract import (
+    AssistancePreferenceContract,
+    AssistancePreferenceContractFailure,
+)
 from ..ports.preference_contract import (
     LearnerPreferenceContract,
     LearnerPreferenceContractFailure,
@@ -39,6 +50,7 @@ from ..ports.presentation_preference_contract import (
     PresentationPreferenceContractFailure,
 )
 from ..ports.repositories import (
+    AssistancePreferenceRepositoryPort,
     CompletionProjectionRepositoryPort,
     LearnerPreferenceIdempotencyConflict,
     LearnerPreferenceRepositoryPort,
@@ -46,20 +58,24 @@ from ..ports.repositories import (
     PresentationPreferenceRepositoryPort,
 )
 from ..ports.system import (
+    AssistancePreferenceSeedPort,
     ClockPort,
     IdentifierPort,
     PreferenceSeedPort,
     PresentationPreferenceSeedPort,
 )
 from ..public import (
+    ExportAssistancePreferencesRequest,
     ExportPresentationPreferencesRequest,
     ExportLearnerPreferencesRequest,
     LearnerModelError,
     LearnerModelErrorCode,
     LessonCompletionHistoryEntry,
     LessonCompletionView,
+    MutateAssistancePreferencesRequest,
     MutateLearnerPreferencesRequest,
     MutatePresentationPreferencesRequest,
+    OpenAssistancePreferencesRequest,
     OpenLearnerPreferencesRequest,
     OpenPresentationPreferencesRequest,
     OpenLessonCompletionRequest,
@@ -70,6 +86,7 @@ from ..public import (
     PracticeHistoryView,
     ProjectCompletionHistoryEntry,
     ProjectCompletionView,
+    ReadAssistancePreferenceHistoryRequest,
     ReadLearnerPreferenceHistoryRequest,
     ReadPresentationPreferenceHistoryRequest,
 )
@@ -92,6 +109,11 @@ class LearnerModelService:
             PresentationPreferenceContract | None
         ) = None,
         presentation_preference_seeds: PresentationPreferenceSeedPort | None = None,
+        assistance_preference_repository: (
+            AssistancePreferenceRepositoryPort | None
+        ) = None,
+        assistance_preference_contract: AssistancePreferenceContract | None = None,
+        assistance_preference_seeds: AssistancePreferenceSeedPort | None = None,
     ) -> None:
         self._source = source
         self._repository = repository
@@ -103,6 +125,9 @@ class LearnerModelService:
         self._presentation_preference_repository = presentation_preference_repository
         self._presentation_preference_contract = presentation_preference_contract
         self._presentation_preference_seeds = presentation_preference_seeds
+        self._assistance_preference_repository = assistance_preference_repository
+        self._assistance_preference_contract = assistance_preference_contract
+        self._assistance_preference_seeds = assistance_preference_seeds
 
     def open_lesson_completion(
         self, request: OpenLessonCompletionRequest
@@ -524,6 +549,217 @@ class LearnerModelService:
         except Exception as error:
             raise self._presentation_preference_unavailable("export") from error
 
+    def open_assistance_preferences(
+        self, request: OpenAssistancePreferencesRequest
+    ) -> AssistancePreferenceProfile:
+        self._validate_learner(request.learner_id)
+        repository, contract, seeds = self._assistance_preference_dependencies()
+        try:
+            stored = repository.get_assistance_preferences(request.learner_id)
+            return self._revalidate_assistance_preference(
+                stored
+                or self._default_assistance_preferences(
+                    request.learner_id, contract, seeds
+                ),
+                contract,
+            )
+        except LearnerModelError:
+            raise
+        except AssistancePreferenceContractFailure as error:
+            raise self._assistance_preference_integrity(error.reference) from error
+        except Exception as error:
+            raise self._assistance_preference_unavailable() from error
+
+    def mutate_assistance_preferences(
+        self, request: MutateAssistancePreferencesRequest
+    ) -> AssistancePreferenceProfile:
+        self._validate_learner(request.learner_id)
+        repository, contract, seeds = self._assistance_preference_dependencies()
+        intent = request.intent
+        try:
+            fingerprint = self._preference_fingerprint(
+                contract.mutation_intent_document(intent)
+            )
+            replay = repository.get_assistance_preference_replay(
+                request.learner_id, intent.idempotency_key
+            )
+            if replay is not None:
+                accepted_fingerprint, profile = replay
+                if accepted_fingerprint != fingerprint:
+                    raise LearnerModelError(
+                        LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                        "That request key already names a different AI-help change.",
+                        reference=intent.idempotency_key,
+                    )
+                return self._revalidate_assistance_preference(profile, contract)
+            current = repository.get_assistance_preferences(request.learner_id)
+            current = self._revalidate_assistance_preference(
+                current
+                or self._default_assistance_preferences(
+                    request.learner_id, contract, seeds
+                ),
+                contract,
+            )
+            if intent.expected_revision != current.revision:
+                replay = repository.get_assistance_preference_replay(
+                    request.learner_id, intent.idempotency_key
+                )
+                if replay is not None:
+                    accepted_fingerprint, profile = replay
+                    if accepted_fingerprint != fingerprint:
+                        raise LearnerModelError(
+                            LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                            "That request key already names a different AI-help change.",
+                            reference=intent.idempotency_key,
+                        )
+                    return self._revalidate_assistance_preference(
+                        profile, contract
+                    )
+                raise self._assistance_preference_stale(intent.idempotency_key)
+            accepted, change = contract.apply_mutation(
+                current, intent, occurred_at=self._clock.now()
+            )
+            stored = repository.save_assistance_preferences_if_revision(
+                idempotency_key=intent.idempotency_key,
+                request_fingerprint=fingerprint,
+                expected_revision=intent.expected_revision,
+                profile=accepted,
+                change=change,
+            )
+            return self._revalidate_assistance_preference(stored, contract)
+        except LearnerModelError:
+            raise
+        except LearnerPreferenceIdempotencyConflict as error:
+            raise LearnerModelError(
+                LearnerModelErrorCode.IMMUTABLE_CONFLICT,
+                "That request key already names a different AI-help change.",
+                reference=intent.idempotency_key,
+            ) from error
+        except LearnerPreferenceRevisionConflict as error:
+            raise self._assistance_preference_stale(intent.idempotency_key) from error
+        except AssistancePreferenceContractFailure as error:
+            raise self._assistance_preference_contract_error(error) from error
+        except Exception as error:
+            raise self._assistance_preference_unavailable(
+                intent.idempotency_key
+            ) from error
+
+    def read_assistance_preference_history(
+        self, request: ReadAssistancePreferenceHistoryRequest
+    ) -> AssistancePreferenceHistory:
+        self._validate_learner(request.learner_id)
+        repository, contract, seeds = self._assistance_preference_dependencies()
+        try:
+            _, history = self._assistance_preference_snapshot(
+                request.learner_id, repository, contract, seeds
+            )
+            return history
+        except LearnerModelError:
+            raise
+        except (
+            AssistancePreferenceContractFailure,
+            InvalidAssistancePreference,
+        ) as error:
+            raise self._assistance_preference_integrity(
+                getattr(error, "reference", "history")
+            ) from error
+        except Exception as error:
+            raise self._assistance_preference_unavailable("history") from error
+
+    def export_assistance_preferences(
+        self, request: ExportAssistancePreferencesRequest
+    ) -> AssistancePreferenceExport:
+        self._validate_learner(request.learner_id)
+        repository, contract, seeds = self._assistance_preference_dependencies()
+        try:
+            profile, history = self._assistance_preference_snapshot(
+                request.learner_id, repository, contract, seeds
+            )
+            exported = AssistancePreferenceExport(
+                schema_version="1.0.0",
+                purpose="A portable copy of the AI-help choice you selected.",
+                limitations=(
+                    "On request records your choice only and does not enable or call an AI service.",
+                    "This choice is not learning evidence or permission to share data.",
+                ),
+                exported_at=self._clock.now(),
+                profile=profile,
+                history=history,
+            )
+            return contract.parse_export(
+                self._json_bytes(contract.export_document(exported))
+            )
+        except LearnerModelError:
+            raise
+        except AssistancePreferenceContractFailure as error:
+            raise self._assistance_preference_integrity(error.reference) from error
+        except Exception as error:
+            raise self._assistance_preference_unavailable("export") from error
+
+    def _assistance_preference_dependencies(self) -> tuple[
+        AssistancePreferenceRepositoryPort,
+        AssistancePreferenceContract,
+        AssistancePreferenceSeedPort,
+    ]:
+        if (
+            self._assistance_preference_repository is None
+            or self._assistance_preference_contract is None
+            or self._assistance_preference_seeds is None
+        ):
+            raise self._assistance_preference_unavailable()
+        return (
+            self._assistance_preference_repository,
+            self._assistance_preference_contract,
+            self._assistance_preference_seeds,
+        )
+
+    def _assistance_preference_snapshot(
+        self,
+        learner_id: str,
+        repository: AssistancePreferenceRepositoryPort,
+        contract: AssistancePreferenceContract,
+        seeds: AssistancePreferenceSeedPort,
+    ) -> tuple[AssistancePreferenceProfile, AssistancePreferenceHistory]:
+        snapshot = repository.get_assistance_preference_snapshot(learner_id)
+        if snapshot is None:
+            profile = self._default_assistance_preferences(
+                learner_id, contract, seeds
+            )
+            history = AssistancePreferenceHistory(
+                schema_version="1.0.0",
+                profile_id=profile.profile_id,
+                current_revision=profile.revision,
+                changes=(),
+            )
+        else:
+            profile, history = snapshot
+        current = self._revalidate_assistance_preference(profile, contract)
+        validate_assistance_preference_history(history, current)
+        return current, history
+
+    @staticmethod
+    def _default_assistance_preferences(
+        learner_id: str,
+        contract: AssistancePreferenceContract,
+        seeds: AssistancePreferenceSeedPort,
+    ) -> AssistancePreferenceProfile:
+        seed = seeds.for_learner(learner_id)
+        return contract.default_profile(
+            profile_id=seed.profile_id,
+            learner_id=learner_id,
+            created_at=seed.created_at,
+        )
+
+    @classmethod
+    def _revalidate_assistance_preference(
+        cls,
+        profile: AssistancePreferenceProfile,
+        contract: AssistancePreferenceContract,
+    ) -> AssistancePreferenceProfile:
+        return contract.parse_profile(
+            cls._json_bytes(contract.profile_document(profile))
+        )
+
     def _presentation_preference_dependencies(self) -> tuple[
         PresentationPreferenceRepositoryPort,
         PresentationPreferenceContract,
@@ -756,6 +992,44 @@ class LearnerModelService:
         return LearnerModelError(
             LearnerModelErrorCode.UNAVAILABLE,
             "Display choices are temporarily unavailable.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _assistance_preference_contract_error(
+        error: AssistancePreferenceContractFailure,
+    ) -> LearnerModelError:
+        if error.code.endswith("stale_revision"):
+            return LearnerModelService._assistance_preference_stale(error.reference)
+        return LearnerModelError(
+            LearnerModelErrorCode.INVALID_REQUEST,
+            "The AI-help choice is not valid.",
+            reference=error.reference,
+        )
+
+    @staticmethod
+    def _assistance_preference_stale(reference: str) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.STALE_REVISION,
+            "The AI-help choice changed. Refresh it before trying again.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _assistance_preference_integrity(reference: str) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.INTEGRITY_FAILURE,
+            "The saved AI-help choice could not be verified.",
+            reference=reference,
+        )
+
+    @staticmethod
+    def _assistance_preference_unavailable(
+        reference: str = "learner-assistance-preferences",
+    ) -> LearnerModelError:
+        return LearnerModelError(
+            LearnerModelErrorCode.UNAVAILABLE,
+            "The AI-help choice is temporarily unavailable.",
             reference=reference,
         )
 

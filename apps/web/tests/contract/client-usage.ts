@@ -38,6 +38,8 @@ type LearnerPreferenceMutation =
   components["schemas"]["LearnerPreferenceMutationRequestModel"];
 type PresentationPreferenceMutation =
   components["schemas"]["PresentationPreferenceMutationRequestModel"];
+type AssistancePreferenceMutation =
+  components["schemas"]["AssistancePreferenceMutationRequestModel"];
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,
@@ -199,6 +201,22 @@ const presentationPreferenceMutation: PresentationPreferenceMutation = {
 };
 void client.POST("/api/v1/learner-presentation-preferences/mutations", {
   body: presentationPreferenceMutation,
+});
+
+void client.GET("/api/v1/learner-assistance-preferences");
+void client.GET("/api/v1/learner-assistance-preferences/history");
+void client.GET("/api/v1/learner-assistance-preferences/export");
+const assistancePreferenceMutation: AssistancePreferenceMutation = {
+  schema_version: "1.0.0",
+  idempotency_key: "assistance.on-request-1",
+  expected_revision: 1,
+  mutation: {
+    operation: "replace_preferences",
+    assistance_mode: "on_request",
+  },
+};
+void client.POST("/api/v1/learner-assistance-preferences/mutations", {
+  body: assistancePreferenceMutation,
 });
 
 const refreshSavedReference: PersonalWorkspaceMutation = {

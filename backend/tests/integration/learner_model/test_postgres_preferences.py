@@ -66,7 +66,7 @@ def migrated_database() -> object:
         POSTGRES_DSN, LEARNER_MIGRATIONS
     ).apply_all()
     assert statuses[-1].migration_id == (
-        "learner_model_0005_presentation_preferences"
+        "learner_model_0006_assistance_preferences"
     )
     yield
     with psycopg.connect(POSTGRES_DSN, autocommit=True) as connection:
