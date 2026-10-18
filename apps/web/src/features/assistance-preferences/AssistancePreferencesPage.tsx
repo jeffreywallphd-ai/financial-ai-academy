@@ -150,6 +150,11 @@ export function AssistancePreferencesPage({
       ? pendingServer.idempotency_key
       : newRequestKey(),
   );
+  const exactSaveRetry = pendingSave &&
+      serverRequestKey === pendingSave.idempotency_key &&
+      serverMode === pendingMode
+    ? pendingSave
+    : undefined;
   const [serverResetConfirmed, setServerResetConfirmed] = useState(false);
   const localEnvelope = state.local.envelope;
   const [localMode, setLocalMode] = useState<LocalReminderMode>(
@@ -238,7 +243,7 @@ export function AssistancePreferencesPage({
             <Form className="assistance-preferences-form" method="post">
               <input name="form_intent" type="hidden" value="server-save" />
               <input name="operation" type="hidden" value="replace_preferences" />
-              <input name="expected_revision" type="hidden" value={pendingSave?.expected_revision ?? state.server.profile.revision} />
+              <input name="expected_revision" type="hidden" value={exactSaveRetry?.expected_revision ?? state.server.profile.revision} />
               <input name="idempotency_key" type="hidden" value={serverRequestKey} />
               <fieldset>
                 <legend>When should AI help be considered?</legend>

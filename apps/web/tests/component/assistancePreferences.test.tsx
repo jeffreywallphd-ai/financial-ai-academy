@@ -243,6 +243,48 @@ describe("AI help and reminders page", () => {
     });
   });
 
+  it("uses a fresh key and current revision when the learner changes a pending intent", async () => {
+    if (readyState.server.status !== "ready") throw new Error("Expected ready server fixture.");
+    const advancedState: AssistancePreferencesRouteState = {
+      ...readyState,
+      server: {
+        ...readyState.server,
+        profile: { ...profile, revision: 9, assistance_mode: "on_request" },
+      },
+    };
+    const submissions: FormData[] = [];
+    renderPage({
+      actionState: {
+        status: "error",
+        authority: "server",
+        kind: "unavailable",
+        intent: "save",
+        preparedRequest: {
+          schema_version: "1.0.0",
+          idempotency_key: "request.committed-uncertain",
+          expected_revision: 7,
+          mutation: { operation: "replace_preferences", assistance_mode: "on_request" },
+        },
+      },
+      state: advancedState,
+      submissions,
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("radio", { name: /Keep AI help off/i }));
+    await user.click(screen.getByRole("button", { name: "Save AI-help choice" }));
+    await waitFor(() => expect(submissions).toHaveLength(1));
+    const changed = Object.fromEntries(submissions[0]!.entries());
+    expect(changed).toMatchObject({
+      form_intent: "server-save",
+      operation: "replace_preferences",
+      expected_revision: "9",
+      assistance_mode: "off",
+    });
+    expect(changed.idempotency_key).not.toBe("request.committed-uncertain");
+    expect(changed.idempotency_key).toMatch(/^[a-z0-9][a-z0-9._-]{2,63}$/);
+  });
+
   it("creates visibly separate downloads", async () => {
     const createObjectURL = vi.fn()
       .mockReturnValueOnce("blob:server")
