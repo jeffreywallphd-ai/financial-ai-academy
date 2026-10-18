@@ -254,6 +254,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0167 | Work packet | [Deliver the Platform Help Browser Flow](work-packets/WRK-0167-deliver-platform-help-browser-flow.md) | complete | SLI-0082 | WRK-0166 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0168 | Work packet | [Qualify the Platform Help Live Flow](work-packets/WRK-0168-qualify-platform-help-live-flow.md) | complete | SLI-0082 | WRK-0167, WRK-0169 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0169 | Work packet | [Preserve Required Platform Help Null Fields](work-packets/WRK-0169-preserve-required-platform-help-null-fields.md) | complete | SLI-0082 | WRK-0166 | none | codex-cap-0020-correction | 2026-10-18 |
+| WRK-0170 | Work packet | [Freeze Contextual Help Contracts and Registry](work-packets/WRK-0170-freeze-contextual-help-contracts-and-registry.md) | ready | SLI-0083 | WRK-0168 | none | codex-cap-0020 | 2026-10-18 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |
