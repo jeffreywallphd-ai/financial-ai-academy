@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from jsonschema import Draft202012Validator, FormatChecker
 
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
@@ -29,6 +30,9 @@ from financial_ai_academy.platform.security.single_profile_policy import (
 
 REPOSITORY = Path(__file__).resolve().parents[4]
 OPENAPI = REPOSITORY / "contracts/api/openapi.json"
+SEARCH_SCHEMA = (
+    REPOSITORY / "contracts/guidance/platform-help/v1/search-page.schema.json"
+)
 ORIGIN = "http://127.0.0.1:8000"
 COOKIE_NAME = "financial_ai_academy_session"
 COOKIE = "a" * 43
@@ -164,12 +168,27 @@ def test_search_preserves_required_nullable_cursor_on_every_page() -> None:
         params={"query": "approved help", "page_size": 50},
     )
 
+    continued_document = continued.json()
+    terminal_document = terminal.json()
+    validator = Draft202012Validator(
+        json.loads(SEARCH_SCHEMA.read_text(encoding="utf-8")),
+        format_checker=FormatChecker(),
+    )
+
     assert continued.status_code == 200
-    assert isinstance(continued.json()["next_cursor"], str)
-    assert continued.json()["next_cursor"]
+    assert isinstance(continued_document["next_cursor"], str)
+    assert continued_document["next_cursor"]
     assert terminal.status_code == 200
-    assert "next_cursor" in terminal.json()
-    assert terminal.json()["next_cursor"] is None
+    assert "next_cursor" in terminal_document
+    assert terminal_document["next_cursor"] is None
+    assert "topic_kind" not in terminal_document
+    assert all(
+        "glossary_term" not in result
+        for result in terminal_document["results"]
+        if result["topic_kind"] != "glossary"
+    )
+    assert list(validator.iter_errors(continued_document)) == []
+    assert list(validator.iter_errors(terminal_document)) == []
 
 
 def test_missing_and_insufficient_context_deny_before_corpus_access() -> None:

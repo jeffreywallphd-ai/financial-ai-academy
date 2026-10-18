@@ -25,7 +25,7 @@ claimed_at: 2026-10-18T03:34:42Z
 Correct the Platform Help search response so every successful page includes the
 contract-required nullable `next_cursor` member, including terminal pages where
 its value is `null`. Preserve the existing reviewed OpenAPI shape, deterministic
-search/cursor meaning, generated client, browser validation, optional nullable
+search/cursor meaning, generated client, browser validation, optional non-null
 metadata, and protected read-only API.
 
 ## Required Context
@@ -45,9 +45,9 @@ active collision, or scope beyond required-null serialization.
 - The reviewed OpenAPI model is authoritative: `next_cursor` is required and
   nullable. Omitting it is not equivalent to returning it with `null`.
 - FastAPI route-level `response_model_exclude_none=True` currently removes the
-  terminal cursor along with optional nullable metadata. The correction may
-  serialize declared `null` values; the closed client/browser validators
-  already accept optional `topic_kind` or `glossary_term` as absent or null.
+  terminal cursor along with absent optional metadata. The correction must
+  retain the required nullable cursor while continuing to omit optional
+  `topic_kind` or `glossary_term` when they have no value.
 - The contract, Guidance core, ranking, cursor encoding, generated client, and
   browser remain unchanged. WRK-0168 resumes only after this packet completes.
 
@@ -56,8 +56,8 @@ active collision, or scope beyond required-null serialization.
 - Preserve `next_cursor: null` on terminal search pages through the public API.
 - Prove paged responses retain an opaque string cursor and terminal responses
   retain the required member with `null`.
-- Prove optional nullable page/result metadata remains contract-valid when
-  serialized, without relaxing extra-field rejection or response meaning.
+- Prove optional non-null page/result metadata remains absent when unset and
+  both terminal and continued HTTP documents satisfy the executable schema.
 - Reconcile the platform-help contract note and WRK-0168 dependency state.
 
 ## Out of Scope
@@ -71,7 +71,7 @@ active collision, or scope beyond required-null serialization.
 
 | Area | Inspect | Allowed to change | Reason |
 | --- | --- | --- | --- |
-| API route | Search response model and route serialization | Platform Help search decorator only | Preserve required nullable output |
+| API route | Search response model and route serialization | Platform Help search route only | Preserve required nullable output while omitting absent optional metadata |
 | API evidence | Existing Guidance API integration tests | focused terminal/paged response assertions | Prevent omission regression |
 | Contract documentation | Current API serialization note | one direct required-null clarification | Keep executable and written contract aligned |
 | Planning | WRK-0168, this packet, slice, register | correction dependency and lifecycle | Resume qualification only after correction |
@@ -87,10 +87,9 @@ No unlisted file may change.
 ```
 
 for a terminal page, or a nonempty opaque string for a continued page. Optional
-nullable `topic_kind` and result `glossary_term` may be serialized as `null`
-because their existing schemas and generated types already admit null. The API
-continues to reject unknown query members and bodies and to authorize before
-Guidance access.
+`topic_kind` and result `glossary_term` are non-null when present and remain
+absent when unset. The API continues to reject unknown query members and bodies
+and to authorize before Guidance access.
 
 ## Dependencies and Parallel Safety
 
@@ -104,7 +103,7 @@ as a dependency. Shared planning files make the packets non-parallel-safe.
 | --- | --- | --- | --- | --- |
 | Terminal page | Search has no continuation | Protected API serializes the response | `next_cursor` exists and equals `null` | API integration |
 | Continued page | Page size leaves more results | Protected API serializes the response | `next_cursor` exists as a nonempty opaque string | API integration |
-| Optional nullable metadata | A non-glossary result and no kind filter are returned | Response serializes declared nulls | Existing response model, browser validator, and generated type remain valid | API/Web regressions |
+| Optional metadata | A non-glossary result and no kind filter are returned | Response is serialized | Unset optional members remain absent and both pages validate against the executable schema | API/contract regression |
 | Closed contract | Unknown request member or body is sent | API validates input | Existing bounded denial remains unchanged | existing API test |
 | No new authority | Changed files and imports are inspected | Checks run | No corpus, ranking, identity, persistence, provider/model, or financial seam changes | diff/architecture |
 
@@ -148,3 +147,7 @@ behavior changed, then leave WRK-0168 ready to resume.
 - 2026-10-18: Activated from clean recorded base `9fbe65f` after validating
   current CAP authority, the completed API dependency, the bounded correction
   route, exact file ownership, and no active coordination collision.
+- 2026-10-18: Independent review of candidate `eefe722` found that globally
+  retaining nulls also emitted contract-invalid optional null members. The
+  correction remains bounded to the existing route, API evidence, contract
+  note, and packet; fresh schema-backed evidence and re-review are required.

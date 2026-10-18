@@ -1550,7 +1550,7 @@ def create_app(services: ApiServices) -> FastAPI:
     @app.get(
         "/api/v1/guidance/platform-help",
         response_model=PlatformHelpSearchPageResponseModel,
-        response_model_exclude_none=False,
+        response_model_exclude_none=True,
         operation_id="searchPlatformHelp",
         responses=_ERROR_RESPONSES,
         tags=["guidance"],
@@ -1562,7 +1562,7 @@ def create_app(services: ApiServices) -> FastAPI:
         page_size: int = Query(default=20, ge=1, le=50),
         cursor: str | None = Query(default=None, min_length=1, max_length=4096),
         _context: LearnerContext = Depends(guidance_context),
-    ) -> PlatformHelpSearchPageResponseModel:
+    ) -> JSONResponse:
         if not set(request.query_params).issubset(
             {"query", "topic_kind", "page_size", "cursor"}
         ) or await request.body():
@@ -1575,7 +1575,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 cursor=cursor,
             )
         )
-        return platform_help_search_page_response(page)
+        response = platform_help_search_page_response(page)
+        payload = response.model_dump(mode="json", exclude_none=True)
+        payload["next_cursor"] = response.next_cursor
+        return JSONResponse(content=payload)
 
     @app.get(
         "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}",
