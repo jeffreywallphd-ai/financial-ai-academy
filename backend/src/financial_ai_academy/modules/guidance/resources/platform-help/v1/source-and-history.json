@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "source-and-history",
+  "topic_version": "1.0.0",
+  "topic_kind": "help",
+  "title": "Use source and history details",
+  "summary": "Source, version, time, and integrity details help you understand where a learning or financial record came from and whether it can be reproduced.",
+  "keywords": ["source", "history", "provenance", "version", "integrity"],
+  "body": [
+    {
+      "node_kind": "paragraph",
+      "text": "The main page explains the learner task. Publication details and the Technical record keep the exact source, version, time, and integrity facts needed for review."
+    },
+    {
+      "node_kind": "list",
+      "list_kind": "unordered",
+      "items": [
+        "Source identifies the owner or reviewed input behind the record.",
+        "Version and time show which exact meaning or observation applies.",
+        "Integrity codes help detect a changed record; they do not grant permission or prove that a claim is correct."
+      ]
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "source-history",
+      "label": "Learning content, evidence, Project records, market observations, simulations, and generated content"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "architecture-principles",
+      "title": "Architecture principles",
+      "area": "architecture",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "7ed7fc91381b48fb6b63c66b7f0caf24799fbe46cad8cd0762268ebb58f371ea"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "data-meaning",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "a5ab870b981964908399bdf56052f42d451c47b1b39ac9024a1ff83dc82974ec"
+}

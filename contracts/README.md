@@ -23,3 +23,7 @@ Assessment-owned completion event. See `learning/README.md`,
 The Guidance-owned `platform-help/v1` family defines inert exact-version help
 topics and deterministic literal-search records without making repository
 documentation, AI output, or the browser a source of authority.
+
+The additive Guidance-owned `contextual-help/v1` family maps one exact feature
+context to ordered exact approved Help topics for shared browser and headless
+use without copying feature state or authority.

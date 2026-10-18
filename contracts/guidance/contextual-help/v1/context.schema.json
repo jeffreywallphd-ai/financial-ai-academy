@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/guidance/contextual-help/v1/context.schema.json",
+  "title": "Financial AI Academy contextual help record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "context_key",
+    "context_version",
+    "feature_label",
+    "applicability",
+    "help_references",
+    "publication",
+    "source_references",
+    "context_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "context_key": {"$ref": "#/$defs/identifier"},
+    "context_version": {"$ref": "#/$defs/version"},
+    "feature_label": {"type": "string", "minLength": 1, "maxLength": 160},
+    "applicability": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/applicability"}
+    },
+    "help_references": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 10,
+      "items": {"$ref": "#/$defs/helpReference"}
+    },
+    "publication": {"$ref": "#/$defs/publication"},
+    "source_references": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/sourceReference"}
+    },
+    "context_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "applicability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope_key", "label"],
+      "properties": {
+        "scope_key": {"$ref": "#/$defs/identifier"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 160}
+      }
+    },
+    "helpReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["topic_id", "topic_version", "purpose", "label"],
+      "properties": {
+        "topic_id": {"$ref": "#/$defs/identifier"},
+        "topic_version": {"$ref": "#/$defs/version"},
+        "purpose": {
+          "enum": ["method", "source", "data_meaning", "ai_boundary", "education_boundary"]
+        },
+        "label": {"type": "string", "minLength": 1, "maxLength": 160}
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reviewed_on", "updated_at"],
+      "properties": {
+        "state": {"const": "approved"},
+        "reviewed_on": {"type": "string", "format": "date"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_key", "title", "area", "source_version", "content_fingerprint"],
+      "properties": {
+        "source_key": {"$ref": "#/$defs/identifier"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 200},
+        "area": {"enum": ["product", "domain", "contract", "architecture", "risk", "method"]},
+        "source_version": {"type": "string", "minLength": 1, "maxLength": 80},
+        "content_fingerprint": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

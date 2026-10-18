@@ -1,0 +1,10 @@
+{
+  "cases": [
+    {"name": "route is private to presentation", "path": ["route"], "value": "/projects/private"},
+    {"name": "learner identity is server context", "path": ["learner_id"], "value": "private-learner"},
+    {"name": "topic version is exact", "path": ["help_references", 0, "topic_version"], "value": "latest"},
+    {"name": "purpose is closed", "path": ["help_references", 0, "purpose"], "value": "execute"},
+    {"name": "source path is private", "path": ["source_references", 0, "repository_path"], "value": "C:/private/source.md"},
+    {"name": "digest is exact", "path": ["context_digest"], "value": "0000000000000000000000000000000000000000000000000000000000000000"}
+  ]
+}

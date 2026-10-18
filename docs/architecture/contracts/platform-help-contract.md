@@ -109,3 +109,24 @@ fingerprint facts remain keyboard-accessible under `Technical record`.
 Live restart, offline/no-outbound observation, and browser/headless parity are
 qualification concerns. They do not give the browser another content, search,
 policy, or authorization path.
+
+## Exact Contextual Help
+
+The additive `contextual-help/v1` record maps one exact feature context and
+version to an ordered set of exact approved topic identities. Guidance owns the
+safe mapping only. The feature and each referenced canonical source retain
+behavior and semantic authority.
+
+A context carries a learner-readable feature label, applicability, exact Help
+references with closed purposes and safe labels, publication facts, source
+facts, and a canonical digest. It carries no route, URL, component, repository
+path, learner identity, permission, prompt, provider/model payload, mutable
+feature state, command, or external action. Exact reads never substitute a
+different context or topic version.
+
+The checked-in registry is admitted atomically after the platform-help corpus.
+Every reference must resolve to an admitted exact topic. Duplicate identities,
+unknown fields, stale source fingerprints, invalid chronology or digest, unsafe
+text, and dangling topics reject the whole registry. Browser and headless
+delivery remains a dependent SLI-0083 packet; this transport-neutral contract
+does not itself expose an API or feature link.

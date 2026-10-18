@@ -1,5 +1,18 @@
 """Pure Guidance domain values and policies."""
 
+from .contextual_help import (
+    CONTEXTUAL_HELP_SCHEMA_VERSION,
+    ContextHelpReference,
+    ContextPurpose,
+    ContextualHelpRecord,
+    ContextualHelpRegistry,
+    canonical_context_bytes,
+    context_digest,
+    context_payload,
+    context_registry_digest,
+    validate_context,
+)
+
 from .models import (
     Applicability,
     BodyNode,
@@ -30,8 +43,13 @@ from .models import (
 )
 
 __all__ = [
+    "CONTEXTUAL_HELP_SCHEMA_VERSION",
     "Applicability",
     "BodyNode",
+    "ContextHelpReference",
+    "ContextPurpose",
+    "ContextualHelpRecord",
+    "ContextualHelpRegistry",
     "GuidanceError",
     "GuidanceErrorCode",
     "HeadingNode",
@@ -51,9 +69,14 @@ __all__ = [
     "SourceReference",
     "TopicKind",
     "TopicReferenceNode",
+    "canonical_context_bytes",
     "canonical_topic_bytes",
+    "context_digest",
+    "context_payload",
+    "context_registry_digest",
     "corpus_digest",
     "normalize_query",
     "topic_digest",
     "topic_payload",
+    "validate_context",
 ]

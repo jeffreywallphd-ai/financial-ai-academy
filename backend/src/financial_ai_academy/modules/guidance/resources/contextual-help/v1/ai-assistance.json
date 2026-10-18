@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "context_key": "ai-assistance",
+  "context_version": "1.0.0",
+  "feature_label": "AI help preferences",
+  "applicability": [
+    {"scope_key": "ai-assistance-preferences", "label": "AI help preference and availability controls"}
+  ],
+  "help_references": [
+    {"topic_id": "how-ai-help-is-controlled", "topic_version": "1.0.0", "purpose": "ai_boundary", "label": "How AI help is controlled"}
+  ],
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "ai-ml-boundaries", "title": "AI and ML system boundaries", "area": "architecture", "source_version": "2026-10-18", "content_fingerprint": "c3f521c4d9a156cdd80651609cfa105e6134f2a7800480deefcaecb2d544b775"}
+  ],
+  "context_digest": "72afbf99802fe56dc11d1b505a39c1805c2b83bd009c5d1ea0200ae77f9e2514"
+}

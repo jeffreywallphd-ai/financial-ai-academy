@@ -152,6 +152,12 @@ units/time/adjustment/missing/precision semantics, limitations, provenance, and
 golden fixtures. Portable records distinguish observed, assumed, calculated,
 and simulated values and cannot expose provider payloads as platform meaning.
 
+Guidance's additive contextual-help record maps one exact delivered feature
+context to ordered exact approved Help topics. It centralizes explanatory-link
+identity for browser and headless consumers without copying feature state or
+moving method, provenance, AI, risk, grading, learner, or financial authority
+into Guidance.
+
 ## Ownership
 
 - The platform owns canonical terminology and schemas.

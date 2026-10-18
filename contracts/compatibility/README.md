@@ -25,3 +25,7 @@ explicitly approved breaking-change records live here.
 - [`platform-help/v1/`](platform-help/v1/README.md) fixes exact-version safe
   topics, canonical digests, deterministic literal search, cursor binding, and
   bounded denials without admitting active content or private repository data.
+- [`contextual-help/v1/`](contextual-help/v1/README.md) fixes exact safe
+  feature-context mappings, canonical digests, closed purposes, and source/topic
+  correlation without admitting routes, mutable feature state, or browser-only
+  policy.

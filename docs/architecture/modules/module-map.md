@@ -144,6 +144,11 @@ execution, cross-module mutation, or browser-interface dependency.
   canonicalization, Unicode preservation, varied valid corpus sizes/order,
   deterministic ranking/paging, stale cursor rejection, dangling references,
   digest/chronology failure, and no latest-version substitution.
+- `contextual-help/v1` adds a transport-neutral exact context contract,
+  reviewed source/history and data-meaning topics, and an immutable checked-in
+  registry correlated atomically to exact admitted Help topics. It contains no
+  route, feature state, learner selector, provider/model, command, or browser
+  policy. Protected API and feature delivery remain dependent SLI-0083 work.
 
 ## Implemented Adaptation Deterministic Baseline
 

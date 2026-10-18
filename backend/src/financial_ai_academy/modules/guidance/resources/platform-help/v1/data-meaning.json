@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "data-meaning",
+  "topic_version": "1.0.0",
+  "topic_kind": "method",
+  "title": "Understand what kind of result you are viewing",
+  "summary": "Labels distinguish information that was observed, calculated, simulated, predicted, or generated so you can interpret its source and limits.",
+  "keywords": ["observed", "calculated", "simulated", "predicted", "generated"],
+  "body": [
+    {
+      "node_kind": "list",
+      "list_kind": "unordered",
+      "items": [
+        "Observed information records a source fact with its time and provenance.",
+        "Calculated information applies a declared deterministic method to known inputs.",
+        "Simulated information shows a hypothetical scenario under stated assumptions.",
+        "Predicted information is a model estimate and must show uncertainty and limits.",
+        "Generated information is model-produced content and is not an authoritative fact, grade, financial calculation, or decision."
+      ]
+    },
+    {
+      "node_kind": "note",
+      "note_kind": "limitation",
+      "text": "A label explains how information was produced. It does not make the result personal investment advice or promise an outcome."
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "result-meaning",
+      "label": "Project results, financial examples, simulations, model estimates, and generated explanations"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "contract-architecture",
+      "title": "Contract architecture",
+      "area": "contract",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "ac05c9adb97beb32b5a35e7b329ab0a6c016bb7c791c6d3328fbcab7f33c5463"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "platform-methods",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    },
+    {
+      "topic_id": "education-not-advice",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "42d50e48ff2c33d1f4439d95bd20cc9de172a20ae52a029b22592252fc4bad06"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "context_key": "practice-result",
+  "context_version": "1.0.0",
+  "feature_label": "Saved practice result",
+  "applicability": [
+    {"scope_key": "practice-result", "label": "Saved practice scores, feedback, evidence, and learning limitations"}
+  ],
+  "help_references": [
+    {"topic_id": "data-meaning", "topic_version": "1.0.0", "purpose": "data_meaning", "label": "What kind of result is this?"},
+    {"topic_id": "education-not-advice", "topic_version": "1.0.0", "purpose": "education_boundary", "label": "Why this result is not mastery or investment advice"}
+  ],
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "ac05c9adb97beb32b5a35e7b329ab0a6c016bb7c791c6d3328fbcab7f33c5463"},
+    {"source_key": "education-advice-boundary", "title": "Education versus financial advice", "area": "risk", "source_version": "2026-10-18", "content_fingerprint": "917c157fc1da47a686a609fd72e5d36d297c9b99254724e8adf8081a14ad33d6"}
+  ],
+  "context_digest": "2d8b5e1f219d3527463fd5b1349431c143264d23e7653a85c6fcdc4e93bf342e"
+}

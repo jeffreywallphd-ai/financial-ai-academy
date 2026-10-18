@@ -40,9 +40,11 @@ def test_default_corpus_is_atomically_admitted_with_stable_provenance() -> None:
 
     assert [topic.topic_id for topic in corpus.topics] == [
         "approved-help",
+        "data-meaning",
         "education-not-advice",
         "how-ai-help-is-controlled",
         "platform-methods",
+        "source-and-history",
     ]
     assert len(corpus.digest) == 64
     assert all(topic.source_references for topic in corpus.topics)
@@ -62,6 +64,8 @@ def test_source_manifest_matches_current_canonical_sources() -> None:
     repository_root = Path(__file__).resolve().parents[4]
     sources = {
         "ai-ml-boundaries": "docs/architecture/ai-ml/ai-ml-system-boundaries.md",
+        "architecture-principles": "docs/architecture/system/architecture-principles.md",
+        "contract-architecture": "docs/architecture/contracts/contract-architecture.md",
         "education-advice-boundary": (
             "docs/risk-compliance/education-versus-financial-advice.md"
         ),
@@ -103,7 +107,7 @@ def test_valid_additional_topic_and_filename_order_do_not_freeze_corpus_size(
     corpus = ImmutablePlatformHelpCorpus(root)
     page = corpus.search(SearchRequest(page_size=50))
 
-    assert len(corpus.topics) == 5
+    assert len(corpus.topics) == 7
     assert [item.topic_id for item in page.results] == sorted(
         item.topic_id for item in page.results
     )
@@ -136,9 +140,11 @@ def test_startup_failure_is_bounded_and_never_admits_a_partial_corpus(
     "filename",
     [
         "approved-help.json",
+        "data-meaning.json",
         "education-not-advice.json",
         "how-ai-help-is-controlled.json",
         "platform-methods.json",
+        "source-and-history.json",
     ],
 )
 def test_each_required_starter_topic_is_bound_by_the_versioned_manifest(
