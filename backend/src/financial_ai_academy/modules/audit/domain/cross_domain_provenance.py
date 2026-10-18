@@ -430,6 +430,8 @@ def cross_domain_envelope_digest(value: CrossDomainProvenanceEnvelope) -> str:
 
 
 def market_observation_resource_id(identity: MarketObservationIdentity) -> str:
+    if type(identity) is not MarketObservationIdentity:
+        raise InvalidCrossDomainProvenance("identity")
     normalized = _validate_identity(identity, "identity")
     return sha256(_canonical_bytes(_identity_payload(normalized))).hexdigest()
 

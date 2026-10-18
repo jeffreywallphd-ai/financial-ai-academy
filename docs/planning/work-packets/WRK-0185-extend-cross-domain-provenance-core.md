@@ -229,3 +229,6 @@ changed.
   immutable profile-rule map, deterministic bounded denial for invalid or
   overflowing aware times, and source-count rejection before element parsing.
   Focused regression coverage now exercises those adversarial inputs directly.
+- 2026-10-18: Closed the remaining public-helper type seam so Market resource
+  identifiers accept only the exact Market identity value and reject unrelated
+  closed identities with the same bounded error contract.

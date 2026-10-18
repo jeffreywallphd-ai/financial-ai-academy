@@ -109,6 +109,12 @@ def test_market_resource_id_is_only_the_normalized_exact_identity_digest() -> No
         validate_cross_domain_envelope(changed)
     assert invalid.value.reference == "resource.resource_id"
 
+    with pytest.raises(InvalidCrossDomainProvenance) as invalid:
+        market_observation_resource_id(  # type: ignore[arg-type]
+            DatasetSnapshotIdentity("dataset-a", "1.0.0")
+        )
+    assert invalid.value.reference == "identity"
+
 
 def test_equivalent_source_order_and_aware_time_offsets_have_one_digest() -> None:
     original_mapping = _load("project-snapshot-envelope.json")
