@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "surface_key": "saved-learning",
+  "condition_key": "source-unavailable",
+  "mapping_version": "1.0.0",
+  "guidance_id": "saved-source-unavailable",
+  "guidance_version": "1.0.0",
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "personal-workspace-contract", "title": "Personal workspace contract", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "61c0167c91cdac53708fdfdd0a97c27822613491ceb8d77021032bb37bba5e10"}
+  ],
+  "mapping_digest": "02ed7164dab9cbdc835048ba861366ae8bd06243c959484a185f9be4ca2266df"
+}

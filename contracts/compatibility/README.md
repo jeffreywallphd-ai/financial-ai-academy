@@ -29,3 +29,7 @@ explicitly approved breaking-change records live here.
   feature-context mappings, canonical digests, closed purposes, and source/topic
   correlation without admitting routes, mutable feature state, or browser-only
   policy.
+- [`feature-guidance/v1/`](feature-guidance/v1/README.md) fixes exact public
+  condition mappings, reviewed limitation/recovery records, closed presentation
+  actions, source/topic correlation, and confidentiality denials without
+  granting Guidance feature or execution authority.

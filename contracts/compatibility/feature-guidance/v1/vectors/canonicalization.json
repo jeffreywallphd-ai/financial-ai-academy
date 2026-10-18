@@ -1,0 +1,14 @@
+{
+  "record": {
+    "guidance_id": "project-artifact-inert",
+    "guidance_version": "1.0.0",
+    "guidance_digest": "dd1a41af819c51a03fdb038f833024dc7f590a75637eb782afdfe87bc45f03c5"
+  },
+  "mapping": {
+    "surface_key": "project-workspace",
+    "condition_key": "artifact-inert",
+    "mapping_version": "1.0.0",
+    "mapping_digest": "5d3791664c0a6cbd35aa7ee075c8461fb5a89fb406ef2ee180a2f939f9c7250b"
+  },
+  "encoding": "UTF-8 JSON; sorted keys; compact separators; no implicit Unicode normalization; each digest excludes only itself"
+}

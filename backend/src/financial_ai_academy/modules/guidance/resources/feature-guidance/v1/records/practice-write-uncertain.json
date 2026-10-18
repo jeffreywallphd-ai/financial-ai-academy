@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "guidance_id": "practice-write-uncertain",
+  "guidance_version": "1.0.0",
+  "status": "degraded",
+  "heading": "The practice result is not confirmed",
+  "reason": "The response was unavailable after the practice request was sent, so the platform cannot tell from that response whether the change was saved.",
+  "outcome": "Reload the current practice state before you try again. If the feature offers an unchanged retry, keep the original request identity.",
+  "actions": [
+    {"action_kind": "reload_current_state", "label": "Reload the current practice state"},
+    {"action_kind": "retry_unchanged_request", "label": "Retry the unchanged request"},
+    {"action_kind": "open_help_topic", "label": "Review safe recovery", "topic_id": "safe-recovery", "topic_version": "1.0.0"}
+  ],
+  "help_references": [
+    {"topic_id": "safe-recovery", "topic_version": "1.0.0", "purpose": "method", "label": "Safe recovery"}
+  ],
+  "applicability": [
+    {"scope_key": "practice-activity", "label": "Saving or submitting a practice activity"}
+  ],
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "assessment-contract", "title": "Assessment contract", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "50227c013b7a7f41545de266fb59adbe51067defeb42c083839510b9cc09ad4a"}
+  ],
+  "guidance_digest": "8782ab8528df182f51ca168d4b0fab74104dc470a3966e2fad2188b0c924d8b1"
+}

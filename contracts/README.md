@@ -27,3 +27,9 @@ documentation, AI output, or the browser a source of authority.
 The additive Guidance-owned `contextual-help/v1` family maps one exact feature
 context to ordered exact approved Help topics for shared browser and headless
 use without copying feature state or authority.
+
+The additive Guidance-owned `feature-guidance/v1` family maps one exact public
+surface condition to a reviewed limitation or recovery record. Closed actions
+carry presentation intent only; feature state, retry, availability,
+authorization, provider/model use, and artifact execution remain with their
+owning modules.

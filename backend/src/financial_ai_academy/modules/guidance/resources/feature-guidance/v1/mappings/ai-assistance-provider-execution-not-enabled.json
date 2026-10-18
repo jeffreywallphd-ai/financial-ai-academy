@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "surface_key": "ai-assistance",
+  "condition_key": "provider-execution-not-enabled",
+  "mapping_version": "1.0.0",
+  "guidance_id": "ai-help-execution-unavailable",
+  "guidance_version": "1.0.0",
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "ai-ml-boundaries", "title": "AI and ML system boundaries", "area": "architecture", "source_version": "2026-10-18", "content_fingerprint": "c3f521c4d9a156cdd80651609cfa105e6134f2a7800480deefcaecb2d544b775"}
+  ],
+  "mapping_digest": "29a36352b966d465049909fbc7712b4aa834972c83e9a0ed2913f65fa1d55d90"
+}

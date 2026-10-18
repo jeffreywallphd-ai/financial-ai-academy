@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "guidance_id": "ai-help-execution-unavailable",
+  "guidance_version": "1.0.0",
+  "status": "limited",
+  "heading": "AI help is not running",
+  "reason": "Choosing AI help records a learner preference, but that choice alone does not enable a model, provider, or data transfer.",
+  "outcome": "Deterministic learning features remain available. No provider or model is selected as a substitute.",
+  "actions": [
+    {"action_kind": "return_to_owning_task", "label": "Continue without AI help"},
+    {"action_kind": "open_help_topic", "label": "Learn how AI help is controlled", "topic_id": "how-ai-help-is-controlled", "topic_version": "1.0.0"}
+  ],
+  "help_references": [
+    {"topic_id": "how-ai-help-is-controlled", "topic_version": "1.0.0", "purpose": "ai_boundary", "label": "How AI help is controlled"}
+  ],
+  "applicability": [
+    {"scope_key": "ai-assistance", "label": "Optional AI assistance preferences and requests"}
+  ],
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "ai-ml-boundaries", "title": "AI and ML system boundaries", "area": "architecture", "source_version": "2026-10-18", "content_fingerprint": "c3f521c4d9a156cdd80651609cfa105e6134f2a7800480deefcaecb2d544b775"}
+  ],
+  "guidance_digest": "60223888974af19d621d8c0f88da36b39847a19b25d7551f27e6ee077930a465"
+}

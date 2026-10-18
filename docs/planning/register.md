@@ -259,7 +259,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0171 | Work packet | [Compose the Contextual Help API](work-packets/WRK-0171-compose-contextual-help-api.md) | complete | SLI-0083 | WRK-0170 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0172 | Work packet | [Deliver Contextual Help Links](work-packets/WRK-0172-deliver-contextual-help-links.md) | complete | SLI-0083 | WRK-0171 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0173 | Work packet | [Qualify the Contextual Help Live Flow](work-packets/WRK-0173-qualify-contextual-help-live-flow.md) | complete | SLI-0083 | WRK-0172 | none | codex-cap-0020 | 2026-10-18 |
-| WRK-0174 | Work packet | [Freeze Feature-Guidance Contracts and Registry](work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md) | active | SLI-0084 | WRK-0173 | none | codex-cap-0020 | 2026-10-18 |
+| WRK-0174 | Work packet | [Freeze Feature-Guidance Contracts and Registry](work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md) | verifying | SLI-0084 | WRK-0173 | none | codex-cap-0020 | 2026-10-18 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

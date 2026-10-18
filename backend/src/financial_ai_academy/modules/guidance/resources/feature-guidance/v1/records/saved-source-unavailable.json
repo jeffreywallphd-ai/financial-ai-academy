@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "guidance_id": "saved-source-unavailable",
+  "guidance_version": "1.0.0",
+  "status": "unavailable",
+  "heading": "The saved source is not available",
+  "reason": "The saved learning record still exists, but its referenced source is unavailable or no longer matches the recorded version.",
+  "outcome": "Your learner-owned saved record remains visible. Refresh the source state or return to Saved learning without replacing historical meaning.",
+  "actions": [
+    {"action_kind": "reload_current_state", "label": "Refresh the saved source state"},
+    {"action_kind": "return_to_owning_task", "label": "Return to Saved learning"},
+    {"action_kind": "open_help_topic", "label": "Review source and history", "topic_id": "source-and-history", "topic_version": "1.0.0"}
+  ],
+  "help_references": [
+    {"topic_id": "source-and-history", "topic_version": "1.0.0", "purpose": "source", "label": "Source and history"}
+  ],
+  "applicability": [
+    {"scope_key": "saved-learning", "label": "Learner-owned notes and bookmarks with exact source references"}
+  ],
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "personal-workspace-contract", "title": "Personal workspace contract", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "61c0167c91cdac53708fdfdd0a97c27822613491ceb8d77021032bb37bba5e10"}
+  ],
+  "guidance_digest": "17414760153a377750fbfb0e0ae10a5a51622f735ca74bfd68b4f1f6bf5a114d"
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "surface_key": "project-workspace",
+  "condition_key": "artifact-inert",
+  "mapping_version": "1.0.0",
+  "guidance_id": "project-artifact-inert",
+  "guidance_version": "1.0.0",
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "inert-project-artifacts", "title": "Keep applied-project artifacts inert", "area": "architecture", "source_version": "2026-10-18", "content_fingerprint": "d5c7f26c75f303c565facbe30fbcef9fbac2b62272888fe923b89aa1fe0c6976"}
+  ],
+  "mapping_digest": "5d3791664c0a6cbd35aa7ee075c8461fb5a89fb406ef2ee180a2f939f9c7250b"
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "surface_key": "practice-activity",
+  "condition_key": "write-outcome-uncertain",
+  "mapping_version": "1.0.0",
+  "guidance_id": "practice-write-uncertain",
+  "guidance_version": "1.0.0",
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "assessment-contract", "title": "Assessment contract", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "50227c013b7a7f41545de266fb59adbe51067defeb42c083839510b9cc09ad4a"}
+  ],
+  "mapping_digest": "ba6482e1852c9b073641fb49e9065f23fed797cb79fce146185fc3e9c5ff34e4"
+}

@@ -17,7 +17,7 @@
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
-| Guidance | accepted; topic/context contracts, immutable corpus and registry, application seam, and protected APIs implemented | Safe versioned platform explanations, exact contextual mappings, canonical-source facts, topic integrity, and deterministic literal search | Feature links, contextual browser presentation, and live qualification remain CAP-0020 work |
+| Guidance | accepted; topic/context contracts, immutable corpus and registries, application seam, and protected Help APIs implemented | Safe versioned platform explanations, exact contextual and feature-condition mappings, canonical-source facts, topic integrity, and deterministic literal search | Feature-guidance API/client/presentation and remaining live qualification remain CAP-0020 work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -151,6 +151,14 @@ execution, cross-module mutation, or browser-interface dependency.
   authority. The Guidance application/public seam and protected exact context
   API transport the same closed record through the reviewed OpenAPI-generated
   client for browser and headless callers; feature links remain separate.
+- `feature-guidance/v1` adds exact reviewed limitation/recovery records and
+  exact surface-condition mappings. The pure core validates closed statuses and
+  presentation actions, canonical digests, source bindings, record correlation,
+  and exact Help topics before admitting the complete registry. It does not
+  inspect feature state or authorize retry, download, provider/model use,
+  artifact execution, or another durable/external action. Its protected API,
+  generated client, bounded feature presentation, and live qualification remain
+  dependent SLI-0084 seams.
 
 ## Implemented Adaptation Deterministic Baseline
 

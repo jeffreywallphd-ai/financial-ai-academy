@@ -44,6 +44,8 @@ def test_default_corpus_is_atomically_admitted_with_stable_provenance() -> None:
         "education-not-advice",
         "how-ai-help-is-controlled",
         "platform-methods",
+        "project-artifact-use",
+        "safe-recovery",
         "source-and-history",
     ]
     assert len(corpus.digest) == 64
@@ -72,7 +74,13 @@ def test_source_manifest_matches_current_canonical_sources() -> None:
         "financial-method-architecture": (
             "docs/architecture/finance/financial-method-and-simulation-architecture.md"
         ),
+        "inert-project-artifacts": "docs/adr/ADR-0011-inert-applied-project-artifacts.md",
+        "assessment-contract": "docs/architecture/contracts/assessment-contract.md",
+        "personal-workspace-contract": (
+            "docs/architecture/contracts/personal-workspace-contract.md"
+        ),
         "product-vision": "docs/product/product-vision-and-scope.md",
+        "user-facing-language": "docs/standards/user-facing-language-standards.md",
     }
 
     assert set(sources) == set(PLATFORM_HELP_SOURCE_FINGERPRINTS)
@@ -107,7 +115,7 @@ def test_valid_additional_topic_and_filename_order_do_not_freeze_corpus_size(
     corpus = ImmutablePlatformHelpCorpus(root)
     page = corpus.search(SearchRequest(page_size=50))
 
-    assert len(corpus.topics) == 7
+    assert len(corpus.topics) == 9
     assert [item.topic_id for item in page.results] == sorted(
         item.topic_id for item in page.results
     )
@@ -144,6 +152,8 @@ def test_startup_failure_is_bounded_and_never_admits_a_partial_corpus(
         "education-not-advice.json",
         "how-ai-help-is-controlled.json",
         "platform-methods.json",
+        "project-artifact-use.json",
+        "safe-recovery.json",
         "source-and-history.json",
     ],
 )

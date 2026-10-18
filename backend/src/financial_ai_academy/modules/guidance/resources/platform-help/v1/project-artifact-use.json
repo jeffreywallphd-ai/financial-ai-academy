@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "project-artifact-use",
+  "topic_version": "1.0.0",
+  "topic_kind": "limitation",
+  "title": "Use Project artifacts outside the platform",
+  "summary": "Project artifacts are stored and downloaded as inert learner-owned evidence; the platform does not run notebooks, code, or data files.",
+  "keywords": ["project", "artifact", "download", "inert"],
+  "body": [
+    {
+      "node_kind": "paragraph",
+      "text": "An artifact remains inert while it is stored, viewed, exported, or restored in the platform. Download it only when you choose to use it in a learner-managed tool."
+    },
+    {
+      "node_kind": "note",
+      "note_kind": "limitation",
+      "text": "The platform does not execute an artifact, install its dependencies, provide credentials, or confirm that an outside tool is safe."
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "project-artifacts",
+      "label": "Notebooks, code, data, and result files kept in a Project"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "inert-project-artifacts",
+      "title": "Keep applied-project artifacts inert",
+      "area": "architecture",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "d5c7f26c75f303c565facbe30fbcef9fbac2b62272888fe923b89aa1fe0c6976"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "education-not-advice",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "5751aac5fee0c661dfe9632a5f4aa96c2244d25d4a38a60310693e00c1f9def5"
+}

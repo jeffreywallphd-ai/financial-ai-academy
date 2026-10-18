@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/guidance/feature-guidance/v1/record.schema.json",
+  "title": "Financial AI Academy feature guidance record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "guidance_id", "guidance_version", "status", "heading",
+    "reason", "outcome", "actions", "help_references", "applicability",
+    "publication", "source_references", "guidance_digest"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "guidance_id": {"$ref": "#/$defs/identifier"},
+    "guidance_version": {"$ref": "#/$defs/version"},
+    "status": {"enum": ["limited", "unavailable", "degraded"]},
+    "heading": {"type": "string", "minLength": 1, "maxLength": 120},
+    "reason": {"type": "string", "minLength": 1, "maxLength": 500},
+    "outcome": {"type": "string", "minLength": 1, "maxLength": 500},
+    "actions": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {"$ref": "#/$defs/action"}
+    },
+    "help_references": {
+      "type": "array", "minItems": 1, "maxItems": 10,
+      "items": {"$ref": "#/$defs/helpReference"}
+    },
+    "applicability": {
+      "type": "array", "minItems": 1, "maxItems": 20,
+      "items": {"$ref": "#/$defs/applicability"}
+    },
+    "publication": {"$ref": "#/$defs/publication"},
+    "source_references": {
+      "type": "array", "minItems": 1, "maxItems": 20,
+      "items": {"$ref": "#/$defs/sourceReference"}
+    },
+    "guidance_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "action": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["action_kind", "label"],
+          "properties": {
+            "action_kind": {"enum": ["retry_unchanged_request", "reload_current_state", "return_to_owning_task", "download_inert_artifact"]},
+            "label": {"type": "string", "minLength": 1, "maxLength": 120}
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["action_kind", "label", "topic_id", "topic_version"],
+          "properties": {
+            "action_kind": {"const": "open_help_topic"},
+            "label": {"type": "string", "minLength": 1, "maxLength": 120},
+            "topic_id": {"$ref": "#/$defs/identifier"},
+            "topic_version": {"$ref": "#/$defs/version"}
+          }
+        }
+      ]
+    },
+    "helpReference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["topic_id", "topic_version", "purpose", "label"],
+      "properties": {
+        "topic_id": {"$ref": "#/$defs/identifier"},
+        "topic_version": {"$ref": "#/$defs/version"},
+        "purpose": {"enum": ["method", "source", "data_meaning", "ai_boundary", "education_boundary"]},
+        "label": {"type": "string", "minLength": 1, "maxLength": 160}
+      }
+    },
+    "applicability": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scope_key", "label"],
+      "properties": {
+        "scope_key": {"$ref": "#/$defs/identifier"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 160}
+      }
+    },
+    "publication": {
+      "type": "object", "additionalProperties": false,
+      "required": ["state", "reviewed_on", "updated_at"],
+      "properties": {
+        "state": {"const": "approved"},
+        "reviewed_on": {"type": "string", "format": "date"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "sourceReference": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_key", "title", "area", "source_version", "content_fingerprint"],
+      "properties": {
+        "source_key": {"$ref": "#/$defs/identifier"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 200},
+        "area": {"enum": ["product", "domain", "contract", "architecture", "risk", "method"]},
+        "source_version": {"type": "string", "minLength": 1, "maxLength": 80},
+        "content_fingerprint": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

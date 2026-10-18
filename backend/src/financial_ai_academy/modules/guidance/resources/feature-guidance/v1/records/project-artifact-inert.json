@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "guidance_id": "project-artifact-inert",
+  "guidance_version": "1.0.0",
+  "status": "limited",
+  "heading": "This Project artifact stays inert",
+  "reason": "The platform stores the artifact as learner-owned evidence but does not execute notebooks, code, data files, or their dependencies.",
+  "outcome": "The artifact bytes remain unchanged. You can download the inert file for learner-managed use outside the platform.",
+  "actions": [
+    {"action_kind": "download_inert_artifact", "label": "Download the inert artifact"},
+    {"action_kind": "open_help_topic", "label": "Learn about artifact use", "topic_id": "project-artifact-use", "topic_version": "1.0.0"}
+  ],
+  "help_references": [
+    {"topic_id": "project-artifact-use", "topic_version": "1.0.0", "purpose": "method", "label": "Project artifact use"}
+  ],
+  "applicability": [
+    {"scope_key": "project-workspace", "label": "Inert files stored in a learner Project"}
+  ],
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "inert-project-artifacts", "title": "Keep applied-project artifacts inert", "area": "architecture", "source_version": "2026-10-18", "content_fingerprint": "d5c7f26c75f303c565facbe30fbcef9fbac2b62272888fe923b89aa1fe0c6976"}
+  ],
+  "guidance_digest": "dd1a41af819c51a03fdb038f833024dc7f590a75637eb782afdfe87bc45f03c5"
+}

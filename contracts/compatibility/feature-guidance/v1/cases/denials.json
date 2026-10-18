@@ -1,0 +1,11 @@
+{
+  "cases": [
+    {"name": "unknown record field", "artifact": "record", "mutation": "unknown_field"},
+    {"name": "private route field", "artifact": "mapping", "mutation": "private_field"},
+    {"name": "arbitrary destination", "artifact": "record", "mutation": "arbitrary_destination"},
+    {"name": "command text", "artifact": "record", "mutation": "command_text"},
+    {"name": "guarantee text", "artifact": "record", "mutation": "guarantee_text"},
+    {"name": "invalid chronology", "artifact": "record", "mutation": "invalid_chronology"},
+    {"name": "digest mismatch", "artifact": "mapping", "mutation": "digest_mismatch"}
+  ]
+}

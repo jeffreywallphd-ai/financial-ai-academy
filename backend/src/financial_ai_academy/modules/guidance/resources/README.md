@@ -27,3 +27,17 @@ Context resources are reviewed product data rather than feature state or
 canonical source content. Add a new exact context version instead of rewriting
 published meaning. Do not add routes, external URLs, private paths, learner
 selectors, provider/model payloads, commands, or mutable feature data.
+
+`feature-guidance/v1/` contains exact reviewed limitation/recovery records and
+exact surface-condition mappings. The complete registry is admitted only after
+the Help corpus, and every record reference must resolve to an admitted exact
+topic. Closed actions express presentation intent only. They do not authorize
+or perform a feature retry, reload, download, provider/model call, artifact
+execution, or other state change. Feature modules retain all runtime state,
+availability, authorization, retry, and execution authority.
+
+Published meaning changes require a new record or mapping version. Do not add
+routes, URLs, HTTP statuses, exception text, request bodies, private state,
+commands, credentials, guarantees, or learner identifiers. Safe recovery text
+must preserve uncertainty rather than claim whether an unconfirmed write was
+accepted.

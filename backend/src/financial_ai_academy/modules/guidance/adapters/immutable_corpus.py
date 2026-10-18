@@ -26,6 +26,8 @@ REQUIRED_PLATFORM_HELP_IDENTITIES = frozenset(
         ("education-not-advice", "1.0.0"),
         ("how-ai-help-is-controlled", "1.0.0"),
         ("platform-methods", "1.0.0"),
+        ("project-artifact-use", "1.0.0"),
+        ("safe-recovery", "1.0.0"),
         ("source-and-history", "1.0.0"),
     }
 )
@@ -46,8 +48,20 @@ PLATFORM_HELP_SOURCE_FINGERPRINTS = MappingProxyType(
         "financial-method-architecture": (
             "24aca8e940ceb2d31232d3cf27542d5627fe179325eecc75428e384c6812e405"
         ),
+        "inert-project-artifacts": (
+            "d5c7f26c75f303c565facbe30fbcef9fbac2b62272888fe923b89aa1fe0c6976"
+        ),
+        "assessment-contract": (
+            "50227c013b7a7f41545de266fb59adbe51067defeb42c083839510b9cc09ad4a"
+        ),
+        "personal-workspace-contract": (
+            "61c0167c91cdac53708fdfdd0a97c27822613491ceb8d77021032bb37bba5e10"
+        ),
         "product-vision": (
             "e5d82e2a7cdc352248a1dbc4b4636fe97aca978dd2e1a90667cc70cd1d75922b"
+        ),
+        "user-facing-language": (
+            "dbde9accd04fe3f438855290341a2bcd3a00bdd5db109c38e303d0b216aa355a"
         ),
     }
 )

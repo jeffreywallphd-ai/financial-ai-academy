@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "surface_key": "lesson-reading",
+  "condition_key": "exact-version-unavailable",
+  "mapping_version": "1.0.0",
+  "guidance_id": "lesson-version-unavailable",
+  "guidance_version": "1.0.0",
+  "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
+  "source_references": [
+    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "ac05c9adb97beb32b5a35e7b329ab0a6c016bb7c791c6d3328fbcab7f33c5463"}
+  ],
+  "mapping_digest": "210a26bbd40d69fa7c55bd5616a80912bbdb75cc0169b97ceac2341c9e627617"
+}

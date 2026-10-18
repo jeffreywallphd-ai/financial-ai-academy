@@ -13,6 +13,22 @@ from .contextual_help import (
     validate_context,
 )
 
+from .feature_guidance import (
+    FEATURE_GUIDANCE_SCHEMA_VERSION,
+    FeatureGuidanceAction,
+    FeatureGuidanceActionKind,
+    FeatureGuidanceMapping,
+    FeatureGuidanceRecord,
+    FeatureGuidanceRegistry,
+    FeatureGuidanceStatus,
+    feature_guidance_digest,
+    feature_guidance_payload,
+    feature_mapping_digest,
+    feature_mapping_payload,
+    validate_feature_guidance,
+    validate_feature_mapping,
+)
+
 from .models import (
     Applicability,
     BodyNode,
@@ -44,12 +60,19 @@ from .models import (
 
 __all__ = [
     "CONTEXTUAL_HELP_SCHEMA_VERSION",
+    "FEATURE_GUIDANCE_SCHEMA_VERSION",
     "Applicability",
     "BodyNode",
     "ContextHelpReference",
     "ContextPurpose",
     "ContextualHelpRecord",
     "ContextualHelpRegistry",
+    "FeatureGuidanceAction",
+    "FeatureGuidanceActionKind",
+    "FeatureGuidanceMapping",
+    "FeatureGuidanceRecord",
+    "FeatureGuidanceRegistry",
+    "FeatureGuidanceStatus",
     "GuidanceError",
     "GuidanceErrorCode",
     "HeadingNode",
@@ -75,8 +98,14 @@ __all__ = [
     "context_payload",
     "context_registry_digest",
     "corpus_digest",
+    "feature_guidance_digest",
+    "feature_guidance_payload",
+    "feature_mapping_digest",
+    "feature_mapping_payload",
     "normalize_query",
     "topic_digest",
     "topic_payload",
     "validate_context",
+    "validate_feature_guidance",
+    "validate_feature_mapping",
 ]

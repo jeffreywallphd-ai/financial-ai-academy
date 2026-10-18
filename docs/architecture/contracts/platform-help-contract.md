@@ -3,7 +3,7 @@
 - Status: accepted and implemented through the protected platform-help and contextual-help v1 APIs
 - Canonical for: Guidance ownership, exact topic meaning, safe body/source
   boundaries, canonicalization, and deterministic literal search
-- Executable shapes: `contracts/guidance/platform-help/v1/` and `contracts/guidance/contextual-help/v1/`
+- Executable shapes: `contracts/guidance/platform-help/v1/`, `contracts/guidance/contextual-help/v1/`, and `contracts/guidance/feature-guidance/v1/`
 - Compatibility evidence: `contracts/compatibility/platform-help/v1/`
 - Related docs: `contract-architecture.md`,
   `../modules/module-map.md`, `../../domain/glossary.md`,
@@ -148,3 +148,32 @@ lesson, practice, Project-detail, or AI-assistance destinations; cross-origin,
 credentialed, hashed, extended, duplicate, or unrelated destinations fail
 closed. Live browser/headless parity, restart, no-outbound, and read-only
 containment qualification remain dependent SLI-0083 work.
+
+## Exact Feature Guidance
+
+The additive `feature-guidance/v1` contract owns reviewed explanatory meaning
+for one exact public feature condition. A mapping identifies
+`(surface_key, condition_key, mapping_version)` and one exact record version.
+A record carries a closed `limited`, `unavailable`, or `degraded` status;
+learner-readable reason and protected or uncertain outcome; closed
+presentation actions; exact Help references; applicability; publication;
+source facts; and a canonical digest.
+
+Only an `open_help_topic` action has a destination, and it must match an exact
+topic in the same atomically admitted Help corpus. Retry, reload, return,
+download-inert-artifact, and Help actions describe presentation intent only.
+They contain no arbitrary route, URL, command, credential, mutable request, or
+promise. The owning feature remains authoritative for state, availability,
+authorization, idempotency, retry, download, provider/model enablement, and
+artifact execution.
+
+The starter registry covers absent exact lesson content, an uncertain practice
+write response, an unavailable Saved-learning source, an inert Project
+artifact, and an AI-help preference that does not enable provider/model
+execution. Exact lookup never substitutes another condition or version.
+Duplicate identities, stale source facts, invalid chronology or digest,
+unsafe text, arbitrary destinations, guarantee language, dangling records, or
+dangling topics reject the complete registry before any record is visible.
+The protected API and generated browser/headless client are dependent
+SLI-0084 work; this contract/core seam itself has no application operation,
+permission, transport, persistence, or execution effect.

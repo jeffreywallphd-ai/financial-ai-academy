@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "safe-recovery",
+  "topic_version": "1.0.0",
+  "topic_kind": "limitation",
+  "title": "Recover safely when a result is uncertain",
+  "summary": "When a result is missing or uncertain, first check the current feature state and keep the same request identity before trying the same action again.",
+  "keywords": ["recovery", "retry", "uncertain", "state"],
+  "body": [
+    {
+      "node_kind": "paragraph",
+      "text": "A lost response does not prove that a save or submission failed. Reload the current feature state before repeating an action that can change saved work."
+    },
+    {
+      "node_kind": "list",
+      "list_kind": "unordered",
+      "items": [
+        "Keep the original request identity when the feature offers an unchanged retry.",
+        "Do not create a changed request until the current result is known.",
+        "If the feature remains unavailable, keep learner-owned work and return to the owning task."
+      ]
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "feature-recovery",
+      "label": "Features that report unavailable, degraded, or uncertain results"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "user-facing-language",
+      "title": "User-facing language standards",
+      "area": "risk",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "dbde9accd04fe3f438855290341a2bcd3a00bdd5db109c38e303d0b216aa355a"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "approved-help",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "37c8784027716b6b2caddfb6f09c07ba75fefd7ec197136572106a942a71a35c"
+}

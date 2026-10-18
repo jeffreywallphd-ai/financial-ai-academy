@@ -1,7 +1,7 @@
 ---
 id: WRK-0174
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -214,6 +214,26 @@ Confirm no feature behavior, persistence, identity, provider/model execution,
 artifact execution, remediation command, external content/action, learner
 authority, or financial behavior changed.
 
+## Verification Evidence
+
+- The strict record and mapping schemas, pure validation/canonicalization core,
+  mapping adapters, immutable complete-registry admission, two source-bound
+  Help topics, five starter records, and five exact condition mappings are
+  implemented within the bounded Guidance seam.
+- The dependency-light conformance runner admits the approved record/mapping.
+  The focused platform/contextual/feature Guidance suite passes 90 tests,
+  including denials, exact lookup, source/topic drift, atomic failure, safe
+  Unicode, changed valid wording, and added valid record/mapping shapes.
+- Python compilation, architecture fitness, security controls, learner-language
+  advisory checking, design-system integrity, documentation validation,
+  planning integrity, whitespace integrity, and aggregate agent readiness all
+  pass. Aggregate readiness reports 29 of 29 checks ready.
+- No application operation, permission, route, OpenAPI or generated-client
+  change, browser integration, persistence, provider/model call, feature-state
+  interpretation, retry execution, artifact execution, or external action was
+  added. Exact-candidate verification and independent technical review remain
+  before completion.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time as the first dependency seam of SLI-0084.
@@ -225,3 +245,7 @@ authority, or financial behavior changed.
   binding, completed SLI-0083/WRK-0173 dependencies, exact contract/core scope,
   an intact packet-start manifest, and no unresolved decision or active
   ownership collision.
+- 2026-10-18: Entered verification after implementing the additive exact
+  feature-guidance contract/core seam and passing focused, architecture,
+  security, documentation, planning, and aggregate readiness checks. No
+  material CAP/slice drift or decision gate was found.
