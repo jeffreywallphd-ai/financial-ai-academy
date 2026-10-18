@@ -272,7 +272,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0181 | Work packet | [Compose the Learning-Lineage Core](work-packets/WRK-0181-compose-learning-lineage-core.md) | complete | SLI-0106 | WRK-0180 | none | codex-cap-0026 | 2026-10-18 |
 | WRK-0182 | Work packet | [Expose the Protected Learning-Lineage API](work-packets/WRK-0182-expose-protected-learning-lineage-api.md) | complete | SLI-0106 | WRK-0181 | none | codex-cap-0026 | 2026-10-18 |
 | WRK-0183 | Work packet | [Qualify Live Learning Lineage](work-packets/WRK-0183-qualify-live-learning-lineage.md) | complete | SLI-0106 | WRK-0182 | none | codex-cap-0026 | 2026-10-18 |
-| WRK-0184 | Work packet | [Freeze Cross-Domain Provenance Contracts](work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md) | active | SLI-0107 | none | none | codex-cap-0026 | 2026-10-18 |
+| WRK-0184 | Work packet | [Freeze Cross-Domain Provenance Contracts](work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md) | verifying | SLI-0107 | none | none | codex-cap-0026 | 2026-10-18 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |
