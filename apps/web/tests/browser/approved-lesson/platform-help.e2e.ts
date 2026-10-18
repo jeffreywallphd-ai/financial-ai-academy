@@ -197,7 +197,7 @@ test("keeps reviewed platform help available through one local public API", asyn
   await page.getByRole("link", { name: "Return to lesson" }).click();
   expect((await returnedLessonContext).status()).toBe(200);
   await expect(
-    page.getByRole("heading", { level: 1, name: "Risk and return basics" }),
+    page.getByRole("heading", { level: 1, name: "Understanding Risk and Return" }),
   ).toBeVisible();
 
   const assistanceContext = await openContextualFeature(
