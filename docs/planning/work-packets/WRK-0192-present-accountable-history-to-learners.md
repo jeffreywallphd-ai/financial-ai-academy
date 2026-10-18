@@ -1,7 +1,7 @@
 ---
 id: WRK-0192
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/accountable-history/AccountableHistoryPanel.tsx", "apps/web/src/features/accountable-history/api.ts", "apps/web/src/features/accountable-history/model.ts", "apps/web/src/features/lesson-reading/KnowledgeCheck.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/styles/accountable-history.css", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/component/accountableHistory.test.tsx", "apps/web/tests/unit/accountableHistoryModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0192-present-accountable-history-to-learners.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: be26b19342e3fdac4b5725ca1e1e42b187946f0f
+claim_id: WRK-0192:f09e968f-c363-4ecf-be8a-8d0b9386bddb
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T10:56:56Z
 ---
 
 # Agent Work Packet: Present Accountable History to Learners
@@ -248,3 +248,7 @@ advice, suitability, mastery, or certification changed.
   dependency, exact browser-only write scope, current canonical interface and
   language standards, resolved local decision posture, and executable focused
   verification. The packet is ready to claim.
+- 2026-10-18: Activated from clean base `be26b19` after revalidating the
+  approved CAP package, completed WRK-0191 dependency, exact browser-only
+  scope, interface and language contracts, and absence of an active ownership
+  collision.
