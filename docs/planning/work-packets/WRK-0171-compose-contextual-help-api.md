@@ -1,7 +1,7 @@
 ---
 id: WRK-0171
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/generated/api-client/schema.d.ts", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/guidance/README.md", "backend/src/financial_ai_academy/modules/guidance/application/service.py", "backend/src/financial_ai_academy/modules/guidance/ports/__init__.py", "backend/src/financial_ai_academy/modules/guidance/ports/contextual_help.py", "backend/src/financial_ai_academy/modules/guidance/public.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/integration/api/test_single_profile_guidance_api.py", "backend/tests/unit/guidance/test_service.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0171-compose-contextual-help-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 8b3aa2e4d17de2494e6360f1415e8c2861d0995d
+claim_id: WRK-0171:04392acc-49fb-4c7f-8e87-c59c19572226
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T04:20:08Z
 ---
 
 # Agent Work Packet: Compose the Contextual Help API
@@ -220,3 +220,6 @@ financial behavior changed.
   API-first read shared by browser and future headless callers while deferring
   feature links and live qualification to dependent packets. It remains inside
   the approved CAP-0020 package and requires no lower-level approval.
+- 2026-10-18: Activated from clean recorded base `8b3aa2e` after confirming the
+  current CAP binding, completed WRK-0170 dependency, API-first exact-read
+  scope, executable checks, and no unresolved decision or ownership collision.
