@@ -1834,6 +1834,273 @@
         "title": "ExcludedEvidenceArtifactModel",
         "type": "object"
       },
+      "FeatureGuidanceHelpActionModel": {
+        "additionalProperties": false,
+        "properties": {
+          "action_kind": {
+            "const": "open_help_topic",
+            "title": "Action Kind",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "topic_id": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Topic Id",
+            "type": "string"
+          },
+          "topic_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Topic Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_kind",
+          "label",
+          "topic_id",
+          "topic_version"
+        ],
+        "title": "FeatureGuidanceHelpActionModel",
+        "type": "object"
+      },
+      "FeatureGuidanceMappingModel": {
+        "additionalProperties": false,
+        "properties": {
+          "condition_key": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Condition Key",
+            "type": "string"
+          },
+          "guidance_id": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Guidance Id",
+            "type": "string"
+          },
+          "guidance_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Guidance Version",
+            "type": "string"
+          },
+          "mapping_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Mapping Digest",
+            "type": "string"
+          },
+          "mapping_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Mapping Version",
+            "type": "string"
+          },
+          "publication": {
+            "$ref": "#/components/schemas/PlatformHelpPublicationModel"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpSourceReferenceModel"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "surface_key": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Surface Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "surface_key",
+          "condition_key",
+          "mapping_version",
+          "guidance_id",
+          "guidance_version",
+          "publication",
+          "source_references",
+          "mapping_digest"
+        ],
+        "title": "FeatureGuidanceMappingModel",
+        "type": "object"
+      },
+      "FeatureGuidanceRecordModel": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "download_inert_artifact": "#/components/schemas/FeatureGuidanceUntargetedActionModel",
+                  "open_help_topic": "#/components/schemas/FeatureGuidanceHelpActionModel",
+                  "reload_current_state": "#/components/schemas/FeatureGuidanceUntargetedActionModel",
+                  "retry_unchanged_request": "#/components/schemas/FeatureGuidanceUntargetedActionModel",
+                  "return_to_owning_task": "#/components/schemas/FeatureGuidanceUntargetedActionModel"
+                },
+                "propertyName": "action_kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/FeatureGuidanceUntargetedActionModel"
+                },
+                {
+                  "$ref": "#/components/schemas/FeatureGuidanceHelpActionModel"
+                }
+              ]
+            },
+            "maxItems": 5,
+            "title": "Actions",
+            "type": "array"
+          },
+          "applicability": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpApplicabilityModel"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Applicability",
+            "type": "array"
+          },
+          "guidance_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Guidance Digest",
+            "type": "string"
+          },
+          "guidance_id": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Guidance Id",
+            "type": "string"
+          },
+          "guidance_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Guidance Version",
+            "type": "string"
+          },
+          "heading": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Heading",
+            "type": "string"
+          },
+          "help_references": {
+            "items": {
+              "$ref": "#/components/schemas/ContextualHelpReferenceModel"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Help References",
+            "type": "array"
+          },
+          "outcome": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Outcome",
+            "type": "string"
+          },
+          "publication": {
+            "$ref": "#/components/schemas/PlatformHelpPublicationModel"
+          },
+          "reason": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpSourceReferenceModel"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "limited",
+              "unavailable",
+              "degraded"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "guidance_id",
+          "guidance_version",
+          "status",
+          "heading",
+          "reason",
+          "outcome",
+          "actions",
+          "help_references",
+          "applicability",
+          "publication",
+          "source_references",
+          "guidance_digest"
+        ],
+        "title": "FeatureGuidanceRecordModel",
+        "type": "object"
+      },
+      "FeatureGuidanceResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "guidance": {
+            "$ref": "#/components/schemas/FeatureGuidanceRecordModel"
+          },
+          "mapping": {
+            "$ref": "#/components/schemas/FeatureGuidanceMappingModel"
+          }
+        },
+        "required": [
+          "mapping",
+          "guidance"
+        ],
+        "title": "FeatureGuidanceResponseModel",
+        "type": "object"
+      },
+      "FeatureGuidanceUntargetedActionModel": {
+        "additionalProperties": false,
+        "properties": {
+          "action_kind": {
+            "enum": [
+              "retry_unchanged_request",
+              "reload_current_state",
+              "return_to_owning_task",
+              "download_inert_artifact"
+            ],
+            "title": "Action Kind",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_kind",
+          "label"
+        ],
+        "title": "FeatureGuidanceUntargetedActionModel",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -13725,6 +13992,128 @@
           }
         ],
         "summary": "Get Contextual Help Version",
+        "tags": [
+          "guidance"
+        ]
+      }
+    },
+    "/api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}": {
+      "get": {
+        "operationId": "getFeatureGuidanceVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "surface_key",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Surface Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "condition_key",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Condition Key",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "mapping_version",
+            "required": true,
+            "schema": {
+              "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+              "title": "Mapping Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureGuidanceResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Feature Guidance Version",
         "tags": [
           "guidance"
         ]

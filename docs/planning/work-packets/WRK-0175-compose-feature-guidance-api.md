@@ -1,7 +1,7 @@
 ---
 id: WRK-0175
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -215,6 +215,29 @@ explanation and live-qualification gaps. Confirm no persistence, browser
 feature, provider/model, external content/action, learner authority, owning-
 feature behavior, or financial behavior changed.
 
+## Verification Evidence
+
+- Guidance now resolves one exact admitted mapping and reviewed record through
+  a transport-neutral request, port, service operation, and immutable
+  resolution value. Local composition admits the feature registry against the
+  same complete Help corpus as the contextual registry.
+- The protected exact route uses the existing Help-read permission, validates
+  authorization before registry access, accepts no query or body, returns a
+  closed mapping-and-record response, and preserves bounded not-found behavior
+  without version or condition substitution.
+- The reviewed OpenAPI snapshot and generated TypeScript client reproduce the
+  `getFeatureGuidanceVersion` operation. Browser and ordinary headless clients
+  therefore share one public shape without importing backend internals.
+- The focused Guidance, API, and module-boundary suite passes 93 tests; Web and
+  generated-client qualification passes 499 tests. OpenAPI reproduction,
+  TypeScript checking, zero-warning lint, Python compilation, architecture,
+  security, documentation, planning, whitespace, and all 29 aggregate
+  readiness checks pass.
+- No owning-feature behavior, browser explanation, persistence, migration,
+  provider/model call, arbitrary command or destination, recovery execution,
+  external action, learner authority, or financial behavior changed. Exact-
+  candidate verification remains before completion.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0174 completed. This packet
@@ -225,3 +248,6 @@ feature behavior, or financial behavior changed.
 - 2026-10-18: Activated from clean base `518b07b` after confirming the current
   CAP binding, completed WRK-0174 dependency, API-first exact-resolution scope,
   executable checks, and no unresolved decision or ownership collision.
+- 2026-10-18: Entered verification after implementing the exact mapping-and-
+  record resolution, protected API, reviewed OpenAPI, generated client, and
+  focused failure/anti-rigidity evidence within the bounded packet scope.

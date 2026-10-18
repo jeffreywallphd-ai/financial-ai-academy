@@ -4,6 +4,7 @@ import pytest
 
 from financial_ai_academy.modules.guidance.adapters import (
     ImmutableContextualHelpRegistry,
+    ImmutableFeatureGuidanceRegistry,
     ImmutablePlatformHelpCorpus,
 )
 from financial_ai_academy.modules.guidance.application import GuidanceService
@@ -12,6 +13,7 @@ from financial_ai_academy.modules.guidance.public import (
     GuidanceErrorCode,
     OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
+    ResolveFeatureGuidanceRequest,
     SearchRequest,
 )
 
@@ -21,6 +23,7 @@ def test_service_exposes_transport_neutral_search_and_exact_reads() -> None:
     service = GuidanceService(
         corpus,
         ImmutableContextualHelpRegistry(topics=corpus.topics),
+        ImmutableFeatureGuidanceRegistry(topics=corpus.topics),
     )
 
     page = service.search_platform_help(SearchRequest(query="approved help"))
@@ -30,6 +33,13 @@ def test_service_exposes_transport_neutral_search_and_exact_reads() -> None:
     context = service.open_contextual_help(
         OpenContextualHelpRequest("project-result", "1.0.0")
     )
+    resolution = service.resolve_feature_guidance(
+        ResolveFeatureGuidanceRequest(
+            "project-workspace",
+            "artifact-inert",
+            "1.0.0",
+        )
+    )
 
     assert page.query == "approved help"
     assert [item.topic_id for item in page.results]
@@ -37,6 +47,8 @@ def test_service_exposes_transport_neutral_search_and_exact_reads() -> None:
     assert topic.source_references
     assert context.context_key == "project-result"
     assert [reference.topic_id for reference in context.help_references]
+    assert resolution.mapping.surface_key == "project-workspace"
+    assert resolution.guidance.guidance_id == "project-artifact-inert"
 
 
 def test_service_preserves_exact_version_absence_without_substitution() -> None:
@@ -44,6 +56,7 @@ def test_service_preserves_exact_version_absence_without_substitution() -> None:
     service = GuidanceService(
         corpus,
         ImmutableContextualHelpRegistry(topics=corpus.topics),
+        ImmutableFeatureGuidanceRegistry(topics=corpus.topics),
     )
 
     with pytest.raises(GuidanceError) as captured:
@@ -59,3 +72,14 @@ def test_service_preserves_exact_version_absence_without_substitution() -> None:
         )
 
     assert context_captured.value.code is GuidanceErrorCode.NOT_FOUND
+
+    with pytest.raises(GuidanceError) as feature_captured:
+        service.resolve_feature_guidance(
+            ResolveFeatureGuidanceRequest(
+                "project-workspace",
+                "artifact-inert",
+                "2.0.0",
+            )
+        )
+
+    assert feature_captured.value.code is GuidanceErrorCode.NOT_FOUND

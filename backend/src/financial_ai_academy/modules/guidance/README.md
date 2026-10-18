@@ -4,22 +4,24 @@ Guidance owns safe versioned projections that explain platform concepts,
 methods, limitations, and troubleshooting. Canonical product, domain,
 architecture, contract, risk, and method sources retain their meaning.
 
-The implemented boundary contains pure immutable `platform-help/v1` and
-`contextual-help/v1` values, strict contract projection, exact-version lookup,
-deterministic literal topic search, checked-in source-bound resources, and one
-transport-neutral application/public seam. Composition admits the complete
-topic corpus and then the context registry before the API can serve them; an
-invalid, duplicated, stale, dangling, or internally inconsistent record rejects
-startup rather than exposing a partial result.
+The implemented boundary contains pure immutable `platform-help/v1`,
+`contextual-help/v1`, and `feature-guidance/v1` values, strict contract
+projection, exact-version lookup, deterministic literal topic search,
+checked-in source-bound resources, and one transport-neutral application/public
+seam. Composition admits the complete topic corpus and then the contextual and
+feature-guidance registries before the API can serve them; an invalid,
+duplicated, stale, dangling, or internally inconsistent record rejects startup
+rather than exposing a partial result.
 
 The protected API uses the same Guidance operations for browser, command-line,
 service, and future headless-AI callers. Context reads return one exact routing
-document whose ordered references open the existing exact topic operation;
-neither the host nor a caller invents a feature-to-topic mapping. Guidance has
-no database, request-time
-repository-document read, network, model, provider, grading, eligibility,
-learner-state, or financial-action dependency. Provider payloads and authoring
-sources remain outside domain values.
+document whose ordered references open the existing exact topic operation.
+Feature-guidance reads accept only an exact surface, condition, and mapping
+version and return the admitted mapping plus its reviewed record without
+interpreting feature state or substituting another version. Guidance has no
+database, request-time repository-document read, network, model, provider,
+grading, eligibility, learner-state, or financial-action dependency. Provider
+payloads and authoring sources remain outside domain values.
 
 The disposable local qualification reads every shipped exact context and
 referenced topic through both an authenticated browser context and a fresh

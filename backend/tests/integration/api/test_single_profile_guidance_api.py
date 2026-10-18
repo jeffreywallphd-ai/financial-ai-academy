@@ -11,13 +11,16 @@ from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
 from financial_ai_academy.modules.guidance.adapters import (
     ImmutableContextualHelpRegistry,
+    ImmutableFeatureGuidanceRegistry,
     ImmutablePlatformHelpCorpus,
 )
 from financial_ai_academy.modules.guidance.application import GuidanceService
 from financial_ai_academy.modules.guidance.public import (
     ContextualHelpRecord,
+    FeatureGuidanceResolution,
     OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
+    ResolveFeatureGuidanceRequest,
     PlatformHelpTopic,
     SearchPage,
     SearchRequest,
@@ -40,6 +43,12 @@ SEARCH_SCHEMA = (
 )
 CONTEXT_SCHEMA = (
     REPOSITORY / "contracts/guidance/contextual-help/v1/context.schema.json"
+)
+FEATURE_RECORD_SCHEMA = (
+    REPOSITORY / "contracts/guidance/feature-guidance/v1/record.schema.json"
+)
+FEATURE_MAPPING_SCHEMA = (
+    REPOSITORY / "contracts/guidance/feature-guidance/v1/mapping.schema.json"
 )
 ORIGIN = "http://127.0.0.1:8000"
 COOKIE_NAME = "financial_ai_academy_session"
@@ -83,10 +92,12 @@ class Guidance:
         self._service = GuidanceService(
             corpus,
             ImmutableContextualHelpRegistry(topics=corpus.topics),
+            ImmutableFeatureGuidanceRegistry(topics=corpus.topics),
         )
         self.search_calls: list[SearchRequest] = []
         self.open_calls: list[OpenPlatformHelpTopicRequest] = []
         self.context_calls: list[OpenContextualHelpRequest] = []
+        self.feature_calls: list[ResolveFeatureGuidanceRequest] = []
 
     def search_platform_help(self, request: SearchRequest) -> SearchPage:
         self.search_calls.append(request)
@@ -103,6 +114,13 @@ class Guidance:
     ) -> ContextualHelpRecord:
         self.context_calls.append(request)
         return self._service.open_contextual_help(request)
+
+    def resolve_feature_guidance(
+        self,
+        request: ResolveFeatureGuidanceRequest,
+    ) -> FeatureGuidanceResolution:
+        self.feature_calls.append(request)
+        return self._service.resolve_feature_guidance(request)
 
 
 def client(
@@ -144,6 +162,13 @@ def context_path(version: str = "1.0.0") -> str:
     return f"/api/v1/guidance/contextual-help/project-result/versions/{version}"
 
 
+def feature_path(version: str = "1.0.0") -> str:
+    return (
+        "/api/v1/guidance/feature-guidance/project-workspace/"
+        f"conditions/artifact-inert/versions/{version}"
+    )
+
+
 def test_authorized_help_reads_preserve_closed_public_facts() -> None:
     guidance = Guidance()
     http = client(Identity(("guidance.platform_help.read",)), guidance)
@@ -154,6 +179,7 @@ def test_authorized_help_reads_preserve_closed_public_facts() -> None:
     )
     exact = http.get(exact_path())
     context = http.get(context_path())
+    feature = http.get(feature_path())
 
     assert search.status_code == 200
     assert search.json()["query"] == "approved help"
@@ -172,7 +198,23 @@ def test_authorized_help_reads_preserve_closed_public_facts() -> None:
             format_checker=FormatChecker(),
         ).iter_errors(context.json())
     ) == []
-    serialized = json.dumps((search.json(), exact.json(), context.json()))
+    assert feature.status_code == 200
+    assert feature.json()["mapping"]["surface_key"] == "project-workspace"
+    assert feature.json()["mapping"]["condition_key"] == "artifact-inert"
+    assert feature.json()["guidance"]["guidance_id"] == "project-artifact-inert"
+    for schema_path, document in (
+        (FEATURE_MAPPING_SCHEMA, feature.json()["mapping"]),
+        (FEATURE_RECORD_SCHEMA, feature.json()["guidance"]),
+    ):
+        assert list(
+            Draft202012Validator(
+                json.loads(schema_path.read_text(encoding="utf-8")),
+                format_checker=FormatChecker(),
+            ).iter_errors(document)
+        ) == []
+    serialized = json.dumps(
+        (search.json(), exact.json(), context.json(), feature.json())
+    )
     assert all(
         prohibited not in serialized
         for prohibited in (
@@ -243,13 +285,30 @@ def test_missing_and_insufficient_context_deny_before_corpus_access() -> None:
     ).get(
         "/api/v1/guidance/contextual-help/UNSAFE/versions/latest"
     )
+    invalid_feature_guidance = Guidance()
+    invalid_feature = client(
+        Identity(("guidance.platform_help.read",)),
+        invalid_feature_guidance,
+        authenticated=False,
+    ).get(
+        "/api/v1/guidance/feature-guidance/UNSAFE/"
+        "conditions/raw-exception/versions/latest"
+    )
+    denied_feature_guidance = Guidance()
+    denied_feature = client(
+        Identity(("curriculum.lesson.read",)), denied_feature_guidance
+    ).get(feature_path())
 
     assert missing.status_code == 401
     assert denied.status_code == 403
     assert invalid_missing.status_code == 401
+    assert invalid_feature.status_code == 401
+    assert denied_feature.status_code == 403
     assert missing_guidance.search_calls == []
     assert denied_guidance.context_calls == []
     assert invalid_missing_guidance.context_calls == []
+    assert invalid_feature_guidance.feature_calls == []
+    assert denied_feature_guidance.feature_calls == []
 
 
 def test_client_selected_permission_is_rejected_before_corpus_access() -> None:
@@ -271,6 +330,7 @@ def test_exact_version_absence_and_invalid_cursor_are_bounded() -> None:
 
     absent = http.get(exact_path("2.0.0"))
     absent_context = http.get(context_path("2.0.0"))
+    absent_feature = http.get(feature_path("2.0.0"))
     invalid_cursor = http.get(
         "/api/v1/guidance/platform-help", params={"cursor": "not-a-cursor"}
     )
@@ -279,6 +339,8 @@ def test_exact_version_absence_and_invalid_cursor_are_bounded() -> None:
     assert absent.json()["code"] == "not_found"
     assert absent_context.status_code == 404
     assert absent_context.json()["code"] == "not_found"
+    assert absent_feature.status_code == 404
+    assert absent_feature.json()["code"] == "not_found"
     assert invalid_cursor.status_code == 409
     assert invalid_cursor.json()["code"] == "invalid_cursor"
     assert "not-a-cursor" not in json.dumps(invalid_cursor.json())
@@ -292,10 +354,12 @@ def test_unknown_query_and_get_bodies_are_rejected() -> None:
     )
     body = http.request("GET", exact_path(), content=b"{}")
     context_query = http.get(context_path(), params={"latest": "true"})
+    feature_body = http.request("GET", feature_path(), content=b"{}")
 
     assert unknown.status_code == 400
     assert body.status_code == 400
     assert context_query.status_code == 400
+    assert feature_body.status_code == 400
 
 
 def test_openapi_snapshot_contains_stable_cookie_protected_operations() -> None:
@@ -307,14 +371,20 @@ def test_openapi_snapshot_contains_stable_cookie_protected_operations() -> None:
     context = generated["paths"][
         "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}"
     ]["get"]
+    feature = generated["paths"][
+        "/api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}"
+    ]["get"]
 
     assert search["operationId"] == "searchPlatformHelp"
     assert exact["operationId"] == "getPlatformHelpTopicVersion"
     assert context["operationId"] == "getContextualHelpVersion"
+    assert feature["operationId"] == "getFeatureGuidanceVersion"
     assert search["security"] == [{"OpaqueSessionCookie": []}]
     assert exact["security"] == [{"OpaqueSessionCookie": []}]
     assert context["security"] == [{"OpaqueSessionCookie": []}]
+    assert feature["security"] == [{"OpaqueSessionCookie": []}]
     assert "422" not in search["responses"]
     assert "422" not in exact["responses"]
     assert "422" not in context["responses"]
+    assert "422" not in feature["responses"]
     assert OPENAPI.read_bytes() == generate_bytes()

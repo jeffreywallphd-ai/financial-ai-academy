@@ -129,6 +129,15 @@ export interface paths {
       };
       readonly get: operations["getContextualHelpVersion"];
     };
+  readonly "/api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getFeatureGuidanceVersion"];
+    };
   readonly "/api/v1/guidance/platform-help": {
       readonly parameters: {
         readonly query?: never;
@@ -726,6 +735,46 @@ export interface components {
       readonly "artifact_id": string;
       readonly "artifact_version": number;
       readonly "reason": "source_use_restricted" | "not_authorized" | "content_unavailable";
+    };
+    readonly "FeatureGuidanceHelpActionModel": {
+      readonly "action_kind": "open_help_topic";
+      readonly "label": string;
+      readonly "topic_id": string;
+      readonly "topic_version": string;
+    };
+    readonly "FeatureGuidanceMappingModel": {
+      readonly "condition_key": string;
+      readonly "guidance_id": string;
+      readonly "guidance_version": string;
+      readonly "mapping_digest": string;
+      readonly "mapping_version": string;
+      readonly "publication": components["schemas"]["PlatformHelpPublicationModel"];
+      readonly "schema_version": "1.0.0";
+      readonly "source_references": ReadonlyArray<components["schemas"]["PlatformHelpSourceReferenceModel"]>;
+      readonly "surface_key": string;
+    };
+    readonly "FeatureGuidanceRecordModel": {
+      readonly "actions": ReadonlyArray<components["schemas"]["FeatureGuidanceUntargetedActionModel"] | components["schemas"]["FeatureGuidanceHelpActionModel"]>;
+      readonly "applicability": ReadonlyArray<components["schemas"]["PlatformHelpApplicabilityModel"]>;
+      readonly "guidance_digest": string;
+      readonly "guidance_id": string;
+      readonly "guidance_version": string;
+      readonly "heading": string;
+      readonly "help_references": ReadonlyArray<components["schemas"]["ContextualHelpReferenceModel"]>;
+      readonly "outcome": string;
+      readonly "publication": components["schemas"]["PlatformHelpPublicationModel"];
+      readonly "reason": string;
+      readonly "schema_version": "1.0.0";
+      readonly "source_references": ReadonlyArray<components["schemas"]["PlatformHelpSourceReferenceModel"]>;
+      readonly "status": "limited" | "unavailable" | "degraded";
+    };
+    readonly "FeatureGuidanceResponseModel": {
+      readonly "guidance": components["schemas"]["FeatureGuidanceRecordModel"];
+      readonly "mapping": components["schemas"]["FeatureGuidanceMappingModel"];
+    };
+    readonly "FeatureGuidanceUntargetedActionModel": {
+      readonly "action_kind": "retry_unchanged_request" | "reload_current_state" | "return_to_owning_task" | "download_inert_artifact";
+      readonly "label": string;
     };
     readonly "HardBreakModel": {
       readonly "kind"?: "hard_break";
@@ -2981,6 +3030,63 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["ContextualHelpResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getFeatureGuidanceVersion: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "condition_key": string;
+          readonly "mapping_version": string;
+          readonly "surface_key": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["FeatureGuidanceResponseModel"];
           };
         };
         readonly 400: {

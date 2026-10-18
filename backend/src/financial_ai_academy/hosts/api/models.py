@@ -56,9 +56,11 @@ from financial_ai_academy.modules.curriculum.public import (
 )
 from financial_ai_academy.modules.guidance.public import (
     ContextualHelpRecord,
+    FeatureGuidanceResolution,
     PlatformHelpTopic,
     SearchPage as PlatformHelpSearchPage,
     context_payload as contextual_help_payload,
+    feature_guidance_resolution_payload,
     search_page_payload as platform_help_search_page_payload,
     topic_payload as platform_help_topic_payload,
 )
@@ -318,11 +320,94 @@ class ContextualHelpResponseModel(ApiModel):
     context_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
 
 
+class FeatureGuidanceUntargetedActionModel(ApiModel):
+    action_kind: Literal[
+        "retry_unchanged_request",
+        "reload_current_state",
+        "return_to_owning_task",
+        "download_inert_artifact",
+    ]
+    label: str = Field(min_length=1, max_length=120)
+
+
+class FeatureGuidanceHelpActionModel(ApiModel):
+    action_kind: Literal["open_help_topic"]
+    label: str = Field(min_length=1, max_length=120)
+    topic_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    topic_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+
+
+FeatureGuidanceActionModel = Annotated[
+    Union[
+        FeatureGuidanceUntargetedActionModel,
+        FeatureGuidanceHelpActionModel,
+    ],
+    Field(discriminator="action_kind"),
+]
+
+
+class FeatureGuidanceMappingModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    surface_key: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    condition_key: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    mapping_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    guidance_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    guidance_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    publication: PlatformHelpPublicationModel
+    source_references: list[PlatformHelpSourceReferenceModel] = Field(
+        min_length=1, max_length=20
+    )
+    mapping_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+class FeatureGuidanceRecordModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    guidance_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    guidance_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    status: Literal["limited", "unavailable", "degraded"]
+    heading: str = Field(min_length=1, max_length=120)
+    reason: str = Field(min_length=1, max_length=500)
+    outcome: str = Field(min_length=1, max_length=500)
+    actions: list[FeatureGuidanceActionModel] = Field(max_length=5)
+    help_references: list[ContextualHelpReferenceModel] = Field(
+        min_length=1, max_length=10
+    )
+    applicability: list[PlatformHelpApplicabilityModel] = Field(
+        min_length=1, max_length=20
+    )
+    publication: PlatformHelpPublicationModel
+    source_references: list[PlatformHelpSourceReferenceModel] = Field(
+        min_length=1, max_length=20
+    )
+    guidance_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+class FeatureGuidanceResponseModel(ApiModel):
+    mapping: FeatureGuidanceMappingModel
+    guidance: FeatureGuidanceRecordModel
+
+
 def contextual_help_response(
     context: ContextualHelpRecord,
 ) -> ContextualHelpResponseModel:
     return ContextualHelpResponseModel.model_validate(
         contextual_help_payload(context)
+    )
+
+
+def feature_guidance_response(
+    resolution: FeatureGuidanceResolution,
+) -> FeatureGuidanceResponseModel:
+    return FeatureGuidanceResponseModel.model_validate(
+        feature_guidance_resolution_payload(resolution)
     )
 
 

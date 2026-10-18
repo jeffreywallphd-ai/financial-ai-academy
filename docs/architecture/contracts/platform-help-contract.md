@@ -174,6 +174,14 @@ execution. Exact lookup never substitutes another condition or version.
 Duplicate identities, stale source facts, invalid chronology or digest,
 unsafe text, arbitrary destinations, guarantee language, dangling records, or
 dangling topics reject the complete registry before any record is visible.
-The protected API and generated browser/headless client are dependent
-SLI-0084 work; this contract/core seam itself has no application operation,
-permission, transport, persistence, or execution effect.
+
+The protected exact resolution is
+`GET /api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}`.
+It uses the existing server-issued Help-read permission, authorizes before
+registry access, accepts no query or body, and returns the admitted mapping and
+its exact reviewed record without feature or host reinterpretation. The
+reviewed OpenAPI snapshot and generated client expose the same closed operation
+to browser and headless callers. Missing or invalid exact identities return
+bounded errors without registry facts or substitute guidance. Feature
+placement and live browser/headless qualification remain dependent SLI-0084
+work; this operation has no persistence or execution effect.

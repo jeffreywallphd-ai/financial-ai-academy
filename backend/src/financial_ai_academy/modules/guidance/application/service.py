@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
-from ..ports import ContextualHelpRegistryPort, PlatformHelpCorpusPort
+from ..ports import (
+    ContextualHelpRegistryPort,
+    FeatureGuidanceRegistryPort,
+    PlatformHelpCorpusPort,
+)
 from ..public import (
     ContextualHelpRecord,
+    FeatureGuidanceResolution,
     OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
     PlatformHelpTopic,
+    ResolveFeatureGuidanceRequest,
     SearchPage,
     SearchRequest,
 )
@@ -18,9 +24,11 @@ class GuidanceService:
         self,
         corpus: PlatformHelpCorpusPort,
         context_registry: ContextualHelpRegistryPort,
+        feature_registry: FeatureGuidanceRegistryPort,
     ) -> None:
         self._corpus = corpus
         self._context_registry = context_registry
+        self._feature_registry = feature_registry
 
     def search_platform_help(self, request: SearchRequest) -> SearchPage:
         return self._corpus.search(request)
@@ -38,4 +46,14 @@ class GuidanceService:
         return self._context_registry.get(
             request.context_key,
             request.context_version,
+        )
+
+    def resolve_feature_guidance(
+        self,
+        request: ResolveFeatureGuidanceRequest,
+    ) -> FeatureGuidanceResolution:
+        return self._feature_registry.resolve_with_mapping(
+            request.surface_key,
+            request.condition_key,
+            request.mapping_version,
         )

@@ -90,6 +90,7 @@ from financial_ai_academy.modules.guidance.public import (
     GuidanceOperations,
     OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
+    ResolveFeatureGuidanceRequest,
     SearchRequest as PlatformHelpSearchRequest,
     TopicKind as PlatformHelpTopicKind,
 )
@@ -203,6 +204,7 @@ from .models import (
     PersonalWorkspaceQueryResponseModel,
     PersonalWorkspaceResponseModel,
     ContextualHelpResponseModel,
+    FeatureGuidanceResponseModel,
     PlatformHelpSearchPageResponseModel,
     PlatformHelpTopicResponseModel,
     SessionBootstrapRequestModel,
@@ -256,6 +258,7 @@ from .models import (
     personal_workspace_response,
     personal_workspace_source_permission,
     contextual_help_response,
+    feature_guidance_response,
     platform_help_search_page_response,
     platform_help_topic_response,
 )
@@ -1643,6 +1646,44 @@ def create_app(services: ApiServices) -> FastAPI:
         return contextual_help_response(context)
 
     @app.get(
+        "/api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}",
+        response_model=FeatureGuidanceResponseModel,
+        operation_id="getFeatureGuidanceVersion",
+        responses=_ERROR_RESPONSES,
+        tags=["guidance"],
+    )
+    async def get_feature_guidance_version(
+        request: Request,
+        surface_key: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        condition_key: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        mapping_version: str = Path(
+            pattern=(
+                r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+                r"(0|[1-9][0-9]*)$"
+            ),
+        ),
+        _context: LearnerContext = Depends(guidance_context),
+    ) -> FeatureGuidanceResponseModel:
+        if request.query_params or await request.body():
+            raise RequestValidationError([])
+        resolution = guidance_operations().resolve_feature_guidance(
+            ResolveFeatureGuidanceRequest(
+                surface_key=surface_key,
+                condition_key=condition_key,
+                mapping_version=mapping_version,
+            )
+        )
+        return feature_guidance_response(resolution)
+
+    @app.get(
         "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",
         response_model=CurriculumGraphResponseModel,
         operation_id="getCurriculumGraphVersion",
@@ -2468,6 +2509,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}"
             ]["get"]
             contextual_help_operation["responses"].pop("422", None)
+            feature_guidance_operation = schema["paths"][
+                "/api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}"
+            ]["get"]
+            feature_guidance_operation["responses"].pop("422", None)
             navigation_operation = schema["paths"][
                 "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state"
             ]["get"]

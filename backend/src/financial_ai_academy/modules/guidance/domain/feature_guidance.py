@@ -90,6 +90,12 @@ class FeatureGuidanceMapping:
     mapping_digest: str
 
 
+@dataclass(frozen=True, slots=True)
+class FeatureGuidanceResolution:
+    mapping: FeatureGuidanceMapping
+    guidance: FeatureGuidanceRecord
+
+
 def _reject(code: GuidanceErrorCode, reference: str, message: str) -> None:
     raise GuidanceError(code, message, reference=reference)
 
@@ -230,6 +236,15 @@ def feature_mapping_payload(mapping: FeatureGuidanceMapping) -> dict[str, object
         "publication": _publication_payload(mapping.publication),
         "source_references": [_source_payload(item) for item in mapping.source_references],
         "mapping_digest": mapping.mapping_digest,
+    }
+
+
+def feature_guidance_resolution_payload(
+    resolution: FeatureGuidanceResolution,
+) -> dict[str, object]:
+    return {
+        "mapping": feature_mapping_payload(resolution.mapping),
+        "guidance": feature_guidance_payload(resolution.guidance),
     }
 
 
@@ -422,6 +437,18 @@ class FeatureGuidanceRegistry:
         return self._digest
 
     def resolve(self, surface_key: str, condition_key: str, mapping_version: str) -> FeatureGuidanceRecord:
+        return self.resolve_with_mapping(
+            surface_key,
+            condition_key,
+            mapping_version,
+        ).guidance
+
+    def resolve_with_mapping(
+        self,
+        surface_key: str,
+        condition_key: str,
+        mapping_version: str,
+    ) -> FeatureGuidanceResolution:
         _identifier(surface_key, "surface_key")
         _identifier(condition_key, "condition_key")
         _version(mapping_version, "mapping_version")
@@ -429,7 +456,12 @@ class FeatureGuidanceRegistry:
             mapping = self._mapping_by_key[(surface_key, condition_key, mapping_version)]
         except KeyError:
             _reject(GuidanceErrorCode.NOT_FOUND, f"{surface_key}:{condition_key}@{mapping_version}", "Feature guidance is unavailable.")
-        return self._record_by_key[(mapping.guidance_id, mapping.guidance_version)]
+        return FeatureGuidanceResolution(
+            mapping=mapping,
+            guidance=self._record_by_key[
+                (mapping.guidance_id, mapping.guidance_version)
+            ],
+        )
 
 
 __all__ = [
@@ -438,10 +470,12 @@ __all__ = [
     "FeatureGuidanceActionKind",
     "FeatureGuidanceMapping",
     "FeatureGuidanceRecord",
+    "FeatureGuidanceResolution",
     "FeatureGuidanceRegistry",
     "FeatureGuidanceStatus",
     "feature_guidance_digest",
     "feature_guidance_payload",
+    "feature_guidance_resolution_payload",
     "feature_mapping_digest",
     "feature_mapping_payload",
     "validate_feature_guidance",

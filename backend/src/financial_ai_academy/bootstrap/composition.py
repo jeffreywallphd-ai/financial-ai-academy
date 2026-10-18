@@ -85,6 +85,7 @@ from financial_ai_academy.modules.identity.adapters.postgres_repository import (
 from financial_ai_academy.modules.identity.application.service import IdentityService
 from financial_ai_academy.modules.guidance.adapters import (
     ImmutableContextualHelpRegistry,
+    ImmutableFeatureGuidanceRegistry,
     ImmutablePlatformHelpCorpus,
 )
 from financial_ai_academy.modules.guidance.application import GuidanceService
@@ -327,6 +328,7 @@ def build_application_services(
     guidance = GuidanceService(
         help_corpus,
         ImmutableContextualHelpRegistry(topics=help_corpus.topics),
+        ImmutableFeatureGuidanceRegistry(topics=help_corpus.topics),
     )
     return ApplicationServices(
         content=content,

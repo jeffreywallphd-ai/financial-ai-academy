@@ -9,6 +9,7 @@ from typing import Any, Sequence
 from ..domain import (
     FeatureGuidanceMapping,
     FeatureGuidanceRecord,
+    FeatureGuidanceResolution,
     FeatureGuidanceRegistry,
     GuidanceError,
     GuidanceErrorCode,
@@ -93,6 +94,18 @@ class ImmutableFeatureGuidanceRegistry:
 
     def resolve(self, surface_key: str, condition_key: str, mapping_version: str) -> FeatureGuidanceRecord:
         return self._registry.resolve(surface_key, condition_key, mapping_version)
+
+    def resolve_with_mapping(
+        self,
+        surface_key: str,
+        condition_key: str,
+        mapping_version: str,
+    ) -> FeatureGuidanceResolution:
+        return self._registry.resolve_with_mapping(
+            surface_key,
+            condition_key,
+            mapping_version,
+        )
 
 
 __all__ = [

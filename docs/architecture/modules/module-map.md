@@ -156,9 +156,11 @@ execution, cross-module mutation, or browser-interface dependency.
   presentation actions, canonical digests, source bindings, record correlation,
   and exact Help topics before admitting the complete registry. It does not
   inspect feature state or authorize retry, download, provider/model use,
-  artifact execution, or another durable/external action. Its protected API,
-  generated client, bounded feature presentation, and live qualification remain
-  dependent SLI-0084 seams.
+  artifact execution, or another durable/external action. The Guidance
+  application/public seam and protected exact resolution transport the admitted
+  mapping plus reviewed record through the same OpenAPI-generated client for
+  browser and headless callers. Bounded feature presentation and live
+  qualification remain dependent SLI-0084 seams.
 
 ## Implemented Adaptation Deterministic Baseline
 

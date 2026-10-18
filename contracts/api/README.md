@@ -28,6 +28,19 @@ referenced content through the existing exact topic operation. Browser,
 command-line, service, and future headless-AI clients therefore share one
 source-bound mapping without creating a feature-owned or browser-only registry.
 
+`GET /api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}`
+is the protected exact feature-guidance resolution. It uses the same opaque
+session and server-issued `guidance.platform_help.read` permission, accepts no
+query, body, learner, permission, raw exception, caller-written message, or
+latest-version selector, and never substitutes another condition or version.
+Its closed response preserves the exact admitted mapping and its reviewed
+record, including both identities and digests, safe presentation actions,
+exact Help references, applicability, publication, and canonical-source facts.
+The operation does not inspect feature state, decide whether a write occurred,
+authorize retry or download, select a provider, or execute recovery. Browser,
+command-line, service, and future headless-AI clients use this same generated
+operation and closed shape.
+
 `GET /api/v1/learner-assistance-preferences`, `GET
 /api/v1/learner-assistance-preferences/history`, `GET
 /api/v1/learner-assistance-preferences/export`, and `POST

@@ -22,6 +22,7 @@ from financial_ai_academy.modules.guidance.domain import (
     FeatureGuidanceRegistry,
     GuidanceError,
     GuidanceErrorCode,
+    feature_guidance_resolution_payload,
     feature_guidance_payload,
 )
 
@@ -60,6 +61,14 @@ def test_default_registry_admits_all_starter_conditions_exactly() -> None:
         FeatureGuidanceActionKind.DOWNLOAD_INERT_ARTIFACT,
         FeatureGuidanceActionKind.OPEN_HELP_TOPIC,
     ]
+    resolution = registry.resolve_with_mapping(
+        "project-workspace",
+        "artifact-inert",
+        "1.0.0",
+    )
+    payload = feature_guidance_resolution_payload(resolution)
+    assert payload["mapping"]["mapping_digest"] == resolution.mapping.mapping_digest
+    assert payload["guidance"]["guidance_digest"] == record.guidance_digest
 
 
 def test_exact_lookup_never_substitutes_a_version_or_condition() -> None:

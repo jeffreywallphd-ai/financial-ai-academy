@@ -81,9 +81,11 @@ from financial_ai_academy.modules.curriculum.public import (
 )
 from financial_ai_academy.modules.guidance.public import (
     ContextualHelpRecord,
+    FeatureGuidanceResolution,
     OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
     PlatformHelpTopic,
+    ResolveFeatureGuidanceRequest,
     SearchPage as PlatformHelpSearchPage,
     SearchRequest as PlatformHelpSearchRequest,
 )
@@ -211,6 +213,12 @@ class _SchemaGuidance:
     def open_contextual_help(
         self, request: OpenContextualHelpRequest
     ) -> ContextualHelpRecord:
+        raise NotImplementedError
+
+    def resolve_feature_guidance(
+        self,
+        request: ResolveFeatureGuidanceRequest,
+    ) -> FeatureGuidanceResolution:
         raise NotImplementedError
 
 
