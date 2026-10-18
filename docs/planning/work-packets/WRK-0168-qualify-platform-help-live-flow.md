@@ -1,7 +1,7 @@
 ---
 id: WRK-0168
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "dev-tools/control-plane/check_platform_help.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0168-qualify-platform-help-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: c9056d976c24872bb810844c488fdc903498383c
-claim_id: WRK-0168:c41d397e-a011-406b-bf61-f78a52450ec5
+base_revision: 6f6c810159179d4ff5e82e12bc05ab0176098091
+claim_id: WRK-0168:d091dc6a-2839-490b-b786-392583dd0308
 claimed_by: codex-cap-0020
-claimed_at: 2026-10-18T03:24:12Z
+claimed_at: 2026-10-18T03:48:16Z
 ---
 
 # Agent Work Packet: Qualify the Platform Help Live Flow
@@ -251,3 +251,6 @@ or financial behavior changed, then leave SLI-0082 closure-ready.
   contract-required nullable `next_cursor` on a terminal API search page.
   WRK-0169 owns the bounded API serialization correction; this packet resumes
   afterward without weakening evidence or widening qualification scope.
+- 2026-10-18: Reactivated from clean recorded base `6f6c810` after WRK-0169
+  completed schema-backed correction and independent closure review. The live
+  qualification scope and evidence thresholds remain unchanged.
