@@ -1,0 +1,86 @@
+{
+  "catalog_version": "2.0.0",
+  "profiles": [
+    {
+      "profile": "administrative_action",
+      "owner_module": "audit",
+      "resource_kind": "administrative_action",
+      "resource_id_field": "action_id",
+      "allowed_provenance_labels": ["administrative"],
+      "allowed_source_relations": ["derived_from", "governed_by", "recorded_as"],
+      "identity_fields": ["action_id", "policy_id", "policy_version", "action_at", "occurrence"]
+    },
+    {
+      "profile": "dataset_snapshot",
+      "owner_module": "ai_orchestration",
+      "resource_kind": "dataset_snapshot",
+      "resource_id_field": "dataset_id",
+      "allowed_provenance_labels": ["observed", "generated"],
+      "allowed_source_relations": ["derived_from", "governed_by", "recorded_as"],
+      "identity_fields": ["dataset_id", "dataset_version"]
+    },
+    {
+      "profile": "financial_result",
+      "owner_module": "portfolio",
+      "resource_kind": "financial_result",
+      "resource_id_field": "analysis_id",
+      "allowed_provenance_labels": ["calculated"],
+      "allowed_source_relations": ["calculated_from", "governed_by", "recorded_as"],
+      "identity_fields": ["analysis_id", "as_of", "method_id", "method_version", "source_set_digest"]
+    },
+    {
+      "profile": "market_observation",
+      "owner_module": "market_data",
+      "resource_kind": "market_observation",
+      "resource_id_field": "observation_id",
+      "allowed_provenance_labels": ["observed"],
+      "allowed_source_relations": ["derived_from", "governed_by", "recorded_as"],
+      "identity_fields": ["observation_id", "instrument_id", "observed_at", "method_id", "method_version", "source_set_digest"]
+    },
+    {
+      "profile": "model_execution",
+      "owner_module": "ai_orchestration",
+      "resource_kind": "model_execution",
+      "resource_id_field": "execution_id",
+      "allowed_provenance_labels": ["predicted", "generated"],
+      "allowed_source_relations": ["executed_as", "governed_by", "used_dataset", "used_model"],
+      "identity_fields": ["execution_id", "model_id", "model_version", "occurrence"]
+    },
+    {
+      "profile": "model_version",
+      "owner_module": "ai_orchestration",
+      "resource_kind": "model_version",
+      "resource_id_field": "model_id",
+      "allowed_provenance_labels": ["generated"],
+      "allowed_source_relations": ["derived_from", "governed_by", "used_dataset"],
+      "identity_fields": ["model_id", "model_version"]
+    },
+    {
+      "profile": "project_snapshot",
+      "owner_module": "project",
+      "resource_kind": "project_snapshot",
+      "resource_id_field": "snapshot_id",
+      "allowed_provenance_labels": ["observed"],
+      "allowed_source_relations": ["derived_from", "governed_by", "recorded_as"],
+      "identity_fields": ["project_id", "snapshot_id", "project_revision", "workspace_revision"]
+    },
+    {
+      "profile": "recommendation_record",
+      "owner_module": "adaptation",
+      "resource_kind": "recommendation_record",
+      "resource_id_field": "recommendation_id",
+      "allowed_provenance_labels": ["calculated", "predicted", "generated"],
+      "allowed_source_relations": ["governed_by", "recommended_from", "used_model"],
+      "identity_fields": ["recommendation_id", "policy_id", "policy_version", "decision_at", "occurrence"]
+    },
+    {
+      "profile": "simulation_result",
+      "owner_module": "portfolio",
+      "resource_kind": "simulation_result",
+      "resource_id_field": "simulation_id",
+      "allowed_provenance_labels": ["simulated"],
+      "allowed_source_relations": ["calculated_from", "governed_by", "simulated_from", "used_dataset"],
+      "identity_fields": ["simulation_id", "method_id", "method_version", "as_of", "occurrence"]
+    }
+  ]
+}

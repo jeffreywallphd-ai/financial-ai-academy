@@ -1,0 +1,9 @@
+{
+  "contracts/compatibility/provenance/v1/approved/incomplete-lineage-view.json": "27d11ff3f067c8e1ee5b903e3ed92d6db7c89efba192c26945330d89d18d8200",
+  "contracts/compatibility/provenance/v1/approved/knowledge-check-envelope.json": "5c79275bd055a7493dd83615f610275098bc3db9d7c1c77c6c18b0a9657f82c2",
+  "contracts/compatibility/provenance/v1/approved/lineage-view.json": "eec2f48b817d8524f78f20fdce646c8da697c3064d70ad2f7feb9d44240ce9d4",
+  "contracts/compatibility/provenance/v1/approved/published-lesson-envelope.json": "2b4bc51e42fee3cb5ba225ffe2f70042734c59563dd03530026ea6252856c38a",
+  "contracts/provenance/v1/envelope.schema.json": "515211dd063179bc3e7328d9618d7ba87297f46bd0e3335d17a1d4ced642cc1f",
+  "contracts/provenance/v1/lineage-request.schema.json": "b2569485c58b91cf8da8e76e7b90dc4a516e87133cfbabd414e4808ec33b87d5",
+  "contracts/provenance/v1/lineage-view.schema.json": "17033641e1c67bbaf0b3612e510c70a5d1a44825850706605ffeed115105b5e6"
+}

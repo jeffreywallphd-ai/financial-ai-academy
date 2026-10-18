@@ -258,3 +258,10 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
 - 2026-10-18: Activated WRK-0184 from clean base `cfc0db4` after confirming
   current CAP authority, completed SLI-0106, resolved decision posture, bounded
   contract-only scope, and no active file-ownership collision.
+- 2026-10-18: Reclaimed WRK-0184 from base `e7e5dce` after the aggregate gate
+  identified the exact derived Guidance source bindings affected by the
+  canonical contract-architecture update. The bounded scope reconciliation
+  changes no packet outcome, product meaning, or approval posture.
+- 2026-10-18: Rebound WRK-0184 once more from base `e7e5dce` after focused
+  compatibility verification exposed the directly derived contextual-help
+  vector and assertion. The complete bounded reconciliation scope is now fixed.

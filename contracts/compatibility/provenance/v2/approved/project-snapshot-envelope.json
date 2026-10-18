@@ -1,0 +1,62 @@
+{
+  "schema_version": "2.0.0",
+  "resource": {
+    "profile": "project_snapshot",
+    "owner_module": "project",
+    "resource_kind": "project_snapshot",
+    "resource_id": "snapshot-été-001",
+    "identity": {
+      "project_id": "project-recherche-001",
+      "snapshot_id": "snapshot-été-001",
+      "project_revision": 3,
+      "workspace_revision": 7
+    },
+    "integrity_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "recorded_at": "2026-10-18T08:04:00Z",
+    "provenance_label": "observed",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "project-snapshot-adapter",
+    "producer_version": "2.0.0"
+  },
+  "sources": [
+    {
+      "relation": "governed_by",
+      "reference": {
+        "profile": "administrative_action",
+        "owner_module": "audit",
+        "resource_kind": "administrative_action",
+        "resource_id": "action-local-policy-001",
+        "identity": {
+          "action_id": "action-local-policy-001",
+          "policy_id": "local-access-policy",
+          "policy_version": "1.0.0",
+          "action_at": "2026-10-18T08:00:00Z",
+          "occurrence": 1
+        },
+        "integrity_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "recorded_at": "2026-10-18T08:00:01Z",
+        "provenance_label": "administrative",
+        "validation_status": "validated"
+      }
+    },
+    {
+      "relation": "derived_from",
+      "reference": {
+        "profile": "dataset_snapshot",
+        "owner_module": "ai_orchestration",
+        "resource_kind": "dataset_snapshot",
+        "resource_id": "dataset-recherche-été",
+        "identity": {
+          "dataset_id": "dataset-recherche-été",
+          "dataset_version": "2026.10.18"
+        },
+        "integrity_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "recorded_at": "2026-10-18T08:01:00Z",
+        "provenance_label": "observed",
+        "validation_status": "validated"
+      }
+    }
+  ]
+}

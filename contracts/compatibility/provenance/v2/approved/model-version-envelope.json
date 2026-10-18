@@ -1,0 +1,22 @@
+{
+  "schema_version": "2.0.0",
+  "resource": {
+    "profile": "model_version",
+    "owner_module": "ai_orchestration",
+    "resource_kind": "model_version",
+    "resource_id": "model-adaptive-demo",
+    "identity": {
+      "model_id": "model-adaptive-demo",
+      "model_version": "1.0.0"
+    },
+    "integrity_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "recorded_at": "2026-10-18T08:02:00Z",
+    "provenance_label": "generated",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "synthetic-model-adapter",
+    "producer_version": "2.0.0"
+  },
+  "sources": []
+}

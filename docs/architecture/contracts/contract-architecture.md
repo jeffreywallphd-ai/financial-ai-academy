@@ -153,6 +153,16 @@ existing authority; shared references confer no payload, permission, grading,
 mastery, provider, legal, or financial meaning. The initial pure contract seam
 persists nothing and exposes no API or browser surface.
 
+The additive `provenance/v2` family leaves that v1 meaning unchanged and fixes
+nine closed cross-domain owner-reference profiles with exact profile-specific
+identities, origin labels, and source relations. Project snapshot is the first
+profile with an implemented owner suitable for a later adapter. Market,
+financial, dataset, model, execution, simulation, recommendation, and
+administrative compatibility records are synthetic contract evidence until
+their owners deliver public operations. The v2 contract currently defines no
+lineage view, persistence, permission, provider/model execution, tenant policy,
+or financial authority.
+
 Portable financial methods, portfolio records, and simulation results
 additionally follow
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the

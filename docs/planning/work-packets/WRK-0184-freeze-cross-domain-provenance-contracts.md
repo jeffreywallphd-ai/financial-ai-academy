@@ -10,12 +10,12 @@ capability: CAP-0026
 depends_on: []
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/tests/contract/provenance_v2", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/provenance/v2", "contracts/provenance/v2", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0107-extend-provenance-across-domain-owners.md", "docs/planning/work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/guidance/adapters/immutable_corpus.py", "backend/src/financial_ai_academy/modules/guidance/resources/contextual-help/v1/practice-result.json", "backend/src/financial_ai_academy/modules/guidance/resources/contextual-help/v1/project-result.json", "backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/mappings/lesson-reading-exact-version-unavailable.json", "backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/records/lesson-version-unavailable.json", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/data-meaning.json", "backend/tests/contract/contextual_help/test_conformance.py", "backend/tests/contract/provenance_v2", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/contextual-help/v1/approved/context.json", "contracts/compatibility/contextual-help/v1/vectors/canonicalization.json", "contracts/compatibility/provenance/v2", "contracts/provenance/v2", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0107-extend-provenance-across-domain-owners.md", "docs/planning/work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md"]
 generated_artifacts: []
-base_revision: cfc0db4ab3d7caaab900ba97c56970f31606abec
-claim_id: WRK-0184:18bd1b77-2ea3-4b0e-b81e-7d82abbe012b
+base_revision: e7e5dce89f991bb83b503654f417082adc937a1f
+claim_id: WRK-0184:c7303571-d38e-4a94-af5b-83b26059ef1d
 claimed_by: codex-cap-0026
-claimed_at: 2026-10-18T08:52:54Z
+claimed_at: 2026-10-18T09:00:39Z
 ---
 
 # Agent Work Packet: Freeze Cross-Domain Provenance Contracts
@@ -116,11 +116,16 @@ consumer or check affected by a new provenance contract directory.
   product adapters or implementation modules.
 - Update contract catalogs and canonical architecture/ownership/verification
   documentation for the exact additive boundary.
+- Reconcile only the exact immutable Guidance source fingerprints that bind the
+  changed canonical contract-architecture file. This mechanical derived update
+  includes the directly bound digest vector/assertion and changes no Help text,
+  topic identity, mapping, feature state, or authority.
 
 ## Out of Scope
 
 - Audit domain/application/adapter changes, a Project provenance adapter, or
-  any production Python package change.
+  any production Python behavior beyond the exact Guidance source-fingerprint
+  reconciliation required by the canonical documentation change.
 - Lineage request/view v2, graph composition, persistence, migrations, API,
   OpenAPI, generated client, browser interface, export, or retention control.
 - Live owner records for Market data, Portfolio, Adaptation, AI orchestration,
@@ -141,6 +146,8 @@ consumer or check affected by a new provenance contract directory.
 | Executable contracts | provenance v1 schemas, other versioned contract conventions | new `contracts/provenance/v2` schemas and README; top-level catalog sentence | freeze portable additive shape |
 | Compatibility | provenance v1 corpus and compatibility conventions | new v2 approved/denial/vector corpus and compatibility README/catalog | bind exact accepted and rejected meaning |
 | Contract qualification | existing provenance runner/tests | new isolated `backend/tests/contract/provenance_v2` runner/tests only | execute schema/profile/canonicalization/v1-stability evidence without product imports |
+| Derived Guidance binding | immutable corpus adapter, bound topic/context/feature records, focused quality gate | only the exact contract-architecture digest constants in the listed files | keep canonical-source integrity synchronized without changing Help meaning |
+| Derived compatibility evidence | contextual-help canonical vector and its exact focused assertion | only the expected digest derived from the changed source binding | keep the existing contract test synchronized with the same record bytes |
 | Architecture | provenance contract, contract architecture, module map, verification map | exact v2 ownership/non-authority/verification sections | state boundary and maturity honestly |
 | Planning | SLI-0107, this packet, register | lifecycle and evidence sections only | maintain governed state |
 
@@ -257,3 +264,16 @@ provider/model, tenant/admin, external-action, or financial authority changed.
 - 2026-10-18: Activated from clean base `cfc0db4` after the implementation gate
   confirmed current CAP authority, parent/dependency readiness, resolved
   decisions, exact write scope, and no active ownership collision.
+- 2026-10-18: Incrementally included the exact immutable Guidance records and
+  corpus constant whose contract-architecture fingerprint became stale. This
+  is a bounded derived-digest reconciliation only; it changes no Help prose,
+  product behavior, packet outcome, or approval posture.
+- 2026-10-18: Released and reclaimed the packet from base `e7e5dce` so a new
+  packet-start manifest and file leases bind the complete revised scope before
+  the derived Guidance fingerprints change.
+- 2026-10-18: Added the one contextual-help canonical vector and exact assertion
+  exposed by focused verification after the source fingerprint changed. This is
+  the same bounded derived reconciliation and does not alter acceptance meaning.
+- 2026-10-18: Reclaimed from base `e7e5dce` after that final derived vector/test
+  scope was explicit so the replacement packet-start manifest and leases bind
+  the complete implementation surface.

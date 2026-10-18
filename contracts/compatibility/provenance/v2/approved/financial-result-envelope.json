@@ -1,0 +1,47 @@
+{
+  "schema_version": "2.0.0",
+  "resource": {
+    "profile": "financial_result",
+    "owner_module": "portfolio",
+    "resource_kind": "financial_result",
+    "resource_id": "analysis-risk-return-001",
+    "identity": {
+      "analysis_id": "analysis-risk-return-001",
+      "as_of": "2026-10-17T20:00:00-04:00",
+      "method_id": "return-summary",
+      "method_version": "1.0.0",
+      "source_set_digest": "3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "integrity_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "recorded_at": "2026-10-18T00:00:01Z",
+    "provenance_label": "calculated",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "synthetic-financial-adapter",
+    "producer_version": "2.0.0"
+  },
+  "sources": [
+    {
+      "relation": "calculated_from",
+      "reference": {
+        "profile": "market_observation",
+        "owner_module": "market_data",
+        "resource_kind": "market_observation",
+        "resource_id": "observation-index-001",
+        "identity": {
+          "observation_id": "observation-index-001",
+          "instrument_id": "instrument-index-demo",
+          "observed_at": "2026-10-18T00:00:00Z",
+          "method_id": "close-observation",
+          "method_version": "1.0.0",
+          "source_set_digest": "4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        "integrity_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "recorded_at": "2026-10-18T00:00:00Z",
+        "provenance_label": "observed",
+        "validation_status": "validated"
+      }
+    }
+  ]
+}

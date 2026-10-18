@@ -40,3 +40,9 @@ references, two exact initial learning roots, bounded lineage graphs, explicit
 incomplete links, and deterministic view digests. It contains no owner payload,
 permission, identity, provider, storage, execution, grading, or financial
 authority. See `docs/architecture/contracts/provenance-and-lineage-contract.md`.
+
+The additive `provenance/v2` family defines a closed cross-domain owner-
+reference catalog for Project snapshots and synthetic future financial,
+dataset, model, execution, simulation, recommendation, and administrative
+profiles. It changes no v1 schema and adds no lineage view, product adapter,
+provider/model action, persistence, permission, or financial authority.

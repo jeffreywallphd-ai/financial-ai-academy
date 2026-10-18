@@ -1,0 +1,59 @@
+{
+  "schema_version": "2.0.0",
+  "resource": {
+    "profile": "model_execution",
+    "owner_module": "ai_orchestration",
+    "resource_kind": "model_execution",
+    "resource_id": "execution-demo-001",
+    "identity": {
+      "execution_id": "execution-demo-001",
+      "model_id": "model-adaptive-demo",
+      "model_version": "1.0.0",
+      "occurrence": 1
+    },
+    "integrity_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "recorded_at": "2026-10-18T08:03:00Z",
+    "provenance_label": "predicted",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "synthetic-execution-adapter",
+    "producer_version": "2.0.0"
+  },
+  "sources": [
+    {
+      "relation": "used_model",
+      "reference": {
+        "profile": "model_version",
+        "owner_module": "ai_orchestration",
+        "resource_kind": "model_version",
+        "resource_id": "model-adaptive-demo",
+        "identity": {
+          "model_id": "model-adaptive-demo",
+          "model_version": "1.0.0"
+        },
+        "integrity_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "recorded_at": "2026-10-18T08:02:00Z",
+        "provenance_label": "generated",
+        "validation_status": "validated"
+      }
+    },
+    {
+      "relation": "used_dataset",
+      "reference": {
+        "profile": "dataset_snapshot",
+        "owner_module": "ai_orchestration",
+        "resource_kind": "dataset_snapshot",
+        "resource_id": "dataset-recherche-été",
+        "identity": {
+          "dataset_id": "dataset-recherche-été",
+          "dataset_version": "2026.10.18"
+        },
+        "integrity_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "recorded_at": "2026-10-18T08:01:00Z",
+        "provenance_label": "observed",
+        "validation_status": "validated"
+      }
+    }
+  ]
+}

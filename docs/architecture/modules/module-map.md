@@ -46,6 +46,12 @@
   checks Audit-lineage and lesson-read permissions, and returns that canonical
   bounded view through the reviewed generated-client contract without adding
   owner payload or authority.
+- The additive provenance v2 contract defines closed Project, Market-data,
+  Portfolio, AI-orchestration, Adaptation, and Audit reference profiles without
+  changing their ownership. Only Project is currently eligible for a real
+  adapter; other profile fixtures are synthetic and add no implemented module,
+  provider/model action, business record, tenant policy, or financial meaning.
+  V2 currently supplies no public lineage view or cross-module persistence.
 - Personal workspace owns learner organization and learner-authored note content.
   Its typed references never copy target business state, grant permission, or
   mutate Content, Curriculum, Assessment, Learner model, Project, or later

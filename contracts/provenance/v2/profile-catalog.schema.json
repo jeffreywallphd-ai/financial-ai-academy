@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/provenance/v2/profile-catalog.schema.json",
+  "title": "Financial AI Academy provenance profile catalog v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["catalog_version", "profiles"],
+  "properties": {
+    "catalog_version": {"const": "2.0.0"},
+    "profiles": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "profile",
+          "owner_module",
+          "resource_kind",
+          "resource_id_field",
+          "allowed_provenance_labels",
+          "allowed_source_relations",
+          "identity_fields"
+        ],
+        "properties": {
+          "profile": {"type": "string", "minLength": 1, "maxLength": 64},
+          "owner_module": {"type": "string", "minLength": 1, "maxLength": 64},
+          "resource_kind": {"type": "string", "minLength": 1, "maxLength": 64},
+          "resource_id_field": {"type": "string", "minLength": 1, "maxLength": 64},
+          "allowed_provenance_labels": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {"enum": ["observed", "calculated", "simulated", "predicted", "generated", "administrative"]}
+          },
+          "allowed_source_relations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "uniqueItems": true,
+            "items": {"enum": ["derived_from", "calculated_from", "used_dataset", "used_model", "executed_as", "simulated_from", "recommended_from", "governed_by", "recorded_as"]}
+          },
+          "identity_fields": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 6,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1, "maxLength": 64}
+          }
+        }
+      }
+    }
+  }
+}

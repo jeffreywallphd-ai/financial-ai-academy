@@ -37,3 +37,7 @@ explicitly approved breaking-change records live here.
   exact learning roots, bounded deterministic lineage, explicit incomplete
   links, Unicode canonicalization, and safe denial behavior without copying
   owner payloads or granting permission.
+- [`provenance/v2/`](provenance/v2/README.md) fixes nine closed cross-domain
+  owner-reference profiles, exact identity variants, origin labels, source
+  relations, canonicalization, v1 fingerprints, and safe denials without
+  claiming that synthetic future-owner fixtures are implemented product data.

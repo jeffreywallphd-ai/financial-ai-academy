@@ -40,7 +40,7 @@ PLATFORM_HELP_SOURCE_FINGERPRINTS = MappingProxyType(
             "7ed7fc91381b48fb6b63c66b7f0caf24799fbe46cad8cd0762268ebb58f371ea"
         ),
         "contract-architecture": (
-            "54c441f89a90ce1d10f292d3e65a463c9e62c396664158cd01a144fed42b66bd"
+            "510a5f1d83a2e8963ade6ef91b6e68eae56f25eb0e532277fc49f07d4a88efd3"
         ),
         "education-advice-boundary": (
             "917c157fc1da47a686a609fd72e5d36d297c9b99254724e8adf8081a14ad33d6"

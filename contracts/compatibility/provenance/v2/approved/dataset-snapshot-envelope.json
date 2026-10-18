@@ -1,0 +1,22 @@
+{
+  "schema_version": "2.0.0",
+  "resource": {
+    "profile": "dataset_snapshot",
+    "owner_module": "ai_orchestration",
+    "resource_kind": "dataset_snapshot",
+    "resource_id": "dataset-recherche-été",
+    "identity": {
+      "dataset_id": "dataset-recherche-été",
+      "dataset_version": "2026.10.18"
+    },
+    "integrity_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "recorded_at": "2026-10-18T08:01:00Z",
+    "provenance_label": "observed",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "synthetic-dataset-adapter",
+    "producer_version": "2.0.0"
+  },
+  "sources": []
+}

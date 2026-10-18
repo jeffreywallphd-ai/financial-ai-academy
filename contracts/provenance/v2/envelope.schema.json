@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/provenance/v2/envelope.schema.json",
+  "title": "Financial AI Academy cross-domain owner reference envelope v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "resource", "producer", "sources"],
+  "properties": {
+    "schema_version": {"const": "2.0.0"},
+    "resource": {"$ref": "#/$defs/resource"},
+    "producer": {"$ref": "#/$defs/producer"},
+    "sources": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/source"}
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^\\s._:/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer_id", "producer_version"],
+      "properties": {
+        "producer_id": {"$ref": "#/$defs/identifier"},
+        "producer_version": {"$ref": "#/$defs/version"}
+      }
+    },
+    "resourceCommon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile",
+        "owner_module",
+        "resource_kind",
+        "resource_id",
+        "identity",
+        "integrity_digest",
+        "recorded_at",
+        "provenance_label",
+        "validation_status"
+      ],
+      "properties": {
+        "profile": {
+          "enum": [
+            "administrative_action",
+            "dataset_snapshot",
+            "financial_result",
+            "market_observation",
+            "model_execution",
+            "model_version",
+            "project_snapshot",
+            "recommendation_record",
+            "simulation_result"
+          ]
+        },
+        "owner_module": {
+          "enum": ["adaptation", "ai_orchestration", "audit", "market_data", "portfolio", "project"]
+        },
+        "resource_kind": {
+          "enum": [
+            "administrative_action",
+            "dataset_snapshot",
+            "financial_result",
+            "market_observation",
+            "model_execution",
+            "model_version",
+            "project_snapshot",
+            "recommendation_record",
+            "simulation_result"
+          ]
+        },
+        "resource_id": {"$ref": "#/$defs/identifier"},
+        "identity": {"type": "object"},
+        "integrity_digest": {"$ref": "#/$defs/digest"},
+        "recorded_at": {"$ref": "#/$defs/timestamp"},
+        "provenance_label": {
+          "enum": ["observed", "calculated", "simulated", "predicted", "generated", "administrative"]
+        },
+        "validation_status": {"enum": ["validated", "incomplete"]}
+      }
+    },
+    "administrativeAction": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "administrative_action"},
+            "owner_module": {"const": "audit"},
+            "resource_kind": {"const": "administrative_action"},
+            "provenance_label": {"const": "administrative"},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["action_id", "policy_id", "policy_version", "action_at", "occurrence"],
+              "properties": {
+                "action_id": {"$ref": "#/$defs/identifier"},
+                "policy_id": {"$ref": "#/$defs/identifier"},
+                "policy_version": {"$ref": "#/$defs/version"},
+                "action_at": {"$ref": "#/$defs/timestamp"},
+                "occurrence": {"type": "integer", "minimum": 1}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "datasetSnapshot": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "dataset_snapshot"},
+            "owner_module": {"const": "ai_orchestration"},
+            "resource_kind": {"const": "dataset_snapshot"},
+            "provenance_label": {"enum": ["observed", "generated"]},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["dataset_id", "dataset_version"],
+              "properties": {
+                "dataset_id": {"$ref": "#/$defs/identifier"},
+                "dataset_version": {"$ref": "#/$defs/version"}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "financialResult": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "financial_result"},
+            "owner_module": {"const": "portfolio"},
+            "resource_kind": {"const": "financial_result"},
+            "provenance_label": {"const": "calculated"},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["analysis_id", "as_of", "method_id", "method_version", "source_set_digest"],
+              "properties": {
+                "analysis_id": {"$ref": "#/$defs/identifier"},
+                "as_of": {"$ref": "#/$defs/timestamp"},
+                "method_id": {"$ref": "#/$defs/identifier"},
+                "method_version": {"$ref": "#/$defs/version"},
+                "source_set_digest": {"$ref": "#/$defs/digest"}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "marketObservation": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "market_observation"},
+            "owner_module": {"const": "market_data"},
+            "resource_kind": {"const": "market_observation"},
+            "provenance_label": {"const": "observed"},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["observation_id", "instrument_id", "observed_at", "method_id", "method_version", "source_set_digest"],
+              "properties": {
+                "observation_id": {"$ref": "#/$defs/identifier"},
+                "instrument_id": {"$ref": "#/$defs/identifier"},
+                "observed_at": {"$ref": "#/$defs/timestamp"},
+                "method_id": {"$ref": "#/$defs/identifier"},
+                "method_version": {"$ref": "#/$defs/version"},
+                "source_set_digest": {"$ref": "#/$defs/digest"}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "modelExecution": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "model_execution"},
+            "owner_module": {"const": "ai_orchestration"},
+            "resource_kind": {"const": "model_execution"},
+            "provenance_label": {"enum": ["predicted", "generated"]},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["execution_id", "model_id", "model_version", "occurrence"],
+              "properties": {
+                "execution_id": {"$ref": "#/$defs/identifier"},
+                "model_id": {"$ref": "#/$defs/identifier"},
+                "model_version": {"$ref": "#/$defs/version"},
+                "occurrence": {"type": "integer", "minimum": 1}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "modelVersion": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "model_version"},
+            "owner_module": {"const": "ai_orchestration"},
+            "resource_kind": {"const": "model_version"},
+            "provenance_label": {"const": "generated"},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["model_id", "model_version"],
+              "properties": {
+                "model_id": {"$ref": "#/$defs/identifier"},
+                "model_version": {"$ref": "#/$defs/version"}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "projectSnapshot": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "project_snapshot"},
+            "owner_module": {"const": "project"},
+            "resource_kind": {"const": "project_snapshot"},
+            "provenance_label": {"const": "observed"},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["project_id", "snapshot_id", "project_revision", "workspace_revision"],
+              "properties": {
+                "project_id": {"$ref": "#/$defs/identifier"},
+                "snapshot_id": {"$ref": "#/$defs/identifier"},
+                "project_revision": {"type": "integer", "minimum": 1},
+                "workspace_revision": {"type": "integer", "minimum": 1}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "recommendationRecord": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "recommendation_record"},
+            "owner_module": {"const": "adaptation"},
+            "resource_kind": {"const": "recommendation_record"},
+            "provenance_label": {"enum": ["calculated", "predicted", "generated"]},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["recommendation_id", "policy_id", "policy_version", "decision_at", "occurrence"],
+              "properties": {
+                "recommendation_id": {"$ref": "#/$defs/identifier"},
+                "policy_id": {"$ref": "#/$defs/identifier"},
+                "policy_version": {"$ref": "#/$defs/version"},
+                "decision_at": {"$ref": "#/$defs/timestamp"},
+                "occurrence": {"type": "integer", "minimum": 1}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "simulationResult": {
+      "allOf": [
+        {"$ref": "#/$defs/resourceCommon"},
+        {
+          "properties": {
+            "profile": {"const": "simulation_result"},
+            "owner_module": {"const": "portfolio"},
+            "resource_kind": {"const": "simulation_result"},
+            "provenance_label": {"const": "simulated"},
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["simulation_id", "method_id", "method_version", "as_of", "occurrence"],
+              "properties": {
+                "simulation_id": {"$ref": "#/$defs/identifier"},
+                "method_id": {"$ref": "#/$defs/identifier"},
+                "method_version": {"$ref": "#/$defs/version"},
+                "as_of": {"$ref": "#/$defs/timestamp"},
+                "occurrence": {"type": "integer", "minimum": 1}
+              }
+            }
+          }
+        }
+      ]
+    },
+    "resource": {
+      "oneOf": [
+        {"$ref": "#/$defs/administrativeAction"},
+        {"$ref": "#/$defs/datasetSnapshot"},
+        {"$ref": "#/$defs/financialResult"},
+        {"$ref": "#/$defs/marketObservation"},
+        {"$ref": "#/$defs/modelExecution"},
+        {"$ref": "#/$defs/modelVersion"},
+        {"$ref": "#/$defs/projectSnapshot"},
+        {"$ref": "#/$defs/recommendationRecord"},
+        {"$ref": "#/$defs/simulationResult"}
+      ]
+    },
+    "relation": {
+      "enum": ["derived_from", "calculated_from", "used_dataset", "used_model", "executed_as", "simulated_from", "recommended_from", "governed_by", "recorded_as"]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation", "reference"],
+      "properties": {
+        "relation": {"$ref": "#/$defs/relation"},
+        "reference": {"$ref": "#/$defs/resource"}
+      }
+    }
+  }
+}

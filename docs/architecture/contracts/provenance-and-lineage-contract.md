@@ -1,10 +1,12 @@
 # Provenance and Lineage Contract
 
-- Status: accepted for the learning-lineage v1 contract core
+- Status: accepted for the learning-lineage v1 core and cross-domain v2
+  owner-reference contract
 - Canonical for: provider-neutral provenance references, bounded lineage graph
   meaning, canonicalization, and module ownership
-- Executable shape: `contracts/provenance/v1/`
-- Compatibility evidence: `contracts/compatibility/provenance/v1/`
+- Executable shapes: `contracts/provenance/v1/` and `contracts/provenance/v2/`
+- Compatibility evidence: `contracts/compatibility/provenance/v1/` and
+  `contracts/compatibility/provenance/v2/`
 
 ## Purpose
 
@@ -70,6 +72,35 @@ Meaning changes require an additive contract version. Valid changes inside v1
 include different bounded counts, Unicode IDs, input order, versions,
 occurrences, timestamps, digests, and explicit incomplete links. Fixtures test
 meaning and bounds rather than a fixed production graph size.
+
+## Closed Cross-Domain Version 2 References
+
+Version 2 is additive and currently defines owner-issued references, not a new
+lineage request or graph. Its executable catalog closes meaning to nine
+profiles: Project snapshot; Market-data observation; Portfolio financial and
+simulation results; AI-orchestration dataset snapshot, model version, and model
+execution; Adaptation recommendation record; and Audit administrative action.
+Only Project has an implemented owner suitable for the later real-adapter proof.
+Other approved fixtures are synthetic and do not claim a provider, dataset,
+model, run, calculation, recommendation, administrator, or product record.
+
+Each profile has one exact identity variant and one allowed owner/resource pair.
+The common reference retains stable resource identity, lowercase SHA-256
+integrity, aware recorded time, validation status, producer, origin label, and
+zero to twenty typed sources. Labels are closed to observed, calculated,
+simulated, predicted, generated, and administrative meaning and are constrained
+per profile. They do not establish truth, quality, mastery, suitability,
+permission, compliance, or authority. Relations are closed, descriptive, and
+confer no causal or execution meaning.
+
+V2 canonicalization projects aware times to UTC `Z`, sorts sources by relation
+and canonical reference, and uses compact sorted-key UTF-8 JSON with unescaped
+Unicode. The corpus fingerprints every v1 schema and approved document, covers
+every v2 profile once, and rejects mismatched owner/profile/label/identity,
+unsafe or private fields, ambiguous identity, conflicting duplicates, and
+exceeded bounds. It adds no business payload, actor/learner/tenant identity,
+provider payload, market value, model input/output, Project content, storage,
+secret, permission, external action, or financial advice.
 
 ## Safety and Non-Authority
 

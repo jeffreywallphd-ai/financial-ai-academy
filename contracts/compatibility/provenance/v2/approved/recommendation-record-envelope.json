@@ -1,0 +1,43 @@
+{
+  "schema_version": "2.0.0",
+  "resource": {
+    "profile": "recommendation_record",
+    "owner_module": "adaptation",
+    "resource_kind": "recommendation_record",
+    "resource_id": "recommendation-path-001",
+    "identity": {
+      "recommendation_id": "recommendation-path-001",
+      "policy_id": "adaptive-path-policy",
+      "policy_version": "1.0.0",
+      "decision_at": "2026-10-18T08:06:00Z",
+      "occurrence": 1
+    },
+    "integrity_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+    "recorded_at": "2026-10-18T08:06:01Z",
+    "provenance_label": "calculated",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "synthetic-recommendation-adapter",
+    "producer_version": "2.0.0"
+  },
+  "sources": [
+    {
+      "relation": "used_model",
+      "reference": {
+        "profile": "model_version",
+        "owner_module": "ai_orchestration",
+        "resource_kind": "model_version",
+        "resource_id": "model-adaptive-demo",
+        "identity": {
+          "model_id": "model-adaptive-demo",
+          "model_version": "1.0.0"
+        },
+        "integrity_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "recorded_at": "2026-10-18T08:02:00Z",
+        "provenance_label": "generated",
+        "validation_status": "validated"
+      }
+    }
+  ]
+}

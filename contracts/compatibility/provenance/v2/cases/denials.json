@@ -1,0 +1,62 @@
+[
+  {
+    "id": "wrong-owner-for-project-profile",
+    "target_profile": "project_snapshot",
+    "ops": [{"op": "set", "path": ["resource", "owner_module"], "value": "audit"}],
+    "expected_code": "provenance_v2.schema_invalid"
+  },
+  {
+    "id": "wrong-label-for-project-profile",
+    "target_profile": "project_snapshot",
+    "ops": [{"op": "set", "path": ["resource", "provenance_label"], "value": "generated"}],
+    "expected_code": "provenance_v2.schema_invalid"
+  },
+  {
+    "id": "resource-id-does-not-match-profile-identity",
+    "target_profile": "project_snapshot",
+    "ops": [{"op": "set", "path": ["resource", "resource_id"], "value": "snapshot-other"}],
+    "expected_code": "provenance_v2.identity_invalid"
+  },
+  {
+    "id": "relation-not-allowed-for-profile",
+    "target_profile": "project_snapshot",
+    "ops": [{"op": "set", "path": ["sources", 0, "relation"], "value": "used_model"}],
+    "expected_code": "provenance_v2.relation_invalid"
+  },
+  {
+    "id": "provider-payload-field-is-forbidden",
+    "target_profile": "market_observation",
+    "ops": [{"op": "set", "path": ["resource", "provider_payload"], "value": "private"}],
+    "expected_code": "provenance_v2.schema_invalid"
+  },
+  {
+    "id": "path-like-identity-is-forbidden",
+    "target_profile": "project_snapshot",
+    "ops": [{"op": "set", "path": ["resource", "identity", "snapshot_id"], "value": "C:\\private\\snapshot"}],
+    "expected_code": "provenance_v2.schema_invalid"
+  },
+  {
+    "id": "uppercase-digest-is-forbidden",
+    "target_profile": "dataset_snapshot",
+    "ops": [{"op": "set", "path": ["resource", "integrity_digest"], "value": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"}],
+    "expected_code": "provenance_v2.schema_invalid"
+  },
+  {
+    "id": "identity-field-is-required",
+    "target_profile": "model_execution",
+    "ops": [{"op": "remove", "path": ["resource", "identity", "occurrence"]}],
+    "expected_code": "provenance_v2.schema_invalid"
+  },
+  {
+    "id": "actor-identity-is-forbidden",
+    "target_profile": "administrative_action",
+    "ops": [{"op": "set", "path": ["resource", "identity", "actor_id"], "value": "private-actor"}],
+    "expected_code": "provenance_v2.schema_invalid"
+  },
+  {
+    "id": "source-count-is-bounded",
+    "target_profile": "project_snapshot",
+    "ops": [{"op": "repeat", "path": ["sources"], "count": 21}],
+    "expected_code": "provenance_v2.schema_invalid"
+  }
+]
