@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "platform-methods",
+  "topic_version": "1.0.0",
+  "topic_kind": "method",
+  "title": "How platform methods stay reproducible",
+  "summary": "Financial calculations use exact versioned methods, declared inputs, units, assumptions, and provenance so results can be reproduced and reviewed.",
+  "keywords": ["methods", "calculations", "provenance", "reproducibility"],
+  "body": [
+    {
+      "node_kind": "list",
+      "list_kind": "unordered",
+      "items": [
+        "Each method has a stable ID, version, owner, input, output, and validation bounds.",
+        "Pure method code does not use a network, provider SDK, clock, random source, model, or storage system.",
+        "Results retain the exact method, policy, and input lineage needed for review."
+      ]
+    },
+    {
+      "node_kind": "note",
+      "note_kind": "limitation",
+      "text": "Calculated and simulated values are not observed market facts and do not become personal investment advice."
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "financial-methods",
+      "label": "Financial calculations, simulations, scenarios, and backtests"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "financial-method-architecture",
+      "title": "Financial method and simulation architecture",
+      "area": "method",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "24aca8e940ceb2d31232d3cf27542d5627fe179325eecc75428e384c6812e405"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "education-not-advice",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "6655d70772dcdac738a4320257aa707a72a913b3e470cb902510509c95260d0f"
+}

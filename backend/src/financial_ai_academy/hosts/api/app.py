@@ -84,6 +84,14 @@ from financial_ai_academy.modules.identity.public import (
     LearnerContext,
     SingleProfileBootstrapRequest,
 )
+from financial_ai_academy.modules.guidance.public import (
+    GuidanceError,
+    GuidanceErrorCode,
+    GuidanceOperations,
+    OpenPlatformHelpTopicRequest,
+    SearchRequest as PlatformHelpSearchRequest,
+    TopicKind as PlatformHelpTopicKind,
+)
 from financial_ai_academy.modules.learner_model.public import (
     ExportAssistancePreferencesRequest,
     ExportLearnerPreferencesRequest,
@@ -193,6 +201,8 @@ from .models import (
     PersonalWorkspaceQueryRequestModel,
     PersonalWorkspaceQueryResponseModel,
     PersonalWorkspaceResponseModel,
+    PlatformHelpSearchPageResponseModel,
+    PlatformHelpTopicResponseModel,
     SessionBootstrapRequestModel,
     SessionBootstrapResponseModel,
     assistance_preference_export_response,
@@ -243,6 +253,8 @@ from .models import (
     personal_workspace_query_response,
     personal_workspace_response,
     personal_workspace_source_permission,
+    platform_help_search_page_response,
+    platform_help_topic_response,
 )
 
 
@@ -257,6 +269,7 @@ class ApiServices:
     audit: AuditOperations | None = None
     project: ProjectOperations | None = None
     personal_workspace: PersonalWorkspaceOperations | None = None
+    guidance: GuidanceOperations | None = None
 
 
 _ERROR_RESPONSES = {
@@ -356,6 +369,33 @@ def create_app(services: ApiServices) -> FastAPI:
             http_status,
             error.code.value,
             error.safe_message,
+            request.state.correlation_id,
+        )
+
+    @app.exception_handler(GuidanceError)
+    async def guidance_error_handler(
+        request: Request, error: GuidanceError
+    ) -> JSONResponse:
+        http_status = {
+            GuidanceErrorCode.INVALID_RECORD: status.HTTP_400_BAD_REQUEST,
+            GuidanceErrorCode.UNSUPPORTED_VERSION: status.HTTP_409_CONFLICT,
+            GuidanceErrorCode.DIGEST_MISMATCH: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            GuidanceErrorCode.DUPLICATE_IDENTITY: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            GuidanceErrorCode.DANGLING_REFERENCE: (
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+            GuidanceErrorCode.NOT_FOUND: status.HTTP_404_NOT_FOUND,
+            GuidanceErrorCode.INVALID_CURSOR: status.HTTP_409_CONFLICT,
+            GuidanceErrorCode.UNAVAILABLE: status.HTTP_503_SERVICE_UNAVAILABLE,
+        }[error.code]
+        return _error_response(
+            http_status,
+            error.code.value,
+            error.message,
             request.state.correlation_id,
         )
 
@@ -718,6 +758,24 @@ def create_app(services: ApiServices) -> FastAPI:
                 "The learner session cannot read curriculum graphs.",
             )
         return context
+
+    def guidance_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if "guidance.platform_help.read" not in context.permissions:
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read platform help.",
+            )
+        return context
+
+    def guidance_operations() -> GuidanceOperations:
+        if services.guidance is None:
+            raise GuidanceError(
+                GuidanceErrorCode.UNAVAILABLE,
+                "Platform help is unavailable.",
+            )
+        return services.guidance
 
     def adaptation_context(
         context: LearnerContext = Depends(resolved_context),
@@ -1488,6 +1546,66 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         )
         return project_activity_completion_response(view)
+
+    @app.get(
+        "/api/v1/guidance/platform-help",
+        response_model=PlatformHelpSearchPageResponseModel,
+        response_model_exclude_none=True,
+        operation_id="searchPlatformHelp",
+        responses=_ERROR_RESPONSES,
+        tags=["guidance"],
+    )
+    async def search_platform_help(
+        request: Request,
+        query: str = Query(default="", max_length=200),
+        topic_kind: PlatformHelpTopicKind | None = Query(default=None),
+        page_size: int = Query(default=20, ge=1, le=50),
+        cursor: str | None = Query(default=None, min_length=1, max_length=4096),
+        _context: LearnerContext = Depends(guidance_context),
+    ) -> PlatformHelpSearchPageResponseModel:
+        if not set(request.query_params).issubset(
+            {"query", "topic_kind", "page_size", "cursor"}
+        ) or await request.body():
+            raise RequestValidationError([])
+        page = guidance_operations().search_platform_help(
+            PlatformHelpSearchRequest(
+                query=query,
+                topic_kind=topic_kind,
+                page_size=page_size,
+                cursor=cursor,
+            )
+        )
+        return platform_help_search_page_response(page)
+
+    @app.get(
+        "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}",
+        response_model=PlatformHelpTopicResponseModel,
+        response_model_exclude_none=True,
+        operation_id="getPlatformHelpTopicVersion",
+        responses=_ERROR_RESPONSES,
+        tags=["guidance"],
+    )
+    async def get_platform_help_topic_version(
+        request: Request,
+        topic_id: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        topic_version: str = Path(
+            pattern=(
+                r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+                r"(0|[1-9][0-9]*)$"
+            ),
+        ),
+        _context: LearnerContext = Depends(guidance_context),
+    ) -> PlatformHelpTopicResponseModel:
+        if request.query_params or await request.body():
+            raise RequestValidationError([])
+        topic = guidance_operations().open_platform_help_topic(
+            OpenPlatformHelpTopicRequest(topic_id, topic_version)
+        )
+        return platform_help_topic_response(topic)
 
     @app.get(
         "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",
@@ -2303,6 +2421,14 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}"
             ]["get"]
             graph_operation["responses"].pop("422", None)
+            guidance_search_operation = schema["paths"][
+                "/api/v1/guidance/platform-help"
+            ]["get"]
+            guidance_search_operation["responses"].pop("422", None)
+            guidance_topic_operation = schema["paths"][
+                "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}"
+            ]["get"]
+            guidance_topic_operation["responses"].pop("422", None)
             navigation_operation = schema["paths"][
                 "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state"
             ]["get"]

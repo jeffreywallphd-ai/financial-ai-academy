@@ -120,6 +120,24 @@ export interface paths {
       };
       readonly post: operations["submitPlacedPractice"];
     };
+  readonly "/api/v1/guidance/platform-help": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["searchPlatformHelp"];
+    };
+  readonly "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getPlatformHelpTopicVersion"];
+    };
   readonly "/api/v1/learner-assistance-preferences": {
       readonly parameters: {
         readonly query?: never;
@@ -1303,6 +1321,88 @@ export interface components {
       readonly "workspace_digest": string;
       readonly "workspace_id": string;
     };
+    readonly "PlatformHelpApplicabilityModel": {
+      readonly "label": string;
+      readonly "scope_key": string;
+    };
+    readonly "PlatformHelpHeadingNodeModel": {
+      readonly "level": number;
+      readonly "node_kind": "heading";
+      readonly "text": string;
+    };
+    readonly "PlatformHelpListNodeModel": {
+      readonly "items": ReadonlyArray<string>;
+      readonly "list_kind": "ordered" | "unordered";
+      readonly "node_kind": "list";
+    };
+    readonly "PlatformHelpNoteNodeModel": {
+      readonly "node_kind": "note";
+      readonly "note_kind": "educational" | "limitation" | "warning";
+      readonly "text": string;
+    };
+    readonly "PlatformHelpParagraphNodeModel": {
+      readonly "node_kind": "paragraph";
+      readonly "text": string;
+    };
+    readonly "PlatformHelpPublicationModel": {
+      readonly "reviewed_on": string;
+      readonly "state": "approved";
+      readonly "updated_at": string;
+    };
+    readonly "PlatformHelpRelatedTopicModel": {
+      readonly "relationship": "see_also" | "prerequisite" | "explains";
+      readonly "topic_id": string;
+      readonly "topic_version": string;
+    };
+    readonly "PlatformHelpSearchPageResponseModel": {
+      readonly "corpus_digest": string;
+      readonly "next_cursor": string | null;
+      readonly "query": string;
+      readonly "results": ReadonlyArray<components["schemas"]["PlatformHelpSearchResultModel"]>;
+      readonly "schema_version": "1.0.0";
+      readonly "topic_kind"?: "glossary" | "help" | "method" | "limitation" | "troubleshooting" | null;
+    };
+    readonly "PlatformHelpSearchResultModel": {
+      readonly "applicability": ReadonlyArray<components["schemas"]["PlatformHelpApplicabilityModel"]>;
+      readonly "glossary_term"?: string | null;
+      readonly "publication": components["schemas"]["PlatformHelpPublicationModel"];
+      readonly "source_references": ReadonlyArray<components["schemas"]["PlatformHelpSourceReferenceModel"]>;
+      readonly "summary": string;
+      readonly "title": string;
+      readonly "topic_digest": string;
+      readonly "topic_id": string;
+      readonly "topic_kind": "glossary" | "help" | "method" | "limitation" | "troubleshooting";
+      readonly "topic_version": string;
+    };
+    readonly "PlatformHelpSourceReferenceModel": {
+      readonly "area": "product" | "domain" | "contract" | "architecture" | "risk" | "method";
+      readonly "content_fingerprint": string;
+      readonly "source_key": string;
+      readonly "source_version": string;
+      readonly "title": string;
+    };
+    readonly "PlatformHelpTopicReferenceNodeModel": {
+      readonly "label": string;
+      readonly "node_kind": "topic_reference";
+      readonly "topic_id": string;
+      readonly "topic_version": string;
+    };
+    readonly "PlatformHelpTopicResponseModel": {
+      readonly "applicability": ReadonlyArray<components["schemas"]["PlatformHelpApplicabilityModel"]>;
+      readonly "body": ReadonlyArray<components["schemas"]["PlatformHelpHeadingNodeModel"] | components["schemas"]["PlatformHelpParagraphNodeModel"] | components["schemas"]["PlatformHelpListNodeModel"] | components["schemas"]["PlatformHelpNoteNodeModel"] | components["schemas"]["PlatformHelpTopicReferenceNodeModel"]>;
+      readonly "glossary_term"?: string | null;
+      readonly "keywords": ReadonlyArray<string>;
+      readonly "publication": components["schemas"]["PlatformHelpPublicationModel"];
+      readonly "related_topics": ReadonlyArray<components["schemas"]["PlatformHelpRelatedTopicModel"]>;
+      readonly "schema_version": "1.0.0";
+      readonly "source_references": ReadonlyArray<components["schemas"]["PlatformHelpSourceReferenceModel"]>;
+      readonly "summary": string;
+      readonly "title": string;
+      readonly "topic_digest": string;
+      readonly "topic_id": string;
+      readonly "topic_kind": "glossary" | "help" | "method" | "limitation" | "troubleshooting";
+      readonly "topic_version": string;
+    };
     readonly "PracticeAttemptPolicyModel": {
       readonly "history_visible": true;
       readonly "max_attempts": number;
@@ -2030,6 +2130,7 @@ export interface components {
     readonly "ThematicBreakModel": {
       readonly "kind"?: "thematic_break";
     };
+    readonly "TopicKind": "glossary" | "help" | "method" | "limitation" | "troubleshooting";
     readonly "UnavailablePracticeReviewTargetModel": {
       readonly "practice_placement_id": string;
       readonly "resource_digest": string;
@@ -2798,6 +2899,120 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["PracticeSubmissionResultResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly searchPlatformHelp: {
+    readonly parameters: {
+      readonly query?: {
+          readonly "cursor"?: string | null;
+          readonly "page_size"?: number;
+          readonly "query"?: string;
+          readonly "topic_kind"?: components["schemas"]["TopicKind"] | null;
+        };
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PlatformHelpSearchPageResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getPlatformHelpTopicVersion: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "topic_id": string;
+          readonly "topic_version": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PlatformHelpTopicResponseModel"];
           };
         };
         readonly 400: {

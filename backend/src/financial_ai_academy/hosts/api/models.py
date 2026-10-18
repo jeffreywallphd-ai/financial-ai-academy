@@ -54,6 +54,12 @@ from financial_ai_academy.modules.curriculum.public import (
     PracticeReviewTarget,
     curriculum_graph_payload,
 )
+from financial_ai_academy.modules.guidance.public import (
+    PlatformHelpTopic,
+    SearchPage as PlatformHelpSearchPage,
+    search_page_payload as platform_help_search_page_payload,
+    topic_payload as platform_help_topic_payload,
+)
 from financial_ai_academy.modules.learner_model.public import (
     AssistancePreferenceExport,
     AssistancePreferenceHistory,
@@ -143,6 +149,152 @@ from financial_ai_academy.modules.personal_workspace.public import (
 
 class ApiModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+class PlatformHelpHeadingNodeModel(ApiModel):
+    node_kind: Literal["heading"]
+    level: int = Field(ge=2, le=4)
+    text: str = Field(min_length=1, max_length=160)
+
+
+class PlatformHelpParagraphNodeModel(ApiModel):
+    node_kind: Literal["paragraph"]
+    text: str = Field(min_length=1, max_length=2000)
+
+
+class PlatformHelpListNodeModel(ApiModel):
+    node_kind: Literal["list"]
+    list_kind: Literal["ordered", "unordered"]
+    items: list[str] = Field(min_length=1, max_length=30)
+
+
+class PlatformHelpNoteNodeModel(ApiModel):
+    node_kind: Literal["note"]
+    note_kind: Literal["educational", "limitation", "warning"]
+    text: str = Field(min_length=1, max_length=1000)
+
+
+class PlatformHelpTopicReferenceNodeModel(ApiModel):
+    node_kind: Literal["topic_reference"]
+    topic_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    topic_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    label: str = Field(min_length=1, max_length=160)
+
+
+PlatformHelpBodyNodeModel = Annotated[
+    Union[
+        PlatformHelpHeadingNodeModel,
+        PlatformHelpParagraphNodeModel,
+        PlatformHelpListNodeModel,
+        PlatformHelpNoteNodeModel,
+        PlatformHelpTopicReferenceNodeModel,
+    ],
+    Field(discriminator="node_kind"),
+]
+
+
+class PlatformHelpApplicabilityModel(ApiModel):
+    scope_key: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    label: str = Field(min_length=1, max_length=160)
+
+
+class PlatformHelpPublicationModel(ApiModel):
+    state: Literal["approved"]
+    reviewed_on: date
+    updated_at: datetime
+
+
+class PlatformHelpSourceReferenceModel(ApiModel):
+    source_key: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    title: str = Field(min_length=1, max_length=200)
+    area: Literal[
+        "product", "domain", "contract", "architecture", "risk", "method"
+    ]
+    source_version: str = Field(min_length=1, max_length=80)
+    content_fingerprint: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+class PlatformHelpRelatedTopicModel(ApiModel):
+    topic_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    topic_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    relationship: Literal["see_also", "prerequisite", "explains"]
+
+
+class PlatformHelpSearchResultModel(ApiModel):
+    topic_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    topic_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    topic_kind: Literal[
+        "glossary", "help", "method", "limitation", "troubleshooting"
+    ]
+    title: str = Field(min_length=1, max_length=160)
+    summary: str = Field(min_length=20, max_length=500)
+    glossary_term: str | None = Field(default=None, min_length=1, max_length=120)
+    applicability: list[PlatformHelpApplicabilityModel] = Field(
+        min_length=1, max_length=20
+    )
+    publication: PlatformHelpPublicationModel
+    source_references: list[PlatformHelpSourceReferenceModel] = Field(
+        min_length=1, max_length=20
+    )
+    topic_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+class PlatformHelpSearchPageResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    corpus_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    query: str = Field(max_length=200)
+    topic_kind: Literal[
+        "glossary", "help", "method", "limitation", "troubleshooting"
+    ] | None = None
+    results: list[PlatformHelpSearchResultModel] = Field(max_length=50)
+    next_cursor: str | None = Field(..., min_length=1, max_length=4096)
+
+
+class PlatformHelpTopicResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    topic_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    topic_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    topic_kind: Literal[
+        "glossary", "help", "method", "limitation", "troubleshooting"
+    ]
+    title: str = Field(min_length=1, max_length=160)
+    summary: str = Field(min_length=20, max_length=500)
+    glossary_term: str | None = Field(default=None, min_length=1, max_length=120)
+    keywords: list[str] = Field(max_length=16)
+    body: list[PlatformHelpBodyNodeModel] = Field(min_length=1, max_length=100)
+    applicability: list[PlatformHelpApplicabilityModel] = Field(
+        min_length=1, max_length=20
+    )
+    publication: PlatformHelpPublicationModel
+    source_references: list[PlatformHelpSourceReferenceModel] = Field(
+        min_length=1, max_length=20
+    )
+    related_topics: list[PlatformHelpRelatedTopicModel] = Field(max_length=20)
+    topic_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+def platform_help_topic_response(
+    topic: PlatformHelpTopic,
+) -> PlatformHelpTopicResponseModel:
+    return PlatformHelpTopicResponseModel.model_validate(
+        platform_help_topic_payload(topic)
+    )
+
+
+def platform_help_search_page_response(
+    page: PlatformHelpSearchPage,
+) -> PlatformHelpSearchPageResponseModel:
+    return PlatformHelpSearchPageResponseModel.model_validate(
+        platform_help_search_page_payload(page)
+    )
 
 
 def _project_timestamp_json(value: datetime) -> str:

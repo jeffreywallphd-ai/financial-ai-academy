@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "approved-help",
+  "topic_version": "1.0.0",
+  "topic_kind": "glossary",
+  "title": "Approved help",
+  "summary": "Approved help is a reviewed explanation of how the learning platform works and what its features can and cannot do.",
+  "glossary_term": "approved help",
+  "keywords": ["help", "reviewed", "platform"],
+  "body": [
+    {
+      "node_kind": "paragraph",
+      "text": "Use approved help to understand a feature, method, or limitation in clear language. Each topic names the source that owns its meaning."
+    },
+    {
+      "node_kind": "note",
+      "note_kind": "limitation",
+      "text": "Help summarizes reviewed sources. It does not replace those sources or create a new policy."
+    },
+    {
+      "node_kind": "topic_reference",
+      "topic_id": "education-not-advice",
+      "topic_version": "1.0.0",
+      "label": "Read the education boundary"
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "shared-platform",
+      "label": "Browser and headless platform clients"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "product-vision",
+      "title": "Product vision and scope",
+      "area": "product",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "e5d82e2a7cdc352248a1dbc4b4636fe97aca978dd2e1a90667cc70cd1d75922b"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "education-not-advice",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "c1f14bec0ce5bebacd05ec85f9445bcd3f8ebd1b1603ea286754e6ef60d3c8b3"
+}

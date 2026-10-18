@@ -83,6 +83,8 @@ from financial_ai_academy.modules.identity.adapters.postgres_repository import (
     PostgresIdentityRepository,
 )
 from financial_ai_academy.modules.identity.application.service import IdentityService
+from financial_ai_academy.modules.guidance.adapters import ImmutablePlatformHelpCorpus
+from financial_ai_academy.modules.guidance.application import GuidanceService
 from financial_ai_academy.modules.learner_model.adapters.assessment_gateway import (
     AssessmentCompletionEvidenceSource,
 )
@@ -169,6 +171,7 @@ class ApplicationServices:
     adaptation: AdaptationService
     audit: AuditService
     identity: IdentityService
+    guidance: GuidanceService
     project: ProjectService
     personal_workspace: PersonalWorkspaceService
     request_policy: SingleProfileRequestPolicy
@@ -317,6 +320,7 @@ def build_application_services(
         PostgresIdentityRepository(settings.postgres_dsn),
         configured_mode=settings.security.identity_mode,
     )
+    guidance = GuidanceService(ImmutablePlatformHelpCorpus())
     return ApplicationServices(
         content=content,
         curriculum=curriculum,
@@ -325,6 +329,7 @@ def build_application_services(
         adaptation=adaptation,
         audit=audit,
         identity=identity,
+        guidance=guidance,
         project=project,
         personal_workspace=personal_workspace,
         request_policy=request_policy,

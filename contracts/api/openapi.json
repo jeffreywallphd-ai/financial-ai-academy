@@ -6054,6 +6054,593 @@
         "title": "PersonalWorkspaceResponseModel",
         "type": "object"
       },
+      "PlatformHelpApplicabilityModel": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "scope_key": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Scope Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "scope_key",
+          "label"
+        ],
+        "title": "PlatformHelpApplicabilityModel",
+        "type": "object"
+      },
+      "PlatformHelpHeadingNodeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "level": {
+            "maximum": 4.0,
+            "minimum": 2.0,
+            "title": "Level",
+            "type": "integer"
+          },
+          "node_kind": {
+            "const": "heading",
+            "title": "Node Kind",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_kind",
+          "level",
+          "text"
+        ],
+        "title": "PlatformHelpHeadingNodeModel",
+        "type": "object"
+      },
+      "PlatformHelpListNodeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "list_kind": {
+            "enum": [
+              "ordered",
+              "unordered"
+            ],
+            "title": "List Kind",
+            "type": "string"
+          },
+          "node_kind": {
+            "const": "list",
+            "title": "Node Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_kind",
+          "list_kind",
+          "items"
+        ],
+        "title": "PlatformHelpListNodeModel",
+        "type": "object"
+      },
+      "PlatformHelpNoteNodeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "node_kind": {
+            "const": "note",
+            "title": "Node Kind",
+            "type": "string"
+          },
+          "note_kind": {
+            "enum": [
+              "educational",
+              "limitation",
+              "warning"
+            ],
+            "title": "Note Kind",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_kind",
+          "note_kind",
+          "text"
+        ],
+        "title": "PlatformHelpNoteNodeModel",
+        "type": "object"
+      },
+      "PlatformHelpParagraphNodeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "node_kind": {
+            "const": "paragraph",
+            "title": "Node Kind",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_kind",
+          "text"
+        ],
+        "title": "PlatformHelpParagraphNodeModel",
+        "type": "object"
+      },
+      "PlatformHelpPublicationModel": {
+        "additionalProperties": false,
+        "properties": {
+          "reviewed_on": {
+            "format": "date",
+            "title": "Reviewed On",
+            "type": "string"
+          },
+          "state": {
+            "const": "approved",
+            "title": "State",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "state",
+          "reviewed_on",
+          "updated_at"
+        ],
+        "title": "PlatformHelpPublicationModel",
+        "type": "object"
+      },
+      "PlatformHelpRelatedTopicModel": {
+        "additionalProperties": false,
+        "properties": {
+          "relationship": {
+            "enum": [
+              "see_also",
+              "prerequisite",
+              "explains"
+            ],
+            "title": "Relationship",
+            "type": "string"
+          },
+          "topic_id": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Topic Id",
+            "type": "string"
+          },
+          "topic_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Topic Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic_id",
+          "topic_version",
+          "relationship"
+        ],
+        "title": "PlatformHelpRelatedTopicModel",
+        "type": "object"
+      },
+      "PlatformHelpSearchPageResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "corpus_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Corpus Digest",
+            "type": "string"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 4096,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "query": {
+            "maxLength": 200,
+            "title": "Query",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpSearchResultModel"
+            },
+            "maxItems": 50,
+            "title": "Results",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "topic_kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "glossary",
+                  "help",
+                  "method",
+                  "limitation",
+                  "troubleshooting"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Kind"
+          }
+        },
+        "required": [
+          "schema_version",
+          "corpus_digest",
+          "query",
+          "results",
+          "next_cursor"
+        ],
+        "title": "PlatformHelpSearchPageResponseModel",
+        "type": "object"
+      },
+      "PlatformHelpSearchResultModel": {
+        "additionalProperties": false,
+        "properties": {
+          "applicability": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpApplicabilityModel"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Applicability",
+            "type": "array"
+          },
+          "glossary_term": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Glossary Term"
+          },
+          "publication": {
+            "$ref": "#/components/schemas/PlatformHelpPublicationModel"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpSourceReferenceModel"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "summary": {
+            "maxLength": 500,
+            "minLength": 20,
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Topic Digest",
+            "type": "string"
+          },
+          "topic_id": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Topic Id",
+            "type": "string"
+          },
+          "topic_kind": {
+            "enum": [
+              "glossary",
+              "help",
+              "method",
+              "limitation",
+              "troubleshooting"
+            ],
+            "title": "Topic Kind",
+            "type": "string"
+          },
+          "topic_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Topic Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic_id",
+          "topic_version",
+          "topic_kind",
+          "title",
+          "summary",
+          "applicability",
+          "publication",
+          "source_references",
+          "topic_digest"
+        ],
+        "title": "PlatformHelpSearchResultModel",
+        "type": "object"
+      },
+      "PlatformHelpSourceReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "enum": [
+              "product",
+              "domain",
+              "contract",
+              "architecture",
+              "risk",
+              "method"
+            ],
+            "title": "Area",
+            "type": "string"
+          },
+          "content_fingerprint": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Content Fingerprint",
+            "type": "string"
+          },
+          "source_key": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Source Key",
+            "type": "string"
+          },
+          "source_version": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Source Version",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_key",
+          "title",
+          "area",
+          "source_version",
+          "content_fingerprint"
+        ],
+        "title": "PlatformHelpSourceReferenceModel",
+        "type": "object"
+      },
+      "PlatformHelpTopicReferenceNodeModel": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "node_kind": {
+            "const": "topic_reference",
+            "title": "Node Kind",
+            "type": "string"
+          },
+          "topic_id": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Topic Id",
+            "type": "string"
+          },
+          "topic_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Topic Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_kind",
+          "topic_id",
+          "topic_version",
+          "label"
+        ],
+        "title": "PlatformHelpTopicReferenceNodeModel",
+        "type": "object"
+      },
+      "PlatformHelpTopicResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "applicability": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpApplicabilityModel"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Applicability",
+            "type": "array"
+          },
+          "body": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "heading": "#/components/schemas/PlatformHelpHeadingNodeModel",
+                  "list": "#/components/schemas/PlatformHelpListNodeModel",
+                  "note": "#/components/schemas/PlatformHelpNoteNodeModel",
+                  "paragraph": "#/components/schemas/PlatformHelpParagraphNodeModel",
+                  "topic_reference": "#/components/schemas/PlatformHelpTopicReferenceNodeModel"
+                },
+                "propertyName": "node_kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PlatformHelpHeadingNodeModel"
+                },
+                {
+                  "$ref": "#/components/schemas/PlatformHelpParagraphNodeModel"
+                },
+                {
+                  "$ref": "#/components/schemas/PlatformHelpListNodeModel"
+                },
+                {
+                  "$ref": "#/components/schemas/PlatformHelpNoteNodeModel"
+                },
+                {
+                  "$ref": "#/components/schemas/PlatformHelpTopicReferenceNodeModel"
+                }
+              ]
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Body",
+            "type": "array"
+          },
+          "glossary_term": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Glossary Term"
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Keywords",
+            "type": "array"
+          },
+          "publication": {
+            "$ref": "#/components/schemas/PlatformHelpPublicationModel"
+          },
+          "related_topics": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpRelatedTopicModel"
+            },
+            "maxItems": 20,
+            "title": "Related Topics",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_references": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformHelpSourceReferenceModel"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Source References",
+            "type": "array"
+          },
+          "summary": {
+            "maxLength": 500,
+            "minLength": 20,
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Topic Digest",
+            "type": "string"
+          },
+          "topic_id": {
+            "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+            "title": "Topic Id",
+            "type": "string"
+          },
+          "topic_kind": {
+            "enum": [
+              "glossary",
+              "help",
+              "method",
+              "limitation",
+              "troubleshooting"
+            ],
+            "title": "Topic Kind",
+            "type": "string"
+          },
+          "topic_version": {
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+            "title": "Topic Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "topic_id",
+          "topic_version",
+          "topic_kind",
+          "title",
+          "summary",
+          "keywords",
+          "body",
+          "applicability",
+          "publication",
+          "source_references",
+          "related_topics",
+          "topic_digest"
+        ],
+        "title": "PlatformHelpTopicResponseModel",
+        "type": "object"
+      },
       "PracticeAttemptPolicyModel": {
         "additionalProperties": false,
         "properties": {
@@ -11121,6 +11708,17 @@
         "title": "ThematicBreakModel",
         "type": "object"
       },
+      "TopicKind": {
+        "enum": [
+          "glossary",
+          "help",
+          "method",
+          "limitation",
+          "troubleshooting"
+        ],
+        "title": "TopicKind",
+        "type": "string"
+      },
       "UnavailablePracticeReviewTargetModel": {
         "additionalProperties": false,
         "properties": {
@@ -12905,6 +13503,261 @@
         "summary": "Submit Placed Practice",
         "tags": [
           "assessment"
+        ]
+      }
+    },
+    "/api/v1/guidance/platform-help": {
+      "get": {
+        "operationId": "searchPlatformHelp",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 200,
+              "title": "Query",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "topic_kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TopicKind"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Topic Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 4096,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformHelpSearchPageResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Search Platform Help",
+        "tags": [
+          "guidance"
+        ]
+      }
+    },
+    "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}": {
+      "get": {
+        "operationId": "getPlatformHelpTopicVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "topic_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "minLength": 3,
+              "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$",
+              "title": "Topic Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "topic_version",
+            "required": true,
+            "schema": {
+              "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+              "title": "Topic Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformHelpTopicResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Get Platform Help Topic Version",
+        "tags": [
+          "guidance"
         ]
       }
     },

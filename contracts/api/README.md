@@ -4,6 +4,19 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`GET /api/v1/guidance/platform-help` and
+`GET /api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}` are
+the protected platform-help boundary. Both require the opaque session and the
+server-issued `guidance.platform_help.read` permission. Search accepts only a
+bounded literal query, optional closed topic kind, page size, and opaque cursor;
+the exact read requires both stable topic ID and stable semantic version and
+never substitutes another version. Responses preserve the closed approved
+publication, applicability, source-fingerprint, relation, and digest facts.
+They contain no learner/session identity, repository path, provider payload,
+prompt, model output, or active content. Browser, command-line, service, and
+future headless-AI clients use these same OpenAPI-generated operations; no
+separate ranking or authority path exists.
+
 `GET /api/v1/learner-assistance-preferences`, `GET
 /api/v1/learner-assistance-preferences/history`, `GET
 /api/v1/learner-assistance-preferences/export`, and `POST

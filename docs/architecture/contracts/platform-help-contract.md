@@ -1,6 +1,6 @@
 # Platform Help Contract
 
-- Status: accepted for the platform-help v1 projection and pure search core
+- Status: accepted and implemented through the protected platform-help v1 API
 - Canonical for: Guidance ownership, exact topic meaning, safe body/source
   boundaries, canonicalization, and deterministic literal search
 - Executable shapes: `contracts/guidance/platform-help/v1/`
@@ -75,9 +75,18 @@ the same safe meaning. Removing or reinterpreting a required field, admitted
 node kind, digest input, exact identity, ranking tier, or cursor binding is a
 breaking change and requires versioning.
 
-Browser, command-line, service, and future headless-AI clients must consume the
-same protected public API once it exists. The browser cannot become a separate
-ranking authority or bypass exact-version and authorization rules. The current
-seam qualifies contract and pure domain behavior only; reviewed product corpus,
-API, generated client, browser, deployment, authorization, and live operation
-remain subsequent SLI-0082 packets.
+Browser, command-line, service, and future headless-AI clients consume the same
+protected public operations: deterministic search at
+`GET /api/v1/guidance/platform-help` and exact-version read at
+`GET /api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}`.
+Both require the server-issued `guidance.platform_help.read` permission before
+Guidance is invoked. They accept no learner or permission selector, preserve the
+closed v1 documents, and map absent versions and invalid cursors to bounded
+errors without corpus internals.
+
+The immutable starter corpus is checked-in JSON admitted atomically at
+composition time through the strict mapping and domain rules. Runtime code does
+not parse canonical repository Markdown. OpenAPI and generated TypeScript types
+reproduce the same headless contract. The browser cannot become a separate
+ranking authority or bypass exact-version and authorization rules; browser
+presentation and live restart/offline qualification remain dependent packets.

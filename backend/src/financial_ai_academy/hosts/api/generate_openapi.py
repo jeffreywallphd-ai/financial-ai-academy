@@ -79,6 +79,12 @@ from financial_ai_academy.modules.curriculum.public import (
     QueryLearningOpportunitiesRequest,
     ResolvePracticeReviewTargetsRequest,
 )
+from financial_ai_academy.modules.guidance.public import (
+    OpenPlatformHelpTopicRequest,
+    PlatformHelpTopic,
+    SearchPage as PlatformHelpSearchPage,
+    SearchRequest as PlatformHelpSearchRequest,
+)
 from financial_ai_academy.platform.security.single_profile_policy import (
     SingleProfileRequestPolicy,
     SingleProfileSecuritySettings,
@@ -186,6 +192,18 @@ class _SchemaAssessment:
     def submit_placed_knowledge_check(
         self, request: SubmitPlacedKnowledgeCheckRequest
     ) -> KnowledgeCheckResult:
+        raise NotImplementedError
+
+
+class _SchemaGuidance:
+    def search_platform_help(
+        self, request: PlatformHelpSearchRequest
+    ) -> PlatformHelpSearchPage:
+        raise NotImplementedError
+
+    def open_platform_help_topic(
+        self, request: OpenPlatformHelpTopicRequest
+    ) -> PlatformHelpTopic:
         raise NotImplementedError
 
 
@@ -304,6 +322,7 @@ def generate_bytes() -> bytes:
             assessment=_SchemaAssessment(),
             learner_model=_SchemaLearnerModel(),
             audit=_SchemaAudit(),
+            guidance=_SchemaGuidance(),
         )
     )
     return (

@@ -17,7 +17,7 @@
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
-| Guidance | accepted for platform-help projection; contract and pure search core implemented | Safe versioned platform explanations, canonical-source facts, exact topic integrity, and deterministic literal search | Public API, reviewed corpus, contextual links, browser presentation, and live qualification remain CAP-0020 work |
+| Guidance | accepted; contract, immutable corpus, application seam, and protected API implemented | Safe versioned platform explanations, canonical-source facts, exact topic integrity, and deterministic literal search | Contextual links, browser presentation, and live qualification remain CAP-0020 work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -136,6 +136,10 @@ execution, cross-module mutation, or browser-interface dependency.
 - The core exposes only a Guidance-owned read protocol and a strict mapping
   adapter. It imports no FastAPI, SQLAlchemy, filesystem, network, Web,
   provider, model, grading, eligibility, or financial-action code.
+- Composition atomically admits the checked-in JSON starter corpus and exposes
+  one Guidance application/public seam. The API authorizes before access and
+  serves protected search and exact-version reads to browser and headless
+  callers through the same OpenAPI-generated contract.
 - Contract and pure unit tests cover safe-node and confidentiality denials,
   canonicalization, Unicode preservation, varied valid corpus sizes/order,
   deterministic ranking/paging, stale cursor rejection, dangling references,

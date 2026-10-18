@@ -61,6 +61,7 @@ class GuidanceErrorCode(StrEnum):
     DANGLING_REFERENCE = "dangling_reference"
     NOT_FOUND = "not_found"
     INVALID_CURSOR = "invalid_cursor"
+    UNAVAILABLE = "unavailable"
 
 
 class GuidanceError(ValueError):

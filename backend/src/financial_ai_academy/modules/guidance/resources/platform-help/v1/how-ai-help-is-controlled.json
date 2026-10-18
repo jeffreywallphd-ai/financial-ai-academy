@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "how-ai-help-is-controlled",
+  "topic_version": "1.0.0",
+  "topic_kind": "limitation",
+  "title": "How AI help is controlled",
+  "summary": "AI can help explain or draft learning material, but deterministic platform rules keep authority over protected decisions and state changes.",
+  "keywords": ["ai", "models", "authority", "limits"],
+  "body": [
+    {
+      "node_kind": "paragraph",
+      "text": "Model access must use platform-owned application ports. Domain logic does not depend on a provider's SDK, prompt, model name, or response type."
+    },
+    {
+      "node_kind": "list",
+      "list_kind": "unordered",
+      "items": [
+        "AI output cannot authenticate or authorize a person.",
+        "AI output cannot create an authoritative grade, financial calculation, transaction, or safety decision.",
+        "A missing or disabled provider must fall back to a bounded no-model path."
+      ]
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "ai-assisted-learning",
+      "label": "AI-assisted learning and explanation features"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "ai-ml-boundaries",
+      "title": "AI and ML system boundaries",
+      "area": "architecture",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "c3f521c4d9a156cdd80651609cfa105e6134f2a7800480deefcaecb2d544b775"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "education-not-advice",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "88879a2d732b4e869214309fed957cefccb7f5b8379db77a5b017522eceef578"
+}

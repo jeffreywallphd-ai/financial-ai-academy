@@ -10,7 +10,7 @@ capability: CAP-0020
 depends_on: [WRK-0165]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/src/generated/api-client", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/guidance", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/tests/integration/api/test_single_profile_guidance_api.py", "backend/tests/unit/guidance", "backend/tests/unit/identity/test_identity_service.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0166-compose-platform-help-api.md"]
+write_scope: ["apps/web/src/generated/api-client", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/guidance", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/integration/api/test_single_profile_guidance_api.py", "backend/tests/unit/guidance", "backend/tests/unit/identity/test_identity_service.py", "contracts/api/README.md", "contracts/api/openapi.json", "deployments/local/serve.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0166-compose-platform-help-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
 base_revision: 9fd11b3f13fd7e36839ed665cf43c47fca567fae
 claim_id: WRK-0166:b2dbf125-2742-451c-b8c1-3d8b0eba23a7
@@ -120,8 +120,9 @@ collision, unresolved durable decision, or material scope drift.
 | Guidance | Completed domain, adapter, port, and module README | Application/public seam, immutable corpus adapter/resources, direct exports/docs | Compose one validated read-only owner |
 | Identity | Session context and established permission grant | Add one read permission and focused expectation | Authorize before corpus access |
 | API | Host, models, error mapping, OpenAPI generator | Guidance dependency, models, handlers, routes, schema stub | Expose the same safe public documents |
+| Local host | API dependency wiring | Pass composed Guidance operations into the API host | Keep browser and headless callers on one service |
 | Contracts/client | v1 schemas, API snapshot, generator output | OpenAPI snapshot, generated TypeScript types, API README | Keep headless/browser contracts identical |
-| Tests | Guidance unit and analogous protected API suites | New corpus/service/API tests and direct identity expectation | Prove atomic startup and protected reads |
+| Tests | Guidance unit, module-boundary, and analogous protected API suites | New corpus/service/API tests, architecture inclusion, and direct identity expectation | Prove atomic startup, layering, and protected reads |
 | Architecture | Platform help, module map, assurance table | Direct implementation-status and verification rows | Record ownership and non-authority |
 | Planning | SLI-0082, WRK-0166, register | Status and neutral evidence only | Keep governed state synchronized |
 

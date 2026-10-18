@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "topic_id": "education-not-advice",
+  "topic_version": "1.0.0",
+  "topic_kind": "limitation",
+  "title": "Education, not personal investment advice",
+  "summary": "The platform teaches financial concepts and supports educational simulations, but it does not decide what you should buy, sell, or hold.",
+  "keywords": ["education", "advice", "simulation", "limits"],
+  "body": [
+    {
+      "node_kind": "heading",
+      "level": 2,
+      "text": "What this means"
+    },
+    {
+      "node_kind": "list",
+      "list_kind": "unordered",
+      "items": [
+        "Learning choices can adapt to your educational progress.",
+        "Simulations and examples must show their assumptions and limits.",
+        "The platform does not turn your learner profile into a recommendation to trade a security."
+      ]
+    },
+    {
+      "node_kind": "note",
+      "note_kind": "warning",
+      "text": "Do not treat lessons, model output, or simulated results as a promise of performance or a suitability decision."
+    }
+  ],
+  "applicability": [
+    {
+      "scope_key": "financial-learning",
+      "label": "Financial lessons, projects, simulations, and explanations"
+    }
+  ],
+  "publication": {
+    "state": "approved",
+    "reviewed_on": "2026-10-18",
+    "updated_at": "2026-10-18T00:00:00Z"
+  },
+  "source_references": [
+    {
+      "source_key": "education-advice-boundary",
+      "title": "Education versus financial advice",
+      "area": "risk",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "917c157fc1da47a686a609fd72e5d36d297c9b99254724e8adf8081a14ad33d6"
+    }
+  ],
+  "related_topics": [
+    {
+      "topic_id": "platform-methods",
+      "topic_version": "1.0.0",
+      "relationship": "see_also"
+    }
+  ],
+  "topic_digest": "0266a3a1a667808f653f5f3492cdca50a457c53b2c6115d7f9a34b32236b8aca"
+}
