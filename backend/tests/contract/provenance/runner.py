@@ -19,6 +19,7 @@ if str(SOURCE_ROOT) not in sys.path:
 from financial_ai_academy.modules.audit.adapters import (
     envelope_from_mapping,
     envelope_payload,
+    lineage_request_from_mapping,
     lineage_view_from_mapping,
     lineage_view_payload,
 )
@@ -107,6 +108,11 @@ class ProvenanceContractValidator:
 
     def validate_lineage_request(self, value: Mapping[str, Any]) -> None:
         self._shape("lineage_request", value)
+        try:
+            lineage_request_from_mapping(value)
+        except (InvalidProvenance, TypeError, ValueError) as error:
+            reference = error.reference if isinstance(error, InvalidProvenance) else "lineage_request"
+            reject("provenance.invalid", reference, "Provenance record is inconsistent.")
 
     def validate_lineage_view(self, value: Mapping[str, Any]):
         self._shape("lineage_view", value)

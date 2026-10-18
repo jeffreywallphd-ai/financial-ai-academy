@@ -29,7 +29,7 @@
     }
   ],
   "$defs": {
-    "identifier": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\s._:/\\\\?#][^\\s/\\\\?#]{0,127}$"},
+    "identifier": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\s._:/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$"},
     "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"},
     "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
   }

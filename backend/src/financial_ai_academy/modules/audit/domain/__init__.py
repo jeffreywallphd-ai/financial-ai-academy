@@ -21,6 +21,7 @@ from .provenance import (
     lineage_view_digest,
     lineage_view_payload,
     validate_envelope,
+    validate_identifier,
     validate_lineage_view,
 )
 
@@ -45,5 +46,6 @@ __all__ = [
     "lineage_view_digest",
     "lineage_view_payload",
     "validate_envelope",
+    "validate_identifier",
     "validate_lineage_view",
 ]

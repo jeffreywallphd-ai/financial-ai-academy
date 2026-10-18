@@ -177,6 +177,13 @@ def validate_envelope(value: ProvenanceEnvelope) -> ProvenanceEnvelope:
     return replace(value, sources=tuple(sorted(value.sources, key=_source_key)))
 
 
+def validate_identifier(value: object, reference: str) -> str:
+    if not _valid_identifier(value):
+        raise InvalidProvenance(reference)
+    assert isinstance(value, str)
+    return value
+
+
 def build_lineage_view(
     *,
     root: LineageRoot,

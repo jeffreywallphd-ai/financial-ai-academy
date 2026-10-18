@@ -25,6 +25,7 @@ from ..domain import (
     envelope_payload,
     lineage_view_payload,
     validate_envelope,
+    validate_identifier,
     validate_lineage_view,
 )
 
@@ -32,6 +33,8 @@ from ..domain import (
 _TIMESTAMP = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
+_VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$")
+_DIGEST = re.compile(r"^[a-f0-9]{64}$")
 
 
 def _reject(reference: str) -> None:
@@ -106,6 +109,61 @@ def reference_from_mapping(value: object, reference: str) -> ResourceReference:
             f"{reference}.validation_status",
         ),
     )
+
+
+def lineage_request_from_mapping(value: object) -> dict[str, object]:
+    item = _mapping(value, "lineage_request")
+    if item.get("schema_version") != "1.0.0":
+        _reject("schema_version")
+    root_kind = item.get("root_kind")
+    if root_kind == RootKind.PUBLISHED_LESSON.value:
+        _exact_keys(
+            item,
+            {
+                "schema_version",
+                "root_kind",
+                "package_id",
+                "package_version",
+                "package_digest",
+            },
+            set(),
+            "lineage_request",
+        )
+        validate_identifier(item["package_id"], "package_id")
+        if (
+            not isinstance(item["package_version"], str)
+            or _VERSION.fullmatch(item["package_version"]) is None
+        ):
+            _reject("package_version")
+        if (
+            not isinstance(item["package_digest"], str)
+            or _DIGEST.fullmatch(item["package_digest"]) is None
+        ):
+            _reject("package_digest")
+    elif root_kind == RootKind.KNOWLEDGE_CHECK_COMPLETION.value:
+        _exact_keys(
+            item,
+            {
+                "schema_version",
+                "root_kind",
+                "placement_id",
+                "evidence_id",
+                "occurrence",
+            },
+            set(),
+            "lineage_request",
+        )
+        validate_identifier(item["placement_id"], "placement_id")
+        validate_identifier(item["evidence_id"], "evidence_id")
+        if (
+            not isinstance(item["occurrence"], int)
+            or isinstance(item["occurrence"], bool)
+            or item["occurrence"] < 1
+        ):
+            _reject("occurrence")
+    else:
+        _reject("root_kind")
+    return dict(item)
 
 
 def envelope_from_mapping(value: Mapping[str, Any]) -> ProvenanceEnvelope:
@@ -269,6 +327,7 @@ def lineage_view_from_mapping(value: Mapping[str, Any]) -> LineageView:
 __all__ = [
     "envelope_from_mapping",
     "envelope_payload",
+    "lineage_request_from_mapping",
     "lineage_view_from_mapping",
     "lineage_view_payload",
     "reference_from_mapping",

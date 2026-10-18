@@ -111,6 +111,18 @@ def test_two_closed_lineage_requests_are_admitted_without_generic_selector() -> 
             }
         )
 
+    for unsafe in ("placement\x00risk", "placement\u061crisk", "🙂placement"):
+        with pytest.raises(ConformanceFailure):
+            validator.validate_lineage_request(
+                {
+                    "schema_version": "1.0.0",
+                    "root_kind": "knowledge_check_completion",
+                    "placement_id": unsafe,
+                    "evidence_id": "evidence-check-1",
+                    "occurrence": 1,
+                }
+            )
+
 
 def test_equivalent_input_order_projects_one_canonical_view() -> None:
     _, _, view, _ = approved_records()
