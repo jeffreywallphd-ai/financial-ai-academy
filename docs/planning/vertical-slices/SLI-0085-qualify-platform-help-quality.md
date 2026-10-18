@@ -1,7 +1,7 @@
 ---
 id: SLI-0085
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -282,3 +282,6 @@ finding.
   receipt, cumulative evidence, direct documentation impact, and residual gaps.
 - 2026-10-18: Moved the slice to verification after both enumerated packets
   completed and aggregate readiness returned 30 of 30 checks ready.
+- 2026-10-18: Completion structure passed for both packets. Closed SLI-0085
+  with exact-candidate evidence, cumulative local qualification, honest
+  residual gaps, and no product or stored-state change.
