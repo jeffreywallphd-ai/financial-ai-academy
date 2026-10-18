@@ -1,7 +1,7 @@
 ---
 id: WRK-0188
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -120,6 +120,24 @@ Do not stop or reopen broad review for harmless whitespace, optional wording,
 test count/order, or nonfunctional styling. Fix bounded local defects or defer
 polish to CAP-0031.
 
+## Completion Evidence
+
+- Exact candidate: `c07207f3648cf74d6a64bf8b200e3f40e73d1c14`.
+- Qualifying receipt: `sha256:7bc09c4d3d975d19d02e34a0b65dfeaabec9741634ab40f6801ae03388a4d239`.
+- The complete focused command passed 112 tests. The mixed suite replaces only
+  the synthetic Project profile with the real public-only adapter, validates
+  all nine frozen profiles, preserves exact v1/v2 compatibility, and proves
+  variable partial-set adoption and input-order invariance.
+- A crafted Project failure produces only the bounded Project case while
+  unrelated profiles remain valid; rejected URL, token, message, learner, and
+  payload details do not enter the report.
+- Architecture passed 18 checks, security passed 10 control groups, and all 30
+  aggregate-readiness checks passed. Documentation, planning, and whitespace
+  integrity also passed.
+- This test-and-documentation packet changes no production contract, code,
+  retained state, migration, API/client, UI, provider/model, tenant or
+  administrator authority, external action, or financial behavior.
+
 ## Required Handoff
 
 Report `CAP-0026.SLI-0107.WRK-0188`; exact candidate and receipt; mixed real and
@@ -143,3 +161,7 @@ current.
 - 2026-10-18: Added cumulative mixed-adapter qualification, varied partial-set
   and order evidence, and confidential Project-failure isolation without any
   production behavior or contract change.
+- 2026-10-18: Verified and completed at exact candidate `c07207f` with a valid
+  qualifying receipt, accepted technical disposition, 112 focused tests, and
+  passing architecture, security, documentation, planning, whitespace, and
+  aggregate-readiness gates. SLI-0107 is complete.

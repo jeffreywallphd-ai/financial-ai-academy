@@ -1,7 +1,7 @@
 ---
 id: SLI-0107
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -194,7 +194,7 @@ The dependency-ordered seams are:
 | [WRK-0185](../work-packets/WRK-0185-extend-cross-domain-provenance-core.md) | Extend the pure provenance core for closed typed owner profiles, exact identities, deterministic canonicalization, and isolated failures | WRK-0184 | none | complete |
 | [WRK-0186](../work-packets/WRK-0186-build-cross-domain-provenance-conformance-kit.md) | Build the reusable cross-domain conformance kit, synthetic reference adapters, property evidence, and contributor instructions | WRK-0185 | none | complete |
 | [WRK-0187](../work-packets/WRK-0187-prove-project-snapshot-provenance-adapter.md) | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | complete |
-| [WRK-0188](../work-packets/WRK-0188-qualify-cross-domain-provenance-slice.md) | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | verifying |
+| [WRK-0188](../work-packets/WRK-0188-qualify-cross-domain-provenance-slice.md) | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | complete |
 
 Sequential delivery is required because each packet freezes the meaning consumed
 by the next. No safe parallel packet is identified inside this small shared
@@ -243,6 +243,35 @@ planning register. Completion evidence must record exact candidates and
 qualifying receipts, v1 compatibility, profile/conformance/core/Project adapter
 results, isolation and anti-rigidity results, security and architecture gates,
 aggregate readiness, migration status, residual gaps, and CAP conformance.
+
+### Completion Evidence
+
+- WRK-0184 froze the additive contract at candidate `77af7bb` with receipt
+  `sha256:037b55eb0f43a29ad13223212282430fd0f77240424be5f75404aab02bffd16c`.
+  WRK-0185 completed the pure core at candidate `406fbc1` with receipt
+  `sha256:76ec6e3f5f78e4c6dc09a94cc776e49f08098fa7462fb966f261f6bf8ee16991`.
+- WRK-0186 completed the reusable conformance kit at candidate `979ce9f` with
+  receipt `sha256:9a88079424164b3beec919ae852fa8718598b7c5ad36e19779adce2aa2b576f2`.
+  WRK-0187 completed the real public-only Project adapter at candidate
+  `200bf15` with receipt
+  `sha256:39252d2cc3f2d254d26ee4b6378c98ccb7a4560c6799485a122a212371b7bf3d`.
+- WRK-0188 completed cumulative qualification at candidate `c07207f` with
+  receipt `sha256:7bc09c4d3d975d19d02e34a0b65dfeaabec9741634ab40f6801ae03388a4d239`.
+  Its focused command passed 112 tests; architecture passed 18 checks, security
+  passed 10 control groups, and aggregate readiness passed all 30 checks.
+- The frozen v1 fingerprints remain exact. V2 admits exactly nine closed
+  profile-specific reference families, deterministic canonicalization, bounded
+  denial, flexible partial adoption, and isolated adapter failure. Test-only
+  synthetic forecasts do not claim future owner maturity.
+- Project is the first real owner adapter. It reads one exact immutable snapshot
+  only through `project.public` and exposes no learner identity, origin payload,
+  workspace content, resources, URL, path, bytes, storage detail, persistence,
+  public transport, or new authorization.
+- No migration or retained-state rewrite applies. Remaining CAP work owns
+  authorized human/headless inspection, purpose-limited redaction/export,
+  runtime qualification, retention hooks, and eventual adapters delivered by
+  their owning capabilities. No unresolved decision blocks this completed
+  slice.
 
 ## Planning History
 
@@ -304,3 +333,7 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
 - 2026-10-18: Added WRK-0188's cumulative real-Project plus synthetic-owner
   qualification, including flexible partial sets, order invariance, and local
   confidential failure behavior with no production boundary expansion.
+- 2026-10-18: Completed WRK-0188 at exact candidate `c07207f` and closed
+  SLI-0107. The complete slice preserves v1, freezes nine bounded v2 profiles,
+  supplies a reusable non-rigid conformance seam, and proves the first real
+  public-only Project adapter without adding retained state or runtime authority.
