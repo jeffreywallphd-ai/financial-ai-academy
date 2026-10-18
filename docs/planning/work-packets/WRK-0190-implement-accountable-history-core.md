@@ -1,9 +1,9 @@
 ---
 id: WRK-0190
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0026
 updated: 2026-10-18
 parent: SLI-0108
 capability: CAP-0026
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/adapters/__init__.py", "backend/src/financial_ai_academy/modules/audit/adapters/accountable_history_contract.py", "backend/src/financial_ai_academy/modules/audit/domain/__init__.py", "backend/src/financial_ai_academy/modules/audit/domain/accountable_history.py", "backend/tests/contract/accountable_history/runner.py", "backend/tests/contract/accountable_history/test_conformance.py", "backend/tests/unit/audit/test_accountable_history.py", "contracts/compatibility/accountable-history/v1/approved/incomplete-review.json", "contracts/compatibility/accountable-history/v1/approved/lesson-review.json", "contracts/compatibility/accountable-history/v1/vectors/canonicalization.json", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0190-implement-accountable-history-core.md"]
 generated_artifacts: []
-base_revision: e373ef4d3c1c413666da238022c3db361eecabfb
-claim_id: WRK-0190:8dc1bc68-5c0b-413f-9307-46d8abdbd845
+base_revision: 52fbbc5c62fa4921a901f4a8156462edfc1fcd8b
+claim_id: WRK-0190:940c1a68-2278-4282-942b-147ac1f53df5
 claimed_by: codex-cap-0026
-claimed_at: 2026-10-18T10:14:50Z
+claimed_at: 2026-10-18T10:16:06Z
 ---
 
 # Agent Work Packet: Implement Accountable History Core
@@ -230,3 +230,6 @@ admin, external action, or financial authority changed.
 - 2026-10-18: Incrementally added the approved incomplete-review fixture to the
   bounded compatibility scope so zero/many-gap copy can remain truthful without
   changing schema shape, technical facts, or provenance meaning.
+- 2026-10-18: Reclaimed the refined packet from clean base `52fbbc5` after
+  revalidating the expanded bounded scope, dependency completion, decision
+  posture, and absence of a file-ownership collision.
