@@ -1,7 +1,7 @@
 ---
 id: WRK-0186
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -170,6 +170,21 @@ Do not stop or reopen broad review for harmless whitespace, optional wording,
 test fixture count/order, naming that preserves the closed contract, or
 nonfunctional styling. Fix bounded local defects or defer polish to CAP-0031.
 
+## Completion Evidence
+
+- Exact candidate: `979ce9fc9c5aa2a085f6154bf0c7ab892f5e8f77`.
+- Qualifying receipt: `sha256:9a88079424164b3beec919ae852fa8718598b7c5ad36e19779adce2aa2b576f2`.
+- The focused Audit and provenance contract suite passed 76 tests, including
+  all nine frozen profiles, partial suites, deterministic order and digest,
+  duplicate-profile denial, adapter failure isolation, variable valid input,
+  and confidential malformed-input handling.
+- Architecture verification passed 18 checks, slice security passed 10 checks,
+  and aggregate agent readiness passed 30 checks. Documentation, planning, and
+  whitespace integrity also passed.
+- Existing v1 and frozen-v2 compatibility remained exact. The packet added no
+  real owner, retained state, API/client, UI, provider or model call, tenant or
+  administrator authority, external action, or financial authority.
+
 ## Required Handoff
 
 Report `CAP-0026.SLI-0107.WRK-0186`; exact candidate and qualifying receipt;
@@ -198,3 +213,7 @@ tenant/admin, external-action, or financial authority changed.
   layering seam: owner adapters issue typed envelopes, while outer adapters may
   use the shared mapper. Adapter-raised validation references now collapse to a
   fixed platform-owned field so crafted URLs or secrets cannot enter results.
+- 2026-10-18: Verified and completed at exact candidate `979ce9f` with a valid
+  qualifying receipt, accepted technical disposition, 76 focused tests, and
+  passing architecture, security, documentation, planning, whitespace, and
+  aggregate-readiness gates. WRK-0187 is now dependency-ready.

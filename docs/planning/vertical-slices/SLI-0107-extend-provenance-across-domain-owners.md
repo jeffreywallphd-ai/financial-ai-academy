@@ -192,7 +192,7 @@ The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | [WRK-0184](../work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md) | Freeze the additive cross-domain provenance schemas, profile catalog, compatibility corpus, ownership rules, and contract tests | none | none | complete |
 | [WRK-0185](../work-packets/WRK-0185-extend-cross-domain-provenance-core.md) | Extend the pure provenance core for closed typed owner profiles, exact identities, deterministic canonicalization, and isolated failures | WRK-0184 | none | complete |
-| [WRK-0186](../work-packets/WRK-0186-build-cross-domain-provenance-conformance-kit.md) | Build the reusable cross-domain conformance kit, synthetic reference adapters, property evidence, and contributor instructions | WRK-0185 | none | active |
+| [WRK-0186](../work-packets/WRK-0186-build-cross-domain-provenance-conformance-kit.md) | Build the reusable cross-domain conformance kit, synthetic reference adapters, property evidence, and contributor instructions | WRK-0185 | none | complete |
 | WRK-0187 | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | captured |
 | WRK-0188 | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | captured |
 
@@ -279,3 +279,7 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
 - 2026-10-18: Activated WRK-0186 from clean base `20d5313` after confirming
   current CAP authority, completed dependency, resolved decision posture,
   exact write scope, and no active ownership collision.
+- 2026-10-18: Completed WRK-0186 at exact candidate `979ce9f`. The reusable
+  typed-envelope conformance seam now proves all nine frozen owner profiles,
+  partial adoption, deterministic ordering, failure isolation, and confidential
+  denial without adding a real owner, persistence, or public operation.
