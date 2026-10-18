@@ -1,7 +1,7 @@
 ---
 id: SLI-0084
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -209,7 +209,7 @@ immediately before each packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0174](../work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md) | Freeze `feature-guidance/v1`, pure validation/digests, reviewed starter records/mappings, exact Help correlation, compatibility fixtures, and focused anti-rigidity tests | SLI-0083 | none | ready |
+| [WRK-0174](../work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md) | Freeze `feature-guidance/v1`, pure validation/digests, reviewed starter records/mappings, exact Help correlation, compatibility fixtures, and focused anti-rigidity tests | SLI-0083 | none | active |
 | Protected API | Compose the immutable registry, Guidance application/public operation, authorization, reviewed OpenAPI, generated client, and failure tests | contract and registry | none | planned |
 | Bounded feature explanations | Add the optional generated-client explanation to the five named feature conditions with plain language, safe actions, fallback, accessibility, and anti-rigidity evidence | protected API | none | planned |
 | Live qualification | Prove browser/headless parity, condition/source/topic integrity, denial, restart, loopback-only reads, feature-state containment, and exact cleanup | bounded feature explanations | none | planned |
@@ -291,3 +291,6 @@ authority and technical-disposition records remain ignored.
   limitation/recovery projection over existing public feature conditions. The
   CAP-0020 outcome, four-slice manifest, ordering, risk posture, and material-
   change boundaries remain unchanged; no slice-level approval is required.
+- 2026-10-18: Activated WRK-0174 from clean base `85fa074` after confirming the
+  completed SLI-0083 dependency, current CAP authority, bounded contract/core
+  scope, and no unresolved decision or coordination collision.

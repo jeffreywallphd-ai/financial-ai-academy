@@ -1,7 +1,7 @@
 ---
 id: WRK-0174
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/guidance/adapters/__init__.py", "backend/src/financial_ai_academy/modules/guidance/adapters/feature_guidance_contract.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_corpus.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_feature_guidance_registry.py", "backend/src/financial_ai_academy/modules/guidance/domain/__init__.py", "backend/src/financial_ai_academy/modules/guidance/domain/feature_guidance.py", "backend/src/financial_ai_academy/modules/guidance/resources/README.md", "backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/project-artifact-use.json", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/safe-recovery.json", "backend/tests/contract/feature_guidance", "backend/tests/unit/guidance/test_feature_guidance.py", "backend/tests/unit/guidance/test_immutable_corpus.py", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/feature-guidance/v1", "contracts/guidance/README.md", "contracts/guidance/feature-guidance/v1", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 85fa0748d52290076b702c5a2c5bbdb5565b0c87
+claim_id: WRK-0174:f1e320d6-47ab-4087-a919-5c3cda7a9e9c
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T05:49:12Z
 ---
 
 # Agent Work Packet: Freeze Feature-Guidance Contracts and Registry
@@ -221,3 +221,7 @@ authority, or financial behavior changed.
   source-bound starter meaning, and immutable registry while deferring API and
   feature delivery. It conforms to the current CAP package and requires no
   lower-level approval.
+- 2026-10-18: Activated from clean base `85fa074` after confirming current CAP
+  binding, completed SLI-0083/WRK-0173 dependencies, exact contract/core scope,
+  an intact packet-start manifest, and no unresolved decision or active
+  ownership collision.
