@@ -1,7 +1,7 @@
 ---
 id: WRK-0194
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -234,3 +234,11 @@ tenancy/admin, financial, managed-retention, or managed-cloud behavior changed.
   strict contract-mapping adapters and replacing the incomplete effect denylist
   with an explicit reviewed pure-standard-library allowlist. Host, filesystem,
   network, database, cloud, and external-action imports now fail closed.
+- 2026-10-18: Completed at exact candidate `ef0f4d2`. The qualifying affected-
+  check receipt binds planning, documentation, and architecture evidence to that
+  commit; 207 focused backend tests passed with 9 expected skips and all 30
+  aggregate readiness checks passed. Prior 100-test replay, focused Web,
+  TypeScript, lint, security, accessibility, and clean disposable topology
+  evidence remains applicable because the final corrections change only the
+  cumulative structural test and truthful documentation. No runtime, public
+  contract, migration, persistence, provider, or external authority changed.

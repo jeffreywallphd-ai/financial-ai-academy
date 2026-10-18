@@ -1,10 +1,10 @@
 ---
 id: CAP-0026
 kind: capability
-planning_status: ready
+planning_status: complete
 authority: noncanonical
-owner: unassigned
-updated: 2026-10-16
+owner: codex-cap-0026
+updated: 2026-10-18
 parent: null
 depends_on: ["CAP-0001"]
 decision_gates: []
@@ -111,4 +111,10 @@ operations, accessibility, and verification evidence.
 - 2026-10-15: Shaped from catalog candidate 23 with manifest SLI-0106 through
   SLI-0109. The package awaits one CAP planning approval and provides an early
   cross-cutting dependency without forcing all domain slices into lockstep.
+- 2026-10-18: Completed all four manifest slices with versioned learning
+  lineage, typed cross-domain extension profiles, protected accountable-history
+  inspection/export, and cumulative bounds, replay, rebuild, conflict,
+  redaction, containment, portability, browser/headless, accessibility, and
+  cleanup evidence. Owner facts remain with their modules; no managed retention,
+  tenant, legal, recovery, provider, or managed-cloud policy was selected.
 

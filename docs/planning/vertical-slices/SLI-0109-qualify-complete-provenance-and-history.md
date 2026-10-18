@@ -1,7 +1,7 @@
 ---
 id: SLI-0109
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -185,7 +185,7 @@ existing complete evidence rather than duplicating it:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0194](../work-packets/WRK-0194-qualify-complete-provenance-and-history.md) | Add only the minimum missing retention-seam, bounds, rebuild, adapter-neutral, or cumulative assertions; run complete browser/headless/live qualification; reconcile evidence; and close CAP-0026 | WRK-0183, WRK-0188, WRK-0193 | none | verifying |
+| [WRK-0194](../work-packets/WRK-0194-qualify-complete-provenance-and-history.md) | Add only the minimum missing retention-seam, bounds, rebuild, adapter-neutral, or cumulative assertions; run complete browser/headless/live qualification; reconcile evidence; and close CAP-0026 | WRK-0183, WRK-0188, WRK-0193 | none | complete |
 
 Detailed file scope, generated artifacts, selected checks, and stop conditions
 are frozen at packet start. The packet must not create redundant runners or new
@@ -242,19 +242,32 @@ issue. Fix bounded issues locally or defer optional polish to CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery will reconcile the CAP, this slice, WRK-0194, the planning register,
-the provenance contract guide, Audit contributor guidance, architecture
-verification evidence, and any real gap found in deployment-parity or retention-
-seam documentation. It will not create a managed retention contract by
-implication.
+Delivery reconciled the CAP, this slice, WRK-0194, the planning register, the
+provenance contract guide, Audit contributor guidance, and architecture
+verification. Exact candidate `ef0f4d2` has a qualifying controller receipt at
+`.local-codex/control-plane/receipts/WRK-0194/ef0f4d23b8e640ea1633d2c2588d79683a0d9097/20261018T121310Z-d142ba29-60de-4fb3-a5c3-195535f0cae3.json`.
 
-Completion evidence must name the exact candidate, affected boundaries, checks
-and live topology; prove exact replay, conflict, source-set rebuild, bounded
-maximum shapes, cross-owner isolation, authorization/redaction, ephemeral
-export, browser/headless parity, adapter-neutral shared-core semantics, restart,
-accessibility, containment, cleanup, and aggregate readiness; and list residual
-gaps honestly. CAP-0026 closes only when all four approved slices cumulatively
-satisfy its acceptance scenarios.
+- The cumulative qualification binds v1/v2 source limits, history/lineage
+  bounds, closed schemas, and the six-field ephemeral export while excluding
+  retention, storage, tenant, provider, and owner-payload authority.
+- Structural evidence discovers 19 shared-core sources, resolves relative
+  imports, enforces inward layers, and admits only reviewed pure standard-
+  library helpers; strict v1/v2/history contract mappers are included.
+- Existing focused and live evidence proves exact replay, projection rebuild,
+  conflict/tamper handling, cross-owner isolation, authorization/redaction,
+  browser/headless equality, accessibility, normal restart, database and owner-
+  file containment, and bounded cleanup. The complete disposable topology
+  passed on an exact clean rerun after one unrelated first-run preference race.
+- The focused backend suite passed 207 tests with 9 expected skips; the replay
+  suite passed 100; focused Web passed 28; architecture passed 17 plus 19;
+  security passed 10 control groups; TypeScript, zero-warning lint, design,
+  learner-language, documentation, planning, whitespace, and all 30 aggregate
+  readiness checks passed.
+- No public schema, runtime behavior, migration, retained export, external
+  resource, or owner data changed. Rollback removes only qualification evidence
+  and documentation. Managed retention, tenancy, legal/compliance, encryption,
+  recovery, immutable storage, public hosting, and managed-cloud qualification
+  remain explicit residual gaps outside this CAP.
 
 ## Planning History
 
@@ -287,3 +300,7 @@ satisfy its acceptance scenarios.
 - 2026-10-18: Submitted the clean implementation candidate for controller-
   selected affected verification and moved the slice to deterministic
   verification; no new scope or decision was introduced.
+- 2026-10-18: Closed SLI-0109 and CAP-0026 at exact candidate `ef0f4d2` after
+  the final affected receipt qualified all selected checks, both structural
+  portability gaps were corrected, focused and aggregate evidence remained
+  green, and all approved manifest acceptance scenarios were reconciled.
