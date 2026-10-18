@@ -48,6 +48,10 @@ describe("PlatformHelpSearchPage", () => {
     expect(screen.getByRole("article")).toHaveTextContent(
       "How platform methods stay reproducible",
     );
+    expect(screen.getByRole("article")).toHaveTextContent(
+      "Last updated October 18, 2026",
+    );
+    expect(screen.getByText("Publication details")).toBeVisible();
     expect(screen.getByRole("link", { name: "Read this topic" })).toHaveAttribute(
       "href",
       "/help/topics/platform-methods/versions/1.0.0?return_to=%2Fhelp%3Fquery%3Dcalculations%26topic_kind%3Dmethod%26page_size%3D20",
@@ -116,6 +120,11 @@ describe("PlatformHelpTopicPage", () => {
     expect(
       within(details as HTMLElement).getByText(
         platformHelpTopicFixture.source_references[0]!.content_fingerprint,
+      ),
+    ).toBeVisible();
+    expect(
+      within(details as HTMLElement).getByText(
+        platformHelpTopicFixture.publication.updated_at,
       ),
     ).toBeVisible();
   });

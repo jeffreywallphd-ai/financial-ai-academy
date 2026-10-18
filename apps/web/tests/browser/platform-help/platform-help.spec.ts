@@ -56,6 +56,7 @@ test("browses and reads reviewed platform help with equivalent themes", async ({
     page.getByRole("heading", { name: "How platform methods stay reproducible" }),
   ).toBeVisible();
   await expect(page.getByText("Known limit")).toBeVisible();
+  await expect(page.getByText(/Last updated October 18, 2026/)).toBeVisible();
 
   const baseline = await page.locator("main").innerText();
   for (const theme of ["light", "dark", "system"] as const) {

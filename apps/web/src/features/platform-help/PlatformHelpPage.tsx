@@ -34,6 +34,17 @@ function SearchResultCard({
         <strong>Useful for:</strong>{" "}
         {result.applicability.map((item) => item.label).join(", ")}
       </p>
+      <p className="help-result-card__publication">
+        Reviewed {readableDate(result.publication.reviewed_on)}. Last updated{" "}
+        {readableDate(result.publication.updated_at.slice(0, 10))}.
+      </p>
+      <details className="help-result-card__details">
+        <summary>Publication details</summary>
+        <p>Publication status: approved.</p>
+        <p>
+          Reviewed sources: {result.source_references.map((source) => source.title).join(", ")}.
+        </p>
+      </details>
       <Link
         className="button-link"
         to={platformHelpTopicHref(
@@ -79,7 +90,6 @@ export function PlatformHelpSearchPage({
           <input
             defaultValue={selection.parameters.query ?? ""}
             id="help-query"
-            maxLength={200}
             name="query"
             placeholder="For example, calculations or AI help"
             type="search"
@@ -282,6 +292,7 @@ export function PlatformHelpTopicPage({
         <h2 id="publication-title">Publication details</h2>
         <p>
           Approved and reviewed on {readableDate(topic.publication.reviewed_on)}.
+          {" "}Last updated {readableDate(topic.publication.updated_at.slice(0, 10))}.
         </p>
         <ul>
           {topic.source_references.map((source) => (
@@ -306,6 +317,14 @@ export function PlatformHelpTopicPage({
           <div>
             <dt>Contract version</dt>
             <dd>{topic.schema_version}</dd>
+          </div>
+          <div>
+            <dt>Publication state</dt>
+            <dd>{topic.publication.state}</dd>
+          </div>
+          <div>
+            <dt>Last updated</dt>
+            <dd>{topic.publication.updated_at}</dd>
           </div>
           {topic.source_references.map((source) => (
             <div key={source.source_key}>

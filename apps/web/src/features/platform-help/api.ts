@@ -5,6 +5,7 @@ import type { SingleProfileSession } from "../../platform/auth/singleProfileSess
 import {
   platformHelpSearchHref,
   platformHelpSearchPageIsSafe,
+  platformHelpTextIsSafe,
   platformHelpTopicIsSafe,
   type PlatformHelpSearchParameters,
   type PlatformHelpSearchRouteState,
@@ -41,8 +42,7 @@ function oneParameter(
   if (
     values.length !== 1 ||
     value === undefined ||
-    value.length > maximum ||
-    /[\0\r\n]/.test(value)
+    !platformHelpTextIsSafe(value, 0, maximum)
   ) {
     return null;
   }

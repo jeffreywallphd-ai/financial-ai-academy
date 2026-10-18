@@ -94,15 +94,15 @@ function containsUnsafeControl(value: string): boolean {
   return false;
 }
 
-function boundedText(
+export function platformHelpTextIsSafe(
   value: unknown,
   minimum: number,
   maximum: number,
 ): value is string {
   return (
     typeof value === "string" &&
-    value.length >= minimum &&
-    value.length <= maximum &&
+    [...value].length >= minimum &&
+    [...value].length <= maximum &&
     !containsUnsafeControl(value)
   );
 }
@@ -141,7 +141,7 @@ function applicabilityIsSafe(value: unknown): boolean {
     hasExactKeys(item, ["scope_key", "label"]) &&
     typeof item.scope_key === "string" &&
     IDENTIFIER.test(item.scope_key) &&
-    boundedText(item.label, 1, 160)
+    platformHelpTextIsSafe(item.label, 1, 160)
   );
 }
 
@@ -172,10 +172,10 @@ function sourceReferenceIsSafe(value: unknown): boolean {
     ]) &&
     typeof item.source_key === "string" &&
     IDENTIFIER.test(item.source_key) &&
-    boundedText(item.title, 1, 200) &&
+    platformHelpTextIsSafe(item.title, 1, 200) &&
     typeof item.area === "string" &&
     SOURCE_AREAS.has(item.area) &&
-    boundedText(item.source_version, 1, 80) &&
+    platformHelpTextIsSafe(item.source_version, 1, 80) &&
     typeof item.content_fingerprint === "string" &&
     DIGEST.test(item.content_fingerprint)
   );
@@ -191,11 +191,11 @@ function commonTopicProjectionIsSafe(value: Record<string, unknown>): boolean {
     VERSION.test(value.topic_version) &&
     typeof value.topic_kind === "string" &&
     TOPIC_KINDS.has(value.topic_kind) &&
-    boundedText(value.title, 1, 160) &&
-    boundedText(value.summary, 20, 500) &&
+    platformHelpTextIsSafe(value.title, 1, 160) &&
+    platformHelpTextIsSafe(value.summary, 20, 500) &&
     (value.glossary_term === undefined ||
       value.glossary_term === null ||
-      boundedText(value.glossary_term, 1, 120)) &&
+      platformHelpTextIsSafe(value.glossary_term, 1, 120)) &&
     Array.isArray(applicability) &&
     applicability.length >= 1 &&
     applicability.length <= 20 &&
@@ -248,7 +248,7 @@ export function platformHelpSearchPageIsSafe(
     page.schema_version !== "1.0.0" ||
     typeof page.corpus_digest !== "string" ||
     !DIGEST.test(page.corpus_digest) ||
-    !boundedText(page.query, 0, 200) ||
+    !platformHelpTextIsSafe(page.query, 0, 200) ||
     (page.topic_kind ?? null) !== (expected.topic_kind ?? null) ||
     (page.next_cursor !== null &&
       (typeof page.next_cursor !== "string" || !CURSOR.test(page.next_cursor))) ||
@@ -275,12 +275,12 @@ function bodyNodeIsSafe(value: unknown): boolean {
         Number.isInteger(node.level) &&
         node.level >= 2 &&
         node.level <= 4 &&
-        boundedText(node.text, 1, 160)
+        platformHelpTextIsSafe(node.text, 1, 160)
       );
     case "paragraph":
       return (
         hasExactKeys(node, ["node_kind", "text"]) &&
-        boundedText(node.text, 1, 2000)
+        platformHelpTextIsSafe(node.text, 1, 2000)
       );
     case "list":
       return (
@@ -289,7 +289,7 @@ function bodyNodeIsSafe(value: unknown): boolean {
         Array.isArray(node.items) &&
         node.items.length >= 1 &&
         node.items.length <= 30 &&
-        node.items.every((item) => boundedText(item, 1, 500))
+        node.items.every((item) => platformHelpTextIsSafe(item, 1, 500))
       );
     case "note":
       return (
@@ -297,7 +297,7 @@ function bodyNodeIsSafe(value: unknown): boolean {
         ["educational", "limitation", "warning"].includes(
           String(node.note_kind),
         ) &&
-        boundedText(node.text, 1, 1000)
+        platformHelpTextIsSafe(node.text, 1, 1000)
       );
     case "topic_reference":
       return (
@@ -311,7 +311,7 @@ function bodyNodeIsSafe(value: unknown): boolean {
         IDENTIFIER.test(node.topic_id) &&
         typeof node.topic_version === "string" &&
         VERSION.test(node.topic_version) &&
-        boundedText(node.label, 1, 160)
+        platformHelpTextIsSafe(node.label, 1, 160)
       );
     default:
       return false;
@@ -364,7 +364,7 @@ export function platformHelpTopicIsSafe(
     topic.topic_version !== expectedVersion ||
     !Array.isArray(topic.keywords) ||
     topic.keywords.length > 16 ||
-    !topic.keywords.every((item) => boundedText(item, 1, 80)) ||
+    !topic.keywords.every((item) => platformHelpTextIsSafe(item, 1, 80)) ||
     new Set(topic.keywords).size !== topic.keywords.length ||
     !Array.isArray(topic.body) ||
     topic.body.length < 1 ||

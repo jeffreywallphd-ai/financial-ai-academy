@@ -108,12 +108,27 @@
 }
 
 .help-result-card__applies,
+.help-result-card__publication,
 .help-term,
 .help-topic-summary,
 .help-topic-body,
 .help-publication,
 .help-related {
   color: var(--faa-color-text-secondary);
+}
+
+.help-result-card__details {
+  width: 100%;
+  padding-top: var(--faa-space-3);
+  border-top: var(--faa-border-width) solid var(--faa-color-border);
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-ui);
+}
+
+.help-result-card__details summary {
+  min-height: var(--faa-target-min);
+  color: var(--faa-color-link);
+  cursor: pointer;
 }
 
 .help-result-card .button-link {

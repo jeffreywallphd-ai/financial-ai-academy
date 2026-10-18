@@ -65,6 +65,24 @@ describe("platform help query boundaries", () => {
     });
   });
 
+  it("counts Unicode code points and preserves the two admitted shaping characters", () => {
+    const valid = "😀".repeat(200);
+    const selection = parsePlatformHelpSearch(
+      `http://academy.test/help?query=${encodeURIComponent(valid)}`,
+    );
+    expect(selection?.parameters.query).toBe(valid);
+    expect(
+      parsePlatformHelpSearch(
+        `http://academy.test/help?query=${encodeURIComponent("😀".repeat(201))}`,
+      ),
+    ).toBeNull();
+    expect(
+      parsePlatformHelpSearch(
+        `http://academy.test/help?query=${encodeURIComponent("family‍learning‌notes")}`,
+      )?.parameters.query,
+    ).toBe("family‍learning‌notes");
+  });
+
   it("accepts only exact topic identities and a safe same-origin return path", () => {
     expect(
       parsePlatformHelpTopicSelection(
@@ -125,6 +143,19 @@ describe("platform help response validation", () => {
     ).toBe(true);
   });
 
+  it("uses code-point bounds for valid astral body text", () => {
+    const boundary = structuredClone(platformHelpTopicFixture) as any;
+    boundary.body[1].text = "😀".repeat(2000);
+    expect(platformHelpTopicIsSafe(boundary, "platform-methods", "1.0.0")).toBe(
+      true,
+    );
+
+    boundary.body[1].text += "😀";
+    expect(platformHelpTopicIsSafe(boundary, "platform-methods", "1.0.0")).toBe(
+      false,
+    );
+  });
+
   it.each([
     ["extra result field", (value: any) => (value.results[0].provider = "private")],
     ["bad fingerprint", (value: any) => (value.results[0].topic_digest = "bad")],
@@ -157,6 +188,26 @@ describe("platform help response validation", () => {
 });
 
 describe("platform help loaders", () => {
+  it("rejects unsafe query categories before session or content access", async () => {
+    for (const query of ["unsafe\u0001control", "bidi\u202Etext", "private\uE000text", "unassigned\u0378text"]) {
+      const GET = vi.fn();
+      const localSession = session();
+      const loader = createPlatformHelpSearchLoader(
+        { GET } as unknown as FinancialAcademyApiClient,
+        localSession,
+      );
+      const request = new Request(
+        `http://academy.test/help?query=${encodeURIComponent(query)}`,
+      );
+
+      await expect(
+        loader({ request, params: {}, context: {} } as any),
+      ).resolves.toEqual({ status: "invalid-query" });
+      expect(localSession.ensure).not.toHaveBeenCalled();
+      expect(GET).not.toHaveBeenCalled();
+    }
+  });
+
   it("does not request help content when session setup is denied", async () => {
     const GET = vi.fn();
     const deniedSession = {
