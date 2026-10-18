@@ -186,7 +186,7 @@ The expected dependency-ordered seam is:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| reserved just in time | Add only the minimum cross-family assertions or harness support needed, run cumulative browser/headless/live qualification, reconcile evidence, and close CAP-0018 | WRK-0139 through WRK-0163 as represented by complete SLI-0074 through SLI-0076 | none | captured |
+| WRK-0164 | Add only the minimum cross-family assertions or harness support needed, run cumulative browser/headless/live qualification, reconcile evidence, and close CAP-0018 | WRK-0150, WRK-0156, WRK-0161 | none | ready |
 
 The packet may reuse existing complete qualification runners and tests. It must
 not duplicate them merely to create new files. Detailed file scope, generated
@@ -263,3 +263,6 @@ CAP-0018 acceptance scenarios.
   CAP-0019, managed-cloud work remains outside current decisions, and isolated
   evidence alone is insufficient. The refinement preserves CAP-0018 and
   requires no slice-level approval.
+- 2026-10-18: Authored WRK-0164 just in time as the single cumulative
+  qualification seam. It reuses the existing complete topology and adds only
+  missing cross-family isolation evidence before deterministic CAP closure.
