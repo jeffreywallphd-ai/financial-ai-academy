@@ -1,7 +1,7 @@
 ---
 id: WRK-0181
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -185,3 +185,6 @@ that HTTP/client/UI/live qualification remains WRK-0182/WRK-0183 scope.
   adds no lower-level approval, and leaves protected transport to WRK-0182.
 - 2026-10-18: Activated from clean base `b483973` after dependency, CAP
   authority, decision readiness, write scope, and ownership revalidation.
+- 2026-10-18: Submitted exact candidate `a369b79` after focused unit,
+  PostgreSQL, architecture, security, documentation, planning, whitespace, and
+  aggregate-readiness checks passed.
