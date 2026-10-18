@@ -2,6 +2,10 @@ import { createBrowserRouter, redirect } from "react-router";
 
 import { StatusPanel } from "../components/StatusPanel";
 import {
+  createAccountableHistoryExporter,
+  createAccountableHistoryReader,
+} from "../features/accountable-history/api";
+import {
   createCurriculumActivityLauncher,
   createCurriculumGraphLoader,
 } from "../features/curriculum-graph/api";
@@ -110,7 +114,10 @@ import {
   PlatformHelpTopicRoute,
 } from "../features/platform-help/PlatformHelpRoute";
 import { AppShell } from "./AppShell";
-import { apiClient as client, singleProfileSession as session } from "./dependencies";
+import {
+  apiClient as client,
+  singleProfileSession as session,
+} from "./dependencies";
 
 const learningCatalogLoader = createLearningCatalogLoader(client, session);
 const learningOpportunityDetailLoader = createLearningOpportunityDetailLoader(
@@ -120,8 +127,19 @@ const learningOpportunityDetailLoader = createLearningOpportunityDetailLoader(
 const learningOpportunityComparisonLoader =
   createLearningOpportunityComparisonLoader(client, session);
 const lessonLoader = createLessonLoader(client, session);
+const accountableHistoryReader = createAccountableHistoryReader(
+  client,
+  session,
+);
+const accountableHistoryExporter = createAccountableHistoryExporter(
+  client,
+  session,
+);
 const practiceActivityLoader = createPracticeActivityLoader(client, session);
-const practiceActivitySubmitter = createPracticeActivitySubmitter(client, session);
+const practiceActivitySubmitter = createPracticeActivitySubmitter(
+  client,
+  session,
+);
 const practiceDraftSaver = createPracticeDraftSaver(client, session);
 const practiceProgressReader = createPracticeProgressReader(client, session);
 const curriculumGraphLoader = createCurriculumGraphLoader(client, session);
@@ -132,7 +150,10 @@ const curriculumActivityLauncher = createCurriculumActivityLauncher(
 const projectListLoader = createProjectListLoader(client, session);
 const projectDetailLoader = createProjectDetailLoader(client, session);
 const projectWorkspaceAction = createProjectWorkspaceAction(client, session);
-const projectArtifactDownloader = createProjectArtifactDownloader(client, session);
+const projectArtifactDownloader = createProjectArtifactDownloader(
+  client,
+  session,
+);
 const projectSnapshotExporter = createProjectSnapshotExporter(client, session);
 const projectCreateLoader = createProjectCreateLoader(client, session);
 const projectCreateAction = createProjectCreateAction(client, session);
@@ -141,13 +162,34 @@ const projectLearningAction = createProjectLearningAction(client, session);
 const personalWorkspaceLoader = createPersonalWorkspaceLoader(client, session);
 const saveLearningLoader = createSaveLearningLoader(client, session);
 const personalWorkspaceAction = createPersonalWorkspaceAction(client, session);
-const personalWorkspaceExporter = createPersonalWorkspaceExporter(client, session);
-const learnerPreferencesLoader = createLearnerPreferencesLoader(client, session);
-const learnerPreferencesAction = createLearnerPreferencesAction(client, session);
-const learnerPreferencesExporter = createLearnerPreferencesExporter(client, session);
-const presentationPreferencesLoader = createPresentationPreferencesLoader(client, session);
-const presentationPreferencesAction = createPresentationPreferencesAction(client, session);
-const presentationPreferencesExporter = createPresentationPreferencesExporter(client, session);
+const personalWorkspaceExporter = createPersonalWorkspaceExporter(
+  client,
+  session,
+);
+const learnerPreferencesLoader = createLearnerPreferencesLoader(
+  client,
+  session,
+);
+const learnerPreferencesAction = createLearnerPreferencesAction(
+  client,
+  session,
+);
+const learnerPreferencesExporter = createLearnerPreferencesExporter(
+  client,
+  session,
+);
+const presentationPreferencesLoader = createPresentationPreferencesLoader(
+  client,
+  session,
+);
+const presentationPreferencesAction = createPresentationPreferencesAction(
+  client,
+  session,
+);
+const presentationPreferencesExporter = createPresentationPreferencesExporter(
+  client,
+  session,
+);
 const currentTime = () => new Date().toISOString();
 const assistancePreferencesLoader = createAssistancePreferencesLoader(
   client,
@@ -161,9 +203,18 @@ const assistancePreferencesAction = createAssistancePreferencesAction(
   window.localStorage,
   currentTime,
 );
-const assistancePreferencesExporter = createAssistancePreferencesExporter(client, session);
-const localReminderExporter = createLocalReminderExporter(window.localStorage, currentTime);
-const platformHelpSearchLoader = createPlatformHelpSearchLoader(client, session);
+const assistancePreferencesExporter = createAssistancePreferencesExporter(
+  client,
+  session,
+);
+const localReminderExporter = createLocalReminderExporter(
+  window.localStorage,
+  currentTime,
+);
+const platformHelpSearchLoader = createPlatformHelpSearchLoader(
+  client,
+  session,
+);
 const platformHelpTopicLoader = createPlatformHelpTopicLoader(client, session);
 const contextualHelpReader = createContextualHelpReader(client, session);
 const featureGuidanceReader = createFeatureGuidanceReader(client, session);
@@ -171,6 +222,8 @@ const featureGuidanceReader = createFeatureGuidanceReader(client, session);
 function LessonRouteWithDependencies() {
   return (
     <LessonRoute
+      exportAccountableHistory={accountableHistoryExporter}
+      readAccountableHistory={accountableHistoryReader}
       readContextualHelp={contextualHelpReader}
       readFeatureGuidance={featureGuidanceReader}
     />
@@ -178,9 +231,7 @@ function LessonRouteWithDependencies() {
 }
 
 function CurriculumGraphRouteWithDependencies() {
-  return (
-    <CurriculumGraphRoute launchActivity={curriculumActivityLauncher} />
-  );
+  return <CurriculumGraphRoute launchActivity={curriculumActivityLauncher} />;
 }
 
 function PracticeActivityRouteWithDependencies() {
@@ -216,7 +267,9 @@ function PersonalWorkspaceRouteWithDependencies() {
 }
 
 function LearnerPreferencesRouteWithDependencies() {
-  return <LearnerPreferencesRoute exportPreferences={learnerPreferencesExporter} />;
+  return (
+    <LearnerPreferencesRoute exportPreferences={learnerPreferencesExporter} />
+  );
 }
 
 function PresentationPreferencesRouteWithDependencies() {

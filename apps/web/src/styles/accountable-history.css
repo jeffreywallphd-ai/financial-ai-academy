@@ -1,0 +1,243 @@
+.accountable-history {
+  display: grid;
+  min-width: var(--faa-space-0);
+  gap: var(--faa-space-4);
+  margin-top: var(--faa-space-5);
+  padding: var(--faa-space-5);
+  color: var(--faa-color-text-primary);
+  background: var(--faa-color-surface-subtle);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-card);
+}
+
+.accountable-history h3,
+.accountable-history h4,
+.accountable-history p,
+.accountable-history ul,
+.accountable-history ol,
+.accountable-history dl {
+  margin-top: var(--faa-space-0);
+  margin-bottom: var(--faa-space-0);
+}
+
+.accountable-history > header,
+.accountable-history__state,
+.accountable-history__state > div,
+.accountable-history__steps,
+.accountable-history__steps article,
+.accountable-history__steps article > div,
+.accountable-history__notice,
+.accountable-history__privacy,
+.accountable-history__technical,
+.accountable-history__technical dl,
+.accountable-history__technical dl > div,
+.accountable-history__actions {
+  min-width: var(--faa-space-0);
+}
+
+.accountable-history > header,
+.accountable-history__state > div,
+.accountable-history__steps article > div,
+.accountable-history__notice,
+.accountable-history__privacy {
+  display: grid;
+  gap: var(--faa-space-2);
+}
+
+.accountable-history--idle,
+.accountable-history--warning {
+  background: var(--faa-color-info-surface);
+  border-color: var(--faa-color-info);
+}
+
+.accountable-history--warning {
+  background: var(--faa-color-warning-surface);
+  border-color: var(--faa-color-warning);
+}
+
+.accountable-history__state {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--faa-space-3);
+  padding: var(--faa-space-4);
+  background: var(--faa-color-success-surface);
+  border: var(--faa-border-width) solid var(--faa-color-success);
+  border-radius: var(--faa-radius-control);
+}
+
+.accountable-history__state--incomplete {
+  background: var(--faa-color-warning-surface);
+  border-color: var(--faa-color-warning);
+}
+
+.accountable-history__state--invalid {
+  background: var(--faa-color-danger-surface);
+  border-color: var(--faa-color-danger);
+}
+
+.accountable-history__steps {
+  display: grid;
+  gap: var(--faa-space-3);
+  padding: var(--faa-space-0);
+  list-style: none;
+}
+
+.accountable-history__steps article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--faa-space-3);
+  padding: var(--faa-space-4);
+  background: var(--faa-color-surface);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+}
+
+.accountable-history__sequence {
+  display: inline-grid;
+  width: var(--faa-space-8);
+  height: var(--faa-space-8);
+  place-items: center;
+  color: var(--faa-color-on-action-primary);
+  background: var(--faa-color-action-primary);
+  border-radius: var(--faa-radius-pill);
+  font-size: var(--faa-font-size-ui);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.accountable-history__entry-note {
+  color: var(--faa-color-warning);
+  font-size: var(--faa-font-size-ui);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.accountable-history__notice,
+.accountable-history__privacy {
+  padding: var(--faa-space-4);
+  background: var(--faa-color-warning-surface);
+  border: var(--faa-border-width) solid var(--faa-color-warning);
+  border-radius: var(--faa-radius-control);
+}
+
+.accountable-history__privacy {
+  background: var(--faa-color-info-surface);
+  border-color: var(--faa-color-info);
+}
+
+.accountable-history__notice ul,
+.accountable-history__privacy ul {
+  padding-left: var(--faa-space-5);
+}
+
+.accountable-history__technical > summary {
+  min-height: var(--faa-target-min);
+  padding-block: var(--faa-space-3);
+  color: var(--faa-color-link);
+  cursor: pointer;
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.accountable-history__technical dl {
+  display: grid;
+  gap: var(--faa-space-3);
+}
+
+.accountable-history__technical dl > div {
+  padding-bottom: var(--faa-space-3);
+  border-bottom: var(--faa-border-width) solid var(--faa-color-border);
+}
+
+.accountable-history__technical dt {
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-caption);
+  font-weight: var(--faa-font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.accountable-history__technical dd {
+  margin: var(--faa-space-1) var(--faa-space-0) var(--faa-space-0);
+  overflow-wrap: anywhere;
+}
+
+.accountable-history__technical code {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.accountable-history__technical ol,
+.accountable-history__technical ul {
+  display: grid;
+  gap: var(--faa-space-3);
+  padding-left: var(--faa-space-5);
+}
+
+.accountable-history__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--faa-space-3);
+}
+
+.accountable-history__actions button {
+  min-height: var(--faa-target-min);
+  padding: var(--faa-space-2) var(--faa-space-5);
+  color: var(--faa-color-on-action-primary);
+  background: var(--faa-color-action-primary);
+  border: var(--faa-border-width) solid var(--faa-color-action-primary);
+  border-radius: var(--faa-radius-control);
+  font-weight: var(--faa-font-weight-semibold);
+}
+
+.accountable-history__actions button:hover:not(:disabled) {
+  background: var(--faa-color-action-primary-hover);
+}
+
+.accountable-history__actions button:disabled {
+  color: var(--faa-color-text-disabled);
+  background: var(--faa-color-control-disabled);
+  border-color: var(--faa-color-border);
+  cursor: not-allowed;
+}
+
+.accountable-history__actions .button--secondary {
+  color: var(--faa-color-text-primary);
+  background: var(--faa-color-surface);
+  border-color: var(--faa-color-border-strong);
+}
+
+.accountable-history__download-status {
+  padding: var(--faa-space-3);
+  background: var(--faa-color-info-surface);
+  border: var(--faa-border-width) solid var(--faa-color-info);
+  border-radius: var(--faa-radius-control);
+}
+
+.accountable-history__limitation {
+  color: var(--faa-color-text-secondary);
+  font-size: var(--faa-font-size-ui);
+}
+
+@media (max-width: 39.99rem) {
+  .accountable-history {
+    padding: var(--faa-space-4);
+  }
+
+  .accountable-history__actions {
+    display: grid;
+  }
+
+  .accountable-history__actions button {
+    width: 100%;
+  }
+}
+
+@media (forced-colors: active) {
+  .accountable-history,
+  .accountable-history__state,
+  .accountable-history__steps article,
+  .accountable-history__notice,
+  .accountable-history__privacy,
+  .accountable-history__download-status {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+}

@@ -202,6 +202,19 @@ with direct reload guidance and without fabricating a completion or erasing
 evidence. The browser sends no learner selector and receives no answer key,
 Audit row, or mastery interpretation.
 
+The lesson publication and each retained completion also expose a reusable
+`Source and history` panel backed only by the generated public client. The
+browser does not load this data until the learner asks. It validates the exact
+root, ordered entries, owner/resource combinations, connections, diagnostic
+notes, redaction counts, timestamps, and integrity codes before showing an
+all-or-nothing record. Primary content uses plain learner language; exact
+identifiers, enum values, versions, times, and digests remain available in the
+technical disclosure. A separate protected export operation returns the
+validated portable JSON record on demand. Read and export permissions remain
+distinct, learner identity and review purpose stay server-owned, and the same
+two API operations remain independently usable by command-line, service, and
+future headless clients without rendering this interface.
+
 `/learn/placements/:placementId/practice` establishes the same supported
 single-profile session and opens one exact practice activity through the
 generated public API client. The browser validates the complete answer-safe

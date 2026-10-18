@@ -5,16 +5,18 @@ import {
   type components,
   type FinancialAcademyApiClient,
 } from "../../generated/api-client";
+import { AccountableHistoryPanel } from "../accountable-history/AccountableHistoryPanel";
+import type {
+  AccountableHistoryExporter,
+  AccountableHistoryReader,
+} from "../accountable-history/api";
 
-
-type Completion =
-  components["schemas"]["LessonCompletionResponseModel"];
+type Completion = components["schemas"]["LessonCompletionResponseModel"];
 type CompletionHistoryEntry =
   components["schemas"]["LessonCompletionHistoryEntryModel"];
 type Presentation =
   components["schemas"]["KnowledgeCheckPresentationResponseModel"];
-type Result =
-  components["schemas"]["KnowledgeCheckResultResponseModel"];
+type Result = components["schemas"]["KnowledgeCheckResultResponseModel"];
 
 type FailureStage = "completion" | "knowledge-check";
 type LoadState =
@@ -108,8 +110,7 @@ function safeCompletion(value: Completion, placementId: string): boolean {
   }
   if (!value.completed) {
     return (
-      value.completion_meaning === "not_completed" &&
-      value.history.length === 0
+      value.completion_meaning === "not_completed" && value.history.length === 0
     );
   }
   if (
@@ -120,7 +121,10 @@ function safeCompletion(value: Completion, placementId: string): boolean {
     return false;
   }
   const first = value.history[0];
-  if (!first || !value.history.every((entry) => sameEvidenceChain(first, entry))) {
+  if (
+    !first ||
+    !value.history.every((entry) => sameEvidenceChain(first, entry))
+  ) {
     return false;
   }
   const eventIds = new Set<string>();
@@ -158,8 +162,7 @@ function safePresentation(value: Presentation): boolean {
       value.options.length &&
     value.options.every(
       (option) =>
-        option.option_id.trim().length > 0 &&
-        option.label.trim().length > 0,
+        option.option_id.trim().length > 0 && option.label.trim().length > 0,
     )
   );
 }
@@ -168,7 +171,15 @@ function browserClient() {
   return createFinancialAcademyApiClient(window.location.origin);
 }
 
-function RetainedCompletion({ completion }: { completion: Completion }) {
+function RetainedCompletion({
+  completion,
+  exportAccountableHistory,
+  readAccountableHistory,
+}: {
+  completion: Completion;
+  exportAccountableHistory?: AccountableHistoryExporter | undefined;
+  readAccountableHistory?: AccountableHistoryReader | undefined;
+}) {
   return (
     <section
       aria-labelledby="retained-completion-title"
@@ -321,6 +332,20 @@ function RetainedCompletion({ completion }: { completion: Completion }) {
                   </div>
                 </dl>
               </details>
+              {readAccountableHistory && exportAccountableHistory ? (
+                <AccountableHistoryPanel
+                  contextLabel={`saved result ${index + 1}`}
+                  exportHistory={exportAccountableHistory}
+                  readHistory={readAccountableHistory}
+                  request={{
+                    schema_version: "1.0.0",
+                    root_kind: "knowledge_check_completion",
+                    placement_id: completion.placement_id,
+                    evidence_id: entry.evidence_id,
+                    occurrence: index + 1,
+                  }}
+                />
+              ) : null}
             </article>
           </li>
         ))}
@@ -336,10 +361,14 @@ function RetainedCompletion({ completion }: { completion: Completion }) {
 
 export function KnowledgeCheck({
   client,
+  exportAccountableHistory,
   placementId,
+  readAccountableHistory,
 }: {
   client?: FinancialAcademyApiClient;
+  exportAccountableHistory?: AccountableHistoryExporter | undefined;
   placementId: string;
+  readAccountableHistory?: AccountableHistoryReader | undefined;
 }) {
   const api = useMemo(() => client ?? browserClient(), [client]);
   const [load, setLoad] = useState<LoadState>({ status: "loading" });
@@ -382,8 +411,7 @@ export function KnowledgeCheck({
           setLoad({ status: "unavailable", stage: "completion" });
           return;
         }
-        const completion =
-          completionResponse.data as unknown as Completion;
+        const completion = completionResponse.data as unknown as Completion;
         if (!safeCompletion(completion, placementId)) {
           setLoad({ status: "invalid", stage: "completion" });
           return;
@@ -443,7 +471,13 @@ export function KnowledgeCheck({
     );
   }
   if (load.status === "completed") {
-    return <RetainedCompletion completion={load.completion} />;
+    return (
+      <RetainedCompletion
+        completion={load.completion}
+        exportAccountableHistory={exportAccountableHistory}
+        readAccountableHistory={readAccountableHistory}
+      />
+    );
   }
   if (load.status !== "ready") {
     const completionCopy = {
@@ -566,7 +600,9 @@ export function KnowledgeCheck({
           </div>
         </fieldset>
         <button
-          disabled={!selected || completed || submission.status === "submitting"}
+          disabled={
+            !selected || completed || submission.status === "submitting"
+          }
           type="submit"
         >
           {submission.status === "submitting"

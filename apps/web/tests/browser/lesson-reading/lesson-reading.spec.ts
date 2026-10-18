@@ -9,20 +9,18 @@ import {
   platformHelpTopicFixture,
 } from "../../component/platformHelpFixture";
 
-
-const LESSON_PATH =
-  "/learn/placements/intro-risk-return-primary";
+const LESSON_PATH = "/learn/placements/intro-risk-return-primary";
 const SESSION_PATTERN = "**/api/v1/session/single-profile";
-const LESSON_PATTERN =
-  "**/api/v1/curriculum/placements/*/lesson";
-const COMPLETION_PATTERN =
-  "**/api/v1/curriculum/placements/*/completion";
+const LESSON_PATTERN = "**/api/v1/curriculum/placements/*/lesson";
+const COMPLETION_PATTERN = "**/api/v1/curriculum/placements/*/completion";
 const KNOWLEDGE_CHECK_PATTERN =
   "**/api/v1/curriculum/placements/*/knowledge-check**";
 const CONTEXTUAL_HELP_PATTERN =
   "**/api/v1/guidance/contextual-help/*/versions/*";
-const HELP_TOPIC_PATTERN =
-  "**/api/v1/guidance/platform-help/*/versions/*";
+const HELP_TOPIC_PATTERN = "**/api/v1/guidance/platform-help/*/versions/*";
+const ACCOUNTABLE_HISTORY_PATTERN = "**/api/v1/audit/accountable-history";
+const ACCOUNTABLE_HISTORY_EXPORT_PATTERN =
+  "**/api/v1/audit/accountable-history/export";
 const KNOWLEDGE_CHECK = {
   schema_version: "1.0.0",
   placement_id: "intro-risk-return-primary",
@@ -83,6 +81,73 @@ const COMPLETED_COMPLETION = {
   history: [COMPLETION_ENTRY],
 };
 
+function accountableHistory(
+  rootRequest: Record<string, unknown>,
+  purpose: "learner_review" | "portable_evidence" = "learner_review",
+) {
+  const completion = rootRequest.root_kind === "knowledge_check_completion";
+  return {
+    schema_version: "1.0.0",
+    purpose,
+    root: completion
+      ? {
+          root_kind: "knowledge_check_completion",
+          resource_id: rootRequest.evidence_id,
+          occurrence: rootRequest.occurrence,
+        }
+      : {
+          root_kind: "published_lesson",
+          resource_id: rootRequest.package_id,
+          resource_version: rootRequest.package_version,
+        },
+    state: "valid",
+    title:
+      purpose === "portable_evidence"
+        ? "Portable evidence record"
+        : "Source and history",
+    summary: "This view shows the available source and history.",
+    source_lineage_digest: "1".repeat(64),
+    entries: [
+      completion
+        ? {
+            sequence: 1,
+            entry_id: "completion-evidence",
+            role: "recorded",
+            title: "Saved learning evidence",
+            explanation: "The completed check was saved as learning evidence.",
+            owner_module: "assessment",
+            resource_kind: "completion_evidence",
+            resource_id: rootRequest.evidence_id,
+            occurrence: rootRequest.occurrence,
+            integrity_digest: "2".repeat(64),
+            recorded_at: "2026-10-15T12:00:00Z",
+            validation_status: "validated",
+          }
+        : {
+            sequence: 1,
+            entry_id: "published-lesson",
+            role: "published",
+            title: "Published lesson",
+            explanation:
+              "This reviewed lesson version was published for learning.",
+            owner_module: "content",
+            resource_kind: "published_lesson",
+            resource_id: rootRequest.package_id,
+            resource_version: rootRequest.package_version,
+            integrity_digest: "2".repeat(64),
+            recorded_at: "2026-10-15T12:00:00Z",
+            validation_status: "validated",
+          },
+    ],
+    transformations: [],
+    missing_links: [],
+    diagnostics: [],
+    redactions: [{ category: "owner_payload", count: 1 }],
+    history_digest:
+      purpose === "portable_evidence" ? "4".repeat(64) : "3".repeat(64),
+  };
+}
+
 function json(route: Route, status: number, body: unknown) {
   return route.fulfill({
     status,
@@ -97,8 +162,14 @@ async function installFeatureGuidance(page: Page) {
     import.meta.url,
   );
   const [mapping, guidance] = await Promise.all([
-    readFile(new URL("mappings/lesson-reading-exact-version-unavailable.json", root), "utf8").then(JSON.parse),
-    readFile(new URL("records/lesson-version-unavailable.json", root), "utf8").then(JSON.parse),
+    readFile(
+      new URL("mappings/lesson-reading-exact-version-unavailable.json", root),
+      "utf8",
+    ).then(JSON.parse),
+    readFile(
+      new URL("records/lesson-version-unavailable.json", root),
+      "utf8",
+    ).then(JSON.parse),
   ]);
   await page.route("**/api/v1/guidance/feature-guidance/**", (route) =>
     json(route, 200, { mapping, guidance }),
@@ -118,12 +189,8 @@ async function mockReadyLesson(
       expires_at: "2026-08-05T12:00:00Z",
     }),
   );
-  await page.route(LESSON_PATTERN, (route) =>
-    json(route, 200, lesson),
-  );
-  await page.route(COMPLETION_PATTERN, (route) =>
-    json(route, 200, completion),
-  );
+  await page.route(LESSON_PATTERN, (route) => json(route, 200, lesson));
+  await page.route(COMPLETION_PATTERN, (route) => json(route, 200, completion));
   await page.route(KNOWLEDGE_CHECK_PATTERN, (route) => {
     if (route.request().method() === "POST") {
       const request = route.request().postDataJSON() as {
@@ -137,14 +204,12 @@ async function mockReadyLesson(
         ...KNOWLEDGE_CHECK,
         selected_option_id: request.selected_option_id,
         score:
-          request.selected_option_id ===
-          "higher-potential-higher-uncertainty"
+          request.selected_option_id === "higher-potential-higher-uncertainty"
             ? 1
             : 0,
         max_score: 1,
         correct:
-          request.selected_option_id ===
-          "higher-potential-higher-uncertainty",
+          request.selected_option_id === "higher-potential-higher-uncertainty",
         feedback: {
           feedback_id: "risk-return-correct",
           text: "Correct. Risk and potential return should be considered together.",
@@ -237,10 +302,7 @@ test("renders equivalent light, dark, and system content accessibly", async ({
 
   const baselineText = await page.locator("main").innerText();
   await page.getByLabel("Theme").selectOption("light");
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-theme",
-    "light",
-  );
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page).toHaveScreenshot("lesson-light.png", {
     fullPage: true,
   });
@@ -248,10 +310,7 @@ test("renders equivalent light, dark, and system content accessibly", async ({
   expect(lightAccessibility.violations).toEqual([]);
 
   await page.getByLabel("Theme").selectOption("dark");
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-theme",
-    "dark",
-  );
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.locator("main")).toContainText(
     "Understanding Risk and Return",
   );
@@ -264,10 +323,7 @@ test("renders equivalent light, dark, and system content accessibly", async ({
 
   await page.emulateMedia({ colorScheme: "dark" });
   await page.getByLabel("Theme").selectOption("system");
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-theme",
-    "system",
-  );
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "system");
   expect(await page.locator("main").innerText()).toBe(baselineText);
 
   const accessibility = await new AxeBuilder({ page }).analyze();
@@ -295,7 +351,9 @@ test("preserves keyboard focus and safe external-source meaning", async ({
   ).toBeVisible();
 
   await page.keyboard.press("Tab");
-  await expect(page.getByRole("link", { name: "Skip to lesson" })).toBeFocused();
+  await expect(
+    page.getByRole("link", { name: "Skip to lesson" }),
+  ).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
 
@@ -306,6 +364,61 @@ test("preserves keyboard focus and safe external-source meaning", async ({
   await expect(source).toBeFocused();
   await expect(source).toHaveAttribute("target", "_blank");
   await expect(source).toHaveAttribute("rel", "noopener noreferrer");
+});
+
+test("shows and downloads exact lesson history only after the learner asks", async ({
+  page,
+}) => {
+  let readRequest: Record<string, unknown> | null = null;
+  let exportRequest: Record<string, unknown> | null = null;
+  await mockReadyLesson(page);
+  await page.route(ACCOUNTABLE_HISTORY_PATTERN, (route) => {
+    readRequest = route.request().postDataJSON() as Record<string, unknown>;
+    return json(route, 200, accountableHistory(readRequest));
+  });
+  await page.route(ACCOUNTABLE_HISTORY_EXPORT_PATTERN, (route) => {
+    exportRequest = route.request().postDataJSON() as Record<string, unknown>;
+    const document = accountableHistory(exportRequest, "portable_evidence");
+    return json(route, 200, {
+      schema_version: "1.0.0",
+      media_type:
+        "application/vnd.financial-ai-academy.accountable-history+json",
+      filename_stem: "lesson-1234abcd",
+      exported_at: "2026-10-15T12:05:00Z",
+      document_digest: document.history_digest,
+      document,
+    });
+  });
+
+  await page.goto(LESSON_PATH);
+  expect(readRequest).toBeNull();
+  const panel = page.getByRole("region", {
+    name: "Source and history for lesson",
+  });
+  await panel.getByRole("button", { name: "Show source and history" }).click();
+
+  await expect(panel.getByText("Available history")).toBeVisible();
+  expect(readRequest).toEqual({
+    schema_version: "1.0.0",
+    root_kind: "published_lesson",
+    package_id: lessonFixture.package_id,
+    package_version: lessonFixture.package_version,
+    package_digest: lessonFixture.package_digest,
+  });
+  expect(readRequest).not.toHaveProperty("learner_id");
+  await panel.getByText("Technical record").click();
+  await expect(
+    panel.getByText(lessonFixture.package_digest, { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    panel.getByText("published_lesson", { exact: true }).first(),
+  ).toBeVisible();
+
+  const download = page.waitForEvent("download");
+  await panel.getByRole("button", { name: "Download evidence record" }).click();
+  expect((await download).suggestedFilename()).toBe("lesson-1234abcd.json");
+  expect(exportRequest).toEqual(readRequest);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
 
 test("submits the exact knowledge check without client learner authority", async ({
@@ -390,10 +503,15 @@ test("reopens exact saved completion accessibly without another assessment reque
   page,
 }) => {
   let knowledgeCheckRequests = 0;
+  let historyRequest: Record<string, unknown> | null = null;
   await mockReadyLesson(page, lessonFixture, COMPLETED_COMPLETION);
   await page.route(KNOWLEDGE_CHECK_PATTERN, (route) => {
     knowledgeCheckRequests += 1;
     return route.fallback();
+  });
+  await page.route(ACCOUNTABLE_HISTORY_PATTERN, (route) => {
+    historyRequest = route.request().postDataJSON() as Record<string, unknown>;
+    return json(route, 200, accountableHistory(historyRequest));
   });
 
   await page.goto(LESSON_PATH);
@@ -418,6 +536,22 @@ test("reopens exact saved completion accessibly without another assessment reque
   ).toBeVisible();
   await expect(page.getByRole("radio")).toHaveCount(0);
   expect(knowledgeCheckRequests).toBe(0);
+
+  const historyPanel = page.getByRole("region", {
+    name: "Source and history for saved result 1",
+  });
+  await historyPanel
+    .getByRole("button", { name: "Show source and history" })
+    .click();
+  await expect(historyPanel.getByText("Available history")).toBeVisible();
+  expect(historyRequest).toEqual({
+    schema_version: "1.0.0",
+    root_kind: "knowledge_check_completion",
+    placement_id: COMPLETED_COMPLETION.placement_id,
+    evidence_id: COMPLETION_ENTRY.evidence_id,
+    occurrence: 1,
+  });
+  expect(historyRequest).not.toHaveProperty("learner_id");
 
   await page.getByLabel("Theme").selectOption("light");
   const lightText = await page.locator("main").innerText();
@@ -463,9 +597,7 @@ test("reflows at narrow and 200-percent-equivalent widths", async ({
     viewport: document.documentElement.clientWidth,
     content: document.documentElement.scrollWidth,
   }));
-  expect(zoomEquivalent.content).toBeLessThanOrEqual(
-    zoomEquivalent.viewport,
-  );
+  expect(zoomEquivalent.content).toBeLessThanOrEqual(zoomEquivalent.viewport);
 });
 
 test("honors reduced motion and forced colors with visible focus", async ({
@@ -524,17 +656,30 @@ test("shows loading then a bounded denied state without lesson details", async (
   expect(lessonRequested).toBe(false);
 });
 
-test("explains an unavailable exact lesson without substituting content", async ({ page }) => {
+test("explains an unavailable exact lesson without substituting content", async ({
+  page,
+}) => {
   await mockReadyLesson(page);
   await page.unroute(LESSON_PATTERN);
-  await page.route(LESSON_PATTERN, (route) => json(route, 404, { code: "not_found" }));
+  await page.route(LESSON_PATTERN, (route) =>
+    json(route, 404, { code: "not_found" }),
+  );
   await installFeatureGuidance(page);
-  const guidanceRequest = page.waitForRequest("**/api/v1/guidance/feature-guidance/**");
+  const guidanceRequest = page.waitForRequest(
+    "**/api/v1/guidance/feature-guidance/**",
+  );
 
   await page.goto(LESSON_PATH);
 
-  await expect(page.getByRole("heading", { name: "Lesson not found" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "This lesson version is not available" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Lesson not found" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      level: 2,
+      name: "This lesson version is not available",
+    }),
+  ).toBeVisible();
   await expect(page.getByText(lessonFixture.title)).toHaveCount(0);
   const url = new URL((await guidanceRequest).url());
   expect(url.pathname).toBe(

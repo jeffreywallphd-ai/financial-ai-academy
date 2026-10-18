@@ -1,6 +1,10 @@
 import { useLoaderData, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
+import type {
+  AccountableHistoryExporter,
+  AccountableHistoryReader,
+} from "../accountable-history/api";
 import type { ContextualHelpReader } from "../platform-help/model";
 import { unavailableContextualHelpReader } from "../platform-help/ContextualHelpLinks";
 import {
@@ -12,7 +16,6 @@ import { KnowledgeCheck } from "./KnowledgeCheck";
 import { LessonReadingPage } from "./LessonReadingPage";
 import { curriculumReturnDestination } from "./model";
 import type { LessonRouteState } from "./model";
-
 
 export function LessonLoadingState() {
   return (
@@ -32,12 +35,16 @@ export function LessonLoadingState() {
 }
 
 export function LessonRouteView({
+  exportAccountableHistory,
   onRetry,
+  readAccountableHistory,
   readContextualHelp = unavailableContextualHelpReader,
   readFeatureGuidance = unavailableFeatureGuidanceReader,
   state,
 }: {
+  exportAccountableHistory?: AccountableHistoryExporter | undefined;
   onRetry: () => void;
+  readAccountableHistory?: AccountableHistoryReader | undefined;
   readContextualHelp?: ContextualHelpReader;
   readFeatureGuidance?: FeatureGuidanceReader;
   state: LessonRouteState;
@@ -49,9 +56,15 @@ export function LessonRouteView({
       return (
         <LessonReadingPage
           knowledgeCheck={
-            <KnowledgeCheck placementId={state.lesson.placement_id} />
+            <KnowledgeCheck
+              exportAccountableHistory={exportAccountableHistory}
+              placementId={state.lesson.placement_id}
+              readAccountableHistory={readAccountableHistory}
+            />
           }
+          exportAccountableHistory={exportAccountableHistory}
           lesson={state.lesson}
+          readAccountableHistory={readAccountableHistory}
           readContextualHelp={readContextualHelp}
           returnTo={
             state.returnContext
@@ -134,9 +147,13 @@ export function LessonRouteView({
 }
 
 export function LessonRoute({
+  exportAccountableHistory,
+  readAccountableHistory,
   readContextualHelp = unavailableContextualHelpReader,
   readFeatureGuidance = unavailableFeatureGuidanceReader,
 }: {
+  exportAccountableHistory?: AccountableHistoryExporter | undefined;
+  readAccountableHistory?: AccountableHistoryReader | undefined;
   readContextualHelp?: ContextualHelpReader;
   readFeatureGuidance?: FeatureGuidanceReader;
 }) {
@@ -148,7 +165,9 @@ export function LessonRoute({
       : state;
   return (
     <LessonRouteView
+      exportAccountableHistory={exportAccountableHistory}
       onRetry={() => revalidator.revalidate()}
+      readAccountableHistory={readAccountableHistory}
       readContextualHelp={readContextualHelp}
       readFeatureGuidance={readFeatureGuidance}
       state={displayedState}

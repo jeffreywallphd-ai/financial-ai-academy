@@ -2,6 +2,11 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
+import { AccountableHistoryPanel } from "../accountable-history/AccountableHistoryPanel";
+import type {
+  AccountableHistoryExporter,
+  AccountableHistoryReader,
+} from "../accountable-history/api";
 import {
   ContextualHelpLinks,
   unavailableContextualHelpReader,
@@ -9,7 +14,6 @@ import {
 import type { ContextualHelpReader } from "../platform-help/model";
 import { LessonBody } from "./LessonBody";
 import type { Lesson } from "./model";
-
 
 const DATE_FORMAT = new Intl.DateTimeFormat("en", {
   dateStyle: "long",
@@ -21,22 +25,23 @@ function formatDate(value: string) {
 }
 
 export function LessonReadingPage({
+  exportAccountableHistory,
   knowledgeCheck,
   lesson,
+  readAccountableHistory,
   readContextualHelp = unavailableContextualHelpReader,
   returnTo,
 }: {
+  exportAccountableHistory?: AccountableHistoryExporter | undefined;
   knowledgeCheck?: ReactNode;
   lesson: Lesson;
+  readAccountableHistory?: AccountableHistoryReader | undefined;
   readContextualHelp?: ContextualHelpReader;
   returnTo?: string | undefined;
 }) {
   return (
     <div className="lesson-layout">
-      <article
-        aria-labelledby="lesson-title"
-        className="lesson-reading-card"
-      >
+      <article aria-labelledby="lesson-title" className="lesson-reading-card">
         <header className="lesson-header">
           <p className="eyebrow">
             <Icon className="faa-icon--active" name="learn" />
@@ -48,7 +53,10 @@ export function LessonReadingPage({
             source information.
           </p>
           {returnTo ? (
-            <Link className="button button--secondary lesson-return" to={returnTo}>
+            <Link
+              className="button button--secondary lesson-return"
+              to={returnTo}
+            >
               Return to learning path
             </Link>
           ) : null}
@@ -104,14 +112,9 @@ export function LessonReadingPage({
                     <span>Reviewed {formatDate(source.reviewed_on)}</span>
                   </span>
                   <Icon name="external-link" />
-                  <span className="visually-hidden">
-                    {" "}
-                    (opens in a new tab)
-                  </span>
+                  <span className="visually-hidden"> (opens in a new tab)</span>
                 </a>
-                {source.license_note ? (
-                  <p>{source.license_note}</p>
-                ) : null}
+                {source.license_note ? <p>{source.license_note}</p> : null}
               </li>
             ))}
           </ul>
@@ -138,9 +141,7 @@ export function LessonReadingPage({
             </div>
             <div>
               <dt>Content reviewed</dt>
-              <dd>
-                {formatDate(lesson.provenance.content_reviewed_on)}
-              </dd>
+              <dd>{formatDate(lesson.provenance.content_reviewed_on)}</dd>
             </div>
           </dl>
           <details>
@@ -162,6 +163,20 @@ export function LessonReadingPage({
               </div>
             </dl>
           </details>
+          {readAccountableHistory && exportAccountableHistory ? (
+            <AccountableHistoryPanel
+              contextLabel="lesson"
+              exportHistory={exportAccountableHistory}
+              readHistory={readAccountableHistory}
+              request={{
+                schema_version: "1.0.0",
+                root_kind: "published_lesson",
+                package_id: lesson.package_id,
+                package_version: lesson.package_version,
+                package_digest: lesson.package_digest,
+              }}
+            />
+          ) : null}
           {readContextualHelp === unavailableContextualHelpReader ? null : (
             <ContextualHelpLinks
               contextKey="lesson-publication"
@@ -180,8 +195,8 @@ export function LessonReadingPage({
           </h2>
           <p>{lesson.provenance.educational_use_notice}</p>
           <p>
-            This lesson teaches general concepts. It does not recommend
-            buying, selling, or holding any investment.
+            This lesson teaches general concepts. It does not recommend buying,
+            selling, or holding any investment.
           </p>
         </section>
       </aside>
