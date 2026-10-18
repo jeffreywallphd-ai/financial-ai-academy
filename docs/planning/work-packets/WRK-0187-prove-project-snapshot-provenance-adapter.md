@@ -1,7 +1,7 @@
 ---
 id: WRK-0187
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/adapters/__init__.py", "backend/src/financial_ai_academy/modules/audit/adapters/project_snapshot_reference.py", "backend/src/financial_ai_academy/modules/project/README.md", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/unit/audit/test_project_snapshot_reference.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0107-extend-provenance-across-domain-owners.md", "docs/planning/work-packets/WRK-0187-prove-project-snapshot-provenance-adapter.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 8b2489dbd7eff29ebe8b0943d94bbb4ca5e43c12
+claim_id: WRK-0187:a86a044c-13fa-445d-a369-184391c7208a
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T09:41:47Z
 ---
 
 # Prove the Project Snapshot Provenance Adapter
@@ -145,3 +145,6 @@ model, tenant/admin, external-action, or financial authority changed.
   port to prove one real owner without expanding transport, persistence, or
   authority. WRK-0188 remains the cumulative slice-qualification boundary; no
   lower-level approval exists or is required.
+- 2026-10-18: Activated from clean base `8b2489d` after confirming current CAP
+  authority, the completed WRK-0186 dependency, resolved decisions, exact
+  isolated write scope, and no active file-ownership collision.

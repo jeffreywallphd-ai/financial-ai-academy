@@ -193,7 +193,7 @@ The dependency-ordered seams are:
 | [WRK-0184](../work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md) | Freeze the additive cross-domain provenance schemas, profile catalog, compatibility corpus, ownership rules, and contract tests | none | none | complete |
 | [WRK-0185](../work-packets/WRK-0185-extend-cross-domain-provenance-core.md) | Extend the pure provenance core for closed typed owner profiles, exact identities, deterministic canonicalization, and isolated failures | WRK-0184 | none | complete |
 | [WRK-0186](../work-packets/WRK-0186-build-cross-domain-provenance-conformance-kit.md) | Build the reusable cross-domain conformance kit, synthetic reference adapters, property evidence, and contributor instructions | WRK-0185 | none | complete |
-| [WRK-0187](../work-packets/WRK-0187-prove-project-snapshot-provenance-adapter.md) | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | ready |
+| [WRK-0187](../work-packets/WRK-0187-prove-project-snapshot-provenance-adapter.md) | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | active |
 | WRK-0188 | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | captured |
 
 Sequential delivery is required because each packet freezes the meaning consumed
@@ -286,3 +286,6 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
 - 2026-10-18: Authored dependency-ready WRK-0187 for an origin-neutral Project
   adapter that reads one existing immutable snapshot through Project's public
   operation and maps only safe exact facts into the frozen v2 envelope.
+- 2026-10-18: Activated WRK-0187 from clean base `8b2489d` after confirming the
+  completed dependency, current CAP authority, resolved decision posture,
+  bounded public-only scope, and no active ownership collision.
