@@ -1,7 +1,7 @@
 ---
 id: WRK-0159
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -237,3 +237,11 @@ financial behavior changed. Leave the browser packet dependency-ready.
 - 2026-10-17: Activated from recorded base `9459290` after confirming the
   current CAP package, completed WRK-0158 dependency, resolved decision
   posture, bounded scope, and no active coordination collision.
+- 2026-10-17: Completed Learner-model application and PostgreSQL persistence,
+  the additive migration, protected public API, reviewed OpenAPI, and generated
+  client. Focused unit, API, and real-PostgreSQL suites, architecture,
+  security, planning, documentation, type checking, lint, build, generated-
+  client reproduction, exact-candidate affected checks, and aggregate
+  readiness passed. Snapshot validation now denies incomplete retained history
+  windows. Browser composition, model execution, and reminder delivery remain
+  unchanged.
