@@ -93,6 +93,13 @@ owning status/action, link-label, safe-handler, fallback, accessibility, and
 safe-return evidence, so live Guidance containment does not reclassify ordinary
 learner-feature side effects as Help behavior.
 
+The cumulative Platform Help qualification also reproduces the reviewed
+OpenAPI client, runs the complete Web unit/component suite, TypeScript,
+zero-warning lint, the production build, and focused Chromium accessibility
+and safe-rendering checks. The same live run proves that browser and ordinary
+headless clients receive equivalent exact Guidance before and after a normal
+restart without adding a browser-only API or state path.
+
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 
 Exact dependency patches and integrity data belong in committed project metadata and lockfiles when approved delivery work introduces them. Do not use floating resolution as the framework baseline.

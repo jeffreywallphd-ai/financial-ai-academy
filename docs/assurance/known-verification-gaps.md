@@ -28,14 +28,16 @@
   rather than reopening the functional CAP-0020 delivery path
 - Platform, contextual, and feature-condition Guidance managed-cloud
   availability, operating-system network isolation, corpus/registry refresh
-  and authoring, remote content, semantic search, personalization/analytics,
-  and non-Chromium qualification remain gaps beyond the directly covered
-  immutable checked-in corpus/registries, focused feature links and safe
-  returns/handlers, five optional limitation explanations, protected browser/
-  headless API parity, exact source/topic and context/mapping/record digest
-  correlation, confidential missing/invalid-session denial, normal local
-  restart, loopback-only GET observation, Guidance-only database containment,
-  and bounded cleanup
+  and authoring workflow, external-link crawling, remote content, semantic or
+  model-judged search quality, personalization/analytics, production load, and
+  non-Chromium qualification remain gaps beyond the directly covered immutable
+  checked-in corpus/registries, repository-only source freshness and complete
+  link graph, deterministic literal search and varied valid extensions,
+  focused feature links and safe returns/handlers, five optional limitation
+  explanations, protected browser/headless API parity, exact source/topic and
+  context/mapping/record digest correlation, confidential missing/invalid-
+  session denial, normal local restart, loopback-only GET observation,
+  Guidance-only database containment, disposable recovery, and bounded cleanup
 - Community operator backup/restore tooling, maintenance-write rejection,
   recovery-set manifest/finalization, least-privileged roles and permissions,
   external encrypted destination, recovery-credential handling, corruption/

@@ -241,6 +241,13 @@ unchanged during the Guidance-only phase. Focused browser suites separately
 cover owning feature links, safe action handlers, optional fallback, and
 closed same-origin returns.
 
+Use `python dev-tools/guidance/check_guidance_quality.py --json` for the fast,
+Docker-free contributor check of canonical source bindings, exact internal
+links, complete browse traversal, and deterministic search. The live runner is
+the cumulative qualification for the shared public API, browser/headless
+equality, normal restart, PostgreSQL containment, disposable recovery, and
+bounded cleanup; it is not required for every valid Help copy or corpus edit.
+
 It removes only those exact resources in `finally` cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.

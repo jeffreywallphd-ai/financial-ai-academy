@@ -237,6 +237,14 @@ results, focused and cumulative test results, browser/headless parity,
 accessibility, restart and no-outbound observations, state containment,
 cleanup, residual gaps, rollback/migration status, and CAP conformance.
 
+Pre-candidate qualification passed the repository-only source/graph/search
+gate and anti-rigidity fixtures; all Guidance, Web, generated-client,
+architecture, security, design, planning, and documentation checks; focused
+Chromium accessibility; 87 replay tests; and the complete browser/headless,
+restart, loopback-only, read-only-containment, disposable-recovery, and cleanup
+topology. WRK-0179 owns the exact candidate, receipt, independent technical
+disposition, and final completion-gate binding.
+
 ## Planning History
 
 - 2026-10-18: Refined immediately after SLI-0084 completed. Candidate A scores
@@ -258,3 +266,6 @@ cleanup, residual gaps, rollback/migration status, and CAP conformance.
 - 2026-10-18: Activated final packet WRK-0179 from clean base `230fcad` after
   confirming current CAP authority, completed dependencies, documentation-only
   write scope, and no decision or ownership collision.
+- 2026-10-18: WRK-0179 cumulative focused and live qualification passed and
+  reconciled direct evidence without changing public Guidance or stored state;
+  exact-candidate verification remains before packet and slice closure.

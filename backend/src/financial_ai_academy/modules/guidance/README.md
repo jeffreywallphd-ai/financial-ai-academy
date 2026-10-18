@@ -34,6 +34,15 @@ after the Guidance-only phase. This is direct local evidence for the read-only
 boundary; it is not managed-cloud, availability, or operating-system network-
 isolation evidence.
 
+Contributors can run `python dev-tools/guidance/check_guidance_quality.py
+--json` for the fast repository-only source, digest, exact-link, browse, and
+search-quality result. Its companion tests include valid corpus extensions as
+well as stale, missing, escaped, duplicated, malformed, and dangling inputs,
+so routine Help work does not require the complete live topology. The complete
+topology remains the cumulative proof for public API, browser/headless parity,
+accessibility, normal restart, loopback-only traffic, database containment,
+recovery, and cleanup.
+
 The browser is a generated-client consumer at `/help` and at exact
 `/help/topics/{topic_id}/versions/{topic_version}` routes. It validates the
 closed public response before rendering inert typed nodes, preserves
