@@ -1,7 +1,7 @@
 ---
 id: WRK-0189
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_corpus.py", "backend/src/financial_ai_academy/modules/guidance/resources/contextual-help/v1/practice-result.json", "backend/src/financial_ai_academy/modules/guidance/resources/contextual-help/v1/project-result.json", "backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/mappings/lesson-reading-exact-version-unavailable.json", "backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/records/lesson-version-unavailable.json", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/data-meaning.json", "backend/tests/contract/accountable_history", "backend/tests/contract/contextual_help/test_conformance.py", "contracts/README.md", "contracts/accountable-history/v1", "contracts/compatibility/README.md", "contracts/compatibility/accountable-history/v1", "contracts/compatibility/contextual-help/v1/approved/context.json", "contracts/compatibility/contextual-help/v1/vectors/canonicalization.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0189-freeze-accountable-history-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: dd3cb7172224e3b1e4d88d1a500fdc979755f6f2
+claim_id: WRK-0189:fbda5e77-8ee4-4ce0-85ea-ab543796112a
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T09:55:04Z
 ---
 
 # Agent Work Packet: Freeze Accountable History Contracts
@@ -246,3 +246,6 @@ provider/model, tenant/admin, external action, or financial authority changed.
   freezes one additive inspection/export contract and compatibility seam and
   leaves pure composition, authorization/API, generated-client UI, and live
   qualification to dependent packets without adding a lower-level approval.
+- 2026-10-18: Activated from clean base `dd3cb71` after the implementation gate
+  confirmed current CAP authority, parent/dependency readiness, resolved
+  decisions, exact write scope, and no active ownership collision.

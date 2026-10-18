@@ -1,7 +1,7 @@
 ---
 id: SLI-0108
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -185,7 +185,7 @@ The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | ready |
+| [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | active |
 | WRK-0190 | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | captured |
 | WRK-0191 | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | captured |
 | WRK-0192 | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | captured |
@@ -249,3 +249,6 @@ conformance.
   live qualification. The refinement preserves CAP-0026's approved outcome,
   manifest, sequence, decision posture, risks, and non-goals; no lower-level
   approval exists or is required.
+- 2026-10-18: Activated dependency-first WRK-0189 after confirming current CAP
+  authority, completed SLI-0107, resolved local decision posture, exact
+  contract-only write scope, and no active ownership collision.
