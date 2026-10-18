@@ -1,7 +1,7 @@
 ---
 id: WRK-0161
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-18
@@ -237,4 +237,7 @@ financial behavior changed, then leave SLI-0076 closure-ready.
   and bounded cleanup. Focused Chromium, pure replay, full Web, typecheck,
   zero-warning lint, Python compilation, and all 29 aggregate readiness checks
   also passed before exact-candidate submission.
+- 2026-10-18: Entered exact-candidate verification after every declared live,
+  focused, pure, Web, planning, documentation, compilation, whitespace, and
+  aggregate readiness check passed.
 

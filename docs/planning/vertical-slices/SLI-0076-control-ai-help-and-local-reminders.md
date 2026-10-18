@@ -219,7 +219,7 @@ each packet starts. The proposed dependency-ordered seams are:
 | WRK-0158 | Freeze AI-help preference contracts, closed semantics, local-reminder envelope and adapter rules, privacy limits, compatibility vectors, and pure core | none | none | complete |
 | WRK-0159 | Compose Learner-model application, PostgreSQL persistence and migration, protected API, reviewed OpenAPI, and generated client | WRK-0158 | none | complete |
 | WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | complete |
-| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162, WRK-0163 | none | active |
+| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162, WRK-0163 | none | verifying |
 | WRK-0162 | Accept canonical assistance API timestamp precision in the browser validator | WRK-0160 | none | complete |
 | WRK-0163 | Correlate equivalent Project completion and history timestamp precision without losing microseconds | WRK-0129 | none | complete |
 
@@ -338,3 +338,7 @@ state that no AI or notification execution was implemented or implied.
 - 2026-10-18: Reactivated WRK-0161 from recorded base `a01b0fc` after every
   corrective dependency completed. Its qualification-only scope and CAP
   authority remain unchanged.
+- 2026-10-18: WRK-0161 entered exact-candidate verification after the complete
+  isolated live workflow, focused Chromium, pure replay, full Web, typecheck,
+  zero-warning lint, Python compilation, planning, documentation, whitespace,
+  and all 29 aggregate readiness checks passed.
