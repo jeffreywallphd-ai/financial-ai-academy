@@ -1,7 +1,7 @@
 ---
 id: WRK-0194
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/tests/contract/provenance/test_capability_qualification.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/planning/capabilities/CAP-0026-preserve-provenance-and-accountable-history.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0109-qualify-complete-provenance-and-history.md", "docs/planning/work-packets/WRK-0194-qualify-complete-provenance-and-history.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 3abfab41aa499998ef635e8977fa2049f5b6b941
+claim_id: WRK-0194:8e61115a-f474-4360-8676-5298b7b730aa
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T11:50:56Z
 ---
 
 # Agent Work Packet: Qualify Complete Provenance and History
@@ -212,3 +212,6 @@ tenancy/admin, financial, managed-retention, or managed-cloud behavior changed.
   all three dependency packets. The packet reuses accepted focused/live evidence
   and adds only one missing cumulative contract qualification before deterministic
   slice and CAP closure. No lower-level approval exists or is required.
+- 2026-10-18: Activated from clean base `3abfab4` with one bounded owner after
+  revalidating the approved CAP manifest, all dependency packets, local
+  decision posture, exact qualification scope, and absence of a write collision.

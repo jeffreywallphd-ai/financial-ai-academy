@@ -1,7 +1,7 @@
 ---
 id: SLI-0109
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -185,7 +185,7 @@ existing complete evidence rather than duplicating it:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0194](../work-packets/WRK-0194-qualify-complete-provenance-and-history.md) | Add only the minimum missing retention-seam, bounds, rebuild, adapter-neutral, or cumulative assertions; run complete browser/headless/live qualification; reconcile evidence; and close CAP-0026 | WRK-0183, WRK-0188, WRK-0193 | none | ready |
+| [WRK-0194](../work-packets/WRK-0194-qualify-complete-provenance-and-history.md) | Add only the minimum missing retention-seam, bounds, rebuild, adapter-neutral, or cumulative assertions; run complete browser/headless/live qualification; reconcile evidence; and close CAP-0026 | WRK-0183, WRK-0188, WRK-0193 | none | active |
 
 Detailed file scope, generated artifacts, selected checks, and stop conditions
 are frozen at packet start. The packet must not create redundant runners or new
@@ -268,3 +268,6 @@ satisfy its acceptance scenarios.
   over the completed lineage, cross-domain conformance, and accountable-history
   seams. It adds no product behavior or lower-level approval and stops before
   managed retention, tenancy, legal, recovery, or cloud decisions.
+- 2026-10-18: Activated WRK-0194 from clean base `3abfab4` after revalidating
+  current CAP authority, all completed dependencies, the policy-neutral local
+  decision posture, exact qualification-only scope, and ownership isolation.
