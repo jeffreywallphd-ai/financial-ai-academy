@@ -1,7 +1,7 @@
 ---
 id: WRK-0195
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0009
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/assessment/public.py", "backend/src/financial_ai_academy/modules/learner_model/README.md", "backend/src/financial_ai_academy/modules/learner_model/domain/progress.py", "backend/src/financial_ai_academy/modules/learner_model/ports/progress_sources.py", "backend/tests/contract/learner_progress", "backend/tests/unit/learner_model/test_progress.py", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/learner-progress/v1", "contracts/learning/README.md", "contracts/learning/learner-progress/v1", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/learning/adaptive-pathway-architecture.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0038-review-rebuildable-learning-progress.md", "docs/planning/work-packets/WRK-0195-freeze-learning-progress-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: e98959aedcbddcd762e04ecef9f9ef9340b14efa
+claim_id: WRK-0195:f174292b-780e-4d50-a6b8-44c29b2a56e3
+claimed_by: codex-cap-0009
+claimed_at: 2026-10-18T12:20:03Z
 ---
 
 # Agent Work Packet: Freeze Learning Progress Contracts
@@ -238,3 +238,6 @@ implemented.
   It leaves runtime source queries, persistence, protected API/client, browser,
   and live qualification to dependency-ordered packets without adding a lower-
   level approval gate.
+- 2026-10-18: Activated from clean base `e98959a` after the implementation gate
+  confirmed current CAP authority, parent readiness, resolved decisions, exact
+  write scope, and no active ownership collision.

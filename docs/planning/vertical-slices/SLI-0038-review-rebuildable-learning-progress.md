@@ -1,7 +1,7 @@
 ---
 id: SLI-0038
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0009
 updated: 2026-10-18
@@ -228,7 +228,7 @@ each packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0195 | [Freeze Learning Progress Contracts](../work-packets/WRK-0195-freeze-learning-progress-contracts.md) | none | none | ready |
+| WRK-0195 | [Freeze Learning Progress Contracts](../work-packets/WRK-0195-freeze-learning-progress-contracts.md) | none | none | active |
 | JIT-B | Compose family-isolated Learner-model source adapters, application behavior, PostgreSQL migration/repository, replay/conflict/interruption evidence, and contributor documentation | JIT-A | none | captured |
 | JIT-C | Expose the protected progress API, confidential failure mapping, reviewed OpenAPI, and generated TypeScript client for browser and headless callers | JIT-B | none | captured |
 | JIT-D | Deliver the plain-language accessible `Your learning progress` browser flow through only the generated client | JIT-C | none | captured |
@@ -311,3 +311,6 @@ documentation impact; assumptions and residual gaps; and CAP conformance.
   families with explicit partial-source freshness and a generated-client
   browser consumer. DEC-0009 remains satisfied by ADR-0014; no slice approval,
   model/provider authority, or material CAP change is introduced.
+- 2026-10-18: Activated with dependency-free WRK-0195 after the implementation
+  gate confirmed current CAP authority, exact manifest membership, resolved
+  decision readiness, validated bounded scope, and no active ownership overlap.
