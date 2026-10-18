@@ -1,7 +1,7 @@
 ---
 id: WRK-0168
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "dev-tools/control-plane/check_platform_help.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0168-qualify-platform-help-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: c9056d976c24872bb810844c488fdc903498383c
+claim_id: WRK-0168:c41d397e-a011-406b-bf61-f78a52450ec5
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T03:24:12Z
 ---
 
 # Agent Work Packet: Qualify the Platform Help Live Flow
@@ -244,3 +244,6 @@ or financial behavior changed, then leave SLI-0082 closure-ready.
   disposable local topology, preserves one protected API for browser and
   headless callers, and adds focused future Help-browser selection without a
   product, contract, decision, or lower-level approval change.
+- 2026-10-18: Activated from clean recorded base `c9056d9` after validating
+  the completed dependency, current CAP authority, qualification-only scope,
+  exact file ownership, and no active coordination collision.
