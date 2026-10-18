@@ -82,6 +82,15 @@ same-origin return to the guide or those four feature routes; the browser does
 not store routes in Guidance content, select a different topic version, or
 invent a mapping.
 
+The isolated local qualification reads all four exact context documents and
+every referenced topic through an authenticated browser context, then repeats
+the same public reads with an ordinary cookie-backed HTTP client before and
+after normal host restart. The capture binds context and topic digests, source
+fingerprints, confidential denial, loopback-only traffic, and an unchanged
+non-Identity database fingerprint. Focused feature suites retain the exact
+link-label and safe-return evidence, so live Guidance containment does not
+reclassify ordinary learner-feature side effects as Help behavior.
+
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 
 Exact dependency patches and integrity data belong in committed project metadata and lockfiles when approved delivery work introduces them. Do not use floating resolution as the framework baseline.

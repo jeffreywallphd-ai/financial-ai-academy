@@ -230,6 +230,15 @@ that a fresh API read rebuilds the same semantic navigation state from unchanged
 Assessment evidence. This is an isolated replay check, not a product reset
 route or production recovery procedure.
 
+The same runner qualifies checked-in Platform and contextual Help through one
+browser session and a separate ordinary HTTP session. It compares all four
+context documents, every referenced exact topic, publication/source facts, and
+digests before and after normal application restart; denies unauthenticated
+reads confidentially; observes browser Help traffic as loopback-only and
+GET-only; and requires the complete non-Identity database fingerprint to remain
+unchanged during the Guidance-only phase. Focused browser suites separately
+cover the four owning feature links and their closed same-origin returns.
+
 It removes only those exact resources in `finally` cleanup. An external database is accepted only when
 `FINANCIAL_AI_ACADEMY_E2E_EXTERNAL_DB_ACKNOWLEDGED=true` explicitly confirms
 that it is isolated test data.
