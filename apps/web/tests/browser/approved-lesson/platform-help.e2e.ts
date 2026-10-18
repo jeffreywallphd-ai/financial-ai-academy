@@ -252,6 +252,8 @@ test("keeps reviewed platform help available through one local public API", asyn
     }
   }
 
+  await openSearch(page, "/help?topic_kind=limitation&page_size=1");
+
   for (const theme of ["light", "dark", "system"] as const) {
     await page.getByLabel("Theme").selectOption(theme);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
