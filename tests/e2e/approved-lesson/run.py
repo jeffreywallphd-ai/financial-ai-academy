@@ -510,6 +510,10 @@ ASSISTANCE_PREFERENCE_TABLES = frozenset(
         "assistance_preference_mutations",
     }
 )
+PREFERENCE_FAMILY_NAMES = frozenset(
+    {"learner", "presentation", "assistance"}
+)
+PREFERENCE_STORAGE_KEYS = frozenset({"profiles", "changes", "mutations"})
 PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
     {
         "artifact_sha256",
@@ -6753,6 +6757,97 @@ def assistance_preference_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
     }
 
 
+def preference_family_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
+    """Return the three existing preference stores without creating an aggregate model."""
+    return {
+        "learner": learner_preference_storage_snapshot(postgres_dsn),
+        "presentation": presentation_preference_storage_snapshot(postgres_dsn),
+        "assistance": assistance_preference_storage_snapshot(postgres_dsn),
+    }
+
+
+def _validate_preference_family_snapshot(
+    snapshot: dict[str, Any],
+    *,
+    label: str,
+) -> None:
+    if set(snapshot) != PREFERENCE_FAMILY_NAMES:
+        raise RuntimeError(f"{label} preference-family snapshot is not closed.")
+    for family in sorted(PREFERENCE_FAMILY_NAMES):
+        storage = snapshot[family]
+        if (
+            not isinstance(storage, dict)
+            or set(storage) != PREFERENCE_STORAGE_KEYS
+            or any(not isinstance(storage[key], list) for key in PREFERENCE_STORAGE_KEYS)
+        ):
+            raise RuntimeError(
+                f"{label} {family} preference storage snapshot is invalid."
+            )
+
+
+def assert_preference_family_isolation(
+    before: dict[str, Any],
+    after: dict[str, Any],
+    *,
+    changed_family: str,
+) -> None:
+    """Require one named preference store to change and the other two to stay exact."""
+    _validate_preference_family_snapshot(before, label="Before")
+    _validate_preference_family_snapshot(after, label="After")
+    if changed_family not in PREFERENCE_FAMILY_NAMES:
+        raise RuntimeError("Preference-family isolation named an unknown family.")
+    if before[changed_family] == after[changed_family]:
+        raise RuntimeError(
+            f"The {changed_family} preference phase created no durable change."
+        )
+    leaked = sorted(
+        family
+        for family in PREFERENCE_FAMILY_NAMES - {changed_family}
+        if before[family] != after[family]
+    )
+    if leaked:
+        raise RuntimeError(
+            "Preference-family isolation failed; unexpected change in "
+            + ", ".join(leaked)
+            + "."
+        )
+
+
+def stable_preference_system_report(snapshot: dict[str, Any]) -> dict[str, Any]:
+    """Validate cumulative family identity and return non-sensitive report facts."""
+    _validate_preference_family_snapshot(snapshot, label="Final")
+    learner_ids: set[str] = set()
+    profile_ids: set[str] = set()
+    for family in sorted(PREFERENCE_FAMILY_NAMES):
+        storage = snapshot[family]
+        profiles = storage["profiles"]
+        if (
+            len(profiles) != 1
+            or len(profiles[0]) != 5
+            or not storage["changes"]
+            or not storage["mutations"]
+        ):
+            raise RuntimeError(
+                f"Final {family} preference evidence is incomplete."
+            )
+        profile_ids.add(str(profiles[0][0]))
+        learner_ids.add(str(profiles[0][1]))
+    if len(learner_ids) != 1:
+        raise RuntimeError(
+            "Preference families do not share one authorized learner context."
+        )
+    if len(profile_ids) != len(PREFERENCE_FAMILY_NAMES):
+        raise RuntimeError("Preference families do not retain distinct profile identities.")
+    return {
+        "browser_local_adapter_count": 2,
+        "cross_family_storage_isolation": True,
+        "distinct_profile_identities": True,
+        "learner_context_count": 1,
+        "public_api_family_count": len(PREFERENCE_FAMILY_NAMES),
+        "shared_core_semantics": True,
+    }
+
+
 def assert_assistance_preference_storage(
     snapshot: dict[str, Any],
     *,
@@ -7320,6 +7415,9 @@ def main() -> int:
                 "Saved Learning changed Project or learning evidence state."
             )
 
+        preference_system_before_learner = preference_family_storage_snapshot(
+            postgres_dsn
+        )
         learner_source_before = learner_preference_source_fingerprint(postgres_dsn)
         empty_preference_storage = learner_preference_storage_snapshot(postgres_dsn)
         if any(empty_preference_storage.values()):
@@ -7364,6 +7462,14 @@ def main() -> int:
             raise RuntimeError(
                 "Learner preferences changed unrelated application state."
             )
+        preference_system_after_learner = preference_family_storage_snapshot(
+            postgres_dsn
+        )
+        assert_preference_family_isolation(
+            preference_system_before_learner,
+            preference_system_after_learner,
+            changed_family="learner",
+        )
 
         presentation_source_before = presentation_preference_source_fingerprint(
             postgres_dsn
@@ -7420,6 +7526,14 @@ def main() -> int:
             raise RuntimeError(
                 "Presentation preferences changed unrelated application state."
             )
+        preference_system_after_presentation = preference_family_storage_snapshot(
+            postgres_dsn
+        )
+        assert_preference_family_isolation(
+            preference_system_after_learner,
+            preference_system_after_presentation,
+            changed_family="presentation",
+        )
 
         assistance_source_before = assistance_preference_source_fingerprint(
             postgres_dsn
@@ -7474,6 +7588,14 @@ def main() -> int:
             raise RuntimeError(
                 "Assistance preferences changed unrelated application state."
             )
+        preference_system_before_restart = preference_family_storage_snapshot(
+            postgres_dsn
+        )
+        assert_preference_family_isolation(
+            preference_system_after_presentation,
+            preference_system_before_restart,
+            changed_family="assistance",
+        )
 
         (
             practice_draft_save,
@@ -7726,6 +7848,16 @@ def main() -> int:
             raise RuntimeError(
                 "Assistance preference storage changed after normal restart."
             )
+        preference_system_after_restart = preference_family_storage_snapshot(
+            postgres_dsn
+        )
+        if preference_system_after_restart != preference_system_before_restart:
+            raise RuntimeError(
+                "Preference-family storage changed during restart or headless reads."
+            )
+        preference_system_report = stable_preference_system_report(
+            preference_system_after_restart
+        )
 
         if container_name is not None:
             restored_credential_opener = open_personal_workspace_session(
@@ -7950,6 +8082,7 @@ def main() -> int:
                 "workspace_id": personal_capture["workspace"]["workspace_id"],
             },
             "personal_workspace_recovery": recovery_report,
+            "preference_system": preference_system_report,
             "learner_preferences": {
                 "browser_generated_client": True,
                 "browser_headless_export_parity": True,

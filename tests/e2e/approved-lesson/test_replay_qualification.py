@@ -4521,3 +4521,112 @@ def test_assistance_preference_restart_requires_exact_rows() -> None:
             profile=profile,
             history=history,
         )
+
+
+def preference_family_snapshot() -> dict[str, Any]:
+    learner_id = "11111111-1111-4111-8111-111111111111"
+    result: dict[str, Any] = {}
+    for index, family in enumerate(sorted(runner.PREFERENCE_FAMILY_NAMES), start=1):
+        profile_id = f"00000000-0000-4000-8000-{index:012d}"
+        profile = {
+            "schema_version": "1.0.0",
+            "profile_id": profile_id,
+            "learner_id": learner_id,
+            "revision": index + 1,
+        }
+        result[family] = {
+            "profiles": [[profile_id, learner_id, index + 1, profile, "a" * 64]],
+            "changes": [[learner_id, index + 1, {"revision": index + 1}, "a" * 64]],
+            "mutations": [[learner_id, f"{family}.key", index + 1, profile]],
+        }
+    return result
+
+
+def test_preference_family_isolation_accepts_only_the_named_change() -> None:
+    before = preference_family_snapshot()
+    after = deepcopy(before)
+    after["learner"]["changes"].append(
+        [
+            before["learner"]["profiles"][0][1],
+            9,
+            {"revision": 9, "generated_at": "varied"},
+            "b" * 64,
+        ]
+    )
+
+    runner.assert_preference_family_isolation(
+        before,
+        after,
+        changed_family="learner",
+    )
+
+    leaked = deepcopy(after)
+    leaked["presentation"]["mutations"].append(["unexpected"])
+    with pytest.raises(RuntimeError, match="unexpected change in presentation"):
+        runner.assert_preference_family_isolation(
+            before,
+            leaked,
+            changed_family="learner",
+        )
+
+
+def test_preference_family_isolation_rejects_unknown_or_unclosed_evidence() -> None:
+    snapshot = preference_family_snapshot()
+    changed = deepcopy(snapshot)
+    changed["assistance"]["profiles"][0][2] += 1
+
+    with pytest.raises(RuntimeError, match="unknown family"):
+        runner.assert_preference_family_isolation(
+            snapshot,
+            changed,
+            changed_family="local_reminder",
+        )
+
+    missing = deepcopy(snapshot)
+    del missing["presentation"]
+    with pytest.raises(RuntimeError, match="not closed"):
+        runner.assert_preference_family_isolation(
+            missing,
+            changed,
+            changed_family="assistance",
+        )
+
+    extra = deepcopy(changed)
+    extra["aggregate"] = {"profiles": [], "changes": [], "mutations": []}
+    with pytest.raises(RuntimeError, match="not closed"):
+        runner.assert_preference_family_isolation(
+            snapshot,
+            extra,
+            changed_family="assistance",
+        )
+
+
+def test_preference_system_report_requires_shared_context_and_distinct_profiles() -> None:
+    snapshot = preference_family_snapshot()
+    assert runner.stable_preference_system_report(snapshot) == {
+        "browser_local_adapter_count": 2,
+        "cross_family_storage_isolation": True,
+        "distinct_profile_identities": True,
+        "learner_context_count": 1,
+        "public_api_family_count": 3,
+        "shared_core_semantics": True,
+    }
+
+    different_learner = deepcopy(snapshot)
+    different_learner["presentation"]["profiles"][0][1] = (
+        "22222222-2222-4222-8222-222222222222"
+    )
+    with pytest.raises(RuntimeError, match="one authorized learner context"):
+        runner.stable_preference_system_report(different_learner)
+
+    duplicate_profile_id = deepcopy(snapshot)
+    duplicate_profile_id["presentation"]["profiles"][0][0] = (
+        duplicate_profile_id["learner"]["profiles"][0][0]
+    )
+    with pytest.raises(RuntimeError, match="distinct profile identities"):
+        runner.stable_preference_system_report(duplicate_profile_id)
+
+    incomplete = deepcopy(snapshot)
+    incomplete["assistance"]["mutations"] = []
+    with pytest.raises(RuntimeError, match="evidence is incomplete"):
+        runner.stable_preference_system_report(incomplete)
