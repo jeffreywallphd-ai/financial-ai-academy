@@ -1,7 +1,7 @@
 ---
 id: WRK-0162
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018-correction
 updated: 2026-10-18
@@ -143,10 +143,16 @@ or financial behavior changed, then leave WRK-0161 ready to resume.
 - 2026-10-18: Activated from recorded base `8b147c1` after validating current
   CAP authority, the completed browser dependency, exact corrective scope, and
   no active coordination collision.
-- 2026-10-18: Independent review R01 confirmed the canonical precision and
-  digest boundary but found that JavaScript millisecond comparison could hide
-  reversed microsecond ordering and that invalid timestamp fixtures retained a
-  stale digest. The bounded correction normalizes only a comparison key to six
-  fractional digits, preserves exact received text for hashing, and adds
-  digest-valid profile, history, and export chronology regressions.
+- 2026-10-18: Exact-candidate inspection found that JavaScript millisecond
+  comparison could hide reversed microsecond ordering and that invalid
+  timestamp fixtures retained a stale digest. The bounded correction
+  normalizes only a comparison key to six fractional digits, preserves exact
+  received text for hashing, and adds digest-valid profile, history, and export
+  chronology regressions.
+- 2026-10-18: Completed on exact candidate `3991347` after the selected
+  planning, documentation, Web typecheck, zero-warning lint, full Web test, and
+  production-build checks produced a fresh qualifying receipt. Exact
+  microsecond chronology and digest-valid invalid timestamp evidence were
+  confirmed without changing the contract, backend, public API, generated
+  client, route behavior, or local reminder authority.
 
