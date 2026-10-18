@@ -140,13 +140,18 @@ test("keeps reviewed platform help available through one local public API", asyn
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
   }
   await page.setViewportSize({ width: 320, height: 900 });
-  await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
   await page.emulateMedia({ colorScheme: "dark", forcedColors: "active", reducedMotion: "reduce" });
   await page.getByLabel("Search the guide").focus();
   await page.keyboard.press("Tab");
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
   ).toBe(true);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.evaluate(() => { document.documentElement.style.fontSize = "200%"; });
+  await page.getByLabel("Search the guide").focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Type of help")).toBeFocused();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
   expect(externalRequests).toEqual([]);

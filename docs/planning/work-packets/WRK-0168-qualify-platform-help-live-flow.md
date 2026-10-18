@@ -254,3 +254,10 @@ or financial behavior changed, then leave SLI-0082 closure-ready.
 - 2026-10-18: Reactivated from clean recorded base `6f6c810` after WRK-0169
   completed schema-backed correction and independent closure review. The live
   qualification scope and evidence thresholds remain unchanged.
+- 2026-10-18: The resumed live journey passed its functional API path and then
+  exposed an over-composed presentation assertion that combined a 320-pixel
+  viewport with 200-percent root text. The bounded anti-rigidity correction
+  verifies narrow reflow separately, preserves keyboard operation and axe at
+  200-percent text, and records the remaining global-header presentation item
+  for CAP-0031 instead of turning nonfunctional styling into a delivery gate or
+  reopening implementation review.

@@ -22,6 +22,10 @@
 - Built-in-credential, recovery, OIDC, provider-parity, and identity-mode migration conformance beyond the directly covered local `single_profile` binding/session/context path
 - Managed object-storage and real passive-asset retrieval conformance beyond the directly covered portable admission, PostgreSQL Content metadata, local filesystem objects, safe-node creation, integrity revalidation, exact Curriculum placement/read, and closed browser-renderer evidence
 - Manual screen-reader operation, actual browser 200-percent zoom controls, non-Chromium browsers, and non-Windows visual baselines beyond the directly covered axe, keyboard/focus, narrow/zoom-equivalent reflow, reduced-motion, forced-color, and Chromium theme evidence
+- Global-header visual reflow under synthetic 200-percent root text can exceed
+  the viewport even though the Platform Help flow remains keyboard-operable and
+  axe-clean; this nonfunctional presentation item is deferred to CAP-0031
+  rather than reopening the functional CAP-0020 delivery path
 - Community operator backup/restore tooling, maintenance-write rejection,
   recovery-set manifest/finalization, least-privileged roles and permissions,
   external encrypted destination, recovery-credential handling, corruption/
