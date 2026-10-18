@@ -276,6 +276,10 @@ satisfy its acceptance scenarios.
   imports now complement the complete existing replay, rebuild, conflict,
   conformance, API/browser, restart, accessibility, containment, and cleanup
   suites without adding product behavior or selecting a managed policy.
+- 2026-10-18: Tightened the cumulative portability assertion before closure so
+  it discovers every shared-core source, resolves relative imports, enforces
+  structural dependency direction, and ignores comments and documentation.
+  This bounded evidence correction changes no runtime or public contract.
 - 2026-10-18: Submitted the clean implementation candidate for controller-
   selected affected verification and moved the slice to deterministic
   verification; no new scope or decision was introduced.

@@ -226,3 +226,7 @@ tenancy/admin, financial, managed-retention, or managed-cloud behavior changed.
 - 2026-10-18: Submitted exact implementation candidate `366c7ee` and moved to
   deterministic affected verification. The lifecycle reconciliation below
   changes only tracked planning state and evidence, not product behavior.
+- 2026-10-18: Corrected a bounded qualification defect found before packet
+  closure. The cumulative portability test now discovers the complete Audit
+  shared-core Python surface, resolves relative imports, applies structural
+  inward-layer and effect-dependency rules, and no longer scans harmless prose.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
+import sys
 from typing import Any
 
 
@@ -45,15 +46,63 @@ def _object_schemas(value: object) -> tuple[dict[str, Any], ...]:
     )
 
 
-def _import_roots(relative: str) -> set[str]:
-    tree = ast.parse((AUDIT / relative).read_text(encoding="utf-8"))
-    roots: set[str] = set()
+def _shared_core_sources() -> tuple[Path, ...]:
+    roots = (AUDIT / "domain", AUDIT / "application", AUDIT / "ports")
+    return tuple(
+        sorted(
+            (source for root in roots for source in root.rglob("*.py")),
+            key=lambda source: source.as_posix(),
+        )
+    ) + (AUDIT / "__init__.py", AUDIT / "public.py")
+
+
+def _resolved_imports(source: Path) -> set[str]:
+    relative = source.relative_to(AUDIT)
+    package = ["financial_ai_academy", "modules", "audit"]
+    package.extend(relative.parent.parts)
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+    imports: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            roots.update(alias.name.split(".", 1)[0] for alias in node.names)
-        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-            roots.add(node.module.split(".", 1)[0])
-    return roots
+            imports.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom):
+            if node.level == 0:
+                if node.module:
+                    imports.add(node.module)
+                continue
+
+            retained = len(package) - (node.level - 1)
+            prefix = package[: max(retained, 0)]
+            module = node.module.split(".") if node.module else []
+            if module:
+                imports.add(".".join(prefix + module))
+            else:
+                imports.update(".".join(prefix + [alias.name]) for alias in node.names)
+    return imports
+
+
+def _allowed_internal_prefixes(source: Path) -> tuple[str, ...]:
+    relative = source.relative_to(AUDIT)
+    base = "financial_ai_academy.modules.audit"
+    if relative.parts[0] == "domain":
+        return (f"{base}.domain",)
+    if relative.parts[0] == "ports":
+        return (f"{base}.domain", f"{base}.ports")
+    if relative.parts[0] == "application":
+        return (
+            f"{base}.application",
+            f"{base}.domain",
+            f"{base}.ports",
+            f"{base}.public",
+        )
+    return (f"{base}.domain", f"{base}.public")
+
+
+def _is_allowed_internal(imported: str, prefixes: tuple[str, ...]) -> bool:
+    return any(
+        imported == prefix or imported.startswith(f"{prefix}.")
+        for prefix in prefixes
+    )
 
 
 def test_lineage_history_and_owner_reference_bounds_stay_aligned() -> None:
@@ -125,36 +174,39 @@ def test_retention_seam_is_closed_and_policy_neutral() -> None:
     assert set(export["required"]) == set(export["properties"])
 
 
-def test_shared_provenance_core_has_no_deployment_or_provider_import() -> None:
-    """Local and future cloud profiles must reuse the same framework-free core."""
+def test_shared_provenance_core_dependency_closure_is_adapter_neutral() -> None:
+    """Every shared-core file stays inside its layer and pure standard library."""
 
-    core_sources = (
-        "domain/provenance.py",
-        "domain/cross_domain_provenance.py",
-        "domain/accountable_history.py",
-        "application/cross_domain_conformance.py",
-    )
-    deployment_or_effect_roots = {
+    effect_roots = {
         "azure",
         "boto3",
         "fastapi",
         "google",
         "httpx",
+        "os",
+        "pathlib",
         "psycopg",
         "requests",
+        "shutil",
+        "socket",
         "sqlalchemy",
+        "sqlite3",
+        "tempfile",
+        "urllib",
     }
+    core_sources = _shared_core_sources()
 
-    for relative in core_sources:
-        assert not (_import_roots(relative) & deployment_or_effect_roots), relative
-
-    core_text = "\n".join(
-        (AUDIT / relative).read_text(encoding="utf-8") for relative in core_sources
-    )
-    for policy_or_authority in (
-        "tenant_id",
-        "retention_until",
-        "legal_hold",
-        "provider_payload",
-    ):
-        assert policy_or_authority not in core_text
+    assert core_sources
+    for source in core_sources:
+        relative = source.relative_to(AUDIT).as_posix()
+        allowed_internal = _allowed_internal_prefixes(source)
+        for imported in _resolved_imports(source):
+            root = imported.split(".", 1)[0]
+            assert root not in effect_roots, (relative, imported)
+            if imported.startswith("financial_ai_academy."):
+                assert _is_allowed_internal(imported, allowed_internal), (
+                    relative,
+                    imported,
+                )
+            else:
+                assert root in sys.stdlib_module_names, (relative, imported)

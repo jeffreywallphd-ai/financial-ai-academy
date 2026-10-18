@@ -230,7 +230,10 @@ closed. The portable wrapper remains exactly schema version, media type,
 filename stem, export time, document digest, and document; retention class,
 expiry, deletion, legal hold, tenant, provider payload, and storage location are
 not provenance or export identity. The shared provenance/history core also
-remains free of host, database, cloud, network, and provider-framework imports.
-This proves a policy-neutral adapter seam and local/shared-core behavior, not a
-retention duration, legal policy, immutable store, tenant policy, recovery
-posture, or managed-cloud deployment.
+remains free of host, database, cloud, network, filesystem, and
+provider-framework imports. That evidence structurally discovers the complete
+Audit domain/application/ports/public Python surface, resolves relative imports,
+and enforces inward layer dependencies instead of scanning prose. This proves a
+policy-neutral adapter seam and local/shared-core behavior, not a retention
+duration, legal policy, immutable store, tenant policy, recovery posture, or
+managed-cloud deployment.
