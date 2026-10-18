@@ -262,8 +262,24 @@ export. They use server-owned learner identity and
 `learner_assistance_preferences.read|write` for browser and headless callers.
 The only values are `off` and `on_request`; no request can select a provider,
 grant data permission, call a model, create output, or carry the browser-local
-reminder choice. The later `AI help and reminders` screen remains a client of
-this API plus the separate local adapter, not an alternate authority.
+reminder choice. `/preferences/assistance` is a client of this API plus the
+separate local adapter, not an alternate authority. It validates one coherent
+portable profile/history export before showing learner-owned state and rereads
+that export before a download. Its save and confirmed reset send only the
+closed mutation document; the same operations remain usable without the UI by
+command-line, service, and future headless clients.
+
+The same screen presents a separate future in-app reminder choice owned only
+by the existing browser-local adapter. Local save, confirmed reset, and
+download never establish a learner session or call the public API; the local
+record contains no learner identity and has no headless meaning. Either branch
+remains usable when the other is unavailable. The page states that neither AI
+help nor reminder delivery is available there today, and it requests no model,
+provider, data permission, notification permission, worker, timer, schedule,
+subscription, or delivery action. Malformed data fails closed without partial
+display or download. Focused component and Chromium coverage verifies separate
+authority, reset, download, failure, reload, accessibility, narrow reflow,
+scaled text, forced colors, reduced motion, and no execution side effect.
 
 `/preferences/display` validates one coherent profile/history export before it
 shows private details, previews complete drafts through the four semantic root

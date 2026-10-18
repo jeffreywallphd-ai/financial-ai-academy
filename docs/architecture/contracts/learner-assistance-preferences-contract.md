@@ -96,6 +96,31 @@ provider, grants egress, calls a model, creates output, schedules work, prompts
 for notification permission, or sends a reminder. Those effects require later
 governed capabilities and cannot be inferred from `on_request`.
 
+## Browser Composition
+
+`/preferences/assistance` composes the two ownership boundaries without
+merging them. The learner-owned branch reads one complete correlated export
+through the generated public client, sends only the closed replacement or
+confirmed reset request, and rereads the export before creating a portable
+download. That client remains the same independently usable headless boundary;
+the browser adds no second contract or source of learner truth.
+
+The reminder branch delegates reads, replacement, reset, validation, history,
+and export to the platform local-settings adapter. It does not establish a
+learner session or call the assistance-preference API. Its download is named
+and described as this-browser-only and contains no learner identifier. Each
+branch has separate controls, confirmation, recovery, and download, so failure
+of one does not disable or erase the other and the screen never claims an
+atomic cross-authority change.
+
+The ordinary task flow states that AI help and reminder delivery are not
+available on this screen. Technical versions, revisions, times, and integrity
+codes remain available in accessible disclosures. Unknown fields, broken
+digests or history, stale correlation, and changed download state fail closed
+without a partial display or file. The composition uses no model/provider
+adapter, notification permission, service worker, timer, scheduler, queue,
+subscription, or delivery client.
+
 ## Failure and Compatibility
 
 Unknown versions, operations, fields, values, invalid identity/time/digest,

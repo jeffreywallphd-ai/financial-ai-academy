@@ -88,6 +88,16 @@ import {
   PresentationPreferencesLoadingState,
   PresentationPreferencesRoute,
 } from "../features/presentation-preferences/PresentationPreferencesRoute";
+import {
+  createAssistancePreferencesAction,
+  createAssistancePreferencesExporter,
+  createAssistancePreferencesLoader,
+  createLocalReminderExporter,
+} from "../features/assistance-preferences/api";
+import {
+  AssistancePreferencesLoadingState,
+  AssistancePreferencesRoute,
+} from "../features/assistance-preferences/AssistancePreferencesRoute";
 import { AppShell } from "./AppShell";
 import { apiClient as client, singleProfileSession as session } from "./dependencies";
 
@@ -127,6 +137,21 @@ const learnerPreferencesExporter = createLearnerPreferencesExporter(client, sess
 const presentationPreferencesLoader = createPresentationPreferencesLoader(client, session);
 const presentationPreferencesAction = createPresentationPreferencesAction(client, session);
 const presentationPreferencesExporter = createPresentationPreferencesExporter(client, session);
+const currentTime = () => new Date().toISOString();
+const assistancePreferencesLoader = createAssistancePreferencesLoader(
+  client,
+  session,
+  window.localStorage,
+  currentTime,
+);
+const assistancePreferencesAction = createAssistancePreferencesAction(
+  client,
+  session,
+  window.localStorage,
+  currentTime,
+);
+const assistancePreferencesExporter = createAssistancePreferencesExporter(client, session);
+const localReminderExporter = createLocalReminderExporter(window.localStorage, currentTime);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -165,6 +190,15 @@ function PresentationPreferencesRouteWithDependencies() {
   return (
     <PresentationPreferencesRoute
       exportPreferences={presentationPreferencesExporter}
+    />
+  );
+}
+
+function AssistancePreferencesRouteWithDependencies() {
+  return (
+    <AssistancePreferencesRoute
+      exportLocalReminder={localReminderExporter}
+      exportPreferences={assistancePreferencesExporter}
     />
   );
 }
@@ -218,6 +252,13 @@ export const router = createBrowserRouter([
         action: presentationPreferencesAction,
         Component: PresentationPreferencesRouteWithDependencies,
         HydrateFallback: PresentationPreferencesLoadingState,
+      },
+      {
+        path: "preferences/assistance",
+        loader: assistancePreferencesLoader,
+        action: assistancePreferencesAction,
+        Component: AssistancePreferencesRouteWithDependencies,
+        HydrateFallback: AssistancePreferencesLoadingState,
       },
       {
         path: "saved-learning",

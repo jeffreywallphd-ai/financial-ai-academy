@@ -62,4 +62,18 @@ describe("static browser boundary", () => {
     expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|document\.cookie|\bfetch\s*\(/);
     expect(source).not.toMatch(/financial_ai_academy|psycopg|postgresql/);
   });
+
+  it("keeps learner AI-help choices behind the generated client and reminder choices behind the local adapter", async () => {
+    const featureRoot = resolve(webRoot, "src/features/assistance-preferences");
+    const files = await sourceFiles(featureRoot);
+    const source = (
+      await Promise.all(files.map((path) => readFile(path, "utf8")))
+    ).join("\n");
+
+    expect(source).toMatch(/FinancialAcademyApiClient/);
+    expect(source).toMatch(/\/api\/v1\/learner-assistance-preferences/);
+    expect(source).toMatch(/localReminderPreference/);
+    expect(source).not.toMatch(/localStorage|sessionStorage|indexedDB|document\.cookie|\bfetch\s*\(/);
+    expect(source).not.toMatch(/Notification|serviceWorker|setInterval|financial_ai_academy|psycopg|postgresql/);
+  });
 });
