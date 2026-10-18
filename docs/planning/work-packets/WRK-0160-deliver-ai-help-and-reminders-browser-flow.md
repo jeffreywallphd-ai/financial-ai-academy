@@ -1,10 +1,10 @@
 ---
 id: WRK-0160
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
-updated: 2026-10-17
+updated: 2026-10-18
 parent: SLI-0076
 capability: CAP-0018
 depends_on: [WRK-0159]
