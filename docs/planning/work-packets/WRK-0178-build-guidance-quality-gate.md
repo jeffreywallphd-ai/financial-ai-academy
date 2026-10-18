@@ -212,3 +212,8 @@ authority did not change before the final cumulative qualification packet.
   selection, readiness-catalog, security, planning, documentation, compilation,
   and whitespace checks passed. The public projection remains active through
   durable exact-candidate submission, as required by the controller lifecycle.
+- 2026-10-18: First exact-candidate verification passed 10 of 11 checks and
+  exposed an over-broad legacy rule that selected Project Chromium for every
+  check-catalog edit. The bounded correction leaves Project source, tests,
+  styles, and its executor mapped to Chromium while catalog mapping changes use
+  direct selection tests, avoiding unrelated runtime requirements.

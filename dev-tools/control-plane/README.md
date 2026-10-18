@@ -195,10 +195,11 @@ deliberately absent.
 
 Project workspace source and browser-spec changes select a focused Chromium
 check that runs only `apps/web/tests/browser/project-workspace`. This gives a
-Project packet direct browser evidence without making every web change run the
-Project suite or the broader live approved-lesson qualification. The Project
-stylesheet is part of that behavioral boundary, and changes to the check
-catalog or its web executor self-qualify the focused command.
+Project packet direct browser evidence without making every web or check-
+catalog change run the Project suite or the broader live approved-lesson
+qualification. The Project stylesheet is part of that behavioral boundary,
+and changes to its web executor self-qualify the focused command. Catalog
+mapping changes are covered directly by control-plane selection tests.
 
 Assistance-preference feature, browser-local reminder adapter, stylesheet, and
 browser-spec changes likewise select the focused

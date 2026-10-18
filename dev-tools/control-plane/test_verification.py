@@ -534,7 +534,6 @@ class SelectionTests(unittest.TestCase):
             "dev-tools/control-plane/financial_academy_checks.py": [
                 "control-plane:unit",
                 "control-plane:verification",
-                "project:browser",
             ],
             "docs/product/product-vision-and-scope.md": [
                 "documentation:integrity",
