@@ -206,7 +206,7 @@ The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0180](../work-packets/WRK-0180-freeze-learning-provenance-contracts.md) | Freeze the provider-neutral provenance envelope and bounded learning-lineage contracts, compatibility corpus, ownership rules, and conformance tests | none | none | verifying |
+| [WRK-0180](../work-packets/WRK-0180-freeze-learning-provenance-contracts.md) | Freeze the provider-neutral provenance envelope and bounded learning-lineage contracts, compatibility corpus, ownership rules, and conformance tests | none | none | complete |
 | WRK-0181 | Compose the Audit learning-lineage core, Content/Assessment public adapters, Audit-owned read persistence, idempotent reconciliation, and focused architecture/security evidence | WRK-0180 | none | captured |
 | WRK-0182 | Expose protected learning-lineage operations through FastAPI, reviewed OpenAPI, and the generated TypeScript client for browser and headless consumers | WRK-0181 | none | captured |
 | WRK-0183 | Qualify exact live learning lineage, restart, containment, anti-rigidity, documentation, and slice completion | WRK-0182 | none | captured |
@@ -278,3 +278,6 @@ cleanup, migration/rollback status, residual gaps, and CAP conformance.
 - 2026-10-18: Activated WRK-0180 from clean base `ef7ae20` after confirming
   current CAP authority, resolved decisions, dependency readiness, bounded
   pure-contract scope, and no ownership collision.
+- 2026-10-18: Completed WRK-0180 at exact candidate `e6129fe` with qualifying
+  affected evidence and 26 focused provenance tests; WRK-0181 may now consume
+  the frozen provider-neutral contract without reopening lower-level approval.
