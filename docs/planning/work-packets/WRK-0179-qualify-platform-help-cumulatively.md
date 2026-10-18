@@ -1,7 +1,7 @@
 ---
 id: WRK-0179
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0020-understand-platform-methods-and-limitations.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0085-qualify-platform-help-quality.md", "docs/planning/work-packets/WRK-0179-qualify-platform-help-cumulatively.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 230fcad08c129ce7334a89e6ed6445ee9e3d1ef6
+claim_id: WRK-0179:7021f2cd-0bd0-4439-865a-8091b43cda2a
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T07:27:08Z
 ---
 
 # Agent Work Packet: Qualify Platform Help Cumulatively
@@ -227,3 +227,6 @@ action, or financial authority.
 - 2026-10-18: Authored just in time after WRK-0178 completed. This final seam
   uses focused and existing full-topology evidence for CAP closure without
   adding a heavyweight routine gate, product behavior, or lower-level approval.
+- 2026-10-18: Claimed from clean base `230fcad` with one bounded owner and the
+  declared documentation/evidence scope after revalidating current CAP
+  authority and completed dependencies.
