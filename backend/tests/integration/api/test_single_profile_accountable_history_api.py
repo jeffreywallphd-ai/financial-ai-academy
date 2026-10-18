@@ -342,3 +342,32 @@ def test_openapi_contains_two_cookie_protected_headless_operations() -> None:
     assert "422" not in read["responses"]
     assert "422" not in export["responses"]
     assert OPENAPI.read_bytes() == generate_bytes()
+
+
+def test_openapi_preserves_frozen_history_identity_and_time_constraints() -> None:
+    generated = json.loads(generate_bytes())
+    schema = {
+        "$ref": "#/components/schemas/AccountableHistoryResponseModel",
+        "components": generated["components"],
+    }
+    validator = Draft202012Validator(
+        schema,
+        format_checker=FormatChecker(),
+    )
+    valid = accountable_history_payload(
+        compose_accountable_history(
+            _lineage("lineage-view.json"),
+            AccountableHistoryPurpose.LEARNER_REVIEW,
+        )
+    )
+    assert list(validator.iter_errors(valid)) == []
+
+    wrong_owner = json.loads(json.dumps(valid))
+    wrong_owner["entries"][0]["owner_module"] = "audit"
+    owner_errors = list(validator.iter_errors(wrong_owner))
+    assert owner_errors
+
+    missing_offset = json.loads(json.dumps(valid))
+    missing_offset["entries"][0]["recorded_at"] = "2026-08-05T12:00:00"
+    time_errors = list(validator.iter_errors(missing_offset))
+    assert time_errors

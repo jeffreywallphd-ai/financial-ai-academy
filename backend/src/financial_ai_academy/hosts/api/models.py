@@ -177,6 +177,10 @@ _ACCOUNTABLE_TEXT_PATTERN = (
     r"^[^<>\x00-\x1F\x7F-\x9F\u061C\u200B-\u200F"
     r"\u202A-\u202E\u2060-\u206F\uFEFF]+$"
 )
+_ACCOUNTABLE_TIMESTAMP_PATTERN = (
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
+    r"(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
+)
 
 
 class PublishedLessonLineageRequestModel(ApiModel):
@@ -401,33 +405,78 @@ class _AccountableHistoryEntryBase(ApiModel):
     explanation: str = Field(
         min_length=1, max_length=500, pattern=_ACCOUNTABLE_TEXT_PATTERN
     )
-    owner_module: Literal["content", "assessment", "audit"]
     resource_id: str = Field(
         min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
     )
     integrity_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
-    recorded_at: datetime
+    recorded_at: datetime = Field(
+        json_schema_extra={"pattern": _ACCOUNTABLE_TIMESTAMP_PATTERN}
+    )
     validation_status: Literal["validated", "incomplete"]
 
 
-class AccountableHistoryVersionedEntryResponseModel(_AccountableHistoryEntryBase):
-    resource_kind: Literal[
-        "educational_source", "published_lesson", "assessment_definition"
-    ]
+class _AccountableHistoryVersionedEntryResponseModel(
+    _AccountableHistoryEntryBase
+):
     resource_version: str = Field(pattern=_LINEAGE_VERSION_PATTERN)
 
 
-class AccountableHistoryOccurrenceEntryResponseModel(_AccountableHistoryEntryBase):
-    resource_kind: Literal[
-        "knowledge_check_event", "completion_evidence", "audit_reference"
-    ]
+class _AccountableHistoryOccurrenceEntryResponseModel(
+    _AccountableHistoryEntryBase
+):
     occurrence: int = Field(ge=1, strict=True)
+
+
+class AccountableHistoryEducationalSourceEntryResponseModel(
+    _AccountableHistoryVersionedEntryResponseModel
+):
+    owner_module: Literal["content"]
+    resource_kind: Literal["educational_source"]
+
+
+class AccountableHistoryPublishedLessonEntryResponseModel(
+    _AccountableHistoryVersionedEntryResponseModel
+):
+    owner_module: Literal["content"]
+    resource_kind: Literal["published_lesson"]
+
+
+class AccountableHistoryAssessmentDefinitionEntryResponseModel(
+    _AccountableHistoryVersionedEntryResponseModel
+):
+    owner_module: Literal["assessment"]
+    resource_kind: Literal["assessment_definition"]
+
+
+class AccountableHistoryKnowledgeCheckEventEntryResponseModel(
+    _AccountableHistoryOccurrenceEntryResponseModel
+):
+    owner_module: Literal["assessment"]
+    resource_kind: Literal["knowledge_check_event"]
+
+
+class AccountableHistoryCompletionEvidenceEntryResponseModel(
+    _AccountableHistoryOccurrenceEntryResponseModel
+):
+    owner_module: Literal["assessment"]
+    resource_kind: Literal["completion_evidence"]
+
+
+class AccountableHistoryAuditReferenceEntryResponseModel(
+    _AccountableHistoryOccurrenceEntryResponseModel
+):
+    owner_module: Literal["audit"]
+    resource_kind: Literal["audit_reference"]
 
 
 AccountableHistoryEntryResponseModel = Annotated[
     Union[
-        AccountableHistoryVersionedEntryResponseModel,
-        AccountableHistoryOccurrenceEntryResponseModel,
+        AccountableHistoryEducationalSourceEntryResponseModel,
+        AccountableHistoryPublishedLessonEntryResponseModel,
+        AccountableHistoryAssessmentDefinitionEntryResponseModel,
+        AccountableHistoryKnowledgeCheckEventEntryResponseModel,
+        AccountableHistoryCompletionEvidenceEntryResponseModel,
+        AccountableHistoryAuditReferenceEntryResponseModel,
     ],
     Field(discriminator="resource_kind"),
 ]
@@ -521,7 +570,9 @@ class PortableEvidenceExportResponseModel(ApiModel):
         "application/vnd.financial-ai-academy.accountable-history+json"
     ]
     filename_stem: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,79}$")
-    exported_at: datetime
+    exported_at: datetime = Field(
+        json_schema_extra={"pattern": _ACCOUNTABLE_TIMESTAMP_PATTERN}
+    )
     document_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
     document: AccountableHistoryResponseModel
 

@@ -506,6 +506,48 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   readonly schemas: {
+    readonly "AccountableHistoryAssessmentDefinitionEntryResponseModel": {
+      readonly "entry_id": string;
+      readonly "explanation": string;
+      readonly "integrity_digest": string;
+      readonly "owner_module": "assessment";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "assessment_definition";
+      readonly "resource_version": string;
+      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
+      readonly "sequence": number;
+      readonly "title": string;
+      readonly "validation_status": "validated" | "incomplete";
+    };
+    readonly "AccountableHistoryAuditReferenceEntryResponseModel": {
+      readonly "entry_id": string;
+      readonly "explanation": string;
+      readonly "integrity_digest": string;
+      readonly "occurrence": number;
+      readonly "owner_module": "audit";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "audit_reference";
+      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
+      readonly "sequence": number;
+      readonly "title": string;
+      readonly "validation_status": "validated" | "incomplete";
+    };
+    readonly "AccountableHistoryCompletionEvidenceEntryResponseModel": {
+      readonly "entry_id": string;
+      readonly "explanation": string;
+      readonly "integrity_digest": string;
+      readonly "occurrence": number;
+      readonly "owner_module": "assessment";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "completion_evidence";
+      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
+      readonly "sequence": number;
+      readonly "title": string;
+      readonly "validation_status": "validated" | "incomplete";
+    };
     readonly "AccountableHistoryCompletionRootResponseModel": {
       readonly "occurrence": number;
       readonly "resource_id": string;
@@ -515,6 +557,34 @@ export interface components {
       readonly "code": "missing_reference" | "owner_unavailable" | "unsupported_contract_version" | "integrity_mismatch" | "invalid_relation" | "identity_conflict" | "redacted_detail";
       readonly "explanation": string;
       readonly "reference": string;
+    };
+    readonly "AccountableHistoryEducationalSourceEntryResponseModel": {
+      readonly "entry_id": string;
+      readonly "explanation": string;
+      readonly "integrity_digest": string;
+      readonly "owner_module": "content";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "educational_source";
+      readonly "resource_version": string;
+      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
+      readonly "sequence": number;
+      readonly "title": string;
+      readonly "validation_status": "validated" | "incomplete";
+    };
+    readonly "AccountableHistoryKnowledgeCheckEventEntryResponseModel": {
+      readonly "entry_id": string;
+      readonly "explanation": string;
+      readonly "integrity_digest": string;
+      readonly "occurrence": number;
+      readonly "owner_module": "assessment";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "knowledge_check_event";
+      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
+      readonly "sequence": number;
+      readonly "title": string;
+      readonly "validation_status": "validated" | "incomplete";
     };
     readonly "AccountableHistoryLessonRootResponseModel": {
       readonly "resource_id": string;
@@ -528,15 +598,15 @@ export interface components {
       readonly "source_entry_id": string;
       readonly "target_reference": string;
     };
-    readonly "AccountableHistoryOccurrenceEntryResponseModel": {
+    readonly "AccountableHistoryPublishedLessonEntryResponseModel": {
       readonly "entry_id": string;
       readonly "explanation": string;
       readonly "integrity_digest": string;
-      readonly "occurrence": number;
-      readonly "owner_module": "content" | "assessment" | "audit";
+      readonly "owner_module": "content";
       readonly "recorded_at": string;
       readonly "resource_id": string;
-      readonly "resource_kind": "knowledge_check_event" | "completion_evidence" | "audit_reference";
+      readonly "resource_kind": "published_lesson";
+      readonly "resource_version": string;
       readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
       readonly "sequence": number;
       readonly "title": string;
@@ -548,7 +618,7 @@ export interface components {
     };
     readonly "AccountableHistoryResponseModel": {
       readonly "diagnostics": ReadonlyArray<components["schemas"]["AccountableHistoryDiagnosticResponseModel"]>;
-      readonly "entries": ReadonlyArray<components["schemas"]["AccountableHistoryVersionedEntryResponseModel"] | components["schemas"]["AccountableHistoryOccurrenceEntryResponseModel"]>;
+      readonly "entries": ReadonlyArray<components["schemas"]["AccountableHistoryEducationalSourceEntryResponseModel"] | components["schemas"]["AccountableHistoryPublishedLessonEntryResponseModel"] | components["schemas"]["AccountableHistoryAssessmentDefinitionEntryResponseModel"] | components["schemas"]["AccountableHistoryKnowledgeCheckEventEntryResponseModel"] | components["schemas"]["AccountableHistoryCompletionEvidenceEntryResponseModel"] | components["schemas"]["AccountableHistoryAuditReferenceEntryResponseModel"]>;
       readonly "history_digest": string;
       readonly "missing_links": ReadonlyArray<components["schemas"]["AccountableHistoryMissingLinkResponseModel"]>;
       readonly "purpose": "learner_review" | "portable_evidence";
@@ -565,20 +635,6 @@ export interface components {
       readonly "relation": "published_from" | "defined_by" | "produced" | "recorded_as";
       readonly "source_entry_id": string;
       readonly "target_entry_id": string;
-    };
-    readonly "AccountableHistoryVersionedEntryResponseModel": {
-      readonly "entry_id": string;
-      readonly "explanation": string;
-      readonly "integrity_digest": string;
-      readonly "owner_module": "content" | "assessment" | "audit";
-      readonly "recorded_at": string;
-      readonly "resource_id": string;
-      readonly "resource_kind": "educational_source" | "published_lesson" | "assessment_definition";
-      readonly "resource_version": string;
-      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
-      readonly "sequence": number;
-      readonly "title": string;
-      readonly "validation_status": "validated" | "incomplete";
     };
     readonly "ActivityLaunchResponseModel": {
       readonly "activity_id": string;
