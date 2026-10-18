@@ -68,8 +68,8 @@ mistaking documentation for financial, legal, or regulatory advice.
 
 | Slice ID | Observable increment | Dependencies and order constraints | Material-change boundary | Planning status |
 | --- | --- | --- | --- | --- |
-| SLI-0082 | A learner browses and searches a versioned approved glossary/help corpus with applicability, source, and update metadata. | First after CAP-0001; establishes content and index contracts. | AI-authored canonical policy or active external content changes the CAP package. | captured |
-| SLI-0083 | The learner opens contextual method, provenance, data-distinction, and education-versus-advice explanations from supported features. | After SLI-0082; uses stable contextual links. | Help becoming product-policy authority changes the CAP package. | captured |
+| SLI-0082 | A learner browses and searches a versioned approved glossary/help corpus with applicability, source, and update metadata. | First after CAP-0001; establishes content and index contracts. | AI-authored canonical policy or active external content changes the CAP package. | complete |
+| [SLI-0083](../vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md) | The learner opens contextual method, provenance, data-distinction, and education-versus-advice explanations from supported features. | After SLI-0082; uses stable contextual links. | Help becoming product-policy authority changes the CAP package. | ready |
 | SLI-0084 | The learner sees feature/version limitations, unavailable/degraded capability guidance, and safe troubleshooting without revealing secrets or unsupported claims. | After SLI-0083. | Operational command execution or guarantee claims changes the CAP package. | captured |
 | SLI-0085 | Help is qualified for source freshness, broken links, safe rendering, search quality, accessibility, offline local use, and anti-rigidity integration. | Last; depends on SLI-0082 through SLI-0084. | Hosted support workflow or unbounded external retrieval changes the CAP package. | captured |
 
