@@ -189,6 +189,10 @@ Only exact same-application Help references receive a destination; every
 retry, reload, return, or inert-file action remains unavailable unless the
 owning feature supplies the matching safe handler. Denied, missing, malformed,
 stale, or unavailable Guidance renders nothing and leaves the original feature
-status and action usable. Final live browser/headless restart, no-outbound,
-read-only-containment, and cleanup qualification remains SLI-0084 work; this
-operation and its presentation have no persistence or execution effect.
+status and action usable. The isolated local flow reads all five exact
+resolutions through authenticated browser and ordinary headless sessions,
+correlates both digests and every source/topic reference, repeats equal public
+meaning after normal restart, keeps observed requests loopback-only and GET-
+only, denies missing and invalid sessions confidentially, preserves every non-
+Identity database schema, and performs bounded cleanup. This operation and its
+presentation have no persistence or execution effect.

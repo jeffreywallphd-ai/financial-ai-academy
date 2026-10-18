@@ -26,13 +26,16 @@
   the viewport even though the Platform Help flow remains keyboard-operable and
   axe-clean; this nonfunctional presentation item is deferred to CAP-0031
   rather than reopening the functional CAP-0020 delivery path
-- Contextual and Platform Help managed-cloud availability, operating-system
-  network isolation, corpus refresh/authoring, remote content, semantic search,
-  personalization/analytics, and non-Chromium qualification remain gaps beyond
-  the directly covered immutable checked-in corpus/registry, focused feature
-  links and safe returns, protected browser/headless API parity, exact source
-  and digest correlation, confidential denial, normal local restart,
-  loopback-only browser observation, and Guidance-only database containment
+- Platform, contextual, and feature-condition Guidance managed-cloud
+  availability, operating-system network isolation, corpus/registry refresh
+  and authoring, remote content, semantic search, personalization/analytics,
+  and non-Chromium qualification remain gaps beyond the directly covered
+  immutable checked-in corpus/registries, focused feature links and safe
+  returns/handlers, five optional limitation explanations, protected browser/
+  headless API parity, exact source/topic and context/mapping/record digest
+  correlation, confidential missing/invalid-session denial, normal local
+  restart, loopback-only GET observation, Guidance-only database containment,
+  and bounded cleanup
 - Community operator backup/restore tooling, maintenance-write rejection,
   recovery-set manifest/finalization, least-privileged roles and permissions,
   external encrypted destination, recovery-credential handling, corruption/

@@ -4,9 +4,11 @@ import { writeFile } from "node:fs/promises";
 
 import {
   contextualHelpIsSafe,
+  featureGuidanceIsSafe,
   platformHelpSearchPageIsSafe,
   platformHelpTopicIsSafe,
   type ContextualHelp,
+  type FeatureGuidance,
   type PlatformHelpSearchPage,
   type PlatformHelpTopic,
 } from "../../../src/features/platform-help/model";
@@ -14,12 +16,20 @@ import {
 
 const HELP_API = "/api/v1/guidance/platform-help";
 const CONTEXT_API = "/api/v1/guidance/contextual-help";
+const FEATURE_API = "/api/v1/guidance/feature-guidance";
 const CONTEXT_VERSION = "1.0.0";
 const CONTEXT_KEYS = [
   "ai-assistance",
   "lesson-publication",
   "practice-result",
   "project-result",
+] as const;
+const FEATURE_CONDITIONS = [
+  ["lesson-reading", "exact-version-unavailable", "1.0.0"],
+  ["practice-activity", "write-outcome-uncertain", "1.0.0"],
+  ["saved-learning", "source-unavailable", "1.0.0"],
+  ["project-workspace", "artifact-inert", "1.0.0"],
+  ["ai-assistance", "provider-execution-not-enabled", "1.0.0"],
 ] as const;
 
 function isLoopback(url: URL): boolean {
@@ -69,7 +79,11 @@ test("keeps reviewed platform help available through one local public API", asyn
   page.on("request", (request) => {
     const url = new URL(request.url());
     if (!isLoopback(url)) externalRequests.push(url.origin);
-    if (url.pathname.startsWith(HELP_API) || url.pathname.startsWith(CONTEXT_API)) {
+    if (
+      url.pathname.startsWith(HELP_API) ||
+      url.pathname.startsWith(CONTEXT_API) ||
+      url.pathname.startsWith(FEATURE_API)
+    ) {
       guidanceRequests.push({ method: request.method(), path: url.pathname });
     }
   });
@@ -152,31 +166,58 @@ test("keeps reviewed platform help available through one local public API", asyn
       `${CONTEXT_API}/${contextKey}/versions/${CONTEXT_VERSION}`,
     );
     expect(isLoopback(new URL(response.url()))).toBe(true);
+    guidanceRequests.push({ method: "GET", path: new URL(response.url()).pathname });
     expect(response.status()).toBe(200);
     const document = (await response.json()) as ContextualHelp;
     expect(contextualHelpIsSafe(document, contextKey, CONTEXT_VERSION)).toBe(true);
     contexts[contextKey] = document;
   }
 
+  const featureGuidance: Record<string, FeatureGuidance> = {};
+  for (const [surfaceKey, conditionKey, mappingVersion] of FEATURE_CONDITIONS) {
+    const response = await context.request.get(
+      `${FEATURE_API}/${surfaceKey}/conditions/${conditionKey}/versions/${mappingVersion}`,
+    );
+    expect(isLoopback(new URL(response.url()))).toBe(true);
+    guidanceRequests.push({ method: "GET", path: new URL(response.url()).pathname });
+    expect(response.status()).toBe(200);
+    const document = (await response.json()) as FeatureGuidance;
+    expect(
+      await featureGuidanceIsSafe(
+        document,
+        surfaceKey,
+        conditionKey,
+        mappingVersion,
+      ),
+    ).toBe(true);
+    featureGuidance[`${surfaceKey}:${conditionKey}@${mappingVersion}`] = document;
+  }
+
   const contextTopics: Record<string, PlatformHelpTopic> = {};
-  for (const document of Object.values(contexts)) {
-    for (const reference of document.help_references) {
-      const identity = `${reference.topic_id}@${reference.topic_version}`;
-      if (contextTopics[identity]) continue;
-      const response = await context.request.get(
-        `${HELP_API}/${reference.topic_id}/versions/${reference.topic_version}`,
-      );
-      expect(response.status()).toBe(200);
-      const topic = (await response.json()) as PlatformHelpTopic;
-      expect(
-        platformHelpTopicIsSafe(
-          topic,
-          reference.topic_id,
-          reference.topic_version,
-        ),
-      ).toBe(true);
-      contextTopics[identity] = topic;
-    }
+  const referencedTopics = [
+    ...Object.values(contexts).flatMap((document) => document.help_references),
+    ...Object.values(featureGuidance).flatMap(
+      (document) => document.guidance.help_references,
+    ),
+  ];
+  for (const reference of referencedTopics) {
+    const identity = `${reference.topic_id}@${reference.topic_version}`;
+    if (contextTopics[identity]) continue;
+    const response = await context.request.get(
+      `${HELP_API}/${reference.topic_id}/versions/${reference.topic_version}`,
+    );
+    expect(isLoopback(new URL(response.url()))).toBe(true);
+    guidanceRequests.push({ method: "GET", path: new URL(response.url()).pathname });
+    expect(response.status()).toBe(200);
+    const topic = (await response.json()) as PlatformHelpTopic;
+    expect(
+      platformHelpTopicIsSafe(
+        topic,
+        reference.topic_id,
+        reference.topic_version,
+      ),
+    ).toBe(true);
+    contextTopics[identity] = topic;
   }
 
   for (const theme of ["light", "dark", "system"] as const) {
@@ -205,7 +246,8 @@ test("keeps reviewed platform help available through one local public API", asyn
     guidanceRequests.every(({ path }) =>
       path === HELP_API ||
       /^\/api\/v1\/guidance\/platform-help\/[a-z0-9._-]+\/versions\/\d+\.\d+\.\d+$/.test(path) ||
-      /^\/api\/v1\/guidance\/contextual-help\/[a-z0-9._-]+\/versions\/\d+\.\d+\.\d+$/.test(path),
+      /^\/api\/v1\/guidance\/contextual-help\/[a-z0-9._-]+\/versions\/\d+\.\d+\.\d+$/.test(path) ||
+      /^\/api\/v1\/guidance\/feature-guidance\/[a-z0-9._-]+\/conditions\/[a-z0-9._-]+\/versions\/\d+\.\d+\.\d+$/.test(path),
     ),
   ).toBe(true);
 
@@ -225,6 +267,7 @@ test("keeps reviewed platform help available through one local public API", asyn
         limitation_page: limitationPage,
         limitation_continuation: limitationContinuation,
         contexts,
+        feature_guidance: featureGuidance,
         context_topics: contextTopics,
         expected: {
           external_request_count: externalRequests.length,

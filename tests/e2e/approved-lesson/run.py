@@ -254,6 +254,7 @@ PLATFORM_HELP_CAPTURE_ROOT_KEYS = frozenset(
         "limitation_page",
         "limitation_continuation",
         "contexts",
+        "feature_guidance",
         "context_topics",
         "expected",
     }
@@ -333,6 +334,52 @@ CONTEXTUAL_HELP_REFERENCE_KEYS = frozenset(
 )
 CONTEXTUAL_HELP_PURPOSES = frozenset(
     {"method", "source", "data_meaning", "ai_boundary", "education_boundary"}
+)
+FEATURE_GUIDANCE_CONDITIONS = (
+    ("lesson-reading", "exact-version-unavailable", "1.0.0"),
+    ("practice-activity", "write-outcome-uncertain", "1.0.0"),
+    ("saved-learning", "source-unavailable", "1.0.0"),
+    ("project-workspace", "artifact-inert", "1.0.0"),
+    ("ai-assistance", "provider-execution-not-enabled", "1.0.0"),
+)
+FEATURE_GUIDANCE_MAPPING_KEYS = frozenset(
+    {
+        "schema_version",
+        "surface_key",
+        "condition_key",
+        "mapping_version",
+        "guidance_id",
+        "guidance_version",
+        "publication",
+        "source_references",
+        "mapping_digest",
+    }
+)
+FEATURE_GUIDANCE_RECORD_KEYS = frozenset(
+    {
+        "schema_version",
+        "guidance_id",
+        "guidance_version",
+        "status",
+        "heading",
+        "reason",
+        "outcome",
+        "actions",
+        "help_references",
+        "applicability",
+        "publication",
+        "source_references",
+        "guidance_digest",
+    }
+)
+FEATURE_GUIDANCE_ACTION_KINDS = frozenset(
+    {
+        "retry_unchanged_request",
+        "reload_current_state",
+        "return_to_owning_task",
+        "open_help_topic",
+        "download_inert_artifact",
+    }
 )
 PRACTICE_REVIEW_TARGET_COMMON_KEYS = frozenset(
     {
@@ -3763,6 +3810,169 @@ def stable_contextual_help(
     return copy.deepcopy(value)
 
 
+def _canonical_feature_guidance_digest(
+    value: dict[str, Any], *, digest_field: str
+) -> str:
+    canonical = copy.deepcopy(value)
+    canonical.pop(digest_field, None)
+    return hashlib.sha256(
+        json.dumps(
+            canonical,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def stable_feature_guidance(
+    value: dict[str, Any],
+    *,
+    surface_key: str,
+    condition_key: str,
+    mapping_version: str = "1.0.0",
+) -> dict[str, Any]:
+    _exact_keys(
+        value,
+        frozenset({"mapping", "guidance"}),
+        "Feature Guidance resolution",
+    )
+    mapping = value.get("mapping")
+    guidance = value.get("guidance")
+    if not isinstance(mapping, dict) or not isinstance(guidance, dict):
+        raise RuntimeError("Feature Guidance resolution is incomplete.")
+    _exact_keys(mapping, FEATURE_GUIDANCE_MAPPING_KEYS, "Feature Guidance mapping")
+    _exact_keys(guidance, FEATURE_GUIDANCE_RECORD_KEYS, "Feature Guidance record")
+    identifier = r"[a-z0-9][a-z0-9._-]{2,63}"
+    version = r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
+    if (
+        mapping.get("schema_version") != "1.0.0"
+        or mapping.get("surface_key") != surface_key
+        or mapping.get("condition_key") != condition_key
+        or mapping.get("mapping_version") != mapping_version
+        or re.fullmatch(identifier, surface_key) is None
+        or re.fullmatch(identifier, condition_key) is None
+        or re.fullmatch(version, mapping_version) is None
+        or not isinstance(mapping.get("guidance_id"), str)
+        or re.fullmatch(identifier, mapping["guidance_id"]) is None
+        or not isinstance(mapping.get("guidance_version"), str)
+        or re.fullmatch(version, mapping["guidance_version"]) is None
+        or guidance.get("schema_version") != "1.0.0"
+        or guidance.get("guidance_id") != mapping["guidance_id"]
+        or guidance.get("guidance_version") != mapping["guidance_version"]
+        or guidance.get("status") not in {"unavailable", "degraded", "limited"}
+    ):
+        raise RuntimeError("Feature Guidance identity is inconsistent.")
+
+    for label, text, maximum in (
+        ("heading", guidance.get("heading"), 120),
+        ("reason", guidance.get("reason"), 500),
+        ("outcome", guidance.get("outcome"), 500),
+    ):
+        if not isinstance(text, str) or not 1 <= len(text) <= maximum:
+            raise RuntimeError(f"Feature Guidance {label} is invalid.")
+
+    for document in (mapping, guidance):
+        _stable_platform_help_publication(document.get("publication"))
+        _stable_platform_help_sources(document.get("source_references"))
+
+    applicability = guidance.get("applicability")
+    if not isinstance(applicability, list) or not 1 <= len(applicability) <= 20:
+        raise RuntimeError("Feature Guidance applicability is invalid.")
+    scope_keys: set[str] = set()
+    for item in applicability:
+        if not isinstance(item, dict):
+            raise RuntimeError("Feature Guidance applicability is not an object.")
+        _exact_keys(
+            item,
+            frozenset({"scope_key", "label"}),
+            "Feature Guidance applicability",
+        )
+        scope_key = item.get("scope_key")
+        if (
+            not isinstance(scope_key, str)
+            or re.fullmatch(identifier, scope_key) is None
+            or scope_key in scope_keys
+            or not isinstance(item.get("label"), str)
+            or not 1 <= len(item["label"]) <= 160
+        ):
+            raise RuntimeError("Feature Guidance applicability is invalid or duplicated.")
+        scope_keys.add(scope_key)
+
+    references = guidance.get("help_references")
+    if not isinstance(references, list) or not 1 <= len(references) <= 10:
+        raise RuntimeError("Feature Guidance references are invalid.")
+    reference_identities: set[str] = set()
+    purposes: set[str] = set()
+    for reference in references:
+        if not isinstance(reference, dict):
+            raise RuntimeError("Feature Guidance reference is not an object.")
+        _exact_keys(
+            reference,
+            CONTEXTUAL_HELP_REFERENCE_KEYS,
+            "Feature Guidance reference",
+        )
+        topic_id = reference.get("topic_id")
+        topic_version = reference.get("topic_version")
+        identity = f"{topic_id}@{topic_version}"
+        purpose = reference.get("purpose")
+        if (
+            not isinstance(topic_id, str)
+            or re.fullmatch(identifier, topic_id) is None
+            or not isinstance(topic_version, str)
+            or re.fullmatch(version, topic_version) is None
+            or purpose not in CONTEXTUAL_HELP_PURPOSES
+            or identity in reference_identities
+            or purpose in purposes
+            or not isinstance(reference.get("label"), str)
+            or not 1 <= len(reference["label"]) <= 160
+        ):
+            raise RuntimeError("Feature Guidance reference is invalid or duplicated.")
+        reference_identities.add(identity)
+        purposes.add(str(purpose))
+
+    actions = guidance.get("actions")
+    if not isinstance(actions, list) or len(actions) > 5:
+        raise RuntimeError("Feature Guidance actions are invalid.")
+    action_identities: set[str] = set()
+    for action in actions:
+        if not isinstance(action, dict):
+            raise RuntimeError("Feature Guidance action is not an object.")
+        kind = action.get("action_kind")
+        expected_keys = (
+            frozenset({"action_kind", "label", "topic_id", "topic_version"})
+            if kind == "open_help_topic"
+            else frozenset({"action_kind", "label"})
+        )
+        _exact_keys(action, expected_keys, "Feature Guidance action")
+        if (
+            kind not in FEATURE_GUIDANCE_ACTION_KINDS
+            or not isinstance(action.get("label"), str)
+            or not 1 <= len(action["label"]) <= 160
+        ):
+            raise RuntimeError("Feature Guidance action is invalid.")
+        topic_identity = ""
+        if kind == "open_help_topic":
+            topic_id = action.get("topic_id")
+            topic_version = action.get("topic_version")
+            topic_identity = f"{topic_id}@{topic_version}"
+            if topic_identity not in reference_identities:
+                raise RuntimeError("Feature Guidance action has no exact Help reference.")
+        action_identity = f"{kind}:{topic_identity}"
+        if action_identity in action_identities:
+            raise RuntimeError("Feature Guidance action is duplicated.")
+        action_identities.add(action_identity)
+
+    for document, field, label in (
+        (mapping, "mapping_digest", "Feature Guidance mapping digest"),
+        (guidance, "guidance_digest", "Feature Guidance record digest"),
+    ):
+        digest = _platform_help_digest(document.get(field), label=label)
+        if _canonical_feature_guidance_digest(document, digest_field=field) != digest:
+            raise RuntimeError(f"{label} does not match its public document.")
+    return copy.deepcopy(value)
+
+
 def _stable_platform_help_result(value: object) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise RuntimeError("Platform Help search result is not an object.")
@@ -3911,10 +4121,35 @@ def load_platform_help_capture(path: Path, *, data_root: Path) -> dict[str, Any]
         )
         for context_key in CONTEXTUAL_HELP_KEYS
     }
+    captured_feature_guidance = capture.get("feature_guidance")
+    expected_feature_identities = {
+        f"{surface_key}:{condition_key}@{mapping_version}"
+        for surface_key, condition_key, mapping_version in FEATURE_GUIDANCE_CONDITIONS
+    }
+    if (
+        not isinstance(captured_feature_guidance, dict)
+        or set(captured_feature_guidance) != expected_feature_identities
+    ):
+        raise RuntimeError(
+            "Feature Guidance capture does not contain every exact condition."
+        )
+    feature_guidance = {}
+    for surface_key, condition_key, mapping_version in FEATURE_GUIDANCE_CONDITIONS:
+        identity = f"{surface_key}:{condition_key}@{mapping_version}"
+        feature_guidance[identity] = stable_feature_guidance(
+            captured_feature_guidance[identity],
+            surface_key=surface_key,
+            condition_key=condition_key,
+            mapping_version=mapping_version,
+        )
     expected_topic_identities = {
         f"{reference['topic_id']}@{reference['topic_version']}"
         for context in contexts.values()
         for reference in context["help_references"]
+    } | {
+        f"{reference['topic_id']}@{reference['topic_version']}"
+        for resolution in feature_guidance.values()
+        for reference in resolution["guidance"]["help_references"]
     }
     captured_context_topics = capture.get("context_topics")
     if (
@@ -3966,6 +4201,11 @@ def load_platform_help_capture(path: Path, *, data_root: Path) -> dict[str, Any]
             identity = f"{reference['topic_id']}@{reference['topic_version']}"
             if identity not in context_topics:
                 raise RuntimeError("Contextual Help exact topic correlation is absent.")
+    for resolution in feature_guidance.values():
+        for reference in resolution["guidance"]["help_references"]:
+            identity = f"{reference['topic_id']}@{reference['topic_version']}"
+            if identity not in context_topics:
+                raise RuntimeError("Feature Guidance exact topic correlation is absent.")
     expected = capture.get("expected")
     if expected != {"external_request_count": 0, "guidance_methods": ["GET"]}:
         raise RuntimeError("Platform Help request containment was not observed.")
@@ -4044,6 +4284,77 @@ def observe_headless_platform_help(
     ):
         raise RuntimeError(
             "Contextual Help authorization denial exposed registry facts."
+        )
+
+    feature_status, feature_denial = _request_json_read_status(
+        unauthenticated,
+        origin=origin,
+        path=(
+            "/api/v1/guidance/feature-guidance/lesson-reading/conditions/"
+            "exact-version-unavailable/versions/1.0.0"
+        ),
+    )
+    _exact_keys(
+        feature_denial,
+        frozenset({"error_version", "code", "message", "correlation_id"}),
+        "Feature Guidance authorization denial",
+    )
+    serialized_feature_denial = json.dumps(
+        feature_denial, sort_keys=True
+    ).casefold()
+    if (
+        feature_status != 401
+        or feature_denial.get("code") != "unauthorized"
+        or any(
+            marker in serialized_feature_denial
+            for marker in (
+                "exact-version-unavailable",
+                "guidance_digest",
+                "lesson-reading",
+                "mapping_digest",
+                "safe-recovery",
+            )
+        )
+    ):
+        raise RuntimeError(
+            "Feature Guidance authorization denial exposed registry facts."
+        )
+    invalid_session = urllib.request.build_opener()
+    invalid_session.addheaders = [
+        ("Cookie", "financial_ai_academy_session=invalid-session")
+    ]
+    invalid_status, invalid_denial = _request_json_read_status(
+        invalid_session,
+        origin=origin,
+        path=(
+            "/api/v1/guidance/feature-guidance/project-workspace/conditions/"
+            "artifact-inert/versions/1.0.0"
+        ),
+    )
+    _exact_keys(
+        invalid_denial,
+        frozenset({"error_version", "code", "message", "correlation_id"}),
+        "Feature Guidance invalid-session denial",
+    )
+    serialized_invalid_denial = json.dumps(
+        invalid_denial, sort_keys=True
+    ).casefold()
+    if (
+        invalid_status != 401
+        or invalid_denial.get("code") != "unauthorized"
+        or any(
+            marker in serialized_invalid_denial
+            for marker in (
+                "artifact-inert",
+                "guidance_digest",
+                "mapping_digest",
+                "project-workspace",
+                "project-artifact-use",
+            )
+        )
+    ):
+        raise RuntimeError(
+            "Feature Guidance invalid-session denial exposed registry facts."
         )
 
     cookies = http.cookiejar.CookieJar()
@@ -4156,10 +4467,30 @@ def observe_headless_platform_help(
         )
         for context_key in CONTEXTUAL_HELP_KEYS
     }
+    feature_guidance = {}
+    for surface_key, condition_key, mapping_version in FEATURE_GUIDANCE_CONDITIONS:
+        identity = f"{surface_key}:{condition_key}@{mapping_version}"
+        feature_guidance[identity] = stable_feature_guidance(
+            _request_json(
+                opener,
+                origin=origin,
+                path=(
+                    f"/api/v1/guidance/feature-guidance/{surface_key}/conditions/"
+                    f"{condition_key}/versions/{mapping_version}"
+                ),
+            ),
+            surface_key=surface_key,
+            condition_key=condition_key,
+            mapping_version=mapping_version,
+        )
     exact_topic_identities = {
         f"{reference['topic_id']}@{reference['topic_version']}"
         for context in contexts.values()
         for reference in context["help_references"]
+    } | {
+        f"{reference['topic_id']}@{reference['topic_version']}"
+        for resolution in feature_guidance.values()
+        for reference in resolution["guidance"]["help_references"]
     }
     context_topics: dict[str, dict[str, Any]] = {}
     for identity in sorted(exact_topic_identities):
@@ -4185,6 +4516,7 @@ def observe_headless_platform_help(
         "limitation_page": limitation,
         "limitation_continuation": limitation_continued,
         "contexts": contexts,
+        "feature_guidance": feature_guidance,
         "context_topics": context_topics,
     }
     expected = {key: capture[key] for key in observed}
@@ -8921,6 +9253,18 @@ def main() -> int:
                 "corpus_digest": platform_help["first_page"]["corpus_digest"],
                 "exact_relation_navigation": True,
                 "exact_version_reads": True,
+                "feature_guidance_conditions": list(
+                    platform_help["feature_guidance"]
+                ),
+                "feature_guidance_digests": {
+                    identity: {
+                        "mapping_digest": resolution["mapping"]["mapping_digest"],
+                        "guidance_digest": resolution["guidance"]["guidance_digest"],
+                    }
+                    for identity, resolution in platform_help[
+                        "feature_guidance"
+                    ].items()
+                },
                 "no_non_loopback_browser_requests": True,
                 "normal_restart_without_reseeding": True,
                 "public_api_shared": True,

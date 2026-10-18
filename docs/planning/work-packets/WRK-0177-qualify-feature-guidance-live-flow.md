@@ -1,7 +1,7 @@
 ---
 id: WRK-0177
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -10,7 +10,7 @@ capability: CAP-0020
 depends_on: [WRK-0176]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0020-understand-platform-methods-and-limitations.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0177-qualify-feature-guidance-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/assistance-preferences.e2e.ts", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0020-understand-platform-methods-and-limitations.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0177-qualify-feature-guidance-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
 base_revision: 9d155b56b54dcb65c4544e69a99c7888f2752c4a
 claim_id: WRK-0177:d1a85d0a-e528-4070-9b5f-955746152e89
@@ -206,10 +206,38 @@ correlation; accessibility and anti-rigidity; cleanup; checks; changed files;
 documentation impact; assumptions; unsupported profiles; and residual gaps.
 Confirm no product/contract meaning, feature state/action, identity,
 persistence, provider/model, artifact execution, external action, learner
-policy, or financial behavior changed, then close SLI-0084 and CAP-0020.
+policy, or financial behavior changed, then close SLI-0084 and proceed to the
+already-approved SLI-0085 qualification slice before CAP-0020 closure.
+
+## Verification Evidence
+
+Implementation is complete pending exact-candidate qualification and bounded
+technical disposition. The pure replay module passes all 87 cases. The direct
+isolated live topology passes every Chromium flow and proves all five exact
+feature-condition resolutions through authenticated browser and fresh ordinary
+headless sessions, confidential missing and invalid-session denial, exact
+mapping/record/source/topic correlation, equal meaning after normal restart,
+loopback-only GET observation, unchanged non-Identity database fingerprints,
+and finally-path cleanup.
+
+The first live run exposed one stale assistance-preference read allowlist. The
+bounded correction admits only the delivered exact AI-help Feature Guidance
+GET alongside the existing export and contextual-Help GETs; it preserves the
+no-write, no-provider, and no-notification-execution assertions. TypeScript,
+zero-warning lint, Python compilation, work-packet validation, and the corrected
+full live topology pass.
 
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0176 completed. This is the
   smallest final SLI-0084 seam and reuses the established approved-lesson
   topology without a new product decision or lower-level approval.
+- 2026-10-18: The first live pass reached the AI-help preference flow and
+  exposed one stale read allowlist that admitted exact contextual Help but not
+  the newly delivered exact Feature Guidance GET. Scope now includes only that
+  assertion; its no-write and no-provider-execution boundary remains unchanged.
+- 2026-10-18: Implemented the five-condition browser/headless capture,
+  closed/digest-validating replay checks, missing and invalid-session denial,
+  exact topic/source correlation, restart equality, loopback GET observation,
+  database containment, and cleanup evidence. Exact-candidate qualification
+  remains before closure.

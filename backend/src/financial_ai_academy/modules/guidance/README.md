@@ -23,14 +23,16 @@ database, request-time repository-document read, network, model, provider,
 grading, eligibility, learner-state, or financial-action dependency. Provider
 payloads and authoring sources remain outside domain values.
 
-The disposable local qualification reads every shipped exact context and
-referenced topic through both an authenticated browser context and a fresh
-ordinary HTTP client. It compares the complete ordered public documents and
-digests before and after normal host restart, checks confidential unauthenticated
-denial, observes no non-loopback browser request, and fingerprints all
-non-Identity database schemas before and after the Guidance-only phase. This is
-direct local evidence for the read-only boundary; it is not managed-cloud,
-availability, or operating-system network-isolation evidence.
+The disposable local qualification reads every shipped exact context, every
+referenced topic, and all five exact feature-condition resolutions through
+both an authenticated browser context and a fresh ordinary HTTP client. It
+compares the complete ordered public documents, both feature digests, and
+source/topic correlation before and after normal host restart; checks
+confidential missing and invalid-session denial; observes no non-loopback
+browser request; and fingerprints all non-Identity database schemas before and
+after the Guidance-only phase. This is direct local evidence for the read-only
+boundary; it is not managed-cloud, availability, or operating-system network-
+isolation evidence.
 
 The browser is a generated-client consumer at `/help` and at exact
 `/help/topics/{topic_id}/versions/{topic_version}` routes. It validates the

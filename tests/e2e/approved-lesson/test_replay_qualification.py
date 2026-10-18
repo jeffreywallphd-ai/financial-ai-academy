@@ -4743,6 +4743,92 @@ def contextual_help(
     }
 
 
+def with_public_digest(document: dict[str, Any], field: str) -> dict[str, Any]:
+    value = deepcopy(document)
+    value[field] = hashlib.sha256(
+        json.dumps(
+            value,
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+    return value
+
+
+def feature_guidance(
+    surface_key: str,
+    condition_key: str,
+    guidance_id: str,
+    topic_id: str,
+    *,
+    purpose: str = "method",
+) -> dict[str, Any]:
+    publication = {
+        "state": "approved",
+        "reviewed_on": "2026-10-18",
+        "updated_at": "2026-10-18T00:00:00Z",
+    }
+    sources = [
+        {
+            "source_key": f"{surface_key}-source",
+            "title": "Reviewed feature source",
+            "area": "architecture",
+            "source_version": "2026-10-18",
+            "content_fingerprint": hashlib.sha256(
+                f"{surface_key}-source".encode("utf-8")
+            ).hexdigest(),
+        }
+    ]
+    mapping = with_public_digest(
+        {
+            "schema_version": "1.0.0",
+            "surface_key": surface_key,
+            "condition_key": condition_key,
+            "mapping_version": "1.0.0",
+            "guidance_id": guidance_id,
+            "guidance_version": "1.0.0",
+            "publication": publication,
+            "source_references": sources,
+        },
+        "mapping_digest",
+    )
+    guidance = with_public_digest(
+        {
+            "schema_version": "1.0.0",
+            "guidance_id": guidance_id,
+            "guidance_version": "1.0.0",
+            "status": "limited",
+            "heading": f"Reviewed guidance for {surface_key}",
+            "reason": "The owning feature reported a reviewed public condition.",
+            "outcome": "The original feature state and safe action remain authoritative.",
+            "actions": [
+                {
+                    "action_kind": "open_help_topic",
+                    "label": f"Open {topic_id.replace('-', ' ')}",
+                    "topic_id": topic_id,
+                    "topic_version": "1.0.0",
+                }
+            ],
+            "help_references": [
+                {
+                    "topic_id": topic_id,
+                    "topic_version": "1.0.0",
+                    "purpose": purpose,
+                    "label": f"Open {topic_id.replace('-', ' ')}",
+                }
+            ],
+            "applicability": [
+                {"scope_key": surface_key, "label": f"Reviewed {surface_key} condition"}
+            ],
+            "publication": publication,
+            "source_references": sources,
+        },
+        "guidance_digest",
+    )
+    return {"mapping": mapping, "guidance": guidance}
+
+
 def platform_help_capture() -> dict[str, Any]:
     approved = platform_help_result("approved-help", topic_kind="glossary")
     education = platform_help_result("education-not-advice", topic_kind="limitation")
@@ -4776,11 +4862,47 @@ def platform_help_capture() -> dict[str, Any]:
             ],
         ),
     }
+    feature_documents = {
+        "lesson-reading:exact-version-unavailable@1.0.0": feature_guidance(
+            "lesson-reading",
+            "exact-version-unavailable",
+            "lesson-version-unavailable",
+            "safe-recovery",
+        ),
+        "practice-activity:write-outcome-uncertain@1.0.0": feature_guidance(
+            "practice-activity",
+            "write-outcome-uncertain",
+            "practice-write-uncertain",
+            "safe-recovery",
+        ),
+        "saved-learning:source-unavailable@1.0.0": feature_guidance(
+            "saved-learning",
+            "source-unavailable",
+            "saved-source-unavailable",
+            "source-and-history",
+            purpose="source",
+        ),
+        "project-workspace:artifact-inert@1.0.0": feature_guidance(
+            "project-workspace",
+            "artifact-inert",
+            "project-artifact-inert",
+            "project-artifact-use",
+        ),
+        "ai-assistance:provider-execution-not-enabled@1.0.0": feature_guidance(
+            "ai-assistance",
+            "provider-execution-not-enabled",
+            "ai-help-execution-unavailable",
+            "how-ai-help-is-controlled",
+            purpose="ai_boundary",
+        ),
+    }
     context_topic_kinds = {
         "data-meaning": "glossary",
         "education-not-advice": "limitation",
         "how-ai-help-is-controlled": "limitation",
         "platform-methods": "method",
+        "project-artifact-use": "method",
+        "safe-recovery": "troubleshooting",
         "source-and-history": "help",
     }
     context_topics = {
@@ -4819,6 +4941,7 @@ def platform_help_capture() -> dict[str, Any]:
             [ai_help], topic_kind="limitation"
         ),
         "contexts": contexts,
+        "feature_guidance": feature_documents,
         "context_topics": context_topics,
         "expected": {
             "external_request_count": 0,
@@ -4844,6 +4967,32 @@ def test_platform_help_capture_is_closed_correlated_and_anti_rigid(
     path.write_text(json.dumps(reordered), encoding="utf-8")
     assert runner.load_platform_help_capture(path, data_root=tmp_path) == reordered
 
+    varied = deepcopy(capture)
+    varied_guidance = varied["feature_guidance"][
+        "practice-activity:write-outcome-uncertain@1.0.0"
+    ]["guidance"]
+    varied_guidance["actions"].insert(
+        0,
+        {
+            "action_kind": "reload_current_state",
+            "label": "Reload the current practice state",
+        },
+    )
+    varied_guidance["help_references"].append(
+        {
+            "topic_id": "education-not-advice",
+            "topic_version": "1.0.0",
+            "purpose": "education_boundary",
+            "label": "Review the education boundary",
+        }
+    )
+    varied_guidance["guidance_digest"] = runner._canonical_feature_guidance_digest(
+        varied_guidance,
+        digest_field="guidance_digest",
+    )
+    path.write_text(json.dumps(varied), encoding="utf-8")
+    assert runner.load_platform_help_capture(path, data_root=tmp_path) == varied
+
     extra = deepcopy(capture)
     extra["debug"] = "not public"
     path.write_text(json.dumps(extra), encoding="utf-8")
@@ -4860,6 +5009,20 @@ def test_platform_help_capture_is_closed_correlated_and_anti_rigid(
     missing_topic["context_topics"].pop("data-meaning@1.0.0")
     path.write_text(json.dumps(missing_topic), encoding="utf-8")
     with pytest.raises(RuntimeError, match="bind every exact topic"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    missing_feature_topic = deepcopy(capture)
+    missing_feature_topic["context_topics"].pop("safe-recovery@1.0.0")
+    path.write_text(json.dumps(missing_feature_topic), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="bind every exact topic"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    missing_condition = deepcopy(capture)
+    missing_condition["feature_guidance"].pop(
+        "project-workspace:artifact-inert@1.0.0"
+    )
+    path.write_text(json.dumps(missing_condition), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="every exact condition"):
         runner.load_platform_help_capture(path, data_root=tmp_path)
 
     duplicate_purpose = deepcopy(capture)
@@ -4887,6 +5050,30 @@ def test_platform_help_capture_rejects_drift_unsafe_nodes_and_escape(
     )
     path.write_text(json.dumps(unsafe), encoding="utf-8")
     with pytest.raises(RuntimeError, match="unsafe body node"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    stale_feature = platform_help_capture()
+    stale_feature["feature_guidance"][
+        "lesson-reading:exact-version-unavailable@1.0.0"
+    ]["guidance"]["source_references"][0]["title"] = "Changed source"
+    path.write_text(json.dumps(stale_feature), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="digest does not match"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    mismatched_mapping = platform_help_capture()
+    mismatched_mapping["feature_guidance"][
+        "saved-learning:source-unavailable@1.0.0"
+    ]["mapping"]["mapping_digest"] = "0" * 64
+    path.write_text(json.dumps(mismatched_mapping), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="digest does not match"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    private_feature = platform_help_capture()
+    private_feature["feature_guidance"][
+        "ai-assistance:provider-execution-not-enabled@1.0.0"
+    ]["guidance"]["provider_payload"] = {"secret": True}
+    path.write_text(json.dumps(private_feature), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="closed public contract"):
         runner.load_platform_help_capture(path, data_root=tmp_path)
 
     outside = tmp_path.parent / "outside-platform-help-capture.json"

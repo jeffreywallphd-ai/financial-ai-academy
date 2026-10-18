@@ -71,25 +71,27 @@ serializes checked identities in learner selection order and never persists
 the selection.
 
 The generated Guidance client includes exact protected platform-topic search,
-topic read, and contextual-help read operations shared with command-line,
-service, and future headless clients. The Web boundary closes the full
-contextual-help response before rendering it. Delivered lesson publication,
-saved practice result, Project file/result, and AI-help preference surfaces
-request only their fixed context key and version, then show the returned plain-
-language labels and exact topic destinations. Optional Help failure never
-blocks or changes the owning task. Exact topic pages accept only a closed
-same-origin return to the guide or those four feature routes; the browser does
-not store routes in Guidance content, select a different topic version, or
+topic read, contextual-help read, and feature-guidance resolution operations
+shared with command-line, service, and future headless clients. The Web
+boundary closes full contextual and feature-guidance responses before rendering
+them. Delivered lesson, practice, Saved learning, Project, and AI-help surfaces
+request only their fixed public keys and exact version, then show reviewed
+plain-language explanations and exact topic destinations. Optional Guidance
+failure never blocks or changes the owning task. Exact topic pages accept only
+a closed same-origin return; the browser does not store routes in Guidance
+content, select a different version, infer a condition, execute an action, or
 invent a mapping.
 
-The isolated local qualification reads all four exact context documents and
-every referenced topic through an authenticated browser context, then repeats
-the same public reads with an ordinary cookie-backed HTTP client before and
-after normal host restart. The capture binds context and topic digests, source
-fingerprints, confidential denial, loopback-only traffic, and an unchanged
-non-Identity database fingerprint. Focused feature suites retain the exact
-link-label and safe-return evidence, so live Guidance containment does not
-reclassify ordinary learner-feature side effects as Help behavior.
+The isolated local qualification reads all four exact context documents, all
+five feature-condition resolutions, and every referenced topic through an
+authenticated browser context, then repeats the same public reads with an
+ordinary cookie-backed HTTP client before and after normal host restart. The
+capture binds context, mapping, record, and topic digests; source fingerprints;
+confidential missing/invalid-session denial; loopback-only GET traffic; and an
+unchanged non-Identity database fingerprint. Focused feature suites retain the
+owning status/action, link-label, safe-handler, fallback, accessibility, and
+safe-return evidence, so live Guidance containment does not reclassify ordinary
+learner-feature side effects as Help behavior.
 
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 

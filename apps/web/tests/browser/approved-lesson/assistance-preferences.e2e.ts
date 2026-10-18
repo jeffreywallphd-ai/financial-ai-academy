@@ -135,7 +135,9 @@ test("preserves AI-help choice while keeping future reminders in this browser", 
         method === "GET" &&
         (path === "/api/v1/learner-assistance-preferences/export" ||
           path ===
-            "/api/v1/guidance/contextual-help/ai-assistance/versions/1.0.0"),
+            "/api/v1/guidance/contextual-help/ai-assistance/versions/1.0.0" ||
+          path ===
+            "/api/v1/guidance/feature-guidance/ai-assistance/conditions/provider-execution-not-enabled/versions/1.0.0"),
     ),
   ).toBe(true);
   const savedLocal = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null"), LOCAL_KEY);
