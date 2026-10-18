@@ -1,7 +1,7 @@
 ---
 id: WRK-0177
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0020-understand-platform-methods-and-limitations.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0177-qualify-feature-guidance-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 9d155b56b54dcb65c4544e69a99c7888f2752c4a
+claim_id: WRK-0177:d1a85d0a-e528-4070-9b5f-955746152e89
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T06:58:17Z
 ---
 
 # Agent Work Packet: Qualify the Feature-Guidance Live Flow
