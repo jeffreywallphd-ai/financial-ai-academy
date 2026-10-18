@@ -29,6 +29,11 @@ learner-readable title and summary, optional glossary term, reviewed keywords,
 inert body nodes, applicability, publication facts, safe source facts, exact
 related-topic references, and `topic_digest`.
 
+Version `1.0.0` admits only the stable SemVer core form
+`major.minor.patch`. Prerelease and build suffixes are outside this contract
+version so exact-version ordering does not depend on partially implemented
+SemVer rules.
+
 The body union is limited to headings, paragraphs, ordered/unordered lists,
 educational/limitation/warning notes, and exact same-corpus topic references.
 Raw Markdown or HTML, scripts, styles, components, forms, embedded objects,
@@ -49,11 +54,14 @@ and optional opaque cursor. Query matching trims/collapses whitespace and uses
 Unicode case folding. It never rewrites topic content.
 
 Nonempty results rank by exact glossary/title match, title prefix,
-title/glossary token coverage, then summary/keyword coverage. Stable title,
-topic ID, and semantic version keys break ties. Empty search browses the same
-stable key order. The cursor binds the normalized query, kind filter, corpus
-digest, and position. Altered, cross-query, cross-filter, or stale-corpus
-cursors fail closed.
+title/glossary token coverage, then summary/keyword coverage. Stable topic ID
+and semantic version keys break ties. Empty search browses the same
+stable key order. The public projection includes applicability, approved
+publication facts, and bounded canonical-source summaries for every result.
+The cursor binds the normalized query, kind filter, corpus digest, position,
+and prior exact result key; a deterministic integrity digest detects altered
+encodings. It is an integrity check rather than an authorization boundary.
+Altered, cross-query, cross-filter, or stale-corpus cursors fail closed.
 
 Search uses no embeddings, models, learner history, popularity, hidden
 synonyms, behavioral analytics, provider call, network retrieval, or generated

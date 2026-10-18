@@ -122,8 +122,14 @@ def test_topic_payload_covers_closed_safe_node_union_and_exact_digest() -> None:
 def test_corpus_digest_is_insertion_order_independent_and_unicode_preserving() -> None:
     alpha = make_topic(summary="A reviewed café explanation for the platform.")
     beta = make_topic("beta-topic", title="Béta topic")
+    family = make_topic(
+        "family-topic",
+        summary="A reviewed family 👩‍👩‍👧‍👦 explanation for the platform.",
+    )
     assert corpus_digest((alpha, beta)) == corpus_digest((beta, alpha))
     assert "café".encode() in canonical_topic_bytes(alpha)
+    assert "👩‍👩‍👧‍👦".encode() in canonical_topic_bytes(family)
+    PlatformHelpCorpus((family,))
 
 
 def test_duplicate_and_dangling_topics_fail_atomically() -> None:
@@ -154,6 +160,13 @@ def test_exact_lookup_never_substitutes_a_different_version() -> None:
     assert "2.0.0" not in captured.value.message
 
 
+@pytest.mark.parametrize("version", ["1.0.0-01", "1.0.0-alpha..1", "1.0.0+build"])
+def test_v1_versions_use_only_the_stable_semver_core(version: str) -> None:
+    with pytest.raises(GuidanceError) as captured:
+        PlatformHelpCorpus((make_topic(version=version),))
+    assert captured.value.code is GuidanceErrorCode.INVALID_RECORD
+
+
 @pytest.mark.parametrize(
     "topic, code",
     [
@@ -174,6 +187,21 @@ def test_exact_lookup_never_substitutes_a_different_version() -> None:
         ),
         (
             make_topic(body=(ParagraphNode(text="unsafe\u0000text"),)),
+            GuidanceErrorCode.INVALID_RECORD,
+        ),
+        (
+            make_topic(body=(ParagraphNode(text="unsafe\u202etext"),)),
+            GuidanceErrorCode.INVALID_RECORD,
+        ),
+        (
+            replace(
+                make_topic(),
+                publication=PublicationFacts(
+                    state="approved",
+                    reviewed_on=datetime(2026, 10, 18, tzinfo=timezone.utc),
+                    updated_at=datetime(2026, 10, 18, tzinfo=timezone.utc),
+                ),
+            ),
             GuidanceErrorCode.INVALID_RECORD,
         ),
     ],

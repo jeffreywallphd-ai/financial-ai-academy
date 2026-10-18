@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from enum import StrEnum
 import hashlib
+import hmac
 import json
 import re
 from typing import Sequence
@@ -17,9 +18,11 @@ SCHEMA_VERSION = "1.0.0"
 _IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]{2,63}$")
 _VERSION = re.compile(
     r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
-    r"(0|[1-9][0-9]*)(?:-([0-9A-Za-z.-]+))?$"
+    r"(0|[1-9][0-9]*)$"
 )
 _DIGEST = re.compile(r"^[a-f0-9]{64}$")
+# Zero-width non-joiner and joiner carry legitimate shaping/emoji meaning.
+_ALLOWED_FORMAT_CODEPOINTS = {0x200C, 0x200D}
 
 
 class TopicKind(StrEnum):
@@ -186,6 +189,9 @@ class SearchResult:
     topic_kind: TopicKind
     title: str
     summary: str
+    applicability: tuple[Applicability, ...]
+    publication: PublicationFacts
+    source_references: tuple[SourceReference, ...]
     topic_digest: str
     glossary_term: str | None = None
 
@@ -221,13 +227,23 @@ def _text(
             reference,
             "Platform help text is invalid.",
         )
-    if any(unicodedata.category(character).startswith("C") for character in value):
+    if _contains_unsafe_control(value):
         _reject(
             GuidanceErrorCode.INVALID_RECORD,
             reference,
             "Platform help text contains unsupported control content.",
         )
     return value
+
+
+def _contains_unsafe_control(value: str) -> bool:
+    for character in value:
+        category = unicodedata.category(character)
+        if category in {"Cc", "Cs", "Co", "Cn"}:
+            return True
+        if category == "Cf" and ord(character) not in _ALLOWED_FORMAT_CODEPOINTS:
+            return True
+    return False
 
 
 def _identifier(value: object, reference: str) -> str:
@@ -438,9 +454,9 @@ def validate_topic(topic: PlatformHelpTopic) -> PlatformHelpTopic:
         _reject(GuidanceErrorCode.DUPLICATE_IDENTITY, "applicability", "Applicability repeats.")
     if not isinstance(topic.publication, PublicationFacts):
         _reject(GuidanceErrorCode.INVALID_RECORD, "publication", "Publication facts are invalid.")
-    if topic.publication.state != "approved" or not isinstance(
-        topic.publication.reviewed_on, date
-    ):
+    if topic.publication.state != "approved" or type(
+        topic.publication.reviewed_on
+    ) is not date:
         _reject(GuidanceErrorCode.INVALID_RECORD, "publication", "Publication facts are invalid.")
     updated = _utc_text(topic.publication.updated_at, "publication.updated_at")
     if topic.publication.reviewed_on > date.fromisoformat(updated[:10]):
@@ -532,21 +548,18 @@ def corpus_digest(topics: Sequence[PlatformHelpTopic]) -> str:
 def normalize_query(value: object) -> str:
     if not isinstance(value, str) or len(value) > 200:
         _reject(GuidanceErrorCode.INVALID_RECORD, "query", "Search query is invalid.")
-    if any(unicodedata.category(character).startswith("C") for character in value):
+    if _contains_unsafe_control(value):
         _reject(GuidanceErrorCode.INVALID_RECORD, "query", "Search query contains control content.")
     return " ".join(value.split()).casefold()
 
 
-def _version_key(value: str) -> tuple[int, int, int, int, str]:
+def _version_key(value: str) -> tuple[int, int, int]:
     matched = _VERSION.fullmatch(value)
     assert matched is not None
-    prerelease = matched.group(4)
     return (
         int(matched.group(1)),
         int(matched.group(2)),
         int(matched.group(3)),
-        1 if prerelease is None else 0,
-        prerelease or "",
     )
 
 
@@ -571,8 +584,22 @@ def _rank(topic: PlatformHelpTopic, query: str) -> int | None:
     return None
 
 
+def _cursor_bytes(value: dict[str, object]) -> bytes:
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+
+def _cursor_digest(value: dict[str, object]) -> str:
+    return hashlib.sha256(b"platform-help-cursor-v1\0" + _cursor_bytes(value)).hexdigest()
+
+
 def _cursor_text(value: dict[str, object]) -> str:
-    raw = json.dumps(value, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    envelope = {**value, "d": _cursor_digest(value)}
+    raw = _cursor_bytes(envelope)
     return base64.urlsafe_b64encode(raw).decode("ascii").rstrip("=")
 
 
@@ -589,7 +616,15 @@ def _cursor_value(value: str) -> dict[str, object]:
         result = json.loads(decoded.decode("utf-8"))
     except (UnicodeDecodeError, ValueError, json.JSONDecodeError):
         _reject(GuidanceErrorCode.INVALID_CURSOR, "cursor", "Search cursor is invalid.")
-    if not isinstance(result, dict) or set(result) != {"c", "k", "p", "q", "v"}:
+    if not isinstance(result, dict) or set(result) != {"a", "c", "d", "k", "p", "q", "v"}:
+        _reject(GuidanceErrorCode.INVALID_CURSOR, "cursor", "Search cursor is invalid.")
+    supplied_digest = result["d"]
+    payload = {key: item for key, item in result.items() if key != "d"}
+    if (
+        not isinstance(supplied_digest, str)
+        or _DIGEST.fullmatch(supplied_digest) is None
+        or not hmac.compare_digest(supplied_digest, _cursor_digest(payload))
+    ):
         _reject(GuidanceErrorCode.INVALID_CURSOR, "cursor", "Search cursor is invalid.")
     return result
 
@@ -665,7 +700,6 @@ class PlatformHelpCorpus:
         ranked.sort(
             key=lambda item: (
                 item[0],
-                item[1].title.casefold(),
                 item[1].topic_id,
                 _version_key(item[1].topic_version),
             )
@@ -680,7 +714,13 @@ class PlatformHelpCorpus:
                 or cursor["k"] != kind
                 or cursor["c"] != self.digest
                 or type(cursor["p"]) is not int
-                or not 0 <= cursor["p"] <= len(ranked)
+                or not 0 < cursor["p"] < len(ranked)
+                or cursor["a"]
+                != [
+                    ranked[cursor["p"] - 1][0],
+                    ranked[cursor["p"] - 1][1].topic_id,
+                    ranked[cursor["p"] - 1][1].topic_version,
+                ]
             ):
                 _reject(GuidanceErrorCode.INVALID_CURSOR, "cursor", "Search cursor does not match.")
             position = cursor["p"]
@@ -688,7 +728,18 @@ class PlatformHelpCorpus:
         next_position = position + len(selected)
         next_cursor = (
             _cursor_text(
-                {"v": 1, "q": query, "k": kind, "c": self.digest, "p": next_position}
+                {
+                    "v": 1,
+                    "q": query,
+                    "k": kind,
+                    "c": self.digest,
+                    "p": next_position,
+                    "a": [
+                        selected[-1][0],
+                        selected[-1][1].topic_id,
+                        selected[-1][1].topic_version,
+                    ],
+                }
             )
             if next_position < len(ranked)
             else None
@@ -705,6 +756,9 @@ class PlatformHelpCorpus:
                     topic_kind=topic.topic_kind,
                     title=topic.title,
                     summary=topic.summary,
+                    applicability=topic.applicability,
+                    publication=topic.publication,
+                    source_references=topic.source_references,
                     glossary_term=topic.glossary_term,
                     topic_digest=topic.topic_digest,
                 )

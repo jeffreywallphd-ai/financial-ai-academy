@@ -11,6 +11,26 @@
       "title": "Find approved help",
       "summary": "Browse reviewed platform explanations without replacing their canonical sources.",
       "glossary_term": "approved help",
+      "applicability": [
+        {
+          "scope_key": "shared-platform",
+          "label": "Browser and headless platform clients"
+        }
+      ],
+      "publication": {
+        "state": "approved",
+        "reviewed_on": "2026-10-18",
+        "updated_at": "2026-10-18T00:00:00Z"
+      },
+      "source_references": [
+        {
+          "source_key": "product-guidance",
+          "title": "Product guidance",
+          "area": "product",
+          "source_version": "2026-10-18",
+          "content_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
       "topic_digest": "dd527cbfa6bfd8fe6e62e26d2cbe286ca226762c1a50e201a63b0da016a6df65"
     }
   ],

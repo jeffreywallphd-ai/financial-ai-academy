@@ -35,7 +35,7 @@
     },
     "version": {
       "type": "string",
-      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
     },
     "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "topicKind": {
@@ -50,6 +50,9 @@
         "topic_kind",
         "title",
         "summary",
+        "applicability",
+        "publication",
+        "source_references",
         "topic_digest"
       ],
       "properties": {
@@ -59,7 +62,51 @@
         "title": {"type": "string", "minLength": 1, "maxLength": 160},
         "summary": {"type": "string", "minLength": 20, "maxLength": 500},
         "glossary_term": {"type": "string", "minLength": 1, "maxLength": 120},
+        "applicability": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {"$ref": "#/$defs/applicability"}
+        },
+        "publication": {"$ref": "#/$defs/publication"},
+        "source_references": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {"$ref": "#/$defs/sourceReference"}
+        },
         "topic_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "applicability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope_key", "label"],
+      "properties": {
+        "scope_key": {"$ref": "#/$defs/identifier"},
+        "label": {"type": "string", "minLength": 1, "maxLength": 160}
+      }
+    },
+    "publication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reviewed_on", "updated_at"],
+      "properties": {
+        "state": {"const": "approved"},
+        "reviewed_on": {"type": "string", "format": "date"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_key", "title", "area", "source_version", "content_fingerprint"],
+      "properties": {
+        "source_key": {"$ref": "#/$defs/identifier"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 200},
+        "area": {"enum": ["product", "domain", "contract", "architecture", "risk", "method"]},
+        "source_version": {"type": "string", "minLength": 1, "maxLength": 80},
+        "content_fingerprint": {"$ref": "#/$defs/digest"}
       }
     }
   }

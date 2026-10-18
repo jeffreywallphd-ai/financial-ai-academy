@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import base64
 from dataclasses import replace
+import json
 
 import pytest
 
@@ -57,6 +59,12 @@ def test_normalization_and_declared_ranking_are_deterministic() -> None:
         "detail-topic",
     ]
     assert normalize_query(" CAFÉ ") == "café"
+    assert normalize_query(" Family 👩‍👩‍👧‍👦 ") == "family 👩‍👩‍👧‍👦"
+    exact_topic = corpus.get("exact-topic", "1.0.0")
+    exact_result = page.results[0]
+    assert exact_result.applicability == exact_topic.applicability
+    assert exact_result.publication == exact_topic.publication
+    assert exact_result.source_references == exact_topic.source_references
 
 
 def test_browse_and_search_ignore_insertion_order() -> None:
@@ -69,6 +77,22 @@ def test_browse_and_search_ignore_insertion_order() -> None:
             item.topic_id for item in right.results
         ]
         assert left.corpus_digest == right.corpus_digest
+
+
+def test_ties_use_exact_identity_and_numeric_stable_version_not_title() -> None:
+    corpus = PlatformHelpCorpus(
+        (
+            make_topic("beta-topic", title="Alpha title"),
+            make_topic("alpha-topic", version="1.0.10", title="Zeta title"),
+            make_topic("alpha-topic", version="1.0.2", title="Omega title"),
+        )
+    )
+    page = corpus.search(SearchRequest(page_size=10))
+    assert [(item.topic_id, item.topic_version) for item in page.results] == [
+        ("alpha-topic", "1.0.2"),
+        ("alpha-topic", "1.0.10"),
+        ("beta-topic", "1.0.0"),
+    ]
 
 
 def test_kind_filter_and_clear_filter_have_closed_meaning() -> None:
@@ -115,6 +139,23 @@ def test_cursor_is_bound_to_query_filter_and_corpus() -> None:
             SearchRequest(query="approved help", cursor=first.next_cursor)
         )
     assert stale.value.code is GuidanceErrorCode.INVALID_CURSOR
+
+
+def test_cursor_rejects_a_validly_reencoded_position_change() -> None:
+    corpus = search_corpus()
+    first = corpus.search(SearchRequest(query="approved help", page_size=1))
+    assert first.next_cursor is not None
+    padded = first.next_cursor + "=" * (-len(first.next_cursor) % 4)
+    envelope = json.loads(base64.urlsafe_b64decode(padded).decode("utf-8"))
+    envelope["p"] = 2
+    altered = base64.urlsafe_b64encode(
+        json.dumps(envelope, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).decode("ascii").rstrip("=")
+    with pytest.raises(GuidanceError) as captured:
+        corpus.search(
+            SearchRequest(query="approved help", page_size=1, cursor=altered)
+        )
+    assert captured.value.code is GuidanceErrorCode.INVALID_CURSOR
 
 
 def test_flexible_valid_counts_and_optional_glossary_do_not_freeze_fixtures() -> None:

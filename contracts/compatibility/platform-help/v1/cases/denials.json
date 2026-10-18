@@ -24,6 +24,14 @@
     "expected_code": "platform_help.digest_mismatch"
   },
   {
+    "id": "prerelease-topic-version",
+    "target": "topic",
+    "op": "set",
+    "path": ["topic_version"],
+    "value": "1.0.0-01",
+    "expected_code": "platform_help.schema_invalid"
+  },
+  {
     "id": "private-reviewer-field",
     "target": "topic",
     "op": "set",
@@ -52,6 +60,14 @@
     "op": "set",
     "path": ["results", 0, "url"],
     "value": "https://example.invalid/instruction",
+    "expected_code": "platform_help.schema_invalid"
+  },
+  {
+    "id": "result-private-reviewer-field",
+    "target": "search_page",
+    "op": "set",
+    "path": ["results", 0, "source_references", 0, "reviewer"],
+    "value": "private-reviewer",
     "expected_code": "platform_help.schema_invalid"
   }
 ]

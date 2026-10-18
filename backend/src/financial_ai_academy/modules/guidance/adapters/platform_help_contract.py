@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Any, Mapping
 
 from ..domain import (
@@ -280,6 +280,28 @@ def search_page_payload(value: SearchPage) -> dict[str, object]:
                     "topic_kind": item.topic_kind.value,
                     "title": item.title,
                     "summary": item.summary,
+                    "applicability": [
+                        {"scope_key": fact.scope_key, "label": fact.label}
+                        for fact in item.applicability
+                    ],
+                    "publication": {
+                        "state": item.publication.state,
+                        "reviewed_on": item.publication.reviewed_on.isoformat(),
+                        "updated_at": item.publication.updated_at.astimezone(
+                            timezone.utc
+                        ).isoformat().removesuffix("+00:00")
+                        + "Z",
+                    },
+                    "source_references": [
+                        {
+                            "source_key": source.source_key,
+                            "title": source.title,
+                            "area": source.area.value,
+                            "source_version": source.source_version,
+                            "content_fingerprint": source.content_fingerprint,
+                        }
+                        for source in item.source_references
+                    ],
                     "topic_digest": item.topic_digest,
                 },
                 **(
