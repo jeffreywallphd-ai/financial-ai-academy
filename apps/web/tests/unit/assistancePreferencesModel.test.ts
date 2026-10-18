@@ -39,15 +39,18 @@ async function digest(value: unknown): Promise<string> {
     .join("");
 }
 
-async function profile(revision = 1): Promise<AssistancePreferenceProfile> {
+async function profile(
+  revision = 1,
+  times: { created_at?: string; updated_at?: string } = {},
+): Promise<AssistancePreferenceProfile> {
   const material = {
     schema_version: "1.0.0" as const,
     profile_id: "profile.assistance-1",
     learner_id: "11111111-1111-4111-8111-111111111111",
     revision,
     assistance_mode: revision === 1 ? "off" as const : "on_request" as const,
-    created_at: "2026-10-17T20:00:00Z",
-    updated_at: "2026-10-17T20:10:00Z",
+    created_at: times.created_at ?? "2026-10-17T20:00:00Z",
+    updated_at: times.updated_at ?? "2026-10-17T20:10:00Z",
   };
   return { ...material, profile_digest: await digest(material) };
 }
@@ -161,6 +164,33 @@ describe("AI-help preference browser model", () => {
     await expect(assistancePreferenceProfileIsSafe({
       ...current,
       updated_at: "2026-10-17 20:00:00Z",
+    })).resolves.toBe(false);
+  });
+
+  it.each([
+    "2026-10-17T20:10:00Z",
+    "2026-10-17T20:10:00.1Z",
+    "2026-10-17T20:10:00.12Z",
+    "2026-10-17T20:10:00.123Z",
+    "2026-10-17T20:10:00.1234Z",
+    "2026-10-17T20:10:00.12345Z",
+    "2026-10-17T20:10:00.123456Z",
+  ])("accepts canonical API timestamp precision: %s", async (updated_at) => {
+    const current = await profile(2, { updated_at });
+    await expect(assistancePreferenceProfileIsSafe(current)).resolves.toBe(true);
+  });
+
+  it.each([
+    "2026-10-17T20:10:00.1234567Z",
+    "2026-10-17T20:10:00+00:00",
+    "2026-10-17T20:10:00.123456",
+    "2026-04-31T20:10:00.123456Z",
+    "2026-10-17T20:10:60Z",
+  ])("rejects noncanonical API timestamp text: %s", async (updated_at) => {
+    const current = await profile(2);
+    await expect(assistancePreferenceProfileIsSafe({
+      ...current,
+      updated_at,
     })).resolves.toBe(false);
   });
 });

@@ -90,7 +90,7 @@ export type LocalReminderExporter = () => Promise<AssistancePreferencesExportOut
 const DIGEST = /^[a-f0-9]{64}$/;
 const IDENTIFIER = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const CANONICAL_UTC = /^[1-9]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{3})?Z$/;
+const CANONICAL_UTC = /^[1-9]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,6})?Z$/;
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -113,10 +113,7 @@ function timestamp(value: unknown): value is string {
   if (typeof value !== "string" || !CANONICAL_UTC.test(value)) return false;
   const parsed = new Date(value);
   if (!Number.isFinite(parsed.getTime())) return false;
-  const canonical = parsed.toISOString();
-  return value.includes(".")
-    ? canonical === value
-    : canonical.replace(".000Z", "Z") === value;
+  return parsed.toISOString().slice(0, 19) === value.slice(0, 19);
 }
 
 function canonical(value: unknown): unknown {

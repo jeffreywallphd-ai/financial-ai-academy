@@ -1,7 +1,7 @@
 ---
 id: WRK-0162
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018-correction
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/assistance-preferences/model.ts", "apps/web/tests/unit/assistancePreferencesModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0161-qualify-ai-help-and-local-reminders-live-flow.md", "docs/planning/work-packets/WRK-0162-accept-canonical-assistance-api-timestamps.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 8b147c1f7053961eeaa0af0df50d46b2d60fd5df
+claim_id: WRK-0162:11ecff6f-4cb9-4443-809a-cd602b00153e
+claimed_by: codex-cap-0018-correction
+claimed_at: 2026-10-18T01:06:13Z
 ---
 
 # Agent Work Packet: Accept Canonical Assistance API Timestamps
@@ -140,4 +140,7 @@ or financial behavior changed, then leave WRK-0161 ready to resume.
   valid digest-bound microsecond API timestamp that the browser validator
   rejected. The correction is isolated from qualification and requires no new
   durable decision or lower-level approval.
+- 2026-10-18: Activated from recorded base `8b147c1` after validating current
+  CAP authority, the completed browser dependency, exact corrective scope, and
+  no active coordination collision.
 
