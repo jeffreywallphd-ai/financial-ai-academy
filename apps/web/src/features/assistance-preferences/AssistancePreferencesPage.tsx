@@ -128,6 +128,12 @@ export function AssistancePreferencesPage({
 }) {
   const serverProfile = state.server.status === "ready" ? state.server.profile : undefined;
   const pendingServer = actionState?.authority === "server" ? actionState.preparedRequest : undefined;
+  const pendingSave = pendingServer?.mutation.operation === "replace_preferences"
+    ? pendingServer
+    : undefined;
+  const pendingReset = pendingServer?.mutation.operation === "reset_profile"
+    ? pendingServer
+    : undefined;
   const pendingMode = pendingServer?.mutation.operation === "replace_preferences"
     ? pendingServer.mutation.assistance_mode
     : undefined;
@@ -159,8 +165,8 @@ export function AssistancePreferencesPage({
   }, [actionState]);
 
   useEffect(() => {
-    if (serverProfile) setServerMode(serverProfile.assistance_mode);
-  }, [serverProfile?.profile_digest, serverProfile?.assistance_mode]);
+    if (!pendingServer && serverProfile) setServerMode(serverProfile.assistance_mode);
+  }, [pendingServer, serverProfile?.profile_digest, serverProfile?.assistance_mode]);
 
   useEffect(() => {
     if (localEnvelope) setLocalMode(localEnvelope.reminder_mode);
@@ -232,7 +238,7 @@ export function AssistancePreferencesPage({
             <Form className="assistance-preferences-form" method="post">
               <input name="form_intent" type="hidden" value="server-save" />
               <input name="operation" type="hidden" value="replace_preferences" />
-              <input name="expected_revision" type="hidden" value={state.server.profile.revision} />
+              <input name="expected_revision" type="hidden" value={pendingSave?.expected_revision ?? state.server.profile.revision} />
               <input name="idempotency_key" type="hidden" value={serverRequestKey} />
               <fieldset>
                 <legend>When should AI help be considered?</legend>
@@ -254,7 +260,7 @@ export function AssistancePreferencesPage({
               <Form method="post">
                 <input name="form_intent" type="hidden" value="server-reset" />
                 <input name="operation" type="hidden" value="reset_profile" />
-                <input name="expected_revision" type="hidden" value={state.server.profile.revision} />
+                <input name="expected_revision" type="hidden" value={pendingReset?.expected_revision ?? state.server.profile.revision} />
                 <input name="idempotency_key" type="hidden" value={serverResetKey} />
                 <label><input checked={serverResetConfirmed} name="confirm_reset" onChange={(event) => setServerResetConfirmed(event.currentTarget.checked)} type="checkbox" value="reset" /><span>I understand this resets only the learner-owned AI-help choice.</span></label>
                 <button className="button assistance-button--danger" disabled={busy || !serverResetConfirmed || state.server.profile.assistance_mode === "off"} type="submit">Reset AI-help choice</button>

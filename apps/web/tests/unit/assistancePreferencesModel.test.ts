@@ -301,6 +301,64 @@ describe("AI-help and reminder adapters", () => {
     expect(storage.setItem).not.toHaveBeenCalled();
   });
 
+  it("retains the complete request for malformed success and unexpected server outcomes", async () => {
+    const prepared = {
+      schema_version: "1.0.0" as const,
+      idempotency_key: "request.commit-uncertain",
+      expected_revision: 7,
+      mutation: { operation: "replace_preferences" as const, assistance_mode: "on_request" as const },
+    };
+    const cases = [
+      {
+        kind: "invalid-response",
+        response: {
+          data: { ...(await profile(8)), provider: "not-authorized" },
+          response: new Response(null, { status: 200 }),
+        },
+      },
+      {
+        kind: "unexpected",
+        response: {
+          error: { code: "server_error", detail: "private" },
+          response: new Response(null, { status: 500 }),
+        },
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const post = vi.fn().mockResolvedValue(testCase.response);
+      const action = createAssistancePreferencesAction(
+        { POST: post } as unknown as FinancialAcademyApiClient,
+        readySession(),
+        memoryStorage(),
+        () => "2026-10-17T20:10:00Z",
+      );
+      const form = new FormData();
+      form.set("form_intent", "server-save");
+      form.set("operation", prepared.mutation.operation);
+      form.set("idempotency_key", prepared.idempotency_key);
+      form.set("expected_revision", String(prepared.expected_revision));
+      form.set("assistance_mode", prepared.mutation.assistance_mode);
+
+      const result = await action({
+        request: new Request("http://example.test/preferences/assistance", {
+          method: "POST",
+          body: form,
+        }),
+        params: {},
+      } as Parameters<typeof action>[0]);
+
+      expect(result).toEqual({
+        status: "error",
+        authority: "server",
+        kind: testCase.kind,
+        intent: "save",
+        preparedRequest: prepared,
+      });
+      expect(JSON.stringify(result)).not.toContain("private");
+    }
+  });
+
   it("refuses an export when the visible revision changed after rendering", async () => {
     const current = await profile(2);
     const value = exported(current, history(current, [2]));

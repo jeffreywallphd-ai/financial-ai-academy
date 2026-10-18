@@ -276,7 +276,12 @@ export function createAssistancePreferencesAction(
           !(await assistancePreferenceProfileIsSafe(profile)) ||
           profile.revision !== parsed.request.expected_revision + 1 ||
           profile.assistance_mode !== expectedMode
-        ) return actionFailure("server", "invalid-response", parsed.intent);
+        ) return actionFailure(
+          "server",
+          "invalid-response",
+          parsed.intent,
+          parsed.request,
+        );
         return redirect("/preferences/assistance");
       }
       if (result.response.status === 401) {
@@ -298,7 +303,12 @@ export function createAssistancePreferencesAction(
       if (result.response.status === 503) {
         return actionFailure("server", "unavailable", parsed.intent, parsed.request);
       }
-      return actionFailure("server", "unexpected", parsed.intent);
+      return actionFailure(
+        "server",
+        "unexpected",
+        parsed.intent,
+        parsed.request,
+      );
     } catch (error) {
       if (request.signal.aborted) throw error;
       return actionFailure("server", "unavailable", parsed.intent, parsed.request);

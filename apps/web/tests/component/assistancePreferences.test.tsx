@@ -173,6 +173,76 @@ describe("AI help and reminders page", () => {
     });
   });
 
+  it("replays complete prepared save and reset requests after loader revision advances", async () => {
+    if (readyState.server.status !== "ready") throw new Error("Expected ready server fixture.");
+    const advancedState: AssistancePreferencesRouteState = {
+      ...readyState,
+      server: {
+        ...readyState.server,
+        profile: { ...profile, revision: 9, assistance_mode: "on_request" },
+      },
+    };
+    const saveSubmissions: FormData[] = [];
+    const save = renderPage({
+      actionState: {
+        status: "error",
+        authority: "server",
+        kind: "unavailable",
+        intent: "save",
+        preparedRequest: {
+          schema_version: "1.0.0",
+          idempotency_key: "request.save-original",
+          expected_revision: 7,
+          mutation: { operation: "replace_preferences", assistance_mode: "off" },
+        },
+      },
+      state: advancedState,
+      submissions: saveSubmissions,
+    });
+
+    await waitFor(() => expect(screen.getByRole("radio", { name: /Keep AI help off/i })).toBeChecked());
+    await userEvent.setup().click(screen.getByRole("button", { name: "Save AI-help choice" }));
+    await waitFor(() => expect(saveSubmissions).toHaveLength(1));
+    expect(Object.fromEntries(saveSubmissions[0]!.entries())).toEqual({
+      form_intent: "server-save",
+      operation: "replace_preferences",
+      expected_revision: "7",
+      idempotency_key: "request.save-original",
+      assistance_mode: "off",
+    });
+    save.unmount();
+
+    const resetSubmissions: FormData[] = [];
+    renderPage({
+      actionState: {
+        status: "error",
+        authority: "server",
+        kind: "invalid-response",
+        intent: "reset",
+        preparedRequest: {
+          schema_version: "1.0.0",
+          idempotency_key: "request.reset-original",
+          expected_revision: 6,
+          mutation: { operation: "reset_profile" },
+        },
+      },
+      state: advancedState,
+      submissions: resetSubmissions,
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("checkbox", { name: /resets only the learner-owned AI-help choice/i }));
+    await user.click(screen.getByRole("button", { name: "Reset AI-help choice" }));
+    await waitFor(() => expect(resetSubmissions).toHaveLength(1));
+    expect(Object.fromEntries(resetSubmissions[0]!.entries())).toEqual({
+      form_intent: "server-reset",
+      operation: "reset_profile",
+      expected_revision: "6",
+      idempotency_key: "request.reset-original",
+      confirm_reset: "reset",
+    });
+  });
+
   it("creates visibly separate downloads", async () => {
     const createObjectURL = vi.fn()
       .mockReturnValueOnce("blob:server")
