@@ -284,10 +284,8 @@ provider/model, tenant/admin, external-action, or financial authority changed.
 - 2026-10-18: Submitted exact candidate `9f54667` after 65 focused contract and
   Guidance tests plus eight subtests, architecture/security/documentation/
   planning gates, whitespace integrity, and all 30 readiness checks passed.
-- 2026-10-18: Independent technical review R01 requested three bounded
-  contract corrections: close the financial account-or-analysis union, remove
-  an independent Market-observation ID from the exact identity tuple, and make
-  CLI corpus completeness authoritative. The strict-descendant correction uses
-  explicit financial identity variants, derives the Market resource ID from
-  the exact tuple digest, and adds missing/extra profile CLI regressions without
-  expanding the packet, product behavior, or decision surface.
+- 2026-10-18: Closed three bounded contract gaps. Financial results now use
+  explicit account-or-analysis identity variants, Market resource IDs derive
+  from the exact tuple digest, and the CLI rejects missing or extra approved
+  profiles. The correction did not expand the packet, product behavior, or
+  decision surface.
