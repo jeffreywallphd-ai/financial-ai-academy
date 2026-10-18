@@ -1,7 +1,7 @@
 ---
 id: WRK-0193
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/accountable-history.e2e.ts", "backend/src/financial_ai_academy/modules/audit/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0193-qualify-live-accountable-history.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/README.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 4ea3269cb6ca1c336007799689dec3534ff3814c
+claim_id: WRK-0193:9ff50d24-ea05-4731-b081-4acc5106e569
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T11:21:49Z
 ---
 
 # Agent Work Packet: Qualify Live Accountable History
@@ -241,3 +241,6 @@ tenancy/admin, financial, retention, or authorization behavior changed.
   the existing generated client and cumulative disposable topology to qualify
   the two-root inspection/export seam and close SLI-0108 without adding product
   behavior, a heavyweight routine gate, or lower-level approval.
+- 2026-10-18: Activated from clean base `4ea3269` with one bounded owner after
+  revalidating the approved CAP package, completed WRK-0192 dependency, exact
+  qualification-only scope, local decision posture, and ownership isolation.
