@@ -1,7 +1,7 @@
 ---
 id: WRK-0183
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -213,6 +213,37 @@ gaps; slice/CAP conformance; and unresolved decisions. Confirm no UI, provider/
 model, external-action, tenancy, financial, storage, or authorization behavior
 changed.
 
+## Completion Evidence
+
+- Exact candidate: `a80214ea8370e863301c715742b0bb6fe00f97d8`.
+- Qualifying affected-check receipt:
+  `sha256:9ea5f1fe0fc606c35700552da6a8157c03e18e076670333cdc73619822e27a3b`.
+- The generated TypeScript client and a separate ordinary authenticated HTTP
+  session returned the same complete canonical documents for the exact lesson
+  and completion roots. The live evidence run produced lesson view digest
+  `5a0f8c34d2cea21440029dc0db77cc2e171b9f5ff9308ade8ecb7de14416d97b`
+  and completion view digest
+  `d781da1da54d7ab2b4f0f9e73977cc199ec359dfa59913e0e756c8c597e3dfc6`.
+- Missing session, query input, and guessed completion context failed with
+  bounded confidential responses. Repeated public reads and a normal host
+  restart without reseeding preserved the complete documents and view digests.
+  Non-Identity database and bounded application-data fingerprints remained
+  exact after the first deterministic Audit reconciliation.
+- Flexible graph replay, disagreement, private-field, one-node, and restart-
+  drift evidence passed 90 tests; the focused architecture suite passed 16
+  tests plus four subtests; the focused provenance/core/API/Identity suite
+  passed 64 tests. TypeScript, zero-warning lint, architecture, ten security
+  control groups, documentation, planning, whitespace, and all 30 aggregate-
+  readiness checks passed.
+- The exact-candidate affected plan selected eight checks; all passed,
+  including the cumulative disposable PostgreSQL 18.4, generated-client,
+  headless, normal-restart, containment, and cleanup workflow. Independent
+  review accepted the candidate with no actionable finding.
+- No migration, rollback action, dependency, product implementation, UI,
+  provider/model, external action, tenancy, financial authority, storage
+  topology, or public contract changed. Browser presentation, export,
+  retention, public hosting, and managed-cloud posture remain later work.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0182 completion. The packet uses
@@ -221,3 +252,9 @@ changed.
   behavior, a heavyweight routine gate, or lower-level approval.
 - 2026-10-18: Activated from clean base `f46c7c6` with one bounded owner and an
   exclusive lease over the exact qualification, evidence, and planning files.
+- 2026-10-18: Submitted exact candidate `a80214e` after focused and direct live
+  evidence passed. The tracked eight-check affected plan then produced a
+  qualifying receipt against that unchanged commit.
+- 2026-10-18: Completed at exact candidate `a80214e` after accepted independent
+  review and a 30-of-30 aggregate-readiness pass. The packet closes SLI-0106
+  without adding presentation, export, retention, or managed-cloud scope.
