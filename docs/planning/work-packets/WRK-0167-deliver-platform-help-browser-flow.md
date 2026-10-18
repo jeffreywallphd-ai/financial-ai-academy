@@ -1,7 +1,7 @@
 ---
 id: WRK-0167
 kind: work-packet
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -212,6 +212,34 @@ docs; assumptions; and remaining live/contextual/methodology gaps. Confirm no
 backend/API/schema, persistence, provider/model, learner authority, external
 content/action, or financial behavior changed.
 
+## Completion Evidence
+
+- Exact candidate `2a5bcd2cb48d54e8a5b2ac756b953249d6e0c3f6`
+  produced qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0167/2a5bcd2cb48d54e8a5b2ac756b953249d6e0c3f6/20261018T032057Z-d118f2ec-6382-49ad-ae60-fbda7fa3bb8c.json`
+  with digest
+  `sha256:6810fde1bfe54de0c838b9224d67ecefda02984160b5529b896ef5a5bc958f02`.
+- The generated client now powers protected `/help` browse/search and
+  `/help/topics/:topicId/versions/:topicVersion` routes. Strict closed response
+  validation, same-origin return targets, exhaustive inert node rendering, and
+  exact-version relations keep browser presentation subordinate to the API.
+- Search, kind filtering, opaque-cursor paging, empty recovery, publication
+  facts, source titles, progressive technical records, authorization-first
+  failure states, and Unicode code-point validation have focused success and
+  denial evidence. Twenty-two focused Vitest checks and three Chromium journeys
+  passed, including themes, keyboard use, narrow reflow, zoom, reduced motion,
+  forced colors, varied record counts, and safe-node shapes.
+- All nine selected exact-candidate checks passed: planning tools and integrity,
+  documentation, changed learner language, architecture, Web typecheck,
+  zero-warning lint, unit suite, and production build. Design, security,
+  whitespace, focused browser, full Web, and all 29 aggregate readiness checks
+  also passed.
+- No backend route, OpenAPI schema, generated client, corpus, persistence,
+  migration, provider/model execution, learner authority, analytics, external
+  content/action, or financial behavior changed. Disposable live restart,
+  offline/no-outbound, ordinary headless parity, source integrity, containment,
+  and cleanup qualification remain in the dependent slice-closing packet.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0166 completed. The packet
@@ -219,3 +247,9 @@ content/action, or financial behavior changed.
   and generated client, while leaving live restart/offline/headless
   qualification to its dependency-ordered successor. It preserves CAP-0020 and
   requires no lower-level approval.
+- 2026-10-18: Completed the generated-client-only Help browser flow on exact
+  candidate `2a5bcd2`. Focused model, component, Chromium, accessibility,
+  authorization, publication, Unicode, architecture, documentation, affected,
+  and aggregate readiness evidence passed. The work stayed within the approved
+  CAP and leaves only the dependency-ordered live qualification packet for this
+  slice.
