@@ -1,7 +1,7 @@
 ---
 id: WRK-0186
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/application/__init__.py", "backend/src/financial_ai_academy/modules/audit/application/cross_domain_conformance.py", "backend/src/financial_ai_academy/modules/audit/ports/__init__.py", "backend/src/financial_ai_academy/modules/audit/ports/cross_domain_provenance.py", "backend/tests/contract/provenance_v2/synthetic_adapters.py", "backend/tests/contract/provenance_v2/test_conformance_kit.py", "backend/tests/unit/audit/test_cross_domain_conformance.py", "contracts/provenance/v2/README.md", "contracts/compatibility/provenance/v2/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0107-extend-provenance-across-domain-owners.md", "docs/planning/work-packets/WRK-0186-build-cross-domain-provenance-conformance-kit.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 20d531334514c15cae4af0cb416594529e43d1cf
+claim_id: WRK-0186:66fb3525-4e4c-47de-a926-4e18c31e37bc
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T09:31:00Z
 ---
 
 # Agent Work Packet: Build the Cross-Domain Provenance Conformance Kit
@@ -183,3 +183,6 @@ tenant/admin, external-action, or financial authority changed.
   owner conformance seam with test-only synthetic profile adapters. The later
   real Project proof remains WRK-0187, and no lower-level approval exists or is
   required.
+- 2026-10-18: Activated from clean base `20d5313` after confirming current CAP
+  authority, completed WRK-0185, resolved decisions, exact isolated write
+  scope, and no active file-ownership collision.
