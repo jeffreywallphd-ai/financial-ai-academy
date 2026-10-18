@@ -206,7 +206,7 @@ The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0180 | Freeze the provider-neutral provenance envelope and bounded learning-lineage contracts, compatibility corpus, ownership rules, and conformance tests | none | none | captured |
+| [WRK-0180](../work-packets/WRK-0180-freeze-learning-provenance-contracts.md) | Freeze the provider-neutral provenance envelope and bounded learning-lineage contracts, compatibility corpus, ownership rules, and conformance tests | none | none | ready |
 | WRK-0181 | Compose the Audit learning-lineage core, Content/Assessment public adapters, Audit-owned read persistence, idempotent reconciliation, and focused architecture/security evidence | WRK-0180 | none | captured |
 | WRK-0182 | Expose protected learning-lineage operations through FastAPI, reviewed OpenAPI, and the generated TypeScript client for browser and headless consumers | WRK-0181 | none | captured |
 | WRK-0183 | Qualify exact live learning lineage, restart, containment, anti-rigidity, documentation, and slice completion | WRK-0182 | none | captured |
@@ -272,3 +272,6 @@ cleanup, migration/rollback status, residual gaps, and CAP conformance.
   lineage seam over existing published lessons and knowledge-check evidence.
   The refinement preserves CAP-0026's approved outcome, four-slice manifest,
   order, decision posture, risks, and non-goals; no lower-level approval exists.
+- 2026-10-18: Authored dependency-first WRK-0180 with an exact pure-contract,
+  compatibility-corpus, architecture, documentation, and test scope. Later
+  packets remain captured until their accepted inputs exist.
