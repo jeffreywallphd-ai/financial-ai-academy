@@ -1,0 +1,16 @@
+[
+  {"id": "unknown-purpose", "target": "lesson_review", "ops": [{"op": "set", "path": ["purpose"], "value": "support_investigation"}], "expected_code": "accountable_history.schema_invalid"},
+  {"id": "caller-learner-selector", "target": "lesson_review", "ops": [{"op": "set", "path": ["learner_id"], "value": "private-learner"}], "expected_code": "accountable_history.schema_invalid"},
+  {"id": "active-display-content", "target": "lesson_review", "ops": [{"op": "set", "path": ["summary"], "value": "<script>send secret</script>"}], "expected_code": "accountable_history.schema_invalid"},
+  {"id": "raw-internal-error", "target": "incomplete_review", "ops": [{"op": "set", "path": ["diagnostics", 0, "explanation"], "value": "Traceback at C:\\private\\owner.py"}], "expected_code": "accountable_history.unsafe_text"},
+  {"id": "root-identity-mismatch", "target": "lesson_review", "ops": [{"op": "set", "path": ["root", "resource_id"], "value": "other-lesson"}], "expected_code": "accountable_history.root_mismatch"},
+  {"id": "duplicate-sequence", "target": "completion_review", "ops": [{"op": "set", "path": ["entries", 1, "sequence"], "value": 1}], "expected_code": "accountable_history.sequence_invalid"},
+  {"id": "unknown-diagnostic", "target": "incomplete_review", "ops": [{"op": "set", "path": ["diagnostics", 0, "code"], "value": "database_exception"}], "expected_code": "accountable_history.schema_invalid"},
+  {"id": "unknown-link-entry", "target": "lesson_review", "ops": [{"op": "set", "path": ["transformations", 0, "target_entry_id"], "value": "private-record"}], "expected_code": "accountable_history.link_invalid"},
+  {"id": "duplicate-redaction-category", "target": "lesson_review", "ops": [{"op": "set", "path": ["redactions", 1, "category"], "value": "owner_payload"}], "expected_code": "accountable_history.redaction_invalid"},
+  {"id": "valid-state-with-gap", "target": "incomplete_review", "ops": [{"op": "set", "path": ["state"], "value": "valid"}], "expected_code": "accountable_history.state_invalid"},
+  {"id": "entry-bound-exceeded", "target": "lesson_review", "ops": [{"op": "repeat", "path": ["entries"], "count": 65}], "expected_code": "accountable_history.schema_invalid"},
+  {"id": "portable-document-wrong-purpose", "target": "portable_evidence", "ops": [{"op": "set", "path": ["document", "purpose"], "value": "learner_review"}], "expected_code": "accountable_history.export_invalid"},
+  {"id": "portable-document-digest-mismatch", "target": "portable_evidence", "ops": [{"op": "set", "path": ["document_digest"], "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}], "expected_code": "accountable_history.export_invalid"},
+  {"id": "portable-storage-path", "target": "portable_evidence", "ops": [{"op": "set", "path": ["storage_path"], "value": "C:\\private\\export.json"}], "expected_code": "accountable_history.schema_invalid"}
+]

@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "media_type": "application/vnd.financial-ai-academy.accountable-history+json",
+  "filename_stem": "completion-evidence-check-1-1",
+  "exported_at": "2026-08-05T16:15:01Z",
+  "document_digest": "eecb2b558be700353dad84e545c73fbfac255f361a3bd34f64c348a037552f2b",
+  "document": {
+    "schema_version": "1.0.0",
+    "purpose": "portable_evidence",
+    "root": {"root_kind": "knowledge_check_completion", "resource_id": "evidence-check-1", "occurrence": 1},
+    "state": "valid",
+    "title": "Portable evidence record",
+    "summary": "This record shows the source and history disclosed for the completion.",
+    "source_lineage_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+    "entries": [
+      {
+        "sequence": 1, "entry_id": "evidence", "role": "completed", "title": "Completion evidence", "explanation": "The completed check produced this evidence record.",
+        "owner_module": "assessment", "resource_kind": "completion_evidence", "resource_id": "evidence-check-1", "occurrence": 1,
+        "integrity_digest": "6666666666666666666666666666666666666666666666666666666666666666", "recorded_at": "2026-08-05T12:15:00-04:00", "validation_status": "validated"
+      },
+      {
+        "sequence": 2, "entry_id": "audit", "role": "recorded", "title": "Integrity record", "explanation": "An audit reference records the accepted completion evidence.",
+        "owner_module": "audit", "resource_kind": "audit_reference", "resource_id": "audit-event-check-1", "occurrence": 1,
+        "integrity_digest": "7777777777777777777777777777777777777777777777777777777777777777", "recorded_at": "2026-08-05T16:15:01Z", "validation_status": "validated"
+      }
+    ],
+    "transformations": [{"source_entry_id": "evidence", "target_entry_id": "audit", "relation": "recorded_as"}],
+    "missing_links": [],
+    "diagnostics": [],
+    "redactions": [
+      {"category": "learner_private_identity", "count": 1},
+      {"category": "owner_payload", "count": 2},
+      {"category": "protected_content", "count": 2},
+      {"category": "storage_details", "count": 2}
+    ],
+    "history_digest": "eecb2b558be700353dad84e545c73fbfac255f361a3bd34f64c348a037552f2b"
+  }
+}

@@ -7,6 +7,7 @@ api/             generated OpenAPI snapshot
 common/          shared structural schemas
 guidance/        versioned platform-help and guidance records
 provenance/      provider-neutral provenance envelopes and bounded lineage
+accountable-history/ purpose-limited history inspection and portable evidence
 events/          versioned event schemas and envelope
 providers/       provider and plugin manifests/capabilities
 learning/        portable learning records
@@ -46,3 +47,10 @@ reference catalog for Project snapshots and synthetic future financial,
 dataset, model, execution, simulation, recommendation, and administrative
 profiles. It changes no v1 schema and adds no lineage view, product adapter,
 provider/model action, persistence, permission, or financial authority.
+
+The additive cross-module `accountable-history/v1` family defines one safe,
+purpose-limited learner inspection document and one ephemeral portable evidence
+wrapper over an already authorized learning-lineage root. Server-bound purpose,
+closed diagnostics, redaction summaries, deterministic disclosed-content
+digests, and reviewed display text expose no owner payload, learner identity,
+provider secret, storage detail, retained export, or new permission.

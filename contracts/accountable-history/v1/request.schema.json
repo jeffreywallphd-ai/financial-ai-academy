@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/accountable-history/v1/request.schema.json",
+  "title": "Financial AI Academy accountable history request v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "root_kind", "package_id", "package_version", "package_digest"],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "root_kind": {"const": "published_lesson"},
+        "package_id": {"$ref": "#/$defs/identifier"},
+        "package_version": {"$ref": "#/$defs/version"},
+        "package_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "root_kind", "placement_id", "evidence_id", "occurrence"],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "root_kind": {"const": "knowledge_check_completion"},
+        "placement_id": {"$ref": "#/$defs/identifier"},
+        "evidence_id": {"$ref": "#/$defs/identifier"},
+        "occurrence": {"type": "integer", "minimum": 1}
+      }
+    }
+  ],
+  "$defs": {
+    "identifier": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\s._:/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$"},
+    "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

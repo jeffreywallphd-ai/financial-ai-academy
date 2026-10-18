@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/accountable-history/v1/export.schema.json",
+  "title": "Financial AI Academy portable evidence export v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "media_type", "filename_stem", "exported_at", "document_digest", "document"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "media_type": {"const": "application/vnd.financial-ai-academy.accountable-history+json"},
+    "filename_stem": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,79}$"},
+    "exported_at": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?Z$"},
+    "document_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "document": {"$ref": "document.schema.json"}
+  }
+}

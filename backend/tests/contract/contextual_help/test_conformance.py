@@ -69,5 +69,5 @@ def test_runner_reports_bounded_success() -> None:
         "valid": True,
         "context_key": "project-result",
         "context_version": "1.0.0",
-        "context_digest": "ae7188ccab72c819549599d4f168cfdcca22b76eecbbf03051f41a8278201fb9",
+        "context_digest": "640edbf063b0978a800e840ccd367b8d7bdc186dd224af84987ee36f5fb2714d",
     }

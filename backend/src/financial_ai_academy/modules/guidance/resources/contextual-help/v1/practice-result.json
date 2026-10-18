@@ -12,8 +12,8 @@
   ],
   "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
   "source_references": [
-    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "510a5f1d83a2e8963ade6ef91b6e68eae56f25eb0e532277fc49f07d4a88efd3"},
+    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "03ca129e07683e140ef237384f5159999fc055ac8ee687f4b9c98d78c5e4ed5c"},
     {"source_key": "education-advice-boundary", "title": "Education versus financial advice", "area": "risk", "source_version": "2026-10-18", "content_fingerprint": "917c157fc1da47a686a609fd72e5d36d297c9b99254724e8adf8081a14ad33d6"}
   ],
-  "context_digest": "296ba00a3e623951bfdfec08e7e2321008efc39884738d17446599950b4238fe"
+  "context_digest": "47e25ef8d451bb2417985555c9c45b70745fac6693c23e2f3ac12f6e3a3ee757"
 }

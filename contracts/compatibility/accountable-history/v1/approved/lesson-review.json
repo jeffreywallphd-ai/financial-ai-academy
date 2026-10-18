@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "learner_review",
+  "root": {"root_kind": "published_lesson", "resource_id": "intro-risk-return", "resource_version": "1.0.0"},
+  "state": "valid",
+  "title": "Source and history",
+  "summary": "This lesson is linked to the reviewed source used to publish it.",
+  "source_lineage_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+  "entries": [
+    {
+      "sequence": 1,
+      "entry_id": "source",
+      "role": "source",
+      "title": "Reviewed source",
+      "explanation": "This source was used to prepare the lesson.",
+      "owner_module": "content",
+      "resource_kind": "educational_source",
+      "resource_id": "source-risk-return",
+      "resource_version": "2026.08.05",
+      "integrity_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+      "recorded_at": "2026-08-05T11:30:00Z",
+      "validation_status": "validated"
+    },
+    {
+      "sequence": 2,
+      "entry_id": "lesson",
+      "role": "published",
+      "title": "Published lesson",
+      "explanation": "The lesson was published from the reviewed source.",
+      "owner_module": "content",
+      "resource_kind": "published_lesson",
+      "resource_id": "intro-risk-return",
+      "resource_version": "1.0.0",
+      "integrity_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+      "recorded_at": "2026-08-05T12:00:00Z",
+      "validation_status": "validated"
+    }
+  ],
+  "transformations": [{"source_entry_id": "lesson", "target_entry_id": "source", "relation": "published_from"}],
+  "missing_links": [],
+  "diagnostics": [],
+  "redactions": [
+    {"category": "owner_payload", "count": 2},
+    {"category": "storage_details", "count": 2}
+  ],
+  "history_digest": "ab60731c098d437c0f8815da0247e3c3c3d55afbefff915668889de0595895da"
+}

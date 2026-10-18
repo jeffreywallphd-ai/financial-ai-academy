@@ -18,7 +18,7 @@
   ],
   "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
   "source_references": [
-    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "510a5f1d83a2e8963ade6ef91b6e68eae56f25eb0e532277fc49f07d4a88efd3"}
+    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "03ca129e07683e140ef237384f5159999fc055ac8ee687f4b9c98d78c5e4ed5c"}
   ],
-  "guidance_digest": "64bdfb1af24f495ed9f9e1182417fc4e39a4fec614e1ce2c12ee7560d0426adf"
+  "guidance_digest": "89ff6605a988310e259e00056c1320e03df3cd6dc5e6f2b7aa22d8bf1d031af6"
 }

@@ -142,6 +142,41 @@ coverage, and produce the same ordered cases under input reordering. One Project
 failure remains local and cannot disable unrelated profiles. No dynamic runtime
 registry or all-or-nothing owner count is introduced.
 
+## Accountable History Version 1 Contract
+
+The additive `accountable-history/v1` family defines a purpose-limited read
+model over one already authorized learning-lineage root. It leaves provenance
+v1/v2 meaning and fingerprints unchanged. A request contains only the same
+closed lesson or knowledge-check completion selector; server identity,
+permission, and operation purpose remain outside caller control.
+
+An inspection binds `learner_review`; a portable evidence operation binds
+`portable_evidence`. Both use one disclosed-content document containing ordered
+history entries, existing transformation relations, explicit gaps, closed safe
+diagnostics, reviewed plain-English display fields, bounded exact technical
+facts, redaction category counts, the source lineage digest, and a separate
+disclosed-content digest. Entry roles and owner/kind combinations remain closed
+to the existing Content, Assessment, and Audit learning chain.
+
+Diagnostics distinguish missing reference, unavailable owner, unsupported
+version, integrity mismatch, invalid relation, identity conflict, and redacted
+detail. They describe validation results and do not claim malicious activity,
+compliance failure, or tamper-proof storage. Diagnostic text cannot expose the
+rejected value, payload, path, stack trace, credential, or internal exception.
+Redaction summaries expose only one closed category and count.
+
+Canonical documents normalize source times to UTC `Z`, sort semantic arrays,
+and use compact sorted-key UTF-8 JSON with unescaped Unicode. The history digest
+binds the complete disclosed document without its own digest field. The export
+wrapper uses that same digest and derives export time from the latest disclosed
+source time; it contains no file path, storage locator, retained download, or
+runtime-clock claim.
+
+This is currently a frozen contract and compatibility seam only. It contains no
+production composer, authorization, permission, endpoint, generated client,
+browser view, export retention, migration, provider/model action, tenant or
+administrator policy, legal conclusion, or history mutation.
+
 ## Safety and Non-Authority
 
 The contract contains no lesson body, assessment response, answer, feedback,

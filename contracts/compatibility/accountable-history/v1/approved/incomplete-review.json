@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "learner_review",
+  "root": {"root_kind": "published_lesson", "resource_id": "leçon-diversification-été", "resource_version": "1.0.0"},
+  "state": "incomplete",
+  "title": "Source and history",
+  "summary": "The lesson is available, but one source record is not available now.",
+  "source_lineage_digest": "8888888888888888888888888888888888888888888888888888888888888888",
+  "entries": [
+    {
+      "sequence": 1,
+      "entry_id": "lesson-unicode",
+      "role": "published",
+      "title": "Published lesson",
+      "explanation": "The lesson record is available.",
+      "owner_module": "content",
+      "resource_kind": "published_lesson",
+      "resource_id": "leçon-diversification-été",
+      "resource_version": "1.0.0",
+      "integrity_digest": "9999999999999999999999999999999999999999999999999999999999999999",
+      "recorded_at": "2026-08-05T16:00:00+00:00",
+      "validation_status": "incomplete"
+    }
+  ],
+  "transformations": [],
+  "missing_links": [
+    {"source_entry_id": "lesson-unicode", "relation": "published_from", "target_reference": "source-diversification-été", "reason": "unavailable", "explanation": "The source record is not available now."}
+  ],
+  "diagnostics": [
+    {"code": "owner_unavailable", "reference": "source-diversification-été", "explanation": "The source owner could not return this record."}
+  ],
+  "redactions": [
+    {"category": "owner_payload", "count": 1},
+    {"category": "storage_details", "count": 1}
+  ],
+  "history_digest": "9e4279084ea09706653b22c18918e2eb558bf7e32473e5b043cf5576afdd2e14"
+}

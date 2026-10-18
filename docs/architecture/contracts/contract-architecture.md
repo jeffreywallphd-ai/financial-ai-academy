@@ -14,6 +14,7 @@
 | Portable learning and finance records | JSON Schema | Schema files under `contracts/learning/` and `contracts/finance/` |
 | Platform guidance projections | JSON Schema | Schema files under `contracts/guidance/` |
 | Provider-neutral provenance and bounded lineage | JSON Schema | Schema files under `contracts/provenance/` |
+| Purpose-limited accountable history and portable evidence | JSON Schema | Schema files under `contracts/accountable-history/` |
 | Internal application operations | Typed Python request/result models | Owning module public application surface |
 | Frontend client | Generated TypeScript | Generated from reviewed OpenAPI; never hand-edited |
 
@@ -162,6 +163,20 @@ administrative compatibility records are synthetic contract evidence until
 their owners deliver public operations. The v2 contract currently defines no
 lineage view, persistence, permission, provider/model execution, tenant policy,
 or financial authority.
+
+The additive `accountable-history/v1` family fixes a read-only disclosed view
+over one already authorized provenance v1 learning root. The request carries no
+learner or purpose selector. Separate future operations bind `learner_review`
+or `portable_evidence`, and the document combines reviewed plain-English text
+with exact bounded technical facts, safe diagnostic codes, explicit gaps,
+redaction category counts, source-lineage identity, and a deterministic digest.
+The portable wrapper derives its time from disclosed evidence and carries no
+storage or retained-download reference. The contract grants no permission,
+mutates no history, copies no owner payload, and selects no tenant, retention,
+legal, compliance, signing, encryption, provider, model, or financial policy.
+Its current implementation is contract and compatibility evidence only; the
+pure composer, authorization/API, generated client, browser, and live
+qualification are separate dependent seams.
 
 Portable financial methods, portfolio records, and simulation results
 additionally follow

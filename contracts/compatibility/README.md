@@ -41,3 +41,8 @@ explicitly approved breaking-change records live here.
   owner-reference profiles, exact identity variants, origin labels, source
   relations, canonicalization, v1 fingerprints, and safe denials without
   claiming that synthetic future-owner fixtures are implemented product data.
+- [`accountable-history/v1/`](accountable-history/v1/README.md) fixes closed
+  learner-review and portable-evidence purposes, plain display and exact
+  technical facts, safe diagnostics, redaction summaries, deterministic export,
+  provenance fingerprints, and bounded denials without exposing protected
+  owner data or granting inspection/export authority.

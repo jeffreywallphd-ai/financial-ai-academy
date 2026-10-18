@@ -111,6 +111,15 @@ input reordering, and a Project failure cannot disable unrelated profiles.
 This evidence does not turn the other eight synthetic profiles into product
 owners or create an all-or-nothing runtime registry.
 
+The additive `accountable-history/v1` executable contract now freezes a
+purpose-limited read model over an already authorized learning-lineage root.
+It defines reviewed plain display text, bounded exact technical facts, safe
+diagnostics, explicit gaps, redaction category counts, deterministic disclosed-
+content digests, and an ephemeral portable evidence wrapper. This contract-only
+seam imports no Audit product code and currently adds no composer, permission,
+public operation, endpoint, generated client, browser, persistence, migration,
+retained export, tenant/admin policy, provider/model action, or history change.
+
 `POST /api/v1/audit/learning-lineage` exposes the two closed roots through the
 same protected OpenAPI-generated contract for browser and headless callers. It
 requires server-issued `audit.lineage.read` and `curriculum.lesson.read`, binds
