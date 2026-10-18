@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/guidance", "backend/tests/contract/platform_help", "backend/tests/unit/guidance", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/platform-help/v1", "contracts/guidance", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0165-freeze-platform-help-contracts.md"]
 generated_artifacts: []
-base_revision: 76afb52d8759d405a57cea13090c0d03618899f9
-claim_id: WRK-0165:a6228269-f5d6-4b50-9f65-6590211b0f32
+base_revision: a418a290ee28693d75659346e4401bc3994c32ab
+claim_id: WRK-0165:759c9b99-64a9-47d5-8990-ad67361d598c
 claimed_by: codex-cap-0020
-claimed_at: 2026-10-18T02:09:40Z
+claimed_at: 2026-10-18T02:19:30Z
 ---
 
 # Agent Work Packet: Freeze Platform Help Contracts
@@ -227,3 +227,7 @@ behavior changed.
 - 2026-10-18: Activated from recorded base `76afb52` after the implementation
   gate confirmed current CAP authority, refined slice membership, satisfied
   dependencies, and no overlapping active work.
+- 2026-10-18: Rebased the claim to `a418a29` after the separately authorized
+  roadmap-card correction was committed outside this packet. The platform-help
+  scope and acceptance contract did not change; the new base keeps unrelated
+  review-site files out of this packet's exact candidate.
