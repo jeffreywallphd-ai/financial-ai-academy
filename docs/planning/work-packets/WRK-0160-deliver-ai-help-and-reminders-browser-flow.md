@@ -1,7 +1,7 @@
 ---
 id: WRK-0160
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesPage.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesRoute.tsx", "apps/web/src/features/assistance-preferences/api.ts", "apps/web/src/features/assistance-preferences/model.ts", "apps/web/src/styles/assistance-preferences.css", "apps/web/tests/browser/assistance-preferences/assistance-preferences.spec.ts", "apps/web/tests/component/assistancePreferences.test.tsx", "apps/web/tests/unit/assistancePreferencesModel.test.ts", "apps/web/tests/unit/browserBoundary.test.ts", "docs/architecture/contracts/learner-assistance-preferences-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0160-deliver-ai-help-and-reminders-browser-flow.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: c702c8592392483f08fc7123b5006e2d0df18d2b
+claim_id: WRK-0160:432added-1b15-4018-838c-4addf4632e52
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-18T00:38:26Z
 ---
 
 # Agent Work Packet: Deliver the AI Help and Reminders Browser Flow
@@ -237,3 +237,6 @@ competency, recommendation, external action, or financial behavior changed.
   into one plain-language browser flow while preserving independent failure,
   headless API parity, no-execution/no-delivery boundaries, and no lower-level
   approval within the current CAP-0018 package.
+- 2026-10-17: Activated from recorded base `c702c85` after confirming the
+  current CAP package, completed WRK-0159 dependency, bounded browser-only
+  scope, resolved decision posture, and no active coordination collision.

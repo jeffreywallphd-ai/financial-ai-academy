@@ -218,7 +218,7 @@ each packet starts. The proposed dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0158 | Freeze AI-help preference contracts, closed semantics, local-reminder envelope and adapter rules, privacy limits, compatibility vectors, and pure core | none | none | complete |
 | WRK-0159 | Compose Learner-model application, PostgreSQL persistence and migration, protected API, reviewed OpenAPI, and generated client | WRK-0158 | none | complete |
-| WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | ready |
+| WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | active |
 | Reserved just in time | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | browser packet | none | planned |
 
 Detailed packet plans declare exact files, generated artifacts, checks, and
