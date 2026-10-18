@@ -1,7 +1,7 @@
 ---
 id: WRK-0175
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -228,15 +228,23 @@ feature behavior, or financial behavior changed.
 - The reviewed OpenAPI snapshot and generated TypeScript client reproduce the
   `getFeatureGuidanceVersion` operation. Browser and ordinary headless clients
   therefore share one public shape without importing backend internals.
-- The focused Guidance, API, and module-boundary suite passes 93 tests; Web and
+- The focused Guidance, API, and module-boundary suite passes 94 tests; Web and
   generated-client qualification passes 499 tests. OpenAPI reproduction,
   TypeScript checking, zero-warning lint, Python compilation, architecture,
   security, documentation, planning, whitespace, and all 29 aggregate
   readiness checks pass.
+- Varied-valid-registry evidence derives counts from the admitted baseline,
+  changes wording and ordered action/reference shapes, adds a mapping, and
+  preserves schema validity, exact digests, mapping-record correlation, and
+  ordering through the real service and protected API projection.
 - No owning-feature behavior, browser explanation, persistence, migration,
   provider/model call, arbitrary command or destination, recovery execution,
-  external action, learner authority, or financial behavior changed. Exact-
-  candidate verification remains before completion.
+  external action, learner authority, or financial behavior changed.
+- Exact candidate `1a722abcefe9f8efc02604feb9120e3f4f463fc9` has a qualifying
+  receipt at `.local-codex/control-plane/receipts/WRK-0175/1a722abcefe9f8efc02604feb9120e3f4f463fc9/20261018T062306Z-a1c5233c-76bf-40ca-afbc-5c0805735690.json`.
+  Its 12 selected checks cover focused feature Guidance, architecture,
+  security, reviewed contracts/client, the full Web unit/build gates, and all
+  29 aggregate readiness checks.
 
 ## Planning History
 
@@ -251,3 +259,9 @@ feature behavior, or financial behavior changed.
 - 2026-10-18: Entered verification after implementing the exact mapping-and-
   record resolution, protected API, reviewed OpenAPI, generated client, and
   focused failure/anti-rigidity evidence within the bounded packet scope.
+- 2026-10-18: Corrected one bounded anti-rigidity evidence gap so valid added
+  mappings and varied record shapes pass through the real service and API
+  without fixed starter counts or prose.
+- 2026-10-18: Completed on corrected exact candidate `1a722ab` after all 12
+  affected checks produced a qualifying receipt. The API-first resolution is
+  ready for the dependent feature-explanation packet.
