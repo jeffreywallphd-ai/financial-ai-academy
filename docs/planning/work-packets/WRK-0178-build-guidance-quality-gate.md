@@ -1,7 +1,7 @@
 ---
 id: WRK-0178
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -208,3 +208,6 @@ authority did not change before the final cumulative qualification packet.
   production-adapter quality command, exact graph/search traversal, bounded
   failure and valid-growth tests, affected-check selection, and the fixed
   readiness integration. Exact-candidate verification remains before closure.
+- 2026-10-18: Moved to verifying after focused Guidance, source/path/link,
+  anti-rigidity, control-plane selection, readiness-catalog, security,
+  planning, documentation, compilation, and whitespace checks passed.
