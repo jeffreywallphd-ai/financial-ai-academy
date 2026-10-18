@@ -1,7 +1,7 @@
 ---
 id: WRK-0170
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -228,6 +228,32 @@ client/UI, and live gaps. Confirm no feature behavior, persistence, identity,
 provider/model, external content/action, learner authority, or financial
 behavior changed.
 
+## Completion Evidence
+
+- Corrected exact candidate `e9c8eeef71454e6b3117fcc270e009bd5b2ba5e4`
+  produced the qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0170/e9c8eeef71454e6b3117fcc270e009bd5b2ba5e4/20261018T041650Z-a651015f-a78e-46b9-97e7-ea8928307255.json`;
+  its SHA-256 digest is
+  `053d5f9c1502f8eca75fccb71f674177442a2a8a845e29343d0c4dd079bde11d`.
+- The additive `contextual-help/v1` schema, compatibility corpus, pure Guidance
+  values, strict mapping adapter, four exact starter contexts, two reviewed
+  supporting topics, and immutable registry all admit atomically with exact
+  version, source-fingerprint, purpose, and digest correlation.
+- Focused contract and Guidance tests passed, including malformed and varied
+  valid inputs, Unicode bounds, duplicate and dangling identities, stale
+  source binding, exact-version absence, canonical digest vectors, and the
+  regression proving that an explicitly empty topic corpus fails closed rather
+  than silently receiving packaged defaults.
+- Controller-selected planning-tool, planning-integrity, documentation, and
+  architecture checks passed on the exact candidate. Pre-submission security,
+  Python compilation, whitespace, and aggregate readiness checks also passed.
+  Independent review closed its one fail-closed finding on the corrected
+  descendant and accepted it without a new finding.
+- No application operation, HTTP route, generated client, browser link,
+  persistence, identity rule, provider/model execution, external content or
+  action, learner authority, or financial behavior changed. Those bounded API,
+  feature-link, and live-qualification seams remain for later SLI-0083 packets.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time as the first dependency seam of approved
@@ -242,3 +268,7 @@ behavior changed.
   existing immutable-corpus manifest test that must recognize the two new
   required source-bound topics. The packet outcome and CAP boundary are
   unchanged and no approval is required.
+- 2026-10-18: Completed after corrected exact verification and independent
+  closure review. One fail-closed adapter defect was fixed by preserving an
+  explicitly empty caller-supplied topic corpus; the bounded correction did not
+  change the approved outcome or require a lower-level approval.

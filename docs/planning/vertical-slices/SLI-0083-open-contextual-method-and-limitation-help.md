@@ -190,7 +190,7 @@ start. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0170](../work-packets/WRK-0170-freeze-contextual-help-contracts-and-registry.md) | Add the exact context contract, pure validation/digest behavior, reviewed source-bound starter topics, immutable registry, compatibility fixtures, and focused anti-rigidity tests | SLI-0082 | none | verifying |
+| [WRK-0170](../work-packets/WRK-0170-freeze-contextual-help-contracts-and-registry.md) | Add the exact context contract, pure validation/digest behavior, reviewed source-bound starter topics, immutable registry, compatibility fixtures, and focused anti-rigidity tests | SLI-0082 | none | complete |
 | Compose contextual Help API | Add the Guidance application/public exact-context read, protected API, reviewed OpenAPI, generated client, and authorization/failure tests | prior seam | none | captured |
 | Deliver contextual feature links | Add generated-client contextual links and safe return behavior to the bounded lesson, practice, Project, and AI-assistance surfaces with focused component/browser accessibility evidence | prior seam | none | captured |
 | Qualify contextual Help live flow | Prove exact browser/headless parity, source/digest correlation, denial, restart, no-outbound behavior, read-only containment, accessibility, anti-rigidity, and cleanup | prior seam | none | captured |
