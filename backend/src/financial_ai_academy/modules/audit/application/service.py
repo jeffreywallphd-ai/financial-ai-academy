@@ -61,6 +61,19 @@ class AuditService:
     def read_published_lesson_lineage(
         self, request: ReadPublishedLessonLineageRequest
     ) -> LineageView:
+        if not all(
+            isinstance(value, str) and bool(value)
+            for value in (
+                request.package_id,
+                request.package_version,
+                request.package_digest,
+            )
+        ):
+            raise AuditError(
+                AuditErrorCode.INVALID_CONTEXT,
+                "Published lesson lineage context is invalid.",
+                reference="published_lesson",
+            )
         if self._content_lineage is None:
             raise AuditError(
                 AuditErrorCode.UNAVAILABLE,
@@ -92,16 +105,22 @@ class AuditService:
     def read_knowledge_check_completion_lineage(
         self, request: ReadKnowledgeCheckCompletionLineageRequest
     ) -> LineageView:
-        context = ReconcileLessonCompletionAuditRequest(
-            learner_id=request.learner_id,
-            placement_id=request.placement_id,
-        )
-        if request.occurrence < 1 or not request.evidence_id:
+        if (
+            not isinstance(request.evidence_id, str)
+            or not request.evidence_id
+            or not isinstance(request.occurrence, int)
+            or isinstance(request.occurrence, bool)
+            or request.occurrence < 1
+        ):
             raise AuditError(
                 AuditErrorCode.INVALID_CONTEXT,
                 "Completion lineage context is invalid.",
                 reference="completion",
             )
+        context = ReconcileLessonCompletionAuditRequest(
+            learner_id=request.learner_id,
+            placement_id=request.placement_id,
+        )
         events, batch = self._reconcile_lesson_records(context)
         events_by_id = {event.event_id: event for event in events}
         selected = None
@@ -256,6 +275,12 @@ class AuditService:
     def _validate_context(
         request: ReconcileLessonCompletionAuditRequest,
     ) -> None:
+        if not isinstance(request.learner_id, str):
+            raise AuditError(
+                AuditErrorCode.INVALID_CONTEXT,
+                "Learner context is not authorized.",
+                reference="learner",
+            )
         try:
             UUID(request.learner_id)
         except (ValueError, AttributeError) as error:
@@ -266,7 +291,8 @@ class AuditService:
             ) from error
         value = request.placement_id
         if (
-            not 3 <= len(value) <= 64
+            not isinstance(value, str)
+            or not 3 <= len(value) <= 64
             or not value[0].isalnum()
             or not all(
                 character.islower()

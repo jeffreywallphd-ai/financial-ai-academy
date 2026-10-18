@@ -89,6 +89,7 @@ def _source_envelope(source: EducationalSource) -> ProvenanceEnvelope:
                 "source_id": source.source_id,
                 "title": source.title,
                 "publisher": source.publisher,
+                "locator": source.locator,
                 "reviewed_on": source.reviewed_on.isoformat(),
                 "license_note": source.license_note,
             },

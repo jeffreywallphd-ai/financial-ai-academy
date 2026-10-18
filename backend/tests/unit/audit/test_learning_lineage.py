@@ -205,6 +205,48 @@ def test_published_lesson_lineage_is_order_independent_and_omits_payloads() -> N
         == view.view_digest
     )
 
+    changed_source = replace(
+        _lesson().sources[0],
+        locator="https://private.example/revised-location",
+    )
+    changed_lesson = replace(
+        _lesson(),
+        sources=(changed_source, *_lesson().sources[1:]),
+    )
+    changed_service, _repository = _service(lesson=changed_lesson)
+    changed_view = changed_service.read_published_lesson_lineage(
+        ReadPublishedLessonLineageRequest(
+            "intro-risk-return", "1.1.0", PACKAGE_DIGEST
+        )
+    )
+    changed_serialized = json.dumps(
+        changed_view,
+        default=str,
+        ensure_ascii=False,
+    )
+    assert "revised-location" not in changed_serialized
+    assert changed_view.view_digest != view.view_digest
+
+
+@pytest.mark.parametrize("value", (None, 7, False))
+@pytest.mark.parametrize(
+    "field",
+    ("package_id", "package_version", "package_digest"),
+)
+def test_published_lesson_lineage_rejects_non_string_selectors(
+    field: str,
+    value: object,
+) -> None:
+    service, _repository = _service()
+    request = ReadPublishedLessonLineageRequest(
+        "intro-risk-return", "1.1.0", PACKAGE_DIGEST
+    )
+    with pytest.raises(AuditError) as invalid:
+        service.read_published_lesson_lineage(replace(request, **{field: value}))
+
+    assert invalid.value.code is AuditErrorCode.INVALID_CONTEXT
+    assert invalid.value.reference == "published_lesson"
+
 
 def test_completion_lineage_reconciles_once_and_returns_stable_bounded_graph() -> None:
     service, repository = _service()
@@ -231,6 +273,41 @@ def test_completion_lineage_reconciles_once_and_returns_stable_bounded_graph() -
     assert "selected_option" not in serialized
     assert "feedback" not in serialized
     assert "private" not in serialized
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    (
+        ("learner_id", None),
+        ("learner_id", 7),
+        ("placement_id", None),
+        ("placement_id", 7),
+        ("evidence_id", None),
+        ("evidence_id", 7),
+        ("occurrence", "1"),
+        ("occurrence", None),
+        ("occurrence", True),
+        ("occurrence", 1.0),
+    ),
+)
+def test_completion_lineage_rejects_malformed_selectors(
+    field: str,
+    value: object,
+) -> None:
+    service, repository = _service()
+    request = ReadKnowledgeCheckCompletionLineageRequest(
+        LEARNER_ID,
+        "intro-risk-return",
+        _event().evidence_id,
+        1,
+    )
+    with pytest.raises(AuditError) as invalid:
+        service.read_knowledge_check_completion_lineage(
+            replace(request, **{field: value})
+        )
+
+    assert invalid.value.code is AuditErrorCode.INVALID_CONTEXT
+    assert not repository.records
 
 
 def test_zero_sources_remains_valid_without_a_fixed_fixture_count() -> None:
