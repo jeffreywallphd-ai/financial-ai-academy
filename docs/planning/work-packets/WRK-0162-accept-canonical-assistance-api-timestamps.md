@@ -143,4 +143,10 @@ or financial behavior changed, then leave WRK-0161 ready to resume.
 - 2026-10-18: Activated from recorded base `8b147c1` after validating current
   CAP authority, the completed browser dependency, exact corrective scope, and
   no active coordination collision.
+- 2026-10-18: Independent review R01 confirmed the canonical precision and
+  digest boundary but found that JavaScript millisecond comparison could hide
+  reversed microsecond ordering and that invalid timestamp fixtures retained a
+  stale digest. The bounded correction normalizes only a comparison key to six
+  fractional digits, preserves exact received text for hashing, and adds
+  digest-valid profile, history, and export chronology regressions.
 

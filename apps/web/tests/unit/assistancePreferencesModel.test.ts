@@ -58,18 +58,21 @@ async function profile(
 function history(
   current: AssistancePreferenceProfile,
   revisions: number[],
+  occurredAt: string | string[] = "2026-10-17T20:05:00Z",
 ): AssistancePreferenceHistory {
   return {
     schema_version: "1.0.0",
     profile_id: current.profile_id,
     current_revision: current.revision,
-    changes: revisions.map((revision) => ({
+    changes: revisions.map((revision, index) => ({
       schema_version: "1.0.0",
       revision,
       operation: "replace_preferences",
       object_kind: "profile",
       object_id: null,
-      occurred_at: "2026-10-17T20:05:00Z",
+      occurred_at: Array.isArray(occurredAt)
+        ? occurredAt[index] ?? "2026-10-17T20:05:00Z"
+        : occurredAt,
       resulting_profile_digest: revision === current.revision
         ? current.profile_digest
         : "a".repeat(64),
@@ -156,15 +159,12 @@ describe("AI-help preference browser model", () => {
   });
 
   it("rejects impossible and noncanonical times", async () => {
-    const current = await profile(1);
-    await expect(assistancePreferenceProfileIsSafe({
-      ...current,
+    await expect(assistancePreferenceProfileIsSafe(await profile(1, {
       updated_at: "2026-02-30T20:00:00Z",
-    })).resolves.toBe(false);
-    await expect(assistancePreferenceProfileIsSafe({
-      ...current,
+    }))).resolves.toBe(false);
+    await expect(assistancePreferenceProfileIsSafe(await profile(1, {
       updated_at: "2026-10-17 20:00:00Z",
-    })).resolves.toBe(false);
+    }))).resolves.toBe(false);
   });
 
   it.each([
@@ -187,10 +187,43 @@ describe("AI-help preference browser model", () => {
     "2026-04-31T20:10:00.123456Z",
     "2026-10-17T20:10:60Z",
   ])("rejects noncanonical API timestamp text: %s", async (updated_at) => {
-    const current = await profile(2);
-    await expect(assistancePreferenceProfileIsSafe({
-      ...current,
-      updated_at,
+    await expect(assistancePreferenceProfileIsSafe(
+      await profile(2, { updated_at }),
+    )).resolves.toBe(false);
+  });
+
+  it("preserves microsecond precision for profile, history, and export chronology", async () => {
+    const reversedProfile = await profile(2, {
+      created_at: "2026-10-17T20:10:00.123999Z",
+      updated_at: "2026-10-17T20:10:00.123000Z",
+    });
+    await expect(assistancePreferenceProfileIsSafe(reversedProfile)).resolves.toBe(false);
+
+    const current = await profile(2, {
+      created_at: "2026-10-17T20:00:00Z",
+      updated_at: "2026-10-17T20:10:00.123456Z",
+    });
+    expect(assistancePreferenceHistoryIsSafe(
+      history(current, [2], "2026-10-17T20:10:00.123457Z"),
+      current,
+    )).toBe(false);
+
+    const revisionThree = await profile(3, {
+      created_at: "2026-10-17T20:00:00Z",
+      updated_at: "2026-10-17T20:10:00.123999Z",
+    });
+    expect(assistancePreferenceHistoryIsSafe(
+      history(revisionThree, [2, 3], [
+        "2026-10-17T20:10:00.123456Z",
+        "2026-10-17T20:10:00.123455Z",
+      ]),
+      revisionThree,
+    )).toBe(false);
+
+    const retained = history(current, [2], "2026-10-17T20:10:00.123455Z");
+    await expect(assistancePreferenceExportIsSafe({
+      ...exported(current, retained),
+      exported_at: "2026-10-17T20:10:00.123455Z",
     })).resolves.toBe(false);
   });
 });

@@ -109,11 +109,25 @@ function boundedText(value: unknown, minimum: number, maximum: number): value is
     Array.from(value).length <= maximum;
 }
 
-function timestamp(value: unknown): value is string {
-  if (typeof value !== "string" || !CANONICAL_UTC.test(value)) return false;
+function comparableTimestamp(value: unknown): string | undefined {
+  if (typeof value !== "string" || !CANONICAL_UTC.test(value)) return undefined;
   const parsed = new Date(value);
-  if (!Number.isFinite(parsed.getTime())) return false;
-  return parsed.toISOString().slice(0, 19) === value.slice(0, 19);
+  if (!Number.isFinite(parsed.getTime())) return undefined;
+  if (parsed.toISOString().slice(0, 19) !== value.slice(0, 19)) return undefined;
+  const fraction = /\.(\d{1,6})Z$/.exec(value)?.[1] ?? "";
+  return `${value.slice(0, 19)}.${fraction.padEnd(6, "0")}Z`;
+}
+
+function timestamp(value: unknown): value is string {
+  return comparableTimestamp(value) !== undefined;
+}
+
+function timestampIsAtOrBefore(first: string, second: string): boolean {
+  const comparableFirst = comparableTimestamp(first);
+  const comparableSecond = comparableTimestamp(second);
+  return comparableFirst !== undefined &&
+    comparableSecond !== undefined &&
+    comparableFirst <= comparableSecond;
 }
 
 function canonical(value: unknown): unknown {
@@ -157,7 +171,7 @@ function profileHasSafeShape(value: unknown): value is AssistancePreferenceProfi
     (value.assistance_mode === "off" || value.assistance_mode === "on_request") &&
     timestamp(value.created_at) &&
     timestamp(value.updated_at) &&
-    Date.parse(value.created_at) <= Date.parse(value.updated_at) &&
+    timestampIsAtOrBefore(value.created_at, value.updated_at) &&
     typeof value.profile_digest === "string" && DIGEST.test(value.profile_digest);
 }
 
@@ -217,8 +231,8 @@ export function assistancePreferenceHistoryIsSafe(
   if (changes.length !== expectedLength) return false;
   if (!changes.every((change, index) =>
     change.revision === expectedFirst + index &&
-    Date.parse(change.occurred_at) <= Date.parse(profile.updated_at) &&
-    (index === 0 || Date.parse(changes[index - 1]!.occurred_at) <= Date.parse(change.occurred_at))
+    timestampIsAtOrBefore(change.occurred_at, profile.updated_at) &&
+    (index === 0 || timestampIsAtOrBefore(changes[index - 1]!.occurred_at, change.occurred_at))
   )) return false;
   const latest = changes.at(-1);
   return !latest || (
@@ -248,7 +262,7 @@ export async function assistancePreferenceExportIsSafe(
     !timestamp(value.exported_at) ||
     !profileHasSafeShape(value.profile) ||
     !assistancePreferenceHistoryIsSafe(value.history, value.profile) ||
-    Date.parse(value.exported_at) < Date.parse(value.profile.updated_at)
+    !timestampIsAtOrBefore(value.profile.updated_at, value.exported_at)
   ) return false;
   return assistancePreferenceProfileIsSafe(value.profile);
 }
