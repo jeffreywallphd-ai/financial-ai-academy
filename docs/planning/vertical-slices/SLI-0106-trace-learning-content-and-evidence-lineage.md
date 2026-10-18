@@ -208,7 +208,7 @@ The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | [WRK-0180](../work-packets/WRK-0180-freeze-learning-provenance-contracts.md) | Freeze the provider-neutral provenance envelope and bounded learning-lineage contracts, compatibility corpus, ownership rules, and conformance tests | none | none | complete |
 | [WRK-0181](../work-packets/WRK-0181-compose-learning-lineage-core.md) | Compose the Audit learning-lineage core, Content/Assessment public adapters, Audit-owned read persistence, idempotent reconciliation, and focused architecture/security evidence | WRK-0180 | none | complete |
-| [WRK-0182](../work-packets/WRK-0182-expose-protected-learning-lineage-api.md) | Expose protected learning-lineage operations through FastAPI, reviewed OpenAPI, and the generated TypeScript client for browser and headless consumers | WRK-0181 | none | active |
+| [WRK-0182](../work-packets/WRK-0182-expose-protected-learning-lineage-api.md) | Expose protected learning-lineage operations through FastAPI, reviewed OpenAPI, and the generated TypeScript client for browser and headless consumers | WRK-0181 | none | complete |
 | WRK-0183 | Qualify exact live learning lineage, restart, containment, anti-rigidity, documentation, and slice completion | WRK-0182 | none | captured |
 
 Sequential delivery is required because each packet stabilizes the contract and
@@ -294,3 +294,7 @@ cleanup, migration/rollback status, residual gaps, and CAP conformance.
 - 2026-10-18: Authored WRK-0182 just in time with one closed protected API,
   additive read permission, runtime composition, reviewed OpenAPI, generated
   TypeScript, direct headless use, and focused confidentiality boundaries.
+- 2026-10-18: Completed WRK-0182 at exact candidate `45df26a` with a qualifying
+  affected receipt, 15 focused tests, passing generated-client, architecture,
+  security, documentation, planning, and readiness gates, and accepted
+  independent review. WRK-0183 may now qualify the live seam and close SLI-0106.

@@ -1,7 +1,7 @@
 ---
 id: WRK-0182
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -205,6 +205,31 @@ migration/rollback status, assumptions, residual live gap, CAP conformance, and
 unresolved decisions. Confirm no UI, provider/model, external-action, tenancy,
 or financial authority changed.
 
+## Completion Evidence
+
+- Exact candidate: `45df26ab19ad75929ec65b4f288230c3b5209550`.
+- Qualifying affected-check receipt:
+  `sha256:54246d7d68cd64570547bad87125c8e59e0cd6aaade11ff9e4c928a20486f152`.
+- `POST /api/v1/audit/learning-lineage` accepts only the frozen exact lesson or
+  completion root union. Completion learner identity is taken from the opaque
+  server session, and both `audit.lineage.read` and
+  `curriculum.lesson.read` are required before Audit access.
+- The response maps the canonical bounded `LineageView` and excludes learner,
+  session, permission, lesson body, answer, score, feedback, locator, provider,
+  storage, path, and private diagnostic data. Runtime composition reaches
+  Content only through the accepted Audit adapter and public Content operation.
+- The focused API and Identity suite passed 15 tests. OpenAPI and generated-
+  client reproduction, direct TypeScript client use, typecheck, zero-warning
+  lint, architecture fitness, ten security control groups, documentation,
+  planning, whitespace, and all 30 aggregate-readiness checks passed.
+- The first affected receipt exposed only a shell runtime mismatch (Node 20/npm
+  11). Rebinding the existing repository-prepared Node 24/npm 10.8.2 runtimes
+  produced the qualifying receipt against the unchanged exact candidate.
+- Independent technical review accepted the candidate with no actionable
+  material finding. No migration or rollback action is required, and no UI,
+  provider/model, external action, tenancy, financial, or alternate authority
+  was introduced. Live restart and containment evidence remains WRK-0183.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0181 completion. The packet
@@ -215,3 +240,6 @@ or financial authority changed.
   Identity suite, OpenAPI and generated-client reproduction, TypeScript
   compilation and lint, architecture, security, documentation, planning,
   whitespace, and aggregate-readiness checks passed.
+- 2026-10-18: Completed at exact candidate `45df26a` with a qualifying receipt
+  and accepted independent review. The protected browser/headless seam is now
+  stable for WRK-0183 live restart and containment qualification.
