@@ -1,7 +1,7 @@
 ---
 id: WRK-0191
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -221,3 +221,14 @@ tenancy/admin, or financial authority changed.
   headless use, typecheck, zero-warning lint, module and architecture boundaries,
   ten security control groups, documentation, planning, whitespace, and all 30
   aggregate-readiness checks.
+- 2026-10-18: Completed at corrected exact candidate `39cc8e1` with qualifying
+  receipt digest `sha256:917724141b49b57dd92e451774d177548243c2febd6cfa8b6cbb13a11f45d714`
+  and zero open independent-review findings. The correction makes each public
+  owner/resource-kind pair exact, retains offset-aware event times, and keeps
+  portable export time in canonical UTC `Z` notation exactly as frozen.
+  Focused 8 and affected 139-test suites, OpenAPI/client reproduction,
+  typecheck, zero-warning lint, module and architecture boundaries, ten
+  security control groups, documentation, planning, whitespace, and all 30
+  aggregate-readiness checks passed. No migration, retained export, browser,
+  provider/model, external action, tenancy/admin, or financial authority was
+  added.

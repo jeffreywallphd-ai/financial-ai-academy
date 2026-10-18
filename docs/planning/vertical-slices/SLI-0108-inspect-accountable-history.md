@@ -187,7 +187,7 @@ The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | complete |
 | [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | complete |
-| [WRK-0191](../work-packets/WRK-0191-expose-protected-accountable-history-api.md) | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | verifying |
+| [WRK-0191](../work-packets/WRK-0191-expose-protected-accountable-history-api.md) | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | complete |
 | WRK-0192 | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | captured |
 | WRK-0193 | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | captured |
 
@@ -277,3 +277,8 @@ conformance.
   inspection/export routes, server-selected purpose and learner identity,
   reviewed OpenAPI/generated client, focused authorization/confidentiality
   evidence, and no persistence or browser expansion.
+- 2026-10-18: WRK-0191 completed at corrected exact candidate `39cc8e1` with
+  zero open findings. The same protected, generated operations now preserve
+  every frozen owner/resource-kind and timestamp constraint for browser and
+  headless consumers. WRK-0192 is dependency-ready for the learner-facing
+  Source and history view.
