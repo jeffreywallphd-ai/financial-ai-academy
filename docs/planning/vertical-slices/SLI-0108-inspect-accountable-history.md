@@ -1,7 +1,7 @@
 ---
 id: SLI-0108
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -189,7 +189,7 @@ The dependency-ordered seams are:
 | [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | complete |
 | [WRK-0191](../work-packets/WRK-0191-expose-protected-accountable-history-api.md) | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | complete |
 | [WRK-0192](../work-packets/WRK-0192-present-accountable-history-to-learners.md) | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | complete |
-| [WRK-0193](../work-packets/WRK-0193-qualify-live-accountable-history.md) | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | verifying |
+| [WRK-0193](../work-packets/WRK-0193-qualify-live-accountable-history.md) | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | complete |
 
 Sequential delivery is required because each packet freezes the meaning consumed
 by the next. No safe parallel packet exists inside this small shared contract and
@@ -314,3 +314,13 @@ conformance.
   candidate is ready for exact controller submission.
 - 2026-10-18: Submitted exact WRK-0193 candidate `183cf14` for affected-check
   verification after recording the complete live evidence boundary.
+- 2026-10-18: Closed SLI-0108 at corrected exact candidate `f2010ba`. The
+  protected API and generated browser client expose the same bounded lesson and
+  completion history, separate ephemeral export preserves exact disclosed
+  meaning, authorization and redaction remain confidential, and the local
+  topology proves repeat/restart stability plus database and owner-file
+  containment from before the first history operation. The 100-test replay
+  suite, focused backend and browser evidence, complete affected-check plan,
+  and all 30 aggregate readiness checks pass. Managed retention, tenant/admin,
+  legal/compliance, encryption, signing, recovery, immutable storage, public
+  hosting, and cloud qualification remain outside this slice.
