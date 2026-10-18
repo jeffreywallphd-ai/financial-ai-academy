@@ -1,7 +1,7 @@
 ---
 id: SLI-0107
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -255,3 +255,6 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
 - 2026-10-18: Authored dependency-first WRK-0184 with an exact pure-contract,
   compatibility-corpus, architecture, documentation, and test scope. Later
   packets remain captured until the frozen cross-domain contract exists.
+- 2026-10-18: Activated WRK-0184 from clean base `cfc0db4` after confirming
+  current CAP authority, completed SLI-0106, resolved decision posture, bounded
+  contract-only scope, and no active file-ownership collision.

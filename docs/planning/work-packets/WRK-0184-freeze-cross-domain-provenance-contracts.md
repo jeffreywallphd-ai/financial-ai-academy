@@ -1,7 +1,7 @@
 ---
 id: WRK-0184
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/tests/contract/provenance_v2", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/provenance/v2", "contracts/provenance/v2", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0107-extend-provenance-across-domain-owners.md", "docs/planning/work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: cfc0db4ab3d7caaab900ba97c56970f31606abec
+claim_id: WRK-0184:18bd1b77-2ea3-4b0e-b81e-7d82abbe012b
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T08:52:54Z
 ---
 
 # Agent Work Packet: Freeze Cross-Domain Provenance Contracts
@@ -254,3 +254,6 @@ provider/model, tenant/admin, external-action, or financial authority changed.
   seam, preserves learning-lineage v1 exactly, and leaves product values,
   conformance adapters, real Project integration, and cumulative qualification
   to dependent packets without adding a lower-level approval.
+- 2026-10-18: Activated from clean base `cfc0db4` after the implementation gate
+  confirmed current CAP authority, parent/dependency readiness, resolved
+  decisions, exact write scope, and no active ownership collision.
