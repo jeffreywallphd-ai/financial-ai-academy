@@ -187,7 +187,7 @@ The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | complete |
 | [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | complete |
-| [WRK-0191](../work-packets/WRK-0191-expose-protected-accountable-history-api.md) | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | ready |
+| [WRK-0191](../work-packets/WRK-0191-expose-protected-accountable-history-api.md) | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | active |
 | WRK-0192 | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | captured |
 | WRK-0193 | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | captured |
 
@@ -270,3 +270,6 @@ conformance.
   identity, exact frozen responses, generated headless client parity, bounded
   write scope, and no persistence, browser, tenant/admin, or lower-level
   approval expansion.
+- 2026-10-18: Activated WRK-0191 after revalidating the current CAP package,
+  completed WRK-0190 dependency, local decision posture, exact public API and
+  generated-artifact scope, and absence of a file-ownership collision.

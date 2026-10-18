@@ -1,7 +1,7 @@
 ---
 id: WRK-0191
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "backend/src/financial_ai_academy/hosts/README.md", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/application/service.py", "backend/src/financial_ai_academy/modules/audit/public.py", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/integration/api/test_single_profile_accountable_history_api.py", "backend/tests/unit/audit/test_accountable_history_service.py", "backend/tests/unit/identity/test_identity_service.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0191-expose-protected-accountable-history-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 470adfa02528aea677761b0800aa57289390d354
+claim_id: WRK-0191:c2179f70-7338-44fb-b22a-fac993728873
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T10:30:37Z
 ---
 
 # Agent Work Packet: Expose the Protected Accountable-History API
@@ -212,3 +212,6 @@ tenancy/admin, or financial authority changed.
   server-authoritative core and generated client, preserves API/headless parity,
   and leaves browser consumption and cumulative live qualification to dependent
   packets without adding a lower-level approval.
+- 2026-10-18: Activated from clean base `470adfa` after confirming current CAP
+  authority, completed dependency, resolved local decision posture, exact
+  generated/public write scope, and no active file-ownership collision.
