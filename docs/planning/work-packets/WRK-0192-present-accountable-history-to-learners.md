@@ -1,7 +1,7 @@
 ---
 id: WRK-0192
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -157,7 +157,7 @@ result. Inspection remains usable when export is denied or unavailable.
 
 ## Dependencies and Parallel Safety
 
-WRK-0191 is complete with a qualifying exact candidate and zero open findings.
+WRK-0191 is complete with a qualifying exact candidate.
 WRK-0192 owns the shared lesson consumers, injected browser dependency, focused
 feature source/tests, stylesheet, web documentation, and SLI/register
 projection. It is not parallel-safe with another SLI-0108 writer and must
@@ -260,5 +260,11 @@ advice, suitability, mastery, or certification changed.
   typecheck, zero-warning lint, production build, eleven focused Chromium
   journeys, architecture, security, design, learner-language, documentation,
   planning, module-boundary, and whitespace checks passed.
-- 2026-10-18: Submitted exact candidate `a9a6c6e` for controller-selected
-  affected verification and an independent technical disposition.
+- 2026-10-18: Completed at corrected exact candidate `2aadc73`. Runtime
+  validation now requires exactly one disclosed entry to match the requested
+  lesson ID and version or completion evidence ID and occurrence, and rejects
+  impossible calendar dates, times, or offsets without weakening valid leap-
+  year, fractional-second, or timezone forms. Current affected verification,
+  the full Web suite, focused Chromium journeys, typecheck, zero-warning lint,
+  production build, architecture, security, design, learner-language,
+  documentation, planning, module-boundary, and whitespace checks passed.
