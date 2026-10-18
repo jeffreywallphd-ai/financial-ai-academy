@@ -174,6 +174,38 @@ class CrossDomainContractValidator:
                 "profiles",
                 "Profile catalog contains duplicates.",
             )
+        for profile_id, profile in self.profiles.items():
+            variants = profile["identity_variants"]
+            variant_ids = {str(variant["variant_id"]) for variant in variants}
+            if len(variant_ids) != len(variants):
+                reject(
+                    "provenance_v2.catalog_invalid",
+                    profile_id,
+                    "Profile catalog contains duplicate identity variants.",
+                )
+            for variant in variants:
+                resource_id_field = variant.get("resource_id_field")
+                if (
+                    variant["resource_id_strategy"] == "field"
+                    and resource_id_field not in variant["identity_fields"]
+                ):
+                    reject(
+                        "provenance_v2.catalog_invalid",
+                        profile_id,
+                        "Profile catalog identity variant is malformed.",
+                    )
+
+    def validate_corpus(
+        self, records: Mapping[str, Mapping[str, Any]]
+    ) -> None:
+        expected = set(self.profiles)
+        actual = set(records)
+        if actual != expected:
+            reject(
+                "provenance_v2.corpus_incomplete",
+                "approved",
+                "Approved corpus does not exactly cover the closed profile catalog.",
+            )
 
     def _shape(self, value: Mapping[str, Any]) -> None:
         error = next(iter(self.envelope_validator.iter_errors(value)), None)
@@ -205,13 +237,31 @@ class CrossDomainContractValidator:
                 "Cross-domain provenance profile is inconsistent.",
             )
         identity = value["identity"]
-        if set(identity) != set(profile["identity_fields"]):
+        variants = [
+            variant
+            for variant in profile["identity_variants"]
+            if set(identity) == set(variant["identity_fields"])
+        ]
+        if len(variants) != 1:
             reject(
                 "provenance_v2.identity_invalid",
                 reference,
                 "Cross-domain provenance identity is inconsistent.",
             )
-        if value["resource_id"] != identity[profile["resource_id_field"]]:
+        variant = variants[0]
+        variant_id = str(variant["variant_id"])
+        if variant_id != "default" and identity.get("subject_kind") != variant_id:
+            reject(
+                "provenance_v2.identity_invalid",
+                reference,
+                "Cross-domain provenance identity is inconsistent.",
+            )
+        expected_resource_id = (
+            identity[variant["resource_id_field"]]
+            if variant["resource_id_strategy"] == "field"
+            else canonical_digest(_normalized(identity))
+        )
+        if value["resource_id"] != expected_resource_id:
             reject(
                 "provenance_v2.identity_invalid",
                 reference,
@@ -287,6 +337,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         validator = CrossDomainContractValidator()
         records = approved_records(arguments.corpus)
+        validator.validate_corpus(records)
         digests = {
             profile: validator.envelope_digest(record)
             for profile, record in sorted(records.items())

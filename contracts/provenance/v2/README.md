@@ -12,7 +12,10 @@ it does not define a public lineage request or view.
 
 `profile-catalog.json` is the executable closed catalog. Every envelope resource
 and source reference uses exactly one catalog profile, owner, resource kind,
-origin label, relation set, and identity variant. Unknown profiles and keys fail
+origin label, relation set, and identity variant. Financial results use an
+explicit account-or-analysis discriminator. Market-observation resource IDs are
+the canonical SHA-256 digest of the exact documented identity tuple, so no
+independent observation ID can alter duplicate semantics. Unknown profiles and keys fail
 closed. The catalog describes contract meaning, not implementation maturity:
 only the Project profile has an implemented owner suitable for the real adapter
 proof in this slice. Other approved compatibility records are synthetic.
@@ -20,7 +23,8 @@ proof in this slice. Other approved compatibility records are synthetic.
 Canonicalization uses compact sorted-key UTF-8 JSON with unescaped Unicode,
 aware timestamps projected to UTC `Z`, and sources sorted by relation plus their
 canonical reference. The compatibility vectors bind the resulting bytes and
-digests. Identifiers, versions, times, digests, strings, producers, and source
+digests. The conformance CLI also requires the approved corpus to cover the
+closed profile catalog exactly. Identifiers, versions, times, digests, strings, producers, and source
 counts are bounded. Exact identity reuse with changed provenance meaning is a
 conflict.
 

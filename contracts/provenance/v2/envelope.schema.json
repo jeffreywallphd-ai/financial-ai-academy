@@ -155,16 +155,34 @@
             "resource_kind": {"const": "financial_result"},
             "provenance_label": {"const": "calculated"},
             "identity": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["analysis_id", "as_of", "method_id", "method_version", "source_set_digest"],
-              "properties": {
-                "analysis_id": {"$ref": "#/$defs/identifier"},
-                "as_of": {"$ref": "#/$defs/timestamp"},
-                "method_id": {"$ref": "#/$defs/identifier"},
-                "method_version": {"$ref": "#/$defs/version"},
-                "source_set_digest": {"$ref": "#/$defs/digest"}
-              }
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["subject_kind", "analysis_id", "as_of", "method_id", "method_version", "source_set_digest"],
+                  "properties": {
+                    "subject_kind": {"const": "analysis"},
+                    "analysis_id": {"$ref": "#/$defs/identifier"},
+                    "as_of": {"$ref": "#/$defs/timestamp"},
+                    "method_id": {"$ref": "#/$defs/identifier"},
+                    "method_version": {"$ref": "#/$defs/version"},
+                    "source_set_digest": {"$ref": "#/$defs/digest"}
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["subject_kind", "account_id", "as_of", "method_id", "method_version", "source_set_digest"],
+                  "properties": {
+                    "subject_kind": {"const": "account"},
+                    "account_id": {"$ref": "#/$defs/identifier"},
+                    "as_of": {"$ref": "#/$defs/timestamp"},
+                    "method_id": {"$ref": "#/$defs/identifier"},
+                    "method_version": {"$ref": "#/$defs/version"},
+                    "source_set_digest": {"$ref": "#/$defs/digest"}
+                  }
+                }
+              ]
             }
           }
         }
@@ -182,9 +200,8 @@
             "identity": {
               "type": "object",
               "additionalProperties": false,
-              "required": ["observation_id", "instrument_id", "observed_at", "method_id", "method_version", "source_set_digest"],
+              "required": ["instrument_id", "observed_at", "method_id", "method_version", "source_set_digest"],
               "properties": {
-                "observation_id": {"$ref": "#/$defs/identifier"},
                 "instrument_id": {"$ref": "#/$defs/identifier"},
                 "observed_at": {"$ref": "#/$defs/timestamp"},
                 "method_id": {"$ref": "#/$defs/identifier"},

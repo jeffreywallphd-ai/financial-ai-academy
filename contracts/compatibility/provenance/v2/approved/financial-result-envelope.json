@@ -6,6 +6,7 @@
     "resource_kind": "financial_result",
     "resource_id": "analysis-risk-return-001",
     "identity": {
+      "subject_kind": "analysis",
       "analysis_id": "analysis-risk-return-001",
       "as_of": "2026-10-17T20:00:00-04:00",
       "method_id": "return-summary",
@@ -28,9 +29,8 @@
         "profile": "market_observation",
         "owner_module": "market_data",
         "resource_kind": "market_observation",
-        "resource_id": "observation-index-001",
+        "resource_id": "f9d62cde1cd9c26904372b9dd201ed869126572baacde796f3bfc543cd45a77a",
         "identity": {
-          "observation_id": "observation-index-001",
           "instrument_id": "instrument-index-demo",
           "observed_at": "2026-10-18T00:00:00Z",
           "method_id": "close-observation",

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import copy
 import json
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -78,6 +80,7 @@ def test_catalog_and_approved_corpus_cover_each_closed_profile_once() -> None:
     assert [item["profile"] for item in validator.catalog["profiles"]] == sorted(
         EXPECTED_PROFILES
     )
+    validator.validate_corpus(records)
     for profile, record in records.items():
         admitted = validator.validate_envelope(record)
         assert admitted["resource"]["profile"] == profile
@@ -114,6 +117,31 @@ def test_valid_values_vary_without_fixture_count_or_timezone_rigidity() -> None:
     admitted = validator.validate_envelope(record)
     assert admitted["resource"]["recorded_at"] == "2026-10-18T08:01:00Z"
     assert admitted["sources"] == []
+
+
+def test_financial_result_supports_closed_analysis_and_account_variants() -> None:
+    validator = CrossDomainContractValidator()
+    analysis = copy.deepcopy(approved_records()["financial_result"])
+    admitted_analysis = validator.validate_envelope(analysis)
+    assert admitted_analysis["resource"]["identity"]["subject_kind"] == "analysis"
+
+    account = copy.deepcopy(analysis)
+    account["resource"]["resource_id"] = "account-research-001"
+    identity = account["resource"]["identity"]
+    identity["subject_kind"] = "account"
+    identity["account_id"] = "account-research-001"
+    del identity["analysis_id"]
+    admitted = validator.validate_envelope(account)
+    assert admitted["resource"]["identity"]["account_id"] == "account-research-001"
+
+
+def test_market_resource_id_is_derived_from_the_exact_identity_tuple() -> None:
+    validator = CrossDomainContractValidator()
+    record = copy.deepcopy(approved_records()["market_observation"])
+    record["resource"]["resource_id"] = "independent-observation-id"
+    with pytest.raises(ConformanceFailure) as captured:
+        validator.validate_envelope(record)
+    assert captured.value.diagnostic.code == "provenance_v2.identity_invalid"
 
 
 @pytest.mark.parametrize(
@@ -202,3 +230,41 @@ def test_cli_emits_bounded_json_without_payload_or_stack_trace() -> None:
     combined = completed.stdout + completed.stderr
     assert "private" not in combined
     assert "Traceback" not in combined
+
+
+@pytest.mark.parametrize("mutation", ["missing", "extra"])
+def test_cli_rejects_corpus_profile_gaps_and_extras(
+    mutation: str,
+) -> None:
+    with tempfile.TemporaryDirectory(
+        prefix="provenance-v2-", dir=REPOSITORY / ".local-codex"
+    ) as temporary:
+        corpus = Path(temporary) / "corpus"
+        shutil.copytree(CORPUS, corpus)
+        if mutation == "missing":
+            (corpus / "approved/dataset-snapshot-envelope.json").unlink()
+        else:
+            extra = copy.deepcopy(approved_records()["dataset_snapshot"])
+            extra["resource"]["profile"] = "future_profile"
+            (corpus / "approved/future-profile-envelope.json").write_text(
+                json.dumps(extra), encoding="utf-8"
+            )
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "tests.contract.provenance_v2.runner",
+                "--corpus",
+                str(corpus),
+            ],
+            cwd=REPOSITORY / "backend",
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+        )
+        assert completed.returncode == 1, completed.stderr
+        output = json.loads(completed.stdout)
+        assert output["valid"] is False
+        assert output["diagnostic"]["code"] == "provenance_v2.corpus_incomplete"
+        assert "Traceback" not in completed.stdout + completed.stderr

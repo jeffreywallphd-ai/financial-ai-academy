@@ -86,9 +86,11 @@ consumer or check affected by a new provenance contract directory.
   - Project snapshot: project ID, snapshot ID, positive project revision, and
     positive workspace revision.
   - Market observation: instrument ID, observation time, method ID/version,
-    and source-set digest.
-  - Financial result: account or analysis ID, as-of time, method ID/version,
-    and source-set digest.
+    and source-set digest; its common resource ID is the canonical digest of
+    that exact tuple rather than an independent identity field.
+  - Financial result: an explicit `subject_kind` discriminator plus either an
+    account ID or analysis ID, as-of time, method ID/version, and source-set
+    digest.
   - Dataset snapshot: dataset ID and immutable dataset version.
   - Model version: model ID and immutable model version.
   - Model execution: execution ID, model ID/version, and positive occurrence.
@@ -163,6 +165,8 @@ deployment, dependency, provider, or unrelated documentation path is writable.
    SHA-256 integrity digest, aware recorded time, allowed origin label, and
    `validated` or `incomplete` status. A profile identity admits all and only
    the fields listed under In Scope.
+   A financial result selects exactly one account or analysis variant. A market
+   observation derives `resource_id` from its canonical exact identity tuple.
 3. Identifiers and versions reuse v1 safety intent: bounded Unicode identifiers
    begin alphanumerically and exclude control/format/path/query syntax; versions
    are bounded ASCII tokens; times accept RFC 3339 offsets with at most six
@@ -280,3 +284,10 @@ provider/model, tenant/admin, external-action, or financial authority changed.
 - 2026-10-18: Submitted exact candidate `9f54667` after 65 focused contract and
   Guidance tests plus eight subtests, architecture/security/documentation/
   planning gates, whitespace integrity, and all 30 readiness checks passed.
+- 2026-10-18: Independent technical review R01 requested three bounded
+  contract corrections: close the financial account-or-analysis union, remove
+  an independent Market-observation ID from the exact identity tuple, and make
+  CLI corpus completeness authoritative. The strict-descendant correction uses
+  explicit financial identity variants, derives the Market resource ID from
+  the exact tuple digest, and adds missing/extra profile CLI regressions without
+  expanding the packet, product behavior, or decision surface.

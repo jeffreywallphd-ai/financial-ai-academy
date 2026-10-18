@@ -18,16 +18,14 @@
           "profile",
           "owner_module",
           "resource_kind",
-          "resource_id_field",
           "allowed_provenance_labels",
           "allowed_source_relations",
-          "identity_fields"
+          "identity_variants"
         ],
         "properties": {
           "profile": {"type": "string", "minLength": 1, "maxLength": 64},
           "owner_module": {"type": "string", "minLength": 1, "maxLength": 64},
           "resource_kind": {"type": "string", "minLength": 1, "maxLength": 64},
-          "resource_id_field": {"type": "string", "minLength": 1, "maxLength": 64},
           "allowed_provenance_labels": {
             "type": "array",
             "minItems": 1,
@@ -42,12 +40,34 @@
             "uniqueItems": true,
             "items": {"enum": ["derived_from", "calculated_from", "used_dataset", "used_model", "executed_as", "simulated_from", "recommended_from", "governed_by", "recorded_as"]}
           },
-          "identity_fields": {
+          "identity_variants": {
             "type": "array",
-            "minItems": 2,
-            "maxItems": 6,
-            "uniqueItems": true,
-            "items": {"type": "string", "minLength": 1, "maxLength": 64}
+            "minItems": 1,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["variant_id", "identity_fields", "resource_id_strategy"],
+              "properties": {
+                "variant_id": {"type": "string", "minLength": 1, "maxLength": 32},
+                "identity_fields": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 6,
+                  "uniqueItems": true,
+                  "items": {"type": "string", "minLength": 1, "maxLength": 64}
+                },
+                "resource_id_strategy": {"enum": ["field", "identity_digest"]},
+                "resource_id_field": {"type": "string", "minLength": 1, "maxLength": 64}
+              },
+              "allOf": [
+                {
+                  "if": {"properties": {"resource_id_strategy": {"const": "field"}}},
+                  "then": {"required": ["resource_id_field"]},
+                  "else": {"not": {"required": ["resource_id_field"]}}
+                }
+              ]
+            }
           }
         }
       }

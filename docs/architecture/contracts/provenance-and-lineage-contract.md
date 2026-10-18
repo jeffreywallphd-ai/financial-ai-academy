@@ -84,7 +84,11 @@ Only Project has an implemented owner suitable for the later real-adapter proof.
 Other approved fixtures are synthetic and do not claim a provider, dataset,
 model, run, calculation, recommendation, administrator, or product record.
 
-Each profile has one exact identity variant and one allowed owner/resource pair.
+Each profile has one allowed owner/resource pair and closed exact identity
+variants. Financial results explicitly discriminate an account from an analysis;
+all other profiles have one variant. Market-observation resource IDs are derived
+from the canonical digest of the exact identity tuple and cannot vary as an
+independent identity field.
 The common reference retains stable resource identity, lowercase SHA-256
 integrity, aware recorded time, validation status, producer, origin label, and
 zero to twenty typed sources. Labels are closed to observed, calculated,
@@ -97,8 +101,9 @@ V2 canonicalization projects aware times to UTC `Z`, sorts sources by relation
 and canonical reference, and uses compact sorted-key UTF-8 JSON with unescaped
 Unicode. The corpus fingerprints every v1 schema and approved document, covers
 every v2 profile once, and rejects mismatched owner/profile/label/identity,
-unsafe or private fields, ambiguous identity, conflicting duplicates, and
-exceeded bounds. It adds no business payload, actor/learner/tenant identity,
+unsafe or private fields, ambiguous identity, conflicting duplicates, corpus
+profile gaps or extras, and exceeded bounds. It adds no business payload,
+actor/learner/tenant identity,
 provider payload, market value, model input/output, Project content, storage,
 secret, permission, external action, or financial advice.
 
