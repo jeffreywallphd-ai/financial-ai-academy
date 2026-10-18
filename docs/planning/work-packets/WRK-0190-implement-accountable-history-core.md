@@ -1,16 +1,16 @@
 ---
 id: WRK-0190
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
-owner: codex-cap-0026
+owner: unassigned
 updated: 2026-10-18
 parent: SLI-0108
 capability: CAP-0026
 depends_on: ["WRK-0189"]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/adapters/__init__.py", "backend/src/financial_ai_academy/modules/audit/adapters/accountable_history_contract.py", "backend/src/financial_ai_academy/modules/audit/domain/__init__.py", "backend/src/financial_ai_academy/modules/audit/domain/accountable_history.py", "backend/tests/contract/accountable_history/runner.py", "backend/tests/contract/accountable_history/test_conformance.py", "backend/tests/unit/audit/test_accountable_history.py", "contracts/compatibility/accountable-history/v1/approved/lesson-review.json", "contracts/compatibility/accountable-history/v1/vectors/canonicalization.json", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0190-implement-accountable-history-core.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/adapters/__init__.py", "backend/src/financial_ai_academy/modules/audit/adapters/accountable_history_contract.py", "backend/src/financial_ai_academy/modules/audit/domain/__init__.py", "backend/src/financial_ai_academy/modules/audit/domain/accountable_history.py", "backend/tests/contract/accountable_history/runner.py", "backend/tests/contract/accountable_history/test_conformance.py", "backend/tests/unit/audit/test_accountable_history.py", "contracts/compatibility/accountable-history/v1/approved/incomplete-review.json", "contracts/compatibility/accountable-history/v1/approved/lesson-review.json", "contracts/compatibility/accountable-history/v1/vectors/canonicalization.json", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0190-implement-accountable-history-core.md"]
 generated_artifacts: []
 base_revision: e373ef4d3c1c413666da238022c3db361eecabfb
 claim_id: WRK-0190:8dc1bc68-5c0b-413f-9307-46d8abdbd845
@@ -227,3 +227,6 @@ admin, external action, or financial authority changed.
 - 2026-10-18: Activated from clean base `e373ef4` after confirming current CAP
   authority, completed WRK-0189, resolved local decision posture, deterministic
   packet validation, exact write scope, and no active ownership collision.
+- 2026-10-18: Incrementally added the approved incomplete-review fixture to the
+  bounded compatibility scope so zero/many-gap copy can remain truthful without
+  changing schema shape, technical facts, or provenance meaning.
