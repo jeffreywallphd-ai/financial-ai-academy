@@ -1,7 +1,7 @@
 ---
 id: WRK-0187
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -128,6 +128,24 @@ Do not stop or reopen broad review for harmless whitespace, optional wording,
 fixture count/order, or nonfunctional styling. Fix bounded local defects or
 defer polish to CAP-0031.
 
+## Completion Evidence
+
+- Exact candidate: `200bf15cfcdbd85983f811d4c16577f023abea3c`.
+- Qualifying receipt: `sha256:39252d2cc3f2d254d26ee4b6378c98ccb7a4560c6799485a122a212371b7bf3d`.
+- The expanded focused suite passed 109 tests. It covers the real Project
+  adapter, exact request and returned-identity correlation, minimal mapping,
+  confidential mismatch and Project-failure handling, the reusable v2 core and
+  conformance kit, frozen v1/v2 contracts, both Project-origin snapshot seams,
+  and module boundaries. Independent focused review passed 51 tests.
+- Architecture verification passed 18 checks, slice security passed 10 control
+  groups, and aggregate readiness passed 30 checks. Documentation, planning,
+  and whitespace integrity also passed.
+- The implementation imports Project only through `project.public`, adds no
+  retained state or transport, and excludes learner identity, origin payload,
+  workspace content, resource details, URLs, paths, bytes, and storage facts.
+- No Project contract, repository, migration, API/client, UI, provider/model,
+  tenant/administrator, external-action, or financial authority changed.
+
 ## Required Handoff
 
 Report `CAP-0026.SLI-0107.WRK-0187`; exact candidate and receipt; public Project
@@ -152,3 +170,7 @@ model, tenant/admin, external-action, or financial authority changed.
   correlation, minimal immutable mapping, confidential failure isolation, and
   explicit module-boundary evidence. Existing Project tests qualify immutable
   snapshots for both accepted origins without adding origin policy to Audit.
+- 2026-10-18: Verified and completed at exact candidate `200bf15` with a valid
+  qualifying receipt, accepted technical disposition, 109 focused tests, and
+  passing architecture, security, documentation, planning, whitespace, and
+  aggregate-readiness gates. WRK-0188 is now dependency-ready.

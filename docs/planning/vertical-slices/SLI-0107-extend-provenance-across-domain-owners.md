@@ -193,7 +193,7 @@ The dependency-ordered seams are:
 | [WRK-0184](../work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md) | Freeze the additive cross-domain provenance schemas, profile catalog, compatibility corpus, ownership rules, and contract tests | none | none | complete |
 | [WRK-0185](../work-packets/WRK-0185-extend-cross-domain-provenance-core.md) | Extend the pure provenance core for closed typed owner profiles, exact identities, deterministic canonicalization, and isolated failures | WRK-0184 | none | complete |
 | [WRK-0186](../work-packets/WRK-0186-build-cross-domain-provenance-conformance-kit.md) | Build the reusable cross-domain conformance kit, synthetic reference adapters, property evidence, and contributor instructions | WRK-0185 | none | complete |
-| [WRK-0187](../work-packets/WRK-0187-prove-project-snapshot-provenance-adapter.md) | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | verifying |
+| [WRK-0187](../work-packets/WRK-0187-prove-project-snapshot-provenance-adapter.md) | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | complete |
 | WRK-0188 | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | captured |
 
 Sequential delivery is required because each packet freezes the meaning consumed
@@ -292,3 +292,6 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
 - 2026-10-18: Implemented WRK-0187's Project public-snapshot adapter with an
   origin-neutral exact identity mapping, confidential failure isolation, and
   no Project content, persistence, transport, or authorization expansion.
+- 2026-10-18: Completed WRK-0187 at exact candidate `200bf15`. Project is now
+  the first real v2 owner adapter, with exact public-snapshot correlation,
+  origin-neutral use, bounded failure evidence, and no new runtime authority.
