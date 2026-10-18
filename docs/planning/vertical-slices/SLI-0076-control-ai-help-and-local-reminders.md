@@ -221,7 +221,7 @@ each packet starts. The proposed dependency-ordered seams are:
 | WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | complete |
 | WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162, WRK-0163 | none | ready |
 | WRK-0162 | Accept canonical assistance API timestamp precision in the browser validator | WRK-0160 | none | complete |
-| WRK-0163 | Correlate equivalent Project completion and history timestamp precision without losing microseconds | WRK-0129 | none | verifying |
+| WRK-0163 | Correlate equivalent Project completion and history timestamp precision without losing microseconds | WRK-0129 | none | complete |
 
 Detailed packet plans declare exact files, generated artifacts, checks, and
 stop conditions immediately before each packet starts. Packet identifiers are
@@ -331,3 +331,7 @@ state that no AI or notification execution was implemented or implied.
 - 2026-10-18: WRK-0163 entered exact-candidate verification after focused and
   full Web tests, typecheck, zero-warning lint, build, planning, documentation,
   and whitespace checks passed.
+- 2026-10-18: WRK-0163 completed on exact candidate `38b5554` with all eight
+  affected checks passing. Project history now accepts equivalent UTC
+  fractional widths without losing microsecond mismatch detection, and
+  WRK-0161 is unblocked to resume the complete live workflow.

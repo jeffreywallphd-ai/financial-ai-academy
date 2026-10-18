@@ -1,7 +1,7 @@
 ---
 id: WRK-0163
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018-correction
 updated: 2026-10-18
@@ -151,3 +151,9 @@ and WRK-0161 readiness.
 - 2026-10-18: Entered exact-candidate verification after the focused 46-test
   Project suite and full 469-test Web suite passed with typecheck, zero-warning
   lint, build, planning, documentation, and whitespace checks.
+- 2026-10-18: Completed on exact candidate `38b5554` with qualifying receipt
+  `20261018T012815Z-e43193d9-6b4d-431b-811a-062d6c90f6bb.json`. All eight
+  selected checks passed, including focused Project Chromium and the full Web
+  unit suite. Equivalent UTC fractional widths correlate, one-microsecond
+  differences fail closed, and no backend, contract, generated client,
+  persistence, or UI boundary changed.
