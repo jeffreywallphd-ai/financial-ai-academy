@@ -172,10 +172,10 @@ wrapper uses that same digest and derives export time from the latest disclosed
 source time; it contains no file path, storage locator, retained download, or
 runtime-clock claim.
 
-This is currently a frozen contract and compatibility seam only. It contains no
-production composer, authorization, permission, endpoint, generated client,
-browser view, export retention, migration, provider/model action, tenant or
-administrator policy, legal conclusion, or history mutation.
+The frozen contract now has a shared production composer, protected inspection
+and export operations, reviewed OpenAPI, and a generated client. It still
+contains no browser view, export retention, migration, provider/model action,
+tenant or administrator policy, legal conclusion, or history mutation.
 
 ## Safety and Non-Authority
 
@@ -205,3 +205,14 @@ disposable local host now directly qualifies both roots through the generated
 client and ordinary HTTP, exact replay across a normal restart, confidential
 denials, and steady-state database/file containment after deterministic Audit
 reconciliation; it does not claim public hosting or managed-cloud behavior.
+
+The protected `POST /api/v1/audit/accountable-history` and
+`POST /api/v1/audit/accountable-history/export` operations reuse those exact
+roots. Inspection and export require separate Audit permissions while both
+preserve lesson-read authority. Completion learner identity and operation
+purpose are server-bound. The application obtains the accepted lineage through
+Audit public methods and delegates all disclosed meaning, redaction, diagnostics,
+ordering, and digests to the pure core. The export is an ephemeral response and
+does not introduce a retained record, path, signing, encryption, or recovery
+policy. Browser presentation and cumulative live qualification remain separate
+delivery seams.

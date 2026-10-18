@@ -47,6 +47,12 @@ from financial_ai_academy.modules.audit.domain.provenance import (
     LineageView,
     lineage_view_payload,
 )
+from financial_ai_academy.modules.audit.domain.accountable_history import (
+    AccountableHistoryDocument,
+    PortableEvidenceExport,
+    accountable_history_payload,
+    portable_evidence_payload,
+)
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import (
     AppliedLearningOpportunityQuery,
@@ -167,6 +173,10 @@ _LINEAGE_IDENTIFIER_PATTERN = (
 )
 _LINEAGE_VERSION_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
 _LINEAGE_DIGEST_PATTERN = r"^[a-f0-9]{64}$"
+_ACCOUNTABLE_TEXT_PATTERN = (
+    r"^[^<>\x00-\x1F\x7F-\x9F\u061C\u200B-\u200F"
+    r"\u202A-\u202E\u2060-\u206F\uFEFF]+$"
+)
 
 
 class PublishedLessonLineageRequestModel(ApiModel):
@@ -204,6 +214,7 @@ LearningLineageRequestModel = Annotated[
     ],
     Field(discriminator="root_kind"),
 ]
+AccountableHistoryRequestModel = LearningLineageRequestModel
 
 
 class _LineageReferenceBase(ApiModel):
@@ -350,6 +361,184 @@ def learning_lineage_response(
 ) -> LearningLineageResponseModel:
     return LearningLineageResponseModel.model_validate(
         lineage_view_payload(view)
+    )
+
+
+class AccountableHistoryLessonRootResponseModel(ApiModel):
+    root_kind: Literal["published_lesson"]
+    resource_id: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    resource_version: str = Field(pattern=_LINEAGE_VERSION_PATTERN)
+
+
+class AccountableHistoryCompletionRootResponseModel(ApiModel):
+    root_kind: Literal["knowledge_check_completion"]
+    resource_id: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    occurrence: int = Field(ge=1, strict=True)
+
+
+AccountableHistoryRootResponseModel = Annotated[
+    Union[
+        AccountableHistoryLessonRootResponseModel,
+        AccountableHistoryCompletionRootResponseModel,
+    ],
+    Field(discriminator="root_kind"),
+]
+
+
+class _AccountableHistoryEntryBase(ApiModel):
+    sequence: int = Field(ge=1, le=64, strict=True)
+    entry_id: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    role: Literal["source", "published", "defined", "completed", "recorded"]
+    title: str = Field(
+        min_length=1, max_length=160, pattern=_ACCOUNTABLE_TEXT_PATTERN
+    )
+    explanation: str = Field(
+        min_length=1, max_length=500, pattern=_ACCOUNTABLE_TEXT_PATTERN
+    )
+    owner_module: Literal["content", "assessment", "audit"]
+    resource_id: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    integrity_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
+    recorded_at: datetime
+    validation_status: Literal["validated", "incomplete"]
+
+
+class AccountableHistoryVersionedEntryResponseModel(_AccountableHistoryEntryBase):
+    resource_kind: Literal[
+        "educational_source", "published_lesson", "assessment_definition"
+    ]
+    resource_version: str = Field(pattern=_LINEAGE_VERSION_PATTERN)
+
+
+class AccountableHistoryOccurrenceEntryResponseModel(_AccountableHistoryEntryBase):
+    resource_kind: Literal[
+        "knowledge_check_event", "completion_evidence", "audit_reference"
+    ]
+    occurrence: int = Field(ge=1, strict=True)
+
+
+AccountableHistoryEntryResponseModel = Annotated[
+    Union[
+        AccountableHistoryVersionedEntryResponseModel,
+        AccountableHistoryOccurrenceEntryResponseModel,
+    ],
+    Field(discriminator="resource_kind"),
+]
+
+
+class AccountableHistoryTransformationResponseModel(ApiModel):
+    source_entry_id: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    target_entry_id: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    relation: Literal["published_from", "defined_by", "produced", "recorded_as"]
+
+
+class AccountableHistoryMissingLinkResponseModel(ApiModel):
+    source_entry_id: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    relation: Literal["published_from", "defined_by", "produced", "recorded_as"]
+    target_reference: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    reason: Literal["not_found", "unavailable", "redacted"]
+    explanation: str = Field(
+        min_length=1, max_length=500, pattern=_ACCOUNTABLE_TEXT_PATTERN
+    )
+
+
+class AccountableHistoryDiagnosticResponseModel(ApiModel):
+    code: Literal[
+        "missing_reference",
+        "owner_unavailable",
+        "unsupported_contract_version",
+        "integrity_mismatch",
+        "invalid_relation",
+        "identity_conflict",
+        "redacted_detail",
+    ]
+    reference: str = Field(
+        min_length=1, max_length=128, pattern=_LINEAGE_IDENTIFIER_PATTERN
+    )
+    explanation: str = Field(
+        min_length=1, max_length=500, pattern=_ACCOUNTABLE_TEXT_PATTERN
+    )
+
+
+class AccountableHistoryRedactionResponseModel(ApiModel):
+    category: Literal[
+        "protected_content",
+        "learner_private_identity",
+        "owner_payload",
+        "provider_or_secret_material",
+        "internal_diagnostics",
+        "storage_details",
+    ]
+    count: int = Field(ge=1, le=1_000_000, strict=True)
+
+
+class AccountableHistoryResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    purpose: Literal["learner_review", "portable_evidence"]
+    root: AccountableHistoryRootResponseModel
+    state: Literal["valid", "incomplete", "invalid"]
+    title: str = Field(
+        min_length=1, max_length=160, pattern=_ACCOUNTABLE_TEXT_PATTERN
+    )
+    summary: str = Field(
+        min_length=1, max_length=500, pattern=_ACCOUNTABLE_TEXT_PATTERN
+    )
+    source_lineage_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
+    entries: list[AccountableHistoryEntryResponseModel] = Field(
+        min_length=1, max_length=64
+    )
+    transformations: list[AccountableHistoryTransformationResponseModel] = Field(
+        max_length=128
+    )
+    missing_links: list[AccountableHistoryMissingLinkResponseModel] = Field(
+        max_length=32
+    )
+    diagnostics: list[AccountableHistoryDiagnosticResponseModel] = Field(
+        max_length=32
+    )
+    redactions: list[AccountableHistoryRedactionResponseModel] = Field(max_length=6)
+    history_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
+
+
+class PortableEvidenceExportResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    media_type: Literal[
+        "application/vnd.financial-ai-academy.accountable-history+json"
+    ]
+    filename_stem: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,79}$")
+    exported_at: datetime
+    document_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
+    document: AccountableHistoryResponseModel
+
+
+def accountable_history_response(
+    document: AccountableHistoryDocument,
+) -> AccountableHistoryResponseModel:
+    return AccountableHistoryResponseModel.model_validate(
+        accountable_history_payload(document)
+    )
+
+
+def portable_evidence_response(
+    export: PortableEvidenceExport,
+) -> PortableEvidenceExportResponseModel:
+    return PortableEvidenceExportResponseModel.model_validate(
+        portable_evidence_payload(export)
     )
 
 

@@ -11,6 +11,10 @@ does not own attempts, scores, completion state, mastery, or learner progress.
 - `reconcile_project_completion(ReconcileProjectCompletionAuditRequest) -> ProjectAuditReconciliationReceipt`
 - `read_published_lesson_lineage(ReadPublishedLessonLineageRequest) -> LineageView`
 - `read_knowledge_check_completion_lineage(ReadKnowledgeCheckCompletionLineageRequest) -> LineageView`
+- `read_published_lesson_accountable_history(ReadPublishedLessonLineageRequest) -> AccountableHistoryDocument`
+- `read_knowledge_check_completion_accountable_history(ReadKnowledgeCheckCompletionLineageRequest) -> AccountableHistoryDocument`
+- `export_published_lesson_accountable_history(ReadPublishedLessonLineageRequest) -> PortableEvidenceExport`
+- `export_knowledge_check_completion_accountable_history(ReadKnowledgeCheckCompletionLineageRequest) -> PortableEvidenceExport`
 
 The operation obtains events only through Assessment's public replay query,
 derives deterministic Audit IDs and canonical event digests, and appends one
@@ -135,9 +139,10 @@ the digest.
 The strict adapter admits and emits only the exact v1 mapping. It has no
 application, Identity, host, framework, database, filesystem, network, clock,
 provider, or model dependency. It does not authorize a root, load lineage,
-retain an export, create a file, expose HTTP, or grant grading, mastery, legal,
-compliance, financial, administrative, or execution authority. Those public
-operation and transport seams remain later SLI-0108 work.
+retain an export, create a file, authorize a request, or grant grading, mastery,
+legal, compliance, financial, administrative, or execution authority. The
+application operations and protected transport below provide the bounded read
+seam without changing those core limits.
 
 `POST /api/v1/audit/learning-lineage` exposes the two closed roots through the
 same protected OpenAPI-generated contract for browser and headless callers. It
@@ -150,3 +155,11 @@ HTTP parity for both roots, confidential denials, exact replay after a normal
 host restart, and unchanged non-Identity database and bounded owner-file state
 after the first deterministic reconciliation. It does not establish a hosted
 retention, recovery, export, or managed-cloud posture.
+
+`POST /api/v1/audit/accountable-history` exposes learner review and
+`POST /api/v1/audit/accountable-history/export` exposes the separate on-demand
+portable wrapper. The host selects purpose, derives completion learner identity
+from the opaque session, requires separate `audit.history.read` or
+`audit.history.export` authority plus `curriculum.lesson.read`, and returns the
+same strict core mapping to browser or headless callers. No export record, file,
+path, owner payload, or alternate policy route is created.

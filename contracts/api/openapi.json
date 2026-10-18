@@ -1,6 +1,581 @@
 {
   "components": {
     "schemas": {
+      "AccountableHistoryCompletionRootResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "occurrence": {
+            "minimum": 1.0,
+            "title": "Occurrence",
+            "type": "integer"
+          },
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "root_kind": {
+            "const": "knowledge_check_completion",
+            "title": "Root Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "root_kind",
+          "resource_id",
+          "occurrence"
+        ],
+        "title": "AccountableHistoryCompletionRootResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryDiagnosticResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "missing_reference",
+              "owner_unavailable",
+              "unsupported_contract_version",
+              "integrity_mismatch",
+              "invalid_relation",
+              "identity_conflict",
+              "redacted_detail"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "explanation": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "reference": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "reference",
+          "explanation"
+        ],
+        "title": "AccountableHistoryDiagnosticResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryLessonRootResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "root_kind": {
+            "const": "published_lesson",
+            "title": "Root Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "root_kind",
+          "resource_id",
+          "resource_version"
+        ],
+        "title": "AccountableHistoryLessonRootResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryMissingLinkResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "explanation": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "not_found",
+              "unavailable",
+              "redacted"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "relation": {
+            "enum": [
+              "published_from",
+              "defined_by",
+              "produced",
+              "recorded_as"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "source_entry_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Source Entry Id",
+            "type": "string"
+          },
+          "target_reference": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Target Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_entry_id",
+          "relation",
+          "target_reference",
+          "reason",
+          "explanation"
+        ],
+        "title": "AccountableHistoryMissingLinkResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryOccurrenceEntryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "explanation": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "integrity_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Integrity Digest",
+            "type": "string"
+          },
+          "occurrence": {
+            "minimum": 1.0,
+            "title": "Occurrence",
+            "type": "integer"
+          },
+          "owner_module": {
+            "enum": [
+              "content",
+              "assessment",
+              "audit"
+            ],
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_kind": {
+            "enum": [
+              "knowledge_check_event",
+              "completion_evidence",
+              "audit_reference"
+            ],
+            "title": "Resource Kind",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "source",
+              "published",
+              "defined",
+              "completed",
+              "recorded"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sequence": {
+            "maximum": 64.0,
+            "minimum": 1.0,
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Title",
+            "type": "string"
+          },
+          "validation_status": {
+            "enum": [
+              "validated",
+              "incomplete"
+            ],
+            "title": "Validation Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sequence",
+          "entry_id",
+          "role",
+          "title",
+          "explanation",
+          "owner_module",
+          "resource_id",
+          "integrity_digest",
+          "recorded_at",
+          "validation_status",
+          "resource_kind",
+          "occurrence"
+        ],
+        "title": "AccountableHistoryOccurrenceEntryResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryRedactionResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "protected_content",
+              "learner_private_identity",
+              "owner_payload",
+              "provider_or_secret_material",
+              "internal_diagnostics",
+              "storage_details"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "count": {
+            "maximum": 1000000.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "category",
+          "count"
+        ],
+        "title": "AccountableHistoryRedactionResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/AccountableHistoryDiagnosticResponseModel"
+            },
+            "maxItems": 32,
+            "title": "Diagnostics",
+            "type": "array"
+          },
+          "entries": {
+            "items": {
+              "discriminator": {
+                "mapping": {
+                  "assessment_definition": "#/components/schemas/AccountableHistoryVersionedEntryResponseModel",
+                  "audit_reference": "#/components/schemas/AccountableHistoryOccurrenceEntryResponseModel",
+                  "completion_evidence": "#/components/schemas/AccountableHistoryOccurrenceEntryResponseModel",
+                  "educational_source": "#/components/schemas/AccountableHistoryVersionedEntryResponseModel",
+                  "knowledge_check_event": "#/components/schemas/AccountableHistoryOccurrenceEntryResponseModel",
+                  "published_lesson": "#/components/schemas/AccountableHistoryVersionedEntryResponseModel"
+                },
+                "propertyName": "resource_kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/AccountableHistoryVersionedEntryResponseModel"
+                },
+                {
+                  "$ref": "#/components/schemas/AccountableHistoryOccurrenceEntryResponseModel"
+                }
+              ]
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "title": "Entries",
+            "type": "array"
+          },
+          "history_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "History Digest",
+            "type": "string"
+          },
+          "missing_links": {
+            "items": {
+              "$ref": "#/components/schemas/AccountableHistoryMissingLinkResponseModel"
+            },
+            "maxItems": 32,
+            "title": "Missing Links",
+            "type": "array"
+          },
+          "purpose": {
+            "enum": [
+              "learner_review",
+              "portable_evidence"
+            ],
+            "title": "Purpose",
+            "type": "string"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/AccountableHistoryRedactionResponseModel"
+            },
+            "maxItems": 6,
+            "title": "Redactions",
+            "type": "array"
+          },
+          "root": {
+            "discriminator": {
+              "mapping": {
+                "knowledge_check_completion": "#/components/schemas/AccountableHistoryCompletionRootResponseModel",
+                "published_lesson": "#/components/schemas/AccountableHistoryLessonRootResponseModel"
+              },
+              "propertyName": "root_kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AccountableHistoryLessonRootResponseModel"
+              },
+              {
+                "$ref": "#/components/schemas/AccountableHistoryCompletionRootResponseModel"
+              }
+            ],
+            "title": "Root"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source_lineage_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Source Lineage Digest",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "valid",
+              "incomplete",
+              "invalid"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Summary",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Title",
+            "type": "string"
+          },
+          "transformations": {
+            "items": {
+              "$ref": "#/components/schemas/AccountableHistoryTransformationResponseModel"
+            },
+            "maxItems": 128,
+            "title": "Transformations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "purpose",
+          "root",
+          "state",
+          "title",
+          "summary",
+          "source_lineage_digest",
+          "entries",
+          "transformations",
+          "missing_links",
+          "diagnostics",
+          "redactions",
+          "history_digest"
+        ],
+        "title": "AccountableHistoryResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryTransformationResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "relation": {
+            "enum": [
+              "published_from",
+              "defined_by",
+              "produced",
+              "recorded_as"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "source_entry_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Source Entry Id",
+            "type": "string"
+          },
+          "target_entry_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Target Entry Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_entry_id",
+          "target_entry_id",
+          "relation"
+        ],
+        "title": "AccountableHistoryTransformationResponseModel",
+        "type": "object"
+      },
+      "AccountableHistoryVersionedEntryResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "entry_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Entry Id",
+            "type": "string"
+          },
+          "explanation": {
+            "maxLength": 500,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Explanation",
+            "type": "string"
+          },
+          "integrity_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Integrity Digest",
+            "type": "string"
+          },
+          "owner_module": {
+            "enum": [
+              "content",
+              "assessment",
+              "audit"
+            ],
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_kind": {
+            "enum": [
+              "educational_source",
+              "published_lesson",
+              "assessment_definition"
+            ],
+            "title": "Resource Kind",
+            "type": "string"
+          },
+          "resource_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "source",
+              "published",
+              "defined",
+              "completed",
+              "recorded"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sequence": {
+            "maximum": 64.0,
+            "minimum": 1.0,
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 160,
+            "minLength": 1,
+            "pattern": "^[^<>\\x00-\\x1F\\x7F-\\x9F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$",
+            "title": "Title",
+            "type": "string"
+          },
+          "validation_status": {
+            "enum": [
+              "validated",
+              "incomplete"
+            ],
+            "title": "Validation Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sequence",
+          "entry_id",
+          "role",
+          "title",
+          "explanation",
+          "owner_module",
+          "resource_id",
+          "integrity_digest",
+          "recorded_at",
+          "validation_status",
+          "resource_kind",
+          "resource_version"
+        ],
+        "title": "AccountableHistoryVersionedEntryResponseModel",
+        "type": "object"
+      },
       "ActivityLaunchResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -7484,6 +8059,49 @@
         "title": "PlatformHelpTopicResponseModel",
         "type": "object"
       },
+      "PortableEvidenceExportResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/AccountableHistoryResponseModel"
+          },
+          "document_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Document Digest",
+            "type": "string"
+          },
+          "exported_at": {
+            "format": "date-time",
+            "title": "Exported At",
+            "type": "string"
+          },
+          "filename_stem": {
+            "pattern": "^[a-z0-9][a-z0-9-]{0,79}$",
+            "title": "Filename Stem",
+            "type": "string"
+          },
+          "media_type": {
+            "const": "application/vnd.financial-ai-academy.accountable-history+json",
+            "title": "Media Type",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "media_type",
+          "filename_stem",
+          "exported_at",
+          "document_digest",
+          "document"
+        ],
+        "title": "PortableEvidenceExportResponseModel",
+        "type": "object"
+      },
       "PracticeAttemptPolicyModel": {
         "additionalProperties": false,
         "properties": {
@@ -13104,6 +13722,228 @@
         "summary": "Get Curriculum Navigation State",
         "tags": [
           "adaptation"
+        ]
+      }
+    },
+    "/api/v1/audit/accountable-history": {
+      "post": {
+        "operationId": "readAccountableHistory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "knowledge_check_completion": "#/components/schemas/KnowledgeCheckCompletionLineageRequestModel",
+                    "published_lesson": "#/components/schemas/PublishedLessonLineageRequestModel"
+                  },
+                  "propertyName": "root_kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PublishedLessonLineageRequestModel"
+                  },
+                  {
+                    "$ref": "#/components/schemas/KnowledgeCheckCompletionLineageRequestModel"
+                  }
+                ],
+                "title": "Request Model"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountableHistoryResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Read Accountable History",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/api/v1/audit/accountable-history/export": {
+      "post": {
+        "operationId": "exportAccountableHistory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "knowledge_check_completion": "#/components/schemas/KnowledgeCheckCompletionLineageRequestModel",
+                    "published_lesson": "#/components/schemas/PublishedLessonLineageRequestModel"
+                  },
+                  "propertyName": "root_kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PublishedLessonLineageRequestModel"
+                  },
+                  {
+                    "$ref": "#/components/schemas/KnowledgeCheckCompletionLineageRequestModel"
+                  }
+                ],
+                "title": "Request Model"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortableEvidenceExportResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Export Accountable History",
+        "tags": [
+          "audit"
         ]
       }
     },

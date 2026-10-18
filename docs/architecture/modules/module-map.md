@@ -19,7 +19,7 @@
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
 | Guidance | accepted; topic/context/feature contracts, immutable corpus and registries, application seam, protected Help APIs, generated clients, optional browser presentation, and isolated local live qualification implemented | Safe versioned platform explanations, exact contextual and feature-condition mappings, canonical-source facts, topic integrity, and deterministic literal search | Additive exact topic, context, and feature-condition projections |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
-| Audit | accepted; knowledge-check and Project completion references, learning-lineage v1 transport, pure cross-domain v2 reference core, stateless owner conformance kit, and real public-only Project snapshot adapter implemented | Append-oriented decision, provenance, administrative evidence, source-event integrity references, bounded owner-reference correlation, and profile-bound adapter qualification | Other real cross-domain owner adapters, learner-facing lineage presentation, broader owner correlation, and exportable audit records remain future work |
+| Audit | accepted; knowledge-check and Project completion references, learning-lineage v1 transport, protected accountable-history inspection and ephemeral export API/client, pure cross-domain v2 reference core, stateless owner conformance kit, and real public-only Project snapshot adapter implemented | Append-oriented decision, provenance, administrative evidence, source-event integrity references, bounded owner-reference correlation, and profile-bound adapter qualification | Other real cross-domain owner adapters, learner-facing history presentation, broader owner correlation, and retained audit exports remain future work |
 
 ## Boundary Notes
 
@@ -46,6 +46,12 @@
   checks Audit-lineage and lesson-read permissions, and returns that canonical
   bounded view through the reviewed generated-client contract without adding
   owner payload or authority.
+- Accountable-history inspection and export reuse those exact roots through
+  Audit public operations. The server selects purpose and session learner,
+  requires separate history-read or history-export permission plus lesson-read
+  authority, and returns the frozen mapping through one generated client for
+  browser or headless use. The ephemeral export creates no Audit business copy,
+  retained file, storage path, or tenant/admin policy.
 - The additive provenance v2 contract defines closed Project, Market-data,
   Portfolio, AI-orchestration, Adaptation, and Audit reference profiles without
   changing their ownership. Audit implements only the separate pure immutable

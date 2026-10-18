@@ -153,3 +153,12 @@ locators, and permission state. Browser and authenticated headless clients use
 the same reviewed OpenAPI operation; a caller cannot select a learner or gain
 new authority through the lineage request.
 
+Purpose-limited source and history is exposed through
+`POST /api/v1/audit/accountable-history`; on-demand portable evidence uses
+`POST /api/v1/audit/accountable-history/export`. Inspection and export have
+separate server-issued permissions and both retain lesson-read authority. The
+host binds completion learner identity from the session, selects the one purpose
+owned by each route, and maps the Audit result without recomputing redaction,
+diagnostics, ordering, or digests. The export is a bounded JSON response; the
+host does not retain it or create a filesystem path.
+

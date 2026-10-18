@@ -6,6 +6,10 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
+from .domain.accountable_history import (
+    AccountableHistoryDocument,
+    PortableEvidenceExport,
+)
 from .domain.provenance import LineageView
 
 
@@ -92,3 +96,19 @@ class AuditOperations(Protocol):
     def read_knowledge_check_completion_lineage(
         self, request: ReadKnowledgeCheckCompletionLineageRequest
     ) -> LineageView: ...
+
+    def read_published_lesson_accountable_history(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> AccountableHistoryDocument: ...
+
+    def read_knowledge_check_completion_accountable_history(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> AccountableHistoryDocument: ...
+
+    def export_published_lesson_accountable_history(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> PortableEvidenceExport: ...
+
+    def export_knowledge_check_completion_accountable_history(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> PortableEvidenceExport: ...

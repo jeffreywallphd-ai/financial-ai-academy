@@ -156,6 +156,8 @@ from .models import (
     AssistancePreferenceHistoryResponseModel,
     AssistancePreferenceMutationRequestModel,
     AssistancePreferenceProfileResponseModel,
+    AccountableHistoryRequestModel,
+    AccountableHistoryResponseModel,
     ApiErrorEnvelope,
     CurriculumGraphResponseModel,
     DiscoveryTopic,
@@ -207,6 +209,7 @@ from .models import (
     PersonalWorkspaceQueryRequestModel,
     PersonalWorkspaceQueryResponseModel,
     PersonalWorkspaceResponseModel,
+    PortableEvidenceExportResponseModel,
     ContextualHelpResponseModel,
     FeatureGuidanceResponseModel,
     PlatformHelpSearchPageResponseModel,
@@ -217,6 +220,7 @@ from .models import (
     assistance_preference_history_response,
     assistance_preference_mutation_intent,
     assistance_preference_profile_response,
+    accountable_history_response,
     activity_launch_response,
     curriculum_graph_response,
     knowledge_check_presentation_response,
@@ -262,6 +266,7 @@ from .models import (
     personal_workspace_query_response,
     personal_workspace_response,
     personal_workspace_source_permission,
+    portable_evidence_response,
     contextual_help_response,
     feature_guidance_response,
     platform_help_search_page_response,
@@ -790,6 +795,32 @@ def create_app(services: ApiServices) -> FastAPI:
             raise IdentityError(
                 IdentityErrorCode.FORBIDDEN,
                 "The learner session cannot read learning history sources.",
+            )
+        return context
+
+    def accountable_history_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if not {
+            "audit.history.read",
+            "curriculum.lesson.read",
+        }.issubset(context.permissions):
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read source and history.",
+            )
+        return context
+
+    def accountable_history_export_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if not {
+            "audit.history.export",
+            "curriculum.lesson.read",
+        }.issubset(context.permissions):
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot export source and history.",
             )
         return context
 
@@ -2222,6 +2253,84 @@ def create_app(services: ApiServices) -> FastAPI:
             )
         return learning_lineage_response(view)
 
+    @app.post(
+        "/api/v1/audit/accountable-history",
+        response_model=AccountableHistoryResponseModel,
+        operation_id="readAccountableHistory",
+        responses=_ERROR_RESPONSES,
+        tags=["audit"],
+    )
+    def read_accountable_history(
+        request: Request,
+        request_model: AccountableHistoryRequestModel,
+        context: LearnerContext = Depends(accountable_history_context),
+    ) -> AccountableHistoryResponseModel | JSONResponse:
+        if request.query_params:
+            return _error_response(
+                status.HTTP_400_BAD_REQUEST,
+                "invalid_request",
+                "Source and history does not accept query input.",
+                request.state.correlation_id,
+            )
+        audit = _audit_service(services.audit)
+        if request_model.root_kind == "published_lesson":
+            document = audit.read_published_lesson_accountable_history(
+                ReadPublishedLessonLineageRequest(
+                    package_id=request_model.package_id,
+                    package_version=request_model.package_version,
+                    package_digest=request_model.package_digest,
+                )
+            )
+        else:
+            document = audit.read_knowledge_check_completion_accountable_history(
+                ReadKnowledgeCheckCompletionLineageRequest(
+                    learner_id=context.learner_id,
+                    placement_id=request_model.placement_id,
+                    evidence_id=request_model.evidence_id,
+                    occurrence=request_model.occurrence,
+                )
+            )
+        return accountable_history_response(document)
+
+    @app.post(
+        "/api/v1/audit/accountable-history/export",
+        response_model=PortableEvidenceExportResponseModel,
+        operation_id="exportAccountableHistory",
+        responses=_ERROR_RESPONSES,
+        tags=["audit"],
+    )
+    def export_accountable_history(
+        request: Request,
+        request_model: AccountableHistoryRequestModel,
+        context: LearnerContext = Depends(accountable_history_export_context),
+    ) -> PortableEvidenceExportResponseModel | JSONResponse:
+        if request.query_params:
+            return _error_response(
+                status.HTTP_400_BAD_REQUEST,
+                "invalid_request",
+                "Source and history export does not accept query input.",
+                request.state.correlation_id,
+            )
+        audit = _audit_service(services.audit)
+        if request_model.root_kind == "published_lesson":
+            exported = audit.export_published_lesson_accountable_history(
+                ReadPublishedLessonLineageRequest(
+                    package_id=request_model.package_id,
+                    package_version=request_model.package_version,
+                    package_digest=request_model.package_digest,
+                )
+            )
+        else:
+            exported = audit.export_knowledge_check_completion_accountable_history(
+                ReadKnowledgeCheckCompletionLineageRequest(
+                    learner_id=context.learner_id,
+                    placement_id=request_model.placement_id,
+                    evidence_id=request_model.evidence_id,
+                    occurrence=request_model.occurrence,
+                )
+            )
+        return portable_evidence_response(exported)
+
     @app.get(
         "/api/v1/learner-preferences",
         response_model=LearnerPreferenceProfileResponseModel,
@@ -2610,6 +2719,14 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/audit/learning-lineage"
             ]["post"]
             learning_lineage_operation["responses"].pop("422", None)
+            accountable_history_operation = schema["paths"][
+                "/api/v1/audit/accountable-history"
+            ]["post"]
+            accountable_history_operation["responses"].pop("422", None)
+            accountable_history_export_operation = schema["paths"][
+                "/api/v1/audit/accountable-history/export"
+            ]["post"]
+            accountable_history_export_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 

@@ -94,6 +94,11 @@ assert.match(schema, /operations\["readLearningLineage"\]/);
 assert.match(schema, /PublishedLessonLineageRequestModel/);
 assert.match(schema, /KnowledgeCheckCompletionLineageRequestModel/);
 assert.match(schema, /LearningLineageResponseModel/);
+assert.match(schema, /\/api\/v1\/audit\/accountable-history/);
+assert.match(schema, /operations\["readAccountableHistory"\]/);
+assert.match(schema, /operations\["exportAccountableHistory"\]/);
+assert.match(schema, /AccountableHistoryResponseModel/);
+assert.match(schema, /PortableEvidenceExportResponseModel/);
 const lineageSchema =
   schema.match(
     /readonly "LearningLineageResponseModel": \{[\s\S]*?^    \};/m,
@@ -102,6 +107,19 @@ assert.doesNotMatch(
   lineageSchema,
   /learner_id|session_id|locator|selected_option|feedback|permission/,
 );
+for (const model of [
+  "AccountableHistoryResponseModel",
+  "PortableEvidenceExportResponseModel",
+]) {
+  const modelSchema =
+    schema.match(
+      new RegExp(`readonly "${model}": \\{[\\s\\S]*?^    \\};`, "m"),
+    )?.[0] ?? "";
+  assert.doesNotMatch(
+    modelSchema,
+    /learner_id|session_id|lesson_body|answer|score|feedback|locator|provider|storage_path|permission/,
+  );
+}
 assert.match(schema, /"available" \| "stale" \| "unavailable"/);
 for (const model of [
   "PersonalLearningOpportunityReferenceModel",

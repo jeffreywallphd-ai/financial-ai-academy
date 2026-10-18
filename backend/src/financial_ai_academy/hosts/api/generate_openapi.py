@@ -43,6 +43,10 @@ from financial_ai_academy.modules.audit.public import (
     ReconcileProjectCompletionAuditRequest,
 )
 from financial_ai_academy.modules.audit.domain.provenance import LineageView
+from financial_ai_academy.modules.audit.domain.accountable_history import (
+    AccountableHistoryDocument,
+    PortableEvidenceExport,
+)
 from financial_ai_academy.modules.learner_model.public import (
     AssistancePreferenceExport,
     AssistancePreferenceHistory,
@@ -234,6 +238,26 @@ class _SchemaAudit:
     def read_knowledge_check_completion_lineage(
         self, request: ReadKnowledgeCheckCompletionLineageRequest
     ) -> LineageView:
+        raise NotImplementedError
+
+    def read_published_lesson_accountable_history(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> AccountableHistoryDocument:
+        raise NotImplementedError
+
+    def read_knowledge_check_completion_accountable_history(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> AccountableHistoryDocument:
+        raise NotImplementedError
+
+    def export_published_lesson_accountable_history(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> PortableEvidenceExport:
+        raise NotImplementedError
+
+    def export_knowledge_check_completion_accountable_history(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> PortableEvidenceExport:
         raise NotImplementedError
 
     def reconcile_lesson_completion(

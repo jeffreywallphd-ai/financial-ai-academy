@@ -16,6 +16,14 @@ from ..domain.learning_lineage import (
     compose_knowledge_check_completion_lineage,
     compose_published_lesson_lineage,
 )
+from ..domain.accountable_history import (
+    AccountableHistoryDocument,
+    AccountableHistoryPurpose,
+    InvalidAccountableHistory,
+    PortableEvidenceExport,
+    build_portable_evidence,
+    compose_accountable_history,
+)
 from ..domain.provenance import LineageView
 from ..ports.gateways import (
     AssessmentAuditEventSourcePort,
@@ -173,6 +181,62 @@ class AuditService:
                 AuditErrorCode.UNAVAILABLE,
                 "Learning lineage is temporarily unavailable.",
                 reference="completion",
+            ) from error
+
+    def read_published_lesson_accountable_history(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> AccountableHistoryDocument:
+        return self._compose_accountable_history(
+            self.read_published_lesson_lineage(request)
+        )
+
+    def read_knowledge_check_completion_accountable_history(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> AccountableHistoryDocument:
+        return self._compose_accountable_history(
+            self.read_knowledge_check_completion_lineage(request)
+        )
+
+    def export_published_lesson_accountable_history(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> PortableEvidenceExport:
+        return self._build_portable_evidence(
+            self.read_published_lesson_lineage(request)
+        )
+
+    def export_knowledge_check_completion_accountable_history(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> PortableEvidenceExport:
+        return self._build_portable_evidence(
+            self.read_knowledge_check_completion_lineage(request)
+        )
+
+    @staticmethod
+    def _compose_accountable_history(
+        lineage: LineageView,
+    ) -> AccountableHistoryDocument:
+        try:
+            return compose_accountable_history(
+                lineage, AccountableHistoryPurpose.LEARNER_REVIEW
+            )
+        except InvalidAccountableHistory as error:
+            raise AuditError(
+                AuditErrorCode.INCONSISTENT_EVIDENCE,
+                "Accountable history facts are inconsistent.",
+                reference=error.reference,
+            ) from error
+
+    @staticmethod
+    def _build_portable_evidence(
+        lineage: LineageView,
+    ) -> PortableEvidenceExport:
+        try:
+            return build_portable_evidence(lineage)
+        except InvalidAccountableHistory as error:
+            raise AuditError(
+                AuditErrorCode.INCONSISTENT_EVIDENCE,
+                "Accountable history facts are inconsistent.",
+                reference=error.reference,
             ) from error
 
     def reconcile_project_completion(

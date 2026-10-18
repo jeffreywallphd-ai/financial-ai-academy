@@ -27,6 +27,8 @@ from ..public import (
 _COOKIE_TOKEN = re.compile(r"^[A-Za-z0-9_-]{40,128}$")
 _READ_PERMISSIONS = (
     "adaptation.navigation.read",
+    "audit.history.export",
+    "audit.history.read",
     "audit.lineage.read",
     "curriculum.discovery.read",
     "curriculum.graph.read",

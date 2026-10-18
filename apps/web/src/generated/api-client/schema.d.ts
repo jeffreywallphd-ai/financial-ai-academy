@@ -21,6 +21,24 @@ export interface paths {
       };
       readonly get: operations["getCurriculumNavigationState"];
     };
+  readonly "/api/v1/audit/accountable-history": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["readAccountableHistory"];
+    };
+  readonly "/api/v1/audit/accountable-history/export": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["exportAccountableHistory"];
+    };
   readonly "/api/v1/audit/learning-lineage": {
       readonly parameters: {
         readonly query?: never;
@@ -488,6 +506,80 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   readonly schemas: {
+    readonly "AccountableHistoryCompletionRootResponseModel": {
+      readonly "occurrence": number;
+      readonly "resource_id": string;
+      readonly "root_kind": "knowledge_check_completion";
+    };
+    readonly "AccountableHistoryDiagnosticResponseModel": {
+      readonly "code": "missing_reference" | "owner_unavailable" | "unsupported_contract_version" | "integrity_mismatch" | "invalid_relation" | "identity_conflict" | "redacted_detail";
+      readonly "explanation": string;
+      readonly "reference": string;
+    };
+    readonly "AccountableHistoryLessonRootResponseModel": {
+      readonly "resource_id": string;
+      readonly "resource_version": string;
+      readonly "root_kind": "published_lesson";
+    };
+    readonly "AccountableHistoryMissingLinkResponseModel": {
+      readonly "explanation": string;
+      readonly "reason": "not_found" | "unavailable" | "redacted";
+      readonly "relation": "published_from" | "defined_by" | "produced" | "recorded_as";
+      readonly "source_entry_id": string;
+      readonly "target_reference": string;
+    };
+    readonly "AccountableHistoryOccurrenceEntryResponseModel": {
+      readonly "entry_id": string;
+      readonly "explanation": string;
+      readonly "integrity_digest": string;
+      readonly "occurrence": number;
+      readonly "owner_module": "content" | "assessment" | "audit";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "knowledge_check_event" | "completion_evidence" | "audit_reference";
+      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
+      readonly "sequence": number;
+      readonly "title": string;
+      readonly "validation_status": "validated" | "incomplete";
+    };
+    readonly "AccountableHistoryRedactionResponseModel": {
+      readonly "category": "protected_content" | "learner_private_identity" | "owner_payload" | "provider_or_secret_material" | "internal_diagnostics" | "storage_details";
+      readonly "count": number;
+    };
+    readonly "AccountableHistoryResponseModel": {
+      readonly "diagnostics": ReadonlyArray<components["schemas"]["AccountableHistoryDiagnosticResponseModel"]>;
+      readonly "entries": ReadonlyArray<components["schemas"]["AccountableHistoryVersionedEntryResponseModel"] | components["schemas"]["AccountableHistoryOccurrenceEntryResponseModel"]>;
+      readonly "history_digest": string;
+      readonly "missing_links": ReadonlyArray<components["schemas"]["AccountableHistoryMissingLinkResponseModel"]>;
+      readonly "purpose": "learner_review" | "portable_evidence";
+      readonly "redactions": ReadonlyArray<components["schemas"]["AccountableHistoryRedactionResponseModel"]>;
+      readonly "root": components["schemas"]["AccountableHistoryLessonRootResponseModel"] | components["schemas"]["AccountableHistoryCompletionRootResponseModel"];
+      readonly "schema_version": "1.0.0";
+      readonly "source_lineage_digest": string;
+      readonly "state": "valid" | "incomplete" | "invalid";
+      readonly "summary": string;
+      readonly "title": string;
+      readonly "transformations": ReadonlyArray<components["schemas"]["AccountableHistoryTransformationResponseModel"]>;
+    };
+    readonly "AccountableHistoryTransformationResponseModel": {
+      readonly "relation": "published_from" | "defined_by" | "produced" | "recorded_as";
+      readonly "source_entry_id": string;
+      readonly "target_entry_id": string;
+    };
+    readonly "AccountableHistoryVersionedEntryResponseModel": {
+      readonly "entry_id": string;
+      readonly "explanation": string;
+      readonly "integrity_digest": string;
+      readonly "owner_module": "content" | "assessment" | "audit";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "educational_source" | "published_lesson" | "assessment_definition";
+      readonly "resource_version": string;
+      readonly "role": "source" | "published" | "defined" | "completed" | "recorded";
+      readonly "sequence": number;
+      readonly "title": string;
+      readonly "validation_status": "validated" | "incomplete";
+    };
     readonly "ActivityLaunchResponseModel": {
       readonly "activity_id": string;
       readonly "curriculum_id": string;
@@ -1550,6 +1642,14 @@ export interface components {
       readonly "topic_kind": "glossary" | "help" | "method" | "limitation" | "troubleshooting";
       readonly "topic_version": string;
     };
+    readonly "PortableEvidenceExportResponseModel": {
+      readonly "document": components["schemas"]["AccountableHistoryResponseModel"];
+      readonly "document_digest": string;
+      readonly "exported_at": string;
+      readonly "filename_stem": string;
+      readonly "media_type": "application/vnd.financial-ai-academy.accountable-history+json";
+      readonly "schema_version": "1.0.0";
+    };
     readonly "PracticeAttemptPolicyModel": {
       readonly "history_visible": true;
       readonly "max_attempts": number;
@@ -2403,6 +2503,120 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["NavigationStateResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly readAccountableHistory: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PublishedLessonLineageRequestModel"] | components["schemas"]["KnowledgeCheckCompletionLineageRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["AccountableHistoryResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly exportAccountableHistory: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PublishedLessonLineageRequestModel"] | components["schemas"]["KnowledgeCheckCompletionLineageRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["PortableEvidenceExportResponseModel"];
           };
         };
         readonly 400: {

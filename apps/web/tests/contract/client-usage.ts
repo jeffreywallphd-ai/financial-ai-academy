@@ -65,6 +65,10 @@ type PublishedLessonLineageRequest =
   components["schemas"]["PublishedLessonLineageRequestModel"];
 type CompletionLineageRequest =
   components["schemas"]["KnowledgeCheckCompletionLineageRequestModel"];
+type AccountableHistoryDocument =
+  components["schemas"]["AccountableHistoryResponseModel"];
+type PortableEvidenceExport =
+  components["schemas"]["PortableEvidenceExportResponseModel"];
 
 const publishedLessonLineage: PublishedLessonLineageRequest = {
   schema_version: "1.0.0",
@@ -86,6 +90,23 @@ void client.POST("/api/v1/audit/learning-lineage", {
 void client.POST("/api/v1/audit/learning-lineage", {
   body: completionLineage,
 });
+void client.POST("/api/v1/audit/accountable-history", {
+  body: publishedLessonLineage,
+});
+void client.POST("/api/v1/audit/accountable-history/export", {
+  body: completionLineage,
+});
+
+function exerciseAccountableHistory(
+  document: AccountableHistoryDocument,
+  exported: PortableEvidenceExport,
+): void {
+  const orderedTitles = document.entries.map((entry) => entry.title);
+  const exportDigest = exported.document_digest;
+  void orderedTitles;
+  void exportDigest;
+}
+void exerciseAccountableHistory;
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,

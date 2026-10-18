@@ -16,6 +16,18 @@ permission, provider payload, storage locator, or executable content. Browser,
 command-line, service, and future headless-AI clients use the same generated
 operation and cannot choose a latest version or alternate authority path.
 
+`POST /api/v1/audit/accountable-history` and
+`POST /api/v1/audit/accountable-history/export` use that same exact closed root
+selector. The first requires `audit.history.read`; the second requires the
+separate `audit.history.export`; both also require `curriculum.lesson.read` and
+bind completion learner identity from the opaque session. The server selects
+`learner_review` or `portable_evidence` from the operation, so a client cannot
+choose purpose or broaden disclosure. Responses follow the frozen
+`accountable-history/v1` document or export wrapper and contain no owner
+payload, learner identity, provider material, permission state, storage path,
+or retained download. Browser and headless clients use these same generated
+operations.
+
 `GET /api/v1/guidance/platform-help` and
 `GET /api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}` are
 the protected platform-help boundary. Both require the opaque session and the
