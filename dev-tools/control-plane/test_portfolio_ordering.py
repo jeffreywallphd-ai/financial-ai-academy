@@ -72,6 +72,26 @@ class PortfolioOrderingTests(unittest.TestCase):
         blocked = {item["id"]: item for item in result["blocked"]}
         self.assertEqual(["dependency.incomplete"], blocked["SLI-B"]["reasons"])
 
+    def test_resolved_decision_reference_remains_visible_without_blocking_work(self) -> None:
+        nodes = graph_nodes()
+        nodes[0]["decision_gates"] = ["DEC-1"]
+        nodes[0]["unresolved_decision_gates"] = []
+        resolved = plan(
+            analyze(nodes),
+            level="capability",
+            authority_current=["CAP-1", "CAP-2"],
+        )
+        self.assertIn("CAP-1", {item["id"] for item in resolved["ready"]})
+
+        nodes[0]["unresolved_decision_gates"] = ["DEC-1"]
+        unresolved = plan(
+            analyze(nodes),
+            level="capability",
+            authority_current=["CAP-1", "CAP-2"],
+        )
+        blocked = {item["id"]: item for item in unresolved["blocked"]}
+        self.assertEqual(["decision.unresolved"], blocked["CAP-1"]["reasons"])
+
     def test_invalid_or_out_of_level_priority_is_refused(self) -> None:
         with self.assertRaises(ControlError) as duplicate:
             plan(self.graph, level="capability", authority_current=["CAP-1"], explicit_priority=["CAP-1", "CAP-1"])

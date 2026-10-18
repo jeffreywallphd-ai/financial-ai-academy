@@ -72,6 +72,14 @@ def catalog_nodes(root: Path) -> list[dict[str, Any]]:
 
 def planning_nodes(root: Path) -> list[dict[str, Any]]:
     checkout_branch = current_branch(root)
+    artifacts = load_artifacts(root)
+    resolved_decisions = {
+        artifact.identifier
+        for artifact in artifacts
+        if artifact.kind == "decision-request"
+        and artifact.status == "complete"
+        and as_text(artifact.metadata.get("decision_record"))
+    }
     work_facts: dict[str, dict[str, Any]] = {}
     state_path = root / ".local-codex/control-plane/state.json"
     if state_path.is_file():
@@ -86,11 +94,12 @@ def planning_nodes(root: Path) -> list[dict[str, Any]]:
             branch = projected_claim_branch(claim)
             work_facts[str(work_id)] = {"active_claim": value.get("state") == "active", "branches": [branch] if branch else []}
     nodes: list[dict[str, Any]] = []
-    for artifact in load_artifacts(root):
+    for artifact in artifacts:
         kind = KIND_MAP.get(artifact.kind)
         if kind is None:
             continue
         metadata = artifact.metadata
+        decision_gates = as_list(metadata.get("decision_gates"))
         write_scope = as_list(metadata.get("write_scope"))
         generated = as_list(metadata.get("generated_artifacts"))
         contracts = sorted({path for path in [*write_scope, *generated] if path.replace("\\", "/").startswith("contracts/")})
@@ -108,7 +117,12 @@ def planning_nodes(root: Path) -> list[dict[str, Any]]:
             "dependencies": [{"target": item, "type": "hard"} for item in as_list(metadata.get("depends_on"))],
             "manifest": as_list(metadata.get("slice_ids")) if kind == "capability" else [],
             "manifest_declared": kind == "capability" and "slice_ids" in metadata,
-            "decision_gates": as_list(metadata.get("decision_gates")),
+            "decision_gates": decision_gates,
+            "unresolved_decision_gates": [
+                decision_id
+                for decision_id in decision_gates
+                if decision_id not in resolved_decisions
+            ],
             "superseded_by": as_text(metadata.get("superseded_by")) or None,
             "governed": True,
             "write_scope": write_scope,

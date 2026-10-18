@@ -56,7 +56,15 @@ class PortfolioAllocationTests(unittest.TestCase):
             )
 
         artifacts = [
-            artifact("PROGRAM-X", "capability", "active", {"slice_ids": ["INCREMENT-X"]}),
+            artifact(
+                "PROGRAM-X",
+                "capability",
+                "active",
+                {
+                    "slice_ids": ["INCREMENT-X"],
+                    "decision_gates": ["DEC-RESOLVED", "DEC-OPEN"],
+                },
+            ),
             artifact("INCREMENT-X", "vertical-slice", "active", {"parent": "PROGRAM-X"}),
             artifact(
                 "TASK-HISTORICAL",
@@ -70,6 +78,13 @@ class PortfolioAllocationTests(unittest.TestCase):
                 "active",
                 {"parent": "INCREMENT-X", "write_scope": ["active.txt"], "generated_artifacts": []},
             ),
+            artifact(
+                "DEC-RESOLVED",
+                "decision-request",
+                "complete",
+                {"decision_record": "../../adr/ADR-TEST.md"},
+            ),
+            artifact("DEC-OPEN", "decision-request", "captured", {}),
         ]
         with tempfile.TemporaryDirectory(prefix="portfolio-branch-projection-") as directory:
             root = Path(directory)
@@ -105,6 +120,14 @@ class PortfolioAllocationTests(unittest.TestCase):
             self.assertEqual(["codex/current"], compatibility["TASK-ACTIVE"]["branches"])
             self.assertEqual(["codex/current"], compatibility["INCREMENT-X"]["branches"])
             self.assertEqual(["codex/current"], compatibility["PROGRAM-X"]["branches"])
+            self.assertEqual(
+                ["DEC-RESOLVED", "DEC-OPEN"],
+                compatibility["PROGRAM-X"]["decision_gates"],
+            )
+            self.assertEqual(
+                ["DEC-OPEN"],
+                compatibility["PROGRAM-X"]["unresolved_decision_gates"],
+            )
 
             genuine = project("codex/recorded")
             self.assertEqual(["codex/recorded"], genuine["TASK-ACTIVE"]["branches"])

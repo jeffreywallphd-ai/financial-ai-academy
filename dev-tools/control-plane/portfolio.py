@@ -61,6 +61,13 @@ def _normalized_node(raw: dict[str, Any]) -> dict[str, Any]:
         if target:
             dependencies.append({"target": target, "type": edge_type})
     dependencies.sort(key=lambda item: (item["target"], item["type"]))
+    decision_gates = _texts(raw.get("decision_gates"))
+    raw_unresolved = raw.get("unresolved_decision_gates")
+    unresolved_decision_gates = (
+        decision_gates
+        if raw_unresolved is None
+        else _texts(raw_unresolved)
+    )
     return {
         "id": node_id,
         "kind": kind,
@@ -71,7 +78,8 @@ def _normalized_node(raw: dict[str, Any]) -> dict[str, Any]:
         "dependencies": dependencies,
         "manifest": _texts(raw.get("manifest")),
         "manifest_declared": bool(raw.get("manifest_declared", "manifest" in raw)),
-        "decision_gates": _texts(raw.get("decision_gates")),
+        "decision_gates": decision_gates,
+        "unresolved_decision_gates": unresolved_decision_gates,
         "superseded_by": _optional_text(raw.get("superseded_by")),
         "governed": bool(raw.get("governed", kind != "candidate")),
         "write_scope": _texts(raw.get("write_scope")),

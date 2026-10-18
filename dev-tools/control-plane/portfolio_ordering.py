@@ -84,7 +84,7 @@ def plan(
         cap_id = _capability_ancestor(node_id, by_id)
         if not cap_id or cap_id not in authority:
             reasons.append("authority.cap-package-not-current")
-        if node.get("decision_gates"):
+        if node.get("unresolved_decision_gates"):
             reasons.append("decision.unresolved")
         if status != "ready":
             reasons.append("lifecycle.not-ready")
