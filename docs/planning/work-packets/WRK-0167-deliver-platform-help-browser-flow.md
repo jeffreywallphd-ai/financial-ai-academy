@@ -74,8 +74,8 @@ canonical conflict, an active file collision, or material CAP/slice drift.
 
 - Add generated-client-derived model types and strict browser response
   validators for search pages, exact topics, safe body nodes, source facts,
-  publication chronology, related exact identities, digests, cursor/query
-  echo, and closed object keys.
+  publication chronology, related exact identities, digests, server-normalized
+  query output, cursor shape, and closed object keys.
 - Add search and exact-topic loaders using `SingleProfileSession`, one bounded
   unauthorized renewal, authorization-before-content behavior, and explicit
   mapping for invalid query/cursor, missing exact version, unavailable service,
@@ -127,7 +127,7 @@ model, design-token, icon, or unrelated feature file may change.
 
 ## Contracts and Interfaces
 
-`components["schemas"]["PlatformHelpSearchResponseModel"]` and
+`components["schemas"]["PlatformHelpSearchPageResponseModel"]` and
 `components["schemas"]["PlatformHelpTopicResponseModel"]`, together with the
 generated search and exact operations, are the only remote inputs. Browser
 validation must reject missing, extra, malformed, unsafe, chronologically

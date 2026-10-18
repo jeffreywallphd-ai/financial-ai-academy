@@ -17,6 +17,13 @@ repository-document read, network, model, provider, grading, eligibility,
 learner-state, or financial-action dependency. Provider payloads and authoring
 sources remain outside domain values.
 
+The browser is a generated-client consumer at `/help` and at exact
+`/help/topics/{topic_id}/versions/{topic_version}` routes. It validates the
+closed public response before rendering inert typed nodes, preserves
+server-owned search order and cursors, and keeps exact source facts in a
+progressive technical record. It owns no help corpus, ranking, authorization,
+latest-version selection, analytics, or separate headless behavior.
+
 Contributions to the immutable corpus follow `resources/README.md`. Published
 meaning changes require an exact new version and updated source fingerprint;
 runtime code never treats repository Markdown as content storage.

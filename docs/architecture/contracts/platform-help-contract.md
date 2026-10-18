@@ -89,4 +89,17 @@ composition time through the strict mapping and domain rules. Runtime code does
 not parse canonical repository Markdown. OpenAPI and generated TypeScript types
 reproduce the same headless contract. The browser cannot become a separate
 ranking authority or bypass exact-version and authorization rules; browser
-presentation and live restart/offline qualification remain dependent packets.
+presentation consumes only those generated operations.
+
+The implemented browser routes are `/help` and
+`/help/topics/{topic_id}/versions/{topic_version}`. URL search admits only the
+public bounded query, kind, page-size, and opaque-cursor fields. Closed browser
+validation rejects malformed or extended documents before rendering; the
+typed body union becomes inert semantic elements and exact same-guide links,
+never raw markup or arbitrary URLs. Primary pages use learner-readable labels,
+while publication and complete identity, digest, source-version, and source-
+fingerprint facts remain keyboard-accessible under `Technical record`.
+
+Live restart, offline/no-outbound observation, and browser/headless parity are
+qualification concerns. They do not give the browser another content, search,
+policy, or authorization path.

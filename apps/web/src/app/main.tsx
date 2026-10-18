@@ -15,6 +15,7 @@ import "../styles/personal-workspace.css";
 import "../styles/learner-preferences.css";
 import "../styles/presentation-preferences.css";
 import "../styles/assistance-preferences.css";
+import "../styles/platform-help.css";
 import { PresentationProvider } from "../platform/presentation/presentation";
 import { ThemeProvider } from "../platform/theme/theme";
 import { presentationProfileReader } from "./dependencies";

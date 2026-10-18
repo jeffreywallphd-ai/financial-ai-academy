@@ -10,6 +10,27 @@ const client = createFinancialAcademyApiClient(
 
 void client.GET("/api/v1/curriculum/opportunities");
 
+void client.GET("/api/v1/guidance/platform-help", {
+  params: {
+    query: {
+      query: "calculations",
+      topic_kind: "method",
+      page_size: 20,
+    },
+  },
+});
+void client.GET(
+  "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}",
+  {
+    params: {
+      path: {
+        topic_id: "platform-methods",
+        topic_version: "1.0.0",
+      },
+    },
+  },
+);
+
 type CurriculumGraphResponse =
   components["schemas"]["CurriculumGraphResponseModel"];
 type PracticeSubmission =

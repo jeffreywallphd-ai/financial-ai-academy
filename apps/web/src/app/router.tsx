@@ -98,6 +98,15 @@ import {
   AssistancePreferencesLoadingState,
   AssistancePreferencesRoute,
 } from "../features/assistance-preferences/AssistancePreferencesRoute";
+import {
+  createPlatformHelpSearchLoader,
+  createPlatformHelpTopicLoader,
+} from "../features/platform-help/api";
+import {
+  PlatformHelpLoadingState,
+  PlatformHelpSearchRoute,
+  PlatformHelpTopicRoute,
+} from "../features/platform-help/PlatformHelpRoute";
 import { AppShell } from "./AppShell";
 import { apiClient as client, singleProfileSession as session } from "./dependencies";
 
@@ -152,6 +161,8 @@ const assistancePreferencesAction = createAssistancePreferencesAction(
 );
 const assistancePreferencesExporter = createAssistancePreferencesExporter(client, session);
 const localReminderExporter = createLocalReminderExporter(window.localStorage, currentTime);
+const platformHelpSearchLoader = createPlatformHelpSearchLoader(client, session);
+const platformHelpTopicLoader = createPlatformHelpTopicLoader(client, session);
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -336,6 +347,18 @@ export const router = createBrowserRouter([
         loader: curriculumGraphLoader,
         Component: CurriculumGraphRouteWithDependencies,
         HydrateFallback: CurriculumGraphLoadingState,
+      },
+      {
+        path: "help",
+        loader: platformHelpSearchLoader,
+        Component: PlatformHelpSearchRoute,
+        HydrateFallback: PlatformHelpLoadingState,
+      },
+      {
+        path: "help/topics/:topicId/versions/:topicVersion",
+        loader: platformHelpTopicLoader,
+        Component: PlatformHelpTopicRoute,
+        HydrateFallback: PlatformHelpLoadingState,
       },
       {
         path: "*",
