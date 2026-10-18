@@ -67,12 +67,12 @@ async function installApi(page: Page) {
     changes: [],
   };
   const requests: PreparedAssistancePreferenceRequest[] = [];
-  const paths: string[] = [];
+  const calls: Array<{ method: string; path: string }> = [];
 
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
-    paths.push(path);
+    calls.push({ method: request.method(), path });
     if (path === "/api/v1/session/single-profile") {
       return json(route, 201, {
         status: "ready",
@@ -108,7 +108,7 @@ async function installApi(page: Page) {
     }
     return json(route, 404, { code: "not_found" });
   });
-  return { paths, requests };
+  return { calls, requests };
 }
 
 test("keeps learner-owned AI help and this-browser reminders separate and inert", async ({ page }) => {
@@ -146,12 +146,23 @@ test("keeps learner-owned AI help and this-browser reminders separate and inert"
   expect(api.requests[0]).not.toHaveProperty("learner_id");
   expect(api.requests[0]).not.toHaveProperty("provider");
 
-  const requestsBeforeLocalSave = api.paths.length;
+  const callsBeforeLocalSave = api.calls.length;
   await page.getByRole("radio", { name: /Allow in-app reminders when available/i }).check();
   await page.getByRole("button", { name: "Save this-browser choice" }).click();
   await expect(page.getByText("This browser is using the saved choice.")).toBeVisible();
-  expect(api.paths.slice(requestsBeforeLocalSave)).toEqual([
-    "/api/v1/learner-assistance-preferences/export",
+  const localSaveCalls = api.calls.slice(callsBeforeLocalSave);
+  expect(localSaveCalls.every(({ method }) => method === "GET")).toBe(true);
+  expect(
+    localSaveCalls.filter(
+      ({ path }) =>
+        path !==
+        "/api/v1/guidance/contextual-help/ai-assistance/versions/1.0.0",
+    ),
+  ).toEqual([
+    {
+      method: "GET",
+      path: "/api/v1/learner-assistance-preferences/export",
+    },
   ]);
   const local = await page.evaluate(() => {
     const key = "financial-ai-academy.local-learning-reminder-preference.v1";
