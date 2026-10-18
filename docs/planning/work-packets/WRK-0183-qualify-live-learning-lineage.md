@@ -1,7 +1,7 @@
 ---
 id: WRK-0183
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/tests/browser/approved-lesson/learning-lineage.e2e.ts", "backend/src/financial_ai_academy/modules/audit/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0106-trace-learning-content-and-evidence-lineage.md", "docs/planning/work-packets/WRK-0183-qualify-live-learning-lineage.md", "tests/architecture/test_approved_lesson_boundaries.py", "tests/e2e/approved-lesson/README.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: ""
-claim_id: ""
-claimed_by: ""
-claimed_at: ""
+base_revision: f46c7c638c44913481a38295f42d2ed8eef9c1c9
+claim_id: WRK-0183:f9adb934-f2ff-421d-87c7-824ba19faea5
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T08:33:43Z
 ---
 
 # Agent Work Packet: Qualify Live Learning Lineage
@@ -218,3 +218,5 @@ changed.
   the existing generated client and cumulative disposable topology to qualify
   the frozen two-root public seam and close SLI-0106 without adding product
   behavior, a heavyweight routine gate, or lower-level approval.
+- 2026-10-18: Activated from clean base `f46c7c6` with one bounded owner and an
+  exclusive lease over the exact qualification, evidence, and planning files.
