@@ -1,7 +1,7 @@
 ---
 id: WRK-0158
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -272,3 +272,10 @@ persistence/API packet dependency-ready.
   owned browser-local reminder contract/adapter while leaving persistence,
   API, interface composition, and live qualification to dependency-ordered
   packets. It remains inside CAP-0018 and needs no lower-level approval.
+- 2026-10-17: Completed the closed learner-assistance contract family, pure
+  Learner-model core, and browser-local reminder adapter. Focused Python and
+  TypeScript suites, type checking, lint, architecture, security, planning,
+  documentation, build, exact-candidate affected checks, and aggregate
+  readiness passed. Canonical time and newest-100 history validation were
+  strengthened during verification. Persistence, API, generated client,
+  browser route, model execution, and reminder delivery remain unchanged.
