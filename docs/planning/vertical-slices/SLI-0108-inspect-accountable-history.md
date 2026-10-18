@@ -186,7 +186,7 @@ The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | complete |
-| [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | verifying |
+| [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | complete |
 | WRK-0191 | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | captured |
 | WRK-0192 | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | captured |
 | WRK-0193 | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | captured |
@@ -260,3 +260,8 @@ conformance.
   boundary, truthful zero/many-source pressure tests, deterministic portable
   export, exact write scope, and no application, authorization, API/client,
   browser, persistence, or lower-level approval expansion.
+- 2026-10-18: WRK-0190 completed at exact candidate `e7c916e` with the
+  framework-free composer and strict adapter, a contract-parity bound of 128
+  transformations, truthful zero/one/many-source behavior, deterministic
+  portable export, and current qualifying evidence. The dependent public API
+  packet is now eligible.

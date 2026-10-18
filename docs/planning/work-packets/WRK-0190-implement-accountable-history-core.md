@@ -1,7 +1,7 @@
 ---
 id: WRK-0190
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -237,3 +237,12 @@ admin, external action, or financial authority changed.
   unit and contract tests passed with direct product/contract canonicalization
   parity, together with architecture, security, documentation, planning,
   whitespace, and all 30 aggregate-readiness checks.
+- 2026-10-18: Completed at corrected exact candidate `e7c916e` with qualifying
+  receipt digest `sha256:0f04a3fc291f771b1b9452e6b4975b565ffcbd17ad49b294bb05a0f9b60017b0`.
+  The final boundary enforces the frozen 128-transformation maximum and keeps
+  canonical documentation aligned with the delivered shared core. Focused 49
+  and affected 174-test suites passed together with module, architecture,
+  security, documentation, planning, whitespace, and all 30 aggregate-readiness
+  checks. No migration, persistence, permission, public API, client, UI,
+  identity, provider/model, tenant/admin, external-action, or financial-
+  authority change applies.
