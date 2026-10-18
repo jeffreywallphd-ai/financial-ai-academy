@@ -190,6 +190,63 @@ describe("platform help response validation", () => {
     ).toBe(false);
   });
 
+  it("rejects eleven contextual references even when every topic identity differs", () => {
+    const references = Array.from({ length: 11 }, (_, index) => ({
+      ...contextualHelpFixture.help_references[0]!,
+      topic_id: `bounded-topic-${index}`,
+      purpose: [
+        "method",
+        "source",
+        "data_meaning",
+        "ai_boundary",
+        "education_boundary",
+      ][index % 5] as (typeof contextualHelpFixture.help_references)[number]["purpose"],
+    }));
+    expect(
+      contextualHelpIsSafe(
+        { ...contextualHelpFixture, help_references: references },
+        "lesson-publication",
+        "1.0.0",
+      ),
+    ).toBe(false);
+  });
+
+  it("rejects distinct topics that repeat a contextual purpose", () => {
+    const first = contextualHelpFixture.help_references[0]!;
+    expect(
+      contextualHelpIsSafe(
+        {
+          ...contextualHelpFixture,
+          help_references: [
+            first,
+            {
+              ...first,
+              topic_id: "different-source-topic",
+              label: "Another source explanation",
+            },
+          ],
+        },
+        "lesson-publication",
+        "1.0.0",
+      ),
+    ).toBe(false);
+  });
+
+  it("accepts valid contextual reference counts and server-owned ordering", () => {
+    for (const references of [
+      [contextualHelpFixture.help_references[0]!],
+      [...contextualHelpFixture.help_references].reverse(),
+    ]) {
+      expect(
+        contextualHelpIsSafe(
+          { ...contextualHelpFixture, help_references: references },
+          "lesson-publication",
+          "1.0.0",
+        ),
+      ).toBe(true);
+    }
+  });
+
   it("accepts the server-owned Unicode case-folded query without duplicating ranking rules", () => {
     expect(
       platformHelpSearchPageIsSafe(

@@ -252,12 +252,15 @@ export function contextualHelpIsSafe(
     ) ||
     !Array.isArray(context.help_references) ||
     context.help_references.length < 1 ||
-    context.help_references.length > 20 ||
+    context.help_references.length > 10 ||
     !context.help_references.every(contextualHelpReferenceIsSafe) ||
     !uniqueBy(context.help_references, (item) => {
       const reference = record(item);
       return `${String(reference?.topic_id)}@${String(reference?.topic_version)}`;
     }) ||
+    !uniqueBy(context.help_references, (item) =>
+      String(record(item)?.purpose),
+    ) ||
     !publicationIsSafe(context.publication) ||
     !Array.isArray(context.source_references) ||
     context.source_references.length < 1 ||
