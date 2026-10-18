@@ -18,6 +18,7 @@ from financial_ai_academy.modules.audit.application import (
 from financial_ai_academy.modules.audit.domain import (
     CrossDomainProfile,
     CrossDomainProvenanceEnvelope,
+    InvalidCrossDomainProvenance,
 )
 
 
@@ -85,6 +86,20 @@ def test_adapter_failure_and_invalid_reference_do_not_disable_valid_adapter() ->
     rendered = repr(report)
     assert "private provider" not in rendered
     assert "https://" not in rendered
+
+    class CraftedBoundedFailureAdapter:
+        profile = CrossDomainProfile.ADMINISTRATIVE_ACTION
+
+        def issue_reference(self) -> CrossDomainProvenanceEnvelope:
+            raise InvalidCrossDomainProvenance(
+                "https://secret.invalid/private?token=abc"
+            )
+
+    crafted = evaluate_cross_domain_reference(CraftedBoundedFailureAdapter())
+    assert crafted.code is CrossDomainConformanceCode.INVALID_REFERENCE
+    assert crafted.reference == "adapter.reference"
+    assert "secret" not in repr(crafted)
+    assert "https://" not in repr(crafted)
 
 
 def test_profile_mismatch_and_duplicates_fail_without_selecting_an_adapter() -> None:

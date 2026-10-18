@@ -154,11 +154,11 @@ def _evaluate_declared_adapter(
 ) -> CrossDomainConformanceCase:
     try:
         envelope = adapter.issue_reference()
-    except InvalidCrossDomainProvenance as error:
+    except InvalidCrossDomainProvenance:
         return _invalid_case(
             profile,
             CrossDomainConformanceCode.INVALID_REFERENCE,
-            error.reference,
+            "adapter.reference",
         )
     except Exception:
         return _invalid_case(

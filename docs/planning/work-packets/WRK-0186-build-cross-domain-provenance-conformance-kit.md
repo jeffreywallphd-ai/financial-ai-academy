@@ -41,9 +41,11 @@ architecture verification, module ownership, and affected tests.
 
 - CAP-0026 and SLI-0107 authority remain current; WRK-0185 is complete; no
   unresolved decision gate applies to a pure local validation seam.
-- The adapter port returns one owner-issued mapping and declares one exact
-  closed profile. It grants no persistence, runtime discovery, registration,
-  network, provider, model, financial, administrative, or external authority.
+- The adapter port issues one typed owner reference and declares one exact
+  closed profile. An outer owner adapter may use the shared v2 mapper, while the
+  application conformance service depends only inward on typed domain values.
+  The port grants no persistence, runtime discovery, registration, network,
+  provider, model, financial, administrative, or external authority.
 - A conformance run is per-call immutable evidence. The kit owns no global
   registry, cached result, filesystem read, retained history, or production
   readiness claim.
@@ -55,7 +57,7 @@ architecture verification, module ownership, and affected tests.
 ## In Scope
 
 - A narrow `CrossDomainReferenceAdapter` protocol with an exact profile and one
-  side-effect-free reference mapping operation.
+  side-effect-free typed-reference issue operation.
 - Immutable case and suite results with profile, validity, canonical digest on
   success, and bounded code/reference on failure; no raw payload or exception
   text appears in results.
@@ -102,8 +104,9 @@ design token, browser resource, or provider configuration changes.
 
 1. The adapter declaration and emitted resource must name the same exact closed
    profile; disagreement is a bounded invalid result.
-2. Each adapter is evaluated independently. A thrown exception, malformed
-   mapping, or invalid envelope affects only that profile result.
+2. Each adapter is evaluated independently. A thrown exception or invalid
+   typed envelope affects only that profile result. Outer mapping failures are
+   reduced to the same fixed adapter-reference diagnostic.
 3. Successful results expose the exact profile and canonical envelope digest,
    never the full record. Failure exposes only a stable bounded code and safe
    reference, never raw exception or payload text.
@@ -113,8 +116,9 @@ design token, browser resource, or provider configuration changes.
    remain valid for incremental owner development and report missing profiles
    without treating them as implemented failures.
 6. The kit is stateless and performs no I/O. The language-neutral runner retains
-   schema/catalog/corpus responsibility; the kit validates owner adapters
-   through the production v2 mapping and domain core.
+   schema/catalog/corpus responsibility; the kit validates typed owner adapters
+   through the production v2 domain core. Test-only outer adapters exercise the
+   shared mapping boundary before issuing those typed values.
 
 ## Dependencies and Parallel Safety
 
@@ -190,3 +194,7 @@ tenant/admin, external-action, or financial authority changed.
   report, deterministic partial/complete suite evaluation, duplicate and
   failure isolation, all-profile synthetic adapters, independent-runner digest
   parity, and varied valid input evidence without adding a real owner or I/O.
+- 2026-10-18: Reconciled the incremental contract to the implemented inward-
+  layering seam: owner adapters issue typed envelopes, while outer adapters may
+  use the shared mapper. Adapter-raised validation references now collapse to a
+  fixed platform-owned field so crafted URLs or secrets cannot enter results.
