@@ -1,7 +1,7 @@
 ---
 id: SLI-0085
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -280,3 +280,5 @@ finding.
   checks passing and no open technical finding.
 - 2026-10-18: Finalized WRK-0179 after binding its exact candidate, qualifying
   receipt, cumulative evidence, direct documentation impact, and residual gaps.
+- 2026-10-18: Moved the slice to verification after both enumerated packets
+  completed and aggregate readiness returned 30 of 30 checks ready.
