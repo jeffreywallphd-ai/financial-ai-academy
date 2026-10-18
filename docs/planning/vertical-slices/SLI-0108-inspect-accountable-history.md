@@ -185,7 +185,7 @@ The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | verifying |
+| [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | complete |
 | WRK-0190 | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | captured |
 | WRK-0191 | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | captured |
 | WRK-0192 | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | captured |
@@ -252,3 +252,7 @@ conformance.
 - 2026-10-18: Activated dependency-first WRK-0189 after confirming current CAP
   authority, completed SLI-0107, resolved local decision posture, exact
   contract-only write scope, and no active ownership collision.
+- 2026-10-18: WRK-0189 completed with the additive accountable-history contract,
+  compatibility corpus, deterministic export rules, bounded diagnostic and
+  redaction meaning, unchanged provenance v1/v2 fingerprints, and current
+  qualifying evidence. WRK-0190 is now dependency-ready.

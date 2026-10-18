@@ -1,7 +1,7 @@
 ---
 id: WRK-0189
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -240,6 +240,25 @@ rollback status; assumptions; residual gaps; CAP conformance; and unresolved
 decisions. Confirm no production core, persistence, API/client, UI, identity,
 provider/model, tenant/admin, external action, or financial authority changed.
 
+## Completion Evidence
+
+- Exact candidate: `b91e40a48afc68452fc6be31b8aa51926d0d58bb`.
+- Qualifying receipt:
+  `sha256:45641be538488db2c46f5e8e7c2a0b59f123984c8e428e5589b1823e94c2eb83`.
+- The accountable-history, provenance v1/v2, Guidance contract/unit, and module-
+  boundary affected suite passed 190 tests. Architecture passed 18 checks,
+  security passed 10 control groups, and documentation, planning, whitespace,
+  and all 30 aggregate-readiness checks passed.
+- Contract evidence covers closed purpose/root/state-correlated display text,
+  owner-to-resource correlation, incomplete versus invalid diagnostics,
+  Unicode-total deterministic export names, instant-based timestamp ordering,
+  safe redaction and diagnostic behavior, and unchanged provenance v1/v2
+  fingerprints. The final focused contract review passed 83 tests.
+- No production core, persistence, migration, API/client, UI, identity,
+  provider/model, tenant/administrator, external-action, or financial-authority
+  behavior changed. Rollback removes only the additive contract and corpus
+  before adoption; later packets consume but do not reinterpret this meaning.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after SLI-0108 refinement. The packet
@@ -253,3 +272,8 @@ provider/model, tenant/admin, external action, or financial authority changed.
   accountable-history, unchanged-provenance, Guidance contract/unit, and
   module-boundary tests passed together with architecture, security,
   documentation, planning, whitespace, and all 30 readiness checks.
+- 2026-10-18: Completed at exact candidate `b91e40a` after bounded corrections
+  correlated owner and resource meaning, validation state and diagnostics,
+  deterministic Unicode-safe export identity, exact timestamp order, and
+  reviewed display text with purpose/root/state. All qualifying gates are
+  current and the dependent pure-core packet may start.
