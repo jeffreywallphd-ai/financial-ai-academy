@@ -1,7 +1,7 @@
 ---
 id: WRK-0175
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/generated/api-client/schema.d.ts", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/guidance/README.md", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_feature_guidance_registry.py", "backend/src/financial_ai_academy/modules/guidance/application/service.py", "backend/src/financial_ai_academy/modules/guidance/domain/__init__.py", "backend/src/financial_ai_academy/modules/guidance/domain/feature_guidance.py", "backend/src/financial_ai_academy/modules/guidance/ports/__init__.py", "backend/src/financial_ai_academy/modules/guidance/ports/feature_guidance.py", "backend/src/financial_ai_academy/modules/guidance/public.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/integration/api/test_single_profile_guidance_api.py", "backend/tests/unit/guidance/test_feature_guidance.py", "backend/tests/unit/guidance/test_service.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0175-compose-feature-guidance-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 518b07b5b4cefb55603454abc9e9f6dd85a790b2
+claim_id: WRK-0175:c70026a3-887d-453a-afd8-8c5c06644ed9
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T06:08:28Z
 ---
 
 # Agent Work Packet: Compose the Feature-Guidance API
@@ -222,3 +222,6 @@ feature behavior, or financial behavior changed.
   resolution shared by browser and future headless callers while deferring
   feature placement and live qualification to dependent packets. It remains
   inside the approved CAP-0020 package and requires no lower-level approval.
+- 2026-10-18: Activated from clean base `518b07b` after confirming the current
+  CAP binding, completed WRK-0174 dependency, API-first exact-resolution scope,
+  executable checks, and no unresolved decision or ownership collision.
