@@ -256,3 +256,12 @@ tenancy/admin, financial, retention, or authorization behavior changed.
   the accountable-history-only containment window.
 - 2026-10-18: Submitted exact candidate `183cf14` for controller-selected
   affected verification with the qualification and documentation scope frozen.
+- 2026-10-18: Independent technical review R01 requested correction because the
+  first browser history/export calls preceded the containment baseline and the
+  replay validator admitted identifier and display-text values outside the
+  frozen v1 schemas. Commit `9fa84ba` splits public selector discovery from the
+  operations-only phase, freezes containment before the first history call,
+  enforces the exact identifier and safe-text bounds, and adds first-call and
+  boundary regressions. The 100-test replay suite, TypeScript, zero-warning
+  lint, 17 architecture tests plus four subtests, documentation, planning,
+  design, and the complete disposable PostgreSQL/Chromium topology pass.
