@@ -1,7 +1,7 @@
 ---
 id: WRK-0167
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/app/AppShell.tsx", "apps/web/src/app/main.tsx", "apps/web/src/app/router.tsx", "apps/web/src/features/platform-help", "apps/web/src/styles/platform-help.css", "apps/web/tests/browser/platform-help", "apps/web/tests/component/platformHelp.test.tsx", "apps/web/tests/component/platformHelpFixture.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/unit/platformHelpModel.test.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "docs/architecture/contracts/platform-help-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0167-deliver-platform-help-browser-flow.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: b7ad3d1427a3d8deabc6e3c7a4e512f696dd85b8
+claim_id: WRK-0167:fa9d7927-5b30-4ab8-bedb-dd290060a104
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T03:03:59Z
 ---
 
 # Agent Work Packet: Deliver the Platform Help Browser Flow

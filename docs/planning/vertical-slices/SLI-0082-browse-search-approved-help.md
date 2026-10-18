@@ -227,7 +227,7 @@ each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | [WRK-0165](../work-packets/WRK-0165-freeze-platform-help-contracts.md) | Freeze the `platform-help/v1` topic/search contracts, compatibility corpus, safe body union, pure validation/search core, and source-provenance rules | none | none | complete |
 | [WRK-0166](../work-packets/WRK-0166-compose-platform-help-api.md) | Compose the immutable corpus adapter, Guidance application/public seam, protected API, reviewed OpenAPI, and generated client | WRK-0165 | none | complete |
-| [WRK-0167](../work-packets/WRK-0167-deliver-platform-help-browser-flow.md) | Deliver the URL-backed accessible Help browse/search and exact-topic browser routes only through the generated client | WRK-0166 | none | ready |
+| [WRK-0167](../work-packets/WRK-0167-deliver-platform-help-browser-flow.md) | Deliver the URL-backed accessible Help browse/search and exact-topic browser routes only through the generated client | WRK-0166 | none | active |
 | JIT-D | Qualify contract, browser/headless parity, deterministic search, offline restart, source integrity, safe rendering, accessibility, containment, and cleanup | JIT-C | none | captured |
 
 Dependent packets are not reserved, authored, or claimed until their concrete
