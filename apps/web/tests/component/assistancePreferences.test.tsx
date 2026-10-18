@@ -12,7 +12,11 @@ import type {
   AssistancePreferencesRouteState,
   LocalReminderExporter,
 } from "../../src/features/assistance-preferences/model";
-import type { ContextualHelpReader } from "../../src/features/platform-help/model";
+import type {
+  ContextualHelpReader,
+  FeatureGuidanceReader,
+} from "../../src/features/platform-help/model";
+import { unavailableFeatureGuidanceReader } from "../../src/features/platform-help/FeatureGuidanceExplanation";
 import { contextualHelpFixture } from "./platformHelpFixture";
 
 
@@ -77,6 +81,7 @@ const readyState: AssistancePreferencesRouteState = {
 function renderPage({
   actionState,
   contextualReader = async () => ({ status: "unavailable" }),
+  featureReader = unavailableFeatureGuidanceReader,
   localExporter = async () => ({ status: "unavailable" }),
   serverExporter = async () => ({ status: "unavailable" }),
   state = readyState,
@@ -84,6 +89,7 @@ function renderPage({
 }: {
   actionState?: AssistancePreferencesActionState;
   contextualReader?: ContextualHelpReader;
+  featureReader?: FeatureGuidanceReader;
   localExporter?: LocalReminderExporter;
   serverExporter?: AssistancePreferencesExporter;
   state?: AssistancePreferencesRouteState;
@@ -103,6 +109,7 @@ function renderPage({
         exportPreferences={serverExporter}
         onRetry={() => undefined}
         readContextualHelp={contextualReader}
+        readFeatureGuidance={featureReader}
         state={state}
       />
     ),
@@ -112,6 +119,18 @@ function renderPage({
 
 describe("AI help and reminders page", () => {
   it("leads with availability and purpose while keeping technical facts optional", async () => {
+    const featureReader = vi.fn<FeatureGuidanceReader>(async () => ({
+      status: "ready",
+      resolution: {
+        mapping: {},
+        guidance: {
+          heading: "No AI provider runs from this choice",
+          reason: "The saved choice only controls whether an option may appear.",
+          outcome: "No model call or data sharing has started.",
+          actions: [],
+        },
+      } as never,
+    }));
     renderPage({
       contextualReader: vi.fn().mockResolvedValue({
         status: "ready",
@@ -121,6 +140,7 @@ describe("AI help and reminders page", () => {
           feature_label: "AI help preferences",
         },
       }),
+      featureReader,
     });
 
     expect(screen.getByRole("heading", { level: 1, name: "AI help and reminders" })).toBeVisible();
@@ -133,6 +153,17 @@ describe("AI help and reminders page", () => {
         name: "Questions about AI help preferences",
       }),
     ).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: "No AI provider runs from this choice",
+      }),
+    ).toBeVisible();
+    expect(featureReader).toHaveBeenCalledWith(
+      "ai-assistance",
+      "provider-execution-not-enabled",
+      "1.0.0",
+      expect.any(AbortSignal),
+    );
     expect(screen.queryByText(profile.profile_digest)).not.toBeVisible();
 
     await userEvent.setup().click(screen.getByText("Technical record for AI-help choice"));

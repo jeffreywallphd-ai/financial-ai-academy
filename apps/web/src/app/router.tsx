@@ -100,6 +100,7 @@ import {
 } from "../features/assistance-preferences/AssistancePreferencesRoute";
 import {
   createContextualHelpReader,
+  createFeatureGuidanceReader,
   createPlatformHelpSearchLoader,
   createPlatformHelpTopicLoader,
 } from "../features/platform-help/api";
@@ -165,9 +166,15 @@ const localReminderExporter = createLocalReminderExporter(window.localStorage, c
 const platformHelpSearchLoader = createPlatformHelpSearchLoader(client, session);
 const platformHelpTopicLoader = createPlatformHelpTopicLoader(client, session);
 const contextualHelpReader = createContextualHelpReader(client, session);
+const featureGuidanceReader = createFeatureGuidanceReader(client, session);
 
 function LessonRouteWithDependencies() {
-  return <LessonRoute readContextualHelp={contextualHelpReader} />;
+  return (
+    <LessonRoute
+      readContextualHelp={contextualHelpReader}
+      readFeatureGuidance={featureGuidanceReader}
+    />
+  );
 }
 
 function CurriculumGraphRouteWithDependencies() {
@@ -180,6 +187,7 @@ function PracticeActivityRouteWithDependencies() {
   return (
     <PracticeActivityRoute
       readContextualHelp={contextualHelpReader}
+      readFeatureGuidance={featureGuidanceReader}
       readProgress={practiceProgressReader}
       saveDraft={practiceDraftSaver}
       submitPractice={practiceActivitySubmitter}
@@ -193,12 +201,18 @@ function ProjectDetailRouteWithDependencies() {
       downloadArtifact={projectArtifactDownloader}
       exportSnapshot={projectSnapshotExporter}
       readContextualHelp={contextualHelpReader}
+      readFeatureGuidance={featureGuidanceReader}
     />
   );
 }
 
 function PersonalWorkspaceRouteWithDependencies() {
-  return <PersonalWorkspaceRoute exportWorkspace={personalWorkspaceExporter} />;
+  return (
+    <PersonalWorkspaceRoute
+      exportWorkspace={personalWorkspaceExporter}
+      readFeatureGuidance={featureGuidanceReader}
+    />
+  );
 }
 
 function LearnerPreferencesRouteWithDependencies() {
@@ -219,6 +233,7 @@ function AssistancePreferencesRouteWithDependencies() {
       exportLocalReminder={localReminderExporter}
       exportPreferences={assistancePreferencesExporter}
       readContextualHelp={contextualHelpReader}
+      readFeatureGuidance={featureGuidanceReader}
     />
   );
 }

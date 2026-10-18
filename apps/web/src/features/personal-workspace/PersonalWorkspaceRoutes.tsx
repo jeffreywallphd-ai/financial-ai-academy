@@ -7,6 +7,8 @@ import {
 } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
+import { unavailableFeatureGuidanceReader } from "../platform-help/FeatureGuidanceExplanation";
+import type { FeatureGuidanceReader } from "../platform-help/model";
 import type {
   SaveLearningRouteState,
   PersonalWorkspaceExporter,
@@ -65,8 +67,10 @@ function Failure({
 
 export function PersonalWorkspaceRoute({
   exportWorkspace,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
 }: {
   exportWorkspace: PersonalWorkspaceExporter;
+  readFeatureGuidance?: FeatureGuidanceReader;
 }) {
   const state = useLoaderData<WorkspaceRouteState>();
   const actionState = useActionData<WorkspaceActionState>();
@@ -77,7 +81,7 @@ export function PersonalWorkspaceRoute({
     return <PersonalWorkspaceLoadingState />;
   }
   return state.status === "ready" ? (
-    <PersonalWorkspacePage actionState={actionState} busy={navigation.state === "submitting"} exportWorkspace={exportWorkspace} result={state.result} search={state.search} workspace={state.workspace} />
+    <PersonalWorkspacePage actionState={actionState} busy={navigation.state === "submitting"} exportWorkspace={exportWorkspace} readFeatureGuidance={readFeatureGuidance} result={state.result} search={state.search} workspace={state.workspace} />
   ) : (
     <Failure onReturn={() => void navigate(state.status === "invalid-query" ? "/saved-learning" : "/learn")} onRetry={() => revalidator.revalidate()} returnLabel="Return to learning library" status={state.status} />
   );

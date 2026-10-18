@@ -5,7 +5,14 @@ import {
   ContextualHelpLinks,
   unavailableContextualHelpReader,
 } from "../platform-help/ContextualHelpLinks";
-import type { ContextualHelpReader } from "../platform-help/model";
+import {
+  FeatureGuidanceExplanation,
+  unavailableFeatureGuidanceReader,
+} from "../platform-help/FeatureGuidanceExplanation";
+import type {
+  ContextualHelpReader,
+  FeatureGuidanceReader,
+} from "../platform-help/model";
 import type {
   PracticeItem,
   PracticePresentation,
@@ -487,6 +494,7 @@ export function PracticeActivityPage({
   practice,
   progress: initialProgress,
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
   readProgress,
   saveDraft,
   submitPractice,
@@ -494,6 +502,7 @@ export function PracticeActivityPage({
   practice: PracticePresentation;
   progress: PracticeProgress;
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
   readProgress: PracticeProgressReader;
   saveDraft: PracticeDraftSaver;
   submitPractice: PracticeSubmitter;
@@ -849,6 +858,26 @@ export function PracticeActivityPage({
             </section>
           ) : null}
         </div>
+
+        {(draft.status === "unavailable" || submission.status === "unavailable") &&
+        readFeatureGuidance !== unavailableFeatureGuidanceReader ? (
+          <FeatureGuidanceExplanation
+            actionHandlers={{
+              reload_current_state: () =>
+                void refreshProgress({ restoreDraft: draft.status === "unavailable" }),
+              retry_unchanged_request: () => {
+                if (draft.status === "unavailable") {
+                  void savePreparedDraft(draft.prepared);
+                } else if (submission.status === "unavailable" && prepared) {
+                  void send(prepared);
+                }
+              },
+            }}
+            conditionKey="write-outcome-uncertain"
+            readFeatureGuidance={readFeatureGuidance}
+            surfaceKey="practice-activity"
+          />
+        ) : null}
 
         <ReviewTargets progress={progress} />
         <AttemptHistory practice={practice} progress={progress} />

@@ -1,8 +1,12 @@
 import { useLoaderData, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
-import type { ContextualHelpReader } from "../platform-help/model";
+import type {
+  ContextualHelpReader,
+  FeatureGuidanceReader,
+} from "../platform-help/model";
 import { unavailableContextualHelpReader } from "../platform-help/ContextualHelpLinks";
+import { unavailableFeatureGuidanceReader } from "../platform-help/FeatureGuidanceExplanation";
 import type {
   PracticeActivityRouteState,
   PracticeDraftSaver,
@@ -33,6 +37,7 @@ export function PracticeActivityRouteView({
   onRetry,
   readProgress,
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
   saveDraft,
   state,
   submitPractice,
@@ -40,6 +45,7 @@ export function PracticeActivityRouteView({
   onRetry: () => void;
   readProgress: PracticeProgressReader;
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
   saveDraft: PracticeDraftSaver;
   state: PracticeActivityRouteState;
   submitPractice: PracticeSubmitter;
@@ -53,6 +59,7 @@ export function PracticeActivityRouteView({
           practice={state.practice}
           progress={state.progress}
           readContextualHelp={readContextualHelp}
+          readFeatureGuidance={readFeatureGuidance}
           readProgress={readProgress}
           saveDraft={saveDraft}
           submitPractice={submitPractice}
@@ -124,11 +131,13 @@ export function PracticeActivityRouteView({
 export function PracticeActivityRoute({
   readProgress,
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
   saveDraft,
   submitPractice,
 }: {
   readProgress: PracticeProgressReader;
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
   saveDraft: PracticeDraftSaver;
   submitPractice: PracticeSubmitter;
 }) {
@@ -143,6 +152,7 @@ export function PracticeActivityRoute({
       onRetry={() => revalidator.revalidate()}
       readProgress={readProgress}
       readContextualHelp={readContextualHelp}
+      readFeatureGuidance={readFeatureGuidance}
       saveDraft={saveDraft}
       state={displayedState}
       submitPractice={submitPractice}

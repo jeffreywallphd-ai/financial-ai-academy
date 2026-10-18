@@ -6,7 +6,14 @@ import {
   ContextualHelpLinks,
   unavailableContextualHelpReader,
 } from "../platform-help/ContextualHelpLinks";
-import type { ContextualHelpReader } from "../platform-help/model";
+import {
+  FeatureGuidanceExplanation,
+  unavailableFeatureGuidanceReader,
+} from "../platform-help/FeatureGuidanceExplanation";
+import type {
+  ContextualHelpReader,
+  FeatureGuidanceReader,
+} from "../platform-help/model";
 import type { LocalReminderMode } from "../../platform/reminders/localReminderPreference";
 import {
   assistanceChangeLabel,
@@ -123,6 +130,7 @@ export function AssistancePreferencesPage({
   exportPreferences,
   onRetry,
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
   state,
 }: {
   actionState: AssistancePreferencesActionState | undefined;
@@ -131,6 +139,7 @@ export function AssistancePreferencesPage({
   exportPreferences: AssistancePreferencesExporter;
   onRetry: () => void;
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
   state: AssistancePreferencesRouteState;
 }) {
   const serverProfile = state.server.status === "ready" ? state.server.profile : undefined;
@@ -251,6 +260,15 @@ export function AssistancePreferencesPage({
             readContextualHelp={readContextualHelp}
           />
         )}
+        {state.server.status === "ready" &&
+        serverMode === "on_request" &&
+        readFeatureGuidance !== unavailableFeatureGuidanceReader ? (
+          <FeatureGuidanceExplanation
+            conditionKey="provider-execution-not-enabled"
+            readFeatureGuidance={readFeatureGuidance}
+            surfaceKey="ai-assistance"
+          />
+        ) : null}
         {state.server.status === "ready" ? (
           <>
             <Form className="assistance-preferences-form" method="post">

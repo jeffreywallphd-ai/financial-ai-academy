@@ -4,11 +4,14 @@ import type { FinancialAcademyApiClient } from "../../generated/api-client";
 import type { SingleProfileSession } from "../../platform/auth/singleProfileSession";
 import {
   contextualHelpIsSafe,
+  featureGuidanceIsSafe,
   platformHelpSearchHref,
   platformHelpSearchPageIsSafe,
   platformHelpTextIsSafe,
   platformHelpTopicIsSafe,
   type ContextualHelpReader,
+  type FeatureGuidance,
+  type FeatureGuidanceReader,
   type PlatformHelpSearchParameters,
   type PlatformHelpSearchRouteState,
   type PlatformHelpSearchSelection,
@@ -116,6 +119,11 @@ function exactFeatureReturn(
   if (candidate.pathname === "/preferences/assistance") {
     return candidate.search === ""
       ? { href: candidate.pathname, label: "Return to AI help choices" }
+      : null;
+  }
+  if (candidate.pathname === "/saved-learning") {
+    return candidate.search === ""
+      ? { href: candidate.pathname, label: "Return to Saved learning" }
       : null;
   }
   const project = /^\/projects\/([a-z0-9][a-z0-9._-]{2,63})$/.exec(
@@ -417,6 +425,89 @@ export function createContextualHelpReader(
       session,
       contextKey,
       contextVersion,
+      signal,
+      true,
+    );
+}
+
+async function readFeatureGuidance(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  surfaceKey: string,
+  conditionKey: string,
+  mappingVersion: string,
+  signal: AbortSignal,
+  retryUnauthorized: boolean,
+) {
+  if (
+    !IDENTIFIER.test(surfaceKey) ||
+    !IDENTIFIER.test(conditionKey) ||
+    !VERSION.test(mappingVersion)
+  ) {
+    return { status: "unavailable" } as const;
+  }
+  try {
+    const result = await client.GET(
+      "/api/v1/guidance/feature-guidance/{surface_key}/conditions/{condition_key}/versions/{mapping_version}",
+      {
+        params: {
+          path: {
+            surface_key: surfaceKey,
+            condition_key: conditionKey,
+            mapping_version: mappingVersion,
+          },
+        },
+        signal,
+      },
+    );
+    if (
+      result.response.status === 200 &&
+      result.data &&
+      (await featureGuidanceIsSafe(
+        result.data,
+        surfaceKey,
+        conditionKey,
+        mappingVersion,
+      ))
+    ) {
+      return {
+        status: "ready",
+        resolution: result.data as FeatureGuidance,
+      } as const;
+    }
+    if (result.response.status === 401 && retryUnauthorized) {
+      session.invalidate();
+      const renewed = await session.ensure(signal);
+      if (renewed.status === "ready") {
+        return readFeatureGuidance(
+          client,
+          session,
+          surfaceKey,
+          conditionKey,
+          mappingVersion,
+          signal,
+          false,
+        );
+      }
+    }
+    return { status: "unavailable" } as const;
+  } catch (error) {
+    if (signal.aborted) throw error;
+    return { status: "unavailable" } as const;
+  }
+}
+
+export function createFeatureGuidanceReader(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+): FeatureGuidanceReader {
+  return (surfaceKey, conditionKey, mappingVersion, signal) =>
+    readFeatureGuidance(
+      client,
+      session,
+      surfaceKey,
+      conditionKey,
+      mappingVersion,
       signal,
       true,
     );

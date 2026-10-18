@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { PracticeActivityPage } from "../../src/features/practice-activity/PracticeActivityPage";
 import { PracticeActivityRouteView } from "../../src/features/practice-activity/PracticeActivityRoute";
+import type { FeatureGuidanceReader } from "../../src/features/platform-help/model";
 import {
   practiceDraftSaveResultIsSafe,
   practiceProgressIsSafe,
@@ -187,19 +188,45 @@ describe("practice activity page", () => {
         status: "result",
         result: resultFor(submission.body.submission_id),
       }));
+    const readFeatureGuidance = vi.fn<FeatureGuidanceReader>(async () => ({
+      status: "ready",
+      resolution: {
+        mapping: {},
+        guidance: {
+          heading: "The result of this save is uncertain",
+          reason: "The response was unavailable after the request was sent.",
+          outcome: "The answers may already be saved.",
+          actions: [],
+        },
+      } as never,
+    }));
     render(
-      <PracticeActivityPage
-        practice={practiceFixture}
-        progress={structuredClone(practiceProgressFixture)}
-        readProgress={idleProgressReader}
-        saveDraft={idleDraftSaver}
-        submitPractice={submitPractice}
-      />,
+      <MemoryRouter initialEntries={["/learn/placements/intro-risk-return-primary/practice"]}>
+        <PracticeActivityPage
+          practice={practiceFixture}
+          progress={structuredClone(practiceProgressFixture)}
+          readFeatureGuidance={readFeatureGuidance}
+          readProgress={idleProgressReader}
+          saveDraft={idleDraftSaver}
+          submitPractice={submitPractice}
+        />
+      </MemoryRouter>,
     );
 
     await answerEveryQuestion(user);
     await user.click(screen.getByRole("button", { name: "Check answers" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(/reuse the same answers/i);
+    expect(
+      await screen.findByRole("heading", {
+        name: "The result of this save is uncertain",
+      }),
+    ).toBeVisible();
+    expect(readFeatureGuidance).toHaveBeenCalledWith(
+      "practice-activity",
+      "write-outcome-uncertain",
+      "1.0.0",
+      expect.any(AbortSignal),
+    );
     expect(screen.getByRole("radio", { name: /Outcomes can differ/i })).toBeDisabled();
     await user.click(screen.getByRole("button", { name: "Try again" }));
     expect(await screen.findByRole("heading", { name: "Your result" })).toBeVisible();

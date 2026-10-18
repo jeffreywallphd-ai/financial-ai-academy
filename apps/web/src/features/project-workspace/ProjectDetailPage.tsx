@@ -5,7 +5,14 @@ import {
   ContextualHelpLinks,
   unavailableContextualHelpReader,
 } from "../platform-help/ContextualHelpLinks";
-import type { ContextualHelpReader } from "../platform-help/model";
+import {
+  FeatureGuidanceExplanation,
+  unavailableFeatureGuidanceReader,
+} from "../platform-help/FeatureGuidanceExplanation";
+import type {
+  ContextualHelpReader,
+  FeatureGuidanceReader,
+} from "../platform-help/model";
 import type {
   ProjectArtifact,
   ProjectDownloadOutcome,
@@ -243,6 +250,7 @@ export function ProjectDetailPage({
   exportSnapshot,
   project,
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
   snapshots,
   workspace,
 }: {
@@ -252,6 +260,7 @@ export function ProjectDetailPage({
   exportSnapshot: SnapshotExporter;
   project: ProjectShell;
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
   snapshots: readonly ProjectSnapshot[];
   workspace: ProjectWorkspace;
 }) {
@@ -359,6 +368,14 @@ export function ProjectDetailPage({
             readContextualHelp={readContextualHelp}
           />
         )}
+        {workspace.artifacts.length > 0 &&
+        readFeatureGuidance !== unavailableFeatureGuidanceReader ? (
+          <FeatureGuidanceExplanation
+            conditionKey="artifact-inert"
+            readFeatureGuidance={readFeatureGuidance}
+            surfaceKey="project-workspace"
+          />
+        ) : null}
         {workspace.artifacts.length === 0 ? <p className="project-empty">No files yet.</p> : <ul className="project-work-list">{workspace.artifacts.map((artifact) => <li className="project-panel" id={`artifact-${artifact.artifact_id}-v${artifact.artifact_version}`} key={`${artifact.artifact_id}-${artifact.artifact_version}`}>
           <h3>{artifact.logical_path}</h3><dl className="project-facts"><TechnicalFact label="Kind">{artifactKindLabels[artifact.artifact_kind]}</TechnicalFact><TechnicalFact label="Source">{artifact.provenance.source_title}</TechnicalFact><TechnicalFact label="Size">{artifact.byte_count.toLocaleString()} bytes</TechnicalFact>{artifact.result_classification ? <TechnicalFact label="Result type">{artifact.result_classification}</TechnicalFact> : null}</dl>
           <div className="project-form__actions">

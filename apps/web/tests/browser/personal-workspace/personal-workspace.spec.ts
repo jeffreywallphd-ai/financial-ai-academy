@@ -29,6 +29,20 @@ function json(route: Route, status: number, body: unknown) {
   });
 }
 
+async function installFeatureGuidance(page: Page) {
+  const root = new URL(
+    "../../../../../backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/",
+    import.meta.url,
+  );
+  const [mapping, guidance] = await Promise.all([
+    readFile(new URL("mappings/saved-learning-source-unavailable.json", root), "utf8").then(JSON.parse),
+    readFile(new URL("records/saved-source-unavailable.json", root), "utf8").then(JSON.parse),
+  ]);
+  await page.route("**/api/v1/guidance/feature-guidance/**", (route) =>
+    json(route, 200, { mapping, guidance }),
+  );
+}
+
 function emptyWorkspace() {
   return {
     schema_version: "1.0.0",
@@ -597,6 +611,18 @@ test("filters saved sources, suppresses unsafe links, and refreshes through the 
   expect(mocked.workspace().records[0]?.target).toMatchObject({ target_status: "available" });
 });
 
+test("keeps unavailable saved work visible beside bounded guidance", async ({ page }) => {
+  await mockSavedLearning(page, { initialWorkspace: mixedWorkspace() });
+  await installFeatureGuidance(page);
+
+  await page.goto("/saved-learning");
+
+  await expect(page.getByRole("heading", { name: "Closed file" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The saved source is not available" })).toBeVisible();
+  await expect(page.getByText("Source unavailable.").first()).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+});
+
 test("keeps page size with an opaque continuation and never reorders a partial result", async ({ page }) => {
   await mockSavedLearning(page, { initialWorkspace: projectWorkspace() });
   await page.goto("/saved-learning?source=project&limit=1");
@@ -611,15 +637,18 @@ test("keeps page size with an opaque continuation and never reorders a partial r
   await expect(page.getByRole("heading", { name: "Allocation review" })).toHaveCount(0);
 });
 
-test("rejects unknown browser filters before opening a learner session", async ({ page }) => {
-  let apiRequests = 0;
+test("rejects unknown browser filters before requesting Saved learning", async ({ page }) => {
+  const privateRequests: string[] = [];
   await page.route("**/api/v1/**", async (route) => {
-    apiRequests += 1;
+    const path = new URL(route.request().url()).pathname;
+    if (path.startsWith("/api/v1/personal-workspace")) {
+      privateRequests.push(path);
+    }
     return json(route, 500, { code: "should_not_be_called" });
   });
   await page.goto("/saved-learning?owner=learner-one");
   await expect(page.getByRole("heading", { name: "Search could not be shown" })).toBeVisible();
-  expect(apiRequests).toBe(0);
+  expect(privateRequests).toEqual([]);
 });
 
 test("reuses the complete original request after an accepted write loses its response", async ({ page }) => {

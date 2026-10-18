@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 import { lessonFixture } from "../../component/lessonFixture";
 import {
@@ -88,6 +89,20 @@ function json(route: Route, status: number, body: unknown) {
     contentType: "application/json",
     body: JSON.stringify(body),
   });
+}
+
+async function installFeatureGuidance(page: Page) {
+  const root = new URL(
+    "../../../../../backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/",
+    import.meta.url,
+  );
+  const [mapping, guidance] = await Promise.all([
+    readFile(new URL("mappings/lesson-reading-exact-version-unavailable.json", root), "utf8").then(JSON.parse),
+    readFile(new URL("records/lesson-version-unavailable.json", root), "utf8").then(JSON.parse),
+  ]);
+  await page.route("**/api/v1/guidance/feature-guidance/**", (route) =>
+    json(route, 200, { mapping, guidance }),
+  );
 }
 
 async function mockReadyLesson(
@@ -507,6 +522,25 @@ test("shows loading then a bounded denied state without lesson details", async (
   ).toBeVisible();
   await expect(page.getByText(lessonFixture.title)).toHaveCount(0);
   expect(lessonRequested).toBe(false);
+});
+
+test("explains an unavailable exact lesson without substituting content", async ({ page }) => {
+  await mockReadyLesson(page);
+  await page.unroute(LESSON_PATTERN);
+  await page.route(LESSON_PATTERN, (route) => json(route, 404, { code: "not_found" }));
+  await installFeatureGuidance(page);
+  const guidanceRequest = page.waitForRequest("**/api/v1/guidance/feature-guidance/**");
+
+  await page.goto(LESSON_PATH);
+
+  await expect(page.getByRole("heading", { name: "Lesson not found" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "This lesson version is not available" })).toBeVisible();
+  await expect(page.getByText(lessonFixture.title)).toHaveCount(0);
+  const url = new URL((await guidanceRequest).url());
+  expect(url.pathname).toBe(
+    "/api/v1/guidance/feature-guidance/lesson-reading/conditions/exact-version-unavailable/versions/1.0.0",
+  );
+  expect(url.search).toBe("");
 });
 
 test("fails closed on an unknown content discriminator", async ({ page }) => {

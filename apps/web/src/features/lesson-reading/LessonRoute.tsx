@@ -3,6 +3,11 @@ import { useLoaderData, useRevalidator } from "react-router";
 import { StatusPanel } from "../../components/StatusPanel";
 import type { ContextualHelpReader } from "../platform-help/model";
 import { unavailableContextualHelpReader } from "../platform-help/ContextualHelpLinks";
+import {
+  FeatureGuidanceExplanation,
+  unavailableFeatureGuidanceReader,
+} from "../platform-help/FeatureGuidanceExplanation";
+import type { FeatureGuidanceReader } from "../platform-help/model";
 import { KnowledgeCheck } from "./KnowledgeCheck";
 import { LessonReadingPage } from "./LessonReadingPage";
 import { curriculumReturnDestination } from "./model";
@@ -29,10 +34,12 @@ export function LessonLoadingState() {
 export function LessonRouteView({
   onRetry,
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
   state,
 }: {
   onRetry: () => void;
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
   state: LessonRouteState;
 }) {
   switch (state.status) {
@@ -75,12 +82,21 @@ export function LessonRouteView({
       );
     case "not-found":
       return (
-        <StatusPanel
-          description="We couldn't find this lesson version. We did not substitute a different or newer lesson."
-          icon="info-circle"
-          title="Lesson not found"
-          tone="info"
-        />
+        <section>
+          <StatusPanel
+            description="We couldn't find this lesson version. We did not substitute a different or newer lesson."
+            icon="info-circle"
+            title="Lesson not found"
+            tone="info"
+          />
+          {readFeatureGuidance === unavailableFeatureGuidanceReader ? null : (
+            <FeatureGuidanceExplanation
+              conditionKey="exact-version-unavailable"
+              readFeatureGuidance={readFeatureGuidance}
+              surfaceKey="lesson-reading"
+            />
+          )}
+        </section>
       );
     case "unavailable":
       return (
@@ -118,8 +134,10 @@ export function LessonRouteView({
 
 export function LessonRoute({
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
 }: {
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
 }) {
   const state = useLoaderData<LessonRouteState>();
   const revalidator = useRevalidator();
@@ -131,6 +149,7 @@ export function LessonRoute({
     <LessonRouteView
       onRetry={() => revalidator.revalidate()}
       readContextualHelp={readContextualHelp}
+      readFeatureGuidance={readFeatureGuidance}
       state={displayedState}
     />
   );

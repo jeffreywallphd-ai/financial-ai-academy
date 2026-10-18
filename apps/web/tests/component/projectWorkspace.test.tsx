@@ -10,6 +10,7 @@ import { ProjectListPage } from "../../src/features/project-workspace/ProjectLis
 import { ProjectSubmissionPage } from "../../src/features/project-workspace/ProjectSubmissionPage";
 import type { LearningProjectStartOption, ProjectActivityCompletion, ProjectCompletionEvidence, ProjectCompletionHistory, ProjectShell, ProjectSnapshot, ProjectSubmissionCandidate, ProjectWorkspace } from "../../src/features/project-workspace/model";
 import { contextualHelpFixture } from "./platformHelpFixture";
+import type { FeatureGuidanceReader } from "../../src/features/platform-help/model";
 
 const origin = {
   origin_type: "learning" as const,
@@ -208,7 +209,19 @@ describe("Project learner pages", () => {
       domain_links: [{ link_id: "link-one", link_type: "context", owner_module: "portfolio", resource_type: "simulated_portfolio", resource_id: "portfolio-one", resource_version: "1.0.0", owner_reference_digest: "a".repeat(64), target_status: "available", provenance: "Validated by the owning module.", validated_at: workspace.created_at, created_at: workspace.created_at }],
     };
     const snapshot: ProjectSnapshot = { schema_version: "1.0.0", snapshot_id: "snapshot-one", snapshot_digest: "f".repeat(64), closed_at: workspace.updated_at, snapshot: { project_id: project.project_id, learner_id: project.learner_id, project_revision: 1, project_shell_digest: "a".repeat(64), workspace_revision: 6, workspace_created_at: workspace.created_at, workspace_updated_at: workspace.updated_at, notes: [], references: [], artifacts: [], domain_links: [] } };
-    const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} readContextualHelp={vi.fn().mockResolvedValue({ status: "ready", context: { ...contextualHelpFixture, context_key: "project-result", feature_label: "Project result and source details" } })} snapshots={[snapshot]} workspace={varied} /> }], { initialEntries: [`/projects/${project.project_id}`] });
+    const readFeatureGuidance = vi.fn<FeatureGuidanceReader>(async () => ({
+      status: "ready",
+      resolution: {
+        mapping: {},
+        guidance: {
+          heading: "This Project file stays unchanged",
+          reason: "The Academy stores the file but does not run it.",
+          outcome: "You can still download the original file.",
+          actions: [],
+        },
+      } as never,
+    }));
+    const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} readContextualHelp={vi.fn().mockResolvedValue({ status: "ready", context: { ...contextualHelpFixture, context_key: "project-result", feature_label: "Project result and source details" } })} readFeatureGuidance={readFeatureGuidance} snapshots={[snapshot]} workspace={varied} /> }], { initialEntries: [`/projects/${project.project_id}`] });
     render(<RouterProvider router={router} />);
 
     expect(screen.getByText("Résumé")).toBeVisible();
@@ -216,6 +229,17 @@ describe("Project learner pages", () => {
     expect(screen.getByRole("link", { name: "Open source in a new tab" })).toHaveAttribute("href", "https://example.test/source");
     expect(screen.getByRole("button", { name: "Download original file" })).toBeVisible();
     expect(await screen.findByRole("heading", { name: "Questions about Project result and source details" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: "This Project file stays unchanged",
+      }),
+    ).toBeVisible();
+    expect(readFeatureGuidance).toHaveBeenCalledWith(
+      "project-workspace",
+      "artifact-inert",
+      "1.0.0",
+      expect.any(AbortSignal),
+    );
     expect(screen.getByRole("link", { name: "Save file to Saved learning" })).toHaveAttribute("href", "/saved-learning/new?kind=project_artifact&project=project-alpha&artifact=artifact-one&version=1");
     expect(document.getElementById("artifact-artifact-one-v1")).not.toBeNull();
     expect(screen.getAllByText(/does not run, expand, or actively preview/i)).not.toHaveLength(0);

@@ -3,6 +3,11 @@ import { Form, Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
 import {
+  FeatureGuidanceExplanation,
+  unavailableFeatureGuidanceReader,
+} from "../platform-help/FeatureGuidanceExplanation";
+import type { FeatureGuidanceReader } from "../platform-help/model";
+import {
   type PersonalWorkspace,
   type PersonalWorkspaceCollection,
   type PersonalWorkspaceExporter,
@@ -587,6 +592,7 @@ export function PersonalWorkspacePage({
   actionState,
   busy,
   exportWorkspace,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
   result,
   search = {},
   workspace,
@@ -594,6 +600,7 @@ export function PersonalWorkspacePage({
   actionState?: WorkspaceActionState | undefined;
   busy: boolean;
   exportWorkspace: PersonalWorkspaceExporter;
+  readFeatureGuidance?: FeatureGuidanceReader;
   result?: PersonalWorkspaceQueryResult | undefined;
   search?: WorkspaceSearchValues | undefined;
   workspace: PersonalWorkspace;
@@ -690,6 +697,15 @@ export function PersonalWorkspacePage({
           ) : (
             <>
               <p className="saved-learning-results" role="status">Showing {visibleRecords.length} saved {visibleRecords.length === 1 ? "item" : "items"}.</p>
+              {visibleRecords.some(
+                (record) => record.target.target_status === "unavailable",
+              ) && readFeatureGuidance !== unavailableFeatureGuidanceReader ? (
+                <FeatureGuidanceExplanation
+                  conditionKey="source-unavailable"
+                  readFeatureGuidance={readFeatureGuidance}
+                  surfaceKey="saved-learning"
+                />
+              ) : null}
               <ol className="saved-learning-list">
                 {visibleRecords.map((record, index) => (
                   <RecordCard actionState={actionState} allowReorder={allowReorder} busy={busy} index={index} key={`${record.record_id}:${record.updated_at}:${record.target.validated_at}`} record={record} records={visibleRecords} revision={workspace.revision} />

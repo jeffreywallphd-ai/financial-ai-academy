@@ -10,6 +10,11 @@ export type PlatformHelpBodyNode = PlatformHelpTopic["body"][number];
 export type PlatformHelpTopicKind = PlatformHelpSearchResult["topic_kind"];
 export type ContextualHelp =
   components["schemas"]["ContextualHelpResponseModel"];
+export type FeatureGuidance =
+  components["schemas"]["FeatureGuidanceResponseModel"];
+export type FeatureGuidanceAction =
+  FeatureGuidance["guidance"]["actions"][number];
+export type FeatureGuidanceActionKind = FeatureGuidanceAction["action_kind"];
 export type PlatformHelpSearchParameters = NonNullable<
   operations["searchPlatformHelp"]["parameters"]["query"]
 >;
@@ -35,6 +40,17 @@ export type ContextualHelpReader = (
   contextVersion: string,
   signal: AbortSignal,
 ) => Promise<ContextualHelpReadOutcome>;
+
+export type FeatureGuidanceReadOutcome =
+  | { status: "ready"; resolution: FeatureGuidance }
+  | { status: "unavailable" };
+
+export type FeatureGuidanceReader = (
+  surfaceKey: string,
+  conditionKey: string,
+  mappingVersion: string,
+  signal: AbortSignal,
+) => Promise<FeatureGuidanceReadOutcome>;
 
 export type PlatformHelpSearchRouteState =
   | { status: "loading" }
@@ -275,6 +291,208 @@ export function contextualHelpIsSafe(
     return false;
   }
   return true;
+}
+
+const FEATURE_STATUSES = new Set(["limited", "unavailable", "degraded"]);
+const FEATURE_ACTION_KINDS = new Set([
+  "retry_unchanged_request",
+  "reload_current_state",
+  "return_to_owning_task",
+  "download_inert_artifact",
+  "open_help_topic",
+]);
+
+function featureGuidanceActionIsSafe(value: unknown): boolean {
+  const action = record(value);
+  if (
+    action === null ||
+    typeof action.action_kind !== "string" ||
+    !FEATURE_ACTION_KINDS.has(action.action_kind) ||
+    !platformHelpTextIsSafe(action.label, 1, 120)
+  ) {
+    return false;
+  }
+  return action.action_kind === "open_help_topic"
+    ? hasExactKeys(action, [
+        "action_kind",
+        "label",
+        "topic_id",
+        "topic_version",
+      ]) &&
+        typeof action.topic_id === "string" &&
+        IDENTIFIER.test(action.topic_id) &&
+        typeof action.topic_version === "string" &&
+        VERSION.test(action.topic_version)
+    : hasExactKeys(action, ["action_kind", "label"]);
+}
+
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(canonicalJson).join(",")}]`;
+  }
+  const item = record(value);
+  if (item !== null) {
+    return `{${Object.keys(item)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${canonicalJson(item[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+async function digestWithout(
+  value: Record<string, unknown>,
+  field: string,
+): Promise<string> {
+  const canonical = Object.fromEntries(
+    Object.entries(value).filter(([key]) => key !== field),
+  );
+  const bytes = await globalThis.crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(canonicalJson(canonical)),
+  );
+  return [...new Uint8Array(bytes)]
+    .map((item) => item.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export async function featureGuidanceIsSafe(
+  value: unknown,
+  expectedSurfaceKey: string,
+  expectedConditionKey: string,
+  expectedMappingVersion: string,
+): Promise<boolean> {
+  const resolution = record(value);
+  const mapping = record(resolution?.mapping);
+  const guidance = record(resolution?.guidance);
+  if (
+    resolution === null ||
+    !hasExactKeys(resolution, ["mapping", "guidance"]) ||
+    mapping === null ||
+    guidance === null ||
+    !hasExactKeys(mapping, [
+      "schema_version",
+      "surface_key",
+      "condition_key",
+      "mapping_version",
+      "guidance_id",
+      "guidance_version",
+      "publication",
+      "source_references",
+      "mapping_digest",
+    ]) ||
+    mapping.schema_version !== "1.0.0" ||
+    mapping.surface_key !== expectedSurfaceKey ||
+    mapping.condition_key !== expectedConditionKey ||
+    mapping.mapping_version !== expectedMappingVersion ||
+    typeof mapping.surface_key !== "string" ||
+    !IDENTIFIER.test(mapping.surface_key) ||
+    typeof mapping.condition_key !== "string" ||
+    !IDENTIFIER.test(mapping.condition_key) ||
+    typeof mapping.mapping_version !== "string" ||
+    !VERSION.test(mapping.mapping_version) ||
+    typeof mapping.guidance_id !== "string" ||
+    !IDENTIFIER.test(mapping.guidance_id) ||
+    typeof mapping.guidance_version !== "string" ||
+    !VERSION.test(mapping.guidance_version) ||
+    !publicationIsSafe(mapping.publication) ||
+    !Array.isArray(mapping.source_references) ||
+    mapping.source_references.length < 1 ||
+    mapping.source_references.length > 20 ||
+    !mapping.source_references.every(sourceReferenceIsSafe) ||
+    !uniqueBy(mapping.source_references, (item) =>
+      String(record(item)?.source_key),
+    ) ||
+    typeof mapping.mapping_digest !== "string" ||
+    !DIGEST.test(mapping.mapping_digest) ||
+    !hasExactKeys(guidance, [
+      "schema_version",
+      "guidance_id",
+      "guidance_version",
+      "status",
+      "heading",
+      "reason",
+      "outcome",
+      "actions",
+      "help_references",
+      "applicability",
+      "publication",
+      "source_references",
+      "guidance_digest",
+    ]) ||
+    guidance.schema_version !== "1.0.0" ||
+    guidance.guidance_id !== mapping.guidance_id ||
+    guidance.guidance_version !== mapping.guidance_version ||
+    typeof guidance.status !== "string" ||
+    !FEATURE_STATUSES.has(guidance.status) ||
+    !platformHelpTextIsSafe(guidance.heading, 1, 120) ||
+    !platformHelpTextIsSafe(guidance.reason, 1, 500) ||
+    !platformHelpTextIsSafe(guidance.outcome, 1, 500) ||
+    !Array.isArray(guidance.actions) ||
+    guidance.actions.length > 5 ||
+    !guidance.actions.every(featureGuidanceActionIsSafe) ||
+    !uniqueBy(guidance.actions, (item) => {
+      const action = record(item);
+      return `${String(action?.action_kind)}:${String(action?.topic_id ?? "")}@${String(action?.topic_version ?? "")}`;
+    }) ||
+    !Array.isArray(guidance.help_references) ||
+    guidance.help_references.length < 1 ||
+    guidance.help_references.length > 10 ||
+    !guidance.help_references.every(contextualHelpReferenceIsSafe) ||
+    !uniqueBy(guidance.help_references, (item) => {
+      const reference = record(item);
+      return `${String(reference?.topic_id)}@${String(reference?.topic_version)}`;
+    }) ||
+    !uniqueBy(guidance.help_references, (item) =>
+      String(record(item)?.purpose),
+    ) ||
+    !Array.isArray(guidance.applicability) ||
+    guidance.applicability.length < 1 ||
+    guidance.applicability.length > 20 ||
+    !guidance.applicability.every(applicabilityIsSafe) ||
+    !uniqueBy(guidance.applicability, (item) =>
+      String(record(item)?.scope_key),
+    ) ||
+    !publicationIsSafe(guidance.publication) ||
+    !Array.isArray(guidance.source_references) ||
+    guidance.source_references.length < 1 ||
+    guidance.source_references.length > 20 ||
+    !guidance.source_references.every(sourceReferenceIsSafe) ||
+    !uniqueBy(guidance.source_references, (item) =>
+      String(record(item)?.source_key),
+    ) ||
+    typeof guidance.guidance_digest !== "string" ||
+    !DIGEST.test(guidance.guidance_digest)
+  ) {
+    return false;
+  }
+  const references = new Set(
+    guidance.help_references.map((item) => {
+      const reference = record(item);
+      return `${String(reference?.topic_id)}@${String(reference?.topic_version)}`;
+    }),
+  );
+  if (
+    guidance.actions.some((item) => {
+      const action = record(item);
+      return (
+        action?.action_kind === "open_help_topic" &&
+        !references.has(`${String(action.topic_id)}@${String(action.topic_version)}`)
+      );
+    })
+  ) {
+    return false;
+  }
+  try {
+    return (
+      (await digestWithout(mapping, "mapping_digest")) ===
+        mapping.mapping_digest &&
+      (await digestWithout(guidance, "guidance_digest")) ===
+        guidance.guidance_digest
+    );
+  } catch {
+    return false;
+  }
 }
 
 function commonTopicProjectionIsSafe(value: Record<string, unknown>): boolean {

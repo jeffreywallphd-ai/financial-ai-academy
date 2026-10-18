@@ -294,3 +294,8 @@ authority and technical-disposition records remain ignored.
 - 2026-10-18: Activated WRK-0174 from clean base `85fa074` after confirming the
   completed SLI-0083 dependency, current CAP authority, bounded contract/core
   scope, and no unresolved decision or coordination collision.
+- 2026-10-18: WRK-0176 implemented the digest-validating generated-client
+  reader, optional accessible explanation, exact same-application Help links,
+  feature-owned safe handlers, five public-condition placements, and flexible
+  component/Chromium evidence. Exact-candidate qualification and independent
+  review remain in progress before packet closure.

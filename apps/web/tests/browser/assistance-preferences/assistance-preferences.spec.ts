@@ -58,6 +58,20 @@ function json(route: Route, status: number, body: unknown) {
   return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 }
 
+async function installFeatureGuidance(page: Page) {
+  const root = new URL(
+    "../../../../../backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/",
+    import.meta.url,
+  );
+  const [mapping, guidance] = await Promise.all([
+    readFile(new URL("mappings/ai-assistance-provider-execution-not-enabled.json", root), "utf8").then(JSON.parse),
+    readFile(new URL("records/ai-help-execution-unavailable.json", root), "utf8").then(JSON.parse),
+  ]);
+  await page.route("**/api/v1/guidance/feature-guidance/**", (route) =>
+    json(route, 200, { mapping, guidance }),
+  );
+}
+
 async function installApi(page: Page) {
   let profile = makeProfile(1, "off");
   let history: AssistancePreferenceHistory = {
@@ -113,6 +127,7 @@ async function installApi(page: Page) {
 
 test("keeps learner-owned AI help and this-browser reminders separate and inert", async ({ page }) => {
   const api = await installApi(page);
+  await installFeatureGuidance(page);
   await page.addInitScript(() => {
     const marker = { notificationPermissions: 0, serviceWorkers: 0 };
     Object.defineProperty(window, "__assistanceExecutionCalls", { value: marker });
@@ -137,6 +152,7 @@ test("keeps learner-owned AI help and this-browser reminders separate and inert"
   await page.getByRole("radio", { name: /Offer a help option when available/i }).check();
   await page.getByRole("button", { name: "Save AI-help choice" }).click();
   await expect(page.getByText("Offer a help option when available is saved.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "AI help is not running" })).toBeVisible();
   expect(api.requests).toHaveLength(1);
   expect(api.requests[0]).toMatchObject({
     schema_version: "1.0.0",
@@ -156,7 +172,8 @@ test("keeps learner-owned AI help and this-browser reminders separate and inert"
     localSaveCalls.filter(
       ({ path }) =>
         path !==
-        "/api/v1/guidance/contextual-help/ai-assistance/versions/1.0.0",
+          "/api/v1/guidance/contextual-help/ai-assistance/versions/1.0.0" &&
+        !path.startsWith("/api/v1/guidance/feature-guidance/"),
     ),
   ).toEqual([
     {

@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 import {
   practiceFixture,
@@ -26,6 +27,20 @@ function json(route: Route, status: number, body: unknown) {
     contentType: "application/json",
     body: JSON.stringify(body),
   });
+}
+
+async function installFeatureGuidance(page: Page) {
+  const root = new URL(
+    "../../../../../backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/",
+    import.meta.url,
+  );
+  const [mapping, guidance] = await Promise.all([
+    readFile(new URL("mappings/practice-activity-write-outcome-uncertain.json", root), "utf8").then(JSON.parse),
+    readFile(new URL("records/practice-write-uncertain.json", root), "utf8").then(JSON.parse),
+  ]);
+  await page.route("**/api/v1/guidance/feature-guidance/**", (route) =>
+    json(route, 200, { mapping, guidance }),
+  );
 }
 
 async function mockReadyPractice(
@@ -272,6 +287,7 @@ test("fails the whole opening closed when progress includes private authority", 
 test("retries one exact prepared request after an uncertain failure", async ({ page }) => {
   const bodies: string[] = [];
   await mockReadyPractice(page);
+  await installFeatureGuidance(page);
   await page.route(SUBMISSION_PATTERN, (route) => {
     const body = route.request().postData() ?? "";
     bodies.push(body);
@@ -294,6 +310,7 @@ test("retries one exact prepared request after an uncertain failure", async ({ p
   await page.getByRole("button", { name: "Check answers" }).click();
 
   await expect(page.getByRole("alert")).toContainText(/reuse the same answers/i);
+  await expect(page.getByRole("heading", { name: "The practice result is not confirmed" })).toBeVisible();
   await expect(page.getByRole("radio", { name: /Outcomes can differ/i })).toBeDisabled();
   await page.getByRole("button", { name: "Try again" }).click();
   await expect(page.getByRole("heading", { name: "Your result" })).toBeVisible();

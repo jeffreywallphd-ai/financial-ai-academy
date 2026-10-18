@@ -1,8 +1,12 @@
 import { useActionData, useLoaderData, useNavigate, useNavigation, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
-import type { ContextualHelpReader } from "../platform-help/model";
+import type {
+  ContextualHelpReader,
+  FeatureGuidanceReader,
+} from "../platform-help/model";
 import { unavailableContextualHelpReader } from "../platform-help/ContextualHelpLinks";
+import { unavailableFeatureGuidanceReader } from "../platform-help/FeatureGuidanceExplanation";
 import type { ProjectArtifact, ProjectCreateActionState, ProjectCreateRouteState, ProjectDetailRouteState, ProjectDownloadOutcome, ProjectExportOutcome, ProjectLearningActionState, ProjectLearningRouteState, ProjectListRouteState, ProjectWorkspaceActionState } from "./model";
 import { ProjectCreatePage } from "./ProjectCreatePage";
 import { ProjectDetailPage } from "./ProjectDetailPage";
@@ -36,10 +40,12 @@ export function ProjectDetailRoute({
   downloadArtifact,
   exportSnapshot,
   readContextualHelp = unavailableContextualHelpReader,
+  readFeatureGuidance = unavailableFeatureGuidanceReader,
 }: {
   downloadArtifact: (projectId: string, artifact: ProjectArtifact) => Promise<ProjectDownloadOutcome>;
   exportSnapshot: (projectId: string, snapshotId: string) => Promise<ProjectExportOutcome>;
   readContextualHelp?: ContextualHelpReader;
+  readFeatureGuidance?: FeatureGuidanceReader;
 }) {
   const state = useLoaderData<ProjectDetailRouteState>();
   const actionState = useActionData<ProjectWorkspaceActionState>();
@@ -48,7 +54,7 @@ export function ProjectDetailRoute({
   const revalidator = useRevalidator();
   if (navigation.state === "loading" || revalidator.state === "loading") return <ProjectLoadingState />;
   return state.status === "ready"
-    ? <ProjectDetailPage actionState={actionState} busy={navigation.state === "submitting"} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={state.project} readContextualHelp={readContextualHelp} snapshots={state.snapshots} workspace={state.workspace} />
+    ? <ProjectDetailPage actionState={actionState} busy={navigation.state === "submitting"} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={state.project} readContextualHelp={readContextualHelp} readFeatureGuidance={readFeatureGuidance} snapshots={state.snapshots} workspace={state.workspace} />
     : <Failure onAction={() => state.status === "not-found" || state.status === "invalid-selection" ? void navigate("/projects") : revalidator.revalidate()} status={state.status} />;
 }
 

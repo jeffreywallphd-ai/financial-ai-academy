@@ -209,7 +209,24 @@ changed.
 
 ## Verification Evidence
 
-Pending implementation.
+Implementation is complete pending exact-candidate qualification and
+independent technical review. The browser revalidates exact mapping/record
+correlation and both SHA-256 digests, retries one expired learner session, and
+collapses every denied or invalid response to an optional unavailable outcome.
+The shared accessible explanation is placed beside the exact lesson, practice,
+Saved learning, Project artifact, and AI-help public conditions. Intrinsic
+navigation is confined to an exact same-application Help topic; every other
+action is inert unless the owning feature supplies its current safe handler.
+
+Focused component qualification passes 87 tests across the shared adapter,
+validator, component, and five placements. Focused Chromium qualification
+passes all 58 scenarios after narrowing one legacy assertion to its actual
+private Saved-learning request boundary; the unchanged broad run passed the
+other 57 scenarios and the corrected scenario then passed directly. The suite
+retains axe, keyboard/focus, light/dark, narrow/200-percent-text, forced-color,
+reduced-motion, retry-identity, download, learner-work-retention, and
+no-substitution evidence without freezing whole prose, item counts, pixels, or
+unrelated shell requests.
 
 ## Planning History
 
@@ -221,3 +238,8 @@ Pending implementation.
   authority, completed WRK-0175 dependency, the exact five-condition scope,
   interface-language/design obligations, executable checks, and no unresolved
   decision or active ownership collision.
+- 2026-10-18: Implemented the optional generated-client explanation across all
+  five conditions with exact runtime correlation/digest validation, safe-action
+  ownership, same-application Help navigation, no-partial fallback, and focused
+  flexible component/Chromium coverage. Exact-candidate verification and
+  independent review remain before closure.

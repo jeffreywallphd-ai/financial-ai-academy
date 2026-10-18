@@ -182,6 +182,13 @@ registry access, accepts no query or body, and returns the admitted mapping and
 its exact reviewed record without feature or host reinterpretation. The
 reviewed OpenAPI snapshot and generated client expose the same closed operation
 to browser and headless callers. Missing or invalid exact identities return
-bounded errors without registry facts or substitute guidance. Feature
-placement and live browser/headless qualification remain dependent SLI-0084
-work; this operation has no persistence or execution effect.
+bounded errors without registry facts or substitute guidance. The browser
+validates both digests and exact mapping/record identity before it optionally
+places the reviewed explanation beside the five owning public conditions.
+Only exact same-application Help references receive a destination; every
+retry, reload, return, or inert-file action remains unavailable unless the
+owning feature supplies the matching safe handler. Denied, missing, malformed,
+stale, or unavailable Guidance renders nothing and leaves the original feature
+status and action usable. Final live browser/headless restart, no-outbound,
+read-only-containment, and cleanup qualification remains SLI-0084 work; this
+operation and its presentation have no persistence or execution effect.

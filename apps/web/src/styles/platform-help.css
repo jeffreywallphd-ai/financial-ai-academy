@@ -239,6 +239,31 @@
   margin-bottom: var(--faa-space-0);
 }
 
+.feature-guidance-explanation {
+  display: grid;
+  gap: var(--faa-space-3);
+  margin-top: var(--faa-space-5);
+  padding: var(--faa-space-5);
+  background: var(--faa-color-surface-subtle);
+  border: var(--faa-border-width) solid var(--faa-color-border-strong);
+  border-radius: var(--faa-radius-card);
+}
+
+.feature-guidance-explanation :is(h3, h4, p, ul) {
+  margin: var(--faa-space-0);
+}
+
+.feature-guidance-explanation ul {
+  display: grid;
+  gap: var(--faa-space-2);
+  margin-top: var(--faa-space-2);
+  padding-inline-start: var(--faa-space-6);
+}
+
+.feature-guidance-explanation .button {
+  min-height: var(--faa-control-height);
+}
+
 @media (max-width: 64rem) {
   .help-search {
     grid-template-columns: repeat(2, minmax(0, 1fr));

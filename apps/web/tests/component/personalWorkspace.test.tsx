@@ -18,6 +18,8 @@ import type {
   WorkspaceActionState,
   WorkspaceSearchValues,
 } from "../../src/features/personal-workspace/model";
+import type { FeatureGuidanceReader } from "../../src/features/platform-help/model";
+import { unavailableFeatureGuidanceReader } from "../../src/features/platform-help/FeatureGuidanceExplanation";
 
 
 const provenance = {
@@ -179,6 +181,7 @@ function renderWorkspace(
   result?: PersonalWorkspaceQueryResult,
   search?: WorkspaceSearchValues,
   exportWorkspace: PersonalWorkspaceExporter = async () => ({ status: "unavailable" }),
+  readFeatureGuidance: FeatureGuidanceReader = unavailableFeatureGuidanceReader,
 ) {
   const router = createMemoryRouter([{
     path: "/saved-learning",
@@ -186,7 +189,7 @@ function renderWorkspace(
       submissions.push(await request.formData());
       return null;
     },
-    element: <PersonalWorkspacePage actionState={actionState} busy={false} exportWorkspace={exportWorkspace} result={result} search={search} workspace={value} />,
+    element: <PersonalWorkspacePage actionState={actionState} busy={false} exportWorkspace={exportWorkspace} readFeatureGuidance={readFeatureGuidance} result={result} search={search} workspace={value} />,
   }], { initialEntries: ["/saved-learning"] });
   return render(<RouterProvider router={router} />);
 }
@@ -320,6 +323,51 @@ describe("Saved learning pages", () => {
     expect(screen.getByLabelText("Order")).toHaveValue("workspace_order");
     expect(screen.getAllByText("Ready to open.")).toHaveLength(2);
     expect(screen.getAllByRole("link", { name: "Open saved source" })).toHaveLength(2);
+  });
+
+  it("explains an unavailable source without hiding retained learner work", async () => {
+    const unavailableRecord = {
+      ...workspace.records[0]!,
+      target: {
+        ...workspace.records[0]!.target,
+        target_status: "unavailable" as const,
+      },
+    };
+    const readFeatureGuidance = vi.fn<FeatureGuidanceReader>(async () => ({
+      status: "ready",
+      resolution: {
+        mapping: {},
+        guidance: {
+          heading: "The saved source is unavailable",
+          reason: "The source cannot be opened right now.",
+          outcome: "Your note or bookmark remains saved.",
+          actions: [],
+        },
+      } as never,
+    }));
+    renderWorkspace(
+      [],
+      undefined,
+      { ...workspace, records: [unavailableRecord] },
+      undefined,
+      undefined,
+      undefined,
+      readFeatureGuidance,
+    );
+
+    expect(screen.getByRole("heading", { name: "Risk and return" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: "The saved source is unavailable",
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("Your note or bookmark remains saved.")).toBeVisible();
+    expect(readFeatureGuidance).toHaveBeenCalledWith(
+      "saved-learning",
+      "source-unavailable",
+      "1.0.0",
+      expect.any(AbortSignal),
+    );
   });
 
   it("retains stale and unavailable records but suppresses unsafe resume and partial reorder", async () => {

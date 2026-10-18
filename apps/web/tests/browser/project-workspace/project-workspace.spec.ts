@@ -2,6 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
 import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 
 import {
   personalWorkspaceQueryDigest,
@@ -42,6 +43,20 @@ const independent = {
 
 function json(route: Route, status: number, body: unknown) {
   return route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+}
+
+async function installFeatureGuidance(page: Page) {
+  const root = new URL(
+    "../../../../../backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1/",
+    import.meta.url,
+  );
+  const [mapping, guidance] = await Promise.all([
+    readFile(new URL("mappings/project-workspace-artifact-inert.json", root), "utf8").then(JSON.parse),
+    readFile(new URL("records/project-artifact-inert.json", root), "utf8").then(JSON.parse),
+  ]);
+  await page.route("**/api/v1/guidance/feature-guidance/**", (route) =>
+    json(route, 200, { mapping, guidance }),
+  );
 }
 
 function canonicalJson(value: unknown): string {
@@ -444,6 +459,7 @@ test("reflows at narrow width and keeps plain language outside technical records
 test("saves Project work, keeps files inert, closes a snapshot, and continues working", async ({ page }) => {
   const posts: Record<string, unknown>[] = [];
   await mockProjects(page, posts);
+  await installFeatureGuidance(page);
   await page.goto("/projects/project-independent");
   await expect(page.getByRole("heading", { level: 2, name: "Notes" })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
@@ -458,6 +474,7 @@ test("saves Project work, keeps files inert, closes a snapshot, and continues wo
   await page.getByLabel("Source title", { exact: true }).last().fill("Learner evidence");
   await page.getByRole("button", { name: "Add file" }).click();
   await expect(page.getByRole("heading", { level: 3, name: "evidence.txt" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "This Project artifact stays inert" })).toBeVisible();
   await expect(page.getByText(/does not run, expand, or actively preview/i).first()).toBeVisible();
   const artifactDownload = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download original file" }).click();

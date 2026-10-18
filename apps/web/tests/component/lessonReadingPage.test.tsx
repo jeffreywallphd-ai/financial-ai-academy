@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { LessonReadingPage } from "../../src/features/lesson-reading/LessonReadingPage";
 import { LessonRouteView } from "../../src/features/lesson-reading/LessonRoute";
+import type { FeatureGuidanceReader } from "../../src/features/platform-help/model";
 import { lessonFixture } from "./lessonFixture";
 import { contextualHelpFixture } from "./platformHelpFixture";
 
@@ -160,6 +161,43 @@ describe("LessonRouteView", () => {
       expect(retryCount).toBe(1);
     },
   );
+
+  it("shows exact-version guidance without substituting the missing lesson", async () => {
+    const readFeatureGuidance = vi.fn<FeatureGuidanceReader>(async () => ({
+      status: "ready",
+      resolution: {
+        mapping: {},
+        guidance: {
+          heading: "This lesson version is unavailable",
+          reason: "The requested version could not be opened.",
+          outcome: "No different or newer lesson was substituted.",
+          actions: [],
+        },
+      } as never,
+    }));
+    render(
+      <MemoryRouter initialEntries={["/learn/placements/lesson-one"]}>
+        <LessonRouteView
+          onRetry={() => undefined}
+          readFeatureGuidance={readFeatureGuidance}
+          state={{ status: "not-found" }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Lesson not found" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: "This lesson version is unavailable",
+      }),
+    ).toBeVisible();
+    expect(readFeatureGuidance).toHaveBeenCalledWith(
+      "lesson-reading",
+      "exact-version-unavailable",
+      "1.0.0",
+      expect.any(AbortSignal),
+    );
+  });
 
   it("describes loading in learner terms", () => {
     render(
