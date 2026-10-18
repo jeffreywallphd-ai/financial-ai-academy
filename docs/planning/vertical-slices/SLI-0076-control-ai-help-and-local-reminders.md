@@ -1,10 +1,10 @@
 ---
 id: SLI-0076
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
-updated: 2026-10-17
+updated: 2026-10-18
 parent: CAP-0018
 depends_on: [SLI-0074]
 decision_gates: []
@@ -219,7 +219,7 @@ each packet starts. The proposed dependency-ordered seams are:
 | WRK-0158 | Freeze AI-help preference contracts, closed semantics, local-reminder envelope and adapter rules, privacy limits, compatibility vectors, and pure core | none | none | complete |
 | WRK-0159 | Compose Learner-model application, PostgreSQL persistence and migration, protected API, reviewed OpenAPI, and generated client | WRK-0158 | none | complete |
 | WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | complete |
-| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162, WRK-0163 | none | verifying |
+| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162, WRK-0163 | none | complete |
 | WRK-0162 | Accept canonical assistance API timestamp precision in the browser validator | WRK-0160 | none | complete |
 | WRK-0163 | Correlate equivalent Project completion and history timestamp precision without losing microseconds | WRK-0129 | none | complete |
 
@@ -342,3 +342,12 @@ state that no AI or notification execution was implemented or implied.
   isolated live workflow, focused Chromium, pure replay, full Web, typecheck,
   zero-warning lint, Python compilation, planning, documentation, whitespace,
   and all 29 aggregate readiness checks passed.
+- 2026-10-18: WRK-0161 completed on corrected exact candidate `85c24ae` with
+  qualifying receipt `20261018T014227Z-7a3b3996-35aa-4efc-a9ba-337e9e30ce9c.json`.
+  All 12 affected checks passed with exact request containment and no-execution
+  observation across both document lifetimes.
+- 2026-10-18: Completed SLI-0076 after all six retained packet claims and the
+  reconciled contract, browser/headless parity, PostgreSQL, replay/concurrency,
+  restart, privacy, accessibility, containment, no-execution, documentation,
+  cleanup, and residual-risk evidence satisfied the approved CAP-0018 package.
+  No completion approval was requested or recorded.

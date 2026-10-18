@@ -1,7 +1,7 @@
 ---
 id: WRK-0161
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-18
@@ -245,4 +245,9 @@ financial behavior changed, then leave SLI-0076 closure-ready.
   POST. Notification-permission and service-worker counters are now asserted
   on both sides of the deliberate document reload so earlier calls cannot be
   hidden by a fresh page marker.
+- 2026-10-18: Completed on corrected exact candidate `85c24ae` with qualifying
+  receipt `20261018T014227Z-7a3b3996-35aa-4efc-a9ba-337e9e30ce9c.json`. All 12
+  affected checks passed, and the complete browser/headless/PostgreSQL/restart/
+  privacy/accessibility/containment/cleanup evidence closes SLI-0076 without
+  product or contract expansion.
 
