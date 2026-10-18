@@ -9,6 +9,9 @@ import pytest
 
 from financial_ai_academy.modules.guidance.adapters import (
     ImmutablePlatformHelpCorpus,
+    PLATFORM_HELP_MANIFEST_VERSION,
+    PLATFORM_HELP_SOURCE_FINGERPRINTS,
+    REQUIRED_PLATFORM_HELP_IDENTITIES,
     default_platform_help_corpus_dir,
 )
 from financial_ai_academy.modules.guidance.domain import (
@@ -49,6 +52,31 @@ def test_default_corpus_is_atomically_admitted_with_stable_provenance() -> None:
         for source in topic.source_references
     )
     assert corpus.get("approved-help", "1.0.0").title == "Approved help"
+    assert PLATFORM_HELP_MANIFEST_VERSION == "1.0.0"
+    assert REQUIRED_PLATFORM_HELP_IDENTITIES <= {
+        (topic.topic_id, topic.topic_version) for topic in corpus.topics
+    }
+
+
+def test_source_manifest_matches_current_canonical_sources() -> None:
+    repository_root = Path(__file__).resolve().parents[4]
+    sources = {
+        "ai-ml-boundaries": "docs/architecture/ai-ml/ai-ml-system-boundaries.md",
+        "education-advice-boundary": (
+            "docs/risk-compliance/education-versus-financial-advice.md"
+        ),
+        "financial-method-architecture": (
+            "docs/architecture/finance/financial-method-and-simulation-architecture.md"
+        ),
+        "product-vision": "docs/product/product-vision-and-scope.md",
+    }
+
+    assert set(sources) == set(PLATFORM_HELP_SOURCE_FINGERPRINTS)
+    for source_key, relative_path in sources.items():
+        assert (
+            hashlib.sha256((repository_root / relative_path).read_bytes()).hexdigest()
+            == PLATFORM_HELP_SOURCE_FINGERPRINTS[source_key]
+        )
 
 
 def test_valid_additional_topic_and_filename_order_do_not_freeze_corpus_size(
@@ -82,7 +110,7 @@ def test_valid_additional_topic_and_filename_order_do_not_freeze_corpus_size(
     assert corpus.get("additional-method", "1.0.0").topic_digest == _digest(value)
 
 
-@pytest.mark.parametrize("failure", ["malformed", "duplicate", "missing"])
+@pytest.mark.parametrize("failure", ["malformed", "duplicate"])
 def test_startup_failure_is_bounded_and_never_admits_a_partial_corpus(
     tmp_path: Path,
     failure: str,
@@ -93,17 +121,61 @@ def test_startup_failure_is_bounded_and_never_admits_a_partial_corpus(
         (root / "broken.json").write_text("{", encoding="utf-8")
     elif failure == "duplicate":
         shutil.copy2(root / "approved-help.json", root / "duplicate.json")
-    else:
-        (root / "approved-help.json").unlink()
-        (root / "education-not-advice.json").unlink()
-
     with pytest.raises(GuidanceError) as captured:
         ImmutablePlatformHelpCorpus(root)
 
     assert captured.value.code in {
         GuidanceErrorCode.INVALID_RECORD,
         GuidanceErrorCode.DUPLICATE_IDENTITY,
-        GuidanceErrorCode.DANGLING_REFERENCE,
     }
+    assert str(root) not in captured.value.message
+    assert str(root) not in captured.value.reference
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "approved-help.json",
+        "education-not-advice.json",
+        "how-ai-help-is-controlled.json",
+        "platform-methods.json",
+    ],
+)
+def test_each_required_starter_topic_is_bound_by_the_versioned_manifest(
+    tmp_path: Path,
+    filename: str,
+) -> None:
+    root = tmp_path / "private-corpus-location"
+    _copy_corpus(root)
+    (root / filename).unlink()
+
+    with pytest.raises(GuidanceError) as captured:
+        ImmutablePlatformHelpCorpus(root)
+
+    assert captured.value.code is GuidanceErrorCode.INVALID_RECORD
+    assert captured.value.reference == "platform-help-manifest@1.0.0"
+    assert str(root) not in captured.value.message
+    assert str(root) not in captured.value.reference
+
+
+def test_stale_source_fingerprint_fails_closed_without_path_disclosure(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "private-corpus-location"
+    _copy_corpus(root)
+    topic_path = root / "approved-help.json"
+    value = json.loads(topic_path.read_text(encoding="utf-8"))
+    value["source_references"][0]["content_fingerprint"] = "0" * 64
+    value["topic_digest"] = _digest(value)
+    topic_path.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(GuidanceError) as captured:
+        ImmutablePlatformHelpCorpus(root)
+
+    assert captured.value.code is GuidanceErrorCode.DIGEST_MISMATCH
+    assert captured.value.reference == "product-vision"
     assert str(root) not in captured.value.message
     assert str(root) not in captured.value.reference
