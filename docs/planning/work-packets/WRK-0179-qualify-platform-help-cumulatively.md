@@ -1,7 +1,7 @@
 ---
 id: WRK-0179
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -241,10 +241,15 @@ action, or financial authority.
   schema; and completed disposable stopped-source backup/restore, populated-
   target refusal, restored-session revocation, source isolation, and cleanup.
 - No product, contract, schema, client, runtime, state, identity, provider,
-  model, migration, or external-action behavior changed in this packet. The
-  exact controller candidate, qualifying receipt, independent technical
-  disposition, aggregate readiness, and completion gates remain to be bound
-  after this evidence reconciliation is committed.
+  model, migration, or external-action behavior changed in this packet.
+- Exact candidate `b15e538b1259f9f20824fc9c790c63b565e2d449` produced a
+  stable qualifying receipt at
+  `.local-codex/control-plane/receipts/WRK-0179/b15e538b1259f9f20824fc9c790c63b565e2d449/20261018T073408Z-17a14013-e7d9-4d86-aaf2-0772e7ae0139.json`
+  with digest
+  `sha256:1e5b1bd851eab6be24062a1cb6765899ca808384595c4a45df5a90b0cfac94d6`.
+  All eight selected checks, including aggregate readiness, passed. The
+  controller reports no open technical finding; disposition metadata remains
+  only in ignored local control state.
 
 ## Planning History
 
@@ -258,3 +263,5 @@ action, or financial authority.
   functional defect or decision gate; reconciled direct contributor, runtime,
   architecture-assurance, and residual-gap claims before exact-candidate
   submission.
+- 2026-10-18: Exact candidate `b15e538` received one stable qualifying receipt
+  with eight of eight selected checks passing and no open technical finding.

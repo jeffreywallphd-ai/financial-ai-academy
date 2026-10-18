@@ -177,7 +177,7 @@ time immediately before work starts. The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | [WRK-0178](../work-packets/WRK-0178-build-guidance-quality-gate.md) | Build the deterministic contributor-facing Guidance quality gate, source-authority binding, flexible valid-extension fixtures, and affected-check integration | SLI-0082 through SLI-0084 | none | complete |
-| [WRK-0179](../work-packets/WRK-0179-qualify-platform-help-cumulatively.md) | Run and close cumulative browser/headless, accessibility, offline-local, restart, containment, anti-rigidity, documentation, and control-plane qualification | WRK-0178 | none | verifying |
+| [WRK-0179](../work-packets/WRK-0179-qualify-platform-help-cumulatively.md) | Run and close cumulative browser/headless, accessibility, offline-local, restart, containment, anti-rigidity, documentation, and control-plane qualification | WRK-0178 | none | complete |
 
 Sequential delivery is required because both packets share the quality command,
 Guidance resources, affected-check catalog, and cumulative evidence. A bounded
@@ -243,7 +243,11 @@ architecture, security, design, planning, and documentation checks; focused
 Chromium accessibility; 87 replay tests; and the complete browser/headless,
 restart, loopback-only, read-only-containment, disposable-recovery, and cleanup
 topology. WRK-0179 owns the exact candidate, receipt, independent technical
-disposition, and final completion-gate binding.
+disposition, and final completion-gate binding. Its exact candidate `b15e538`
+received qualifying receipt digest
+`sha256:1e5b1bd851eab6be24062a1cb6765899ca808384595c4a45df5a90b0cfac94d6`;
+all eight selected checks passed and the controller reports no open technical
+finding.
 
 ## Planning History
 
@@ -272,3 +276,7 @@ disposition, and final completion-gate binding.
 - 2026-10-18: Submitted exact candidate `b15e538` and moved WRK-0179 to
   verification; the frozen candidate remains unchanged while its selected
   checks and independent technical review run.
+- 2026-10-18: WRK-0179 exact verification qualified with all eight selected
+  checks passing and no open technical finding.
+- 2026-10-18: Finalized WRK-0179 after binding its exact candidate, qualifying
+  receipt, cumulative evidence, direct documentation impact, and residual gaps.
