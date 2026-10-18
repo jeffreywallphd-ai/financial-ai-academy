@@ -76,6 +76,12 @@
   safe simultaneous-write outcomes, PostgreSQL row correlation, browser-local
   reminder exclusion, normal restart, unrelated-state noninterference,
   accessibility, no-execution observation, and bounded cleanup
+- Managed-cloud preference composition, multiple real learners, aggregate
+  preference import/export, and a separately governed headless AI mode beyond
+  the directly covered one-context/three-distinct-family public APIs, exact
+  cross-family PostgreSQL isolation, two browser-local adapter boundaries,
+  ordinary headless parity, restart equivalence, accessibility, privacy,
+  no-execution observation, and bounded cleanup
 - Discovery rebuild scheduling, concurrent production rebuild operation,
   non-lesson destinations, external search adapters, and managed-cloud
   discovery beyond the directly covered deterministic contract, PostgreSQL

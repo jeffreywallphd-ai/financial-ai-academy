@@ -170,6 +170,16 @@ public API document. Network and platform observation records no provider or
 model call, notification permission, service worker, schedule, subscription,
 or delivery side effect, while privacy-safe fingerprints prove unrelated
 application state did not change.
+
+The final preference-system phase composes all three retained families without
+adding an aggregate endpoint. It snapshots the three profile/change/mutation
+stores before and after each family journey, requires only the named family to
+change, correlates three distinct profiles to one server-owned learner context,
+and rechecks the exact composite after normal restart and headless reads. The
+report also records that theme and reminders remain two browser-local adapters.
+This is local shared-core evidence only; it does not qualify managed-cloud
+composition or define a headless AI mode.
+
 The runner also exercises the generated Saved Learning browser against the
 same live host: it creates a Unicode note and bookmark for the exact approved
 lesson, reorders them, creates ordered collection membership, archives and

@@ -289,6 +289,16 @@ request, service-worker registration, schedule, subscription, or delivery
 action. The focused assistance Chromium wrapper is part of affected-candidate
 selection whenever this feature or its browser-local adapter changes.
 
+The cumulative preference qualification composes these existing routes without
+creating a combined settings API. In one disposable PostgreSQL, production-
+host, and pinned-Chromium topology, each learner-owned family changes only its
+own profile, change, and replay tables; the other two remain exact. All three
+families retain distinct profile identities under one server-owned learner
+context, survive restart, and remain available to ordinary headless clients.
+Theme and reminder state stay in their two browser-local adapters and never
+enter the learner APIs. This proves shared-core semantics for a future
+deployment adapter, not managed-cloud operation or a headless AI mode.
+
 `/preferences/display` validates one coherent profile/history export before it
 shows private details, previews complete drafts through the four semantic root
 attributes, sends one exact complete replacement or confirmed reset, and keeps

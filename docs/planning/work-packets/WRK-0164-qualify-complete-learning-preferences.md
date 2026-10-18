@@ -10,8 +10,8 @@ capability: CAP-0018
 depends_on: [WRK-0150, WRK-0156, WRK-0161]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0018-set-learning-goals-and-preferences.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0077-qualify-complete-learning-preferences.md", "docs/planning/work-packets/WRK-0164-qualify-complete-learning-preferences.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
-generated_artifacts: []
+write_scope: ["apps/web/README.md", "apps/web/dist", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0018-set-learning-goals-and-preferences.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0077-qualify-complete-learning-preferences.md", "docs/planning/work-packets/WRK-0164-qualify-complete-learning-preferences.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+generated_artifacts: ["apps/web/dist"]
 base_revision: d727791781679f9ab8cc22c2353e9ee7083bee48
 claim_id: WRK-0164:1dd5c894-015b-49c9-9495-c7e137fc06c1
 claimed_by: codex-cap-0018
@@ -228,3 +228,7 @@ SLI-0077 and CAP-0018 deterministically.
   CAP authority, all three complete dependencies, the exact write scope, and no
   active coordination collision. The packet-start manifest selected affected
   verification and one independent technical review.
+- 2026-10-18: Added the exact regenerated static browser directory to the
+  bounded generated scope after the production build refreshed its content
+  hash. This is derived candidate evidence only and changes no product source,
+  contract, behavior, or CAP boundary.

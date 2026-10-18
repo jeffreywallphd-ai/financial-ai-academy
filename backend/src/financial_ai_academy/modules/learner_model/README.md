@@ -210,3 +210,12 @@ public API, compares unrelated state before and after, and observes no model,
 provider, notification, worker, timer, schedule, subscription, or delivery
 effect. These checks qualify only the local single-profile development topology;
 they do not enable an AI provider or notification channel.
+
+The cumulative local qualification composes the three preference families as
+separate authorities. Each browser/headless phase is surrounded by an exact
+snapshot of all nine preference tables: only the named family's profile,
+change, and mutation tables may change, and the other six tables must remain
+equivalent. The final state requires three distinct profile identities bound to
+one opaque learner context and remains exact across normal restart and headless
+reads. This evidence creates no aggregate profile, cross-family transaction,
+combined export, provider permission, managed-cloud claim, or new module API.
