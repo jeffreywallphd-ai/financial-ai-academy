@@ -94,5 +94,8 @@ exact lesson or completion occurrence, completion learner identity comes only
 from the server session, and the host requires both Audit-lineage and lesson-
 read permissions before invoking Audit. The response is the canonical bounded
 view and cannot grant authorization or disclose owner payloads. Browser
-presentation, export, retention policy, and live-host qualification remain
-separate delivery seams.
+presentation, export, and retention policy remain separate delivery seams. The
+disposable local host now directly qualifies both roots through the generated
+client and ordinary HTTP, exact replay across a normal restart, confidential
+denials, and steady-state database/file containment after deterministic Audit
+reconciliation; it does not claim public hosting or managed-cloud behavior.

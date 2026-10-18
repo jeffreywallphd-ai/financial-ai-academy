@@ -241,6 +241,59 @@ PRACTICE_DENIAL_PRIVATE_FRAGMENTS = frozenset(
         "traceback",
     }
 )
+LINEAGE_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "requests",
+        "generated",
+        "direct",
+        "denial_statuses",
+    }
+)
+LINEAGE_VIEW_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "root",
+        "nodes",
+        "edges",
+        "incomplete_links",
+        "truncated",
+        "view_digest",
+    }
+)
+LINEAGE_REFERENCE_BASE_KEYS = frozenset(
+    {
+        "owner_module",
+        "resource_kind",
+        "resource_id",
+        "integrity_digest",
+        "recorded_at",
+        "validation_status",
+    }
+)
+LINEAGE_VERSIONED_KINDS = frozenset(
+    {"educational_source", "published_lesson", "assessment_definition"}
+)
+LINEAGE_OCCURRENCE_KINDS = frozenset(
+    {"knowledge_check_event", "completion_evidence", "audit_reference"}
+)
+LINEAGE_RELATIONS = frozenset(
+    {"published_from", "defined_by", "produced", "recorded_as"}
+)
+LINEAGE_PRIVATE_KEYS = frozenset(
+    {
+        "answer",
+        "feedback",
+        "learner_id",
+        "locator",
+        "path",
+        "permission",
+        "provider_payload",
+        "score",
+        "session_id",
+        "storage",
+    }
+)
 PLATFORM_HELP_CAPTURE_ROOT_KEYS = frozenset(
     {
         "schema_version",
@@ -1356,6 +1409,433 @@ def _exact_keys(
 ) -> None:
     if set(value) != expected:
         raise RuntimeError(f"{label} does not match the closed public contract.")
+
+
+def _lineage_identifier(value: object, *, label: str) -> str:
+    if (
+        not isinstance(value, str)
+        or not 1 <= len(value) <= 128
+        or value != value.strip()
+        or any(ord(character) < 32 or character in "/\\?#" for character in value)
+    ):
+        raise RuntimeError(f"{label} has an invalid identifier.")
+    return value
+
+
+def _lineage_digest(value: object, *, label: str) -> str:
+    if not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
+        raise RuntimeError(f"{label} has an invalid digest.")
+    return value
+
+
+def stable_learning_lineage_request(
+    value: object,
+    *,
+    root_kind: str,
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Learning-lineage request is not an object.")
+    common = frozenset({"schema_version", "root_kind"})
+    if root_kind == "published_lesson":
+        expected = common | {
+            "package_id",
+            "package_version",
+            "package_digest",
+        }
+        _exact_keys(value, expected, "Published-lesson lineage request")
+        _lineage_identifier(value.get("package_id"), label="Package")
+        if (
+            not isinstance(value.get("package_version"), str)
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,79}", value["package_version"])
+            is None
+        ):
+            raise RuntimeError("Published-lesson lineage request has an invalid version.")
+        _lineage_digest(value.get("package_digest"), label="Package")
+    elif root_kind == "knowledge_check_completion":
+        expected = common | {"placement_id", "evidence_id", "occurrence"}
+        _exact_keys(value, expected, "Completion-lineage request")
+        _lineage_identifier(value.get("placement_id"), label="Placement")
+        _lineage_identifier(value.get("evidence_id"), label="Evidence")
+        occurrence = value.get("occurrence")
+        if isinstance(occurrence, bool) or not isinstance(occurrence, int) or occurrence < 1:
+            raise RuntimeError("Completion-lineage request has an invalid occurrence.")
+    else:
+        raise RuntimeError("Learning-lineage request names an unsupported root.")
+    if value.get("schema_version") != "1.0.0" or value.get("root_kind") != root_kind:
+        raise RuntimeError("Learning-lineage request identity is inconsistent.")
+    return copy.deepcopy(value)
+
+
+def _stable_lineage_reference(value: object) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Learning-lineage reference is not an object.")
+    resource_kind = value.get("resource_kind")
+    if resource_kind in LINEAGE_VERSIONED_KINDS:
+        expected = LINEAGE_REFERENCE_BASE_KEYS | {"resource_version"}
+        version = value.get("resource_version")
+        if (
+            not isinstance(version, str)
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,79}", version) is None
+        ):
+            raise RuntimeError("Learning-lineage reference has an invalid version.")
+    elif resource_kind in LINEAGE_OCCURRENCE_KINDS:
+        expected = LINEAGE_REFERENCE_BASE_KEYS | {"occurrence"}
+        occurrence = value.get("occurrence")
+        if isinstance(occurrence, bool) or not isinstance(occurrence, int) or occurrence < 1:
+            raise RuntimeError("Learning-lineage reference has an invalid occurrence.")
+    else:
+        raise RuntimeError("Learning-lineage reference has an unsupported kind.")
+    _exact_keys(value, expected, "Learning-lineage reference")
+    owner_by_kind = {
+        "educational_source": "content",
+        "published_lesson": "content",
+        "assessment_definition": "assessment",
+        "knowledge_check_event": "assessment",
+        "completion_evidence": "assessment",
+        "audit_reference": "audit",
+    }
+    if value.get("owner_module") != owner_by_kind[resource_kind]:
+        raise RuntimeError("Learning-lineage reference owner is inconsistent.")
+    _lineage_identifier(value.get("resource_id"), label="Lineage resource")
+    _lineage_digest(value.get("integrity_digest"), label="Lineage resource")
+    recorded_at = value.get("recorded_at")
+    try:
+        parsed_at = datetime.fromisoformat(str(recorded_at).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("Learning-lineage reference has an invalid timestamp.") from error
+    if not isinstance(recorded_at, str) or parsed_at.tzinfo is None:
+        raise RuntimeError("Learning-lineage reference timestamp is not timezone-aware.")
+    if value.get("validation_status") not in {"validated", "incomplete"}:
+        raise RuntimeError("Learning-lineage reference has an invalid status.")
+    return copy.deepcopy(value)
+
+
+def _stable_lineage_envelope(value: object) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Learning-lineage envelope is not an object.")
+    _exact_keys(
+        value,
+        frozenset({"schema_version", "resource", "producer", "sources"}),
+        "Learning-lineage envelope",
+    )
+    if value.get("schema_version") != "1.0.0":
+        raise RuntimeError("Learning-lineage envelope version is unsupported.")
+    _stable_lineage_reference(value.get("resource"))
+    producer = value.get("producer")
+    if not isinstance(producer, dict):
+        raise RuntimeError("Learning-lineage producer is not an object.")
+    _exact_keys(
+        producer,
+        frozenset({"producer_id", "producer_version"}),
+        "Learning-lineage producer",
+    )
+    _lineage_identifier(producer.get("producer_id"), label="Lineage producer")
+    if not isinstance(producer.get("producer_version"), str):
+        raise RuntimeError("Learning-lineage producer version is invalid.")
+    sources = value.get("sources")
+    if not isinstance(sources, list) or len(sources) > 20:
+        raise RuntimeError("Learning-lineage envelope has invalid sources.")
+    for source in sources:
+        if not isinstance(source, dict):
+            raise RuntimeError("Learning-lineage source is not an object.")
+        _exact_keys(
+            source,
+            frozenset({"relation", "reference"}),
+            "Learning-lineage source",
+        )
+        if source.get("relation") not in LINEAGE_RELATIONS:
+            raise RuntimeError("Learning-lineage source relation is invalid.")
+        _stable_lineage_reference(source.get("reference"))
+    return copy.deepcopy(value)
+
+
+def stable_learning_lineage_view(
+    value: object,
+    *,
+    root_kind: str,
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Learning-lineage view is not an object.")
+    _exact_keys(value, LINEAGE_VIEW_ROOT_KEYS, "Learning-lineage view")
+    if value.get("schema_version") != "1.0.0":
+        raise RuntimeError("Learning-lineage view version is unsupported.")
+    leaked = LINEAGE_PRIVATE_KEYS & _nested_mapping_keys(value)
+    if leaked:
+        raise RuntimeError(
+            "Learning-lineage view exposed private fields: "
+            + ", ".join(sorted(leaked))
+            + "."
+        )
+    root = value.get("root")
+    if not isinstance(root, dict):
+        raise RuntimeError("Learning-lineage root is not an object.")
+    _exact_keys(root, frozenset({"root_kind", "resource"}), "Learning-lineage root")
+    if root.get("root_kind") != root_kind:
+        raise RuntimeError("Learning-lineage root kind is inconsistent.")
+    root_reference = _stable_lineage_reference(root.get("resource"))
+    expected_root_resource = {
+        "published_lesson": "published_lesson",
+        "knowledge_check_completion": "completion_evidence",
+    }.get(root_kind)
+    if root_reference["resource_kind"] != expected_root_resource:
+        raise RuntimeError("Learning-lineage root resource is inconsistent.")
+    nodes = value.get("nodes")
+    if not isinstance(nodes, list) or not 1 <= len(nodes) <= 64:
+        raise RuntimeError("Learning-lineage view has an invalid node collection.")
+    node_ids: set[str] = set()
+    root_seen = False
+    for node in nodes:
+        if not isinstance(node, dict):
+            raise RuntimeError("Learning-lineage node is not an object.")
+        _exact_keys(node, frozenset({"node_id", "envelope"}), "Learning-lineage node")
+        node_id = _lineage_identifier(node.get("node_id"), label="Lineage node")
+        if node_id in node_ids:
+            raise RuntimeError("Learning-lineage node identity is duplicated.")
+        node_ids.add(node_id)
+        envelope = _stable_lineage_envelope(node.get("envelope"))
+        root_seen = root_seen or envelope["resource"] == root_reference
+    if not root_seen:
+        raise RuntimeError("Learning-lineage root is absent from its nodes.")
+    edges = value.get("edges")
+    if not isinstance(edges, list) or len(edges) > 128:
+        raise RuntimeError("Learning-lineage view has an invalid edge collection.")
+    edge_ids: set[tuple[str, str, str]] = set()
+    for edge in edges:
+        if not isinstance(edge, dict):
+            raise RuntimeError("Learning-lineage edge is not an object.")
+        _exact_keys(
+            edge,
+            frozenset({"source_node_id", "target_node_id", "relation"}),
+            "Learning-lineage edge",
+        )
+        edge_id = (
+            str(edge.get("source_node_id")),
+            str(edge.get("target_node_id")),
+            str(edge.get("relation")),
+        )
+        if (
+            edge_id in edge_ids
+            or edge_id[0] not in node_ids
+            or edge_id[1] not in node_ids
+            or edge_id[2] not in LINEAGE_RELATIONS
+        ):
+            raise RuntimeError("Learning-lineage edge is invalid or duplicated.")
+        edge_ids.add(edge_id)
+    incomplete = value.get("incomplete_links")
+    if not isinstance(incomplete, list) or len(incomplete) > 32:
+        raise RuntimeError("Learning-lineage view has invalid incomplete links.")
+    incomplete_ids: set[tuple[str, str, str, str, str]] = set()
+    for link in incomplete:
+        if not isinstance(link, dict):
+            raise RuntimeError("Incomplete lineage link is not an object.")
+        _exact_keys(
+            link,
+            frozenset(
+                {
+                    "source_node_id",
+                    "relation",
+                    "target_owner_module",
+                    "target_resource_kind",
+                    "target_resource_id",
+                    "reason",
+                }
+            ),
+            "Incomplete lineage link",
+        )
+        link_id = (
+            str(link.get("source_node_id")),
+            str(link.get("relation")),
+            str(link.get("target_owner_module")),
+            str(link.get("target_resource_kind")),
+            str(link.get("target_resource_id")),
+        )
+        if (
+            link_id in incomplete_ids
+            or link_id[0] not in node_ids
+            or link_id[1] not in LINEAGE_RELATIONS
+            or link.get("reason") not in {"not_found", "unavailable", "redacted"}
+        ):
+            raise RuntimeError("Incomplete lineage link is invalid or duplicated.")
+        _lineage_identifier(link.get("target_resource_id"), label="Incomplete target")
+        incomplete_ids.add(link_id)
+    if not isinstance(value.get("truncated"), bool):
+        raise RuntimeError("Learning-lineage truncation flag is invalid.")
+    _lineage_digest(value.get("view_digest"), label="Learning-lineage view")
+    return copy.deepcopy(value)
+
+
+def load_learning_lineage_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded learning-lineage capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 1_048_576:
+        raise RuntimeError("Learning-lineage capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict):
+        raise RuntimeError("Learning-lineage capture is not an object.")
+    _exact_keys(capture, LINEAGE_CAPTURE_ROOT_KEYS, "Learning-lineage capture")
+    if capture.get("schema_version") != "1.0.0":
+        raise RuntimeError("Learning-lineage capture version is unsupported.")
+    requests = capture.get("requests")
+    generated = capture.get("generated")
+    direct = capture.get("direct")
+    denial_statuses = capture.get("denial_statuses")
+    for label, section in (
+        ("requests", requests),
+        ("generated", generated),
+        ("direct", direct),
+    ):
+        if not isinstance(section, dict):
+            raise RuntimeError(f"Learning-lineage {label} section is invalid.")
+        _exact_keys(section, frozenset({"lesson", "completion"}), label)
+    if denial_statuses != {
+        "missing_session": 401,
+        "query": 400,
+        "guessed_completion": 401,
+    }:
+        raise RuntimeError("Learning-lineage denial capture is inconsistent.")
+    stable_requests = {
+        "lesson": stable_learning_lineage_request(
+            requests["lesson"], root_kind="published_lesson"
+        ),
+        "completion": stable_learning_lineage_request(
+            requests["completion"], root_kind="knowledge_check_completion"
+        ),
+    }
+    stable_generated = {
+        "lesson": stable_learning_lineage_view(
+            generated["lesson"], root_kind="published_lesson"
+        ),
+        "completion": stable_learning_lineage_view(
+            generated["completion"], root_kind="knowledge_check_completion"
+        ),
+    }
+    stable_direct = {
+        "lesson": stable_learning_lineage_view(
+            direct["lesson"], root_kind="published_lesson"
+        ),
+        "completion": stable_learning_lineage_view(
+            direct["completion"], root_kind="knowledge_check_completion"
+        ),
+    }
+    if stable_direct != stable_generated:
+        raise RuntimeError("Generated and ordinary clients disagree on lineage.")
+    return {
+        "requests": stable_requests,
+        "views": stable_generated,
+        "denial_statuses": copy.deepcopy(denial_statuses),
+    }
+
+
+def _open_learning_lineage_session(origin: str) -> urllib.request.OpenerDirector:
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    return opener
+
+
+def observe_headless_learning_lineage(
+    origin: str,
+    *,
+    capture: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    opener = _open_learning_lineage_session(origin)
+    first = {
+        "lesson": stable_learning_lineage_view(
+            _request_json(
+                opener,
+                origin=origin,
+                path="/api/v1/audit/learning-lineage",
+                method="POST",
+                payload=capture["requests"]["lesson"],
+            ),
+            root_kind="published_lesson",
+        ),
+        "completion": stable_learning_lineage_view(
+            _request_json(
+                opener,
+                origin=origin,
+                path="/api/v1/audit/learning-lineage",
+                method="POST",
+                payload=capture["requests"]["completion"],
+            ),
+            root_kind="knowledge_check_completion",
+        ),
+    }
+    repeated = {
+        "lesson": stable_learning_lineage_view(
+            _request_json(
+                opener,
+                origin=origin,
+                path="/api/v1/audit/learning-lineage",
+                method="POST",
+                payload=capture["requests"]["lesson"],
+            ),
+            root_kind="published_lesson",
+        ),
+        "completion": stable_learning_lineage_view(
+            _request_json(
+                opener,
+                origin=origin,
+                path="/api/v1/audit/learning-lineage",
+                method="POST",
+                payload=capture["requests"]["completion"],
+            ),
+            root_kind="knowledge_check_completion",
+        ),
+    }
+    if first != repeated or first != capture["views"]:
+        raise RuntimeError("Repeated headless lineage reads changed accepted meaning.")
+    query_status, query_denial = _request_json_status(
+        opener,
+        origin=origin,
+        path="/api/v1/audit/learning-lineage?latest=true",
+        method="POST",
+        payload=capture["requests"]["lesson"],
+    )
+    guessed_request = copy.deepcopy(capture["requests"]["completion"])
+    guessed_request["evidence_id"] += "-missing"
+    guessed_status, guessed_denial = _request_json_status(
+        opener,
+        origin=origin,
+        path="/api/v1/audit/learning-lineage",
+        method="POST",
+        payload=guessed_request,
+    )
+    unauthenticated = urllib.request.build_opener()
+    missing_status, missing_denial = _request_json_status(
+        unauthenticated,
+        origin=origin,
+        path="/api/v1/audit/learning-lineage",
+        method="POST",
+        payload=capture["requests"]["lesson"],
+    )
+    if (missing_status, query_status, guessed_status) != (401, 400, 401):
+        raise RuntimeError("Learning-lineage denial status changed.")
+    for denial in (missing_denial, query_denial, guessed_denial):
+        leaked = LINEAGE_PRIVATE_KEYS & _nested_mapping_keys(denial)
+        if leaked:
+            raise RuntimeError("Learning-lineage denial exposed private fields.")
+    return first
+
+
+def assert_learning_lineage_restart_result(
+    *,
+    before_restart: dict[str, dict[str, Any]],
+    after_restart: dict[str, dict[str, Any]],
+) -> None:
+    if before_restart != after_restart:
+        raise RuntimeError("Learning-lineage meaning changed after normal restart.")
 
 
 def _practice_response_keys(item_type: str) -> frozenset[str]:
@@ -8325,6 +8805,7 @@ def main() -> int:
     presentation_preferences_capture = data_root / "presentation-preferences-capture.json"
     assistance_preferences_capture = data_root / "assistance-preferences-capture.json"
     platform_help_capture = data_root / "platform-help-capture.json"
+    learning_lineage_capture = data_root / "learning-lineage-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -8380,6 +8861,9 @@ def main() -> int:
         environment["FINANCIAL_AI_ACADEMY_PLATFORM_HELP_CAPTURE"] = str(
             platform_help_capture
         )
+        environment["FINANCIAL_AI_ACADEMY_LINEAGE_CAPTURE"] = str(
+            learning_lineage_capture
+        )
         run_checked(
             npm_e2e_command(
                 "approved-lesson.e2e.ts",
@@ -8388,6 +8872,42 @@ def main() -> int:
             ),
             env=environment,
         )
+        run_checked(
+            npm_e2e_command("learning-lineage.e2e.ts"),
+            env=environment,
+        )
+        learning_lineage = load_learning_lineage_capture(
+            learning_lineage_capture,
+            data_root=data_root,
+        )
+        # The first lineage request may reconcile the one retained Audit
+        # reference for an already-completed owner fact.  Start the read-only
+        # containment window after that deterministic, idempotent boundary so
+        # repeated reads—not the one-time reconciliation—are what must remain
+        # mutation-free.
+        lineage_database_before = application_database_fingerprint(
+            postgres_dsn,
+            exclude_schemas=frozenset({"identity"}),
+        )
+        lineage_files_before = bounded_file_tree_fingerprint(
+            data_root / "application-data"
+        )
+        learning_lineage_before_restart = observe_headless_learning_lineage(
+            origin,
+            capture=learning_lineage,
+        )
+        if (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+            != lineage_database_before
+            or bounded_file_tree_fingerprint(data_root / "application-data")
+            != lineage_files_before
+        ):
+            raise RuntimeError(
+                "Learning-lineage reads changed owner state or retained evidence."
+            )
         platform_help_source_before = application_database_fingerprint(
             postgres_dsn,
             exclude_schemas=frozenset({"identity"}),
@@ -8776,6 +9296,35 @@ def main() -> int:
             before_restart=practice_before_restart,
             after_restart=practice_after_restart,
         )
+        lineage_database_before_restart_observation = (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+        )
+        lineage_files_before_restart_observation = bounded_file_tree_fingerprint(
+            data_root / "application-data"
+        )
+        learning_lineage_after_restart = observe_headless_learning_lineage(
+            origin,
+            capture=learning_lineage,
+        )
+        assert_learning_lineage_restart_result(
+            before_restart=learning_lineage_before_restart,
+            after_restart=learning_lineage_after_restart,
+        )
+        if (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+            != lineage_database_before_restart_observation
+            or bounded_file_tree_fingerprint(data_root / "application-data")
+            != lineage_files_before_restart_observation
+        ):
+            raise RuntimeError(
+                "Learning-lineage restart reads changed owner state or evidence."
+            )
         platform_help_storage_before_restart_observation = (
             application_database_fingerprint(
                 postgres_dsn,
@@ -9236,6 +9785,24 @@ def main() -> int:
                 "same_key_changed_payload_race": True,
                 "same_key_same_payload_race": True,
                 "source_state_unchanged": True,
+            },
+            "learning_lineage": {
+                "authorization_confidential": True,
+                "browser_generated_client": True,
+                "browser_headless_parity": True,
+                "completion_view_digest": learning_lineage["views"]["completion"][
+                    "view_digest"
+                ],
+                "exact_completion_root": True,
+                "exact_lesson_root": True,
+                "flexible_bounded_graph": True,
+                "lesson_view_digest": learning_lineage["views"]["lesson"][
+                    "view_digest"
+                ],
+                "normal_restart_without_reseeding": True,
+                "owner_file_state_unchanged": True,
+                "public_api_shared": True,
+                "read_only_database_containment": True,
             },
             "platform_help": {
                 "authorization_confidential": True,

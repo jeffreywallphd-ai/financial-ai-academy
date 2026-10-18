@@ -5102,3 +5102,284 @@ def test_platform_help_restart_requires_exact_public_meaning() -> None:
             before_restart=before,
             after_restart=changed,
         )
+
+
+def lineage_reference(
+    *,
+    owner: str,
+    kind: str,
+    resource_id: str,
+    digest: str,
+    version: str | None = None,
+    occurrence: int | None = None,
+) -> dict[str, Any]:
+    reference: dict[str, Any] = {
+        "owner_module": owner,
+        "resource_kind": kind,
+        "resource_id": resource_id,
+        "integrity_digest": digest,
+        "recorded_at": "2026-10-18T08:00:00Z",
+        "validation_status": "validated",
+    }
+    if version is not None:
+        reference["resource_version"] = version
+    if occurrence is not None:
+        reference["occurrence"] = occurrence
+    return reference
+
+
+def lineage_envelope(
+    reference: dict[str, Any],
+    *,
+    sources: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    return {
+        "schema_version": "1.0.0",
+        "resource": reference,
+        "producer": {
+            "producer_id": "qualification-producer",
+            "producer_version": "1.0.0",
+        },
+        "sources": sources or [],
+    }
+
+
+def lineage_capture() -> dict[str, Any]:
+    lesson_reference = lineage_reference(
+        owner="content",
+        kind="published_lesson",
+        resource_id="intro-risk-return",
+        digest="a" * 64,
+        version="1.1.0",
+    )
+    source_reference = lineage_reference(
+        owner="content",
+        kind="educational_source",
+        resource_id="source-Σ",
+        digest="b" * 64,
+        version="2026.1",
+    )
+    evidence_reference = lineage_reference(
+        owner="assessment",
+        kind="completion_evidence",
+        resource_id="evidence-check-1",
+        digest="c" * 64,
+        occurrence=1,
+    )
+    event_reference = lineage_reference(
+        owner="assessment",
+        kind="knowledge_check_event",
+        resource_id="event-check-1",
+        digest="d" * 64,
+        occurrence=1,
+    )
+    lesson_view = {
+        "schema_version": "1.0.0",
+        "root": {"root_kind": "published_lesson", "resource": lesson_reference},
+        "nodes": [
+            {
+                "node_id": "lesson-node",
+                "envelope": lineage_envelope(
+                    lesson_reference,
+                    sources=[
+                        {"relation": "published_from", "reference": source_reference}
+                    ],
+                ),
+            },
+            {
+                "node_id": "source-node-Σ",
+                "envelope": lineage_envelope(source_reference),
+            },
+        ],
+        "edges": [
+            {
+                "source_node_id": "lesson-node",
+                "target_node_id": "source-node-Σ",
+                "relation": "published_from",
+            }
+        ],
+        "incomplete_links": [],
+        "truncated": False,
+        "view_digest": "e" * 64,
+    }
+    completion_view = {
+        "schema_version": "1.0.0",
+        "root": {
+            "root_kind": "knowledge_check_completion",
+            "resource": evidence_reference,
+        },
+        "nodes": [
+            {
+                "node_id": "evidence-node",
+                "envelope": lineage_envelope(
+                    evidence_reference,
+                    sources=[
+                        {"relation": "produced", "reference": event_reference}
+                    ],
+                ),
+            },
+            {
+                "node_id": "event-node",
+                "envelope": lineage_envelope(event_reference),
+            },
+        ],
+        "edges": [
+            {
+                "source_node_id": "evidence-node",
+                "target_node_id": "event-node",
+                "relation": "produced",
+            }
+        ],
+        "incomplete_links": [
+            {
+                "source_node_id": "event-node",
+                "relation": "defined_by",
+                "target_owner_module": "assessment",
+                "target_resource_kind": "assessment_definition",
+                "target_resource_id": "definition-unavailable",
+                "reason": "unavailable",
+            }
+        ],
+        "truncated": False,
+        "view_digest": "f" * 64,
+    }
+    requests = {
+        "lesson": {
+            "schema_version": "1.0.0",
+            "root_kind": "published_lesson",
+            "package_id": "intro-risk-return",
+            "package_version": "1.1.0",
+            "package_digest": "a" * 64,
+        },
+        "completion": {
+            "schema_version": "1.0.0",
+            "root_kind": "knowledge_check_completion",
+            "placement_id": "intro-risk-return-primary",
+            "evidence_id": "evidence-check-1",
+            "occurrence": 1,
+        },
+    }
+    views = {"lesson": lesson_view, "completion": completion_view}
+    return {
+        "schema_version": "1.0.0",
+        "requests": requests,
+        "generated": views,
+        "direct": deepcopy(views),
+        "denial_statuses": {
+            "missing_session": 401,
+            "query": 400,
+            "guessed_completion": 401,
+        },
+    }
+
+
+def test_learning_lineage_capture_accepts_flexible_graph_and_rejects_drift(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "learning-lineage-capture.json"
+    valid = lineage_capture()
+    path.write_text(json.dumps(valid), encoding="utf-8")
+    loaded = runner.load_learning_lineage_capture(path, data_root=tmp_path)
+    assert len(loaded["views"]["lesson"]["nodes"]) == 2
+    assert loaded["views"]["lesson"]["nodes"][1]["node_id"] == "source-node-Σ"
+    assert len(loaded["views"]["completion"]["incomplete_links"]) == 1
+
+    changed = deepcopy(valid)
+    changed["direct"]["lesson"]["view_digest"] = "0" * 64
+    path.write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="clients disagree"):
+        runner.load_learning_lineage_capture(path, data_root=tmp_path)
+
+    private = deepcopy(valid)
+    private["generated"]["completion"]["learner_id"] = "private"
+    private["direct"] = deepcopy(private["generated"])
+    path.write_text(json.dumps(private), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner.load_learning_lineage_capture(path, data_root=tmp_path)
+
+    rigid = deepcopy(valid)
+    rigid["generated"]["lesson"]["nodes"] = rigid["generated"]["lesson"][
+        "nodes"
+    ][:1]
+    rigid["generated"]["lesson"]["edges"] = []
+    rigid["direct"] = deepcopy(rigid["generated"])
+    path.write_text(json.dumps(rigid), encoding="utf-8")
+    one_node = runner.load_learning_lineage_capture(path, data_root=tmp_path)
+    assert len(one_node["views"]["lesson"]["nodes"]) == 1
+
+
+def test_headless_learning_lineage_uses_only_public_route_and_exact_replay(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    capture_document = lineage_capture()
+    capture = {
+        "requests": capture_document["requests"],
+        "views": capture_document["generated"],
+    }
+    calls: list[tuple[str, str]] = []
+    opener = object()
+    monkeypatch.setattr(runner, "_open_learning_lineage_session", lambda _origin: opener)
+
+    def request_json(
+        observed_opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert observed_opener is opener
+        assert origin == "http://127.0.0.1:8123"
+        assert path == "/api/v1/audit/learning-lineage"
+        assert method == "POST"
+        assert payload is not None
+        root_kind = str(payload["root_kind"])
+        calls.append((method, root_kind))
+        key = "lesson" if root_kind == "published_lesson" else "completion"
+        return deepcopy(capture["views"][key])
+
+    def request_status(
+        observed_opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str,
+        payload: dict[str, object],
+    ) -> tuple[int, dict[str, Any]]:
+        assert origin == "http://127.0.0.1:8123"
+        assert method == "POST"
+        if observed_opener is not opener:
+            return 401, {"code": "missing_session"}
+        if "?latest=true" in path:
+            return 400, {"code": "invalid_request"}
+        assert str(payload["evidence_id"]).endswith("-missing")
+        return 401, {"code": "invalid_context"}
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+    monkeypatch.setattr(runner, "_request_json_status", request_status)
+    observed = runner.observe_headless_learning_lineage(
+        "http://127.0.0.1:8123",
+        capture=capture,
+    )
+    assert observed == capture["views"]
+    assert calls == [
+        ("POST", "published_lesson"),
+        ("POST", "knowledge_check_completion"),
+        ("POST", "published_lesson"),
+        ("POST", "knowledge_check_completion"),
+    ]
+
+
+def test_learning_lineage_restart_requires_complete_exact_meaning() -> None:
+    before = lineage_capture()["generated"]
+    runner.assert_learning_lineage_restart_result(
+        before_restart=before,
+        after_restart=deepcopy(before),
+    )
+    changed = deepcopy(before)
+    changed["completion"]["view_digest"] = "0" * 64
+    with pytest.raises(RuntimeError, match="changed after normal restart"):
+        runner.assert_learning_lineage_restart_result(
+            before_restart=before,
+            after_restart=changed,
+        )

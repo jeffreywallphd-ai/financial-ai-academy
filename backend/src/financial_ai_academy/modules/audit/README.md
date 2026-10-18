@@ -71,4 +71,8 @@ requires server-issued `audit.lineage.read` and `curriculum.lesson.read`, binds
 the completion learner from the opaque session, and accepts no learner or
 permission selector. Local composition injects the Content adapter into Audit;
 the host maps the validated view without reading a repository or recomputing a
-graph. Live PostgreSQL/restart qualification remains dependent work.
+graph. The disposable local qualification proves generated-client and ordinary
+HTTP parity for both roots, confidential denials, exact replay after a normal
+host restart, and unchanged non-Identity database and bounded owner-file state
+after the first deterministic reconciliation. It does not establish a hosted
+retention, recovery, export, or managed-cloud posture.

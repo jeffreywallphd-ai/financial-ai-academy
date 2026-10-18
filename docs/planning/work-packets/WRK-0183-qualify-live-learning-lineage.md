@@ -62,8 +62,9 @@ SLI-0106 and requires no lower-level approval.
   issued session and timestamps outside the lineage document are not compared.
 - Browser-process and ordinary HTTP sessions may add Identity rows. The
   qualification requires every non-Identity schema and the bounded owner object
-  tree to remain exact across repeated lineage reads once the existing
-  completion Audit reference has been reconciled by the approved lesson flow.
+  tree to remain exact across repeated lineage reads once the first lineage
+  request has deterministically reconciled the retained completion Audit
+  reference.
 - Contract/core/API tests remain direct evidence for malformed graphs,
   changed-same-identity conflicts, incomplete links, bounds, and varied valid
   Unicode/source shapes. Live assertions compose that evidence without
