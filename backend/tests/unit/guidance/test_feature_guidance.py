@@ -144,11 +144,40 @@ def test_stale_source_binding_fails_after_valid_canonical_digest(tmp_path: Path)
 
 
 def test_valid_added_record_and_mapping_do_not_freeze_registry_size(tmp_path: Path) -> None:
+    baseline = ImmutableFeatureGuidanceRegistry()
     root = tmp_path / "registry"
     _copy_registry(root)
     record_path = root / "records/project-artifact-inert.json"
     record = _load(record_path)
-    record.update(guidance_id="additional-inert-guidance", heading="Additional inert guidance")
+    record.update(
+        guidance_id="additional-inert-guidance",
+        heading="A varied explanation remains safe",
+        reason="Reviewed wording and ordered safe actions can change without changing the owning feature.",
+    )
+    record["actions"] = [
+        {"action_kind": "return_to_owning_task", "label": "Return to the Project"},
+        {
+            "action_kind": "open_help_topic",
+            "label": "Read safe recovery guidance",
+            "topic_id": "safe-recovery",
+            "topic_version": "1.0.0",
+        },
+        {"action_kind": "download_inert_artifact", "label": "Download the unchanged file"},
+    ]
+    record["help_references"] = [
+        {
+            "topic_id": "safe-recovery",
+            "topic_version": "1.0.0",
+            "purpose": "method",
+            "label": "Safe recovery",
+        },
+        {
+            "topic_id": "project-artifact-use",
+            "topic_version": "1.0.0",
+            "purpose": "data_meaning",
+            "label": "Project artifact use",
+        },
+    ]
     record["guidance_digest"] = _digest(record, "guidance_digest")
     (root / "records/00-additional.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -165,9 +194,23 @@ def test_valid_added_record_and_mapping_do_not_freeze_registry_size(tmp_path: Pa
         json.dumps(mapping, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     registry = ImmutableFeatureGuidanceRegistry(root)
-    assert len(registry.records) == 6
-    assert len(registry.mappings) == 6
-    assert registry.resolve("additional-surface", "additional-condition", "1.0.0").guidance_id == "additional-inert-guidance"
+    assert len(registry.records) == len(baseline.records) + 1
+    assert len(registry.mappings) == len(baseline.mappings) + 1
+    resolution = registry.resolve_with_mapping(
+        "additional-surface",
+        "additional-condition",
+        "1.0.0",
+    )
+    assert resolution.mapping.guidance_id == resolution.guidance.guidance_id
+    assert [action.action_kind.value for action in resolution.guidance.actions] == [
+        "return_to_owning_task",
+        "open_help_topic",
+        "download_inert_artifact",
+    ]
+    assert [reference.topic_id for reference in resolution.guidance.help_references] == [
+        "safe-recovery",
+        "project-artifact-use",
+    ]
 
 
 def test_public_registry_has_no_runtime_feature_or_execution_authority() -> None:

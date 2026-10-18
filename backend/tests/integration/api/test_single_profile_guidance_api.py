@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
+import shutil
 
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator, FormatChecker
@@ -13,6 +15,7 @@ from financial_ai_academy.modules.guidance.adapters import (
     ImmutableContextualHelpRegistry,
     ImmutableFeatureGuidanceRegistry,
     ImmutablePlatformHelpCorpus,
+    default_feature_guidance_registry_dir,
 )
 from financial_ai_academy.modules.guidance.application import GuidanceService
 from financial_ai_academy.modules.guidance.public import (
@@ -56,6 +59,75 @@ COOKIE = "a" * 43
 NOW = datetime(2026, 10, 18, tzinfo=timezone.utc)
 
 
+def _digest(value: dict[str, object], field: str) -> str:
+    canonical = json.dumps(
+        {key: item for key, item in value.items() if key != field},
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def _varied_feature_registry(root: Path) -> ImmutableFeatureGuidanceRegistry:
+    shutil.copytree(default_feature_guidance_registry_dir(), root)
+    record = json.loads(
+        (root / "records/project-artifact-inert.json").read_text(encoding="utf-8")
+    )
+    record.update(
+        guidance_id="varied-safe-guidance",
+        heading="A varied explanation remains safe",
+        reason="Reviewed wording and ordered safe actions can change without changing the owning feature.",
+    )
+    record["actions"] = [
+        {"action_kind": "return_to_owning_task", "label": "Return to the Project"},
+        {
+            "action_kind": "open_help_topic",
+            "label": "Read safe recovery guidance",
+            "topic_id": "safe-recovery",
+            "topic_version": "1.0.0",
+        },
+        {"action_kind": "download_inert_artifact", "label": "Download the unchanged file"},
+    ]
+    record["help_references"] = [
+        {
+            "topic_id": "safe-recovery",
+            "topic_version": "1.0.0",
+            "purpose": "method",
+            "label": "Safe recovery",
+        },
+        {
+            "topic_id": "project-artifact-use",
+            "topic_version": "1.0.0",
+            "purpose": "data_meaning",
+            "label": "Project artifact use",
+        },
+    ]
+    record["guidance_digest"] = _digest(record, "guidance_digest")
+    (root / "records/00-varied.json").write_text(
+        json.dumps(record, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    mapping = json.loads(
+        (root / "mappings/project-workspace-artifact-inert.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    mapping.update(
+        surface_key="varied-surface",
+        condition_key="varied-condition",
+        guidance_id="varied-safe-guidance",
+    )
+    mapping["mapping_digest"] = _digest(mapping, "mapping_digest")
+    (root / "mappings/00-varied.json").write_text(
+        json.dumps(mapping, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    corpus = ImmutablePlatformHelpCorpus()
+    return ImmutableFeatureGuidanceRegistry(root, topics=corpus.topics)
+
+
 class Identity:
     def __init__(self, permissions: tuple[str, ...]) -> None:
         self.permissions = permissions
@@ -87,12 +159,15 @@ class Identity:
 
 
 class Guidance:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        feature_registry: ImmutableFeatureGuidanceRegistry | None = None,
+    ) -> None:
         corpus = ImmutablePlatformHelpCorpus()
         self._service = GuidanceService(
             corpus,
             ImmutableContextualHelpRegistry(topics=corpus.topics),
-            ImmutableFeatureGuidanceRegistry(topics=corpus.topics),
+            feature_registry or ImmutableFeatureGuidanceRegistry(topics=corpus.topics),
         )
         self.search_calls: list[SearchRequest] = []
         self.open_calls: list[OpenPlatformHelpTopicRequest] = []
@@ -226,6 +301,57 @@ def test_authorized_help_reads_preserve_closed_public_facts() -> None:
             "model_output",
         )
     )
+
+
+def test_varied_valid_guidance_preserves_order_and_digests_through_service_and_api(
+    tmp_path: Path,
+) -> None:
+    registry = _varied_feature_registry(tmp_path / "varied-registry")
+    expected = registry.resolve_with_mapping(
+        "varied-surface",
+        "varied-condition",
+        "1.0.0",
+    )
+    guidance = Guidance(registry)
+    response = client(
+        Identity(("guidance.platform_help.read",)),
+        guidance,
+    ).get(
+        "/api/v1/guidance/feature-guidance/varied-surface/"
+        "conditions/varied-condition/versions/1.0.0"
+    )
+
+    assert response.status_code == 200
+    document = response.json()
+    assert document["mapping"]["guidance_id"] == document["guidance"]["guidance_id"]
+    assert document["mapping"]["mapping_digest"] == expected.mapping.mapping_digest
+    assert document["guidance"]["guidance_digest"] == expected.guidance.guidance_digest
+    assert document["guidance"]["heading"] == "A varied explanation remains safe"
+    assert [item["action_kind"] for item in document["guidance"]["actions"]] == [
+        "return_to_owning_task",
+        "open_help_topic",
+        "download_inert_artifact",
+    ]
+    assert [
+        item["topic_id"] for item in document["guidance"]["help_references"]
+    ] == ["safe-recovery", "project-artifact-use"]
+    assert guidance.feature_calls == [
+        ResolveFeatureGuidanceRequest(
+            "varied-surface",
+            "varied-condition",
+            "1.0.0",
+        )
+    ]
+    for schema_path, value in (
+        (FEATURE_MAPPING_SCHEMA, document["mapping"]),
+        (FEATURE_RECORD_SCHEMA, document["guidance"]),
+    ):
+        assert list(
+            Draft202012Validator(
+                json.loads(schema_path.read_text(encoding="utf-8")),
+                format_checker=FormatChecker(),
+            ).iter_errors(value)
+        ) == []
 
 
 def test_search_preserves_required_nullable_cursor_on_every_page() -> None:
