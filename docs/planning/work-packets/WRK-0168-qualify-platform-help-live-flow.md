@@ -1,7 +1,7 @@
 ---
 id: WRK-0168
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -261,3 +261,7 @@ or financial behavior changed, then leave SLI-0082 closure-ready.
   200-percent text, and records the remaining global-header presentation item
   for CAP-0031 instead of turning nonfunctional styling into a delivery gate or
   reopening implementation review.
+- 2026-10-18: Moved to verification after the complete isolated topology
+  passed browser/headless parity, stable search/filter/cursor and exact reads,
+  confidential denial, restart, no-outbound observation, read-only state
+  containment, accessibility, and cleanup evidence.
