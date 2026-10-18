@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/provenance/v1/lineage-view.schema.json",
+  "title": "Financial AI Academy bounded lineage view v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "root", "nodes", "edges", "incomplete_links", "truncated", "view_digest"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "root": {"$ref": "#/$defs/root"},
+    "nodes": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/node"}},
+    "edges": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/edge"}},
+    "incomplete_links": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/incompleteLink"}},
+    "truncated": {"type": "boolean"},
+    "view_digest": {"$ref": "#/$defs/digest"}
+  },
+  "$defs": {
+    "identifier": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\s._:/\\\\?#][^\\s/\\\\?#]{0,127}$"},
+    "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "owner": {"enum": ["content", "assessment", "audit"]},
+    "resourceKind": {"enum": ["educational_source", "published_lesson", "assessment_definition", "knowledge_check_event", "completion_evidence", "audit_reference"]},
+    "relation": {"enum": ["published_from", "defined_by", "produced", "recorded_as"]},
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner_module", "resource_kind", "resource_id", "integrity_digest", "recorded_at", "validation_status"],
+      "anyOf": [{"required": ["resource_version"]}, {"required": ["occurrence"]}],
+      "properties": {
+        "owner_module": {"$ref": "#/$defs/owner"},
+        "resource_kind": {"$ref": "#/$defs/resourceKind"},
+        "resource_id": {"$ref": "#/$defs/identifier"},
+        "resource_version": {"$ref": "#/$defs/version"},
+        "occurrence": {"type": "integer", "minimum": 1},
+        "integrity_digest": {"$ref": "#/$defs/digest"},
+        "recorded_at": {"type": "string", "format": "date-time"},
+        "validation_status": {"enum": ["validated", "incomplete"]}
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer_id", "producer_version"],
+      "properties": {"producer_id": {"$ref": "#/$defs/identifier"}, "producer_version": {"$ref": "#/$defs/version"}}
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation", "reference"],
+      "properties": {"relation": {"$ref": "#/$defs/relation"}, "reference": {"$ref": "#/$defs/reference"}}
+    },
+    "envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "resource", "producer", "sources"],
+      "properties": {
+        "schema_version": {"const": "1.0.0"},
+        "resource": {"$ref": "#/$defs/reference"},
+        "producer": {"$ref": "#/$defs/producer"},
+        "sources": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/source"}}
+      }
+    },
+    "root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["root_kind", "resource"],
+      "properties": {
+        "root_kind": {"enum": ["published_lesson", "knowledge_check_completion"]},
+        "resource": {"$ref": "#/$defs/reference"}
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "envelope"],
+      "properties": {"node_id": {"$ref": "#/$defs/identifier"}, "envelope": {"$ref": "#/$defs/envelope"}}
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_node_id", "target_node_id", "relation"],
+      "properties": {
+        "source_node_id": {"$ref": "#/$defs/identifier"},
+        "target_node_id": {"$ref": "#/$defs/identifier"},
+        "relation": {"$ref": "#/$defs/relation"}
+      }
+    },
+    "incompleteLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_node_id", "relation", "target_owner_module", "target_resource_kind", "target_resource_id", "reason"],
+      "properties": {
+        "source_node_id": {"$ref": "#/$defs/identifier"},
+        "relation": {"$ref": "#/$defs/relation"},
+        "target_owner_module": {"$ref": "#/$defs/owner"},
+        "target_resource_kind": {"$ref": "#/$defs/resourceKind"},
+        "target_resource_id": {"$ref": "#/$defs/identifier"},
+        "reason": {"enum": ["not_found", "unavailable", "redacted"]}
+      }
+    }
+  }
+}

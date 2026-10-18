@@ -38,3 +38,19 @@ replay and a normal application restart.
 Synchronous reconciliation is not a queue, dispatcher, checkpoint, delivery
 guarantee, export product, retention policy, recovery service, or managed-cloud
 Audit posture.
+
+## Pure provenance contract
+
+`domain/provenance.py` and `adapters/provenance_contract.py` implement the
+provider-neutral `provenance/v1` contract core. The core validates exact
+Content, Assessment, and Audit references; canonicalizes owner envelopes; and
+validates bounded acyclic learning-lineage views with explicit incomplete
+links. Nodes are root-distance ordered and the complete public meaning is bound
+by a deterministic SHA-256 view digest.
+
+This pure seam does not read a repository, compose live owner records, resolve
+identity or permission, expose HTTP, or change the existing reconciliation
+operations. Content and Assessment remain authoritative for their records, and
+a lineage reference grants no access or grading, mastery, causal, legal, or
+financial meaning. Runtime owner adapters and protected lineage reads are
+dependent work, not behavior hidden in the contract adapter.

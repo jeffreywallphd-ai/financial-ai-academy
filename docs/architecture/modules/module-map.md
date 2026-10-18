@@ -19,7 +19,7 @@
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
 | Guidance | accepted; topic/context/feature contracts, immutable corpus and registries, application seam, protected Help APIs, generated clients, optional browser presentation, and isolated local live qualification implemented | Safe versioned platform explanations, exact contextual and feature-condition mappings, canonical-source facts, topic integrity, and deterministic literal search | Additive exact topic, context, and feature-condition projections |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
-| Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
+| Audit | accepted; knowledge-check and Project completion references plus pure learning-lineage v1 contract implemented | Append-oriented decision, provenance, administrative evidence, source-event integrity references, and bounded owner-reference correlation | Runtime lineage reads and exportable audit records remain future work |
 
 ## Boundary Notes
 
@@ -38,6 +38,10 @@
   network, clock, random, AI, host, or adapter dependency. Owning modules retain
   workflow, authorization, persistence, and result meaning.
 - Audit captures references and integrity evidence from owning modules without becoming a second business database.
+- The learning-lineage v1 contract lets Audit correlate closed Content,
+  Assessment, and Audit references in a bounded deterministic graph. It adds no
+  owner payload, cross-schema read, runtime operation, or permission; owner
+  adapters and protected composition remain separate delivery seams.
 - Personal workspace owns learner organization and learner-authored note content.
   Its typed references never copy target business state, grant permission, or
   mutate Content, Curriculum, Assessment, Learner model, Project, or later

@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "root": {
+    "root_kind": "published_lesson",
+    "resource": {
+      "owner_module": "content",
+      "resource_kind": "published_lesson",
+      "resource_id": "leçon-diversification-été",
+      "resource_version": "1.0.0",
+      "integrity_digest": "8888888888888888888888888888888888888888888888888888888888888888",
+      "recorded_at": "2026-08-05T16:00:00Z",
+      "validation_status": "incomplete"
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "lesson-unicode",
+      "envelope": {
+        "schema_version": "1.0.0",
+        "resource": {
+          "owner_module": "content",
+          "resource_kind": "published_lesson",
+          "resource_id": "leçon-diversification-été",
+          "resource_version": "1.0.0",
+          "integrity_digest": "8888888888888888888888888888888888888888888888888888888888888888",
+          "recorded_at": "2026-08-05T16:00:00Z",
+          "validation_status": "incomplete"
+        },
+        "producer": {"producer_id": "content.lesson-package", "producer_version": "1.0.0"},
+        "sources": []
+      }
+    }
+  ],
+  "edges": [],
+  "incomplete_links": [
+    {
+      "source_node_id": "lesson-unicode",
+      "relation": "published_from",
+      "target_owner_module": "content",
+      "target_resource_kind": "educational_source",
+      "target_resource_id": "source-diversification-été",
+      "reason": "unavailable"
+    }
+  ],
+  "truncated": false,
+  "view_digest": "a6628d57a5a74b7d6b971a465ebe7c48612f6bcc065243d61b003c4fe99ffe6f"
+}

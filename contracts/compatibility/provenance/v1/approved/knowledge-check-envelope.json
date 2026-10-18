@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "resource": {
+    "owner_module": "assessment",
+    "resource_kind": "completion_evidence",
+    "resource_id": "evidence-check-1",
+    "occurrence": 1,
+    "integrity_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+    "recorded_at": "2026-08-05T12:15:00Z",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "assessment.knowledge-check",
+    "producer_version": "1.0.0"
+  },
+  "sources": [
+    {
+      "relation": "produced",
+      "reference": {
+        "owner_module": "assessment",
+        "resource_kind": "knowledge_check_event",
+        "resource_id": "event-check-1",
+        "occurrence": 1,
+        "integrity_digest": "5555555555555555555555555555555555555555555555555555555555555555",
+        "recorded_at": "2026-08-05T12:15:00Z",
+        "validation_status": "validated"
+      }
+    },
+    {
+      "relation": "recorded_as",
+      "reference": {
+        "owner_module": "audit",
+        "resource_kind": "audit_reference",
+        "resource_id": "audit-event-check-1",
+        "occurrence": 1,
+        "integrity_digest": "7777777777777777777777777777777777777777777777777777777777777777",
+        "recorded_at": "2026-08-05T12:15:01Z",
+        "validation_status": "validated"
+      }
+    }
+  ]
+}

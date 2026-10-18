@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0.0",
+  "root": {
+    "root_kind": "knowledge_check_completion",
+    "resource": {
+      "owner_module": "assessment",
+      "resource_kind": "completion_evidence",
+      "resource_id": "evidence-check-1",
+      "occurrence": 1,
+      "integrity_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+      "recorded_at": "2026-08-05T12:15:00Z",
+      "validation_status": "validated"
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "source",
+      "envelope": {
+        "schema_version": "1.0.0",
+        "resource": {
+          "owner_module": "content",
+          "resource_kind": "educational_source",
+          "resource_id": "source-risk-return",
+          "resource_version": "2026.08.05",
+          "integrity_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+          "recorded_at": "2026-08-05T11:30:00Z",
+          "validation_status": "validated"
+        },
+        "producer": {"producer_id": "content.source", "producer_version": "1.0.0"},
+        "sources": []
+      }
+    },
+    {
+      "node_id": "lesson",
+      "envelope": {
+        "schema_version": "1.0.0",
+        "resource": {
+          "owner_module": "content",
+          "resource_kind": "published_lesson",
+          "resource_id": "intro-risk-return",
+          "resource_version": "1.0.0",
+          "integrity_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+          "recorded_at": "2026-08-05T12:00:00Z",
+          "validation_status": "validated"
+        },
+        "producer": {"producer_id": "content.lesson-package", "producer_version": "1.0.0"},
+        "sources": [
+          {
+            "relation": "published_from",
+            "reference": {
+              "owner_module": "content",
+              "resource_kind": "educational_source",
+              "resource_id": "source-risk-return",
+              "resource_version": "2026.08.05",
+              "integrity_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+              "recorded_at": "2026-08-05T11:30:00Z",
+              "validation_status": "validated"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "node_id": "definition",
+      "envelope": {
+        "schema_version": "1.0.0",
+        "resource": {
+          "owner_module": "assessment",
+          "resource_kind": "assessment_definition",
+          "resource_id": "check-1",
+          "resource_version": "1.0.0",
+          "integrity_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+          "recorded_at": "2026-08-05T12:00:00Z",
+          "validation_status": "validated"
+        },
+        "producer": {"producer_id": "assessment.definition", "producer_version": "1.0.0"},
+        "sources": [
+          {
+            "relation": "defined_by",
+            "reference": {
+              "owner_module": "content",
+              "resource_kind": "published_lesson",
+              "resource_id": "intro-risk-return",
+              "resource_version": "1.0.0",
+              "integrity_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+              "recorded_at": "2026-08-05T12:00:00Z",
+              "validation_status": "validated"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "node_id": "event",
+      "envelope": {
+        "schema_version": "1.0.0",
+        "resource": {
+          "owner_module": "assessment",
+          "resource_kind": "knowledge_check_event",
+          "resource_id": "event-check-1",
+          "occurrence": 1,
+          "integrity_digest": "5555555555555555555555555555555555555555555555555555555555555555",
+          "recorded_at": "2026-08-05T12:15:00Z",
+          "validation_status": "validated"
+        },
+        "producer": {"producer_id": "assessment.knowledge-check", "producer_version": "1.0.0"},
+        "sources": [
+          {
+            "relation": "defined_by",
+            "reference": {
+              "owner_module": "assessment",
+              "resource_kind": "assessment_definition",
+              "resource_id": "check-1",
+              "resource_version": "1.0.0",
+              "integrity_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+              "recorded_at": "2026-08-05T12:00:00Z",
+              "validation_status": "validated"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "node_id": "evidence",
+      "envelope": {
+        "schema_version": "1.0.0",
+        "resource": {
+          "owner_module": "assessment",
+          "resource_kind": "completion_evidence",
+          "resource_id": "evidence-check-1",
+          "occurrence": 1,
+          "integrity_digest": "6666666666666666666666666666666666666666666666666666666666666666",
+          "recorded_at": "2026-08-05T12:15:00Z",
+          "validation_status": "validated"
+        },
+        "producer": {"producer_id": "assessment.knowledge-check", "producer_version": "1.0.0"},
+        "sources": [
+          {
+            "relation": "produced",
+            "reference": {
+              "owner_module": "assessment",
+              "resource_kind": "knowledge_check_event",
+              "resource_id": "event-check-1",
+              "occurrence": 1,
+              "integrity_digest": "5555555555555555555555555555555555555555555555555555555555555555",
+              "recorded_at": "2026-08-05T12:15:00Z",
+              "validation_status": "validated"
+            }
+          },
+          {
+            "relation": "recorded_as",
+            "reference": {
+              "owner_module": "audit",
+              "resource_kind": "audit_reference",
+              "resource_id": "audit-event-check-1",
+              "occurrence": 1,
+              "integrity_digest": "7777777777777777777777777777777777777777777777777777777777777777",
+              "recorded_at": "2026-08-05T12:15:01Z",
+              "validation_status": "validated"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "node_id": "audit",
+      "envelope": {
+        "schema_version": "1.0.0",
+        "resource": {
+          "owner_module": "audit",
+          "resource_kind": "audit_reference",
+          "resource_id": "audit-event-check-1",
+          "occurrence": 1,
+          "integrity_digest": "7777777777777777777777777777777777777777777777777777777777777777",
+          "recorded_at": "2026-08-05T12:15:01Z",
+          "validation_status": "validated"
+        },
+        "producer": {"producer_id": "audit.reconciliation", "producer_version": "1.0.0"},
+        "sources": []
+      }
+    }
+  ],
+  "edges": [
+    {"source_node_id": "evidence", "target_node_id": "event", "relation": "produced"},
+    {"source_node_id": "evidence", "target_node_id": "audit", "relation": "recorded_as"},
+    {"source_node_id": "event", "target_node_id": "definition", "relation": "defined_by"},
+    {"source_node_id": "definition", "target_node_id": "lesson", "relation": "defined_by"},
+    {"source_node_id": "lesson", "target_node_id": "source", "relation": "published_from"}
+  ],
+  "incomplete_links": [],
+  "truncated": false,
+  "view_digest": "cc728cb9ffb5fd09825b504fbad5b7e81a567215a73d29141896f818abb17234"
+}

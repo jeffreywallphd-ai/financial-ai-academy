@@ -6,6 +6,7 @@ This directory is reserved for reviewed, executable, language-neutral contract a
 api/             generated OpenAPI snapshot
 common/          shared structural schemas
 guidance/        versioned platform-help and guidance records
+provenance/      provider-neutral provenance envelopes and bounded lineage
 events/          versioned event schemas and envelope
 providers/       provider and plugin manifests/capabilities
 learning/        portable learning records
@@ -33,3 +34,9 @@ surface condition to a reviewed limitation or recovery record. Closed actions
 carry presentation intent only; feature state, retry, availability,
 authorization, provider/model use, and artifact execution remain with their
 owning modules.
+
+The additive cross-module `provenance/v1` family defines closed owner-issued
+references, two exact initial learning roots, bounded lineage graphs, explicit
+incomplete links, and deterministic view digests. It contains no owner payload,
+permission, identity, provider, storage, execution, grading, or financial
+authority. See `docs/architecture/contracts/provenance-and-lineage-contract.md`.

@@ -41,7 +41,7 @@
       "title": "Contract architecture",
       "area": "contract",
       "source_version": "2026-10-18",
-      "content_fingerprint": "ac05c9adb97beb32b5a35e7b329ab0a6c016bb7c791c6d3328fbcab7f33c5463"
+      "content_fingerprint": "54c441f89a90ce1d10f292d3e65a463c9e62c396664158cd01a144fed42b66bd"
     }
   ],
   "related_topics": [
@@ -56,5 +56,5 @@
       "relationship": "see_also"
     }
   ],
-  "topic_digest": "42d50e48ff2c33d1f4439d95bd20cc9de172a20ae52a029b22592252fc4bad06"
+  "topic_digest": "7c60d4d1f6c814a8a10416b52b9afb70f77fbabe190a3eca1dbdf5f17607b9e8"
 }

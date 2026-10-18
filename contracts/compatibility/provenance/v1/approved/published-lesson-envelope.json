@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "resource": {
+    "owner_module": "content",
+    "resource_kind": "published_lesson",
+    "resource_id": "intro-risk-return",
+    "resource_version": "1.0.0",
+    "integrity_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+    "recorded_at": "2026-08-05T12:00:00Z",
+    "validation_status": "validated"
+  },
+  "producer": {
+    "producer_id": "content.lesson-package",
+    "producer_version": "1.0.0"
+  },
+  "sources": [
+    {
+      "relation": "published_from",
+      "reference": {
+        "owner_module": "content",
+        "resource_kind": "educational_source",
+        "resource_id": "source-risk-return",
+        "resource_version": "2026.08.05",
+        "integrity_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+        "recorded_at": "2026-08-05T11:30:00Z",
+        "validation_status": "validated"
+      }
+    }
+  ]
+}

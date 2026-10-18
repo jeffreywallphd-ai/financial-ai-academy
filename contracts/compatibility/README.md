@@ -33,3 +33,7 @@ explicitly approved breaking-change records live here.
   condition mappings, reviewed limitation/recovery records, closed presentation
   actions, source/topic correlation, and confidentiality denials without
   granting Guidance feature or execution authority.
+- [`provenance/v1/`](provenance/v1/README.md) fixes closed owner envelopes,
+  exact learning roots, bounded deterministic lineage, explicit incomplete
+  links, Unicode canonicalization, and safe denial behavior without copying
+  owner payloads or granting permission.

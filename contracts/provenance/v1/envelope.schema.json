@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/provenance/v1/envelope.schema.json",
+  "title": "Financial AI Academy provenance envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "resource", "producer", "sources"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "resource": {"$ref": "#/$defs/reference"},
+    "producer": {"$ref": "#/$defs/producer"},
+    "sources": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/source"}
+    }
+  },
+  "$defs": {
+    "identifier": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\s._:/\\\\?#][^\\s/\\\\?#]{0,127}$"},
+    "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"},
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "owner": {"enum": ["content", "assessment", "audit"]},
+    "resourceKind": {
+      "enum": [
+        "educational_source",
+        "published_lesson",
+        "assessment_definition",
+        "knowledge_check_event",
+        "completion_evidence",
+        "audit_reference"
+      ]
+    },
+    "relation": {"enum": ["published_from", "defined_by", "produced", "recorded_as"]},
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner_module",
+        "resource_kind",
+        "resource_id",
+        "integrity_digest",
+        "recorded_at",
+        "validation_status"
+      ],
+      "anyOf": [
+        {"required": ["resource_version"]},
+        {"required": ["occurrence"]}
+      ],
+      "properties": {
+        "owner_module": {"$ref": "#/$defs/owner"},
+        "resource_kind": {"$ref": "#/$defs/resourceKind"},
+        "resource_id": {"$ref": "#/$defs/identifier"},
+        "resource_version": {"$ref": "#/$defs/version"},
+        "occurrence": {"type": "integer", "minimum": 1},
+        "integrity_digest": {"$ref": "#/$defs/digest"},
+        "recorded_at": {"type": "string", "format": "date-time"},
+        "validation_status": {"enum": ["validated", "incomplete"]}
+      }
+    },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["producer_id", "producer_version"],
+      "properties": {
+        "producer_id": {"$ref": "#/$defs/identifier"},
+        "producer_version": {"$ref": "#/$defs/version"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation", "reference"],
+      "properties": {
+        "relation": {"$ref": "#/$defs/relation"},
+        "reference": {"$ref": "#/$defs/reference"}
+      }
+    }
+  }
+}

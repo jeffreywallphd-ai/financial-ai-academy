@@ -15,9 +15,9 @@
   "publication": {"state": "approved", "reviewed_on": "2026-10-18", "updated_at": "2026-10-18T00:00:00Z"},
   "source_references": [
     {"source_key": "architecture-principles", "title": "Architecture principles", "area": "architecture", "source_version": "2026-10-18", "content_fingerprint": "7ed7fc91381b48fb6b63c66b7f0caf24799fbe46cad8cd0762268ebb58f371ea"},
-    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "ac05c9adb97beb32b5a35e7b329ab0a6c016bb7c791c6d3328fbcab7f33c5463"},
+    {"source_key": "contract-architecture", "title": "Contract architecture", "area": "contract", "source_version": "2026-10-18", "content_fingerprint": "54c441f89a90ce1d10f292d3e65a463c9e62c396664158cd01a144fed42b66bd"},
     {"source_key": "financial-method-architecture", "title": "Financial method and simulation architecture", "area": "method", "source_version": "2026-10-18", "content_fingerprint": "24aca8e940ceb2d31232d3cf27542d5627fe179325eecc75428e384c6812e405"},
     {"source_key": "education-advice-boundary", "title": "Education versus financial advice", "area": "risk", "source_version": "2026-10-18", "content_fingerprint": "917c157fc1da47a686a609fd72e5d36d297c9b99254724e8adf8081a14ad33d6"}
   ],
-  "context_digest": "67dce8438de57fb14cf92c26201acb5d11b1070d72ad1bde7be5871a4356e94e"
+  "context_digest": "415e13723c33585b6318ad20628d19ffdb50bcd8c3561ab2a359db3569027cea"
 }

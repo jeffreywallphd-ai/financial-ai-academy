@@ -2,7 +2,7 @@
 
 - Status: accepted
 - Canonical for: contract classes, sources, generation, and ownership
-- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`, `job-delivery-contract.md`, `identity-provider-contract.md`, `content-package-contract.md`, `content-authoring-workflow-contract.md`
+- Related docs: `compatibility-and-versioning.md`, `provider-and-plugin-contracts.md`, `job-delivery-contract.md`, `identity-provider-contract.md`, `content-package-contract.md`, `content-authoring-workflow-contract.md`, `provenance-and-lineage-contract.md`
 
 ## Contract Classes
 
@@ -13,6 +13,7 @@
 | Provider/plugin manifests | JSON Schema | Schema files under `contracts/providers/` |
 | Portable learning and finance records | JSON Schema | Schema files under `contracts/learning/` and `contracts/finance/` |
 | Platform guidance projections | JSON Schema | Schema files under `contracts/guidance/` |
+| Provider-neutral provenance and bounded lineage | JSON Schema | Schema files under `contracts/provenance/` |
 | Internal application operations | Typed Python request/result models | Owning module public application surface |
 | Frontend client | Generated TypeScript | Generated from reviewed OpenAPI; never hand-edited |
 
@@ -143,6 +144,15 @@ admission, exact-version lookup, literal ranking, and corpus-bound cursor
 meaning. The initial pure seam persists nothing and exposes no API or browser
 surface; those are separately qualified dependent delivery seams.
 
+Provider-neutral learning provenance additionally follows the
+[provenance and lineage contract](provenance-and-lineage-contract.md). The
+additive `provenance/v1` family fixes exact owner-issued envelopes, two closed
+learning root selectors, bounded lineage graphs, explicit incomplete links,
+and deterministic view digests. Content, Assessment, and Audit retain their
+existing authority; shared references confer no payload, permission, grading,
+mastery, provider, legal, or financial meaning. The initial pure contract seam
+persists nothing and exposes no API or browser surface.
+
 Portable financial methods, portfolio records, and simulation results
 additionally follow
 [ADR-0015](../../adr/ADR-0015-market-data-portfolio-method-registry.md) and the
@@ -163,6 +173,9 @@ into Guidance.
 - The platform owns canonical terminology and schemas.
 - Providers translate to and from platform contracts.
 - A contract has one owning module or cross-cutting owner, a version, compatibility policy, examples, and conformance tests.
+- Cross-module provenance contracts retain each resource owner's authority.
+  Audit may validate and correlate bounded references but cannot copy owner
+  payloads, infer missing facts, or make a reference grant access.
 - Exact wire shape belongs in executable schemas. Semantic rules and module ownership belong in canonical documentation.
 - Assessment owns mutable practice-draft and deterministic retry-state
   contracts; Curriculum owns exact practice-review targets; Learner model owns

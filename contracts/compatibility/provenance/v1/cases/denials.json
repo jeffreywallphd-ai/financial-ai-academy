@@ -1,0 +1,50 @@
+[
+  {
+    "id": "private-learner-field",
+    "target": "published_lesson_envelope",
+    "ops": [{"op": "set", "path": ["resource", "learner_id"], "value": "private-learner"}],
+    "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "copied-domain-payload",
+    "target": "lineage_view",
+    "ops": [{"op": "set", "path": ["nodes", 0, "envelope", "payload"], "value": {"answer": "private"}}],
+    "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "unsafe-resource-url",
+    "target": "published_lesson_envelope",
+    "ops": [{"op": "set", "path": ["resource", "resource_id"], "value": "https://example.invalid/private"}],
+    "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "unsupported-owner-kind",
+    "target": "published_lesson_envelope",
+    "ops": [{"op": "set", "path": ["resource", "owner_module"], "value": "audit"}],
+    "expected_code": "provenance.invalid"
+  },
+  {
+    "id": "changed-view-digest",
+    "target": "lineage_view",
+    "ops": [{"op": "set", "path": ["view_digest"], "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}],
+    "expected_code": "provenance.invalid"
+  },
+  {
+    "id": "detached-lineage-node",
+    "target": "lineage_view",
+    "ops": [{"op": "remove", "path": ["edges", 4]}],
+    "expected_code": "provenance.invalid"
+  },
+  {
+    "id": "unknown-relation",
+    "target": "lineage_view",
+    "ops": [{"op": "set", "path": ["edges", 0, "relation"], "value": "trained_by"}],
+    "expected_code": "provenance.schema_invalid"
+  },
+  {
+    "id": "oversized-sources",
+    "target": "published_lesson_envelope",
+    "ops": [{"op": "repeat", "path": ["sources"], "count": 21}],
+    "expected_code": "provenance.schema_invalid"
+  }
+]
