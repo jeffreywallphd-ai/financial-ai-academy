@@ -1,7 +1,7 @@
 ---
 id: WRK-0166
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/generated/api-client", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/guidance", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/tests/integration/api/test_single_profile_guidance_api.py", "backend/tests/unit/guidance", "backend/tests/unit/identity/test_identity_service.py", "contracts/api/README.md", "contracts/api/openapi.json", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0166-compose-platform-help-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 9fd11b3f13fd7e36839ed665cf43c47fca567fae
+claim_id: WRK-0166:b2dbf125-2742-451c-b8c1-3d8b0eba23a7
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T02:34:09Z
 ---
 
 # Agent Work Packet: Compose the Platform Help API
