@@ -13,9 +13,9 @@ parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/guidance", "backend/tests/contract/platform_help", "backend/tests/unit/guidance", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/platform-help/v1", "contracts/guidance", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0165-freeze-platform-help-contracts.md"]
 generated_artifacts: []
 base_revision: a418a290ee28693d75659346e4401bc3994c32ab
-claim_id: WRK-0165:759c9b99-64a9-47d5-8990-ad67361d598c
+claim_id: WRK-0165:ccd634b1-1c90-46ef-8414-b2e4d02ae74e
 claimed_by: codex-cap-0020
-claimed_at: 2026-10-18T02:19:30Z
+claimed_at: 2026-10-18T02:20:34Z
 ---
 
 # Agent Work Packet: Freeze Platform Help Contracts
