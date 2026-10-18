@@ -286,6 +286,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0192 | Work packet | [Present Accountable History to Learners](work-packets/WRK-0192-present-accountable-history-to-learners.md) | complete | SLI-0108 | WRK-0191 | none | codex-cap-0026 | 2026-10-18 |
 | WRK-0193 | Work packet | [Qualify Live Accountable History](work-packets/WRK-0193-qualify-live-accountable-history.md) | complete | SLI-0108 | WRK-0192 | none | codex-cap-0026 | 2026-10-18 |
 | WRK-0194 | Work packet | [Qualify Complete Provenance and History](work-packets/WRK-0194-qualify-complete-provenance-and-history.md) | complete | SLI-0109 | WRK-0183, WRK-0188, WRK-0193 | none | codex-cap-0026 | 2026-10-18 |
+| WRK-0195 | Work packet | [Freeze Learning Progress Contracts](work-packets/WRK-0195-freeze-learning-progress-contracts.md) | ready | SLI-0038 | none | none | codex-cap-0009 | 2026-10-18 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

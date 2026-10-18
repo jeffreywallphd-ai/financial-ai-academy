@@ -228,7 +228,7 @@ each packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| JIT-A | Freeze learner-progress v1 schemas, compatibility corpus, Assessment family replay surfaces, pure normalization/digest/order rules, and anti-rigidity cases | none | none | captured |
+| WRK-0195 | [Freeze Learning Progress Contracts](../work-packets/WRK-0195-freeze-learning-progress-contracts.md) | none | none | ready |
 | JIT-B | Compose family-isolated Learner-model source adapters, application behavior, PostgreSQL migration/repository, replay/conflict/interruption evidence, and contributor documentation | JIT-A | none | captured |
 | JIT-C | Expose the protected progress API, confidential failure mapping, reviewed OpenAPI, and generated TypeScript client for browser and headless callers | JIT-B | none | captured |
 | JIT-D | Deliver the plain-language accessible `Your learning progress` browser flow through only the generated client | JIT-C | none | captured |
