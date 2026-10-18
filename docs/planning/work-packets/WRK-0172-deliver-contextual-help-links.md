@@ -1,7 +1,7 @@
 ---
 id: WRK-0172
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -171,6 +171,27 @@ qualification gap. Confirm no backend, generated artifact, feature contract,
 persistence, identity, provider/model, learner authority, or financial
 behavior changed.
 
+## Completion Evidence
+
+- The generated public client now reads one exact contextual-help document and
+  exposes server-owned labels and ordered topic references beside the approved
+  lesson, practice-result, Project-result, and AI-assistance surfaces.
+- Web validation closes the complete response boundary, including exact
+  context identity, source/publication facts, a one-to-ten reference bound,
+  unique topic identities and purposes, and safe optional failure.
+- Topic navigation accepts only reviewed same-origin Help, lesson, practice,
+  Project, and AI-assistance return destinations; arbitrary or extended
+  destinations fail closed.
+- Focused and aggregate evidence covers variable valid reference count/order,
+  duplicate and over-bound rejection, one bounded session renewal, unavailable
+  Help, protected-write containment, accessibility, themes, reflow, generated-
+  client continuity, static build, documentation, learner language, and
+  architecture boundaries.
+- No backend, public schema, generated artifact, feature contract, persistence,
+  identity, provider/model, learner authority, or financial behavior changed.
+  Live browser/headless restart and containment qualification remains in the
+  dependent packet captured by SLI-0083.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0171 completed. The packet adds
@@ -188,3 +209,6 @@ behavior changed.
   still forbidding protected writes, and the two stale lesson screenshots are
   refreshed as verification artifacts for already-delivered navigation and
   Saved-learning UI. No feature behavior or approval boundary changes.
+- 2026-10-18: Completed after fresh exact-candidate verification covered all
+  thirteen affected checks. The bounded feature links are ready for the
+  dependent live browser/headless qualification packet.
