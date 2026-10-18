@@ -525,6 +525,11 @@ class SelectionTests(unittest.TestCase):
                 "control-plane:verification",
                 "platform-help:browser",
             ],
+            "dev-tools/control-plane/check_feature_guidance.py": [
+                "control-plane:unit",
+                "control-plane:verification",
+                "guidance:feature-qualification",
+            ],
             "dev-tools/control-plane/financial_academy_checks.py": [
                 "control-plane:unit",
                 "control-plane:verification",
@@ -539,6 +544,47 @@ class SelectionTests(unittest.TestCase):
                     "agent:readiness",
                     [item["check_id"] for item in plan["selected"]],
                 )
+
+    def test_feature_guidance_changes_select_focused_security_and_readiness_checks(
+        self,
+    ) -> None:
+        plan = select_checks(
+            repository_catalog(),
+            "a" * 40,
+            [
+                "backend/src/financial_ai_academy/modules/guidance/"
+                "domain/feature_guidance.py"
+            ],
+        )
+        self.assertEqual(
+            [
+                "guidance:feature-qualification",
+                "architecture:integrity",
+                "security:feature-guidance",
+                "agent:readiness",
+            ],
+            [item["check_id"] for item in plan["selected"]],
+        )
+
+    def test_feature_guidance_wrapper_uses_prepared_python_and_bound_digest(
+        self,
+    ) -> None:
+        definition = next(
+            check
+            for check in repository_catalog().checks
+            if check.check_id == "guidance:feature-qualification"
+        )
+        wrapper = HERE / "check_feature_guidance.py"
+        wrapper_digest = file_digest(wrapper)
+        self.assertEqual(CURRENT_PYTHON_ARGUMENT, definition.argv[0])
+        self.assertEqual(
+            control_plane_file_argument("check_feature_guidance.py", wrapper_digest),
+            definition.argv[1],
+        )
+        self.assertEqual(
+            ("--self-sha256", wrapper_digest, "--root", ".", "--mode", "feature-guidance"),
+            definition.argv[2:],
+        )
 
     def test_roadmap_server_check_uses_prepared_runtime_wrapper(self) -> None:
         definition = next(

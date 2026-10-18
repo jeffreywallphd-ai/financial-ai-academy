@@ -10,7 +10,7 @@ capability: CAP-0020
 depends_on: [WRK-0173]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["backend/src/financial_ai_academy/modules/guidance/adapters/__init__.py", "backend/src/financial_ai_academy/modules/guidance/adapters/feature_guidance_contract.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_corpus.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_feature_guidance_registry.py", "backend/src/financial_ai_academy/modules/guidance/domain/__init__.py", "backend/src/financial_ai_academy/modules/guidance/domain/feature_guidance.py", "backend/src/financial_ai_academy/modules/guidance/resources/README.md", "backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/project-artifact-use.json", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/safe-recovery.json", "backend/tests/contract/feature_guidance", "backend/tests/unit/guidance/test_feature_guidance.py", "backend/tests/unit/guidance/test_immutable_corpus.py", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/feature-guidance/v1", "contracts/guidance/README.md", "contracts/guidance/feature-guidance/v1", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md"]
+write_scope: ["backend/src/financial_ai_academy/modules/guidance/adapters/__init__.py", "backend/src/financial_ai_academy/modules/guidance/adapters/feature_guidance_contract.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_corpus.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_feature_guidance_registry.py", "backend/src/financial_ai_academy/modules/guidance/domain/__init__.py", "backend/src/financial_ai_academy/modules/guidance/domain/feature_guidance.py", "backend/src/financial_ai_academy/modules/guidance/resources/README.md", "backend/src/financial_ai_academy/modules/guidance/resources/feature-guidance/v1", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/project-artifact-use.json", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/safe-recovery.json", "backend/tests/contract/feature_guidance", "backend/tests/unit/guidance/test_feature_guidance.py", "backend/tests/unit/guidance/test_immutable_corpus.py", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/feature-guidance/v1", "contracts/guidance/README.md", "contracts/guidance/feature-guidance/v1", "dev-tools/control-plane/check_feature_guidance.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md"]
 generated_artifacts: []
 base_revision: 85fa0748d52290076b702c5a2c5bbdb5565b0c87
 claim_id: WRK-0174:f1e320d6-47ab-4087-a919-5c3cda7a9e9c
@@ -249,3 +249,17 @@ authority, or financial behavior changed.
   feature-guidance contract/core seam and passing focused, architecture,
   security, documentation, planning, and aggregate readiness checks. No
   material CAP/slice drift or decision gate was found.
+- 2026-10-18: Refined the bounded verification seam after isolated affected-
+  check selection omitted the new contract/domain suites. The packet now owns
+  one feature-guidance check wrapper plus the catalog and catalog tests needed
+  to bind focused Guidance, security, and aggregate readiness evidence to the
+  exact candidate. This is a verification correction inside the existing
+  slice outcome, not a feature, API, runtime, or CAP-package expansion.
+- 2026-10-18: Re-entered active correction while preserving the submitted
+  candidate. Work is limited to source completeness and exact-candidate check
+  selection; all other contract/core boundaries remain frozen.
+- 2026-10-18: Returned to verification after completing the bounded source-
+  completeness and check-selection correction. The focused 90-test Guidance
+  suite, catalog tests, architecture, security, documentation, planning, and
+  29-check aggregate readiness gate pass; corrected exact-candidate
+  verification remains next.

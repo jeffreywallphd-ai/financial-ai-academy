@@ -35,6 +35,12 @@ def catalog() -> CheckCatalog:
     platform_help_wrapper_digest = (
         "sha256:" + hashlib.sha256(platform_help_wrapper.read_bytes()).hexdigest()
     )
+    feature_guidance_wrapper = Path(__file__).resolve().with_name(
+        "check_feature_guidance.py"
+    )
+    feature_guidance_wrapper_digest = (
+        "sha256:" + hashlib.sha256(feature_guidance_wrapper.read_bytes()).hexdigest()
+    )
     web_check = (
         python,
         control_plane_file_argument("check_approved_lesson.py", wrapper_digest),
@@ -78,6 +84,18 @@ def catalog() -> CheckCatalog:
         ".",
         "--mode",
         "platform-help-browser",
+    )
+    feature_guidance_check = (
+        python,
+        control_plane_file_argument(
+            "check_feature_guidance.py", feature_guidance_wrapper_digest
+        ),
+        "--self-sha256",
+        feature_guidance_wrapper_digest,
+        "--root",
+        ".",
+        "--mode",
+        "feature-guidance",
     )
     web_source_paths = (
         "apps/web/src/**",
@@ -199,6 +217,15 @@ def catalog() -> CheckCatalog:
         "apps/web/src/features/*.tsx",
         "apps/web/src/features/**/*.tsx",
     )
+    feature_guidance_paths = (
+        "backend/src/financial_ai_academy/modules/guidance/**",
+        "backend/tests/contract/feature_guidance/**",
+        "backend/tests/contract/contextual_help/**",
+        "backend/tests/contract/platform_help/**",
+        "backend/tests/unit/guidance/**",
+        "contracts/guidance/feature-guidance/**",
+        "contracts/compatibility/feature-guidance/**",
+    )
     documentation_paths = (
         "apps/web/README.md",
         "deployments/local/README.md",
@@ -207,11 +234,11 @@ def catalog() -> CheckCatalog:
         *roadmap_document_paths,
     )
     return CheckCatalog(
-        "financial-ai-academy-v8",
+        "financial-ai-academy-v9",
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
             CheckDefinition("control-plane:review", (python, "dev-tools/control-plane/test_review.py"), ("dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py"), "medium", 11, description="Technical review, corrected-descendant, and review-ledger behavior"),
-            CheckDefinition("control-plane:verification", (python, "dev-tools/control-plane/test_verification.py"), ("dev-tools/control-plane/verification.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/check_presentation_preferences.py", "dev-tools/control-plane/check_assistance_preferences.py", "dev-tools/control-plane/check_platform_help.py", "dev-tools/control-plane/test_verification.py"), "medium", 12, description="Affected-selection, repository-check, and receipt behavior"),
+            CheckDefinition("control-plane:verification", (python, "dev-tools/control-plane/test_verification.py"), ("dev-tools/control-plane/verification.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/check_approved_lesson.py", "dev-tools/control-plane/check_presentation_preferences.py", "dev-tools/control-plane/check_assistance_preferences.py", "dev-tools/control-plane/check_platform_help.py", "dev-tools/control-plane/check_feature_guidance.py", "dev-tools/control-plane/test_verification.py"), "medium", 12, description="Affected-selection, repository-check, and receipt behavior"),
             CheckDefinition("planning:tools", (python, "dev-tools/planning/test_planning_tools.py"), ("dev-tools/planning/**", "docs/planning/**"), "medium", 20, description="Planning-tool behavior"),
             CheckDefinition("planning:integrity", (python, "dev-tools/planning/check_planning.py"), ("dev-tools/planning/**", "docs/planning/**"), "low", 30, description="Planning artifact integrity"),
             CheckDefinition("documentation:integrity", (python, "dev-tools/documentation/check_docs.py"), ("docs/**", "AGENTS.md", *documentation_paths), "low", 40, description="Documentation and context integrity"),
@@ -222,7 +249,9 @@ def catalog() -> CheckCatalog:
             CheckDefinition("roadmap-review:server", (*web_check, "--mode", "roadmap-server"), roadmap_server_paths, "medium", 46, description="Roadmap review read-only server behavior"),
             CheckDefinition("roadmap-review:typecheck", (*web_check, "--mode", "roadmap-typecheck"), roadmap_source_paths, "medium", 47, description="Roadmap review TypeScript boundary"),
             CheckDefinition("roadmap-review:unit", (*web_check, "--mode", "roadmap-unit"), roadmap_unit_paths, "medium", 48, description="Roadmap review DOM and view-model behavior"),
+            CheckDefinition("guidance:feature-qualification", feature_guidance_check, (*feature_guidance_paths, "dev-tools/control-plane/check_feature_guidance.py"), "high", 49, description="Feature-guidance schemas, compatibility, pure core, immutable registries, source binding, and compilation"),
             CheckDefinition("architecture:integrity", (python, "dev-tools/architecture/check_architecture.py"), ("backend/**", "contracts/**", "docs/architecture/**"), "high", 50, description="Architecture boundary checks"),
+            CheckDefinition("security:feature-guidance", (python, "dev-tools/security/check_slice_security.py"), feature_guidance_paths, "high", 51, description="Feature-guidance security, privacy, and authority controls"),
             CheckDefinition("local:architecture", (python, "tests/architecture/test_approved_lesson_boundaries.py"), local_composition_paths, "medium", 51, description="Local composition and approved-lesson boundary checks"),
             CheckDefinition("web:typecheck", (*web_check, "--mode", "typecheck"), (*web_source_paths, *mocked_browser_paths, *presentation_browser_paths, *assistance_browser_paths, *platform_help_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths, "apps/web/tsconfig.json"), "medium", 52, description="Web TypeScript boundary"),
             CheckDefinition("web:lint", (*web_check, "--mode", "lint"), (*web_source_paths, *mocked_browser_paths, *presentation_browser_paths, *assistance_browser_paths, *platform_help_browser_paths, *project_browser_paths, *approved_browser_paths, *roadmap_browser_paths), "medium", 54, description="Web source and test lint"),
@@ -238,6 +267,6 @@ def catalog() -> CheckCatalog:
             CheckDefinition("roadmap-review:browser", (*web_check, "--mode", "roadmap"), (*roadmap_behavior_paths, *roadmap_browser_paths), "medium", 66, timeout_seconds=120, description="Roadmap review Chromium behavior"),
             CheckDefinition("local:node-syntax", (*web_check, "--mode", "local-scripts"), local_script_paths, "medium", 68, description="Local Node runner syntax"),
             CheckDefinition("approved-lesson:live", (*web_check, "--mode", "live"), (*approved_browser_paths, *live_runtime_paths, "dev-tools/control-plane/check_approved_lesson.py"), "high", 70, timeout_seconds=300, description="Live PostgreSQL, Python, static browser, and pinned Chromium qualification"),
-            CheckDefinition("agent:readiness", (python, "dev-tools/agent/check_ready.py"), ("dev-tools/agent/**", ".github/workflows/**", "docs/planning/skills/**"), "high", 90, timeout_seconds=180, description="Shared agent-support readiness suite"),
+            CheckDefinition("agent:readiness", (python, "dev-tools/agent/check_ready.py"), ("dev-tools/agent/**", ".github/workflows/**", "docs/planning/skills/**", *feature_guidance_paths), "high", 90, timeout_seconds=180, description="Shared agent-support readiness suite"),
         ),
     )

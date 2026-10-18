@@ -56,6 +56,16 @@ def test_default_corpus_is_atomically_admitted_with_stable_provenance() -> None:
         for source in topic.source_references
     )
     assert corpus.get("approved-help", "1.0.0").title == "Approved help"
+    safe_recovery = corpus.get("safe-recovery", "1.0.0")
+    assert {source.source_key for source in safe_recovery.source_references} == {
+        "assessment-contract",
+        "user-facing-language",
+    }
+    assert all(
+        source.content_fingerprint
+        == PLATFORM_HELP_SOURCE_FINGERPRINTS[source.source_key]
+        for source in safe_recovery.source_references
+    )
     assert PLATFORM_HELP_MANIFEST_VERSION == "1.0.0"
     assert REQUIRED_PLATFORM_HELP_IDENTITIES <= {
         (topic.topic_id, topic.topic_version) for topic in corpus.topics

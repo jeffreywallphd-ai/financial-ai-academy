@@ -39,6 +39,13 @@
       "area": "risk",
       "source_version": "2026-10-18",
       "content_fingerprint": "dbde9accd04fe3f438855290341a2bcd3a00bdd5db109c38e303d0b216aa355a"
+    },
+    {
+      "source_key": "assessment-contract",
+      "title": "Assessment contract",
+      "area": "contract",
+      "source_version": "2026-10-18",
+      "content_fingerprint": "50227c013b7a7f41545de266fb59adbe51067defeb42c083839510b9cc09ad4a"
     }
   ],
   "related_topics": [
@@ -48,5 +55,5 @@
       "relationship": "see_also"
     }
   ],
-  "topic_digest": "37c8784027716b6b2caddfb6f09c07ba75fefd7ec197136572106a942a71a35c"
+  "topic_digest": "9ed017881d3fac274922303a941cfe34908c15ab1ad553386869c7f311ac9357"
 }
