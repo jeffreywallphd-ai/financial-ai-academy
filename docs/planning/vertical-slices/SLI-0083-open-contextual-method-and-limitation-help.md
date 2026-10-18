@@ -1,7 +1,7 @@
 ---
 id: SLI-0083
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -193,7 +193,7 @@ start. The dependency-ordered seams are:
 | [WRK-0170](../work-packets/WRK-0170-freeze-contextual-help-contracts-and-registry.md) | Add the exact context contract, pure validation/digest behavior, reviewed source-bound starter topics, immutable registry, compatibility fixtures, and focused anti-rigidity tests | SLI-0082 | none | complete |
 | [WRK-0171](../work-packets/WRK-0171-compose-contextual-help-api.md) | Add the Guidance application/public exact-context read, protected API, reviewed OpenAPI, generated client, and authorization/failure tests | WRK-0170 | none | complete |
 | [WRK-0172](../work-packets/WRK-0172-deliver-contextual-help-links.md) | Add generated-client contextual links and safe return behavior to the bounded lesson, practice, Project, and AI-assistance surfaces with focused component/browser accessibility evidence | WRK-0171 | none | complete |
-| [WRK-0173](../work-packets/WRK-0173-qualify-contextual-help-live-flow.md) | Prove exact browser/headless parity, source/digest correlation, denial, restart, no-outbound behavior, read-only containment, accessibility, anti-rigidity, and cleanup | WRK-0172 | none | verifying |
+| [WRK-0173](../work-packets/WRK-0173-qualify-contextual-help-live-flow.md) | Prove exact browser/headless parity, source/digest correlation, denial, restart, no-outbound behavior, read-only containment, accessibility, anti-rigidity, and cleanup | WRK-0172 | none | complete |
 
 Sequential delivery is the default because the seams share Guidance contracts,
 corpus/registry admission, generated client, Web routing, and live-runner
@@ -247,18 +247,37 @@ Fix a bounded issue in scope or route optional presentation polish to CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery will reconcile the Guidance boundary and resource contribution rules,
-context/topic contracts and compatibility guidance, protected API/OpenAPI and
-generated client, bounded feature README and user-facing behavior, local
-runtime/architecture assurance, known gaps, this slice, its packets, the CAP,
-and the planning register.
+WRK-0170 through WRK-0173 are complete. Together they deliver the additive
+`contextual-help/v1` contract, exact Guidance registry and protected API,
+generated-client links on the four bounded feature surfaces, closed return
+targets, and cumulative live qualification without changing the owning feature
+contracts or learner state.
 
-Completion evidence must name exact candidates and receipts; context/topic
-identities and source fingerprints; browser/headless parity; authorization and
-safe failures; return behavior; restart/offline-local results; non-loopback
-observation; read-only containment; accessibility; anti-rigidity; cleanup;
-compatibility impact; unsupported deployment profiles; residual gaps; and
-CAP-package conformance. Approval and reviewer records remain ignored.
+- Contract, compatibility, pure-domain, API, authorization, generated-client,
+  component, focused Chromium, replay, restart, containment, architecture,
+  security, documentation, language, design-system, and aggregate evidence all
+  passed. Malformed, dangling, duplicate, stale, unavailable, confidential,
+  path-escaping, digest-drifted, and over-bound inputs fail closed while varied
+  valid counts, ordering, copy, themes, viewport, zoom, forced colors, and
+  reduced motion remain supported.
+- The exact final candidate and qualifying receipt are recorded in WRK-0173.
+  Its live check includes all 87 pure replay cases, the four context keys and
+  referenced exact topics, browser/headless equality, source and digest
+  correlation, confidential denial, safe returns, normal restart,
+  loopback-only observation, GET-only Guidance containment, and bounded
+  cleanup. Aggregate readiness passed all 29 checks.
+- Guidance remains explanatory and read-only. Feature modules, canonical
+  sources, deterministic policy, identity, persistence, provider/model ports,
+  learner evidence, grading, eligibility, recommendations, and financial
+  behavior retain their existing authority. No migration, backup, or recovery
+  action was required.
+- The delivered local profile is qualified. Managed cloud, public hosting,
+  production load/availability, operating-system network isolation,
+  multi-browser certification, external providers/content, and a separate
+  headless-AI mode remain outside this slice. Degraded-feature troubleshooting
+  remains SLI-0084; corpus-wide and cumulative Help closure remains SLI-0085.
+- The result conforms to the current CAP-0020 outcome and four-slice manifest;
+  no material capability drift or unresolved decision was found.
 
 ## Planning History
 
@@ -274,3 +293,11 @@ CAP-package conformance. Approval and reviewer records remain ignored.
 - 2026-10-18: Activated WRK-0173 from clean base `5fcd3f1` after confirming the
   completed WRK-0172 dependency, current CAP authority, qualification-only
   scope, and no unresolved decision or active coordination collision.
+- 2026-10-18: Entered deterministic verification after WRK-0170 through
+  WRK-0173 completed and the final exact candidate passed affected verification
+  plus aggregate readiness. No material CAP-0020 drift or decision gate was
+  introduced.
+- 2026-10-18: Completed after the structural completion gate confirmed all
+  four dependency-ordered packets, retained claim/base evidence, current CAP
+  membership, and complete documentation evidence. SLI-0084 is the next
+  manifest slice.

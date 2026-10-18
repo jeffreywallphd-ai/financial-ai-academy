@@ -85,7 +85,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0076 | Vertical slice | [Control AI Help and Local Reminders](vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md) | complete | CAP-0018 | SLI-0074 | none | codex-cap-0018 | 2026-10-18 |
 | SLI-0077 | Vertical slice | [Qualify Complete Learning Preferences](vertical-slices/SLI-0077-qualify-complete-learning-preferences.md) | complete | CAP-0018 | SLI-0074, SLI-0075, SLI-0076 | none | codex-cap-0018 | 2026-10-18 |
 | SLI-0082 | Vertical slice | [Browse and Search Approved Help](vertical-slices/SLI-0082-browse-search-approved-help.md) | complete | CAP-0020 | none | none | codex-cap-0020 | 2026-10-18 |
-| SLI-0083 | Vertical slice | [Open Contextual Method and Limitation Help](vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md) | active | CAP-0020 | SLI-0082 | none | codex-cap-0020 | 2026-10-18 |
+| SLI-0083 | Vertical slice | [Open Contextual Method and Limitation Help](vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md) | complete | CAP-0020 | SLI-0082 | none | codex-cap-0020 | 2026-10-18 |
 | SLI-0122 | Vertical slice | [Choose Learning Opportunities in Plain Language](vertical-slices/SLI-0122-choose-learning-opportunities-in-plain-language.md) | complete | CAP-0030 | none | none | codex-plain-language-ui | 2026-10-16 |
 | SLI-0123 | Vertical slice | [Understand Learning Path State in Plain Language](vertical-slices/SLI-0123-understand-learning-path-state-in-plain-language.md) | complete | CAP-0030 | SLI-0122 | none | codex-plain-language-ui | 2026-10-16 |
 | SLI-0124 | Vertical slice | [Understand Lesson, Check, and Completion](vertical-slices/SLI-0124-understand-lesson-check-and-completion.md) | complete | CAP-0030 | SLI-0122 | none | codex-plain-language-ui | 2026-10-16 |
@@ -257,7 +257,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0170 | Work packet | [Freeze Contextual Help Contracts and Registry](work-packets/WRK-0170-freeze-contextual-help-contracts-and-registry.md) | complete | SLI-0083 | WRK-0168 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0171 | Work packet | [Compose the Contextual Help API](work-packets/WRK-0171-compose-contextual-help-api.md) | complete | SLI-0083 | WRK-0170 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0172 | Work packet | [Deliver Contextual Help Links](work-packets/WRK-0172-deliver-contextual-help-links.md) | complete | SLI-0083 | WRK-0171 | none | codex-cap-0020 | 2026-10-18 |
-| WRK-0173 | Work packet | [Qualify the Contextual Help Live Flow](work-packets/WRK-0173-qualify-contextual-help-live-flow.md) | verifying | SLI-0083 | WRK-0172 | none | codex-cap-0020 | 2026-10-18 |
+| WRK-0173 | Work packet | [Qualify the Contextual Help Live Flow](work-packets/WRK-0173-qualify-contextual-help-live-flow.md) | complete | SLI-0083 | WRK-0172 | none | codex-cap-0020 | 2026-10-18 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |
 | DEC-0003 | Decision request | [Choose the Initial Versioned Lesson Package](decision-requests/DEC-0003-versioned-lesson-package-format.md) | complete | none | none | resolved by ADR-0007 | unassigned | 2026-08-04 |

@@ -1,7 +1,7 @@
 ---
 id: WRK-0173
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -209,6 +209,41 @@ contract, registry/corpus meaning, generated client, identity, persistence,
 provider/model, external content/action, learner policy, or financial behavior
 changed, then leave SLI-0083 closure-ready.
 
+## Completion Evidence
+
+- Exact candidate `0e28a968b7a3b77830b42850027c025800af427e`
+  produced the qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0173/0e28a968b7a3b77830b42850027c025800af427e/20261018T054455Z-61b890ee-2f83-4956-8cf5-53657fbe2567.json`;
+  its SHA-256 digest is
+  `2fca6409ff2065101bf3992c12509837ed00c920913f3a174bca8b28dafa558b`.
+- The selected live check executed all 87 pure replay cases before its isolated
+  PostgreSQL, Python, static-browser, and pinned-Chromium topology. Capture
+  closure, confidentiality, digest/path integrity, varied valid ordering,
+  purpose uniqueness, failure propagation, restart equality, and bounded
+  cleanup therefore belong to the exact-candidate receipt rather than to an
+  unrecorded side check.
+- The live journey read `ai-assistance`, `lesson-publication`,
+  `practice-result`, and `project-result` plus every referenced exact topic
+  through the protected public Guidance API. Browser-session and ordinary
+  headless responses, context/topic digests, source/publication facts, and
+  normal-restart meaning matched; missing authorization remained confidential.
+- Browser observation remained loopback-only. The Guidance-only containment
+  window made GET-only Help reads and left every non-Identity database schema
+  unchanged. Focused feature evidence retained safe returns, optional-failure
+  isolation, keyboard and axe coverage, supported themes and reflow, forced
+  colors, reduced motion, and variable valid context/reference shapes.
+- All nine controller-selected checks passed on the exact candidate:
+  control-plane lifecycle, planning tools and integrity, documentation,
+  architecture, local composition, Web typecheck and zero-warning lint, and
+  the complete approved-lesson qualification. Aggregate agent readiness also
+  passed all 29 checks; `git diff --check` and Python compilation passed.
+- No product contract, context or topic meaning, generated client, identity,
+  persistence, provider/model behavior, external content/action, learner
+  policy, or financial behavior changed in this packet. No migration or
+  rollback data was required. Public hosting, managed cloud, production load
+  and availability, operating-system network isolation, multi-browser
+  certification, and a separate headless-AI mode remain unqualified.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0172 completed. This is the
@@ -229,3 +264,7 @@ changed, then leave SLI-0083 closure-ready.
   module. The bounded live runner now executes that module before starting
   infrastructure, so the already-selected exact-candidate check must prove
   replay and live qualification together without widening product scope.
+- 2026-10-18: Completed after the corrected exact candidate bound all pure
+  replay cases into the selected live topology and passed affected verification
+  plus aggregate readiness. The correction changed qualification orchestration
+  only and left the SLI-0083 product boundary intact.
