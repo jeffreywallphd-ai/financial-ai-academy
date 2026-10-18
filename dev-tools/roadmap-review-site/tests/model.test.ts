@@ -36,6 +36,12 @@ function review(): RoadmapReview {
       proposed_order: ["PLAN-1", "PLAN-2"],
       unresolved_ties: [["PLAN-1", "PLAN-2"]],
       constraints: { accepted_sequence: [], stable_id_order_is_authority: false },
+      next_after_current: {
+        assumed_complete: ["PLAN-1"],
+        lanes: [{ unit_id: "PLAN-2", lifecycle_status: "complete", dependencies: ["PLAN-1"] }],
+        unresolved_ties: [],
+        constraints: { grants_authority: false, stable_id_order_is_authority: false, assumes_current_lanes_complete: true },
+      },
     },
     compatibility: {
       pairs: [
@@ -102,7 +108,12 @@ describe("roadmap overview model", () => {
     }];
     expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: contradictory } })).toThrow(/missing or incompatible/);
     contradictory.current_allocation.parallel_groups = [["PLAN-1"], ["PLAN-2"]];
+    contradictory.ordering.next_after_current.assumed_complete = ["PLAN-1", "PLAN-2"];
+    contradictory.ordering.next_after_current.lanes = [];
     expect(assertRoadmapEnvelope({ outcome: "succeeded", data: { review: contradictory } }).data.review.current_allocation.parallel_groups).toHaveLength(2);
+    const malformedNext = review();
+    malformedNext.ordering.next_after_current.lanes[0]!.dependencies = [""];
+    expect(() => assertRoadmapEnvelope({ outcome: "succeeded", data: { review: malformedNext } })).toThrow(/missing or incompatible/);
     expect(() => assertRoadmapEnvelope(null)).toThrow(/not an object/);
   });
 

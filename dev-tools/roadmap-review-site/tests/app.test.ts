@@ -46,6 +46,12 @@ function fixture(): RoadmapReview {
       ready: [{ id: "CAP-X", reasons: ["ready"] }],
       blocked: [{ id: "CAP-FUTURE", reasons: ["dependencies.incomplete"], incomplete_dependencies: ["CAP-X"], remediation: "Complete CAP-X." }], completed: ["CONTROL-X"], in_progress: [], proposed_order: ["CAP-X", "CONTROL-X", "CAP-FUTURE"],
       unresolved_ties: [["CAP-X", "CONTROL-X"]], constraints: { accepted_sequence: [], stable_id_order_is_authority: false },
+      next_after_current: {
+        assumed_complete: ["CONTROL-X", "CAP-X"],
+        lanes: [{ unit_id: "CAP-FUTURE", lifecycle_status: "ready", dependencies: ["CAP-X"] }],
+        unresolved_ties: [],
+        constraints: { grants_authority: false, stable_id_order_is_authority: false, assumes_current_lanes_complete: true },
+      },
     },
     compatibility: {
       pairs: [{ left: "CAP-X", right: "CONTROL-X", decision: "compatible", confidence: "high", reasons: [{ code: "scope.disjoint", evidence: ["CAP-X", "CONTROL-X"] }], remediation: "None." }],
@@ -78,18 +84,19 @@ describe("roadmap overview DOM", () => {
     mountRoadmap(root, fixture());
     expect(root.querySelector(".results-status")?.textContent).toBe("Showing 26 of 26 product capabilities.");
     expect(Array.from(root.querySelectorAll("a")).filter((link) => link.getAttribute("href")?.startsWith("/capability/"))).toHaveLength(27);
-    expect(root.textContent).toContain("make future ordering a global lock");
+    expect(root.textContent).toContain("makes future ordering a global lock");
     expect(root.textContent).toContain("CONTROL-X + CAP-X");
     expect(root.textContent).toContain("do not replace any of the 26");
     const orderLinks = Array.from(root.querySelectorAll(".order-list .order-link")).map((link) => link.textContent);
-    expect(orderLinks).toEqual(["CONTROL-X: Control plane", "CAP-X: Structured lessons"]);
+    expect(orderLinks).toEqual(["CONTROL-X: Control plane", "CAP-X: Structured lessons", "CAP-FUTURE: CAP-FUTURE"]);
     const firstOrderItem = root.querySelector(".order-list .order-item");
     expect(firstOrderItem?.textContent).toContain("in progress");
     expect(firstOrderItem?.textContent).toContain("Planning status: complete");
     expect(firstOrderItem?.querySelector('[aria-label="Current work state: in progress"]')).toBeTruthy();
-    expect(root.querySelector(".order-list")?.textContent).not.toContain("CAP-FUTURE");
+    expect(root.querySelector(".order-list")?.textContent).toContain("Next after CONTROL-X, CAP-X");
+    expect(root.querySelector(".order-list")?.textContent).toContain("Dependencies: CAP-X");
     expect(root.textContent).toContain("CAP-FUTURE");
-    expect(root.querySelectorAll(".order-list .card-meta")).toHaveLength(2);
+    expect(root.querySelectorAll(".order-list .card-meta")).toHaveLength(3);
   });
 
   it("distinguishes sequential current lanes without treating unknown pairs as safe", () => {

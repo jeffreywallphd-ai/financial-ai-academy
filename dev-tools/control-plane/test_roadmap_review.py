@@ -15,7 +15,7 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from contracts import ControlError  # noqa: E402
-from financial_academy_roadmap_review import projection  # noqa: E402
+from financial_academy_roadmap_review import _next_after_current, projection  # noqa: E402
 from financial_academy_portfolio import allocation_result  # noqa: E402
 from roadmap_review import build_projection, safe_document, validate_catalog  # noqa: E402
 
@@ -380,6 +380,64 @@ class RoadmapReviewTests(unittest.TestCase):
         blocked_ids = {item["id"] for item in result["ordering"]["blocked"]}
         current_ids = {lane["unit_id"] for lane in result["current_allocation"]["lanes"]}
         self.assertTrue(blocked_ids.isdisjoint(current_ids))
+
+    def test_current_repository_projects_the_next_two_ready_capabilities(self) -> None:
+        def capability(
+            node_id: str,
+            status: str,
+            dependencies: tuple[str, ...] = (),
+            gates: tuple[str, ...] = (),
+        ) -> dict:
+            return {
+                "id": node_id,
+                "kind": "capability",
+                "status": status,
+                "parent": None,
+                "dependencies": [
+                    {"target": dependency, "type": "hard"}
+                    for dependency in dependencies
+                ],
+                "decision_gates": list(gates),
+            }
+
+        graph = {
+            "schema_version": "portfolio-graph-v1",
+            "issues": [],
+            "nodes": [
+                capability("CAP-0001", "complete"),
+                capability("CAP-0006", "complete"),
+                capability("CAP-0020", "ready", ("CAP-0001",)),
+                capability("CAP-0026", "ready", ("CAP-0001",)),
+                capability("CAP-0009", "ready", ("CAP-0001", "CAP-0006"), ("DEC-0009",)),
+                capability("CAP-0024", "ready", ("CAP-0026",), ("DEC-0011", "DEC-0012", "DEC-0017")),
+            ],
+        }
+        upcoming = _next_after_current(
+            graph,
+            allocation={
+                "lanes": [
+                    {"unit_id": "CAP-0020"},
+                    {"unit_id": "CAP-0026"},
+                ]
+            },
+            authority_current={"CAP-0009", "CAP-0020", "CAP-0024", "CAP-0026"},
+            decisions=[
+                {"id": decision_id, "status": "complete", "decision_record": f"records/{decision_id}.md"}
+                for decision_id in ("DEC-0009", "DEC-0011", "DEC-0012", "DEC-0017")
+            ],
+        )
+        self.assertEqual(
+            [lane["unit_id"] for lane in upcoming["lanes"]],
+            ["CAP-0009", "CAP-0024"],
+        )
+        dependencies = {
+            lane["unit_id"]: lane["dependencies"] for lane in upcoming["lanes"]
+        }
+        self.assertEqual(dependencies["CAP-0009"], ["CAP-0001", "CAP-0006"])
+        self.assertEqual(dependencies["CAP-0024"], ["CAP-0026"])
+        self.assertEqual(upcoming["unresolved_ties"], [["CAP-0009", "CAP-0024"]])
+        self.assertFalse(upcoming["constraints"]["grants_authority"])
+        self.assertFalse(upcoming["constraints"]["stable_id_order_is_authority"])
 
     def test_cli_is_one_read_only_projection_command(self) -> None:
         before = (REPO / "docs/product/capability-catalog.json").read_bytes()

@@ -109,6 +109,23 @@ export interface CurrentAllocation {
   };
 }
 
+export interface NextCapabilityLane {
+  unit_id: string;
+  lifecycle_status: string;
+  dependencies: string[];
+}
+
+export interface NextAfterCurrent {
+  assumed_complete: string[];
+  lanes: NextCapabilityLane[];
+  unresolved_ties: string[][];
+  constraints: {
+    grants_authority: false;
+    stable_id_order_is_authority: false;
+    assumes_current_lanes_complete: true;
+  };
+}
+
 export interface RoadmapReview {
   schema_version: "roadmap-review-v1";
   catalog_count: number;
@@ -123,6 +140,7 @@ export interface RoadmapReview {
     proposed_order: string[];
     unresolved_ties: string[][];
     constraints: { accepted_sequence: string[]; stable_id_order_is_authority: boolean };
+    next_after_current: NextAfterCurrent;
   };
   compatibility: {
     pairs: CompatibilityPair[];
@@ -201,6 +219,10 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
   const groups = Array.isArray(allocation?.parallel_groups) ? allocation.parallel_groups : [];
   const unresolvedPairs = Array.isArray(allocation?.unresolved_pairs) ? allocation.unresolved_pairs : [];
   const laneIds = lanes.map((lane) => lane.unit_id);
+  const next = review?.ordering?.next_after_current;
+  const nextLanes = Array.isArray(next?.lanes) ? next.lanes : [];
+  const nextLaneIds = nextLanes.map((lane) => lane.unit_id);
+  const nextTies = Array.isArray(next?.unresolved_ties) ? next.unresolved_ties : [];
   const groupedIds = groups.every((group) => Array.isArray(group)) ? groups.flat() : [];
   const groupById = new Map<string, number>();
   groups.forEach((group, index) => group.forEach((id) => groupById.set(id, index)));
@@ -233,6 +255,30 @@ export function assertRoadmapEnvelope(value: unknown): RoadmapEnvelope {
     allocation?.constraints?.creates_agents !== false ||
     allocation?.constraints?.mutates_branches !== false ||
     allocation?.constraints?.future_order_is_global_lock !== false ||
+    !Array.isArray(next?.assumed_complete) ||
+    next.assumed_complete.some((id) => typeof id !== "string" || !id) ||
+    next.assumed_complete.length !== new Set(next.assumed_complete).size ||
+    next.assumed_complete.length !== laneIds.length ||
+    next.assumed_complete.some((id) => !laneIds.includes(id)) ||
+    !Array.isArray(next?.lanes) ||
+    nextLanes.some((lane) =>
+      !lane.unit_id ||
+      typeof lane.lifecycle_status !== "string" ||
+      !Array.isArray(lane.dependencies) ||
+      lane.dependencies.some((dependency) => typeof dependency !== "string" || !dependency)
+    ) ||
+    nextLaneIds.length !== new Set(nextLaneIds).size ||
+    nextLaneIds.some((id) => laneIds.includes(id)) ||
+    !Array.isArray(next?.unresolved_ties) ||
+    nextTies.some((tie) =>
+      !Array.isArray(tie) ||
+      tie.length < 2 ||
+      tie.length !== new Set(tie).size ||
+      tie.some((id) => !nextLaneIds.includes(id))
+    ) ||
+    next?.constraints?.grants_authority !== false ||
+    next?.constraints?.stable_id_order_is_authority !== false ||
+    next?.constraints?.assumes_current_lanes_complete !== true ||
     lanes.some((lane) => !lane.unit_id || !["in-progress", "proposed"].includes(lane.allocation_state)) ||
     groups.some((group) => !Array.isArray(group) || group.length === 0) ||
     laneIds.length !== new Set(laneIds).size ||

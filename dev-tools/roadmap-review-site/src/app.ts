@@ -67,7 +67,7 @@ function renderOrder(review: RoadmapReview): HTMLElement {
   const note = element(
     "p",
     "authority-note",
-    "These current lanes mirror the default control-plane allocation proposal. They do not accept priority, grant authority, acquire a lease, or make future ordering a global lock.",
+    "Current lanes mirror the default control-plane allocation. The next lanes show what becomes dependency-ready after those current lanes complete. Neither view accepts priority, grants authority, acquires a lease, or makes future ordering a global lock.",
   );
   section.append(note);
   const list = element("ol", "order-list");
@@ -93,7 +93,27 @@ function renderOrder(review: RoadmapReview): HTMLElement {
     );
     list.append(item);
   }
-  if (review.current_allocation.lanes.length) {
+  const assumedComplete = review.ordering.next_after_current.assumed_complete;
+  for (const lane of review.ordering.next_after_current.lanes) {
+    const id = lane.unit_id;
+    const item = element("li", "order-item");
+    const link = element("a", "order-link", `${id}: ${titleFor(review, id)}`);
+    const candidate = review.candidates.find((entry) => entry.planning_id === id);
+    link.href = candidate ? `/capability/${encodeURIComponent(candidate.key)}` : `/cap/${encodeURIComponent(id)}`;
+    const timing = assumedComplete.length
+      ? `Next after ${assumedComplete.join(", ")}`
+      : "Next dependency-ready lane";
+    const dependencies = lane.dependencies.length
+      ? `Dependencies: ${lane.dependencies.join(", ")}`
+      : "No capability dependency";
+    item.append(
+      link,
+      statusBadge(lane.lifecycle_status, "Planning state"),
+      element("span", "card-meta", `${timing} · ${dependencies}`),
+    );
+    list.append(item);
+  }
+  if (review.current_allocation.lanes.length || review.ordering.next_after_current.lanes.length) {
     section.append(list);
   } else {
     section.append(element("p", "empty-state", "No capability is currently active or dependency-ready. Future ordering remains advisory."));
@@ -103,6 +123,14 @@ function renderOrder(review: RoadmapReview): HTMLElement {
     const ties = element("ul", "plain-list");
     for (const group of review.ordering.unresolved_ties) {
       ties.append(element("li", "", `${group.join(", ")} — no relative product priority has been accepted.`));
+    }
+    section.append(heading, ties);
+  }
+  if (review.ordering.next_after_current.unresolved_ties.length) {
+    const heading = element("h3", "subheading", "Next-lane ties");
+    const ties = element("ul", "plain-list");
+    for (const group of review.ordering.next_after_current.unresolved_ties) {
+      ties.append(element("li", "", `${group.join(", ")} — shown in deterministic display order; no relative product priority has been accepted.`));
     }
     section.append(heading, ties);
   }
