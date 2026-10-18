@@ -30,6 +30,8 @@ const VERSION = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$/;
 const TIMESTAMP =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
 const EXPORT_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/;
+const TIMESTAMP_PARTS =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(?:Z|([+-])(\d{2}):(\d{2}))$/;
 const SAFE_TEXT =
   // oxlint-disable-next-line no-control-regex -- Control and formatting characters are explicitly rejected at the browser trust boundary.
   /^[^<>\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufeff]+$/u;
@@ -128,10 +130,46 @@ function text(value: unknown, maximum: number): value is string {
 
 function timestamp(value: unknown, canonicalUtc = false): value is string {
   const pattern = canonicalUtc ? EXPORT_TIMESTAMP : TIMESTAMP;
+  if (typeof value !== "string" || !pattern.test(value)) return false;
+  const parts = TIMESTAMP_PARTS.exec(value);
+  if (!parts) return false;
+
+  const year = Number(parts[1]);
+  const month = Number(parts[2]);
+  const day = Number(parts[3]);
+  const hour = Number(parts[4]);
+  const minute = Number(parts[5]);
+  const second = Number(parts[6]);
+  const offsetHour = parts[9] === undefined ? 0 : Number(parts[9]);
+  const offsetMinute = parts[10] === undefined ? 0 : Number(parts[10]);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [
+    31,
+    leapYear ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  const maximumDay = daysInMonth[month - 1] ?? 0;
+
   return (
-    typeof value === "string" &&
-    pattern.test(value) &&
-    !Number.isNaN(Date.parse(value))
+    year >= 1 &&
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= maximumDay &&
+    hour <= 23 &&
+    minute <= 59 &&
+    second <= 59 &&
+    offsetHour <= 23 &&
+    offsetMinute <= 59
   );
 }
 
@@ -195,6 +233,26 @@ function rootMatches(
     root.root_kind === request.root_kind &&
     root.resource_id === request.evidence_id &&
     root.occurrence === request.occurrence
+  );
+}
+
+function entryMatchesRoot(
+  value: unknown,
+  request: AccountableHistoryRequest,
+): boolean {
+  const entry = record(value);
+  if (!entry) return false;
+  if (request.root_kind === "published_lesson") {
+    return (
+      entry.resource_kind === "published_lesson" &&
+      entry.resource_id === request.package_id &&
+      entry.resource_version === request.package_version
+    );
+  }
+  return (
+    entry.resource_kind === "completion_evidence" &&
+    entry.resource_id === request.evidence_id &&
+    entry.occurrence === request.occurrence
   );
 }
 
@@ -294,6 +352,11 @@ function documentIsSafe(
     document.entries.map((entry) => record(entry)?.entry_id),
   );
   if (entryIds.size !== document.entries.length || entryIds.has(undefined))
+    return false;
+  if (
+    document.entries.filter((entry) => entryMatchesRoot(entry, request))
+      .length !== 1
+  )
     return false;
 
   if (

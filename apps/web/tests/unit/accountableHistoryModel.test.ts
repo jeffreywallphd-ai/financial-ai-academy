@@ -4,6 +4,7 @@ import {
   accountableHistoryDocumentIsSafe,
   portableEvidenceExportIsSafe,
   type AccountableHistoryDocument,
+  type CompletionHistoryRequest,
   type PortableEvidenceExport,
   type PublishedLessonHistoryRequest,
 } from "../../src/features/accountable-history/model";
@@ -120,10 +121,95 @@ describe("accountable history runtime validation", () => {
         value.root.resource_id = "other-lesson";
       },
     ],
+    [
+      "missing matching root entry",
+      (value: Record<string, any>) => {
+        value.entries[1].resource_id = "other-lesson";
+      },
+    ],
+    [
+      "wrong matching root version",
+      (value: Record<string, any>) => {
+        value.entries[1].resource_version = "2.0.0";
+      },
+    ],
   ])("rejects %s without weakening the rest of the shape", (_name, change) => {
     const changed = clone(document) as unknown as Record<string, any>;
     change(changed);
     expect(accountableHistoryDocumentIsSafe(changed, request)).toBe(false);
+  });
+
+  it("requires exactly one disclosed entry to match the lesson root", () => {
+    const changed = clone(document) as unknown as Record<string, any>;
+    changed.entries.push({
+      ...clone(changed.entries[1]),
+      sequence: 3,
+      entry_id: "duplicate-lesson",
+    });
+    expect(accountableHistoryDocumentIsSafe(changed, request)).toBe(false);
+  });
+
+  it("requires exactly one disclosed entry to match the completion root", () => {
+    const completionRequest = {
+      schema_version: "1.0.0",
+      root_kind: "knowledge_check_completion",
+      placement_id: "placement-1",
+      evidence_id: "evidence-1",
+      occurrence: 2,
+    } satisfies CompletionHistoryRequest;
+    const completionDocument = clone(document) as unknown as Record<
+      string,
+      any
+    >;
+    completionDocument.root = {
+      root_kind: "knowledge_check_completion",
+      resource_id: "evidence-1",
+      occurrence: 2,
+    };
+    completionDocument.entries[1] = {
+      ...completionDocument.entries[1],
+      entry_id: "completion",
+      role: "recorded",
+      owner_module: "assessment",
+      resource_kind: "completion_evidence",
+      resource_id: "evidence-1",
+      occurrence: 2,
+    };
+    delete completionDocument.entries[1].resource_version;
+    completionDocument.transformations[0].source_entry_id = "completion";
+
+    expect(
+      accountableHistoryDocumentIsSafe(completionDocument, completionRequest),
+    ).toBe(true);
+    completionDocument.entries[1].occurrence = 1;
+    expect(
+      accountableHistoryDocumentIsSafe(completionDocument, completionRequest),
+    ).toBe(false);
+  });
+
+  it.each([
+    "0000-01-01T00:00:00Z",
+    "2026-02-29T12:00:00Z",
+    "2026-02-30T12:00:00Z",
+    "2026-13-01T12:00:00Z",
+    "2026-01-01T24:00:00Z",
+    "2026-01-01T12:60:00Z",
+    "2026-01-01T12:00:60Z",
+    "2026-01-01T12:00:00+24:00",
+    "2026-01-01T12:00:00+01:60",
+  ])("rejects impossible history time %s", (recordedAt) => {
+    const changed = clone(document) as unknown as Record<string, any>;
+    changed.entries[0].recorded_at = recordedAt;
+    expect(accountableHistoryDocumentIsSafe(changed, request)).toBe(false);
+  });
+
+  it.each([
+    "2024-02-29T23:59:59.123456Z",
+    "2026-01-01T00:00:00+23:59",
+  ])("accepts valid history time %s", (recordedAt) => {
+    const changed = clone(document) as unknown as Record<string, any>;
+    changed.entries[0].recorded_at = recordedAt;
+    expect(accountableHistoryDocumentIsSafe(changed, request)).toBe(true);
   });
 
   it("accepts only a root-matched portable wrapper with canonical UTC export time", () => {
@@ -149,6 +235,15 @@ describe("accountable history runtime validation", () => {
         {
           ...portable,
           exported_at: "2026-08-05T16:15:01+00:00",
+        },
+        request,
+      ),
+    ).toBe(false);
+    expect(
+      portableEvidenceExportIsSafe(
+        {
+          ...portable,
+          exported_at: "2026-02-30T16:15:01Z",
         },
         request,
       ),
