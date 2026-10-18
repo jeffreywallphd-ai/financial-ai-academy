@@ -1,7 +1,7 @@
 ---
 id: WRK-0169
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020-correction
 updated: 2026-10-18
@@ -137,6 +137,30 @@ and remaining live qualification. Confirm no schema, generated client, corpus,
 ranking, identity, persistence, provider/model, learner-policy, or financial
 behavior changed, then leave WRK-0168 ready to resume.
 
+## Completion Evidence
+
+- Exact corrected candidate `ffe211217ba0f0e2be4ecd0d4fd72c0dac390b06`
+  produced qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0169/ffe211217ba0f0e2be4ecd0d4fd72c0dac390b06/20261018T034513Z-8d8fe25c-d77b-4b06-9d44-fff226d6396f.json`
+  with digest
+  `sha256:3ade0cee4679cf7b295d54ca52415c821720981acf0736fcf9faf4924c6a0b92`.
+- Search responses now validate through the closed API model, omit unset
+  optional metadata, and restore only the required `next_cursor`. Continued
+  pages carry a nonempty opaque cursor; terminal pages carry explicit `null`.
+- Seven focused Guidance API tests and thirteen platform-help contract tests
+  passed. Both terminal and continued HTTP documents validate against the
+  executable Draft 2020-12 schema; OpenAPI and the generated client remain
+  unchanged and current.
+- All five selected exact-candidate checks passed: planning tools and
+  integrity, documentation, architecture, and generated-client compatibility.
+  Architecture, security, whitespace, and all 29 aggregate readiness checks
+  also passed with the workspace temp root configured for the sandbox.
+- Independent review found and then closed one substantive optional-null
+  conformance issue on the corrected descendant, with no remaining or new
+  findings. No schema, corpus, ranking, identity, persistence, provider/model,
+  learner-policy, external-action, or financial behavior changed. WRK-0168 is
+  ready to resume the unchanged live qualification.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0168 live Chromium received a
@@ -151,3 +175,6 @@ behavior changed, then leave WRK-0168 ready to resume.
   retaining nulls also emitted contract-invalid optional null members. The
   correction remains bounded to the existing route, API evidence, contract
   note, and packet; fresh schema-backed evidence and re-review are required.
+- 2026-10-18: Completed corrected descendant `ffe2112` after schema-backed
+  terminal/continued evidence, exact-candidate checks, aggregate readiness,
+  and independent closure review passed with no open findings.
