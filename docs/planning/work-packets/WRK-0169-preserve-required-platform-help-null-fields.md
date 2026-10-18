@@ -1,7 +1,7 @@
 ---
 id: WRK-0169
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020-correction
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/hosts/api/app.py", "backend/tests/integration/api/test_single_profile_guidance_api.py", "docs/architecture/contracts/platform-help-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0168-qualify-platform-help-live-flow.md", "docs/planning/work-packets/WRK-0169-preserve-required-platform-help-null-fields.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 9fbe65f5ed0b47b0176c4850ec2d5cea75c58d3c
+claim_id: WRK-0169:6b5c8496-590a-4b3c-9910-812fe90014e8
+claimed_by: codex-cap-0020-correction
+claimed_at: 2026-10-18T03:34:42Z
 ---
 
 # Agent Work Packet: Preserve Required Platform Help Null Fields
@@ -145,3 +145,6 @@ behavior changed, then leave WRK-0168 ready to resume.
   nullable `next_cursor`. The correction is isolated from qualification,
   remains inside approved SLI-0082, and requires no durable decision or lower-
   level approval.
+- 2026-10-18: Activated from clean recorded base `9fbe65f` after validating
+  current CAP authority, the completed API dependency, the bounded correction
+  route, exact file ownership, and no active coordination collision.
