@@ -1,7 +1,7 @@
 ---
 id: WRK-0176
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -209,8 +209,8 @@ changed.
 
 ## Verification Evidence
 
-Implementation is complete pending exact-candidate qualification and
-independent technical review. The browser revalidates exact mapping/record
+Implementation is complete on exact candidate
+`e8580334005122d4f5d2bb1d983b5c7340542459`. The browser revalidates exact mapping/record
 correlation and both SHA-256 digests, retries one expired learner session, and
 collapses every denied or invalid response to an optional unavailable outcome.
 The shared accessible explanation is placed beside the exact lesson, practice,
@@ -239,6 +239,16 @@ rejection, varied valid copy/action/reference/applicability counts and order,
 server-order rendering, and feature-owned handler gating. The corrected focused
 typecheck and 28 platform-help/lesson component tests pass.
 
+The corrected candidate qualified through 13 selected control-plane checks.
+Its immutable receipt is
+`.local-codex/control-plane/receipts/WRK-0176/e8580334005122d4f5d2bb1d983b5c7340542459/20261018T065426Z-73a973be-5215-4c85-85ac-821c4aa61aec.json`
+with digest
+`sha256:d98f4eb77417f392068a37b1326b8a649f0cfb9c941d5176d5396ea4e5f56785`.
+The aggregate readiness gate reports 29 of 29 checks ready. Both bounded
+technical findings are closed and no open technical finding remains. Final
+browser/headless restart, containment, and cleanup evidence belongs to the
+dependent live-qualification packet.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0175 completed. The packet
@@ -258,3 +268,7 @@ typecheck and 28 platform-help/lesson component tests pass.
   high-risk reader/validator regression evidence for renewal, denial, abort,
   digest/correlation/shape rejection, flexible valid ordering, and explicit
   action ownership. Fresh exact-candidate verification remains before closure.
+- 2026-10-18: Closed on corrected candidate `e858033` after exact-candidate
+  qualification, 29-of-29 aggregate readiness, and closure of both bounded
+  technical findings without a new finding. Live containment and restart
+  evidence remains assigned to the final dependent packet.
