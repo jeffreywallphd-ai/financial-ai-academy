@@ -1,7 +1,7 @@
 ---
 id: SLI-0084
 kind: vertical-slice
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -270,19 +270,57 @@ CAP-0031.
 
 ## Documentation Impact and Completion Evidence
 
-Delivery will reconcile the Guidance resource/contribution rules, feature-
-guidance contract and compatibility guidance, protected API/OpenAPI/generated
-client, affected Web feature behavior, local runtime and architecture
-assurance, known gaps, this slice, its packets, CAP-0020, and the planning
-register.
+The Guidance resource rules, feature-guidance contract, protected API,
+OpenAPI/generated client, five Web placements, local runtime, architecture
+assurance, known-gap register, packets, and planning register are synchronized.
+All four required packets are complete and linked above.
 
-Completion evidence must identify exact candidates and receipts; record,
-mapping, source, and topic identities; browser/headless parity; authorization
-and confidentiality; each integrated condition and fallback; uncertain-write
-meaning; restart/offline-local behavior; loopback-only observation; read-only
-containment; accessibility; anti-rigidity; cleanup; compatibility impact;
-unsupported profiles; residual gaps; and CAP-package conformance. Local
-authority and technical-disposition records remain ignored.
+Delivered evidence is additive and read-only. `feature-guidance/v1` admits one
+immutable exact mapping/record registry correlated to canonical sources and
+exact Help topics. The protected public operation is shared by browser and
+headless clients. Optional explanations preserve owning status/action for an
+unavailable lesson version, uncertain practice write, unavailable Saved-
+learning source, inert Project artifact, and provider-disabled AI-help choice.
+
+Exact candidate `1f746a029ff3dbfd3d683eb07cf23213dfab7dfa`
+produced the qualifying receipt
+`.local-codex/control-plane/receipts/WRK-0177/1f746a029ff3dbfd3d683eb07cf23213dfab7dfa/20261018T071021Z-43f7fec6-108e-41f5-a995-042b6e3212aa.json`
+with receipt digest
+`sha256:c886da4956467d370d9665f1ade11b9467a32fa8decc9044f2b40732f37bb322`.
+All 11 selected checks passed, including contract/core/API/security,
+architecture, Web type/lint, complete live qualification, and the 29-check
+aggregate readiness gate. Supplemental direct checks passed 507 Web tests, 90
+focused Guidance checks, 87 replay cases, 17 architecture checks, the complete
+Chromium topology, build, documentation, planning, design-system, Python-
+compilation, and whitespace validation.
+
+Failure evidence covers missing/malformed/stale/unknown data, both digest and
+identity mismatch, missing and invalid-session denial, missing exact versions,
+optional UI failure, one-session renewal, repeated denial, abort, safe-handler
+gating, and no partial display. Accessibility evidence covers semantic heading
+order, keyboard/focus, axe, themes, narrow and 200-percent-text-equivalent
+reflow, forced colors, and reduced motion. Anti-rigidity fixtures vary safe
+copy and action/reference counts and order without whole-prose, fixed-count,
+pixel, or incidental-request assertions.
+
+The live flow proves equal browser/headless public meaning, both canonical
+digests, source/topic correlation, normal restart without reseeding,
+loopback-only GET observation, unchanged non-Identity database fingerprints,
+and bounded success/failure cleanup. No database migration, learner-state
+migration, backup, or rollback data is required; the optional projection can
+roll back with its API/client/UI until a public exact version requires an
+additive successor.
+
+Managed-cloud availability, operating-system network isolation, production
+load/recovery, remote content, authoring/refresh, personalization/analytics,
+non-Chromium certification, multiple real learners, and a separate headless-AI
+mode were not qualified. The local single-profile session and checked-in
+registry are the explicit assumptions. Those residual gaps remain recorded in
+the assurance gap register. Delivery conforms to the approved CAP-0020 outcome,
+ordering, safety posture, and material-change boundaries; no lower-level
+completion approval exists or is required. SLI-0085 remains the final approved
+CAP slice for cumulative freshness, link, search, safe-rendering,
+accessibility, offline-local, extension, and anti-rigidity qualification.
 
 ## Planning History
 
@@ -297,5 +335,10 @@ authority and technical-disposition records remain ignored.
 - 2026-10-18: WRK-0176 implemented the digest-validating generated-client
   reader, optional accessible explanation, exact same-application Help links,
   feature-owned safe handlers, five public-condition placements, and flexible
-  component/Chromium evidence. Exact-candidate qualification and independent
-  review remain in progress before packet closure.
+  component/Chromium evidence, then completed on a qualifying corrected
+  candidate with no open technical finding.
+- 2026-10-18: WRK-0177 added five-condition browser/headless capture, closed
+  replay validation, confidential denials, source/topic/digest correlation,
+  normal-restart equality, loopback GET observation, database containment, and
+  bounded cleanup. All four packets and the slice completion gate passed, so
+  SLI-0084 closed without CAP drift or a lower-level approval.
