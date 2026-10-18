@@ -84,7 +84,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | SLI-0075 | Vertical slice | [Set Accessible Display Preferences](vertical-slices/SLI-0075-set-accessible-display-preferences.md) | complete | CAP-0018 | SLI-0074 | none | codex-cap-0018 | 2026-10-17 |
 | SLI-0076 | Vertical slice | [Control AI Help and Local Reminders](vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md) | complete | CAP-0018 | SLI-0074 | none | codex-cap-0018 | 2026-10-18 |
 | SLI-0077 | Vertical slice | [Qualify Complete Learning Preferences](vertical-slices/SLI-0077-qualify-complete-learning-preferences.md) | complete | CAP-0018 | SLI-0074, SLI-0075, SLI-0076 | none | codex-cap-0018 | 2026-10-18 |
-| SLI-0082 | Vertical slice | [Browse and Search Approved Help](vertical-slices/SLI-0082-browse-search-approved-help.md) | active | CAP-0020 | none | none | codex-cap-0020 | 2026-10-18 |
+| SLI-0082 | Vertical slice | [Browse and Search Approved Help](vertical-slices/SLI-0082-browse-search-approved-help.md) | complete | CAP-0020 | none | none | codex-cap-0020 | 2026-10-18 |
 | SLI-0122 | Vertical slice | [Choose Learning Opportunities in Plain Language](vertical-slices/SLI-0122-choose-learning-opportunities-in-plain-language.md) | complete | CAP-0030 | none | none | codex-plain-language-ui | 2026-10-16 |
 | SLI-0123 | Vertical slice | [Understand Learning Path State in Plain Language](vertical-slices/SLI-0123-understand-learning-path-state-in-plain-language.md) | complete | CAP-0030 | SLI-0122 | none | codex-plain-language-ui | 2026-10-16 |
 | SLI-0124 | Vertical slice | [Understand Lesson, Check, and Completion](vertical-slices/SLI-0124-understand-lesson-check-and-completion.md) | complete | CAP-0030 | SLI-0122 | none | codex-plain-language-ui | 2026-10-16 |
@@ -251,7 +251,7 @@ Reserve new identifiers through `dev-tools/planning/reserve_id.py` before creati
 | WRK-0165 | Work packet | [Freeze Platform Help Contracts](work-packets/WRK-0165-freeze-platform-help-contracts.md) | complete | SLI-0082 | none | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0166 | Work packet | [Compose the Platform Help API](work-packets/WRK-0166-compose-platform-help-api.md) | complete | SLI-0082 | WRK-0165 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0167 | Work packet | [Deliver the Platform Help Browser Flow](work-packets/WRK-0167-deliver-platform-help-browser-flow.md) | complete | SLI-0082 | WRK-0166 | none | codex-cap-0020 | 2026-10-18 |
-| WRK-0168 | Work packet | [Qualify the Platform Help Live Flow](work-packets/WRK-0168-qualify-platform-help-live-flow.md) | verifying | SLI-0082 | WRK-0167, WRK-0169 | none | codex-cap-0020 | 2026-10-18 |
+| WRK-0168 | Work packet | [Qualify the Platform Help Live Flow](work-packets/WRK-0168-qualify-platform-help-live-flow.md) | complete | SLI-0082 | WRK-0167, WRK-0169 | none | codex-cap-0020 | 2026-10-18 |
 | WRK-0169 | Work packet | [Preserve Required Platform Help Null Fields](work-packets/WRK-0169-preserve-required-platform-help-null-fields.md) | complete | SLI-0082 | WRK-0166 | none | codex-cap-0020-correction | 2026-10-18 |
 | DEC-0001 | Decision request | [Assign Ownership for the First Learning Loop](decision-requests/DEC-0001-learning-module-ownership.md) | complete | none | none | resolved by ADR-0005 | unassigned | 2026-08-04 |
 | DEC-0002 | Decision request | [Establish Local Learner Identity](decision-requests/DEC-0002-local-learner-identity.md) | complete | none | none | resolved by ADR-0006 | unassigned | 2026-08-04 |

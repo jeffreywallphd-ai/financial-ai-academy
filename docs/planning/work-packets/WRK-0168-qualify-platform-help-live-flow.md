@@ -1,7 +1,7 @@
 ---
 id: WRK-0168
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -237,6 +237,37 @@ Confirm no product implementation, contract, corpus, generated client,
 identity, persistence, provider/model, external content/action, learner-policy,
 or financial behavior changed, then leave SLI-0082 closure-ready.
 
+## Completion Evidence
+
+- Exact candidate `df572bcbabe22978a3fe9859d9c60e25e7d16092` produced
+  `.local-codex/control-plane/receipts/WRK-0168/df572bcbabe22978a3fe9859d9c60e25e7d16092/20261018T035649Z-0b02e536-1aab-4250-bc8a-be0ea7b2949e.json`;
+  receipt validation reported
+  `sha256:34293b0cb580de4d3b655db392538bc30e5516129482303e7f0ca0e91edeab6f`.
+- The complete isolated approved-lesson topology passed the focused Help
+  Chromium journey and ordinary headless HTTP comparison, including stable
+  browse/search/filter/cursor behavior, exact topic and relation reads,
+  source/publication/digest correlation, confidential authorization denial,
+  normal host restart, no non-loopback Help request, read-only persistence and
+  source containment, accessibility, and finally-path cleanup.
+- Controller-selected exact checks passed for planning tools, planning
+  integrity, documentation integrity, Web typecheck, Web lint, and the complete
+  live approved-lesson workflow. Aggregate readiness passed 29 checks;
+  architecture passed 17 checks; security passed 10 control groups. An
+  independent technical review accepted the exact candidate with no findings.
+- The affected-check catalog now selects the self-bound platform-help browser
+  wrapper for future Help changes. Pure capture and replay tests reject stale,
+  extra, private, path-leaking, inconsistent, or non-loopback evidence without
+  depending on live infrastructure alone.
+- The remaining compounded narrow-viewport plus synthetic-200-percent-text
+  global-header presentation concern is recorded for CAP-0031. The packet keeps
+  320-pixel no-overflow, keyboard focus, and 200-percent axe evidence separate,
+  so optional styling does not reopen functional review.
+- No product contract, corpus meaning, generated-client interface, identity,
+  persistence, provider/model, external content/action, learner policy, or
+  financial behavior changed. Managed cloud, public hosting, recovery,
+  operating-system network isolation, and a separate headless-AI mode remain
+  unsupported by this evidence.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0167 completed. This is the
@@ -265,3 +296,7 @@ or financial behavior changed, then leave SLI-0082 closure-ready.
   passed browser/headless parity, stable search/filter/cursor and exact reads,
   confidential denial, restart, no-outbound observation, read-only state
   containment, accessibility, and cleanup evidence.
+- 2026-10-18: Completed after receipt validation, all exact selected checks,
+  aggregate readiness, architecture and security gates, and independent
+  technical review passed with no findings. SLI-0082 is closure-ready without
+  a lower-level approval or a nonfunctional presentation re-review loop.

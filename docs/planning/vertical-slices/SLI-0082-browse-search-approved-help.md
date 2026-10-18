@@ -1,7 +1,7 @@
 ---
 id: SLI-0082
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -229,7 +229,7 @@ each packet starts. The dependency-ordered seams are:
 | [WRK-0166](../work-packets/WRK-0166-compose-platform-help-api.md) | Compose the immutable corpus adapter, Guidance application/public seam, protected API, reviewed OpenAPI, and generated client | WRK-0165 | none | complete |
 | [WRK-0167](../work-packets/WRK-0167-deliver-platform-help-browser-flow.md) | Deliver the URL-backed accessible Help browse/search and exact-topic browser routes only through the generated client | WRK-0166 | none | complete |
 | [WRK-0169](../work-packets/WRK-0169-preserve-required-platform-help-null-fields.md) | Preserve the contract-required nullable continuation member discovered by live qualification | WRK-0166 | none | complete |
-| [WRK-0168](../work-packets/WRK-0168-qualify-platform-help-live-flow.md) | Qualify contract, browser/headless parity, deterministic search, offline restart, source integrity, safe rendering, accessibility, containment, and cleanup | WRK-0167, WRK-0169 | none | verifying |
+| [WRK-0168](../work-packets/WRK-0168-qualify-platform-help-live-flow.md) | Qualify contract, browser/headless parity, deterministic search, offline restart, source integrity, safe rendering, accessibility, containment, and cleanup | WRK-0167, WRK-0169 | none | complete |
 
 Dependent packets are not reserved, authored, or claimed until their concrete
 predecessor is complete. The sequential default avoids shared contract,
@@ -296,13 +296,48 @@ contract, corpus contribution and source-binding rules, public API/OpenAPI and
 generated client, browser Help route, local runtime, architecture assurance,
 known gaps, this slice, its packets, the CAP, and the planning register.
 
-Completion evidence must name exact candidates and receipts; scenario-to-test
+Completion evidence names exact candidates and receipts; scenario-to-test
 coverage; corpus and source fingerprints; deterministic ranking/cursor facts;
 safe body and relation validation; browser/headless equivalence; authorization;
 no-outbound-network observation; restart/local-offline behavior; accessibility,
 privacy, containment, cleanup; compatibility and migration impact; assumptions;
 unqualified deployment profiles; residual gaps; and CAP-package conformance.
 Local approval and reviewer records remain ignored.
+
+### Completion Evidence
+
+- WRK-0165 through WRK-0169 are complete. Together they deliver the additive
+  `platform-help/v1` contract, deterministic Guidance core and immutable
+  source-bound corpus, protected public API, generated TypeScript client,
+  accessible browser routes, required nullable continuation behavior, and the
+  isolated live qualification path.
+- Exact qualification candidate
+  `df572bcbabe22978a3fe9859d9c60e25e7d16092` produced receipt
+  `.local-codex/control-plane/receipts/WRK-0168/df572bcbabe22978a3fe9859d9c60e25e7d16092/20261018T035649Z-0b02e536-1aab-4250-bc8a-be0ea7b2949e.json`
+  with validated digest
+  `sha256:34293b0cb580de4d3b655db392538bc30e5516129482303e7f0ca0e91edeab6f`.
+- The disposable PostgreSQL, Python-host, static-build, and Chromium topology
+  passed browser/headless API parity; deterministic browse, Unicode search,
+  kind filtering, cursor continuation, and exact-version reads; confidential
+  denial; source, publication, corpus, and digest correlation; normal restart;
+  no non-loopback Help request; read-only state containment; accessibility;
+  and bounded cleanup.
+- Controller-selected exact checks passed for planning tools, planning
+  integrity, documentation integrity, Web typecheck, Web lint, and the complete
+  approved-lesson live workflow. Aggregate readiness passed 29 checks;
+  architecture passed 17 checks; security passed 10 control groups. An
+  independent technical review accepted the exact candidate with no findings.
+- Anti-rigidity coverage varies Unicode, counts, ordering, optional metadata,
+  safe nodes, themes, viewport, 200-percent text, forced colors, and motion
+  without freezing incidental prose or layout. The global-header reflow item
+  observed only under the compounded narrow-viewport plus synthetic-text setup
+  is nonfunctional presentation work recorded for CAP-0031; keyboard actions
+  and axe qualification remain passing.
+- No mutable learner state, public contract replacement, identity policy,
+  provider/model behavior, external content/action, personalization, grading,
+  eligibility, recommendation, or financial behavior changed. Managed-cloud,
+  public-hosting, recovery, operating-system network isolation, and separate
+  headless-AI operation remain unqualified and outside this slice.
 
 ## Planning History
 
@@ -312,3 +347,8 @@ Local approval and reviewer records remain ignored.
   browser, repository Markdown, lesson packages, external content, or AI a new
   source of authority. The four-slice CAP package remains unchanged and no
   lower-level approval is required.
+- 2026-10-18: Closed after every dependency-ordered packet completed and the
+  exact live candidate passed selected checks, aggregate readiness,
+  architecture, security, and independent technical review. The delivered
+  increment remains inside the approved CAP package and leaves only explicit
+  later-slice work plus nonfunctional CAP-0031 presentation cleanup.
