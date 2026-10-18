@@ -1,7 +1,7 @@
 ---
 id: WRK-0176
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -228,6 +228,17 @@ reduced-motion, retry-identity, download, learner-work-retention, and
 no-substitution evidence without freezing whole prose, item counts, pixels, or
 unrelated shell requests.
 
+The bounded correction makes the explanation heading level placement-owned:
+the lesson not-found state now follows its `h1` with an `h2`, while placements
+inside an existing feature section retain the default `h3`; the action heading
+always follows one level below. Direct reader and validator regressions now
+cover one-401 renewal with an exact second request, repeated denial without a
+third request, failed renewal, abort propagation, mapping and guidance digest
+rejection, recomputed mapping-record mismatch, recomputed unknown-field
+rejection, varied valid copy/action/reference/applicability counts and order,
+server-order rendering, and feature-owned handler gating. The corrected focused
+typecheck and 28 platform-help/lesson component tests pass.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0175 completed. The packet
@@ -243,3 +254,7 @@ unrelated shell requests.
   ownership, same-application Help navigation, no-partial fallback, and focused
   flexible component/Chromium coverage. Exact-candidate verification and
   independent review remain before closure.
+- 2026-10-18: Added placement-owned semantic heading levels and direct
+  high-risk reader/validator regression evidence for renewal, denial, abort,
+  digest/correlation/shape rejection, flexible valid ordering, and explicit
+  action ownership. Fresh exact-candidate verification remains before closure.

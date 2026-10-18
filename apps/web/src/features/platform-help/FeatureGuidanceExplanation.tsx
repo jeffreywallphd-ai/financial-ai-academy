@@ -25,12 +25,14 @@ function returnTarget(pathname: string, search: string): string {
 export function FeatureGuidanceExplanation({
   actionHandlers = {},
   conditionKey,
+  headingLevel = 3,
   mappingVersion = "1.0.0",
   readFeatureGuidance,
   surfaceKey,
 }: {
   actionHandlers?: FeatureGuidanceActionHandlers;
   conditionKey: string;
+  headingLevel?: 2 | 3;
   mappingVersion?: string;
   readFeatureGuidance: FeatureGuidanceReader;
   surfaceKey: string;
@@ -65,11 +67,13 @@ export function FeatureGuidanceExplanation({
       action.action_kind === "open_help_topic" ||
       actionHandlers[action.action_kind] !== undefined,
   );
+  const ExplanationHeading = headingLevel === 2 ? "h2" : "h3";
+  const ActionsHeading = headingLevel === 2 ? "h3" : "h4";
   const returnTo = returnTarget(location.pathname, location.search);
   return (
     <aside aria-labelledby={headingId} className="feature-guidance-explanation">
       <p className="eyebrow">What this limit means</p>
-      <h3 id={headingId}>{resolution.guidance.heading}</h3>
+      <ExplanationHeading id={headingId}>{resolution.guidance.heading}</ExplanationHeading>
       <p>{resolution.guidance.reason}</p>
       <p>
         <strong>What was protected or may have happened:</strong>{" "}
@@ -77,7 +81,7 @@ export function FeatureGuidanceExplanation({
       </p>
       {actions.length === 0 ? null : (
         <div>
-          <h4>What you can do</h4>
+          <ActionsHeading>What you can do</ActionsHeading>
           <ul>
             {actions.map((action) => {
               if (action.action_kind === "open_help_topic") {

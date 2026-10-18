@@ -129,6 +129,77 @@ async function featureGuidanceFixture(): Promise<FeatureGuidance> {
   return { mapping, guidance } as FeatureGuidance;
 }
 
+async function withCurrentFeatureGuidanceDigests(
+  value: FeatureGuidance,
+): Promise<FeatureGuidance> {
+  const candidate = structuredClone(value) as unknown as {
+    mapping: Record<string, unknown>;
+    guidance: Record<string, unknown>;
+  };
+  candidate.mapping.mapping_digest = await digestWithout(
+    candidate.mapping,
+    "mapping_digest",
+  );
+  candidate.guidance.guidance_digest = await digestWithout(
+    candidate.guidance,
+    "guidance_digest",
+  );
+  return candidate as unknown as FeatureGuidance;
+}
+
+async function variedFeatureGuidanceFixture(): Promise<FeatureGuidance> {
+  const candidate = structuredClone(await featureGuidanceFixture()) as unknown as {
+    mapping: Record<string, unknown>;
+    guidance: Record<string, unknown>;
+  };
+  candidate.guidance.heading = "Review what happened before continuing";
+  candidate.guidance.reason = "The response ended before confirmation arrived.";
+  candidate.guidance.outcome = "The same request may already be saved.";
+  candidate.guidance.actions = [
+    {
+      action_kind: "open_help_topic",
+      label: "Review source history",
+      topic_id: "source-and-history",
+      topic_version: "1.0.0",
+    },
+    {
+      action_kind: "return_to_owning_task",
+      label: "Return to practice",
+    },
+    {
+      action_kind: "retry_unchanged_request",
+      label: "Retry the same request",
+    },
+    {
+      action_kind: "open_help_topic",
+      label: "Review safe recovery",
+      topic_id: "safe-recovery",
+      topic_version: "1.0.0",
+    },
+  ];
+  candidate.guidance.help_references = [
+    {
+      topic_id: "source-and-history",
+      topic_version: "1.0.0",
+      purpose: "source",
+      label: "Source and history",
+    },
+    {
+      topic_id: "safe-recovery",
+      topic_version: "1.0.0",
+      purpose: "method",
+      label: "Safe recovery",
+    },
+  ];
+  candidate.guidance.applicability = [
+    { scope_key: "practice-save", label: "Practice saves" },
+    { scope_key: "practice-submit", label: "Practice submissions" },
+  ];
+  return withCurrentFeatureGuidanceDigests(
+    candidate as unknown as FeatureGuidance,
+  );
+}
+
 describe("PlatformHelpSearchPage", () => {
   it("shows plain-language reviewed results in API order", () => {
     render(
@@ -286,7 +357,7 @@ describe("ContextualHelpLinks", () => {
 });
 
 describe("FeatureGuidanceExplanation", () => {
-  it("validates both digests and preserves exact reader correlation", async () => {
+  it("rejects stale digests, mapping-record mismatch, and unknown shapes", async () => {
     const resolution = await featureGuidanceFixture();
     expect(
       await featureGuidanceIsSafe(
@@ -310,6 +381,142 @@ describe("FeatureGuidanceExplanation", () => {
         "1.0.0",
       ),
     ).toBe(false);
+
+    const staleMapping = structuredClone(resolution) as unknown as {
+      mapping: Record<string, unknown>;
+      guidance: Record<string, unknown>;
+    };
+    staleMapping.mapping.mapping_digest = "f".repeat(64);
+    expect(
+      await featureGuidanceIsSafe(
+        staleMapping,
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+      ),
+    ).toBe(false);
+
+    const mismatched = structuredClone(resolution) as unknown as {
+      mapping: Record<string, unknown>;
+      guidance: Record<string, unknown>;
+    };
+    mismatched.mapping.guidance_id = "different-guidance";
+    const signedMismatch = await withCurrentFeatureGuidanceDigests(
+      mismatched as unknown as FeatureGuidance,
+    );
+    expect(
+      await featureGuidanceIsSafe(
+        signedMismatch,
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+      ),
+    ).toBe(false);
+
+    const extended = structuredClone(resolution) as unknown as {
+      mapping: Record<string, unknown>;
+      guidance: Record<string, unknown>;
+    };
+    extended.guidance.internal_route = "private/guidance";
+    const signedExtended = await withCurrentFeatureGuidanceDigests(
+      extended as unknown as FeatureGuidance,
+    );
+    expect(
+      await featureGuidanceIsSafe(
+        signedExtended,
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+      ),
+    ).toBe(false);
+  });
+
+  it("renews once after 401 and repeats the exact read without a third request", async () => {
+    const resolution = await featureGuidanceFixture();
+    const get = vi
+      .fn()
+      .mockResolvedValueOnce({ response: { status: 401 } })
+      .mockResolvedValueOnce({ response: { status: 200 }, data: resolution });
+    const ensure = vi.fn().mockResolvedValue({ status: "ready" });
+    const invalidate = vi.fn();
+    const reader = createFeatureGuidanceReader(
+      { GET: get } as never,
+      { ensure, invalidate } as never,
+    );
+    const signal = new AbortController().signal;
+
+    expect(
+      await reader(
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+        signal,
+      ),
+    ).toEqual({ status: "ready", resolution });
+    expect(invalidate).toHaveBeenCalledOnce();
+    expect(ensure).toHaveBeenCalledWith(signal);
+    expect(get).toHaveBeenCalledTimes(2);
+    expect(get.mock.calls[1]).toEqual(get.mock.calls[0]);
+  });
+
+  it("collapses repeated denial and failed renewal while propagating aborts", async () => {
+    const repeatedGet = vi
+      .fn()
+      .mockResolvedValue({ response: { status: 401 } });
+    const repeatedEnsure = vi.fn().mockResolvedValue({ status: "ready" });
+    const repeatedReader = createFeatureGuidanceReader(
+      { GET: repeatedGet } as never,
+      { ensure: repeatedEnsure, invalidate: vi.fn() } as never,
+    );
+    expect(
+      await repeatedReader(
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+        new AbortController().signal,
+      ),
+    ).toEqual({ status: "unavailable" });
+    expect(repeatedGet).toHaveBeenCalledTimes(2);
+    expect(repeatedEnsure).toHaveBeenCalledOnce();
+
+    const failedGet = vi.fn().mockResolvedValue({ response: { status: 401 } });
+    const failedEnsure = vi.fn().mockResolvedValue({
+      status: "error",
+      kind: "unavailable",
+    });
+    const failedReader = createFeatureGuidanceReader(
+      { GET: failedGet } as never,
+      { ensure: failedEnsure, invalidate: vi.fn() } as never,
+    );
+    expect(
+      await failedReader(
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+        new AbortController().signal,
+      ),
+    ).toEqual({ status: "unavailable" });
+    expect(failedGet).toHaveBeenCalledOnce();
+
+    const controller = new AbortController();
+    controller.abort();
+    const abortError = new DOMException("The request was aborted.", "AbortError");
+    const abortedReader = createFeatureGuidanceReader(
+      { GET: vi.fn().mockRejectedValue(abortError) } as never,
+      { ensure: vi.fn(), invalidate: vi.fn() } as never,
+    );
+    await expect(
+      abortedReader(
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+        controller.signal,
+      ),
+    ).rejects.toBe(abortError);
+  });
+
+  it("preserves exact reader correlation for a valid response", async () => {
+    const resolution = await featureGuidanceFixture();
 
     const get = vi.fn().mockResolvedValue({
       response: { status: 200 },
@@ -342,7 +549,15 @@ describe("FeatureGuidanceExplanation", () => {
 
   it("renders server-owned meaning in order and only feature-owned actions", async () => {
     const user = userEvent.setup();
-    const resolution = await featureGuidanceFixture();
+    const resolution = await variedFeatureGuidanceFixture();
+    expect(
+      await featureGuidanceIsSafe(
+        resolution,
+        "practice-activity",
+        "write-outcome-uncertain",
+        "1.0.0",
+      ),
+    ).toBe(true);
     const retry = vi.fn();
     render(
       <MemoryRouter initialEntries={["/learn/placements/practice-one/practice"]}>
@@ -360,13 +575,30 @@ describe("FeatureGuidanceExplanation", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "The result of this save is uncertain",
+        level: 3,
+        name: "Review what happened before continuing",
       }),
     ).toBeVisible();
-    expect(screen.getByText(/may already be saved/)).toBeVisible();
-    await user.click(screen.getByRole("button", { name: "Try the same save again" }));
+    expect(screen.getByText(/same request may already be saved/i)).toBeVisible();
+    const actionList = screen.getByRole("heading", { level: 4, name: "What you can do" })
+      .nextElementSibling;
+    expect(actionList).not.toBeNull();
+    expect(
+      within(actionList as HTMLElement)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual([
+      "Review source history",
+      "Retry the same request",
+      "Review safe recovery",
+    ]);
+    await user.click(screen.getByRole("button", { name: "Retry the same request" }));
     expect(retry).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("button", { name: "Reload saved progress" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Return to practice" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Review source history" })).toHaveAttribute(
+      "href",
+      "/help/topics/source-and-history/versions/1.0.0?return_to=%2Flearn%2Fplacements%2Fpractice-one%2Fpractice",
+    );
     expect(screen.getByRole("link", { name: "Review safe recovery" })).toHaveAttribute(
       "href",
       "/help/topics/safe-recovery/versions/1.0.0?return_to=%2Flearn%2Fplacements%2Fpractice-one%2Fpractice",

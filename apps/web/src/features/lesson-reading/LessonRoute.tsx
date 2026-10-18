@@ -92,6 +92,7 @@ export function LessonRouteView({
           {readFeatureGuidance === unavailableFeatureGuidanceReader ? null : (
             <FeatureGuidanceExplanation
               conditionKey="exact-version-unavailable"
+              headingLevel={2}
               readFeatureGuidance={readFeatureGuidance}
               surfaceKey="lesson-reading"
             />

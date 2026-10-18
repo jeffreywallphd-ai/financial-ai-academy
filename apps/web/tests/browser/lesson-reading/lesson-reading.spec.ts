@@ -534,7 +534,7 @@ test("explains an unavailable exact lesson without substituting content", async 
   await page.goto(LESSON_PATH);
 
   await expect(page.getByRole("heading", { name: "Lesson not found" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "This lesson version is not available" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "This lesson version is not available" })).toBeVisible();
   await expect(page.getByText(lessonFixture.title)).toHaveCount(0);
   const url = new URL((await guidanceRequest).url());
   expect(url.pathname).toBe(

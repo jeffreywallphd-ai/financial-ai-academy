@@ -171,7 +171,12 @@ describe("LessonRouteView", () => {
           heading: "This lesson version is unavailable",
           reason: "The requested version could not be opened.",
           outcome: "No different or newer lesson was substituted.",
-          actions: [],
+          actions: [{
+            action_kind: "open_help_topic",
+            label: "Review safe recovery",
+            topic_id: "safe-recovery",
+            topic_version: "1.0.0",
+          }],
         },
       } as never,
     }));
@@ -188,8 +193,12 @@ describe("LessonRouteView", () => {
     expect(screen.getByRole("heading", { name: "Lesson not found" })).toBeVisible();
     expect(
       await screen.findByRole("heading", {
+        level: 2,
         name: "This lesson version is unavailable",
       }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("heading", { level: 3, name: "What you can do" }),
     ).toBeVisible();
     expect(readFeatureGuidance).toHaveBeenCalledWith(
       "lesson-reading",
