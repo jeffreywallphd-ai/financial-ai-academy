@@ -1,7 +1,7 @@
 ---
 id: WRK-0166
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -222,6 +222,30 @@ anti-rigidity evidence; exact checks; docs; assumptions; and remaining browser
 and live gaps. Confirm no persistence, migration, browser feature, provider,
 model, external content, learner authority, or financial behavior changed.
 
+## Completion Evidence
+
+- Exact candidate `f21924bb5d65dfe992ec44ec8bedaf14eace9801`
+  produced qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0166/f21924bb5d65dfe992ec44ec8bedaf14eace9801/20261018T030001Z-c4bafa3e-e1da-42fe-a7a4-89a11587e8fd.json`
+  with digest
+  `sha256:bed67634c342ea635583eee8fe66a6754d99afeca6aba02c0e31a5a874f2d153`.
+- The immutable Guidance adapter now admits one checked-in starter corpus only
+  after validating every topic, all exact relations, the four versioned
+  required identities, and safe source-key fingerprints. Additional valid
+  manifest-bound topics remain supported.
+- Guidance application/public operations and protected `GET` search and exact
+  topic routes use one server-owned read permission and fail authorization
+  before corpus access. The reviewed OpenAPI snapshot and generated TypeScript
+  client preserve the same API-first documents for browser and headless use.
+- Seventy-four focused Guidance, Identity, API, and module-boundary tests
+  passed. Architecture, security, documentation, planning, learner-language,
+  whitespace, all 11 selected exact-candidate checks, full live local
+  qualification, and all 29 aggregate readiness checks passed.
+- No persistence, migration, browser feature, mutable or remote content,
+  provider/model execution, learner grading or eligibility, external action,
+  or financial conclusion changed. Browser delivery and slice-level live Help
+  qualification remain in the dependent SLI-0082 packets.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0165 completed. The packet
@@ -229,3 +253,9 @@ model, external content, learner authority, or financial behavior changed.
   immutable starter corpus and protected API-first seam while deferring browser
   and live qualification to their dependency-ordered packets. It preserves the
   approved CAP package and requires no lower-level approval.
+- 2026-10-18: Completed the immutable corpus, Guidance application/public seam,
+  protected API, reviewed OpenAPI snapshot, and generated client on exact
+  candidate `f21924b`. Required starter identities and source fingerprints fail
+  closed while extra valid topics remain supported. Focused, affected, live,
+  architecture, security, documentation, planning, language, whitespace, and
+  aggregate readiness checks passed without expanding the approved CAP.
