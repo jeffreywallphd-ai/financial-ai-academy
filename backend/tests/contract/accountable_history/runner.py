@@ -59,13 +59,21 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def _normalized_time(value: str) -> str:
+def _parsed_time(value: str) -> datetime:
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
         reject("accountable_history.time_invalid", "recorded_at", "History time must include an offset.")
-    utc = parsed.astimezone(timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _rendered_time(value: datetime) -> str:
+    utc = value.astimezone(timezone.utc)
     rendered = utc.isoformat(timespec="microseconds" if utc.microsecond else "seconds")
     return rendered.replace("+00:00", "Z")
+
+
+def _normalized_time(value: str) -> str:
+    return _rendered_time(_parsed_time(value))
 
 
 def _canonical_document(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -95,6 +103,15 @@ def history_digest(value: Mapping[str, Any]) -> str:
     return hashlib.sha256(canonical_document_bytes(value)).hexdigest()
 
 
+def export_filename_stem(document: Mapping[str, Any]) -> str:
+    root = document["root"]
+    root_digest = hashlib.sha256(
+        json.dumps(root, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:16]
+    prefix = "lesson" if root["root_kind"] == "published_lesson" else "completion"
+    return f"{prefix}-{root_digest}"
+
+
 def _safe_identifier(value: str) -> bool:
     if not value or not value[0].isalnum():
         return False
@@ -114,6 +131,50 @@ def _check_display_text(value: Mapping[str, Any]) -> None:
     forbidden = ("https://", "http://", "file:", "traceback", "exception", "password=", "token=", "c:\\")
     if any(marker in text.casefold() for text in display_values for marker in forbidden):
         reject("accountable_history.unsafe_text", "display", "History text contains an unsafe detail.")
+    if any(unicodedata.category(character) in {"Cc", "Cf", "Cs"} for text in display_values for character in text):
+        reject("accountable_history.unsafe_text", "display", "History text contains an unsafe detail.")
+
+    approved_titles = {"Source and history", "Portable evidence record"}
+    approved_summaries = {
+        "This lesson is linked to the reviewed source used to publish it.",
+        "This completion is linked to the check, the published lesson, and its audit record.",
+        "The lesson is available, but one source record is not available now.",
+        "This record shows the source and history disclosed for the completion.",
+    }
+    approved_entry_text = {
+        "educational_source": {("Reviewed source", "This source was used to prepare the lesson.")},
+        "published_lesson": {
+            ("Published lesson", "The lesson was published from the reviewed source."),
+            ("Published lesson", "The check belongs to this lesson."),
+            ("Published lesson", "The lesson record is available."),
+        },
+        "assessment_definition": {("Knowledge check", "This reviewed check was used for the completion.")},
+        "knowledge_check_event": {("Completed check", "The completed check produced an evidence record.")},
+        "completion_evidence": {("Completion evidence", "The completed check produced this evidence record.")},
+        "audit_reference": {("Integrity record", "An audit reference records the accepted completion evidence.")},
+    }
+    approved_missing_text = {
+        "not_found": "The source record could not be found.",
+        "unavailable": "The source record is not available now.",
+        "redacted": "The source details are not shown for this purpose.",
+    }
+    approved_diagnostic_text = {
+        "missing_reference": "A source reference is missing.",
+        "owner_unavailable": "The source owner could not return this record.",
+        "unsupported_contract_version": "The source uses a version that this history view cannot read.",
+        "integrity_mismatch": "The integrity check did not match the disclosed record.",
+        "invalid_relation": "A source link does not match the disclosed history.",
+        "identity_conflict": "Two disclosed records use the same identity with different facts.",
+        "redacted_detail": "Some details are not shown for this purpose.",
+    }
+    if value["title"] not in approved_titles or value["summary"] not in approved_summaries:
+        reject("accountable_history.display_text_invalid", "summary", "History text is not reviewed.")
+    if any((item["title"], item["explanation"]) not in approved_entry_text[item["resource_kind"]] for item in value["entries"]):
+        reject("accountable_history.display_text_invalid", "entries", "History text is not reviewed.")
+    if any(item["explanation"] != approved_missing_text[item["reason"]] for item in value["missing_links"]):
+        reject("accountable_history.display_text_invalid", "missing_links", "History text is not reviewed.")
+    if any(item["explanation"] != approved_diagnostic_text[item["code"]] for item in value["diagnostics"]):
+        reject("accountable_history.display_text_invalid", "diagnostics", "History text is not reviewed.")
 
 
 class AccountableHistoryContractValidator:
@@ -166,8 +227,18 @@ class AccountableHistoryContractValidator:
             "completion_evidence": "completed",
             "audit_reference": "recorded",
         }
+        owners = {
+            "educational_source": "content",
+            "published_lesson": "content",
+            "assessment_definition": "assessment",
+            "knowledge_check_event": "assessment",
+            "completion_evidence": "assessment",
+            "audit_reference": "audit",
+        }
         if any(roles[item["resource_kind"]] != item["role"] for item in entries):
             reject("accountable_history.identity_invalid", "role", "History identity is inconsistent.")
+        if any(owners[item["resource_kind"]] != item["owner_module"] for item in entries):
+            reject("accountable_history.identity_invalid", "owner_module", "History identity is inconsistent.")
         root = value["root"]
         expected_kind = "published_lesson" if root["root_kind"] == "published_lesson" else "completion_evidence"
         matching = [item for item in entries if item["resource_kind"] == expected_kind and item["resource_id"] == root["resource_id"]]
@@ -189,12 +260,19 @@ class AccountableHistoryContractValidator:
         if len(set(categories)) != len(categories):
             reject("accountable_history.redaction_invalid", "redactions", "History redaction summary is inconsistent.")
         state = value["state"]
+        incomplete_codes = {"missing_reference", "owner_unavailable", "redacted_detail"}
+        invalid_codes = {"unsupported_contract_version", "integrity_mismatch", "invalid_relation", "identity_conflict"}
+        diagnostic_codes = {item["code"] for item in value["diagnostics"]}
         if state == "valid" and (value["missing_links"] or value["diagnostics"] or any(item["validation_status"] != "validated" for item in entries)):
             reject("accountable_history.state_invalid", "state", "History state is inconsistent.")
-        if state == "incomplete" and not (value["missing_links"] or value["diagnostics"] or any(item["validation_status"] == "incomplete" for item in entries)):
+        if state == "incomplete" and (
+            not (value["missing_links"] or value["diagnostics"] or any(item["validation_status"] == "incomplete" for item in entries))
+            or not diagnostic_codes.issubset(incomplete_codes)
+        ):
             reject("accountable_history.state_invalid", "state", "History state is inconsistent.")
-        invalid_codes = {"unsupported_contract_version", "integrity_mismatch", "invalid_relation", "identity_conflict"}
         if state == "invalid" and not any(item["code"] in invalid_codes for item in value["diagnostics"]):
+            reject("accountable_history.state_invalid", "state", "History state is inconsistent.")
+        if state != "invalid" and diagnostic_codes.intersection(invalid_codes):
             reject("accountable_history.state_invalid", "state", "History state is inconsistent.")
         expected_digest = history_digest(value)
         if verify_digest and value["history_digest"] != expected_digest:
@@ -208,13 +286,11 @@ class AccountableHistoryContractValidator:
         document = self.validate_document(value["document"], verify_digest=verify_digest)
         if document["purpose"] != "portable_evidence" or value["document_digest"] != document["history_digest"]:
             reject("accountable_history.export_invalid", "document", "Portable evidence is inconsistent.")
-        latest = max(_normalized_time(item["recorded_at"]) for item in document["entries"])
-        if _normalized_time(value["exported_at"]) != latest:
+        latest_instant = max(_parsed_time(item["recorded_at"]) for item in document["entries"])
+        latest = _rendered_time(latest_instant)
+        if _parsed_time(value["exported_at"]) != latest_instant:
             reject("accountable_history.export_invalid", "exported_at", "Portable evidence is inconsistent.")
-        root = document["root"]
-        suffix = root.get("resource_version", root.get("occurrence"))
-        prefix = "lesson" if root["root_kind"] == "published_lesson" else "completion"
-        expected_stem = f"{prefix}-{root['resource_id']}-{suffix}".replace(".", "-").casefold()
+        expected_stem = export_filename_stem(document)
         if value["filename_stem"] != expected_stem:
             reject("accountable_history.export_invalid", "filename_stem", "Portable evidence is inconsistent.")
         projected = copy.deepcopy(dict(value))

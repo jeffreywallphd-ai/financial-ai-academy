@@ -16,6 +16,7 @@ from .runner import (
     approved_records,
     default_corpus_dir,
     default_schema_dir,
+    export_filename_stem,
     history_digest,
     provenance_fingerprints,
 )
@@ -131,6 +132,39 @@ def test_valid_counts_unicode_and_redaction_sets_are_not_fixture_bound() -> None
     varied["history_digest"] = history_digest(varied)
     assert validator.validate_document(varied)["redactions"] == varied["redactions"]
     assert validator.validate_document(incomplete)["root"]["resource_id"] == "leçon-diversification-été"
+
+
+def test_portable_filename_is_total_for_valid_unicode_root_identity() -> None:
+    _, _, _, portable = approved_records()
+    varied = copy.deepcopy(portable)
+    document = varied["document"]
+    unicode_identity = "évidence-été-東京"
+    document["root"]["resource_id"] = unicode_identity
+    document["entries"][0]["resource_id"] = unicode_identity
+    document["history_digest"] = history_digest(document)
+    varied["document_digest"] = document["history_digest"]
+    varied["filename_stem"] = export_filename_stem(document)
+
+    admitted = AccountableHistoryContractValidator().validate_export(varied)
+
+    assert admitted["filename_stem"].startswith("completion-")
+    assert admitted["filename_stem"].isascii()
+    assert len(admitted["filename_stem"]) == len("completion-") + 16
+
+
+def test_export_uses_instant_order_not_fractional_timestamp_text_order() -> None:
+    _, _, _, portable = approved_records()
+    varied = copy.deepcopy(portable)
+    document = varied["document"]
+    document["entries"][0]["recorded_at"] = "2026-08-05T16:15:01.100000Z"
+    document["entries"][1]["recorded_at"] = "2026-08-05T16:15:01Z"
+    document["history_digest"] = history_digest(document)
+    varied["document_digest"] = document["history_digest"]
+    varied["exported_at"] = "2026-08-05T16:15:01.100000Z"
+
+    admitted = AccountableHistoryContractValidator().validate_export(varied)
+
+    assert admitted["exported_at"] == "2026-08-05T16:15:01.100000Z"
 
 
 def test_primary_display_copy_uses_plain_nontechnical_language() -> None:

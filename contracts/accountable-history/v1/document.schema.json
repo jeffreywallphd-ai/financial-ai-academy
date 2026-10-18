@@ -24,8 +24,8 @@
     "identifier": {"type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[^\\s._:/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\u0000-\\u001F\\u007F-\\u009F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$"},
     "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"},
     "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-    "title": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000-\\u001F\\u007F-\\u009F]+$"},
-    "explanation": {"type": "string", "minLength": 1, "maxLength": 500, "pattern": "^[^<>\\u0000-\\u001F\\u007F-\\u009F]+$"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[^<>\\u0000-\\u001F\\u007F-\\u009F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$"},
+    "explanation": {"type": "string", "minLength": 1, "maxLength": 500, "pattern": "^[^<>\\u0000-\\u001F\\u007F-\\u009F\\u061C\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]+$"},
     "timestamp": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,6})?(?:Z|[+-]\\d{2}:\\d{2})$"},
     "owner": {"enum": ["content", "assessment", "audit"]},
     "resourceKind": {"enum": ["educational_source", "published_lesson", "assessment_definition", "knowledge_check_event", "completion_evidence", "audit_reference"]},
@@ -52,7 +52,10 @@
       "required": ["sequence", "entry_id", "role", "title", "explanation", "owner_module", "resource_kind", "resource_id", "integrity_digest", "recorded_at", "validation_status"],
       "allOf": [
         {"if": {"properties": {"resource_kind": {"enum": ["educational_source", "published_lesson", "assessment_definition"]}}, "required": ["resource_kind"]}, "then": {"required": ["resource_version"], "not": {"required": ["occurrence"]}}},
-        {"if": {"properties": {"resource_kind": {"enum": ["knowledge_check_event", "completion_evidence", "audit_reference"]}}, "required": ["resource_kind"]}, "then": {"required": ["occurrence"], "not": {"required": ["resource_version"]}}}
+        {"if": {"properties": {"resource_kind": {"enum": ["knowledge_check_event", "completion_evidence", "audit_reference"]}}, "required": ["resource_kind"]}, "then": {"required": ["occurrence"], "not": {"required": ["resource_version"]}}},
+        {"if": {"properties": {"owner_module": {"const": "content"}}, "required": ["owner_module"]}, "then": {"properties": {"resource_kind": {"enum": ["educational_source", "published_lesson"]}}}},
+        {"if": {"properties": {"owner_module": {"const": "assessment"}}, "required": ["owner_module"]}, "then": {"properties": {"resource_kind": {"enum": ["assessment_definition", "knowledge_check_event", "completion_evidence"]}}}},
+        {"if": {"properties": {"owner_module": {"const": "audit"}}, "required": ["owner_module"]}, "then": {"properties": {"resource_kind": {"const": "audit_reference"}}}}
       ],
       "properties": {
         "sequence": {"type": "integer", "minimum": 1, "maximum": 64},
