@@ -1,7 +1,7 @@
 ---
 id: WRK-0180
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/adapters/__init__.py", "backend/src/financial_ai_academy/modules/audit/adapters/provenance_contract.py", "backend/src/financial_ai_academy/modules/audit/domain/__init__.py", "backend/src/financial_ai_academy/modules/audit/domain/provenance.py", "backend/tests/contract/provenance", "backend/tests/unit/audit/test_provenance_contract.py", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/provenance/v1", "contracts/provenance/v1", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/provenance-and-lineage-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0106-trace-learning-content-and-evidence-lineage.md", "docs/planning/work-packets/WRK-0180-freeze-learning-provenance-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: ef7ae20c509556fd4c9c94f1ed4025524ce33fd6
+claim_id: WRK-0180:73d80fff-428c-4b9e-9bdd-078d35f749d5
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T07:40:44Z
 ---
 
 # Agent Work Packet: Freeze Learning Provenance Contracts
