@@ -55,6 +55,7 @@ def checks(root: Path, profile: str, base_ref: str | None) -> list[Check]:
         ),
         Check("agent-readiness CI workflow", (python, "dev-tools/agent/check_ci_workflow.py")),
         Check("agent-readiness behavior", (python, "dev-tools/agent/test_check_ready.py")),
+        Check("guidance quality", (python, "dev-tools/guidance/check_guidance_quality.py")),
         Check("learner-language quality", tuple(learner_language)),
         Check("control-plane policy", (python, "dev-tools/control-plane/control_plane.py", "--json", "policy-check", "--profile", profile)),
         Check("control-plane lifecycle", (python, "dev-tools/control-plane/test_control_plane.py")),

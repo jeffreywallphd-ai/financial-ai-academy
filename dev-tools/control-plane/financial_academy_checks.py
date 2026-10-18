@@ -217,6 +217,18 @@ def catalog() -> CheckCatalog:
         "apps/web/src/features/*.tsx",
         "apps/web/src/features/**/*.tsx",
     )
+    guidance_canonical_source_paths = (
+        "docs/architecture/ai-ml/ai-ml-system-boundaries.md",
+        "docs/architecture/system/architecture-principles.md",
+        "docs/architecture/contracts/assessment-contract.md",
+        "docs/architecture/contracts/contract-architecture.md",
+        "docs/risk-compliance/education-versus-financial-advice.md",
+        "docs/architecture/finance/financial-method-and-simulation-architecture.md",
+        "docs/adr/ADR-0011-inert-applied-project-artifacts.md",
+        "docs/architecture/contracts/personal-workspace-contract.md",
+        "docs/product/product-vision-and-scope.md",
+        "docs/standards/user-facing-language-standards.md",
+    )
     feature_guidance_paths = (
         "backend/src/financial_ai_academy/modules/guidance/**",
         "backend/tests/contract/feature_guidance/**",
@@ -226,6 +238,20 @@ def catalog() -> CheckCatalog:
         "contracts/guidance/feature-guidance/**",
         "contracts/compatibility/feature-guidance/**",
     )
+    guidance_quality_paths = (
+        "backend/src/financial_ai_academy/modules/guidance/**",
+        "backend/tests/contract/platform_help/**",
+        "backend/tests/contract/contextual_help/**",
+        "backend/tests/contract/feature_guidance/**",
+        "backend/tests/unit/guidance/**",
+        "contracts/guidance/**",
+        "contracts/compatibility/platform-help/**",
+        "contracts/compatibility/contextual-help/**",
+        "contracts/compatibility/feature-guidance/**",
+        "apps/web/src/features/platform-help/**",
+        "dev-tools/guidance/**",
+        *guidance_canonical_source_paths,
+    )
     documentation_paths = (
         "apps/web/README.md",
         "deployments/local/README.md",
@@ -234,7 +260,7 @@ def catalog() -> CheckCatalog:
         *roadmap_document_paths,
     )
     return CheckCatalog(
-        "financial-ai-academy-v9",
+        "financial-ai-academy-v10",
         (
             CheckDefinition("control-plane:unit", (python, "dev-tools/control-plane/test_control_plane.py"), ("dev-tools/control-plane/**",), "medium", 10, description="Reusable control-plane lifecycle and adapter tests"),
             CheckDefinition("control-plane:review", (python, "dev-tools/control-plane/test_review.py"), ("dev-tools/control-plane/review.py", "dev-tools/control-plane/test_review.py"), "medium", 11, description="Technical review, corrected-descendant, and review-ledger behavior"),
@@ -245,6 +271,7 @@ def catalog() -> CheckCatalog:
             CheckDefinition("learner-language:unit", (python, "dev-tools/learner-language/test_learner_language.py"), learner_language_tool_paths, "low", 41, description="Learner-language checker, configuration, and anti-rigidity behavior"),
             CheckDefinition("learner-language:full", (python, "dev-tools/learner-language/check_learner_language.py", "--all"), learner_language_tool_paths[:2], "low", 42, description="Controlled full-scope qualification after checker or rule changes"),
             CheckDefinition("learner-language:changed", (python, "dev-tools/learner-language/check_learner_language.py", "--base-ref", "{base_revision}"), learner_language_owned_paths, "low", 43, description="Candidate-bound changed learner-facing copy"),
+            CheckDefinition("guidance:quality", (python, "dev-tools/guidance/test_guidance_quality.py"), guidance_quality_paths, "medium", 44, description="Canonical-source freshness, exact Guidance graph, deterministic search quality, and anti-rigidity behavior"),
             CheckDefinition("roadmap-review:qualification", (python, "dev-tools/roadmap-review-site/test_qualification.py"), roadmap_qualification_paths, "medium", 45, description="Roadmap review projection and site contract"),
             CheckDefinition("roadmap-review:server", (*web_check, "--mode", "roadmap-server"), roadmap_server_paths, "medium", 46, description="Roadmap review read-only server behavior"),
             CheckDefinition("roadmap-review:typecheck", (*web_check, "--mode", "roadmap-typecheck"), roadmap_source_paths, "medium", 47, description="Roadmap review TypeScript boundary"),
@@ -267,6 +294,6 @@ def catalog() -> CheckCatalog:
             CheckDefinition("roadmap-review:browser", (*web_check, "--mode", "roadmap"), (*roadmap_behavior_paths, *roadmap_browser_paths), "medium", 66, timeout_seconds=120, description="Roadmap review Chromium behavior"),
             CheckDefinition("local:node-syntax", (*web_check, "--mode", "local-scripts"), local_script_paths, "medium", 68, description="Local Node runner syntax"),
             CheckDefinition("approved-lesson:live", (*web_check, "--mode", "live"), (*approved_browser_paths, *live_runtime_paths, "dev-tools/control-plane/check_approved_lesson.py"), "high", 70, timeout_seconds=300, description="Live PostgreSQL, Python, static browser, and pinned Chromium qualification"),
-            CheckDefinition("agent:readiness", (python, "dev-tools/agent/check_ready.py"), ("dev-tools/agent/**", ".github/workflows/**", "docs/planning/skills/**", *feature_guidance_paths), "high", 90, timeout_seconds=180, description="Shared agent-support readiness suite"),
+            CheckDefinition("agent:readiness", (python, "dev-tools/agent/check_ready.py"), ("dev-tools/agent/**", "dev-tools/guidance/**", ".github/workflows/**", "docs/planning/skills/**", *feature_guidance_paths), "high", 90, timeout_seconds=180, description="Shared agent-support readiness suite"),
         ),
     )

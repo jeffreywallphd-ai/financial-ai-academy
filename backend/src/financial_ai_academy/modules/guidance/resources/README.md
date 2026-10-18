@@ -18,6 +18,13 @@ sources; runtime code never parses or serves the source Markdown. The
 resource contains no repository path, approval/reviewer data, learner data,
 prompt, credential, arbitrary URL, active content, or provider payload.
 
+Run `python dev-tools/guidance/check_guidance_quality.py` from the repository
+root for one fast source, registry-link, exact-read, and deterministic-search
+result. Repository-only source locations live in
+`dev-tools/guidance/source_authority.json`; do not add local paths to these
+runtime resources. A valid additional record may change corpus size, wording,
+references, or file order without weakening exact identity and provenance.
+
 `contextual-help/v1/` is the checked-in immutable exact-context registry. Each
 record maps a delivered feature context to ordered exact topics already
 admitted from `platform-help/v1/`. The complete registry fails closed for a

@@ -247,3 +247,7 @@ cleanup, residual gaps, rollback/migration status, and CAP conformance.
 - 2026-10-18: Activated WRK-0178 from clean base `be5e38f` after confirming
   current CAP authority, completed dependencies, bounded quality-tool scope,
   and no decision or ownership collision.
+- 2026-10-18: WRK-0178 implemented one contributor-facing source, graph,
+  exact-read, and deterministic-search result plus anti-rigidity tests and
+  affected/fixed readiness selection. Candidate-bound evidence remains before
+  the packet can close.

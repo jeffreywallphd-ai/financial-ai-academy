@@ -53,6 +53,13 @@ class ReadinessCatalogTests(unittest.TestCase):
         )
         self.assertNotIn("dev-tools/agent/check_ready.py", commands["agent-readiness behavior"])
 
+    def test_guidance_quality_is_a_fixed_fast_readiness_check(self) -> None:
+        commands = self.by_name(self.root, profile="ci", base_ref=None)
+        self.assertEqual(
+            (sys.executable, "dev-tools/guidance/check_guidance_quality.py"),
+            commands["guidance quality"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

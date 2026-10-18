@@ -397,6 +397,7 @@ class SelectionTests(unittest.TestCase):
             ],
             "apps/web/src/features/platform-help/PlatformHelpPage.tsx": [
                 "learner-language:changed",
+                "guidance:quality",
                 "web:typecheck",
                 "web:lint",
                 "web:unit",
@@ -535,6 +536,10 @@ class SelectionTests(unittest.TestCase):
                 "control-plane:verification",
                 "project:browser",
             ],
+            "docs/product/product-vision-and-scope.md": [
+                "documentation:integrity",
+                "guidance:quality",
+            ],
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -544,6 +549,17 @@ class SelectionTests(unittest.TestCase):
                     "agent:readiness",
                     [item["check_id"] for item in plan["selected"]],
                 )
+
+    def test_guidance_tool_changes_select_quality_and_readiness(self) -> None:
+        plan = select_checks(
+            repository_catalog(),
+            "a" * 40,
+            ["dev-tools/guidance/check_guidance_quality.py"],
+        )
+        self.assertEqual(
+            ["guidance:quality", "agent:readiness"],
+            [item["check_id"] for item in plan["selected"]],
+        )
 
     def test_feature_guidance_changes_select_focused_security_and_readiness_checks(
         self,
@@ -558,12 +574,24 @@ class SelectionTests(unittest.TestCase):
         )
         self.assertEqual(
             [
+                "guidance:quality",
                 "guidance:feature-qualification",
                 "architecture:integrity",
                 "security:feature-guidance",
                 "agent:readiness",
             ],
             [item["check_id"] for item in plan["selected"]],
+        )
+
+    def test_guidance_quality_uses_the_submitted_candidate_command(self) -> None:
+        definition = next(
+            check
+            for check in repository_catalog().checks
+            if check.check_id == "guidance:quality"
+        )
+        self.assertEqual(
+            (CURRENT_PYTHON_ARGUMENT, "dev-tools/guidance/test_guidance_quality.py"),
+            definition.argv,
         )
 
     def test_feature_guidance_wrapper_uses_prepared_python_and_bound_digest(

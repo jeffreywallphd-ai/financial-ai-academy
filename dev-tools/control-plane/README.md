@@ -183,6 +183,16 @@ PostgreSQL/Python/static-browser qualification; documentation-only and
 Python-only changes do not inherit unrelated TypeScript or aggregate-readiness
 work.
 
+Guidance resources, their exact contracts and adapters, shared Platform Help
+rendering, and each canonically bound source select the fast
+`guidance:quality` suite. The suite validates current source fingerprints, the
+complete exact internal graph, exact reads, deterministic cursor traversal,
+bounded failures, and valid corpus growth through the submitted candidate's
+production adapters. Changes to the quality tool also select aggregate
+readiness, whose fixed handoff catalog runs the contributor command directly.
+Remote crawling, hosted support, and model-based quality judgment are
+deliberately absent.
+
 Project workspace source and browser-spec changes select a focused Chromium
 check that runs only `apps/web/tests/browser/project-workspace`. This gives a
 Project packet direct browser evidence without making every web change run the

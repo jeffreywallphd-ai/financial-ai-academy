@@ -1,0 +1,15 @@
+{
+  "schema_version": "source-authority-v1",
+  "sources": {
+    "ai-ml-boundaries": "docs/architecture/ai-ml/ai-ml-system-boundaries.md",
+    "architecture-principles": "docs/architecture/system/architecture-principles.md",
+    "assessment-contract": "docs/architecture/contracts/assessment-contract.md",
+    "contract-architecture": "docs/architecture/contracts/contract-architecture.md",
+    "education-advice-boundary": "docs/risk-compliance/education-versus-financial-advice.md",
+    "financial-method-architecture": "docs/architecture/finance/financial-method-and-simulation-architecture.md",
+    "inert-project-artifacts": "docs/adr/ADR-0011-inert-applied-project-artifacts.md",
+    "personal-workspace-contract": "docs/architecture/contracts/personal-workspace-contract.md",
+    "product-vision": "docs/product/product-vision-and-scope.md",
+    "user-facing-language": "docs/standards/user-facing-language-standards.md"
+  }
+}

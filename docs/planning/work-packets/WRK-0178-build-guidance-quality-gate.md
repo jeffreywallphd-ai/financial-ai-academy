@@ -204,3 +204,7 @@ authority did not change before the final cumulative qualification packet.
 - 2026-10-18: Claimed from clean base `be5e38f` with one bounded owner and the
   declared write scope after current CAP authority and dependency completion
   were revalidated.
+- 2026-10-18: Implemented the repository-only source-authority manifest, fast
+  production-adapter quality command, exact graph/search traversal, bounded
+  failure and valid-growth tests, affected-check selection, and the fixed
+  readiness integration. Exact-candidate verification remains before closure.
