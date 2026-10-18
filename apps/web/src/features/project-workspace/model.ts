@@ -127,6 +127,17 @@ function utcTimestamp(value: unknown): value is string {
   return typeof value === "string" && value.endsWith("Z") && timestamp(value);
 }
 
+export function projectTimestampsRepresentSameInstant(first: unknown, second: unknown): boolean {
+  if (!utcTimestamp(first) || !utcTimestamp(second)) return false;
+  const normalize = (value: string) => {
+    const match = DATE_TIME.exec(value);
+    if (!match || match[8] !== "Z") return null;
+    const fraction = (match[7] ?? "").padEnd(6, "0");
+    return `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:${match[6]}.${fraction}Z`;
+  };
+  return normalize(first) === normalize(second);
+}
+
 function boundedText(value: unknown, minimum: number, maximum: number, allowAngles = false): value is string {
   return typeof value === "string" && value.length >= minimum && value.length <= maximum
     && !value.includes("\0") && (allowAngles || (!value.includes("<") && !value.includes(">")));

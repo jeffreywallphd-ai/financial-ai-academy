@@ -18,6 +18,7 @@ import {
   projectShellIsSafe,
   projectSubmissionCandidateIsSafe,
   projectSubmissionOutcomeIsSafe,
+  projectTimestampsRepresentSameInstant,
   projectWorkspaceIsSafe,
   type ProjectCreateActionState,
   type ProjectCreateRouteState,
@@ -203,7 +204,8 @@ async function readProjectLearning(
       return !projected || item.submission_id !== projected.submission_id || item.evidence_id !== projected.evidence_id
         || item.snapshot_id !== projected.snapshot_id || item.snapshot_digest !== projected.snapshot_digest
         || item.request_fingerprint !== projected.request_fingerprint || item.occurrence !== projected.occurrence
-        || item.submitted_at !== projected.submitted_at || item.supersedes_submission_id !== projected.supersedes_submission_id;
+        || !projectTimestampsRepresentSameInstant(item.submitted_at, projected.submitted_at)
+        || item.supersedes_submission_id !== projected.supersedes_submission_id;
     })) {
       return { status: "invalid-response" };
     }

@@ -20,6 +20,7 @@ import {
   projectLearningSelection,
   projectSubmissionCandidateIsSafe,
   projectSnapshotListIsSafe,
+  projectTimestampsRepresentSameInstant,
   projectWorkspaceIsSafe,
   type LearningProjectStartOption,
   type ProjectArtifact,
@@ -185,6 +186,14 @@ function session() {
 }
 
 describe("Project response validation", () => {
+  it("compares canonical Project timestamps without losing microseconds", () => {
+    expect(projectTimestampsRepresentSameInstant("2026-10-18T01:21:20.8629Z", "2026-10-18T01:21:20.862900Z")).toBe(true);
+    expect(projectTimestampsRepresentSameInstant("2026-10-18T01:21:20Z", "2026-10-18T01:21:20.000000Z")).toBe(true);
+    expect(projectTimestampsRepresentSameInstant("2026-10-18T01:21:20.862900Z", "2026-10-18T01:21:20.862901Z")).toBe(false);
+    expect(projectTimestampsRepresentSameInstant("2026-10-18T01:21:20.8629+00:00", "2026-10-18T01:21:20.862900Z")).toBe(false);
+    expect(projectTimestampsRepresentSameInstant("not-a-time", "2026-10-18T01:21:20Z")).toBe(false);
+  });
+
   it("validates closed Project learning candidates, empty history, and bounded completion", () => {
     expect(projectSubmissionCandidateIsSafe(submissionCandidate, learningProject, snapshot.snapshot_id)).toBe(true);
     expect(projectSubmissionCandidateIsSafe(variedSubmissionCandidate, learningProject, snapshot.snapshot_id)).toBe(true);
@@ -383,6 +392,7 @@ describe("Project generated-client loaders and action", () => {
     const second = {
       ...first, event_id: "event-two", evidence_id: "evidence-two", submission_id: "submission-two",
       request_fingerprint: "2".repeat(64), occurrence: 2, accepted_sequence: 2,
+      submitted_at: "2026-10-18T01:21:20.862900Z", occurred_at: "2026-10-18T01:21:20.862900Z",
       supersedes_submission_id: "submission-one",
     };
     const completion = {
@@ -400,7 +410,7 @@ describe("Project generated-client loaders and action", () => {
         {
           evidence_id: second.evidence_id, submission_id: second.submission_id, snapshot_id: second.snapshot_id,
           snapshot_digest: second.snapshot_digest, request_fingerprint: second.request_fingerprint,
-          occurrence: second.occurrence, submitted_at: second.submitted_at,
+          occurrence: second.occurrence, submitted_at: "2026-10-18T01:21:20.8629Z",
           supersedes_submission_id: second.supersedes_submission_id,
         },
       ],
@@ -417,7 +427,7 @@ describe("Project generated-client loaders and action", () => {
     get.mockReset();
     get.mockResolvedValueOnce(response(200, learningProject))
       .mockResolvedValueOnce(response(200, completion))
-      .mockResolvedValueOnce(response(200, { ...history, items: [history.items[0], { ...history.items[1], snapshot_digest: "9".repeat(64) }] }));
+      .mockResolvedValueOnce(response(200, { ...history, items: [history.items[0], { ...history.items[1], submitted_at: "2026-10-18T01:21:20.862901Z" }] }));
     expect(await loader(request)).toEqual({ status: "invalid-response" });
   });
 
