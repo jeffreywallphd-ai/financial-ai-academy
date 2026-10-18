@@ -2,8 +2,9 @@
 
 `approved/` contains exactly one deterministic synthetic document for every
 closed v2 profile. The Project document mirrors the public snapshot identity
-shape but is still a contract fixture; the real Project adapter is delivered by
-a later packet. The other records do not claim an implemented owner, provider,
+shape but is still a contract fixture; cumulative qualification replaces it
+with the real public-only Project adapter. The other records do not claim an
+implemented owner, provider,
 model, dataset, calculation, recommendation, or administrative action.
 
 `cases/denials.json` mutates approved documents to exercise structural and
@@ -23,3 +24,8 @@ language-neutral runner for every profile. Reverse adapter order, partial
 profile sets, varied valid values, one failing adapter, malformed output, and
 duplicate declarations are tested without treating fixture count or order as
 product behavior. These adapters are test-only and confer no owner maturity.
+
+Slice qualification also runs empty and varied partial profile sets, reordered
+inputs, and an isolated Project failure. Missing profiles are coverage evidence,
+not implementation failures; the eight remaining synthetic adapters do not
+claim a live provider, model, calculation, recommendation, or administrator.

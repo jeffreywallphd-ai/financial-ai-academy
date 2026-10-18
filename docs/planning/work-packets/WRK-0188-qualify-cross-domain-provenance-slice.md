@@ -140,3 +140,6 @@ current.
 - 2026-10-18: Activated from clean base `5bd836d` after confirming current CAP
   authority, completed WRK-0187, resolved decisions, exact isolated write
   scope, and no active file-ownership collision.
+- 2026-10-18: Added cumulative mixed-adapter qualification, varied partial-set
+  and order evidence, and confidential Project-failure isolation without any
+  production behavior or contract change.

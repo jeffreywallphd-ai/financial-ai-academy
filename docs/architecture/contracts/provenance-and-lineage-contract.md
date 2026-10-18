@@ -134,6 +134,14 @@ workspace content, resource details, paths, URLs, bytes, and storage coordinates
 are neither copied nor retained. Project failures and mismatches collapse to
 bounded conformance results.
 
+Cumulative qualification replaces the synthetic Project fixture with the real
+adapter while leaving the other eight forecasts explicitly test-only. The
+mixed complete suite validates one case per frozen profile; empty and varied
+partial suites remain valid incremental adoption states, report exact missing
+coverage, and produce the same ordered cases under input reordering. One Project
+failure remains local and cannot disable unrelated profiles. No dynamic runtime
+registry or all-or-nothing owner count is introduced.
+
 ## Safety and Non-Authority
 
 The contract contains no lesson body, assessment response, answer, feedback,

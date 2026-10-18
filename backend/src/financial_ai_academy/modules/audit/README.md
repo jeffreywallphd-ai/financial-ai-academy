@@ -104,6 +104,13 @@ workspace content, resource details, paths, URLs, bytes, storage coordinates,
 and Project persistence never enter the envelope. Other owner adapters remain
 future work.
 
+The cumulative v2 qualification replaces only the synthetic Project profile
+with that real adapter, then runs the same profile-ordered conformance suite.
+Complete nine-profile and varied partial subsets remain deterministic under
+input reordering, and a Project failure cannot disable unrelated profiles.
+This evidence does not turn the other eight synthetic profiles into product
+owners or create an all-or-nothing runtime registry.
+
 `POST /api/v1/audit/learning-lineage` exposes the two closed roots through the
 same protected OpenAPI-generated contract for browser and headless callers. It
 requires server-issued `audit.lineage.read` and `curriculum.lesson.read`, binds
