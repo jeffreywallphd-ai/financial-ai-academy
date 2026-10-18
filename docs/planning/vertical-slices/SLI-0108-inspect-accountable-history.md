@@ -186,7 +186,7 @@ The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | complete |
-| WRK-0190 | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | captured |
+| [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | ready |
 | WRK-0191 | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | captured |
 | WRK-0192 | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | captured |
 | WRK-0193 | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | captured |
@@ -256,3 +256,7 @@ conformance.
   compatibility corpus, deterministic export rules, bounded diagnostic and
   redaction meaning, unchanged provenance v1/v2 fingerprints, and current
   qualifying evidence. WRK-0190 is now dependency-ready.
+- 2026-10-18: Authored WRK-0190 just in time with a pure-core and strict-adapter
+  boundary, truthful zero/many-source pressure tests, deterministic portable
+  export, exact write scope, and no application, authorization, API/client,
+  browser, persistence, or lower-level approval expansion.
