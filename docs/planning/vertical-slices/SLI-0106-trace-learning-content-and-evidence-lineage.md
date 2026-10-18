@@ -207,7 +207,7 @@ The dependency-ordered seams are:
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
 | [WRK-0180](../work-packets/WRK-0180-freeze-learning-provenance-contracts.md) | Freeze the provider-neutral provenance envelope and bounded learning-lineage contracts, compatibility corpus, ownership rules, and conformance tests | none | none | complete |
-| [WRK-0181](../work-packets/WRK-0181-compose-learning-lineage-core.md) | Compose the Audit learning-lineage core, Content/Assessment public adapters, Audit-owned read persistence, idempotent reconciliation, and focused architecture/security evidence | WRK-0180 | none | verifying |
+| [WRK-0181](../work-packets/WRK-0181-compose-learning-lineage-core.md) | Compose the Audit learning-lineage core, Content/Assessment public adapters, Audit-owned read persistence, idempotent reconciliation, and focused architecture/security evidence | WRK-0180 | none | complete |
 | WRK-0182 | Expose protected learning-lineage operations through FastAPI, reviewed OpenAPI, and the generated TypeScript client for browser and headless consumers | WRK-0181 | none | captured |
 | WRK-0183 | Qualify exact live learning lineage, restart, containment, anti-rigidity, documentation, and slice completion | WRK-0182 | none | captured |
 
@@ -287,3 +287,7 @@ cleanup, migration/rollback status, residual gaps, and CAP conformance.
   CAP-package checks; implementation proceeds without lower-level approval.
 - 2026-10-18: Submitted WRK-0181 candidate `a369b79` for exact affected
   verification after focused shared-core and PostgreSQL evidence passed.
+- 2026-10-18: Completed WRK-0181 at corrected candidate `6010d88` with a
+  qualifying receipt, 30 focused tests, passing architecture/security/readiness
+  gates, private-locator integrity, bounded request failures, and no open
+  technical finding. Protected transport is now eligible for WRK-0182.

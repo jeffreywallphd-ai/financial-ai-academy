@@ -1,7 +1,7 @@
 ---
 id: WRK-0181
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -178,6 +178,30 @@ architecture/security/documentation impact; migration/rollback status;
 assumptions; residual gaps; CAP conformance; and unresolved decisions. Confirm
 that HTTP/client/UI/live qualification remains WRK-0182/WRK-0183 scope.
 
+## Completion Evidence
+
+- Exact candidate: `6010d88477c4eb8a985de165366a3de897a23a2a`.
+- Qualifying affected-check receipt:
+  `sha256:20b1ca7419fe73540e2f7538e530d4bfd437f6b7a6ce8996720b41c1f10b7bcf`.
+- Focused Audit provenance and learning-lineage suite: 30 passed. The
+  PostgreSQL lineage suite previously passed against an isolated disposable
+  database on the same implementation boundary; the final correction changed
+  no repository query or schema.
+- The shared core composes exact published-lesson and knowledge-check
+  completion graphs through Content and Assessment public operations and one
+  Audit-owned append-only read. Reconciliation remains idempotent and owner
+  state remains read-only.
+- Source locators participate only in internal integrity digests and never
+  appear in envelopes or diagnostics. Malformed public selectors fail as
+  bounded `INVALID_CONTEXT` errors before reconciliation or persistence.
+- Architecture fitness, ten security control groups, documentation, planning,
+  whitespace, exact affected verification, and aggregate readiness (30 of 30)
+  passed. Independent technical review closed both findings and introduced no
+  new finding.
+- No migration or rollback action is required. No HTTP route, reviewed OpenAPI,
+  generated client, UI, provider/model, external action, or authorization
+  authority changed; those transport concerns remain WRK-0182 scope.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0180 completion. The packet
@@ -188,3 +212,7 @@ that HTTP/client/UI/live qualification remains WRK-0182/WRK-0183 scope.
 - 2026-10-18: Submitted exact candidate `a369b79` after focused unit,
   PostgreSQL, architecture, security, documentation, planning, whitespace, and
   aggregate-readiness checks passed.
+- 2026-10-18: Closed at corrected exact candidate `6010d88` after binding
+  private source locations into internal integrity, hardening direct request
+  types, recording a qualifying receipt, and closing both independent-review
+  findings. WRK-0182 may now consume the accepted shared-core operation.
