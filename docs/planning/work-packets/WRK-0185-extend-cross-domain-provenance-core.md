@@ -220,3 +220,8 @@ changed.
 - 2026-10-18: Activated from clean base `2766747` after confirming current CAP
   authority, completed dependency, resolved decisions, exact isolated write
   scope, and no active ownership collision.
+- 2026-10-18: Implemented the separate immutable v2 identity/resource/envelope
+  core and closed mapping adapter. Focused evidence covers every profile, both
+  financial variants, Market tuple-derived identity, runner digest parity,
+  duplicate/conflict denial, timezone/source-order equivalence, Unicode/count
+  flexibility, confidential failures, per-call isolation, and unchanged v1.

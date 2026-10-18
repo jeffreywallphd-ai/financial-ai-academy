@@ -107,6 +107,14 @@ actor/learner/tenant identity,
 provider payload, market value, model input/output, Project content, storage,
 secret, permission, external action, or financial advice.
 
+Audit's separate pure v2 value and mapping core now implements the frozen
+owner-reference meaning. It uses immutable profile-specific identities,
+normalizes equivalent time and source order, matches the language-neutral
+runner's canonical envelope digests, and contains failures to one validation
+call without a dynamic registry. This is contract implementation only: it does
+not make a future owner, adapter, graph, retained record, provider/model action,
+authorization decision, public operation, or user history interface available.
+
 ## Safety and Non-Authority
 
 The contract contains no lesson body, assessment response, answer, feedback,

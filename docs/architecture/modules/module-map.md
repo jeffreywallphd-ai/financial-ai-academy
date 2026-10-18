@@ -19,7 +19,7 @@
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
 | Guidance | accepted; topic/context/feature contracts, immutable corpus and registries, application seam, protected Help APIs, generated clients, optional browser presentation, and isolated local live qualification implemented | Safe versioned platform explanations, exact contextual and feature-condition mappings, canonical-source facts, topic integrity, and deterministic literal search | Additive exact topic, context, and feature-condition projections |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
-| Audit | accepted; knowledge-check and Project completion references plus learning-lineage v1 shared core and protected generated-client transport implemented | Append-oriented decision, provenance, administrative evidence, source-event integrity references, and bounded owner-reference correlation | Learner-facing lineage presentation, broader owner correlation, and exportable audit records remain future work |
+| Audit | accepted; knowledge-check and Project completion references, learning-lineage v1 transport, and pure cross-domain v2 reference core implemented | Append-oriented decision, provenance, administrative evidence, source-event integrity references, and bounded owner-reference correlation | Real cross-domain owner adapters, learner-facing lineage presentation, broader owner correlation, and exportable audit records remain future work |
 
 ## Boundary Notes
 
@@ -48,10 +48,12 @@
   owner payload or authority.
 - The additive provenance v2 contract defines closed Project, Market-data,
   Portfolio, AI-orchestration, Adaptation, and Audit reference profiles without
-  changing their ownership. Only Project is currently eligible for a real
-  adapter; other profile fixtures are synthetic and add no implemented module,
-  provider/model action, business record, tenant policy, or financial meaning.
-  V2 currently supplies no public lineage view or cross-module persistence.
+  changing their ownership. Audit implements only the separate pure immutable
+  value, mapping, validation, and canonical-digest seam. Project remains the
+  only profile eligible for a later real adapter; other profile fixtures are
+  synthetic and add no implemented module, provider/model action, business
+  record, tenant policy, or financial meaning. V2 currently supplies no public
+  lineage view or cross-module persistence.
 - Personal workspace owns learner organization and learner-authored note content.
   Its typed references never copy target business state, grant permission, or
   mutate Content, Curriculum, Assessment, Learner model, Project, or later

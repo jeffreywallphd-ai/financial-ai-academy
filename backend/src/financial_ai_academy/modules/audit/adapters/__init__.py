@@ -2,6 +2,11 @@
 
 from .learning_lineage import ContentLearningLineageSource
 
+from .cross_domain_provenance_contract import (
+    cross_domain_envelope_from_mapping,
+    cross_domain_envelope_to_mapping,
+)
+
 from .provenance_contract import (
     envelope_from_mapping,
     envelope_payload,
@@ -13,6 +18,8 @@ from .provenance_contract import (
 
 __all__ = [
     "ContentLearningLineageSource",
+    "cross_domain_envelope_from_mapping",
+    "cross_domain_envelope_to_mapping",
     "envelope_from_mapping",
     "envelope_payload",
     "lineage_request_from_mapping",

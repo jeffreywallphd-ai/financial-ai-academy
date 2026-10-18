@@ -65,6 +65,22 @@ occurrence, reads its retained Audit reference under the server-bound learner
 and placement context, and composes a validated canonical view. It adds no
 table or cross-module foreign key.
 
+`domain/cross_domain_provenance.py` and
+`adapters/cross_domain_provenance_contract.py` implement the separate additive
+`provenance/v2` owner-reference value and mapping core. Immutable profile-
+specific identities cover the nine closed profiles and both explicit financial
+account/analysis variants. The core enforces owner, label, relation, identity,
+resource-ID, digest, time, and source bounds; normalizes times and source order;
+and produces the same canonical envelope digest as the frozen language-neutral
+contract runner. One malformed document fails locally without a mutable
+registry or impact on v1.
+
+This v2 core does not make future owners real. It has no Project adapter,
+synthetic adapter library, graph, retained record, repository, migration,
+provider/model call, public operation, authorization decision, or browser
+surface. A v2 reference carries evidence meaning only and grants no access,
+quality, mastery, financial, administrative, or execution authority.
+
 `POST /api/v1/audit/learning-lineage` exposes the two closed roots through the
 same protected OpenAPI-generated contract for browser and headless callers. It
 requires server-issued `audit.lineage.read` and `curriculum.lesson.read`, binds
