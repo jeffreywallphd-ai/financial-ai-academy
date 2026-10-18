@@ -193,7 +193,7 @@ start. The dependency-ordered seams are:
 | [WRK-0170](../work-packets/WRK-0170-freeze-contextual-help-contracts-and-registry.md) | Add the exact context contract, pure validation/digest behavior, reviewed source-bound starter topics, immutable registry, compatibility fixtures, and focused anti-rigidity tests | SLI-0082 | none | complete |
 | [WRK-0171](../work-packets/WRK-0171-compose-contextual-help-api.md) | Add the Guidance application/public exact-context read, protected API, reviewed OpenAPI, generated client, and authorization/failure tests | WRK-0170 | none | complete |
 | [WRK-0172](../work-packets/WRK-0172-deliver-contextual-help-links.md) | Add generated-client contextual links and safe return behavior to the bounded lesson, practice, Project, and AI-assistance surfaces with focused component/browser accessibility evidence | WRK-0171 | none | complete |
-| [WRK-0173](../work-packets/WRK-0173-qualify-contextual-help-live-flow.md) | Prove exact browser/headless parity, source/digest correlation, denial, restart, no-outbound behavior, read-only containment, accessibility, anti-rigidity, and cleanup | WRK-0172 | none | ready |
+| [WRK-0173](../work-packets/WRK-0173-qualify-contextual-help-live-flow.md) | Prove exact browser/headless parity, source/digest correlation, denial, restart, no-outbound behavior, read-only containment, accessibility, anti-rigidity, and cleanup | WRK-0172 | none | active |
 
 Sequential delivery is the default because the seams share Guidance contracts,
 corpus/registry admission, generated client, Web routing, and live-runner
@@ -271,3 +271,6 @@ CAP-package conformance. Approval and reviewer records remain ignored.
 - 2026-10-18: Activated WRK-0170 from clean base `547fbe0` after confirming the
   current CAP binding, completed SLI-0082 dependency, exact contract/core scope,
   and no unresolved decision or active coordination collision.
+- 2026-10-18: Activated WRK-0173 from clean base `5fcd3f1` after confirming the
+  completed WRK-0172 dependency, current CAP authority, qualification-only
+  scope, and no unresolved decision or active coordination collision.

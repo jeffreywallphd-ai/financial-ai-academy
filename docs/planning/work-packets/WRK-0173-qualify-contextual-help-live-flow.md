@@ -1,7 +1,7 @@
 ---
 id: WRK-0173
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0173-qualify-contextual-help-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 5fcd3f170bf6b3cd367696871d9d8ef943695766
+claim_id: WRK-0173:f702184a-1eea-4c51-a37e-f47be1e60717
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T05:18:59Z
 ---
 
 # Agent Work Packet: Qualify the Contextual Help Live Flow
