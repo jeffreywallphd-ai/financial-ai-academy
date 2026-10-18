@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 
 import { createFinancialAcademyApiClient } from "../../../src/generated/api-client/client";
 import type { components } from "../../../src/generated/api-client/schema";
@@ -15,6 +15,10 @@ type HistoryRequest = LessonRequest | CompletionRequest;
 type HistoryResponse = components["schemas"]["AccountableHistoryResponseModel"];
 type ExportResponse =
   components["schemas"]["PortableEvidenceExportResponseModel"];
+type HistoryRequests = {
+  lesson: LessonRequest;
+  completion: CompletionRequest;
+};
 
 function nestedKeys(value: unknown): Set<string> {
   if (Array.isArray(value)) {
@@ -108,23 +112,30 @@ function assertPublicExport(value: ExportResponse, request: HistoryRequest) {
   assertPublicHistory(value.document, request, "portable_evidence");
 }
 
+function assertHistoryRequests(
+  value: unknown,
+): asserts value is HistoryRequests {
+  expect(value).toEqual({
+    lesson: expect.objectContaining({
+      schema_version: "1.0.0",
+      root_kind: "published_lesson",
+    }),
+    completion: expect.objectContaining({
+      schema_version: "1.0.0",
+      root_kind: "knowledge_check_completion",
+    }),
+  });
+}
+
 test("generated and ordinary clients receive the same live accountable history", async ({
   request,
 }) => {
   const origin =
     process.env.FINANCIAL_AI_ACADEMY_E2E_BASE_URL ?? "http://127.0.0.1:8000";
-  const unauthorized = await request.post(HISTORY_PATH, {
-    data: {
-      schema_version: "1.0.0",
-      root_kind: "published_lesson",
-      package_id: "not-authorized",
-      package_version: "1.0.0",
-      package_digest: "0".repeat(64),
-    },
-    headers: { Origin: origin, "Sec-Fetch-Site": "same-origin" },
-  });
-  expect(unauthorized.status()).toBe(401);
-
+  const mode = process.env.FINANCIAL_AI_ACADEMY_HISTORY_MODE ?? "all";
+  expect(["all", "selectors", "operations"]).toContain(mode);
+  const selectorCapturePath =
+    process.env.FINANCIAL_AI_ACADEMY_HISTORY_SELECTOR_CAPTURE;
   const generatedClient = createFinancialAcademyApiClient(origin);
   const generatedSession = await generatedClient.POST(
     "/api/v1/session/single-profile",
@@ -141,41 +152,79 @@ test("generated and ordinary clients receive the same live accountable history",
     Origin: origin,
     "Sec-Fetch-Site": "same-origin",
   };
-  const lesson = await generatedClient.GET(
-    "/api/v1/curriculum/placements/{placement_id}/lesson",
-    {
-      params: { path: { placement_id: PLACEMENT_ID } },
-      headers: generatedHeaders,
-    },
-  );
-  const completion = await generatedClient.GET(
-    "/api/v1/curriculum/placements/{placement_id}/completion",
-    {
-      params: { path: { placement_id: PLACEMENT_ID } },
-      headers: generatedHeaders,
-    },
-  );
-  expect(lesson.response.status).toBe(200);
-  expect(lesson.data).toBeTruthy();
-  expect(completion.response.status).toBe(200);
-  expect(completion.data?.history.length).toBeGreaterThan(0);
-  const completionIndex = completion.data!.history.length - 1;
-  const completionEvidence = completion.data!.history[completionIndex]!;
+  let historyRequests: HistoryRequests;
+  if (mode === "selectors" || mode === "all") {
+    const lesson = await generatedClient.GET(
+      "/api/v1/curriculum/placements/{placement_id}/lesson",
+      {
+        params: { path: { placement_id: PLACEMENT_ID } },
+        headers: generatedHeaders,
+      },
+    );
+    const completion = await generatedClient.GET(
+      "/api/v1/curriculum/placements/{placement_id}/completion",
+      {
+        params: { path: { placement_id: PLACEMENT_ID } },
+        headers: generatedHeaders,
+      },
+    );
+    expect(lesson.response.status).toBe(200);
+    expect(lesson.data).toBeTruthy();
+    expect(completion.response.status).toBe(200);
+    expect(completion.data?.history.length).toBeGreaterThan(0);
+    const completionIndex = completion.data!.history.length - 1;
+    const completionEvidence = completion.data!.history[completionIndex]!;
+    historyRequests = {
+      lesson: {
+        schema_version: "1.0.0",
+        root_kind: "published_lesson",
+        package_id: lesson.data!.package_id,
+        package_version: lesson.data!.package_version,
+        package_digest: lesson.data!.package_digest,
+      },
+      completion: {
+        schema_version: "1.0.0",
+        root_kind: "knowledge_check_completion",
+        placement_id: completion.data!.placement_id,
+        evidence_id: completionEvidence.evidence_id,
+        occurrence: completionIndex + 1,
+      },
+    };
+    if (selectorCapturePath) {
+      await writeFile(
+        selectorCapturePath,
+        `${JSON.stringify(
+          { schema_version: "1.0.0", requests: historyRequests },
+          null,
+          2,
+        )}\n`,
+        { encoding: "utf-8", flag: "wx" },
+      );
+    }
+    if (mode === "selectors") return;
+  } else {
+    expect(selectorCapturePath).toBeTruthy();
+    const selectorCapture = JSON.parse(
+      await readFile(selectorCapturePath!, "utf-8"),
+    ) as { schema_version?: unknown; requests?: unknown };
+    expect(selectorCapture.schema_version).toBe("1.0.0");
+    assertHistoryRequests(selectorCapture.requests);
+    historyRequests = selectorCapture.requests;
+  }
+  const { lesson: lessonRequest, completion: completionRequest } =
+    historyRequests;
 
-  const lessonRequest: LessonRequest = {
-    schema_version: "1.0.0",
-    root_kind: "published_lesson",
-    package_id: lesson.data!.package_id,
-    package_version: lesson.data!.package_version,
-    package_digest: lesson.data!.package_digest,
-  };
-  const completionRequest: CompletionRequest = {
-    schema_version: "1.0.0",
-    root_kind: "knowledge_check_completion",
-    placement_id: completion.data!.placement_id,
-    evidence_id: completionEvidence.evidence_id,
-    occurrence: completionIndex + 1,
-  };
+  const unauthorized = await request.post(HISTORY_PATH, {
+    data: {
+      schema_version: "1.0.0",
+      root_kind: "published_lesson",
+      package_id: "not-authorized",
+      package_version: "1.0.0",
+      package_digest: "0".repeat(64),
+    },
+    headers: { Origin: origin, "Sec-Fetch-Site": "same-origin" },
+  });
+  expect(unauthorized.status()).toBe(401);
 
   const generatedLesson = await generatedClient.POST(HISTORY_PATH, {
     body: lessonRequest,
@@ -276,7 +325,7 @@ test("generated and ordinary clients receive the same live accountable history",
       `${JSON.stringify(
         {
           schema_version: "1.0.0",
-          requests: { lesson: lessonRequest, completion: completionRequest },
+          requests: historyRequests,
           generated: {
             lesson: {
               review: generatedLesson.data,

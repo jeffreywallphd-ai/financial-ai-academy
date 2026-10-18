@@ -809,6 +809,7 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         self.assertIn('"/api/v1/audit/accountable-history"', runner)
         self.assertIn('"/api/v1/audit/accountable-history/export"', runner)
         self.assertIn("FINANCIAL_AI_ACADEMY_HISTORY_CAPTURE", runner)
+        self.assertIn("FINANCIAL_AI_ACADEMY_HISTORY_SELECTOR_CAPTURE", runner)
         self.assertIn('npm_e2e_command("accountable-history.e2e.ts")', runner)
         self.assertIn("observe_headless_accountable_history", runner)
         self.assertIn("read_only_database_containment", runner)
@@ -821,6 +822,21 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         self.assertNotIn("backend/", browser)
         self.assertNotIn("localStorage", browser)
         self.assertNotIn("domain/accountable_history", browser)
+        selector_mode = runner.index(
+            'environment["FINANCIAL_AI_ACADEMY_HISTORY_MODE"] = "selectors"'
+        )
+        containment_start = runner.index(
+            "accountable_database_before = application_database_fingerprint"
+        )
+        operations_mode = runner.index(
+            'environment["FINANCIAL_AI_ACADEMY_HISTORY_MODE"] = "operations"'
+        )
+        first_history_observation = runner.index(
+            "accountable_history_before_restart = observe_headless_accountable_history"
+        )
+        self.assertLess(selector_mode, containment_start)
+        self.assertLess(containment_start, operations_mode)
+        self.assertLess(operations_mode, first_history_observation)
 
     def test_static_build_contains_only_browser_artifacts_when_present(
         self,

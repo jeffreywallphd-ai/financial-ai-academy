@@ -218,6 +218,7 @@ policy. The learner browser consumes the same generated operations and the
 disposable local topology now directly qualifies generated-client and ordinary
 HTTP equality for both roots and purposes, exact replay across a normal
 restart, confidential denial, and accountable-history-only non-Identity
-database and bounded-file containment. Exact completion-selector discovery may
-refresh the existing rebuildable Learner-model projection before that read-only
-window begins; no history or export operation creates a retained record.
+database and bounded-file containment. A selector-only public phase may refresh
+the existing rebuildable Learner-model projection. The runner freezes its
+containment baseline after that phase and before the first history or export
+call; no accountable-history operation creates a retained record.

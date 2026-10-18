@@ -26,11 +26,12 @@ selectors. It compares generated-client and ordinary authenticated HTTP
 inspection and portable-export documents for both roots, repeats every
 operation, checks confidential missing-session, query, and guessed-completion
 denials, and requires complete document and digest equality after a normal
-restart. The completion selector is discovered through the public completion
-view, which may refresh its existing rebuildable Learner-model projection; the
-read-only containment window begins after that discovery and requires all
-accountable-history operations to preserve every non-Identity schema and the
-bounded application-data tree.
+restart. A selector-only browser phase discovers the completion through the
+public completion view, which may refresh its existing rebuildable Learner-model
+projection. The runner freezes database and file fingerprints after that phase
+and before the first accountable-history call, then requires every generated,
+ordinary HTTP, and headless inspection/export operation to preserve every
+non-Identity schema and the bounded application-data tree.
 
 Replay tests vary entry, transformation, gap, diagnostic, redaction, Unicode,
 timestamp, and root shapes and reject client disagreement, private fields,

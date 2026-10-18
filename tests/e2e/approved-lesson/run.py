@@ -303,6 +303,9 @@ ACCOUNTABLE_HISTORY_CAPTURE_ROOT_KEYS = frozenset(
         "denial_statuses",
     }
 )
+ACCOUNTABLE_HISTORY_SELECTOR_CAPTURE_ROOT_KEYS = frozenset(
+    {"schema_version", "requests"}
+)
 ACCOUNTABLE_HISTORY_DOCUMENT_KEYS = frozenset(
     {
         "schema_version",
@@ -1945,6 +1948,68 @@ def _accountable_history_timestamp(
     return value
 
 
+def _accountable_history_identifier(value: object, *, label: str) -> str:
+    if not isinstance(value, str) or not 1 <= len(value) <= 128:
+        raise RuntimeError(f"{label} has an invalid identifier length.")
+
+    def forbidden(character: str) -> bool:
+        code_point = ord(character)
+        return (
+            character.isspace()
+            or character in "/\\?#"
+            or code_point <= 0x1F
+            or 0x7F <= code_point <= 0x9F
+            or 0x200B <= code_point <= 0x200F
+            or 0x202A <= code_point <= 0x202E
+            or 0x2060 <= code_point <= 0x206F
+            or code_point == 0xFEFF
+        )
+
+    if value[0] in "._:" or forbidden(value[0]) or any(
+        forbidden(character) for character in value[1:]
+    ):
+        raise RuntimeError(f"{label} has an invalid identifier shape.")
+    return value
+
+
+def _accountable_history_text(
+    value: object,
+    *,
+    label: str,
+    max_length: int,
+) -> str:
+    if not isinstance(value, str) or not 1 <= len(value) <= max_length:
+        raise RuntimeError(f"{label} has an invalid text length.")
+    for character in value:
+        code_point = ord(character)
+        if (
+            character in "<>"
+            or code_point <= 0x1F
+            or 0x7F <= code_point <= 0x9F
+            or code_point == 0x061C
+            or 0x200B <= code_point <= 0x200F
+            or 0x202A <= code_point <= 0x202E
+            or 0x2060 <= code_point <= 0x206F
+            or code_point == 0xFEFF
+        ):
+            raise RuntimeError(f"{label} contains unsafe text.")
+    return value
+
+
+def stable_accountable_history_request(
+    value: object,
+    *,
+    root_kind: str,
+) -> dict[str, Any]:
+    request = stable_learning_lineage_request(value, root_kind=root_kind)
+    if root_kind == "published_lesson":
+        _accountable_history_identifier(request["package_id"], label="Package")
+    else:
+        _accountable_history_identifier(request["placement_id"], label="Placement")
+        _accountable_history_identifier(request["evidence_id"], label="Evidence")
+    return request
+
+
 def _stable_accountable_history_entry(
     value: object,
     *,
@@ -1975,15 +2040,20 @@ def _stable_accountable_history_entry(
     _exact_keys(value, expected, "Accountable-history entry")
     if value.get("sequence") != expected_sequence:
         raise RuntimeError("Accountable-history entry order is not gap-free.")
-    _lineage_identifier(value.get("entry_id"), label="History entry")
-    _lineage_identifier(value.get("resource_id"), label="History resource")
+    _accountable_history_identifier(value.get("entry_id"), label="History entry")
+    _accountable_history_identifier(value.get("resource_id"), label="History resource")
     if value.get("owner_module") != ACCOUNTABLE_HISTORY_OWNER_BY_KIND[resource_kind]:
         raise RuntimeError("Accountable-history entry owner is inconsistent.")
     if value.get("role") not in ACCOUNTABLE_HISTORY_ROLES:
         raise RuntimeError("Accountable-history entry role is unsupported.")
-    for field in ("title", "explanation"):
-        if not isinstance(value.get(field), str) or not value[field].strip():
-            raise RuntimeError(f"Accountable-history entry {field} is invalid.")
+    _accountable_history_text(
+        value.get("title"), label="Accountable-history entry title", max_length=160
+    )
+    _accountable_history_text(
+        value.get("explanation"),
+        label="Accountable-history entry explanation",
+        max_length=500,
+    )
     _lineage_digest(value.get("integrity_digest"), label="History entry")
     _accountable_history_timestamp(
         value.get("recorded_at"), label="Accountable-history entry"
@@ -2034,9 +2104,12 @@ def stable_accountable_history_document(
         raise RuntimeError("Accountable-history root does not match its request.")
     if value.get("state") not in {"valid", "incomplete", "invalid"}:
         raise RuntimeError("Accountable-history state is unsupported.")
-    for field in ("title", "summary"):
-        if not isinstance(value.get(field), str) or not value[field].strip():
-            raise RuntimeError(f"Accountable-history {field} is invalid.")
+    _accountable_history_text(
+        value.get("title"), label="Accountable-history title", max_length=160
+    )
+    _accountable_history_text(
+        value.get("summary"), label="Accountable-history summary", max_length=500
+    )
     _lineage_digest(value.get("source_lineage_digest"), label="Source lineage")
     _lineage_digest(value.get("history_digest"), label="Accountable history")
 
@@ -2110,11 +2183,16 @@ def stable_accountable_history_document(
             link.get("source_entry_id") not in entry_ids
             or link.get("relation") not in LINEAGE_RELATIONS
             or link.get("reason") not in {"not_found", "unavailable", "redacted"}
-            or not isinstance(link.get("explanation"), str)
-            or not link["explanation"].strip()
         ):
             raise RuntimeError("Accountable-history missing link is inconsistent.")
-        _lineage_identifier(link.get("target_reference"), label="Missing target")
+        _accountable_history_identifier(
+            link.get("target_reference"), label="Missing target"
+        )
+        _accountable_history_text(
+            link.get("explanation"),
+            label="Accountable-history missing-link explanation",
+            max_length=500,
+        )
 
     diagnostics = value.get("diagnostics")
     if not isinstance(diagnostics, list) or len(diagnostics) > 32:
@@ -2129,11 +2207,16 @@ def stable_accountable_history_document(
         )
         if (
             diagnostic.get("code") not in ACCOUNTABLE_HISTORY_DIAGNOSTICS
-            or not isinstance(diagnostic.get("explanation"), str)
-            or not diagnostic["explanation"].strip()
         ):
             raise RuntimeError("Accountable-history diagnostic is inconsistent.")
-        _lineage_identifier(diagnostic.get("reference"), label="Diagnostic reference")
+        _accountable_history_identifier(
+            diagnostic.get("reference"), label="Diagnostic reference"
+        )
+        _accountable_history_text(
+            diagnostic.get("explanation"),
+            label="Accountable-history diagnostic explanation",
+            max_length=500,
+        )
 
     redactions = value.get("redactions")
     if not isinstance(redactions, list) or len(redactions) > 6:
@@ -2225,10 +2308,10 @@ def load_accountable_history_capture(
             raise RuntimeError(f"Accountable-history {label} section is invalid.")
         _exact_keys(section, frozenset({"lesson", "completion"}), label)
     stable_requests = {
-        "lesson": stable_learning_lineage_request(
+        "lesson": stable_accountable_history_request(
             requests["lesson"], root_kind="published_lesson"
         ),
-        "completion": stable_learning_lineage_request(
+        "completion": stable_accountable_history_request(
             requests["completion"], root_kind="knowledge_check_completion"
         ),
     }
@@ -2269,6 +2352,40 @@ def load_accountable_history_capture(
         "requests": stable_requests,
         "documents": stable_generated,
         "denial_statuses": copy.deepcopy(denial_statuses),
+    }
+
+
+def load_accountable_history_selectors(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, dict[str, Any]]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded accountable-history selector capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 32_768:
+        raise RuntimeError("Accountable-history selectors escaped their bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict):
+        raise RuntimeError("Accountable-history selector capture is not an object.")
+    _exact_keys(
+        capture,
+        ACCOUNTABLE_HISTORY_SELECTOR_CAPTURE_ROOT_KEYS,
+        "Accountable-history selector capture",
+    )
+    if capture.get("schema_version") != "1.0.0":
+        raise RuntimeError("Accountable-history selector version is unsupported.")
+    requests = capture.get("requests")
+    if not isinstance(requests, dict):
+        raise RuntimeError("Accountable-history selector requests are invalid.")
+    _exact_keys(requests, frozenset({"lesson", "completion"}), "selectors")
+    return {
+        "lesson": stable_accountable_history_request(
+            requests["lesson"], root_kind="published_lesson"
+        ),
+        "completion": stable_accountable_history_request(
+            requests["completion"], root_kind="knowledge_check_completion"
+        ),
     }
 
 
@@ -2351,6 +2468,27 @@ def assert_accountable_history_restart_result(
 ) -> None:
     if before_restart != after_restart:
         raise RuntimeError("Accountable-history meaning changed after normal restart.")
+
+
+def assert_accountable_history_containment(
+    *,
+    database_before: dict[str, dict[str, Any]],
+    database_after: dict[str, dict[str, Any]],
+    files_before: dict[str, Any],
+    files_after: dict[str, Any],
+    context: str = "reads or exports",
+) -> None:
+    if database_after == database_before and files_after == files_before:
+        return
+    changed_schemas = sorted(
+        schema
+        for schema in set(database_before) | set(database_after)
+        if database_before.get(schema) != database_after.get(schema)
+    )
+    raise RuntimeError(
+        f"Accountable-history {context} changed owner state or evidence "
+        f"(schemas={changed_schemas!r}, files_changed={files_after != files_before})."
+    )
 
 
 def _practice_response_keys(item_type: str) -> frozenset[str]:
@@ -9321,6 +9459,9 @@ def main() -> int:
     assistance_preferences_capture = data_root / "assistance-preferences-capture.json"
     platform_help_capture = data_root / "platform-help-capture.json"
     learning_lineage_capture = data_root / "learning-lineage-capture.json"
+    accountable_history_selector_capture = (
+        data_root / "accountable-history-selectors.json"
+    )
     accountable_history_capture = data_root / "accountable-history-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
@@ -9383,6 +9524,9 @@ def main() -> int:
         environment["FINANCIAL_AI_ACADEMY_HISTORY_CAPTURE"] = str(
             accountable_history_capture
         )
+        environment["FINANCIAL_AI_ACADEMY_HISTORY_SELECTOR_CAPTURE"] = str(
+            accountable_history_selector_capture
+        )
         run_checked(
             npm_e2e_command(
                 "approved-lesson.e2e.ts",
@@ -9427,6 +9571,26 @@ def main() -> int:
             raise RuntimeError(
                 "Learning-lineage reads changed owner state or retained evidence."
             )
+        environment["FINANCIAL_AI_ACADEMY_HISTORY_MODE"] = "selectors"
+        run_checked(
+            npm_e2e_command("accountable-history.e2e.ts"),
+            env=environment,
+        )
+        accountable_history_selectors = load_accountable_history_selectors(
+            accountable_history_selector_capture,
+            data_root=data_root,
+        )
+        # Selector discovery may refresh the rebuildable Learner Model projection.
+        # Freeze containment after that permitted lookup and before the first
+        # accountable-history review or export operation in any client.
+        accountable_database_before = application_database_fingerprint(
+            postgres_dsn,
+            exclude_schemas=frozenset({"identity"}),
+        )
+        accountable_files_before = bounded_file_tree_fingerprint(
+            data_root / "application-data"
+        )
+        environment["FINANCIAL_AI_ACADEMY_HISTORY_MODE"] = "operations"
         run_checked(
             npm_e2e_command("accountable-history.e2e.ts"),
             env=environment,
@@ -9435,17 +9599,10 @@ def main() -> int:
             accountable_history_capture,
             data_root=data_root,
         )
-        # The browser qualification obtains its exact completion selector from
-        # the public Learner Model view, which refreshes a rebuildable projection.
-        # Start the containment window after that selector lookup so it measures
-        # only the accountable-history inspection and export operations.
-        accountable_database_before = application_database_fingerprint(
-            postgres_dsn,
-            exclude_schemas=frozenset({"identity"}),
-        )
-        accountable_files_before = bounded_file_tree_fingerprint(
-            data_root / "application-data"
-        )
+        if accountable_history["requests"] != accountable_history_selectors:
+            raise RuntimeError(
+                "Accountable-history operations changed their disclosed selectors."
+            )
         accountable_history_before_restart = observe_headless_accountable_history(
             origin,
             capture=accountable_history,
@@ -9457,22 +9614,12 @@ def main() -> int:
         accountable_files_after = bounded_file_tree_fingerprint(
             data_root / "application-data"
         )
-        if (
-            accountable_database_after != accountable_database_before
-            or accountable_files_after != accountable_files_before
-        ):
-            changed_schemas = sorted(
-                schema
-                for schema in set(accountable_database_before)
-                | set(accountable_database_after)
-                if accountable_database_before.get(schema)
-                != accountable_database_after.get(schema)
-            )
-            raise RuntimeError(
-                "Accountable-history reads or exports changed owner state or "
-                f"evidence (schemas={changed_schemas!r}, "
-                f"files_changed={accountable_files_after != accountable_files_before})."
-            )
+        assert_accountable_history_containment(
+            database_before=accountable_database_before,
+            database_after=accountable_database_after,
+            files_before=accountable_files_before,
+            files_after=accountable_files_after,
+        )
         platform_help_source_before = application_database_fingerprint(
             postgres_dsn,
             exclude_schemas=frozenset({"identity"}),
@@ -9916,25 +10063,13 @@ def main() -> int:
         accountable_files_after_restart_observation = bounded_file_tree_fingerprint(
             data_root / "application-data"
         )
-        if (
-            accountable_database_after_restart_observation
-            != accountable_database_before_restart_observation
-            or accountable_files_after_restart_observation
-            != accountable_files_before_restart_observation
-        ):
-            changed_schemas = sorted(
-                schema
-                for schema in set(accountable_database_before_restart_observation)
-                | set(accountable_database_after_restart_observation)
-                if accountable_database_before_restart_observation.get(schema)
-                != accountable_database_after_restart_observation.get(schema)
-            )
-            raise RuntimeError(
-                "Accountable-history restart reads changed owner state or evidence "
-                f"(schemas={changed_schemas!r}, "
-                "files_changed="
-                f"{accountable_files_after_restart_observation != accountable_files_before_restart_observation})."
-            )
+        assert_accountable_history_containment(
+            database_before=accountable_database_before_restart_observation,
+            database_after=accountable_database_after_restart_observation,
+            files_before=accountable_files_before_restart_observation,
+            files_after=accountable_files_after_restart_observation,
+            context="restart reads",
+        )
         platform_help_storage_before_restart_observation = (
             application_database_fingerprint(
                 postgres_dsn,

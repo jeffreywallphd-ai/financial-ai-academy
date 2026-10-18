@@ -5543,6 +5543,32 @@ def accountable_history_capture() -> dict[str, Any]:
     }
 
 
+def test_accountable_history_selector_capture_is_bounded_and_strict(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "accountable-history-selectors.json"
+    valid = {
+        "schema_version": "1.0.0",
+        "requests": accountable_history_capture()["requests"],
+    }
+    path.write_text(json.dumps(valid), encoding="utf-8")
+    assert runner.load_accountable_history_selectors(
+        path, data_root=tmp_path
+    ) == valid["requests"]
+
+    escaped = deepcopy(valid)
+    escaped["requests"]["completion"]["evidence_id"] = "evidence id"
+    path.write_text(json.dumps(escaped), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="identifier shape"):
+        runner.load_accountable_history_selectors(path, data_root=tmp_path)
+
+    extra = deepcopy(valid)
+    extra["source"] = "unbounded"
+    path.write_text(json.dumps(extra), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner.load_accountable_history_selectors(path, data_root=tmp_path)
+
+
 def test_accountable_history_capture_accepts_flexible_history_and_rejects_drift(
     tmp_path: Path,
 ) -> None:
@@ -5584,6 +5610,34 @@ def test_accountable_history_capture_accepts_flexible_history_and_rejects_drift(
     impossible_time["direct"] = deepcopy(impossible_time["generated"])
     path.write_text(json.dumps(impossible_time), encoding="utf-8")
     with pytest.raises(RuntimeError, match="not a real date"):
+        runner.load_accountable_history_capture(path, data_root=tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("field_path", "invalid_value", "message"),
+    [
+        (("entries", 0, "entry_id"), "source id", "identifier shape"),
+        (("entries", 0, "resource_id"), "source\u200b-id", "identifier shape"),
+        (("entries", 0, "title"), "x" * 161, "text length"),
+        (("entries", 0, "explanation"), "unsafe <detail>", "unsafe text"),
+        (("summary",), "hidden\u2060formatting", "unsafe text"),
+    ],
+)
+def test_accountable_history_capture_rejects_values_outside_frozen_v1_schema(
+    tmp_path: Path,
+    field_path: tuple[object, ...],
+    invalid_value: str,
+    message: str,
+) -> None:
+    path = tmp_path / "accountable-history-capture.json"
+    invalid = accountable_history_capture()
+    target: Any = invalid["generated"]["lesson"]["review"]
+    for component in field_path[:-1]:
+        target = target[component]
+    target[field_path[-1]] = invalid_value
+    invalid["direct"] = deepcopy(invalid["generated"])
+    path.write_text(json.dumps(invalid), encoding="utf-8")
+    with pytest.raises(RuntimeError, match=message):
         runner.load_accountable_history_capture(path, data_root=tmp_path)
 
 
@@ -5666,4 +5720,18 @@ def test_accountable_history_restart_requires_complete_exact_meaning() -> None:
         runner.assert_accountable_history_restart_result(
             before_restart=before,
             after_restart=changed,
+        )
+
+
+def test_accountable_history_containment_detects_first_operation_mutation() -> None:
+    database_before = {"audit": {"sha256": "a"}, "learner_model": {"sha256": "b"}}
+    database_after = deepcopy(database_before)
+    database_after["audit"]["sha256"] = "changed-on-first-call"
+    files = {"file_count": 0, "byte_count": 0, "sha256": "0" * 64}
+    with pytest.raises(RuntimeError, match=r"schemas=\['audit'\]"):
+        runner.assert_accountable_history_containment(
+            database_before=database_before,
+            database_after=database_after,
+            files_before=files,
+            files_after=files,
         )

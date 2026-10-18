@@ -168,9 +168,10 @@ The disposable local qualification derives both exact roots through public
 operations, compares generated-client and ordinary authenticated HTTP
 inspection/export documents, repeats them before and after a normal host
 restart, and checks confidential missing-session, query, and guessed-completion
-denials. Once the completion selector has refreshed its existing rebuildable
-Learner-model projection, accountable-history-only operations leave every non-
-Identity schema and the bounded application-data tree unchanged. The test
+denials. A selector-only phase may refresh the existing rebuildable Learner-
+model projection; containment fingerprints are then frozen before the first
+accountable-history call. Every accountable-history operation leaves every
+non-Identity schema and the bounded application-data tree unchanged. The test
 accepts variable bounded entries, transformations, gaps, diagnostics,
 redactions, Unicode, and timestamps rather than freezing one fixture count or
 prose shape. It does not establish retained export, public hosting, tenant,
