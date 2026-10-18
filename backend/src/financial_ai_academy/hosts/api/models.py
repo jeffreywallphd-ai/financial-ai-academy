@@ -55,8 +55,10 @@ from financial_ai_academy.modules.curriculum.public import (
     curriculum_graph_payload,
 )
 from financial_ai_academy.modules.guidance.public import (
+    ContextualHelpRecord,
     PlatformHelpTopic,
     SearchPage as PlatformHelpSearchPage,
+    context_payload as contextual_help_payload,
     search_page_payload as platform_help_search_page_payload,
     topic_payload as platform_help_topic_payload,
 )
@@ -279,6 +281,49 @@ class PlatformHelpTopicResponseModel(ApiModel):
     )
     related_topics: list[PlatformHelpRelatedTopicModel] = Field(max_length=20)
     topic_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+class ContextualHelpReferenceModel(ApiModel):
+    topic_id: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    topic_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    purpose: Literal[
+        "method",
+        "source",
+        "data_meaning",
+        "ai_boundary",
+        "education_boundary",
+    ]
+    label: str = Field(min_length=1, max_length=160)
+
+
+class ContextualHelpResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    context_key: str = Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$")
+    context_version: str = Field(
+        pattern=r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$"
+    )
+    feature_label: str = Field(min_length=1, max_length=160)
+    applicability: list[PlatformHelpApplicabilityModel] = Field(
+        min_length=1, max_length=20
+    )
+    help_references: list[ContextualHelpReferenceModel] = Field(
+        min_length=1, max_length=10
+    )
+    publication: PlatformHelpPublicationModel
+    source_references: list[PlatformHelpSourceReferenceModel] = Field(
+        min_length=1, max_length=20
+    )
+    context_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+
+
+def contextual_help_response(
+    context: ContextualHelpRecord,
+) -> ContextualHelpResponseModel:
+    return ContextualHelpResponseModel.model_validate(
+        contextual_help_payload(context)
+    )
 
 
 def platform_help_topic_response(

@@ -1,9 +1,9 @@
 # Platform Help Contract
 
-- Status: accepted and implemented through the protected platform-help v1 API
+- Status: accepted and implemented through the protected platform-help and contextual-help v1 APIs
 - Canonical for: Guidance ownership, exact topic meaning, safe body/source
   boundaries, canonicalization, and deterministic literal search
-- Executable shapes: `contracts/guidance/platform-help/v1/`
+- Executable shapes: `contracts/guidance/platform-help/v1/` and `contracts/guidance/contextual-help/v1/`
 - Compatibility evidence: `contracts/compatibility/platform-help/v1/`
 - Related docs: `contract-architecture.md`,
   `../modules/module-map.md`, `../../domain/glossary.md`,
@@ -127,6 +127,13 @@ different context or topic version.
 The checked-in registry is admitted atomically after the platform-help corpus.
 Every reference must resolve to an admitted exact topic. Duplicate identities,
 unknown fields, stale source fingerprints, invalid chronology or digest, unsafe
-text, and dangling topics reject the whole registry. Browser and headless
-delivery remains a dependent SLI-0083 packet; this transport-neutral contract
-does not itself expose an API or feature link.
+text, and dangling topics reject the whole registry.
+
+The protected exact read is
+`GET /api/v1/guidance/contextual-help/{context_key}/versions/{context_version}`.
+It uses the same server-issued Help-read permission as topic reads, authorizes
+before registry access, accepts no query or body, and transports the exact
+record without feature or host reinterpretation. The reviewed OpenAPI snapshot
+and generated client expose the same operation to browser and headless callers.
+Feature links, safe return behavior, and live browser/headless qualification
+remain dependent SLI-0083 work.

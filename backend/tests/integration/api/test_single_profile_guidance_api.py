@@ -9,9 +9,14 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from financial_ai_academy.hosts.api.app import ApiServices, create_app
 from financial_ai_academy.hosts.api.generate_openapi import generate_bytes
-from financial_ai_academy.modules.guidance.adapters import ImmutablePlatformHelpCorpus
+from financial_ai_academy.modules.guidance.adapters import (
+    ImmutableContextualHelpRegistry,
+    ImmutablePlatformHelpCorpus,
+)
 from financial_ai_academy.modules.guidance.application import GuidanceService
 from financial_ai_academy.modules.guidance.public import (
+    ContextualHelpRecord,
+    OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
     PlatformHelpTopic,
     SearchPage,
@@ -32,6 +37,9 @@ REPOSITORY = Path(__file__).resolve().parents[4]
 OPENAPI = REPOSITORY / "contracts/api/openapi.json"
 SEARCH_SCHEMA = (
     REPOSITORY / "contracts/guidance/platform-help/v1/search-page.schema.json"
+)
+CONTEXT_SCHEMA = (
+    REPOSITORY / "contracts/guidance/contextual-help/v1/context.schema.json"
 )
 ORIGIN = "http://127.0.0.1:8000"
 COOKIE_NAME = "financial_ai_academy_session"
@@ -71,9 +79,14 @@ class Identity:
 
 class Guidance:
     def __init__(self) -> None:
-        self._service = GuidanceService(ImmutablePlatformHelpCorpus())
+        corpus = ImmutablePlatformHelpCorpus()
+        self._service = GuidanceService(
+            corpus,
+            ImmutableContextualHelpRegistry(topics=corpus.topics),
+        )
         self.search_calls: list[SearchRequest] = []
         self.open_calls: list[OpenPlatformHelpTopicRequest] = []
+        self.context_calls: list[OpenContextualHelpRequest] = []
 
     def search_platform_help(self, request: SearchRequest) -> SearchPage:
         self.search_calls.append(request)
@@ -84,6 +97,12 @@ class Guidance:
     ) -> PlatformHelpTopic:
         self.open_calls.append(request)
         return self._service.open_platform_help_topic(request)
+
+    def open_contextual_help(
+        self, request: OpenContextualHelpRequest
+    ) -> ContextualHelpRecord:
+        self.context_calls.append(request)
+        return self._service.open_contextual_help(request)
 
 
 def client(
@@ -121,7 +140,11 @@ def exact_path(version: str = "1.0.0") -> str:
     return f"/api/v1/guidance/platform-help/approved-help/versions/{version}"
 
 
-def test_authorized_search_and_exact_read_preserve_closed_public_facts() -> None:
+def context_path(version: str = "1.0.0") -> str:
+    return f"/api/v1/guidance/contextual-help/project-result/versions/{version}"
+
+
+def test_authorized_help_reads_preserve_closed_public_facts() -> None:
     guidance = Guidance()
     http = client(Identity(("guidance.platform_help.read",)), guidance)
 
@@ -130,6 +153,7 @@ def test_authorized_search_and_exact_read_preserve_closed_public_facts() -> None
         params={"query": "approved help", "page_size": 2},
     )
     exact = http.get(exact_path())
+    context = http.get(context_path())
 
     assert search.status_code == 200
     assert search.json()["query"] == "approved help"
@@ -139,7 +163,16 @@ def test_authorized_search_and_exact_read_preserve_closed_public_facts() -> None
     assert exact.json()["topic_id"] == "approved-help"
     assert exact.json()["publication"]["state"] == "approved"
     assert exact.json()["source_references"]
-    serialized = json.dumps((search.json(), exact.json()))
+    assert context.status_code == 200
+    assert context.json()["context_key"] == "project-result"
+    assert context.json()["help_references"]
+    assert list(
+        Draft202012Validator(
+            json.loads(CONTEXT_SCHEMA.read_text(encoding="utf-8")),
+            format_checker=FormatChecker(),
+        ).iter_errors(context.json())
+    ) == []
+    serialized = json.dumps((search.json(), exact.json(), context.json()))
     assert all(
         prohibited not in serialized
         for prohibited in (
@@ -201,12 +234,22 @@ def test_missing_and_insufficient_context_deny_before_corpus_access() -> None:
     denied_guidance = Guidance()
     denied = client(
         Identity(("curriculum.lesson.read",)), denied_guidance
-    ).get(exact_path())
+    ).get(context_path())
+    invalid_missing_guidance = Guidance()
+    invalid_missing = client(
+        Identity(("guidance.platform_help.read",)),
+        invalid_missing_guidance,
+        authenticated=False,
+    ).get(
+        "/api/v1/guidance/contextual-help/UNSAFE/versions/latest"
+    )
 
     assert missing.status_code == 401
     assert denied.status_code == 403
+    assert invalid_missing.status_code == 401
     assert missing_guidance.search_calls == []
-    assert denied_guidance.open_calls == []
+    assert denied_guidance.context_calls == []
+    assert invalid_missing_guidance.context_calls == []
 
 
 def test_client_selected_permission_is_rejected_before_corpus_access() -> None:
@@ -227,12 +270,15 @@ def test_exact_version_absence_and_invalid_cursor_are_bounded() -> None:
     http = client(Identity(("guidance.platform_help.read",)), guidance)
 
     absent = http.get(exact_path("2.0.0"))
+    absent_context = http.get(context_path("2.0.0"))
     invalid_cursor = http.get(
         "/api/v1/guidance/platform-help", params={"cursor": "not-a-cursor"}
     )
 
     assert absent.status_code == 404
     assert absent.json()["code"] == "not_found"
+    assert absent_context.status_code == 404
+    assert absent_context.json()["code"] == "not_found"
     assert invalid_cursor.status_code == 409
     assert invalid_cursor.json()["code"] == "invalid_cursor"
     assert "not-a-cursor" not in json.dumps(invalid_cursor.json())
@@ -245,9 +291,11 @@ def test_unknown_query_and_get_bodies_are_rejected() -> None:
         "/api/v1/guidance/platform-help", params={"unexpected": "value"}
     )
     body = http.request("GET", exact_path(), content=b"{}")
+    context_query = http.get(context_path(), params={"latest": "true"})
 
     assert unknown.status_code == 400
     assert body.status_code == 400
+    assert context_query.status_code == 400
 
 
 def test_openapi_snapshot_contains_stable_cookie_protected_operations() -> None:
@@ -256,11 +304,17 @@ def test_openapi_snapshot_contains_stable_cookie_protected_operations() -> None:
     exact = generated["paths"][
         "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}"
     ]["get"]
+    context = generated["paths"][
+        "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}"
+    ]["get"]
 
     assert search["operationId"] == "searchPlatformHelp"
     assert exact["operationId"] == "getPlatformHelpTopicVersion"
+    assert context["operationId"] == "getContextualHelpVersion"
     assert search["security"] == [{"OpaqueSessionCookie": []}]
     assert exact["security"] == [{"OpaqueSessionCookie": []}]
+    assert context["security"] == [{"OpaqueSessionCookie": []}]
     assert "422" not in search["responses"]
     assert "422" not in exact["responses"]
+    assert "422" not in context["responses"]
     assert OPENAPI.read_bytes() == generate_bytes()

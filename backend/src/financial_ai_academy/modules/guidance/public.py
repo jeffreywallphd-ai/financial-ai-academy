@@ -7,12 +7,14 @@ from typing import Protocol
 
 from .adapters.platform_help_contract import search_page_payload
 from .domain import (
+    ContextualHelpRecord,
     GuidanceError,
     GuidanceErrorCode,
     PlatformHelpTopic,
     SearchPage,
     SearchRequest,
     TopicKind,
+    context_payload,
     topic_payload,
 )
 
@@ -23,6 +25,12 @@ class OpenPlatformHelpTopicRequest:
     topic_version: str
 
 
+@dataclass(frozen=True, slots=True)
+class OpenContextualHelpRequest:
+    context_key: str
+    context_version: str
+
+
 class GuidanceOperations(Protocol):
     def search_platform_help(self, request: SearchRequest) -> SearchPage: ...
 
@@ -31,16 +39,24 @@ class GuidanceOperations(Protocol):
         request: OpenPlatformHelpTopicRequest,
     ) -> PlatformHelpTopic: ...
 
+    def open_contextual_help(
+        self,
+        request: OpenContextualHelpRequest,
+    ) -> ContextualHelpRecord: ...
+
 
 __all__ = [
     "GuidanceError",
     "GuidanceErrorCode",
     "GuidanceOperations",
+    "ContextualHelpRecord",
+    "OpenContextualHelpRequest",
     "OpenPlatformHelpTopicRequest",
     "PlatformHelpTopic",
     "SearchPage",
     "SearchRequest",
     "TopicKind",
+    "context_payload",
     "search_page_payload",
     "topic_payload",
 ]

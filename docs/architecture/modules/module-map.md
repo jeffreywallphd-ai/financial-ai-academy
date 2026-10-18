@@ -17,7 +17,7 @@
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
-| Guidance | accepted; contract, immutable corpus, application seam, and protected API implemented | Safe versioned platform explanations, canonical-source facts, exact topic integrity, and deterministic literal search | Contextual links, browser presentation, and live qualification remain CAP-0020 work |
+| Guidance | accepted; topic/context contracts, immutable corpus and registry, application seam, and protected APIs implemented | Safe versioned platform explanations, exact contextual mappings, canonical-source facts, topic integrity, and deterministic literal search | Feature links, contextual browser presentation, and live qualification remain CAP-0020 work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -148,7 +148,9 @@ execution, cross-module mutation, or browser-interface dependency.
   reviewed source/history and data-meaning topics, and an immutable checked-in
   registry correlated atomically to exact admitted Help topics. It contains no
   route, feature state, learner selector, provider/model, command, or browser
-  policy. Protected API and feature delivery remain dependent SLI-0083 work.
+  authority. The Guidance application/public seam and protected exact context
+  API transport the same closed record through the reviewed OpenAPI-generated
+  client for browser and headless callers; feature links remain separate.
 
 ## Implemented Adaptation Deterministic Baseline
 

@@ -80,6 +80,8 @@ from financial_ai_academy.modules.curriculum.public import (
     ResolvePracticeReviewTargetsRequest,
 )
 from financial_ai_academy.modules.guidance.public import (
+    ContextualHelpRecord,
+    OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
     PlatformHelpTopic,
     SearchPage as PlatformHelpSearchPage,
@@ -204,6 +206,11 @@ class _SchemaGuidance:
     def open_platform_help_topic(
         self, request: OpenPlatformHelpTopicRequest
     ) -> PlatformHelpTopic:
+        raise NotImplementedError
+
+    def open_contextual_help(
+        self, request: OpenContextualHelpRequest
+    ) -> ContextualHelpRecord:
         raise NotImplementedError
 
 

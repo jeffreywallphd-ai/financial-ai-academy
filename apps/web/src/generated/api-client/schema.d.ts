@@ -120,6 +120,15 @@ export interface paths {
       };
       readonly post: operations["submitPlacedPractice"];
     };
+  readonly "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly get: operations["getContextualHelpVersion"];
+    };
   readonly "/api/v1/guidance/platform-help": {
       readonly parameters: {
         readonly query?: never;
@@ -602,6 +611,23 @@ export interface components {
       readonly "code": string;
       readonly "kind"?: "code_block";
       readonly "language": string | null;
+    };
+    readonly "ContextualHelpReferenceModel": {
+      readonly "label": string;
+      readonly "purpose": "method" | "source" | "data_meaning" | "ai_boundary" | "education_boundary";
+      readonly "topic_id": string;
+      readonly "topic_version": string;
+    };
+    readonly "ContextualHelpResponseModel": {
+      readonly "applicability": ReadonlyArray<components["schemas"]["PlatformHelpApplicabilityModel"]>;
+      readonly "context_digest": string;
+      readonly "context_key": string;
+      readonly "context_version": string;
+      readonly "feature_label": string;
+      readonly "help_references": ReadonlyArray<components["schemas"]["ContextualHelpReferenceModel"]>;
+      readonly "publication": components["schemas"]["PlatformHelpPublicationModel"];
+      readonly "schema_version": "1.0.0";
+      readonly "source_references": ReadonlyArray<components["schemas"]["PlatformHelpSourceReferenceModel"]>;
     };
     readonly "CreateLearnerExperienceMutationModel": {
       readonly "detail": string | null;
@@ -2899,6 +2925,62 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["PracticeSubmissionResultResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly getContextualHelpVersion: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path: {
+          readonly "context_key": string;
+          readonly "context_version": string;
+        };
+      readonly cookie?: never;
+    };
+    readonly requestBody?: never;
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ContextualHelpResponseModel"];
           };
         };
         readonly 400: {

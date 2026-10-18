@@ -88,6 +88,7 @@ from financial_ai_academy.modules.guidance.public import (
     GuidanceError,
     GuidanceErrorCode,
     GuidanceOperations,
+    OpenContextualHelpRequest,
     OpenPlatformHelpTopicRequest,
     SearchRequest as PlatformHelpSearchRequest,
     TopicKind as PlatformHelpTopicKind,
@@ -201,6 +202,7 @@ from .models import (
     PersonalWorkspaceQueryRequestModel,
     PersonalWorkspaceQueryResponseModel,
     PersonalWorkspaceResponseModel,
+    ContextualHelpResponseModel,
     PlatformHelpSearchPageResponseModel,
     PlatformHelpTopicResponseModel,
     SessionBootstrapRequestModel,
@@ -253,6 +255,7 @@ from .models import (
     personal_workspace_query_response,
     personal_workspace_response,
     personal_workspace_source_permission,
+    contextual_help_response,
     platform_help_search_page_response,
     platform_help_topic_response,
 )
@@ -1611,6 +1614,35 @@ def create_app(services: ApiServices) -> FastAPI:
         return platform_help_topic_response(topic)
 
     @app.get(
+        "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}",
+        response_model=ContextualHelpResponseModel,
+        operation_id="getContextualHelpVersion",
+        responses=_ERROR_RESPONSES,
+        tags=["guidance"],
+    )
+    async def get_contextual_help_version(
+        request: Request,
+        context_key: str = Path(
+            min_length=3,
+            max_length=64,
+            pattern=r"^[a-z0-9][a-z0-9._-]{2,63}$",
+        ),
+        context_version: str = Path(
+            pattern=(
+                r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\."
+                r"(0|[1-9][0-9]*)$"
+            ),
+        ),
+        _context: LearnerContext = Depends(guidance_context),
+    ) -> ContextualHelpResponseModel:
+        if request.query_params or await request.body():
+            raise RequestValidationError([])
+        context = guidance_operations().open_contextual_help(
+            OpenContextualHelpRequest(context_key, context_version)
+        )
+        return contextual_help_response(context)
+
+    @app.get(
         "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}",
         response_model=CurriculumGraphResponseModel,
         operation_id="getCurriculumGraphVersion",
@@ -2432,6 +2464,10 @@ def create_app(services: ApiServices) -> FastAPI:
                 "/api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}"
             ]["get"]
             guidance_topic_operation["responses"].pop("422", None)
+            contextual_help_operation = schema["paths"][
+                "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}"
+            ]["get"]
+            contextual_help_operation["responses"].pop("422", None)
             navigation_operation = schema["paths"][
                 "/api/v1/adaptation/curricula/{curriculum_id}/versions/{curriculum_version}/navigation-state"
             ]["get"]

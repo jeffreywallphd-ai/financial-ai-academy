@@ -17,6 +17,17 @@ prompt, model output, or active content. Browser, command-line, service, and
 future headless-AI clients use these same OpenAPI-generated operations; no
 separate ranking or authority path exists.
 
+`GET /api/v1/guidance/contextual-help/{context_key}/versions/{context_version}`
+is the protected exact contextual-help read. It uses the same opaque session
+and server-issued `guidance.platform_help.read` permission, accepts no query,
+body, learner, permission, destination, or latest-version selector, and never
+substitutes another context version. Its closed response preserves the reviewed
+feature label, applicability, ordered exact topic references and purposes,
+publication, canonical-source fingerprints, and context digest. Callers open
+referenced content through the existing exact topic operation. Browser,
+command-line, service, and future headless-AI clients therefore share one
+source-bound mapping without creating a feature-owned or browser-only registry.
+
 `GET /api/v1/learner-assistance-preferences`, `GET
 /api/v1/learner-assistance-preferences/history`, `GET
 /api/v1/learner-assistance-preferences/export`, and `POST

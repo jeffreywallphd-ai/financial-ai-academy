@@ -4,15 +4,19 @@ Guidance owns safe versioned projections that explain platform concepts,
 methods, limitations, and troubleshooting. Canonical product, domain,
 architecture, contract, risk, and method sources retain their meaning.
 
-The implemented boundary contains pure immutable `platform-help/v1` values,
-contract parsing/projection, exact-version lookup, deterministic literal
-search, a checked-in starter corpus, and a transport-neutral application/public
-seam. Composition admits every JSON resource as one corpus before the API can
-serve it; an invalid, duplicated, stale, or internally inconsistent record
-rejects startup rather than exposing a partial result.
+The implemented boundary contains pure immutable `platform-help/v1` and
+`contextual-help/v1` values, strict contract projection, exact-version lookup,
+deterministic literal topic search, checked-in source-bound resources, and one
+transport-neutral application/public seam. Composition admits the complete
+topic corpus and then the context registry before the API can serve them; an
+invalid, duplicated, stale, dangling, or internally inconsistent record rejects
+startup rather than exposing a partial result.
 
 The protected API uses the same Guidance operations for browser, command-line,
-service, and future headless-AI callers. It has no database, request-time
+service, and future headless-AI callers. Context reads return one exact routing
+document whose ordered references open the existing exact topic operation;
+neither the host nor a caller invents a feature-to-topic mapping. Guidance has
+no database, request-time
 repository-document read, network, model, provider, grading, eligibility,
 learner-state, or financial-action dependency. Provider payloads and authoring
 sources remain outside domain values.
@@ -24,6 +28,6 @@ server-owned search order and cursors, and keeps exact source facts in a
 progressive technical record. It owns no help corpus, ranking, authorization,
 latest-version selection, analytics, or separate headless behavior.
 
-Contributions to the immutable corpus follow `resources/README.md`. Published
-meaning changes require an exact new version and updated source fingerprint;
-runtime code never treats repository Markdown as content storage.
+Contributions to the immutable corpus and registry follow `resources/README.md`.
+Published meaning changes require an exact new version and updated source
+fingerprint; runtime code never treats repository Markdown as content storage.
