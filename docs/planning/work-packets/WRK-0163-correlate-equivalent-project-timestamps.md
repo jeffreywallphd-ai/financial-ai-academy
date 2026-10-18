@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/features/project-workspace/api.ts", "apps/web/src/features/project-workspace/model.ts", "apps/web/tests/unit/projectWorkspaceModel.test.ts", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0161-qualify-ai-help-and-local-reminders-live-flow.md", "docs/planning/work-packets/WRK-0163-correlate-equivalent-project-timestamps.md"]
 generated_artifacts: []
-base_revision: 80b8eef62c09e0bf47953a13da0ff859832e4eb6
-claim_id: WRK-0163:ec6a5e94-864e-411a-94a4-a92061d9a8de
+base_revision: 80b8eef4e5819a5cb03ae29d43911d45f4f565bb
+claim_id: WRK-0163:560119ab-6682-452e-b029-db6d87c794ae
 claimed_by: codex-cap-0018-correction
-claimed_at: 2026-10-18T01:24:23Z
+claimed_at: 2026-10-18T01:26:40Z
 ---
 
 # Agent Work Packet: Correlate Equivalent Project Timestamps
