@@ -176,7 +176,7 @@ time immediately before work starts. The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0178](../work-packets/WRK-0178-build-guidance-quality-gate.md) | Build the deterministic contributor-facing Guidance quality gate, source-authority binding, flexible valid-extension fixtures, and affected-check integration | SLI-0082 through SLI-0084 | none | verifying |
+| [WRK-0178](../work-packets/WRK-0178-build-guidance-quality-gate.md) | Build the deterministic contributor-facing Guidance quality gate, source-authority binding, flexible valid-extension fixtures, and affected-check integration | SLI-0082 through SLI-0084 | none | complete |
 | reserved just in time | Run and close cumulative browser/headless, accessibility, offline-local, restart, containment, anti-rigidity, documentation, and control-plane qualification | prior packet | none | captured |
 
 Sequential delivery is required because both packets share the quality command,
@@ -251,3 +251,7 @@ cleanup, residual gaps, rollback/migration status, and CAP conformance.
   exact-read, and deterministic-search result plus anti-rigidity tests and
   affected/fixed readiness selection. Candidate-bound evidence remains before
   the packet can close.
+- 2026-10-18: WRK-0178 closed on corrected exact candidate `0b4384b` after all
+  selected checks passed and the over-broad Project browser selection was
+  removed without weakening its actual source, test, style, or executor
+  triggers. No public Guidance or stored-data meaning changed.

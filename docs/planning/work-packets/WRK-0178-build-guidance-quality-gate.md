@@ -1,7 +1,7 @@
 ---
 id: WRK-0178
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -195,6 +195,42 @@ Confirm that public contracts, runtime Help meaning, learner/feature state,
 identity, persistence, provider/model behavior, external actions, and financial
 authority did not change before the final cumulative qualification packet.
 
+## Verification Evidence
+
+Implementation is complete on corrected exact candidate
+`0b4384ba989b202fd653524c3c6f76b2ebf7546d`. The qualifying receipt is
+`.local-codex/control-plane/receipts/WRK-0178/0b4384ba989b202fd653524c3c6f76b2ebf7546d/20261018T072528Z-445604e4-49c2-4ed8-9d86-3d5e6ed7513f.json`
+with receipt digest
+`sha256:6f8395707c3672d0d3bcb108fecda28b658350ef58e25d81f8740fa4a9d60f8d`.
+All 10 selected checks passed: control-plane lifecycle and affected-selection,
+planning tools and integrity, documentation integrity, the new Guidance quality
+suite, feature-Guidance qualification, architecture, security, and the fixed
+30-check aggregate readiness gate. The receipt is internally qualifying,
+candidate-stable, and has no open technical finding.
+
+The contributor command qualifies 10 canonical source bindings, eight current
+Platform Help topics, four contextual mappings, five feature records, and five
+feature mappings through production adapters. Five direct quality tests cover
+the current repository, exact source acceptance, stale/missing/absolute/
+escaping/duplicate/unknown/malformed authority, a dangling exact topic,
+reordered input, and a valid added topic without fixed corpus count. Forty-four
+control-plane verification tests cover affected selection and exact command
+assembly; four readiness-catalog tests bind the fixed fast command.
+
+The first candidate exposed an unrelated Project Chromium trigger on any
+catalog edit. The corrected descendant removes only the catalog file from that
+trigger. Project source, styles, browser specifications, and the shared browser
+executor still select focused Project Chromium, while direct control-plane
+tests cover catalog mapping. This correction avoids an incidental Node/browser
+barrier without weakening functional evidence.
+
+No public schema, Guidance record, API operation, generated client, browser
+behavior, database, identity, feature state, provider/model behavior, external
+action, or financial authority changed. There is no migration or data rollback.
+External crawling, hosted support, semantic retrieval, model-based evaluation,
+managed-cloud availability, and production certification remain outside this
+packet and the approved CAP.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after SLI-0085 refinement. This is the
@@ -217,3 +253,6 @@ authority did not change before the final cumulative qualification packet.
   check-catalog edit. The bounded correction leaves Project source, tests,
   styles, and its executor mapped to Chromium while catalog mapping changes use
   direct selection tests, avoiding unrelated runtime requirements.
+- 2026-10-18: Closed on corrected exact candidate `0b4384b` after all 10
+  selected checks and aggregate readiness passed with no open technical
+  finding. The dependent cumulative qualification packet is now eligible.
