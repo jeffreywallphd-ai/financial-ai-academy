@@ -35,29 +35,6 @@ function isTopicResponse(response: Response): boolean {
   return url.pathname.startsWith(`${HELP_API}/`) && response.request().method() === "GET";
 }
 
-function isContextResponse(response: Response, contextKey: string): boolean {
-  const url = new URL(response.url());
-  return url.pathname ===
-    `${CONTEXT_API}/${contextKey}/versions/${CONTEXT_VERSION}` &&
-    response.request().method() === "GET";
-}
-
-async function openContextualFeature(
-  page: Page,
-  url: string,
-  contextKey: string,
-): Promise<ContextualHelp> {
-  const responsePromise = page.waitForResponse((response) =>
-    isContextResponse(response, contextKey),
-  );
-  await page.goto(url);
-  const response = await responsePromise;
-  expect(response.status()).toBe(200);
-  const document = (await response.json()) as ContextualHelp;
-  expect(contextualHelpIsSafe(document, contextKey, CONTEXT_VERSION)).toBe(true);
-  return document;
-}
-
 async function openSearch(page: Page, url: string): Promise<PlatformHelpSearchPage> {
   const responsePromise = page.waitForResponse(isSearchResponse);
   await page.goto(url);
@@ -169,62 +146,12 @@ test("keeps reviewed platform help available through one local public API", asyn
     limitationPage.results[0]?.topic_id,
   );
 
-  const lessonContext = await openContextualFeature(
-    page,
-    "/learn/placements/intro-risk-return-primary",
-    "lesson-publication",
-  );
-  await expect(
-    page.getByRole("heading", {
-      level: 3,
-      name: `Questions about ${lessonContext.feature_label}`,
-    }),
-  ).toBeVisible();
-  const lessonReference = lessonContext.help_references[0]!;
-  const lessonTopic = await followTopic(page, async () => {
-    await page.getByRole("link", { name: lessonReference.label }).click();
-  });
-  expect(
-    platformHelpTopicIsSafe(
-      lessonTopic,
-      lessonReference.topic_id,
-      lessonReference.topic_version,
-    ),
-  ).toBe(true);
-  const returnedLessonContext = page.waitForResponse((response) =>
-    isContextResponse(response, "lesson-publication"),
-  );
-  await page.getByRole("link", { name: "Return to lesson" }).click();
-  expect((await returnedLessonContext).status()).toBe(200);
-  await expect(
-    page.getByRole("heading", {
-      exact: true,
-      level: 1,
-      name: "Understanding Risk and Return",
-    }),
-  ).toBeVisible();
-
-  const assistanceContext = await openContextualFeature(
-    page,
-    "/preferences/assistance",
-    "ai-assistance",
-  );
-  await expect(
-    page.getByRole("heading", {
-      level: 3,
-      name: `Questions about ${assistanceContext.feature_label}`,
-    }),
-  ).toBeVisible();
-
-  const contexts: Record<string, ContextualHelp> = {
-    "ai-assistance": assistanceContext,
-    "lesson-publication": lessonContext,
-  };
+  const contexts: Record<string, ContextualHelp> = {};
   for (const contextKey of CONTEXT_KEYS) {
-    if (contexts[contextKey]) continue;
     const response = await context.request.get(
       `${CONTEXT_API}/${contextKey}/versions/${CONTEXT_VERSION}`,
     );
+    expect(isLoopback(new URL(response.url()))).toBe(true);
     expect(response.status()).toBe(200);
     const document = (await response.json()) as ContextualHelp;
     expect(contextualHelpIsSafe(document, contextKey, CONTEXT_VERSION)).toBe(true);
@@ -251,8 +178,6 @@ test("keeps reviewed platform help available through one local public API", asyn
       contextTopics[identity] = topic;
     }
   }
-
-  await openSearch(page, "/help?topic_kind=limitation&page_size=1");
 
   for (const theme of ["light", "dark", "system"] as const) {
     await page.getByLabel("Theme").selectOption(theme);

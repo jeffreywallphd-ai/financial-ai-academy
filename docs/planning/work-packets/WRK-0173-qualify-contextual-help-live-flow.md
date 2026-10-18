@@ -52,9 +52,10 @@ an ownership collision, or material CAP/slice drift.
 
 ## In Scope
 
-- Extend the approved-lesson Help journey to open contextual links from the
-  bounded lesson, practice-result, Project-result, and AI-assistance surfaces,
-  confirm exact labels and destinations, and return safely to each feature.
+- Extend the approved-lesson Help journey so its authenticated browser context
+  reads all four exact maps and referenced topics through the public API, then
+  correlate that cumulative evidence with WRK-0172's focused feature-link and
+  safe-return browser evidence.
 - Record one closed contextual capture containing only public context and topic
   documents, exact ordered identities, versions, digests, safe purposes, and
   expected source/publication facts.
@@ -88,7 +89,7 @@ an ownership collision, or material CAP/slice drift.
 
 | Boundary | Allowed change | Evidence target |
 | --- | --- | --- |
-| Live Chromium | approved-lesson Help journey | Four feature-context links, exact topics, safe returns, keyboard/accessibility, no non-loopback Help traffic |
+| Live Chromium | approved-lesson Help journey | Four exact feature contexts and topics through the browser session, correlated with focused link/return evidence, keyboard/accessibility, and no non-loopback Help traffic |
 | Existing assistance containment | approved-lesson assistance assertion only | Permit the optional exact contextual GET while retaining the no-unapproved-write rule |
 | Live orchestration | approved-lesson runner | Browser/headless parity, denial, restart, containment, cleanup |
 | Pure qualification | approved-lesson replay tests | Closed capture, varied-valid references/order, restart and path safety |
@@ -143,7 +144,7 @@ approval/reviewer records only in ignored local control-plane storage.
 
 | Scenario | When | Then | Evidence |
 | --- | --- | --- | --- |
-| Four feature contexts | Browser opens each delivered contextual link | Server label, purpose, exact topic identity/version, and safe same-origin return match the exact context document | Chromium/capture |
+| Four feature contexts | Authenticated browser context reads every delivered exact map and topic while focused suites exercise each link | Server label, purpose, exact topic identity/version, and safe same-origin return evidence remain correlated | Chromium/capture/focused suites |
 | Browser/headless parity | Fresh HTTP client repeats each exact read | Ordered public context/topic meaning and digests match without browser imports | runner/public HTTP |
 | Source and digest integrity | Contexts and referenced topics are compared | Context digest, topic digest, publication facts, and source fingerprints are internally exact | runner/focused tests |
 | Authorization confidentiality | Session is missing or invalid | Exact context and topic reads deny without labels, counts, identities, sources, or rejected input | HTTP/security |
@@ -218,3 +219,8 @@ changed, then leave SLI-0083 closure-ready.
   exposed one stale assistance-harness assertion that froze an exact GET count.
   Scope now includes only that assertion so optional exact Help rereads are
   admitted while every unapproved write remains forbidden.
+- 2026-10-18: Whole-database diagnostics identified `learner_model` mutation
+  when the live Help test revisited owning learner features. The live journey
+  now keeps its containment window Guidance-only and correlates browser-session
+  public reads with WRK-0172's focused feature-link evidence rather than
+  weakening the read-only fingerprint or treating feature side effects as Help.
