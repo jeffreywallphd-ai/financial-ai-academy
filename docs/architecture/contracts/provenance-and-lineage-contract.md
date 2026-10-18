@@ -222,3 +222,15 @@ database and bounded-file containment. A selector-only public phase may refresh
 the existing rebuildable Learner-model projection. The runner freezes its
 containment baseline after that phase and before the first history or export
 call; no accountable-history operation creates a retained record.
+
+Cumulative qualification keeps v1 and v2 source limits aligned and keeps the
+history entry, transformation, and missing-link limits no wider than their v1
+lineage node, edge, and incomplete-link inputs. Every public object schema stays
+closed. The portable wrapper remains exactly schema version, media type,
+filename stem, export time, document digest, and document; retention class,
+expiry, deletion, legal hold, tenant, provider payload, and storage location are
+not provenance or export identity. The shared provenance/history core also
+remains free of host, database, cloud, network, and provider-framework imports.
+This proves a policy-neutral adapter seam and local/shared-core behavior, not a
+retention duration, legal policy, immutable store, tenant policy, recovery
+posture, or managed-cloud deployment.

@@ -176,3 +176,14 @@ accepts variable bounded entries, transformations, gaps, diagnostics,
 redactions, Unicode, and timestamps rather than freezing one fixture count or
 prose shape. It does not establish retained export, public hosting, tenant,
 legal, recovery, or managed-cloud behavior.
+
+The cumulative CAP-0026 contract qualification keeps the maximum history
+entries, transformations, and missing links aligned with the corresponding
+lineage nodes, edges, and incomplete links, and keeps the v1 and v2 per-envelope
+source bound aligned. It also verifies that all public object shapes remain
+closed, portable evidence has only its six documented fields, retention and
+storage policy do not enter provenance identity, and the shared v1/v2/history
+core imports no host, database, cloud, network, or provider framework. This is a
+policy-neutral retention seam: later authorized adapters may manage lifecycle,
+but the current evidence does not select a duration, deletion rule, legal hold,
+tenant policy, storage product, or managed-cloud behavior.
