@@ -188,7 +188,7 @@ The dependency-ordered seams are:
 | [WRK-0189](../work-packets/WRK-0189-freeze-accountable-history-contracts.md) | Freeze accountable-history inspection, diagnostic, redaction, export, compatibility, and safe-language contracts | none | none | complete |
 | [WRK-0190](../work-packets/WRK-0190-implement-accountable-history-core.md) | Implement the pure Audit inspection, purpose-limited redaction, safe diagnostic, canonical export, and anti-rigidity core | WRK-0189 | none | complete |
 | [WRK-0191](../work-packets/WRK-0191-expose-protected-accountable-history-api.md) | Expose protected Audit inspection/export operations through FastAPI, OpenAPI, and the generated TypeScript client | WRK-0190 | none | complete |
-| WRK-0192 | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | captured |
+| [WRK-0192](../work-packets/WRK-0192-present-accountable-history-to-learners.md) | Add the accessible plain-language Source and history browser view using only the generated client | WRK-0191 | none | ready |
 | WRK-0193 | Qualify headless/browser parity, authorization, redaction, export, restart, containment, accessibility, and slice completion | WRK-0192 | none | captured |
 
 Sequential delivery is required because each packet freezes the meaning consumed
@@ -282,3 +282,7 @@ conformance.
   every frozen owner/resource-kind and timestamp constraint for browser and
   headless consumers. WRK-0192 is dependency-ready for the learner-facing
   Source and history view.
+- 2026-10-18: Authored dependency-ready WRK-0192 just in time as one reusable
+  lesson/completion browser panel with deliberate generated-client reads,
+  progressive technical evidence, isolated failure, and purpose-limited
+  export. The API remains independently headless and authoritative.
