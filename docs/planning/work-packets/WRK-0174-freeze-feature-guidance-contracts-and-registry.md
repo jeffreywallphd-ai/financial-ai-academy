@@ -1,7 +1,7 @@
 ---
 id: WRK-0174
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -231,8 +231,11 @@ authority, or financial behavior changed.
 - No application operation, permission, route, OpenAPI or generated-client
   change, browser integration, persistence, provider/model call, feature-state
   interpretation, retry execution, artifact execution, or external action was
-  added. Exact-candidate verification and independent technical review remain
-  before completion.
+  added.
+- Exact candidate `9124c3180b7d172027e28be7e51bf997b81c991b` has a qualifying
+  receipt at `.local-codex/control-plane/receipts/WRK-0174/9124c3180b7d172027e28be7e51bf997b81c991b/20261018T060401Z-c19f5e30-21dd-462f-9cfc-3d5c709b73d5.json`.
+  Its 10 selected checks include the focused 90-test Guidance qualification,
+  security, architecture, relevant browser, and 29-check readiness gates.
 
 ## Planning History
 
@@ -263,3 +266,7 @@ authority, or financial behavior changed.
   suite, catalog tests, architecture, security, documentation, planning, and
   29-check aggregate readiness gate pass; corrected exact-candidate
   verification remains next.
+- 2026-10-18: Completed on corrected exact candidate `9124c31` after all 10
+  affected checks produced a qualifying receipt. The frozen contracts,
+  immutable registry, source bindings, and non-authority boundary are ready
+  for the dependent protected-API packet.
