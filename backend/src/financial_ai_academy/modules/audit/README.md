@@ -163,3 +163,15 @@ from the opaque session, requires separate `audit.history.read` or
 `audit.history.export` authority plus `curriculum.lesson.read`, and returns the
 same strict core mapping to browser or headless callers. No export record, file,
 path, owner payload, or alternate policy route is created.
+
+The disposable local qualification derives both exact roots through public
+operations, compares generated-client and ordinary authenticated HTTP
+inspection/export documents, repeats them before and after a normal host
+restart, and checks confidential missing-session, query, and guessed-completion
+denials. Once the completion selector has refreshed its existing rebuildable
+Learner-model projection, accountable-history-only operations leave every non-
+Identity schema and the bounded application-data tree unchanged. The test
+accepts variable bounded entries, transformations, gaps, diagnostics,
+redactions, Unicode, and timestamps rather than freezing one fixture count or
+prose shape. It does not establish retained export, public hosting, tenant,
+legal, recovery, or managed-cloud behavior.

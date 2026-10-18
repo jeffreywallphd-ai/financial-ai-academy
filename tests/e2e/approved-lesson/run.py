@@ -294,6 +294,92 @@ LINEAGE_PRIVATE_KEYS = frozenset(
         "storage",
     }
 )
+ACCOUNTABLE_HISTORY_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "requests",
+        "generated",
+        "direct",
+        "denial_statuses",
+    }
+)
+ACCOUNTABLE_HISTORY_DOCUMENT_KEYS = frozenset(
+    {
+        "schema_version",
+        "purpose",
+        "root",
+        "state",
+        "title",
+        "summary",
+        "source_lineage_digest",
+        "entries",
+        "transformations",
+        "missing_links",
+        "diagnostics",
+        "redactions",
+        "history_digest",
+    }
+)
+ACCOUNTABLE_HISTORY_EXPORT_KEYS = frozenset(
+    {
+        "schema_version",
+        "media_type",
+        "filename_stem",
+        "exported_at",
+        "document_digest",
+        "document",
+    }
+)
+ACCOUNTABLE_HISTORY_ENTRY_BASE_KEYS = frozenset(
+    {
+        "sequence",
+        "entry_id",
+        "role",
+        "title",
+        "explanation",
+        "owner_module",
+        "resource_kind",
+        "resource_id",
+        "integrity_digest",
+        "recorded_at",
+        "validation_status",
+    }
+)
+ACCOUNTABLE_HISTORY_OWNER_BY_KIND = {
+    "educational_source": "content",
+    "published_lesson": "content",
+    "assessment_definition": "assessment",
+    "knowledge_check_event": "assessment",
+    "completion_evidence": "assessment",
+    "audit_reference": "audit",
+}
+ACCOUNTABLE_HISTORY_ROLES = frozenset(
+    {"source", "published", "defined", "completed", "recorded"}
+)
+ACCOUNTABLE_HISTORY_DIAGNOSTICS = frozenset(
+    {
+        "missing_reference",
+        "owner_unavailable",
+        "unsupported_contract_version",
+        "integrity_mismatch",
+        "invalid_relation",
+        "identity_conflict",
+        "redacted_detail",
+    }
+)
+ACCOUNTABLE_HISTORY_REDACTIONS = frozenset(
+    {
+        "protected_content",
+        "learner_private_identity",
+        "owner_payload",
+        "provider_or_secret_material",
+        "internal_diagnostics",
+        "storage_details",
+    }
+)
+ACCOUNTABLE_HISTORY_PRIVATE_KEYS = LINEAGE_PRIVATE_KEYS | frozenset(
+    {"correct_option_id", "correct_option_ids", "provider_secret", "traceback"}
+)
 PLATFORM_HELP_CAPTURE_ROOT_KEYS = frozenset(
     {
         "schema_version",
@@ -1836,6 +1922,435 @@ def assert_learning_lineage_restart_result(
 ) -> None:
     if before_restart != after_restart:
         raise RuntimeError("Learning-lineage meaning changed after normal restart.")
+
+
+def _accountable_history_timestamp(
+    value: object,
+    *,
+    label: str,
+    canonical_utc: bool = False,
+) -> str:
+    if not isinstance(value, str) or re.fullmatch(
+        r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?"
+        + (r"Z" if canonical_utc else r"(?:Z|[+-]\d{2}:\d{2})"),
+        value,
+    ) is None:
+        raise RuntimeError(f"{label} has an invalid timestamp shape.")
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError(f"{label} is not a real date and time.") from error
+    if parsed.tzinfo is None:
+        raise RuntimeError(f"{label} is not timezone-aware.")
+    return value
+
+
+def _stable_accountable_history_entry(
+    value: object,
+    *,
+    expected_sequence: int,
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Accountable-history entry is not an object.")
+    resource_kind = value.get("resource_kind")
+    if resource_kind in LINEAGE_VERSIONED_KINDS:
+        expected = ACCOUNTABLE_HISTORY_ENTRY_BASE_KEYS | {"resource_version"}
+        version = value.get("resource_version")
+        if (
+            not isinstance(version, str)
+            or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._+-]{0,79}", version) is None
+        ):
+            raise RuntimeError("Accountable-history entry version is invalid.")
+    elif resource_kind in LINEAGE_OCCURRENCE_KINDS:
+        expected = ACCOUNTABLE_HISTORY_ENTRY_BASE_KEYS | {"occurrence"}
+        occurrence = value.get("occurrence")
+        if (
+            isinstance(occurrence, bool)
+            or not isinstance(occurrence, int)
+            or occurrence < 1
+        ):
+            raise RuntimeError("Accountable-history entry occurrence is invalid.")
+    else:
+        raise RuntimeError("Accountable-history entry kind is unsupported.")
+    _exact_keys(value, expected, "Accountable-history entry")
+    if value.get("sequence") != expected_sequence:
+        raise RuntimeError("Accountable-history entry order is not gap-free.")
+    _lineage_identifier(value.get("entry_id"), label="History entry")
+    _lineage_identifier(value.get("resource_id"), label="History resource")
+    if value.get("owner_module") != ACCOUNTABLE_HISTORY_OWNER_BY_KIND[resource_kind]:
+        raise RuntimeError("Accountable-history entry owner is inconsistent.")
+    if value.get("role") not in ACCOUNTABLE_HISTORY_ROLES:
+        raise RuntimeError("Accountable-history entry role is unsupported.")
+    for field in ("title", "explanation"):
+        if not isinstance(value.get(field), str) or not value[field].strip():
+            raise RuntimeError(f"Accountable-history entry {field} is invalid.")
+    _lineage_digest(value.get("integrity_digest"), label="History entry")
+    _accountable_history_timestamp(
+        value.get("recorded_at"), label="Accountable-history entry"
+    )
+    if value.get("validation_status") not in {"validated", "incomplete"}:
+        raise RuntimeError("Accountable-history entry status is invalid.")
+    return copy.deepcopy(value)
+
+
+def stable_accountable_history_document(
+    value: object,
+    *,
+    request: dict[str, Any],
+    purpose: str,
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Accountable-history document is not an object.")
+    _exact_keys(value, ACCOUNTABLE_HISTORY_DOCUMENT_KEYS, "Accountable history")
+    if value.get("schema_version") != "1.0.0" or value.get("purpose") != purpose:
+        raise RuntimeError("Accountable-history document identity is inconsistent.")
+    root = value.get("root")
+    if not isinstance(root, dict):
+        raise RuntimeError("Accountable-history root is not an object.")
+    root_kind = request["root_kind"]
+    if root_kind == "published_lesson":
+        _exact_keys(
+            root,
+            frozenset({"root_kind", "resource_id", "resource_version"}),
+            "Accountable-history lesson root",
+        )
+        expected_root = {
+            "root_kind": root_kind,
+            "resource_id": request["package_id"],
+            "resource_version": request["package_version"],
+        }
+    else:
+        _exact_keys(
+            root,
+            frozenset({"root_kind", "resource_id", "occurrence"}),
+            "Accountable-history completion root",
+        )
+        expected_root = {
+            "root_kind": root_kind,
+            "resource_id": request["evidence_id"],
+            "occurrence": request["occurrence"],
+        }
+    if root != expected_root:
+        raise RuntimeError("Accountable-history root does not match its request.")
+    if value.get("state") not in {"valid", "incomplete", "invalid"}:
+        raise RuntimeError("Accountable-history state is unsupported.")
+    for field in ("title", "summary"):
+        if not isinstance(value.get(field), str) or not value[field].strip():
+            raise RuntimeError(f"Accountable-history {field} is invalid.")
+    _lineage_digest(value.get("source_lineage_digest"), label="Source lineage")
+    _lineage_digest(value.get("history_digest"), label="Accountable history")
+
+    entries = value.get("entries")
+    if not isinstance(entries, list) or not 1 <= len(entries) <= 64:
+        raise RuntimeError("Accountable-history entries are invalid.")
+    stable_entries = [
+        _stable_accountable_history_entry(entry, expected_sequence=index)
+        for index, entry in enumerate(entries, start=1)
+    ]
+    entry_ids = [entry["entry_id"] for entry in stable_entries]
+    if len(entry_ids) != len(set(entry_ids)):
+        raise RuntimeError("Accountable-history entry identity is duplicated.")
+    if root_kind == "published_lesson":
+        root_entries = [
+            entry
+            for entry in stable_entries
+            if entry["resource_kind"] == "published_lesson"
+            and entry["resource_id"] == request["package_id"]
+            and entry["resource_version"] == request["package_version"]
+        ]
+    else:
+        root_entries = [
+            entry
+            for entry in stable_entries
+            if entry["resource_kind"] == "completion_evidence"
+            and entry["resource_id"] == request["evidence_id"]
+            and entry["occurrence"] == request["occurrence"]
+        ]
+    if len(root_entries) != 1:
+        raise RuntimeError("Accountable history lacks one exact disclosed root entry.")
+
+    transformations = value.get("transformations")
+    if not isinstance(transformations, list) or len(transformations) > 128:
+        raise RuntimeError("Accountable-history transformations are invalid.")
+    for transformation in transformations:
+        if not isinstance(transformation, dict):
+            raise RuntimeError("Accountable-history transformation is not an object.")
+        _exact_keys(
+            transformation,
+            frozenset({"source_entry_id", "target_entry_id", "relation"}),
+            "Accountable-history transformation",
+        )
+        if (
+            transformation.get("source_entry_id") not in entry_ids
+            or transformation.get("target_entry_id") not in entry_ids
+            or transformation.get("relation") not in LINEAGE_RELATIONS
+        ):
+            raise RuntimeError("Accountable-history transformation is inconsistent.")
+
+    missing_links = value.get("missing_links")
+    if not isinstance(missing_links, list) or len(missing_links) > 32:
+        raise RuntimeError("Accountable-history missing links are invalid.")
+    for link in missing_links:
+        if not isinstance(link, dict):
+            raise RuntimeError("Accountable-history missing link is not an object.")
+        _exact_keys(
+            link,
+            frozenset(
+                {
+                    "source_entry_id",
+                    "relation",
+                    "target_reference",
+                    "reason",
+                    "explanation",
+                }
+            ),
+            "Accountable-history missing link",
+        )
+        if (
+            link.get("source_entry_id") not in entry_ids
+            or link.get("relation") not in LINEAGE_RELATIONS
+            or link.get("reason") not in {"not_found", "unavailable", "redacted"}
+            or not isinstance(link.get("explanation"), str)
+            or not link["explanation"].strip()
+        ):
+            raise RuntimeError("Accountable-history missing link is inconsistent.")
+        _lineage_identifier(link.get("target_reference"), label="Missing target")
+
+    diagnostics = value.get("diagnostics")
+    if not isinstance(diagnostics, list) or len(diagnostics) > 32:
+        raise RuntimeError("Accountable-history diagnostics are invalid.")
+    for diagnostic in diagnostics:
+        if not isinstance(diagnostic, dict):
+            raise RuntimeError("Accountable-history diagnostic is not an object.")
+        _exact_keys(
+            diagnostic,
+            frozenset({"code", "reference", "explanation"}),
+            "Accountable-history diagnostic",
+        )
+        if (
+            diagnostic.get("code") not in ACCOUNTABLE_HISTORY_DIAGNOSTICS
+            or not isinstance(diagnostic.get("explanation"), str)
+            or not diagnostic["explanation"].strip()
+        ):
+            raise RuntimeError("Accountable-history diagnostic is inconsistent.")
+        _lineage_identifier(diagnostic.get("reference"), label="Diagnostic reference")
+
+    redactions = value.get("redactions")
+    if not isinstance(redactions, list) or len(redactions) > 6:
+        raise RuntimeError("Accountable-history redactions are invalid.")
+    redaction_categories: set[str] = set()
+    for redaction in redactions:
+        if not isinstance(redaction, dict):
+            raise RuntimeError("Accountable-history redaction is not an object.")
+        _exact_keys(
+            redaction,
+            frozenset({"category", "count"}),
+            "Accountable-history redaction",
+        )
+        category = redaction.get("category")
+        count = redaction.get("count")
+        if (
+            category not in ACCOUNTABLE_HISTORY_REDACTIONS
+            or category in redaction_categories
+            or isinstance(count, bool)
+            or not isinstance(count, int)
+            or not 1 <= count <= 1_000_000
+        ):
+            raise RuntimeError("Accountable-history redaction is inconsistent.")
+        redaction_categories.add(str(category))
+    leaked = ACCOUNTABLE_HISTORY_PRIVATE_KEYS & _nested_mapping_keys(value)
+    if leaked:
+        raise RuntimeError("Accountable history exposed private fields.")
+    return copy.deepcopy(value)
+
+
+def stable_portable_evidence_export(
+    value: object,
+    *,
+    request: dict[str, Any],
+) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Portable evidence export is not an object.")
+    _exact_keys(value, ACCOUNTABLE_HISTORY_EXPORT_KEYS, "Portable evidence export")
+    if (
+        value.get("schema_version") != "1.0.0"
+        or value.get("media_type")
+        != "application/vnd.financial-ai-academy.accountable-history+json"
+        or not isinstance(value.get("filename_stem"), str)
+        or re.fullmatch(r"[a-z0-9][a-z0-9-]{0,79}", value["filename_stem"])
+        is None
+    ):
+        raise RuntimeError("Portable evidence export identity is inconsistent.")
+    _accountable_history_timestamp(
+        value.get("exported_at"), label="Portable evidence export", canonical_utc=True
+    )
+    document = stable_accountable_history_document(
+        value.get("document"), request=request, purpose="portable_evidence"
+    )
+    digest = _lineage_digest(value.get("document_digest"), label="Portable document")
+    if digest != document["history_digest"]:
+        raise RuntimeError("Portable evidence export digest is inconsistent.")
+    return copy.deepcopy(value)
+
+
+def load_accountable_history_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded accountable-history capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 2_097_152:
+        raise RuntimeError("Accountable-history capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict):
+        raise RuntimeError("Accountable-history capture is not an object.")
+    _exact_keys(
+        capture,
+        ACCOUNTABLE_HISTORY_CAPTURE_ROOT_KEYS,
+        "Accountable-history capture",
+    )
+    if capture.get("schema_version") != "1.0.0":
+        raise RuntimeError("Accountable-history capture version is unsupported.")
+    requests = capture.get("requests")
+    generated = capture.get("generated")
+    direct = capture.get("direct")
+    for label, section in (
+        ("requests", requests),
+        ("generated", generated),
+        ("direct", direct),
+    ):
+        if not isinstance(section, dict):
+            raise RuntimeError(f"Accountable-history {label} section is invalid.")
+        _exact_keys(section, frozenset({"lesson", "completion"}), label)
+    stable_requests = {
+        "lesson": stable_learning_lineage_request(
+            requests["lesson"], root_kind="published_lesson"
+        ),
+        "completion": stable_learning_lineage_request(
+            requests["completion"], root_kind="knowledge_check_completion"
+        ),
+    }
+
+    def stable_client(value: object) -> dict[str, dict[str, Any]]:
+        if not isinstance(value, dict):
+            raise RuntimeError("Accountable-history client capture is invalid.")
+        result: dict[str, dict[str, Any]] = {}
+        for root_name in ("lesson", "completion"):
+            item = value.get(root_name)
+            if not isinstance(item, dict):
+                raise RuntimeError("Accountable-history root capture is invalid.")
+            _exact_keys(item, frozenset({"review", "export"}), "History root capture")
+            result[root_name] = {
+                "review": stable_accountable_history_document(
+                    item.get("review"),
+                    request=stable_requests[root_name],
+                    purpose="learner_review",
+                ),
+                "export": stable_portable_evidence_export(
+                    item.get("export"), request=stable_requests[root_name]
+                ),
+            }
+        return result
+
+    stable_generated = stable_client(generated)
+    stable_direct = stable_client(direct)
+    if stable_direct != stable_generated:
+        raise RuntimeError("Generated and ordinary clients disagree on accountable history.")
+    denial_statuses = capture.get("denial_statuses")
+    if denial_statuses != {
+        "missing_session": 401,
+        "query": 400,
+        "guessed_completion": 401,
+    }:
+        raise RuntimeError("Accountable-history denial capture is inconsistent.")
+    return {
+        "requests": stable_requests,
+        "documents": stable_generated,
+        "denial_statuses": copy.deepcopy(denial_statuses),
+    }
+
+
+def observe_headless_accountable_history(
+    origin: str,
+    *,
+    capture: dict[str, Any],
+) -> dict[str, dict[str, dict[str, Any]]]:
+    opener = _open_learning_lineage_session(origin)
+
+    def read_all() -> dict[str, dict[str, dict[str, Any]]]:
+        result: dict[str, dict[str, dict[str, Any]]] = {}
+        for root_name in ("lesson", "completion"):
+            request = capture["requests"][root_name]
+            result[root_name] = {
+                "review": stable_accountable_history_document(
+                    _request_json(
+                        opener,
+                        origin=origin,
+                        path="/api/v1/audit/accountable-history",
+                        method="POST",
+                        payload=request,
+                    ),
+                    request=request,
+                    purpose="learner_review",
+                ),
+                "export": stable_portable_evidence_export(
+                    _request_json(
+                        opener,
+                        origin=origin,
+                        path="/api/v1/audit/accountable-history/export",
+                        method="POST",
+                        payload=request,
+                    ),
+                    request=request,
+                ),
+            }
+        return result
+
+    first = read_all()
+    repeated = read_all()
+    if first != repeated or first != capture["documents"]:
+        raise RuntimeError("Repeated accountable-history reads changed accepted meaning.")
+    query_status, query_denial = _request_json_status(
+        opener,
+        origin=origin,
+        path="/api/v1/audit/accountable-history?purpose=portable",
+        method="POST",
+        payload=capture["requests"]["lesson"],
+    )
+    guessed_request = copy.deepcopy(capture["requests"]["completion"])
+    guessed_request["evidence_id"] += "-missing"
+    guessed_status, guessed_denial = _request_json_status(
+        opener,
+        origin=origin,
+        path="/api/v1/audit/accountable-history/export",
+        method="POST",
+        payload=guessed_request,
+    )
+    missing_status, missing_denial = _request_json_status(
+        urllib.request.build_opener(),
+        origin=origin,
+        path="/api/v1/audit/accountable-history",
+        method="POST",
+        payload=capture["requests"]["lesson"],
+    )
+    if (missing_status, query_status, guessed_status) != (401, 400, 401):
+        raise RuntimeError("Accountable-history denial status changed.")
+    for denial in (missing_denial, query_denial, guessed_denial):
+        leaked = ACCOUNTABLE_HISTORY_PRIVATE_KEYS & _nested_mapping_keys(denial)
+        if leaked:
+            raise RuntimeError("Accountable-history denial exposed private fields.")
+    return first
+
+
+def assert_accountable_history_restart_result(
+    *,
+    before_restart: dict[str, dict[str, dict[str, Any]]],
+    after_restart: dict[str, dict[str, dict[str, Any]]],
+) -> None:
+    if before_restart != after_restart:
+        raise RuntimeError("Accountable-history meaning changed after normal restart.")
 
 
 def _practice_response_keys(item_type: str) -> frozenset[str]:
@@ -8806,6 +9321,7 @@ def main() -> int:
     assistance_preferences_capture = data_root / "assistance-preferences-capture.json"
     platform_help_capture = data_root / "platform-help-capture.json"
     learning_lineage_capture = data_root / "learning-lineage-capture.json"
+    accountable_history_capture = data_root / "accountable-history-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -8864,6 +9380,9 @@ def main() -> int:
         environment["FINANCIAL_AI_ACADEMY_LINEAGE_CAPTURE"] = str(
             learning_lineage_capture
         )
+        environment["FINANCIAL_AI_ACADEMY_HISTORY_CAPTURE"] = str(
+            accountable_history_capture
+        )
         run_checked(
             npm_e2e_command(
                 "approved-lesson.e2e.ts",
@@ -8907,6 +9426,52 @@ def main() -> int:
         ):
             raise RuntimeError(
                 "Learning-lineage reads changed owner state or retained evidence."
+            )
+        run_checked(
+            npm_e2e_command("accountable-history.e2e.ts"),
+            env=environment,
+        )
+        accountable_history = load_accountable_history_capture(
+            accountable_history_capture,
+            data_root=data_root,
+        )
+        # The browser qualification obtains its exact completion selector from
+        # the public Learner Model view, which refreshes a rebuildable projection.
+        # Start the containment window after that selector lookup so it measures
+        # only the accountable-history inspection and export operations.
+        accountable_database_before = application_database_fingerprint(
+            postgres_dsn,
+            exclude_schemas=frozenset({"identity"}),
+        )
+        accountable_files_before = bounded_file_tree_fingerprint(
+            data_root / "application-data"
+        )
+        accountable_history_before_restart = observe_headless_accountable_history(
+            origin,
+            capture=accountable_history,
+        )
+        accountable_database_after = application_database_fingerprint(
+            postgres_dsn,
+            exclude_schemas=frozenset({"identity"}),
+        )
+        accountable_files_after = bounded_file_tree_fingerprint(
+            data_root / "application-data"
+        )
+        if (
+            accountable_database_after != accountable_database_before
+            or accountable_files_after != accountable_files_before
+        ):
+            changed_schemas = sorted(
+                schema
+                for schema in set(accountable_database_before)
+                | set(accountable_database_after)
+                if accountable_database_before.get(schema)
+                != accountable_database_after.get(schema)
+            )
+            raise RuntimeError(
+                "Accountable-history reads or exports changed owner state or "
+                f"evidence (schemas={changed_schemas!r}, "
+                f"files_changed={accountable_files_after != accountable_files_before})."
             )
         platform_help_source_before = application_database_fingerprint(
             postgres_dsn,
@@ -9324,6 +9889,51 @@ def main() -> int:
         ):
             raise RuntimeError(
                 "Learning-lineage restart reads changed owner state or evidence."
+            )
+        accountable_database_before_restart_observation = (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+        )
+        accountable_files_before_restart_observation = bounded_file_tree_fingerprint(
+            data_root / "application-data"
+        )
+        accountable_history_after_restart = observe_headless_accountable_history(
+            origin,
+            capture=accountable_history,
+        )
+        assert_accountable_history_restart_result(
+            before_restart=accountable_history_before_restart,
+            after_restart=accountable_history_after_restart,
+        )
+        accountable_database_after_restart_observation = (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+        )
+        accountable_files_after_restart_observation = bounded_file_tree_fingerprint(
+            data_root / "application-data"
+        )
+        if (
+            accountable_database_after_restart_observation
+            != accountable_database_before_restart_observation
+            or accountable_files_after_restart_observation
+            != accountable_files_before_restart_observation
+        ):
+            changed_schemas = sorted(
+                schema
+                for schema in set(accountable_database_before_restart_observation)
+                | set(accountable_database_after_restart_observation)
+                if accountable_database_before_restart_observation.get(schema)
+                != accountable_database_after_restart_observation.get(schema)
+            )
+            raise RuntimeError(
+                "Accountable-history restart reads changed owner state or evidence "
+                f"(schemas={changed_schemas!r}, "
+                "files_changed="
+                f"{accountable_files_after_restart_observation != accountable_files_before_restart_observation})."
             )
         platform_help_storage_before_restart_observation = (
             application_database_fingerprint(
@@ -9803,6 +10413,31 @@ def main() -> int:
                 "owner_file_state_unchanged": True,
                 "public_api_shared": True,
                 "read_only_database_containment": True,
+            },
+            "accountable_history": {
+                "authorization_confidential": True,
+                "browser_generated_client": True,
+                "browser_headless_parity": True,
+                "completion_export_digest": accountable_history["documents"][
+                    "completion"
+                ]["export"]["document_digest"],
+                "completion_history_digest": accountable_history["documents"][
+                    "completion"
+                ]["review"]["history_digest"],
+                "exact_completion_root": True,
+                "exact_lesson_root": True,
+                "flexible_bounded_history": True,
+                "lesson_export_digest": accountable_history["documents"]["lesson"][
+                    "export"
+                ]["document_digest"],
+                "lesson_history_digest": accountable_history["documents"]["lesson"][
+                    "review"
+                ]["history_digest"],
+                "normal_restart_without_reseeding": True,
+                "owner_file_state_unchanged": True,
+                "public_api_shared": True,
+                "read_only_database_containment": True,
+                "separate_review_and_export_operations": True,
             },
             "platform_help": {
                 "authorization_confidential": True,

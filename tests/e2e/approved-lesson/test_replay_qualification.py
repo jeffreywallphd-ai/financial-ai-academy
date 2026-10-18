@@ -5383,3 +5383,287 @@ def test_learning_lineage_restart_requires_complete_exact_meaning() -> None:
             before_restart=before,
             after_restart=changed,
         )
+
+
+def accountable_history_document(
+    request: dict[str, Any],
+    *,
+    purpose: str,
+) -> dict[str, Any]:
+    if request["root_kind"] == "published_lesson":
+        root = {
+            "root_kind": "published_lesson",
+            "resource_id": request["package_id"],
+            "resource_version": request["package_version"],
+        }
+        entries = [
+            {
+                "sequence": 1,
+                "entry_id": "source-Σ",
+                "role": "source",
+                "title": "Reviewed source",
+                "explanation": "This source was used to prepare the lesson.",
+                "owner_module": "content",
+                "resource_kind": "educational_source",
+                "resource_id": "source-Σ",
+                "resource_version": "2026.08.05",
+                "integrity_digest": "1" * 64,
+                "recorded_at": "2026-08-05T11:30:00-04:00",
+                "validation_status": "validated",
+            },
+            {
+                "sequence": 2,
+                "entry_id": "lesson",
+                "role": "published",
+                "title": "Published lesson",
+                "explanation": "The lesson was published from the reviewed source.",
+                "owner_module": "content",
+                "resource_kind": "published_lesson",
+                "resource_id": request["package_id"],
+                "resource_version": request["package_version"],
+                "integrity_digest": "2" * 64,
+                "recorded_at": "2026-08-05T16:00:00Z",
+                "validation_status": "validated",
+            },
+        ]
+        transformations = [
+            {
+                "source_entry_id": "lesson",
+                "target_entry_id": "source-Σ",
+                "relation": "published_from",
+            }
+        ]
+        redactions = [
+            {"category": "owner_payload", "count": 2},
+            {"category": "storage_details", "count": 2},
+        ]
+    else:
+        root = {
+            "root_kind": "knowledge_check_completion",
+            "resource_id": request["evidence_id"],
+            "occurrence": request["occurrence"],
+        }
+        entries = [
+            {
+                "sequence": 1,
+                "entry_id": "completion",
+                "role": "completed",
+                "title": "Saved result",
+                "explanation": "This result records a completed knowledge check.",
+                "owner_module": "assessment",
+                "resource_kind": "completion_evidence",
+                "resource_id": request["evidence_id"],
+                "occurrence": request["occurrence"],
+                "integrity_digest": "3" * 64,
+                "recorded_at": "2026-08-05T16:05:00Z",
+                "validation_status": "validated",
+            },
+            {
+                "sequence": 2,
+                "entry_id": "audit-reference",
+                "role": "recorded",
+                "title": "History reference",
+                "explanation": "A bounded history reference was recorded.",
+                "owner_module": "audit",
+                "resource_kind": "audit_reference",
+                "resource_id": "audit-result-1",
+                "occurrence": 1,
+                "integrity_digest": "4" * 64,
+                "recorded_at": "2026-08-05T16:05:01Z",
+                "validation_status": "validated",
+            },
+        ]
+        transformations = [
+            {
+                "source_entry_id": "audit-reference",
+                "target_entry_id": "completion",
+                "relation": "recorded_as",
+            }
+        ]
+        redactions = [
+            {"category": "learner_private_identity", "count": 1},
+            {"category": "owner_payload", "count": 2},
+            {"category": "protected_content", "count": 2},
+            {"category": "storage_details", "count": 2},
+        ]
+    return {
+        "schema_version": "1.0.0",
+        "purpose": purpose,
+        "root": root,
+        "state": "valid",
+        "title": "Source and history",
+        "summary": "This view shows the available source and history.",
+        "source_lineage_digest": "5" * 64,
+        "entries": entries,
+        "transformations": transformations,
+        "missing_links": [],
+        "diagnostics": [],
+        "redactions": redactions,
+        "history_digest": ("6" if purpose == "learner_review" else "7") * 64,
+    }
+
+
+def portable_evidence(
+    request: dict[str, Any],
+) -> dict[str, Any]:
+    document = accountable_history_document(request, purpose="portable_evidence")
+    root_name = "lesson" if request["root_kind"] == "published_lesson" else "result"
+    return {
+        "schema_version": "1.0.0",
+        "media_type": "application/vnd.financial-ai-academy.accountable-history+json",
+        "filename_stem": f"{root_name}-1234abcd",
+        "exported_at": "2026-08-05T16:05:01Z",
+        "document_digest": document["history_digest"],
+        "document": document,
+    }
+
+
+def accountable_history_capture() -> dict[str, Any]:
+    requests = lineage_capture()["requests"]
+    generated = {
+        root_name: {
+            "review": accountable_history_document(
+                request,
+                purpose="learner_review",
+            ),
+            "export": portable_evidence(request),
+        }
+        for root_name, request in requests.items()
+    }
+    return {
+        "schema_version": "1.0.0",
+        "requests": requests,
+        "generated": generated,
+        "direct": deepcopy(generated),
+        "denial_statuses": {
+            "missing_session": 401,
+            "query": 400,
+            "guessed_completion": 401,
+        },
+    }
+
+
+def test_accountable_history_capture_accepts_flexible_history_and_rejects_drift(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "accountable-history-capture.json"
+    valid = accountable_history_capture()
+    path.write_text(json.dumps(valid), encoding="utf-8")
+    loaded = runner.load_accountable_history_capture(path, data_root=tmp_path)
+    assert len(loaded["documents"]["lesson"]["review"]["entries"]) == 2
+    assert loaded["documents"]["lesson"]["review"]["entries"][0][
+        "entry_id"
+    ] == "source-Σ"
+
+    disagreement = deepcopy(valid)
+    disagreement["direct"]["lesson"]["review"]["history_digest"] = "0" * 64
+    path.write_text(json.dumps(disagreement), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="clients disagree"):
+        runner.load_accountable_history_capture(path, data_root=tmp_path)
+
+    private = deepcopy(valid)
+    private["generated"]["completion"]["review"]["learner_id"] = "private"
+    private["direct"] = deepcopy(private["generated"])
+    path.write_text(json.dumps(private), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="closed public contract"):
+        runner.load_accountable_history_capture(path, data_root=tmp_path)
+
+    missing_root = deepcopy(valid)
+    missing_root["generated"]["lesson"]["review"]["entries"][1][
+        "resource_id"
+    ] = "other-lesson"
+    missing_root["direct"] = deepcopy(missing_root["generated"])
+    path.write_text(json.dumps(missing_root), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="exact disclosed root"):
+        runner.load_accountable_history_capture(path, data_root=tmp_path)
+
+    impossible_time = deepcopy(valid)
+    impossible_time["generated"]["lesson"]["review"]["entries"][0][
+        "recorded_at"
+    ] = "2026-02-30T12:00:00Z"
+    impossible_time["direct"] = deepcopy(impossible_time["generated"])
+    path.write_text(json.dumps(impossible_time), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="not a real date"):
+        runner.load_accountable_history_capture(path, data_root=tmp_path)
+
+
+def test_headless_accountable_history_uses_only_public_operations_and_exact_replay(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    capture_document = accountable_history_capture()
+    capture = {
+        "requests": capture_document["requests"],
+        "documents": capture_document["generated"],
+    }
+    calls: list[tuple[str, str]] = []
+    opener = object()
+    monkeypatch.setattr(runner, "_open_learning_lineage_session", lambda _origin: opener)
+
+    def request_json(
+        observed_opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str = "GET",
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, Any]:
+        assert observed_opener is opener
+        assert origin == "http://127.0.0.1:8123"
+        assert method == "POST"
+        assert payload is not None
+        root_name = (
+            "lesson" if payload["root_kind"] == "published_lesson" else "completion"
+        )
+        operation = "export" if path.endswith("/export") else "review"
+        assert path in {
+            "/api/v1/audit/accountable-history",
+            "/api/v1/audit/accountable-history/export",
+        }
+        calls.append((root_name, operation))
+        return deepcopy(capture["documents"][root_name][operation])
+
+    def request_status(
+        observed_opener: object,
+        *,
+        origin: str,
+        path: str,
+        method: str,
+        payload: dict[str, object],
+    ) -> tuple[int, dict[str, Any]]:
+        assert origin == "http://127.0.0.1:8123"
+        assert method == "POST"
+        if observed_opener is not opener:
+            return 401, {"code": "missing_session"}
+        if "?purpose=portable" in path:
+            return 400, {"code": "invalid_request"}
+        assert str(payload["evidence_id"]).endswith("-missing")
+        return 401, {"code": "invalid_context"}
+
+    monkeypatch.setattr(runner, "_request_json", request_json)
+    monkeypatch.setattr(runner, "_request_json_status", request_status)
+    observed = runner.observe_headless_accountable_history(
+        "http://127.0.0.1:8123",
+        capture=capture,
+    )
+    assert observed == capture["documents"]
+    assert calls == [
+        ("lesson", "review"),
+        ("lesson", "export"),
+        ("completion", "review"),
+        ("completion", "export"),
+    ] * 2
+
+
+def test_accountable_history_restart_requires_complete_exact_meaning() -> None:
+    before = accountable_history_capture()["generated"]
+    runner.assert_accountable_history_restart_result(
+        before_restart=before,
+        after_restart=deepcopy(before),
+    )
+    changed = deepcopy(before)
+    changed["completion"]["export"]["document_digest"] = "0" * 64
+    with pytest.raises(RuntimeError, match="changed after normal restart"):
+        runner.assert_accountable_history_restart_result(
+            before_restart=before,
+            after_restart=changed,
+        )

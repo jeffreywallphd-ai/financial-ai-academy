@@ -36,6 +36,15 @@ LEARNING_LINEAGE_LIVE_SPEC = (
     / "approved-lesson"
     / "learning-lineage.e2e.ts"
 )
+ACCOUNTABLE_HISTORY_LIVE_SPEC = (
+    REPOSITORY
+    / "apps"
+    / "web"
+    / "tests"
+    / "browser"
+    / "approved-lesson"
+    / "accountable-history.e2e.ts"
+)
 PLACEMENT_ID = "intro-risk-return-primary"
 
 
@@ -779,6 +788,39 @@ class ApprovedLessonArchitectureTests(unittest.TestCase):
         self.assertNotIn("backend/", browser)
         self.assertNotIn("localStorage", browser)
         self.assertNotIn("domain/provenance", browser)
+
+    def test_live_accountable_history_uses_generated_and_public_api_only(
+        self,
+    ) -> None:
+        runner = LIVE_RUNNER.read_text(encoding="utf-8")
+        browser = ACCOUNTABLE_HISTORY_LIVE_SPEC.read_text(encoding="utf-8")
+        tree = ast.parse(runner)
+        imported = {
+            node.module or ""
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom)
+        }
+        self.assertTrue(
+            all(
+                not module.startswith("financial_ai_academy")
+                for module in imported
+            )
+        )
+        self.assertIn('"/api/v1/audit/accountable-history"', runner)
+        self.assertIn('"/api/v1/audit/accountable-history/export"', runner)
+        self.assertIn("FINANCIAL_AI_ACADEMY_HISTORY_CAPTURE", runner)
+        self.assertIn('npm_e2e_command("accountable-history.e2e.ts")', runner)
+        self.assertIn("observe_headless_accountable_history", runner)
+        self.assertIn("read_only_database_containment", runner)
+        self.assertIn("owner_file_state_unchanged", runner)
+        self.assertIn("createFinancialAcademyApiClient", browser)
+        self.assertIn('"/api/v1/audit/accountable-history"', browser)
+        self.assertIn('"/api/v1/audit/accountable-history/export"', browser)
+        self.assertIn('"/api/v1/session/single-profile"', browser)
+        self.assertNotIn("financial_ai_academy", browser)
+        self.assertNotIn("backend/", browser)
+        self.assertNotIn("localStorage", browser)
+        self.assertNotIn("domain/accountable_history", browser)
 
     def test_static_build_contains_only_browser_artifacts_when_present(
         self,

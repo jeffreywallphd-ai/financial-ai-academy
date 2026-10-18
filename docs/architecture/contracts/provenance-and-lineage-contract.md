@@ -214,5 +214,10 @@ purpose are server-bound. The application obtains the accepted lineage through
 Audit public methods and delegates all disclosed meaning, redaction, diagnostics,
 ordering, and digests to the pure core. The export is an ephemeral response and
 does not introduce a retained record, path, signing, encryption, or recovery
-policy. Browser presentation and cumulative live qualification remain separate
-delivery seams.
+policy. The learner browser consumes the same generated operations and the
+disposable local topology now directly qualifies generated-client and ordinary
+HTTP equality for both roots and purposes, exact replay across a normal
+restart, confidential denial, and accountable-history-only non-Identity
+database and bounded-file containment. Exact completion-selector discovery may
+refresh the existing rebuildable Learner-model projection before that read-only
+window begins; no history or export operation creates a retained record.

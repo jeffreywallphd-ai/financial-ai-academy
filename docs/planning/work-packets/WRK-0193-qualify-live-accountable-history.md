@@ -1,7 +1,7 @@
 ---
 id: WRK-0193
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -244,3 +244,13 @@ tenancy/admin, financial, retention, or authorization behavior changed.
 - 2026-10-18: Activated from clean base `4ea3269` with one bounded owner after
   revalidating the approved CAP package, completed WRK-0192 dependency, exact
   qualification-only scope, local decision posture, and ownership isolation.
+- 2026-10-18: Implemented the bounded generated-client live capture, strict
+  public-shape replay validator, ordinary HTTP parity, repeat/restart equality,
+  confidential denials, accountable-history-only database/file containment,
+  cleanup, and public-boundary architecture checks. The full 93-test replay
+  suite, 50 focused backend tests, complete 535-test Web suite, 17 focused
+  architecture tests plus four subtests, TypeScript, zero-warning lint,
+  disposable PostgreSQL/Chromium topology, security, design, learner-language,
+  documentation, planning, and whitespace checks passed. The completion
+  selector's existing rebuildable Learner-model refresh is explicitly outside
+  the accountable-history-only containment window.

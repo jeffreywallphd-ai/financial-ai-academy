@@ -20,3 +20,22 @@ incidental fixture shape.
 
 The phase does not add a learner-facing lineage page or claim export,
 retention, recovery, public hosting, or managed-cloud qualification.
+
+The accountable-history phase reuses those exact live lesson and completion
+selectors. It compares generated-client and ordinary authenticated HTTP
+inspection and portable-export documents for both roots, repeats every
+operation, checks confidential missing-session, query, and guessed-completion
+denials, and requires complete document and digest equality after a normal
+restart. The completion selector is discovered through the public completion
+view, which may refresh its existing rebuildable Learner-model projection; the
+read-only containment window begins after that discovery and requires all
+accountable-history operations to preserve every non-Identity schema and the
+bounded application-data tree.
+
+Replay tests vary entry, transformation, gap, diagnostic, redaction, Unicode,
+timestamp, and root shapes and reject client disagreement, private fields,
+missing exact root entries, impossible dates, and restart drift. Focused Web
+evidence remains responsible for learner-facing rendering, keyboard/focus,
+reflow, themes, accessibility, and local download cleanup. The cumulative phase
+does not claim retained export, legal/compliance meaning, tenant/admin access,
+public hosting, recovery, or managed-cloud behavior.
