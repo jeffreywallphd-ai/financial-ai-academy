@@ -8050,14 +8050,23 @@ def main() -> int:
             origin=origin,
             capture=platform_help,
         )
-        if (
-            application_database_fingerprint(
-                postgres_dsn,
-                exclude_schemas=frozenset({"identity"}),
+        platform_help_source_after = application_database_fingerprint(
+            postgres_dsn,
+            exclude_schemas=frozenset({"identity"}),
+        )
+        if platform_help_source_after != platform_help_source_before:
+            changed_schemas = sorted(
+                schema
+                for schema in set(platform_help_source_before)
+                | set(platform_help_source_after)
+                if platform_help_source_before.get(schema)
+                != platform_help_source_after.get(schema)
             )
-            != platform_help_source_before
-        ):
-            raise RuntimeError("Platform Help changed durable application state.")
+            raise RuntimeError(
+                "Platform Help changed durable application state in schema(s): "
+                + ", ".join(changed_schemas)
+                + "."
+            )
         project_learning_before = project_storage_snapshot(
             postgres_dsn,
             project_id="project-qualification-not-created",
