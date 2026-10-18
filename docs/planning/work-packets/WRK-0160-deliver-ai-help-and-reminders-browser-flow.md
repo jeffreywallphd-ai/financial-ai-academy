@@ -1,7 +1,7 @@
 ---
 id: WRK-0160
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-18
@@ -240,3 +240,14 @@ competency, recommendation, external action, or financial behavior changed.
 - 2026-10-17: Activated from recorded base `c702c85` after confirming the
   current CAP package, completed WRK-0159 dependency, bounded browser-only
   scope, resolved decision posture, and no active coordination collision.
+- 2026-10-18: Completed the plain-language browser flow with separately owned
+  learner and this-browser states, saves, confirmed resets, downloads, and
+  independent failure behavior. Exact request replay now preserves the whole
+  prepared server mutation after an uncertain response, while a changed
+  learner intent receives a fresh key and the current validated revision.
+  Type checking, zero-warning lint, 455 web tests, three focused Chromium
+  journeys, production build, affected exact-candidate verification, and all
+  29 aggregate-readiness checks passed. Independent review accepted exact
+  candidate `191085c` with no open findings. No backend, public contract,
+  generated client, model/provider, data permission, notification execution,
+  evidence, recommendation, or financial behavior changed.
