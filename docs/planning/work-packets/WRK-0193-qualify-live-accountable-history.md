@@ -1,7 +1,7 @@
 ---
 id: WRK-0193
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -254,3 +254,5 @@ tenancy/admin, financial, retention, or authorization behavior changed.
   documentation, planning, and whitespace checks passed. The completion
   selector's existing rebuildable Learner-model refresh is explicitly outside
   the accountable-history-only containment window.
+- 2026-10-18: Submitted exact candidate `183cf14` for controller-selected
+  affected verification with the qualification and documentation scope frozen.
