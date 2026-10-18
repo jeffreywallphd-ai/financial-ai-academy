@@ -41,6 +41,11 @@ The Project seam remains transport-neutral:
   links expose their target identity and exact retained version or as-of time;
   note bodies, source URLs, artifact bytes and paths, provenance text, and the
   current mutable workspace remain private to Project.
+- `open_snapshot` is also the origin-neutral public read used by Audit's v2
+  Project provenance adapter. Audit maps only project/snapshot identity,
+  revisions, digest, and close time; the caller-bound learner ID and every
+  workspace or storage detail remain inside Project's existing authorization
+  boundary.
 
 This seam has a Project-owned repository, migration, UTC/UUID adapters, and
 public HTTP/client boundary. The browser now composes list, create, and reopen

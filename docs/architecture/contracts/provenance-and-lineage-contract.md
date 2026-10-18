@@ -80,9 +80,9 @@ lineage request or graph. Its executable catalog closes meaning to nine
 profiles: Project snapshot; Market-data observation; Portfolio financial and
 simulation results; AI-orchestration dataset snapshot, model version, and model
 execution; Adaptation recommendation record; and Audit administrative action.
-Only Project has an implemented owner suitable for the later real-adapter proof.
-Other approved fixtures are synthetic and do not claim a provider, dataset,
-model, run, calculation, recommendation, administrator, or product record.
+Project is the first implemented real-owner adapter. Other approved fixtures
+are synthetic and do not claim a provider, dataset, model, run, calculation,
+recommendation, administrator, or product record.
 
 Each profile has one allowed owner/resource pair and closed exact identity
 variants. Financial results explicitly discriminate an account from an analysis;
@@ -122,8 +122,17 @@ evidence on success, bounded code/reference evidence on failure, exact missing-
 profile coverage, and a complete flag only when every closed profile validates
 once. It retains no envelope, exception, registry, or result and performs no
 I/O. Test-only synthetic adapters prove all catalog profiles and varied valid
-values against the independent runner; they are not production owners. The
-first real Project adapter remains a separate boundary.
+values against the independent runner; they are not production owners.
+
+The real Project adapter depends only on Project's public exact-snapshot
+operation. It binds the existing learner/project/snapshot request for the read,
+correlates the returned immutable identity, and issues only project and snapshot
+IDs, project/workspace revisions, snapshot digest, close time, and fixed
+producer facts. It supports learning-started and independent Projects because
+the public snapshot shape is origin-neutral. Learner identity, origin payload,
+workspace content, resource details, paths, URLs, bytes, and storage coordinates
+are neither copied nor retained. Project failures and mismatches collapse to
+bounded conformance results.
 
 ## Safety and Non-Authority
 

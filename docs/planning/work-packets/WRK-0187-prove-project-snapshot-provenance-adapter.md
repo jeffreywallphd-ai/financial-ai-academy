@@ -99,7 +99,7 @@ tests.
 
 ## Verification Commands
 
-- `backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/audit/test_project_snapshot_reference.py backend/tests/unit/audit/test_cross_domain_conformance.py backend/tests/unit/audit/test_cross_domain_provenance.py backend/tests/contract/provenance backend/tests/contract/provenance_v2 backend/tests/architecture/test_module_boundaries.py -q`
+- `backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/audit/test_project_snapshot_reference.py backend/tests/unit/audit/test_cross_domain_conformance.py backend/tests/unit/audit/test_cross_domain_provenance.py backend/tests/unit/project/test_project_workspace_service.py backend/tests/unit/project/test_project_learning_snapshot.py backend/tests/contract/provenance backend/tests/contract/provenance_v2 backend/tests/architecture/test_module_boundaries.py -q`
 - `python dev-tools/architecture/check_architecture.py`
 - `python dev-tools/security/check_slice_security.py`
 - `python dev-tools/documentation/check_docs.py`
@@ -148,3 +148,7 @@ model, tenant/admin, external-action, or financial authority changed.
 - 2026-10-18: Activated from clean base `8b2489d` after confirming current CAP
   authority, the completed WRK-0186 dependency, resolved decisions, exact
   isolated write scope, and no active file-ownership collision.
+- 2026-10-18: Implemented the public-only Project adapter, exact request/result
+  correlation, minimal immutable mapping, confidential failure isolation, and
+  explicit module-boundary evidence. Existing Project tests qualify immutable
+  snapshots for both accepted origins without adding origin policy to Audit.

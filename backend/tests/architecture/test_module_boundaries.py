@@ -338,6 +338,17 @@ def test_personal_workspace_uses_only_owner_public_surfaces() -> None:
         assert imports == {f"{prefix}.public"}
 
 
+def test_audit_project_provenance_adapter_uses_only_project_public_surface() -> None:
+    project_prefix = "financial_ai_academy.modules.project"
+    imports = {
+        imported
+        for path in (MODULES / "audit").rglob("*.py")
+        for imported in imported_modules(path)
+        if imported.startswith(project_prefix)
+    }
+    assert imports == {f"{project_prefix}.public"}
+
+
 def test_assessment_gateways_import_only_public_module_surfaces() -> None:
     for name, target in (
         ("content_gateway.py", "content"),

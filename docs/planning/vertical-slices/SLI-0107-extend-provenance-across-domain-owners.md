@@ -289,3 +289,6 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
 - 2026-10-18: Activated WRK-0187 from clean base `8b2489d` after confirming the
   completed dependency, current CAP authority, resolved decision posture,
   bounded public-only scope, and no active ownership collision.
+- 2026-10-18: Implemented WRK-0187's Project public-snapshot adapter with an
+  origin-neutral exact identity mapping, confidential failure isolation, and
+  no Project content, persistence, transport, or authorization expansion.
