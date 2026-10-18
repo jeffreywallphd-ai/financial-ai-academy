@@ -104,6 +104,12 @@ def test_dangling_exact_topic_rejects_complete_registry() -> None:
     assert captured.value.code is GuidanceErrorCode.DANGLING_REFERENCE
 
 
+def test_explicit_empty_topic_corpus_does_not_fall_back_to_defaults() -> None:
+    with pytest.raises(GuidanceError) as captured:
+        ImmutableContextualHelpRegistry(topics=())
+    assert captured.value.code is GuidanceErrorCode.DANGLING_REFERENCE
+
+
 @pytest.mark.parametrize(
     "path, replacement",
     [

@@ -75,7 +75,11 @@ class ImmutableContextualHelpRegistry:
                 mappings.append(value)
             records = tuple(context_from_mapping(value) for value in mappings)
             _validate_manifest(records)
-            admitted_topics = tuple(topics or ImmutablePlatformHelpCorpus().topics)
+            admitted_topics = (
+                tuple(topics)
+                if topics is not None
+                else ImmutablePlatformHelpCorpus().topics
+            )
             self._registry = ContextualHelpRegistry(records, admitted_topics)
         except GuidanceError:
             raise
