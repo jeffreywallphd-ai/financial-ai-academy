@@ -17,7 +17,20 @@ import {
 
 const PREFERENCES_API = "/api/v1/learner-assistance-preferences";
 const MUTATION_API = `${PREFERENCES_API}/mutations`;
+const SESSION_API = "/api/v1/session/single-profile";
 const LOCAL_KEY = "financial-ai-academy.local-learning-reminder-preference.v1";
+
+type ObservedApiRequest = { method: string; path: string };
+
+function assistanceRequestIsAllowed({ method, path }: ObservedApiRequest): boolean {
+  return method === "GET" || (method === "POST" && (path === SESSION_API || path === MUTATION_API));
+}
+
+async function executionCalls(page: Page): Promise<Record<string, number>> {
+  return page.evaluate(() => (
+    window as unknown as Window & { __assistanceExecutionCalls: Record<string, number> }
+  ).__assistanceExecutionCalls);
+}
 
 type AcceptedMutation = {
   request: PreparedAssistancePreferenceRequest;
@@ -70,7 +83,14 @@ test("preserves AI-help choice while keeping future reminders in this browser", 
     }
   });
 
-  const observedRequests: Array<{ method: string; path: string }> = [];
+  expect(assistanceRequestIsAllowed({ method: "GET", path: "/api/v1/learner-presentation-preferences" })).toBe(true);
+  expect(assistanceRequestIsAllowed({ method: "POST", path: SESSION_API })).toBe(true);
+  expect(assistanceRequestIsAllowed({ method: "POST", path: MUTATION_API })).toBe(true);
+  expect(assistanceRequestIsAllowed({ method: "DELETE", path: SESSION_API })).toBe(false);
+  expect(assistanceRequestIsAllowed({ method: "PUT", path: MUTATION_API })).toBe(false);
+  expect(assistanceRequestIsAllowed({ method: "POST", path: "/api/v1/notifications" })).toBe(false);
+
+  const observedRequests: ObservedApiRequest[] = [];
   page.on("request", (request) => {
     const url = new URL(request.url());
     if (url.pathname.startsWith("/api/")) {
@@ -111,6 +131,7 @@ test("preserves AI-help choice while keeping future reminders in this browser", 
   const savedLocal = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null"), LOCAL_KEY);
   expect(savedLocal).toMatchObject({ revision: 2, reminder_mode: "in_app_when_available" });
   expect(savedLocal).not.toHaveProperty("learner_id");
+  expect(await executionCalls(page)).toEqual({ notificationPermissions: 0, serviceWorkers: 0 });
 
   await page.reload();
   await expect(page.getByRole("radio", { name: /Offer a help option when available/i })).toBeChecked();
@@ -182,15 +203,8 @@ test("preserves AI-help choice while keeping future reminders in this browser", 
   await expect(downloadControl).toBeFocused();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 
-  const executionCalls = await page.evaluate(() => (
-    window as unknown as Window & { __assistanceExecutionCalls: Record<string, number> }
-  ).__assistanceExecutionCalls);
-  expect(executionCalls).toEqual({ notificationPermissions: 0, serviceWorkers: 0 });
-  expect(observedRequests.filter(({ method, path }) => (
-    method !== "GET" &&
-    path !== "/api/v1/session/single-profile" &&
-    path !== MUTATION_API
-  ))).toEqual([]);
+  expect(await executionCalls(page)).toEqual({ notificationPermissions: 0, serviceWorkers: 0 });
+  expect(observedRequests.filter((request) => !assistanceRequestIsAllowed(request))).toEqual([]);
 
   const capturePath = process.env.FINANCIAL_AI_ACADEMY_ASSISTANCE_PREFERENCES_CAPTURE;
   if (capturePath) {

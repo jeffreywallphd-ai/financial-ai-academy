@@ -240,4 +240,9 @@ financial behavior changed, then leave SLI-0076 closure-ready.
 - 2026-10-18: Entered exact-candidate verification after every declared live,
   focused, pure, Web, planning, documentation, compilation, whitespace, and
   aggregate readiness check passed.
+- 2026-10-18: Tightened the live containment evidence to allow only harmless
+  reads, the exact session-bootstrap POST, and the exact assistance-mutation
+  POST. Notification-permission and service-worker counters are now asserted
+  on both sides of the deliberate document reload so earlier calls cannot be
+  hidden by a fresh page marker.
 
