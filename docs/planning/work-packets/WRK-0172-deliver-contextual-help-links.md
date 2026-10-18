@@ -1,7 +1,7 @@
 ---
 id: WRK-0172
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/app/router.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesPage.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesRoute.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/features/platform-help/ContextualHelpLinks.tsx", "apps/web/src/features/platform-help/PlatformHelpPage.tsx", "apps/web/src/features/platform-help/PlatformHelpRoute.tsx", "apps/web/src/features/platform-help/api.ts", "apps/web/src/features/platform-help/model.ts", "apps/web/src/features/practice-activity/PracticeActivityPage.tsx", "apps/web/src/features/practice-activity/PracticeActivityRoute.tsx", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/src/features/project-workspace/ProjectRoutes.tsx", "apps/web/src/styles/platform-help.css", "apps/web/tests/browser/assistance-preferences/assistance-preferences.spec.ts", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/browser/platform-help/platform-help.spec.ts", "apps/web/tests/browser/practice-activity/practice-activity.spec.ts", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/assistancePreferences.test.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/tests/component/platformHelp.test.tsx", "apps/web/tests/component/practiceActivity.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/platformHelpModel.test.ts", "docs/architecture/contracts/platform-help-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0172-deliver-contextual-help-links.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 693c936aa2d5e3eda919d76b0f3899810098c089
+claim_id: WRK-0172:b8fc54d6-52e6-40ab-98b5-7764aca9d281
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T04:40:34Z
 ---
 
 # Agent Work Packet: Deliver Contextual Help Links
@@ -177,3 +177,6 @@ behavior changed.
   only generated-client contextual links and closed return behavior to the four
   surfaces already enumerated by approved SLI-0083; no lower-level approval is
   required.
+- 2026-10-18: Activated from clean recorded base `693c936` after confirming the
+  current CAP binding, completed WRK-0171 dependency, bounded generated-client
+  consumer scope, executable checks, and no unresolved decision or collision.
