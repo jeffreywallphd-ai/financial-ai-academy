@@ -15,3 +15,11 @@ corpus from accidental reinterpretation during v2 work.
 Fixture identifiers and source counts are examples, not product constants.
 Conformance tests vary valid Unicode, time offsets, ordering, counts, versions,
 and occurrences inside the contract bounds.
+
+`backend/tests/contract/provenance_v2/synthetic_adapters.py` maps fresh copies
+of these deterministic records through the production v2 mapper. The reusable
+Audit conformance kit must return the same canonical digest as the independent
+language-neutral runner for every profile. Reverse adapter order, partial
+profile sets, varied valid values, one failing adapter, malformed output, and
+duplicate declarations are tested without treating fixture count or order as
+product behavior. These adapters are test-only and confer no owner maturity.

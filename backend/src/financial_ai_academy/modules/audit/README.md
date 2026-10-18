@@ -76,10 +76,24 @@ contract runner. One malformed document fails locally without a mutable
 registry or impact on v1.
 
 This v2 core does not make future owners real. It has no Project adapter,
-synthetic adapter library, graph, retained record, repository, migration,
-provider/model call, public operation, authorization decision, or browser
-surface. A v2 reference carries evidence meaning only and grants no access,
-quality, mastery, financial, administrative, or execution authority.
+graph, retained record, repository, migration, provider/model call, public
+operation, authorization decision, or browser surface. A v2 reference carries
+evidence meaning only and grants no access, quality, mastery, financial,
+administrative, or execution authority.
+
+`ports/cross_domain_provenance.py` and
+`application/cross_domain_conformance.py` add a reusable, stateless owner-
+adapter qualification seam. A future owner declares one closed profile and
+issues one typed envelope. The kit returns only a profile-bound canonical
+digest or a bounded failure code/reference, isolates one failing adapter, and
+supports partial adoption without a fixed adapter count. Duplicate declarations
+fail without choosing an adapter, and complete qualification requires every
+closed profile exactly once.
+
+The synthetic adapters beside the v2 contract tests are test-only proofs. They
+do not make a provider, dataset, model, execution, calculation, recommendation,
+administrator, or Project integration real. Product code does not import them,
+and the conformance kit performs no I/O or registration.
 
 `POST /api/v1/audit/learning-lineage` exposes the two closed roots through the
 same protected OpenAPI-generated contract for browser and headless callers. It

@@ -139,7 +139,7 @@ WRK-0188. Complete and close this packet before claiming its successor.
 
 - `backend/.venv/Scripts/python.exe -m pytest backend/tests/unit/audit/test_cross_domain_conformance.py backend/tests/unit/audit/test_cross_domain_provenance.py backend/tests/contract/provenance backend/tests/contract/provenance_v2 -q`
 - `python dev-tools/architecture/check_architecture.py`
-- `python dev-tools/security/check_security.py`
+- `python dev-tools/security/check_slice_security.py`
 - `python dev-tools/documentation/check_docs.py`
 - `python dev-tools/planning/check_planning.py`
 - `git diff --check`
@@ -186,3 +186,7 @@ tenant/admin, external-action, or financial authority changed.
 - 2026-10-18: Activated from clean base `20d5313` after confirming current CAP
   authority, completed WRK-0185, resolved decisions, exact isolated write
   scope, and no active file-ownership collision.
+- 2026-10-18: Implemented the pure profile-bound port and per-call conformance
+  report, deterministic partial/complete suite evaluation, duplicate and
+  failure isolation, all-profile synthetic adapters, independent-runner digest
+  parity, and varied valid input evidence without adding a real owner or I/O.

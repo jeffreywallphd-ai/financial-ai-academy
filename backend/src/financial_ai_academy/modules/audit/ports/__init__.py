@@ -1,6 +1,7 @@
 """Audit owned ports."""
 
 from .gateways import AssessmentAuditEventSourcePort, ContentLearningLineageSourcePort
+from .cross_domain_provenance import CrossDomainReferenceAdapter
 from .repositories import AuditRecordConflict, AuditRepositoryPort
 
 __all__ = [
@@ -8,4 +9,5 @@ __all__ = [
     "AuditRecordConflict",
     "AuditRepositoryPort",
     "ContentLearningLineageSourcePort",
+    "CrossDomainReferenceAdapter",
 ]

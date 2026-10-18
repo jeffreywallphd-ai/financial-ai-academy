@@ -35,3 +35,25 @@ recommendation prose, Project content, permission, storage locator, credential,
 active instruction, execution authority, financial advice, compliance claim, or
 guarantee. Origin labels describe how evidence arose; they do not establish
 truth, quality, mastery, suitability, permission, or authority.
+
+## Owner Adapter Conformance
+
+Python owner adapters implement Audit's `CrossDomainReferenceAdapter`: declare
+one exact closed profile and issue one typed, already-mapped envelope without
+external effects. Run the single-adapter evaluator during incremental owner
+development. Run the suite evaluator to obtain deterministic profile-ordered
+results, exact missing-profile coverage, and complete-set qualification.
+
+A successful case exposes only its profile and canonical envelope digest. A
+failed case exposes only a stable bounded code and field reference. An adapter
+exception, invalid envelope, or profile mismatch does not prevent unrelated
+profiles from validating. Duplicate declarations fail without selecting either
+adapter. The kit has no registry, persistence, filesystem, network, provider,
+model, or production-readiness authority.
+
+The synthetic adapters under `backend/tests/contract/provenance_v2/` are
+contract test doubles. Use them to compare every profile digest with the
+language-neutral runner and to exercise varied valid values. Never import them
+from product code or describe their future owners as implemented. A real owner
+must map its authoritative public facts in its own adapter and pass this same
+kit; the first real Project proof is a separate delivery packet.

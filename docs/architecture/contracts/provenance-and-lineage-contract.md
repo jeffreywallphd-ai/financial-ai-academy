@@ -115,6 +115,16 @@ call without a dynamic registry. This is contract implementation only: it does
 not make a future owner, adapter, graph, retained record, provider/model action,
 authorization decision, public operation, or user history interface available.
 
+Audit also owns a pure conformance port and application service for incremental
+owner adoption. One adapter declares one exact profile and issues one typed
+envelope. The service returns immutable profile-ordered cases, canonical digest
+evidence on success, bounded code/reference evidence on failure, exact missing-
+profile coverage, and a complete flag only when every closed profile validates
+once. It retains no envelope, exception, registry, or result and performs no
+I/O. Test-only synthetic adapters prove all catalog profiles and varied valid
+values against the independent runner; they are not production owners. The
+first real Project adapter remains a separate boundary.
+
 ## Safety and Non-Authority
 
 The contract contains no lesson body, assessment response, answer, feedback,
