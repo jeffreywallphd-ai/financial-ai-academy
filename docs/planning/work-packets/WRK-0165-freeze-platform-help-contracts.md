@@ -1,7 +1,7 @@
 ---
 id: WRK-0165
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -218,6 +218,30 @@ API, client, UI, and live gaps. Confirm that no product corpus, persistence,
 API, browser, model/provider, external content, learner authority, or financial
 behavior changed.
 
+## Completion Evidence
+
+- Exact candidate `f66efcf1f2666ded3e59661577d23064762e73b8`
+  produced qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0165/f66efcf1f2666ded3e59661577d23064762e73b8/20261018T022918Z-681dd4bc-127b-4261-898c-52ba94fb60f2.json`
+  with digest
+  `sha256:febff1b3a5ec517837401d512a79928f74b7e7556b222dede18fc5b1ea4294f9`.
+- The executable v1 contract and pure Guidance core now expose exact immutable
+  topics and deterministic search summaries with applicability, approved
+  publication facts, bounded canonical-source facts, and no private source or
+  runtime fields.
+- Stable `major.minor.patch` identities, numeric version ordering, rank then
+  exact-key tie ordering, corpus/query/filter/position/anchor-bound cursor
+  integrity, safe Unicode shaping and emoji, unsafe-control rejection, exact
+  date validation, canonical topic digests, and atomic corpus admission are
+  covered by 43 focused contract and unit tests.
+- Python compilation, architecture, security, documentation, planning,
+  whitespace, all four selected exact-candidate checks, and all 29 aggregate
+  readiness checks passed.
+- No reviewed product corpus, persistence, API, OpenAPI, generated client,
+  browser, model/provider execution, external content, learner-specific
+  authority, or financial behavior changed. Those composition and delivery
+  boundaries remain in the dependent SLI-0082 packets.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time as the first dependency seam of approved
@@ -231,3 +255,8 @@ behavior changed.
   roadmap-card correction was committed outside this packet. The platform-help
   scope and acceptance contract did not change; the new base keeps unrelated
   review-site files out of this packet's exact candidate.
+- 2026-10-18: Completed the transport-neutral platform-help contract and pure
+  deterministic Guidance core on corrected exact candidate `f66efcf`. Fresh
+  receipt, focused contract/domain evidence, architecture, security,
+  documentation, planning, whitespace, and aggregate readiness checks passed
+  without expanding the approved CAP or introducing serving behavior.
