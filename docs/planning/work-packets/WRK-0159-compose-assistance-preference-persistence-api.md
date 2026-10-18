@@ -1,7 +1,7 @@
 ---
 id: WRK-0159
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-17
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "apps/web/tests/contract/client-usage.ts", "apps/web/tests/contract/generated-client.test.mjs", "backend/migrations/learner_model/learner_model_0006_assistance_preferences.down.sql", "backend/migrations/learner_model/learner_model_0006_assistance_preferences.up.sql", "backend/src/financial_ai_academy/bootstrap/composition.py", "backend/src/financial_ai_academy/bootstrap/settings.py", "backend/src/financial_ai_academy/hosts/api/app.py", "backend/src/financial_ai_academy/hosts/api/generate_openapi.py", "backend/src/financial_ai_academy/hosts/api/models.py", "backend/src/financial_ai_academy/modules/identity/application/service.py", "backend/src/financial_ai_academy/modules/learner_model/README.md", "backend/src/financial_ai_academy/modules/learner_model/adapters/postgres_repository.py", "backend/src/financial_ai_academy/modules/learner_model/adapters/system.py", "backend/src/financial_ai_academy/modules/learner_model/application/service.py", "backend/src/financial_ai_academy/modules/learner_model/ports/repositories.py", "backend/src/financial_ai_academy/modules/learner_model/ports/system.py", "backend/src/financial_ai_academy/modules/learner_model/public.py", "backend/tests/architecture/test_module_boundaries.py", "backend/tests/integration/api/test_single_profile_assistance_preferences_api.py", "backend/tests/integration/api/test_single_profile_learner_preferences_api.py", "backend/tests/integration/api/test_single_profile_presentation_preferences_api.py", "backend/tests/integration/learner_model/test_postgres_assistance_preferences.py", "backend/tests/integration/learner_model/test_postgres_completion_projection.py", "backend/tests/integration/learner_model/test_postgres_preferences.py", "backend/tests/integration/learner_model/test_postgres_presentation_preferences.py", "backend/tests/integration/learner_model/test_postgres_project_completion.py", "backend/tests/unit/identity/test_identity_service.py", "backend/tests/unit/learner_model/test_assistance_preference_service.py", "backend/tests/unit/test_bootstrap_settings.py", "contracts/api/README.md", "contracts/api/openapi.json", "deployments/local/serve.py", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/learner-assistance-preferences-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0159-compose-assistance-preference-persistence-api.md"]
 generated_artifacts: ["apps/web/src/generated/api-client/client.ts", "apps/web/src/generated/api-client/index.ts", "apps/web/src/generated/api-client/schema.d.ts", "contracts/api/openapi.json"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 9459290be9704952a91231d7941709b764170072
+claim_id: WRK-0159:c07084f8-8410-45f7-9f26-0303e65e5f71
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-18T00:09:59Z
 ---
 
 # Agent Work Packet: Compose Assistance Preference Persistence and Public API
@@ -234,3 +234,6 @@ financial behavior changed. Leave the browser packet dependency-ready.
   established single-profile PostgreSQL/API/client patterns, preserves API/
   headless parity and browser-local reminder separation, and requires no
   lower-level approval within the current CAP-0018 package.
+- 2026-10-17: Activated from recorded base `9459290` after confirming the
+  current CAP package, completed WRK-0158 dependency, resolved decision
+  posture, bounded scope, and no active coordination collision.
