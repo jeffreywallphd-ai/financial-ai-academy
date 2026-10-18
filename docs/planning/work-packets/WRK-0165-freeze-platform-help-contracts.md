@@ -1,7 +1,7 @@
 ---
 id: WRK-0165
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/guidance", "backend/tests/contract/platform_help", "backend/tests/unit/guidance", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/platform-help/v1", "contracts/guidance", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0165-freeze-platform-help-contracts.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 76afb52d8759d405a57cea13090c0d03618899f9
+claim_id: WRK-0165:a6228269-f5d6-4b50-9f65-6590211b0f32
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T02:09:40Z
 ---
 
 # Agent Work Packet: Freeze Platform Help Contracts
@@ -224,3 +224,6 @@ behavior changed.
   SLI-0082. The packet freezes a safe transport-neutral contract and pure
   deterministic core while deferring product content, composition, API, and UI
   to their enumerated dependent packets. No lower-level approval is required.
+- 2026-10-18: Activated from recorded base `76afb52` after the implementation
+  gate confirmed current CAP authority, refined slice membership, satisfied
+  dependencies, and no overlapping active work.

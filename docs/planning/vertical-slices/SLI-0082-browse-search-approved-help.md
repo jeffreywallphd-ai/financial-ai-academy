@@ -1,7 +1,7 @@
 ---
 id: SLI-0082
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -225,7 +225,7 @@ each packet starts. The dependency-ordered seams are:
 
 | Packet seam | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0165](../work-packets/WRK-0165-freeze-platform-help-contracts.md) | Freeze the `platform-help/v1` topic/search contracts, compatibility corpus, safe body union, pure validation/search core, and source-provenance rules | none | none | ready |
+| [WRK-0165](../work-packets/WRK-0165-freeze-platform-help-contracts.md) | Freeze the `platform-help/v1` topic/search contracts, compatibility corpus, safe body union, pure validation/search core, and source-provenance rules | none | none | active |
 | JIT-B | Compose the immutable corpus adapter, Guidance application/public seam, protected API, reviewed OpenAPI, and generated client | JIT-A | none | captured |
 | JIT-C | Deliver the URL-backed accessible Help browse/search and exact-topic browser routes only through the generated client | JIT-B | none | captured |
 | JIT-D | Qualify contract, browser/headless parity, deterministic search, offline restart, source integrity, safe rendering, accessibility, containment, and cleanup | JIT-C | none | captured |
