@@ -224,3 +224,8 @@ changed, then leave SLI-0083 closure-ready.
   now keeps its containment window Guidance-only and correlates browser-session
   public reads with WRK-0172's focused feature-link evidence rather than
   weakening the read-only fingerprint or treating feature side effects as Help.
+- 2026-10-18: Exact-candidate verification audit found that the controller
+  selected the live topology but did not execute the packet's pure replay
+  module. The bounded live runner now executes that module before starting
+  infrastructure, so the already-selected exact-candidate check must prove
+  replay and live qualification together without widening product scope.

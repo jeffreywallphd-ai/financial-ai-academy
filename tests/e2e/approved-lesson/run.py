@@ -676,6 +676,26 @@ def run_checked(command: list[str], *, env: dict[str, str] | None = None) -> Non
         )
 
 
+def run_replay_qualification() -> None:
+    """Prove pure replay invariants before starting the live topology."""
+
+    ARTIFACT_ROOT.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix="approved-replay-", dir=ARTIFACT_ROOT
+    ) as directory:
+        run_checked(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/e2e/approved-lesson/test_replay_qualification.py",
+                "--basetemp",
+                str(Path(directory) / "pytest"),
+                "-q",
+            ]
+        )
+
+
 def wait_for_postgres(container_name: str) -> None:
     deadline = time.monotonic() + 45
     while time.monotonic() < deadline:
@@ -7947,6 +7967,8 @@ def main() -> int:
         raise RuntimeError(
             "The reviewed static build is absent; run npm --prefix apps/web run build."
         )
+
+    run_replay_qualification()
 
     external_dsn = args.postgres_dsn
     if external_dsn and (
