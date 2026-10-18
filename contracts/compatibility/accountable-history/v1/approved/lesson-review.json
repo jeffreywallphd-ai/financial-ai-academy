@@ -4,7 +4,7 @@
   "root": {"root_kind": "published_lesson", "resource_id": "intro-risk-return", "resource_version": "1.0.0"},
   "state": "valid",
   "title": "Source and history",
-  "summary": "This lesson is linked to the reviewed source used to publish it.",
+  "summary": "This view shows the source and history available for the lesson.",
   "source_lineage_digest": "1111111111111111111111111111111111111111111111111111111111111111",
   "entries": [
     {
@@ -43,5 +43,5 @@
     {"category": "owner_payload", "count": 2},
     {"category": "storage_details", "count": 2}
   ],
-  "history_digest": "ab60731c098d437c0f8815da0247e3c3c3d55afbefff915668889de0595895da"
+  "history_digest": "a70f797652f486f00e362cfe02441b987ee9aabb74f37531270c5a18d44308bb"
 }

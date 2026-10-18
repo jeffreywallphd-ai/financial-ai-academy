@@ -10,6 +10,17 @@ from typing import Any
 import pytest
 from jsonschema import Draft202012Validator
 
+from financial_ai_academy.modules.audit.adapters import (
+    accountable_history_payload as product_document_payload,
+    lineage_view_from_mapping,
+    portable_evidence_payload as product_export_payload,
+)
+from financial_ai_academy.modules.audit.domain import (
+    AccountableHistoryPurpose,
+    build_portable_evidence,
+    compose_accountable_history,
+)
+
 from .runner import (
     AccountableHistoryContractValidator,
     ConformanceFailure,
@@ -113,6 +124,29 @@ def test_approved_documents_and_export_match_canonical_vectors() -> None:
     assert admitted[3]["document_digest"] == vector["portable_evidence_document_digest"]
 
 
+def test_product_core_matches_frozen_canonicalization_and_semantics() -> None:
+    lineage_value = json.loads(
+        (
+            REPOSITORY
+            / "contracts/compatibility/provenance/v1/approved/lineage-view.json"
+        ).read_text(encoding="utf-8")
+    )
+    lineage = lineage_view_from_mapping(lineage_value)
+    document = compose_accountable_history(
+        lineage, AccountableHistoryPurpose.LEARNER_REVIEW
+    )
+    portable = build_portable_evidence(lineage)
+    document_value = product_document_payload(document)
+    portable_value = product_export_payload(portable)
+    validator = AccountableHistoryContractValidator()
+
+    admitted_document = validator.validate_document(document_value)
+    admitted_export = validator.validate_export(portable_value)
+
+    assert admitted_document["history_digest"] == history_digest(document_value)
+    assert admitted_export["document_digest"] == portable.document_digest
+
+
 def test_equivalent_order_and_time_offsets_project_one_document() -> None:
     _, _, _, portable = approved_records()
     reordered = copy.deepcopy(portable)
@@ -176,6 +210,19 @@ def test_primary_display_copy_uses_plain_nontechnical_language() -> None:
         display.extend(item["explanation"] for item in record["diagnostics"])
         words = " ".join(display).casefold()
         assert not any(term in words for term in jargon)
+
+
+def test_reviewed_entry_copy_is_correlated_to_root_and_links() -> None:
+    lesson, _, _, _ = approved_records()
+    mismatched = copy.deepcopy(lesson)
+    mismatched["entries"][1]["explanation"] = "The check belongs to this lesson."
+
+    with pytest.raises(ConformanceFailure) as invalid:
+        AccountableHistoryContractValidator().validate_document(
+            mismatched, verify_digest=False
+        )
+
+    assert invalid.value.diagnostic.code == "accountable_history.display_text_invalid"
 
 
 @pytest.mark.parametrize(

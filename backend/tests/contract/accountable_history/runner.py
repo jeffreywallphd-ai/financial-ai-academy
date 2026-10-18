@@ -140,15 +140,15 @@ def _check_display_text(value: Mapping[str, Any]) -> None:
     }
     approved_summaries = {
         ("learner_review", "published_lesson", "valid"):
-            "This lesson is linked to the reviewed source used to publish it.",
+            "This view shows the source and history available for the lesson.",
         ("learner_review", "published_lesson", "incomplete"):
-            "The lesson is available, but one source record is not available now.",
+            "Some source history for this lesson is incomplete.",
         ("learner_review", "published_lesson", "invalid"):
             "The lesson history includes a record that does not match the expected facts.",
         ("learner_review", "knowledge_check_completion", "valid"):
             "This completion is linked to the check, the published lesson, and its audit record.",
         ("learner_review", "knowledge_check_completion", "incomplete"):
-            "The completion is available, but one source record is not available now.",
+            "Some source history for this completion is incomplete.",
         ("learner_review", "knowledge_check_completion", "invalid"):
             "The completion history includes a record that does not match the expected facts.",
         ("portable_evidence", "published_lesson", "valid"):
@@ -195,6 +195,23 @@ def _check_display_text(value: Mapping[str, Any]) -> None:
         reject("accountable_history.display_text_invalid", "summary", "History text is not reviewed.")
     if any((item["title"], item["explanation"]) not in approved_entry_text[item["resource_kind"]] for item in value["entries"]):
         reject("accountable_history.display_text_invalid", "entries", "History text is not reviewed.")
+    entries_by_id = {item["entry_id"]: item for item in value["entries"]}
+    for item in value["entries"]:
+        if item["resource_kind"] != "published_lesson":
+            continue
+        if value["root"]["root_kind"] == "knowledge_check_completion":
+            expected_explanation = "The check belongs to this lesson."
+        elif any(
+            link["source_entry_id"] == item["entry_id"]
+            and link["relation"] == "published_from"
+            and entries_by_id.get(link["target_entry_id"], {}).get("resource_kind") == "educational_source"
+            for link in value["transformations"]
+        ):
+            expected_explanation = "The lesson was published from the reviewed source."
+        else:
+            expected_explanation = "The lesson record is available."
+        if item["explanation"] != expected_explanation:
+            reject("accountable_history.display_text_invalid", "entries", "History text is not reviewed.")
     if any(item["explanation"] != approved_missing_text[item["reason"]] for item in value["missing_links"]):
         reject("accountable_history.display_text_invalid", "missing_links", "History text is not reviewed.")
     if any(item["explanation"] != approved_diagnostic_text[item["code"]] for item in value["diagnostics"]):

@@ -120,6 +120,24 @@ seam imports no Audit product code and currently adds no composer, permission,
 public operation, endpoint, generated client, browser, persistence, migration,
 retained export, tenant/admin policy, provider/model action, or history change.
 
+`domain/accountable_history.py` and
+`adapters/accountable_history_contract.py` implement the framework-free shared
+core for that contract. The composer accepts only a validated learning-lineage
+view and one closed purpose, then derives ordered history entries, explicit
+gaps, safe diagnostics, bounded redaction counts, reviewed purpose/root/state
+copy, canonical disclosed-content digests, and an on-demand portable wrapper.
+Valid lessons with zero, one, or many reviewed sources use truthful generic
+summary copy rather than assuming one fixture shape. Equivalent source order
+and time offsets normalize to the same result; changed disclosed meaning changes
+the digest.
+
+The strict adapter admits and emits only the exact v1 mapping. It has no
+application, Identity, host, framework, database, filesystem, network, clock,
+provider, or model dependency. It does not authorize a root, load lineage,
+retain an export, create a file, expose HTTP, or grant grading, mastery, legal,
+compliance, financial, administrative, or execution authority. Those public
+operation and transport seams remain later SLI-0108 work.
+
 `POST /api/v1/audit/learning-lineage` exposes the two closed roots through the
 same protected OpenAPI-generated contract for browser and headless callers. It
 requires server-issued `audit.lineage.read` and `curriculum.lesson.read`, binds

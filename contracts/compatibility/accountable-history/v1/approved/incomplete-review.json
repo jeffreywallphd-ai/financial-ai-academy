@@ -4,7 +4,7 @@
   "root": {"root_kind": "published_lesson", "resource_id": "leçon-diversification-été", "resource_version": "1.0.0"},
   "state": "incomplete",
   "title": "Source and history",
-  "summary": "The lesson is available, but one source record is not available now.",
+  "summary": "Some source history for this lesson is incomplete.",
   "source_lineage_digest": "8888888888888888888888888888888888888888888888888888888888888888",
   "entries": [
     {
@@ -33,5 +33,5 @@
     {"category": "owner_payload", "count": 1},
     {"category": "storage_details", "count": 1}
   ],
-  "history_digest": "9e4279084ea09706653b22c18918e2eb558bf7e32473e5b043cf5576afdd2e14"
+  "history_digest": "60fd6833216134be092c2b635fa2abec0f0da5717dd4acaba2821a15ac83bfc4"
 }
