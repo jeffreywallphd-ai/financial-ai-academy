@@ -1,7 +1,7 @@
 ---
 id: SLI-0077
 kind: vertical-slice
-planning_status: active
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-18
@@ -186,7 +186,7 @@ The expected dependency-ordered seam is:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| WRK-0164 | Add only the minimum cross-family assertions or harness support needed, run cumulative browser/headless/live qualification, reconcile evidence, and close CAP-0018 | WRK-0150, WRK-0156, WRK-0161 | none | ready |
+| WRK-0164 | Add only the minimum cross-family assertions or harness support needed, run cumulative browser/headless/live qualification, reconcile evidence, and close CAP-0018 | WRK-0150, WRK-0156, WRK-0161 | none | complete |
 
 The packet may reuse existing complete qualification runners and tests. It must
 not duplicate them merely to create new files. Detailed file scope, generated
@@ -255,6 +255,27 @@ cleanup, privacy, accessibility, and readiness results; and list residual gaps.
 The CAP closes only when the four approved slices cumulatively satisfy the
 CAP-0018 acceptance scenarios.
 
+### Completion Evidence
+
+- WRK-0164 completed on exact candidate
+  `5f19dc72b8e9c7529bd76dbf927d65c10dcd17de` with qualifying receipt digest
+  `sha256:13336f2f84c056a16825239ad00259e2343b49a2700b6c899f84a85b91a2e43b`.
+- One live isolated topology exercised all three protected learner-preference
+  API families through browser and headless clients plus both browser-local
+  adapters. Named-family changes left both non-target families exact, all
+  server-owned state survived restart, and subsequent headless reads were
+  zero-write.
+- The final three profiles share one opaque learner context and retain distinct
+  identities, schemas, revisions, histories, and exports. Theme and reminders
+  remain local to the browser and do not appear in public learner data.
+- Failure, replay, conflict, concurrency, privacy, accessibility, unrelated-
+  state containment, and exact cleanup passed without adding a combined API or
+  changing product contracts. The complete focused and aggregate check set is
+  recorded in WRK-0164.
+- Managed-cloud operation, organization tenancy, multi-module portable
+  import/export, and a future headless AI mode remain explicit later work. No
+  material CAP-0018 drift or unresolved decision gate remains.
+
 ## Planning History
 
 - 2026-10-18: Refined the final approved manifest increment after SLI-0074,
@@ -266,3 +287,7 @@ CAP-0018 acceptance scenarios.
 - 2026-10-18: Authored WRK-0164 just in time as the single cumulative
   qualification seam. It reuses the existing complete topology and adds only
   missing cross-family isolation evidence before deterministic CAP closure.
+- 2026-10-18: Completed SLI-0077 after its one packet proved cumulative
+  browser/headless API parity, local-adapter separation, cross-family isolation,
+  restart durability, containment, accessibility, and cleanup on a qualifying
+  exact candidate. No product or contract expansion was required.

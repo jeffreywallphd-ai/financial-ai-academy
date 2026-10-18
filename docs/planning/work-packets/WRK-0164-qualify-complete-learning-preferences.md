@@ -1,7 +1,7 @@
 ---
 id: WRK-0164
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-18
@@ -218,6 +218,34 @@ combined API, generated client, preference meaning, identity, provider, model,
 notification, external action, or financial behavior changed, then close
 SLI-0077 and CAP-0018 deterministically.
 
+## Completion Evidence
+
+- Exact candidate `5f19dc72b8e9c7529bd76dbf927d65c10dcd17de`
+  produced qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0164/5f19dc72b8e9c7529bd76dbf927d65c10dcd17de/20261018T020120Z-aab3ff47-ddf6-47e8-9c9a-7375755aa833.json`
+  with digest
+  `sha256:13336f2f84c056a16825239ad00259e2343b49a2700b6c899f84a85b91a2e43b`.
+- The complete disposable PostgreSQL and pinned-Chromium journey proved that
+  each named learner-preference phase changed only its own profile, history,
+  and mutation rows. All three final profiles share one opaque authorized
+  learner context while retaining distinct profile identities and contracts.
+- Browser journeys and ordinary headless calls used the same three protected
+  public API families. The two browser-local adapters remained outside public
+  learner APIs and persistence. Exact composite state survived normal host
+  restart and subsequent headless reads without cross-family writes.
+- Qualification passed 84 pure replay and containment tests, 207 preference
+  contract/domain/application tests, 59 protected API tests, 469 Web tests,
+  TypeScript checking, zero-warning lint, production build, focused Chromium,
+  architecture, security, documentation, planning, design-system, Python
+  compilation, whitespace, all six exact-candidate checks, and all 29 aggregate
+  readiness checks.
+- The packet introduced no product contract, aggregate settings endpoint,
+  migration, generated-client change, preference meaning, identity behavior,
+  provider or model execution, notification delivery, external action, or
+  financial behavior. Managed-cloud operation, multi-learner tenancy,
+  multi-module portable import/export, and headless AI orchestration remain
+  outside this qualification.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after the three delivering slices and their
@@ -237,3 +265,7 @@ SLI-0077 and CAP-0018 deterministically.
   59 protected API tests, 469 Web tests, typecheck, zero-warning lint, build,
   architecture, security, documentation, design, planning, and all 29 aggregate
   readiness checks passed.
+- 2026-10-18: Completed on exact candidate `5f19dc7` with qualifying receipt
+  `20261018T020120Z-aab3ff47-ddf6-47e8-9c9a-7375755aa833.json`. The cumulative
+  browser/headless/PostgreSQL/restart/isolation evidence closes the packet
+  without expanding product behavior or the approved CAP package.

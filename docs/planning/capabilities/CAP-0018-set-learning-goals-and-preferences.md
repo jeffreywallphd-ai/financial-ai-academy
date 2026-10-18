@@ -1,10 +1,10 @@
 ---
 id: CAP-0018
 kind: capability
-planning_status: ready
+planning_status: complete
 authority: noncanonical
-owner: unassigned
-updated: 2026-10-16
+owner: codex-cap-0018
+updated: 2026-10-18
 parent: null
 depends_on: ["CAP-0001"]
 decision_gates: []
@@ -86,6 +86,30 @@ privacy-preserving, and consumed only by capabilities that declare their use.
   downstream consumers do not block viewing, changing, resetting, or exporting
   otherwise valid preferences.
 
+## Completion Evidence
+
+- SLI-0074 through SLI-0077 are complete. Learners can record goals,
+  experience, interests, accessible presentation choices, AI-help preferences,
+  theme, and local reminders through their documented learner-owned,
+  platform-owned, or browser-local boundaries.
+- The final exact candidate
+  `5f19dc72b8e9c7529bd76dbf927d65c10dcd17de` has qualifying receipt digest
+  `sha256:13336f2f84c056a16825239ad00259e2343b49a2700b6c899f84a85b91a2e43b`.
+  The cumulative live route passed against disposable PostgreSQL and pinned
+  Chromium, and the aggregate readiness gate passed all 29 checks.
+- Browser and ordinary headless clients use the same three protected public API
+  families. Each family retains separate identity, revision, history, replay,
+  reset, and export meaning; local theme and reminder adapters remain outside
+  learner APIs and server persistence.
+- Exact retry, conflicts, concurrent updates, malformed and unavailable state,
+  restart, accessibility, privacy, unrelated-state containment, and cleanup are
+  directly qualified. Preferences grant no identity, authorization, evidence,
+  competency, grading, eligibility, financial, provider, model, notification,
+  or irreversible-action authority.
+- The capability remains API-first and deployment-neutral. A combined portable
+  settings record, managed-cloud operation, organization tenancy, and a future
+  headless AI mode remain outside this completed package.
+
 ## Risks and Non-Goals
 
 Preferences can become covert profiling or a policy bypass. This CAP avoids
@@ -102,4 +126,9 @@ accessibility, and verification evidence.
 
 - 2026-10-15: Shaped from catalog candidate 15 with manifest SLI-0074 through
   SLI-0077. The package awaits one CAP planning approval.
+- 2026-10-18: Completed CAP-0018 after all four manifest slices closed with
+  cumulative contract, PostgreSQL, protected API, browser/headless, local-
+  adapter, replay, concurrency, restart, accessibility, privacy, containment,
+  cleanup, and aggregate-readiness evidence. No material package drift or
+  unresolved decision gate remains.
 
