@@ -211,7 +211,7 @@ immediately before each packet starts. The dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | [WRK-0174](../work-packets/WRK-0174-freeze-feature-guidance-contracts-and-registry.md) | Freeze `feature-guidance/v1`, pure validation/digests, reviewed starter records/mappings, exact Help correlation, compatibility fixtures, and focused anti-rigidity tests | SLI-0083 | none | complete |
 | [WRK-0175](../work-packets/WRK-0175-compose-feature-guidance-api.md) | Compose the immutable registry, Guidance application/public operation, authorization, reviewed OpenAPI, generated client, and failure tests | WRK-0174 | none | complete |
-| Bounded feature explanations | Add the optional generated-client explanation to the five named feature conditions with plain language, safe actions, fallback, accessibility, and anti-rigidity evidence | protected API | none | planned |
+| [WRK-0176](../work-packets/WRK-0176-deliver-bounded-feature-explanations.md) | Add the optional generated-client explanation to the five named feature conditions with plain language, safe actions, fallback, accessibility, and anti-rigidity evidence | WRK-0175 | none | ready |
 | Live qualification | Prove browser/headless parity, condition/source/topic integrity, denial, restart, loopback-only reads, feature-state containment, and exact cleanup | bounded feature explanations | none | planned |
 
 Sequential delivery is required because all seams share Guidance contract,
