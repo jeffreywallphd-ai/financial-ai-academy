@@ -209,7 +209,7 @@ The dependency-ordered seams are:
 | [WRK-0180](../work-packets/WRK-0180-freeze-learning-provenance-contracts.md) | Freeze the provider-neutral provenance envelope and bounded learning-lineage contracts, compatibility corpus, ownership rules, and conformance tests | none | none | complete |
 | [WRK-0181](../work-packets/WRK-0181-compose-learning-lineage-core.md) | Compose the Audit learning-lineage core, Content/Assessment public adapters, Audit-owned read persistence, idempotent reconciliation, and focused architecture/security evidence | WRK-0180 | none | complete |
 | [WRK-0182](../work-packets/WRK-0182-expose-protected-learning-lineage-api.md) | Expose protected learning-lineage operations through FastAPI, reviewed OpenAPI, and the generated TypeScript client for browser and headless consumers | WRK-0181 | none | complete |
-| WRK-0183 | Qualify exact live learning lineage, restart, containment, anti-rigidity, documentation, and slice completion | WRK-0182 | none | captured |
+| [WRK-0183](../work-packets/WRK-0183-qualify-live-learning-lineage.md) | Qualify exact live learning lineage, restart, containment, anti-rigidity, documentation, and slice completion | WRK-0182 | none | ready |
 
 Sequential delivery is required because each packet stabilizes the contract and
 public seam consumed by its successor. A bounded correction may add a dependent
@@ -298,3 +298,6 @@ cleanup, migration/rollback status, residual gaps, and CAP conformance.
   affected receipt, 15 focused tests, passing generated-client, architecture,
   security, documentation, planning, and readiness gates, and accepted
   independent review. WRK-0183 may now qualify the live seam and close SLI-0106.
+- 2026-10-18: Authored WRK-0183 just in time with an exact generated-client and
+  ordinary-HTTP parity, restart, containment, denial, flexible-graph, cleanup,
+  evidence, and slice-closure scope. No lower-level approval is required.
