@@ -1,7 +1,7 @@
 ---
 id: WRK-0170
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/guidance/adapters/__init__.py", "backend/src/financial_ai_academy/modules/guidance/adapters/contextual_help_contract.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_context_registry.py", "backend/src/financial_ai_academy/modules/guidance/adapters/immutable_corpus.py", "backend/src/financial_ai_academy/modules/guidance/domain/__init__.py", "backend/src/financial_ai_academy/modules/guidance/domain/contextual_help.py", "backend/src/financial_ai_academy/modules/guidance/resources/README.md", "backend/src/financial_ai_academy/modules/guidance/resources/contextual-help/v1", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/data-meaning.json", "backend/src/financial_ai_academy/modules/guidance/resources/platform-help/v1/source-and-history.json", "backend/tests/contract/contextual_help", "backend/tests/unit/guidance/test_contextual_help.py", "contracts/README.md", "contracts/compatibility/README.md", "contracts/compatibility/contextual-help/v1", "contracts/guidance/README.md", "contracts/guidance/contextual-help/v1", "docs/architecture/contracts/contract-architecture.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0170-freeze-contextual-help-contracts-and-registry.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 547fbe0ff3df9f13d5d8349c36f8ffffeb7d68bd
+claim_id: WRK-0170:ff3743d0-a778-47a6-9fbb-0314d4f8d578
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T04:07:22Z
 ---
 
 # Agent Work Packet: Freeze Contextual Help Contracts and Registry
@@ -235,3 +235,6 @@ behavior changed.
   source-bound starter meaning, and immutable registry while deferring API and
   feature delivery to dependent packets. It conforms to the approved CAP
   package and requires no lower-level approval.
+- 2026-10-18: Activated from clean recorded base `547fbe0` after the packet
+  start gate confirmed current CAP authority, refined slice membership,
+  completed dependencies, exact bounded scope, and no active collision.
