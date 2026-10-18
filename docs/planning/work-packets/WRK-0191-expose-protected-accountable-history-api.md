@@ -1,7 +1,7 @@
 ---
 id: WRK-0191
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -215,3 +215,9 @@ tenancy/admin, or financial authority changed.
 - 2026-10-18: Activated from clean base `470adfa` after confirming current CAP
   authority, completed dependency, resolved local decision posture, exact
   generated/public write scope, and no active file-ownership collision.
+- 2026-10-18: Submitted exact candidate `de4246c` after 17 focused and 138
+  affected Audit/API/Identity/contract tests passed with exact frozen-schema
+  validation, OpenAPI and generated-client reproduction, direct TypeScript
+  headless use, typecheck, zero-warning lint, module and architecture boundaries,
+  ten security control groups, documentation, planning, whitespace, and all 30
+  aggregate-readiness checks.
