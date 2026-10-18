@@ -1,7 +1,7 @@
 ---
 id: WRK-0178
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/guidance/resources/README.md", "dev-tools/agent/check_ready.py", "dev-tools/agent/test_check_ready.py", "dev-tools/control-plane/README.md", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "dev-tools/guidance/README.md", "dev-tools/guidance/check_guidance_quality.py", "dev-tools/guidance/source_authority.json", "dev-tools/guidance/test_guidance_quality.py", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0085-qualify-platform-help-quality.md", "docs/planning/work-packets/WRK-0178-build-guidance-quality-gate.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: be5e38fe3501e986bb868e6c3a3b3c48f14c1a45
+claim_id: WRK-0178:160f0ad6-97a2-45bb-9790-e46c3e1d4ecd
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T07:15:49Z
 ---
 
 # Agent Work Packet: Build the Guidance Quality Gate
@@ -201,3 +201,6 @@ authority did not change before the final cumulative qualification packet.
   smallest first seam that turns existing freshness, link, and search evidence
   into one contributor-facing result without changing product behavior or
   requiring a lower-level approval.
+- 2026-10-18: Claimed from clean base `be5e38f` with one bounded owner and the
+  declared write scope after current CAP authority and dependency completion
+  were revalidated.

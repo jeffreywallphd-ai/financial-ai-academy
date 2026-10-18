@@ -1,7 +1,7 @@
 ---
 id: SLI-0085
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -176,7 +176,7 @@ time immediately before work starts. The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0178](../work-packets/WRK-0178-build-guidance-quality-gate.md) | Build the deterministic contributor-facing Guidance quality gate, source-authority binding, flexible valid-extension fixtures, and affected-check integration | SLI-0082 through SLI-0084 | none | ready |
+| [WRK-0178](../work-packets/WRK-0178-build-guidance-quality-gate.md) | Build the deterministic contributor-facing Guidance quality gate, source-authority binding, flexible valid-extension fixtures, and affected-check integration | SLI-0082 through SLI-0084 | none | active |
 | reserved just in time | Run and close cumulative browser/headless, accessibility, offline-local, restart, containment, anti-rigidity, documentation, and control-plane qualification | prior packet | none | captured |
 
 Sequential delivery is required because both packets share the quality command,
@@ -244,3 +244,6 @@ cleanup, residual gaps, rollback/migration status, and CAP conformance.
   cumulative local qualification. The refinement preserves the approved
   CAP-0020 outcome, four-slice manifest, ordering, risks, and non-goals; no
   slice-level approval exists or is required.
+- 2026-10-18: Activated WRK-0178 from clean base `be5e38f` after confirming
+  current CAP authority, completed dependencies, bounded quality-tool scope,
+  and no decision or ownership collision.
