@@ -1,7 +1,7 @@
 ---
 id: WRK-0182
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -211,3 +211,7 @@ or financial authority changed.
   exposes the frozen two-root application seam through one protected API and
   generated client, adds only a bounded read permission, and preserves live
   restart/containment qualification for WRK-0183 without lower-level approval.
+- 2026-10-18: Submitted exact candidate `45df26a` after the focused API and
+  Identity suite, OpenAPI and generated-client reproduction, TypeScript
+  compilation and lint, architecture, security, documentation, planning,
+  whitespace, and aggregate-readiness checks passed.
