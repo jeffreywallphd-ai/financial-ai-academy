@@ -1,7 +1,7 @@
 ---
 id: WRK-0190
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["backend/src/financial_ai_academy/modules/audit/README.md", "backend/src/financial_ai_academy/modules/audit/adapters/__init__.py", "backend/src/financial_ai_academy/modules/audit/adapters/accountable_history_contract.py", "backend/src/financial_ai_academy/modules/audit/domain/__init__.py", "backend/src/financial_ai_academy/modules/audit/domain/accountable_history.py", "backend/tests/contract/accountable_history/runner.py", "backend/tests/contract/accountable_history/test_conformance.py", "backend/tests/unit/audit/test_accountable_history.py", "contracts/compatibility/accountable-history/v1/approved/lesson-review.json", "contracts/compatibility/accountable-history/v1/vectors/canonicalization.json", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0108-inspect-accountable-history.md", "docs/planning/work-packets/WRK-0190-implement-accountable-history-core.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: e373ef4d3c1c413666da238022c3db361eecabfb
+claim_id: WRK-0190:8dc1bc68-5c0b-413f-9307-46d8abdbd845
+claimed_by: codex-cap-0026
+claimed_at: 2026-10-18T10:14:50Z
 ---
 
 # Agent Work Packet: Implement Accountable History Core
@@ -224,3 +224,6 @@ admin, external action, or financial authority changed.
   consumer-pressure evidence for zero/many-source accuracy, and leaves all
   authorization, API/client, browser, persistence, and live qualification to
   dependent packets without adding a lower-level approval.
+- 2026-10-18: Activated from clean base `e373ef4` after confirming current CAP
+  authority, completed WRK-0189, resolved local decision posture, deterministic
+  packet validation, exact write scope, and no active ownership collision.
