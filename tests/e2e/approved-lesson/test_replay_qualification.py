@@ -4630,3 +4630,182 @@ def test_preference_system_report_requires_shared_context_and_distinct_profiles(
     incomplete["assistance"]["mutations"] = []
     with pytest.raises(RuntimeError, match="evidence is incomplete"):
         runner.stable_preference_system_report(incomplete)
+
+
+def platform_help_result(
+    topic_id: str,
+    *,
+    topic_kind: str = "help",
+    source_key: str = "product-vision",
+) -> dict[str, Any]:
+    return {
+        "topic_id": topic_id,
+        "topic_version": "1.0.0",
+        "topic_kind": topic_kind,
+        "title": topic_id.replace("-", " ").title(),
+        "summary": f"A reviewed explanation for {topic_id} with enough detail.",
+        "applicability": [{"scope_key": "shared-platform", "label": "Browser and headless clients"}],
+        "publication": {
+            "state": "approved",
+            "reviewed_on": "2026-10-18",
+            "updated_at": "2026-10-18T00:00:00Z",
+        },
+        "source_references": [
+            {
+                "source_key": source_key,
+                "title": "Reviewed source",
+                "area": "product",
+                "source_version": "2026-10-18",
+                "content_fingerprint": "a" * 64,
+            }
+        ],
+        "topic_digest": hashlib.sha256(topic_id.encode("utf-8")).hexdigest(),
+    }
+
+
+def platform_help_topic(
+    topic_id: str,
+    *,
+    topic_kind: str = "help",
+    related: list[dict[str, str]] | None = None,
+) -> dict[str, Any]:
+    return platform_help_result(topic_id, topic_kind=topic_kind) | {
+        "schema_version": "1.0.0",
+        "keywords": ["reviewed", "help"],
+        "body": [
+            {"node_kind": "paragraph", "text": "Reviewed and safe body text."},
+            {"node_kind": "note", "note_kind": "limitation", "text": "Known limits remain visible."},
+        ],
+        "related_topics": related or [],
+    }
+
+
+def platform_help_page(
+    results: list[dict[str, Any]],
+    *,
+    query: str = "",
+    topic_kind: str | None = None,
+    next_cursor: str | None = None,
+) -> dict[str, Any]:
+    document: dict[str, Any] = {
+        "schema_version": "1.0.0",
+        "corpus_digest": "f" * 64,
+        "query": query,
+        "results": results,
+        "next_cursor": next_cursor,
+    }
+    if topic_kind is not None:
+        document["topic_kind"] = topic_kind
+    return document
+
+
+def platform_help_capture() -> dict[str, Any]:
+    approved = platform_help_result("approved-help", topic_kind="glossary")
+    education = platform_help_result("education-not-advice", topic_kind="limitation")
+    ai_help = platform_help_result("how-ai-help-is-controlled", topic_kind="limitation")
+    methods = platform_help_result("platform-methods", topic_kind="method")
+    cursor = "closed-cursor-1"
+    limitation_cursor = "closed-cursor-2"
+    return {
+        "schema_version": "1.0.0",
+        "first_page": platform_help_page([approved], next_cursor=cursor),
+        "continued_page": platform_help_page([education]),
+        "searched_page": platform_help_page([methods], query="methods"),
+        "approved_search": platform_help_page([approved], query="approved help"),
+        "method_topic": platform_help_topic("platform-methods", topic_kind="method"),
+        "approved_topic": platform_help_topic(
+            "approved-help",
+            topic_kind="glossary",
+            related=[
+                {
+                    "topic_id": "education-not-advice",
+                    "topic_version": "1.0.0",
+                    "relationship": "see_also",
+                }
+            ],
+        ),
+        "related_topic": platform_help_topic(
+            "education-not-advice", topic_kind="limitation"
+        ),
+        "limitation_page": platform_help_page(
+            [education], topic_kind="limitation", next_cursor=limitation_cursor
+        ),
+        "limitation_continuation": platform_help_page(
+            [ai_help], topic_kind="limitation"
+        ),
+        "expected": {
+            "external_request_count": 0,
+            "guidance_methods": ["GET"],
+        },
+    }
+
+
+def test_platform_help_capture_is_closed_correlated_and_anti_rigid(
+    tmp_path: Path,
+) -> None:
+    capture = platform_help_capture()
+    capture["searched_page"]["results"].append(
+        platform_help_result("platform-methods-extra", topic_kind="method")
+    )
+    path = tmp_path / "platform-help-capture.json"
+    path.write_text(json.dumps(capture), encoding="utf-8")
+
+    assert runner.load_platform_help_capture(path, data_root=tmp_path) == capture
+
+    extra = deepcopy(capture)
+    extra["debug"] = "not public"
+    path.write_text(json.dumps(extra), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="invalid shape"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    private = deepcopy(capture)
+    private["approved_topic"]["learner_id"] = "not-allowed"
+    path.write_text(json.dumps(private), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="not closed"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+
+def test_platform_help_capture_rejects_drift_unsafe_nodes_and_escape(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "platform-help-capture.json"
+    changed = platform_help_capture()
+    changed["continued_page"]["corpus_digest"] = "e" * 64
+    path.write_text(json.dumps(changed), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="disagree on the corpus digest"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    unsafe = platform_help_capture()
+    unsafe["method_topic"]["body"].append(
+        {"node_kind": "script", "text": "alert(1)"}
+    )
+    path.write_text(json.dumps(unsafe), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="unsafe body node"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    outside = tmp_path.parent / "outside-platform-help-capture.json"
+    outside.write_text(json.dumps(platform_help_capture()), encoding="utf-8")
+    try:
+        with pytest.raises(RuntimeError, match="escaped its bounded root"):
+            runner.load_platform_help_capture(outside, data_root=tmp_path)
+    finally:
+        outside.unlink()
+
+
+def test_platform_help_restart_requires_exact_public_meaning() -> None:
+    before = {
+        key: value
+        for key, value in platform_help_capture().items()
+        if key not in {"schema_version", "expected"}
+    }
+    runner.assert_platform_help_restart_result(
+        before_restart=before,
+        after_restart=deepcopy(before),
+    )
+    changed = deepcopy(before)
+    changed["method_topic"]["topic_digest"] = "0" * 64
+    with pytest.raises(RuntimeError, match="changed after normal restart"):
+        runner.assert_platform_help_restart_result(
+            before_restart=before,
+            after_restart=changed,
+        )

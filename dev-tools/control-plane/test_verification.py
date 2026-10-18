@@ -37,6 +37,7 @@ from check_presentation_preferences import (  # noqa: E402
 from check_assistance_preferences import (  # noqa: E402
     execute as execute_assistance_check,
 )
+from check_platform_help import execute as execute_platform_help_check  # noqa: E402
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
@@ -389,6 +390,19 @@ class SelectionTests(unittest.TestCase):
                 "assistance:browser",
                 "web:build",
             ],
+            "apps/web/tests/browser/platform-help/example.spec.ts": [
+                "web:typecheck",
+                "web:lint",
+                "platform-help:browser",
+            ],
+            "apps/web/src/features/platform-help/PlatformHelpPage.tsx": [
+                "learner-language:changed",
+                "web:typecheck",
+                "web:lint",
+                "web:unit",
+                "platform-help:browser",
+                "web:build",
+            ],
             "apps/web/tests/browser/project-workspace/example.spec.ts": [
                 "web:typecheck",
                 "web:lint",
@@ -505,6 +519,11 @@ class SelectionTests(unittest.TestCase):
                 "control-plane:unit",
                 "control-plane:verification",
                 "assistance:browser",
+            ],
+            "dev-tools/control-plane/check_platform_help.py": [
+                "control-plane:unit",
+                "control-plane:verification",
+                "platform-help:browser",
             ],
             "dev-tools/control-plane/financial_academy_checks.py": [
                 "control-plane:unit",
@@ -885,6 +904,29 @@ class RepositoryWebCheckTests(unittest.TestCase):
             "apps/web/tests/browser/assistance-preferences",
             commands[0],
         )
+        self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
+
+    def test_platform_help_browser_check_runs_only_its_focused_suite(self) -> None:
+        commands: list[tuple[str, ...]] = []
+
+        def runner(command: tuple[str, ...], *, root: Path) -> None:
+            del root
+            commands.append(command)
+
+        with tempfile.TemporaryDirectory(prefix="platform-help-browser-check-") as directory:
+            with mock.patch(
+                "check_platform_help.resolve_runtime",
+                return_value=self.runtime,
+            ):
+                execute_platform_help_check(
+                    "platform-help-browser",
+                    root=Path(directory),
+                    command_runner=runner,
+                    version_reader=self.versions,
+                )
+
+        self.assertEqual(1, len(commands))
+        self.assertIn("apps/web/tests/browser/platform-help", commands[0])
         self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
 
     def test_bound_current_wrapper_runs_new_mode_against_distinct_candidate_root(self) -> None:

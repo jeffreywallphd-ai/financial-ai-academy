@@ -21,6 +21,7 @@ import threading
 import time
 import unicodedata
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -238,6 +239,72 @@ PRACTICE_DENIAL_PRIVATE_FRAGMENTS = frozenset(
         "stack trace",
         "submission_id",
         "traceback",
+    }
+)
+PLATFORM_HELP_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "first_page",
+        "continued_page",
+        "searched_page",
+        "approved_search",
+        "method_topic",
+        "approved_topic",
+        "related_topic",
+        "limitation_page",
+        "limitation_continuation",
+        "expected",
+    }
+)
+PLATFORM_HELP_SEARCH_KEYS = frozenset(
+    {"schema_version", "corpus_digest", "query", "results", "next_cursor"}
+)
+PLATFORM_HELP_RESULT_KEYS = frozenset(
+    {
+        "topic_id",
+        "topic_version",
+        "topic_kind",
+        "title",
+        "summary",
+        "applicability",
+        "publication",
+        "source_references",
+        "topic_digest",
+    }
+)
+PLATFORM_HELP_TOPIC_KEYS = frozenset(
+    {
+        "schema_version",
+        "topic_id",
+        "topic_version",
+        "topic_kind",
+        "title",
+        "summary",
+        "keywords",
+        "body",
+        "applicability",
+        "publication",
+        "source_references",
+        "related_topics",
+        "topic_digest",
+    }
+)
+PLATFORM_HELP_PRIVATE_KEYS = frozenset(
+    {
+        "approval",
+        "authoring_path",
+        "cookie",
+        "credential",
+        "learner_id",
+        "local_path",
+        "permission",
+        "prompt",
+        "provider_payload",
+        "repository_path",
+        "reviewer",
+        "session_id",
+        "storage_locator",
+        "token",
     }
 )
 PRACTICE_REVIEW_TARGET_COMMON_KEYS = frozenset(
@@ -3488,6 +3555,410 @@ def _request_json_read_status(
     if not isinstance(document, dict):
         raise RuntimeError(f"Headless API request returned a non-object: GET {path}.")
     return status, document
+
+
+def _platform_help_digest(value: object, *, label: str) -> str:
+    if not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
+        raise RuntimeError(f"{label} is not a lowercase SHA-256 digest.")
+    return value
+
+
+def _stable_platform_help_publication(value: object) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Platform Help publication facts are unavailable.")
+    _exact_keys(
+        value,
+        frozenset({"state", "reviewed_on", "updated_at"}),
+        "Platform Help publication",
+    )
+    if (
+        value.get("state") != "approved"
+        or not isinstance(value.get("reviewed_on"), str)
+        or re.fullmatch(r"\d{4}-\d{2}-\d{2}", value["reviewed_on"]) is None
+        or not isinstance(value.get("updated_at"), str)
+        or re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})",
+            value["updated_at"],
+        )
+        is None
+        or value["reviewed_on"] > value["updated_at"][:10]
+    ):
+        raise RuntimeError("Platform Help publication facts are inconsistent.")
+    return copy.deepcopy(value)
+
+
+def _stable_platform_help_sources(value: object) -> list[dict[str, Any]]:
+    if not isinstance(value, list) or not 1 <= len(value) <= 20:
+        raise RuntimeError("Platform Help source facts are unavailable.")
+    observed: list[dict[str, Any]] = []
+    source_keys: set[str] = set()
+    for source in value:
+        if not isinstance(source, dict):
+            raise RuntimeError("Platform Help source fact is not an object.")
+        _exact_keys(
+            source,
+            frozenset(
+                {
+                    "source_key",
+                    "title",
+                    "area",
+                    "source_version",
+                    "content_fingerprint",
+                }
+            ),
+            "Platform Help source fact",
+        )
+        source_key = source.get("source_key")
+        if (
+            not isinstance(source_key, str)
+            or source_key in source_keys
+            or not isinstance(source.get("title"), str)
+            or not isinstance(source.get("source_version"), str)
+            or source.get("area")
+            not in {"product", "domain", "contract", "architecture", "risk", "method"}
+        ):
+            raise RuntimeError("Platform Help source fact is invalid or duplicated.")
+        _platform_help_digest(
+            source.get("content_fingerprint"),
+            label="Platform Help source fingerprint",
+        )
+        source_keys.add(source_key)
+        observed.append(copy.deepcopy(source))
+    return observed
+
+
+def _stable_platform_help_result(value: object) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RuntimeError("Platform Help search result is not an object.")
+    allowed = PLATFORM_HELP_RESULT_KEYS | {"glossary_term"}
+    if not PLATFORM_HELP_RESULT_KEYS.issubset(value) or not set(value).issubset(allowed):
+        raise RuntimeError("Platform Help search result is not closed.")
+    if (
+        not isinstance(value.get("topic_id"), str)
+        or re.fullmatch(r"[a-z0-9][a-z0-9._-]{2,63}", value["topic_id"]) is None
+        or not isinstance(value.get("topic_version"), str)
+        or re.fullmatch(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", value["topic_version"])
+        is None
+        or value.get("topic_kind")
+        not in {"glossary", "help", "method", "limitation", "troubleshooting"}
+        or not isinstance(value.get("title"), str)
+        or not isinstance(value.get("summary"), str)
+        or not isinstance(value.get("applicability"), list)
+        or not value["applicability"]
+    ):
+        raise RuntimeError("Platform Help search result identity is invalid.")
+    _stable_platform_help_publication(value.get("publication"))
+    _stable_platform_help_sources(value.get("source_references"))
+    _platform_help_digest(value.get("topic_digest"), label="Platform Help topic digest")
+    return copy.deepcopy(value)
+
+
+def stable_platform_help_search(
+    value: dict[str, Any],
+    *,
+    query: str,
+    topic_kind: str | None = None,
+) -> dict[str, Any]:
+    expected_keys = PLATFORM_HELP_SEARCH_KEYS | ({"topic_kind"} if topic_kind else set())
+    _exact_keys(value, frozenset(expected_keys), "Platform Help search page")
+    if (
+        value.get("schema_version") != "1.0.0"
+        or value.get("query") != query
+        or value.get("topic_kind") != topic_kind
+        or not isinstance(value.get("results"), list)
+        or len(value["results"]) > 50
+        or (
+            value.get("next_cursor") is not None
+            and (
+                not isinstance(value["next_cursor"], str)
+                or re.fullmatch(r"[A-Za-z0-9_-]{1,4096}", value["next_cursor"])
+                is None
+            )
+        )
+    ):
+        raise RuntimeError("Platform Help search page is invalid.")
+    _platform_help_digest(value.get("corpus_digest"), label="Platform Help corpus digest")
+    results = [_stable_platform_help_result(item) for item in value["results"]]
+    identities = [f"{item['topic_id']}@{item['topic_version']}" for item in results]
+    if len(identities) != len(set(identities)):
+        raise RuntimeError("Platform Help search page has duplicate exact topics.")
+    return copy.deepcopy(value)
+
+
+def stable_platform_help_topic(
+    value: dict[str, Any],
+    *,
+    topic_id: str,
+    topic_version: str,
+) -> dict[str, Any]:
+    required = PLATFORM_HELP_TOPIC_KEYS
+    allowed = required | {"glossary_term"}
+    if not required.issubset(value) or not set(value).issubset(allowed):
+        raise RuntimeError("Platform Help topic is not closed.")
+    if (
+        value.get("schema_version") != "1.0.0"
+        or value.get("topic_id") != topic_id
+        or value.get("topic_version") != topic_version
+        or not isinstance(value.get("keywords"), list)
+        or not isinstance(value.get("body"), list)
+        or not value["body"]
+        or not isinstance(value.get("related_topics"), list)
+    ):
+        raise RuntimeError("Platform Help exact topic identity is inconsistent.")
+    _stable_platform_help_result(
+        {key: copy.deepcopy(item) for key, item in value.items() if key in PLATFORM_HELP_RESULT_KEYS or key == "glossary_term"}
+    )
+    allowed_nodes = {"heading", "paragraph", "list", "note", "topic_reference"}
+    if any(
+        not isinstance(node, dict) or node.get("node_kind") not in allowed_nodes
+        for node in value["body"]
+    ):
+        raise RuntimeError("Platform Help topic contains an unsafe body node.")
+    relations: set[str] = set()
+    for relation in value["related_topics"]:
+        if (
+            not isinstance(relation, dict)
+            or set(relation) != {"topic_id", "topic_version", "relationship"}
+            or relation.get("relationship") not in {"see_also", "prerequisite", "explains"}
+        ):
+            raise RuntimeError("Platform Help relation is invalid.")
+        identity = f"{relation.get('topic_id')}@{relation.get('topic_version')}"
+        if identity in relations:
+            raise RuntimeError("Platform Help relation is duplicated.")
+        relations.add(identity)
+    return copy.deepcopy(value)
+
+
+def load_platform_help_capture(path: Path, *, data_root: Path) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded Platform Help capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 1_048_576:
+        raise RuntimeError("Platform Help capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict) or set(capture) != PLATFORM_HELP_CAPTURE_ROOT_KEYS:
+        raise RuntimeError("Platform Help capture has an invalid shape.")
+    if capture.get("schema_version") != "1.0.0":
+        raise RuntimeError("Platform Help capture version is unsupported.")
+    pages = {
+        "first_page": stable_platform_help_search(capture["first_page"], query=""),
+        "continued_page": stable_platform_help_search(capture["continued_page"], query=""),
+        "searched_page": stable_platform_help_search(capture["searched_page"], query="methods"),
+        "approved_search": stable_platform_help_search(capture["approved_search"], query="approved help"),
+        "limitation_page": stable_platform_help_search(
+            capture["limitation_page"], query="", topic_kind="limitation"
+        ),
+        "limitation_continuation": stable_platform_help_search(
+            capture["limitation_continuation"], query="", topic_kind="limitation"
+        ),
+    }
+    topics = {
+        "method_topic": stable_platform_help_topic(
+            capture["method_topic"], topic_id="platform-methods", topic_version="1.0.0"
+        ),
+        "approved_topic": stable_platform_help_topic(
+            capture["approved_topic"], topic_id="approved-help", topic_version="1.0.0"
+        ),
+        "related_topic": stable_platform_help_topic(
+            capture["related_topic"], topic_id="education-not-advice", topic_version="1.0.0"
+        ),
+    }
+    corpus_digests = {page["corpus_digest"] for page in pages.values()}
+    if len(corpus_digests) != 1:
+        raise RuntimeError("Platform Help pages disagree on the corpus digest.")
+    first = pages["first_page"]
+    continued = pages["continued_page"]
+    limitation = pages["limitation_page"]
+    limitation_continued = pages["limitation_continuation"]
+    if (
+        len(first["results"]) != 1
+        or not first["next_cursor"]
+        or len(continued["results"]) != 1
+        or first["results"][0]["topic_id"] == continued["results"][0]["topic_id"]
+        or len(limitation["results"]) != 1
+        or not limitation["next_cursor"]
+        or len(limitation_continued["results"]) != 1
+        or limitation["results"][0]["topic_id"]
+        == limitation_continued["results"][0]["topic_id"]
+    ):
+        raise RuntimeError("Platform Help capture does not prove bounded continuation.")
+    if [item["topic_id"] for item in pages["approved_search"]["results"]] != [
+        "approved-help"
+    ] or "platform-methods" not in {
+        item["topic_id"] for item in pages["searched_page"]["results"]
+    }:
+        raise RuntimeError("Platform Help capture does not bind its searches.")
+    if not any(
+        relation.get("topic_id") == "education-not-advice"
+        and relation.get("topic_version") == "1.0.0"
+        for relation in topics["approved_topic"]["related_topics"]
+    ):
+        raise RuntimeError("Platform Help exact relation is absent.")
+    expected = capture.get("expected")
+    if expected != {"external_request_count": 0, "guidance_methods": ["GET"]}:
+        raise RuntimeError("Platform Help request containment was not observed.")
+    private_keys = PLATFORM_HELP_PRIVATE_KEYS & _nested_mapping_keys(capture)
+    if private_keys:
+        raise RuntimeError("Platform Help capture contains private fields.")
+    return copy.deepcopy(capture)
+
+
+def _platform_help_path(query: dict[str, object]) -> str:
+    encoded = urllib.parse.urlencode(query)
+    return f"/api/v1/guidance/platform-help?{encoded}" if encoded else "/api/v1/guidance/platform-help"
+
+
+def observe_headless_platform_help(
+    *,
+    origin: str,
+    capture: dict[str, Any],
+) -> dict[str, Any]:
+    unauthenticated = urllib.request.build_opener()
+    status, denial = _request_json_read_status(
+        unauthenticated,
+        origin=origin,
+        path="/api/v1/guidance/platform-help?page_size=1",
+    )
+    _exact_keys(
+        denial,
+        frozenset({"error_version", "code", "message", "correlation_id"}),
+        "Platform Help authorization denial",
+    )
+    serialized_denial = json.dumps(denial, sort_keys=True).casefold()
+    if (
+        status != 401
+        or denial.get("code") != "unauthorized"
+        or any(
+            marker in serialized_denial
+            for marker in (
+                "approved-help",
+                "corpus_digest",
+                "content_fingerprint",
+                "platform-methods",
+                "topic_digest",
+            )
+        )
+    ):
+        raise RuntimeError("Platform Help authorization denial exposed corpus facts.")
+
+    cookies = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
+    _request_json(
+        opener,
+        origin=origin,
+        path="/api/v1/session/single-profile",
+        method="POST",
+        payload={"limitation_acknowledged": True},
+    )
+    first = stable_platform_help_search(
+        _request_json(
+            opener,
+            origin=origin,
+            path=_platform_help_path({"page_size": 1}),
+        ),
+        query="",
+    )
+    continued = stable_platform_help_search(
+        _request_json(
+            opener,
+            origin=origin,
+            path=_platform_help_path(
+                {"page_size": 1, "cursor": first["next_cursor"]}
+            ),
+        ),
+        query="",
+    )
+    searched = stable_platform_help_search(
+        _request_json(
+            opener,
+            origin=origin,
+            path=_platform_help_path({"query": "methods", "page_size": 20}),
+        ),
+        query="methods",
+    )
+    approved_search = stable_platform_help_search(
+        _request_json(
+            opener,
+            origin=origin,
+            path=_platform_help_path({"query": "approved help", "page_size": 20}),
+        ),
+        query="approved help",
+    )
+    limitation = stable_platform_help_search(
+        _request_json(
+            opener,
+            origin=origin,
+            path=_platform_help_path({"topic_kind": "limitation", "page_size": 1}),
+        ),
+        query="",
+        topic_kind="limitation",
+    )
+    limitation_continued = stable_platform_help_search(
+        _request_json(
+            opener,
+            origin=origin,
+            path=_platform_help_path(
+                {
+                    "topic_kind": "limitation",
+                    "page_size": 1,
+                    "cursor": limitation["next_cursor"],
+                }
+            ),
+        ),
+        query="",
+        topic_kind="limitation",
+    )
+    topics = {
+        "method_topic": stable_platform_help_topic(
+            _request_json(
+                opener,
+                origin=origin,
+                path="/api/v1/guidance/platform-help/platform-methods/versions/1.0.0",
+            ),
+            topic_id="platform-methods",
+            topic_version="1.0.0",
+        ),
+        "approved_topic": stable_platform_help_topic(
+            _request_json(
+                opener,
+                origin=origin,
+                path="/api/v1/guidance/platform-help/approved-help/versions/1.0.0",
+            ),
+            topic_id="approved-help",
+            topic_version="1.0.0",
+        ),
+        "related_topic": stable_platform_help_topic(
+            _request_json(
+                opener,
+                origin=origin,
+                path="/api/v1/guidance/platform-help/education-not-advice/versions/1.0.0",
+            ),
+            topic_id="education-not-advice",
+            topic_version="1.0.0",
+        ),
+    }
+    observed = {
+        "first_page": first,
+        "continued_page": continued,
+        "searched_page": searched,
+        "approved_search": approved_search,
+        **topics,
+        "limitation_page": limitation,
+        "limitation_continuation": limitation_continued,
+    }
+    expected = {key: capture[key] for key in observed}
+    if observed != expected:
+        raise RuntimeError("Headless Platform Help changed browser-observed meaning.")
+    return observed
+
+
+def assert_platform_help_restart_result(
+    *,
+    before_restart: dict[str, Any],
+    after_restart: dict[str, Any],
+) -> None:
+    if after_restart != before_restart:
+        raise RuntimeError("Platform Help changed after normal restart.")
 
 
 def _project_summary_without_learner(document: dict[str, Any]) -> dict[str, Any]:
@@ -7278,6 +7749,7 @@ def main() -> int:
     learner_preferences_capture = data_root / "learner-preferences-capture.json"
     presentation_preferences_capture = data_root / "presentation-preferences-capture.json"
     assistance_preferences_capture = data_root / "assistance-preferences-capture.json"
+    platform_help_capture = data_root / "platform-help-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -7330,6 +7802,9 @@ def main() -> int:
         environment["FINANCIAL_AI_ACADEMY_ASSISTANCE_PREFERENCES_CAPTURE"] = str(
             assistance_preferences_capture
         )
+        environment["FINANCIAL_AI_ACADEMY_PLATFORM_HELP_CAPTURE"] = str(
+            platform_help_capture
+        )
         run_checked(
             npm_e2e_command(
                 "approved-lesson.e2e.ts",
@@ -7338,6 +7813,30 @@ def main() -> int:
             ),
             env=environment,
         )
+        platform_help_source_before = application_database_fingerprint(
+            postgres_dsn,
+            exclude_schemas=frozenset({"identity"}),
+        )
+        run_checked(
+            npm_e2e_command("platform-help.e2e.ts"),
+            env=environment,
+        )
+        platform_help = load_platform_help_capture(
+            platform_help_capture,
+            data_root=data_root,
+        )
+        platform_help_before_restart = observe_headless_platform_help(
+            origin=origin,
+            capture=platform_help,
+        )
+        if (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+            != platform_help_source_before
+        ):
+            raise RuntimeError("Platform Help changed durable application state.")
         project_learning_before = project_storage_snapshot(
             postgres_dsn,
             project_id="project-qualification-not-created",
@@ -7693,6 +8192,28 @@ def main() -> int:
             before_restart=practice_before_restart,
             after_restart=practice_after_restart,
         )
+        platform_help_storage_before_restart_observation = (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+        )
+        platform_help_after_restart = observe_headless_platform_help(
+            origin=origin,
+            capture=platform_help,
+        )
+        assert_platform_help_restart_result(
+            before_restart=platform_help_before_restart,
+            after_restart=platform_help_after_restart,
+        )
+        if (
+            application_database_fingerprint(
+                postgres_dsn,
+                exclude_schemas=frozenset({"identity"}),
+            )
+            != platform_help_storage_before_restart_observation
+        ):
+            raise RuntimeError("Platform Help restart read changed durable state.")
         practice_progress_after_restart = read_headless_practice_progress(origin)
         if practice_progress_after_restart != practice_progress_before_restart:
             raise RuntimeError("Practice progress changed after normal restart.")
@@ -8131,6 +8652,21 @@ def main() -> int:
                 "same_key_changed_payload_race": True,
                 "same_key_same_payload_race": True,
                 "source_state_unchanged": True,
+            },
+            "platform_help": {
+                "authorization_confidential": True,
+                "browser_generated_client": True,
+                "browser_headless_parity": True,
+                "checked_in_corpus_available": True,
+                "corpus_digest": platform_help["first_page"]["corpus_digest"],
+                "exact_relation_navigation": True,
+                "exact_version_reads": True,
+                "no_non_loopback_browser_requests": True,
+                "normal_restart_without_reseeding": True,
+                "public_api_shared": True,
+                "read_only_state_containment": True,
+                "source_fingerprints_preserved": True,
+                "stable_search_filter_and_cursor": True,
             },
             "project_workspace": {
                 "artifact_download_exact": True,

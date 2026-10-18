@@ -1,13 +1,13 @@
 ---
 id: WRK-0168
 kind: work-packet
-planning_status: active
+planning_status: ready
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
 parent: SLI-0082
 capability: CAP-0020
-depends_on: [WRK-0167]
+depends_on: [WRK-0167, WRK-0169]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "dev-tools/control-plane/check_platform_help.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0082-browse-search-approved-help.md", "docs/planning/work-packets/WRK-0168-qualify-platform-help-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
@@ -247,3 +247,7 @@ or financial behavior changed, then leave SLI-0082 closure-ready.
 - 2026-10-18: Activated from clean recorded base `c9056d9` after validating
   the completed dependency, current CAP authority, qualification-only scope,
   exact file ownership, and no active coordination collision.
+- 2026-10-18: Returned to ready after live Chromium exposed omission of the
+  contract-required nullable `next_cursor` on a terminal API search page.
+  WRK-0169 owns the bounded API serialization correction; this packet resumes
+  afterward without weakening evidence or widening qualification scope.
