@@ -1,7 +1,7 @@
 ---
 id: WRK-0164
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-18
@@ -232,3 +232,8 @@ SLI-0077 and CAP-0018 deterministically.
   bounded generated scope after the production build refreshed its content
   hash. This is derived candidate evidence only and changes no product source,
   contract, behavior, or CAP boundary.
+- 2026-10-18: Entered exact-candidate verification after the complete live
+  topology, 84 pure qualification tests, 207 contract/domain/application tests,
+  59 protected API tests, 469 Web tests, typecheck, zero-warning lint, build,
+  architecture, security, documentation, design, planning, and all 29 aggregate
+  readiness checks passed.
