@@ -1,7 +1,7 @@
 ---
 id: WRK-0176
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/src/app/router.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesPage.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesRoute.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/features/personal-workspace/PersonalWorkspacePage.tsx", "apps/web/src/features/personal-workspace/PersonalWorkspaceRoutes.tsx", "apps/web/src/features/platform-help/FeatureGuidanceExplanation.tsx", "apps/web/src/features/platform-help/api.ts", "apps/web/src/features/platform-help/model.ts", "apps/web/src/features/practice-activity/PracticeActivityPage.tsx", "apps/web/src/features/practice-activity/PracticeActivityRoute.tsx", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/src/features/project-workspace/ProjectRoutes.tsx", "apps/web/src/styles/platform-help.css", "apps/web/tests/browser/assistance-preferences/assistance-preferences.spec.ts", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/browser/personal-workspace/personal-workspace.spec.ts", "apps/web/tests/browser/practice-activity/practice-activity.spec.ts", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/assistancePreferences.test.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/tests/component/personalWorkspace.test.tsx", "apps/web/tests/component/platformHelp.test.tsx", "apps/web/tests/component/practiceActivity.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "docs/architecture/assurance/architecture-verification.md", "docs/architecture/contracts/platform-help-contract.md", "docs/architecture/modules/module-map.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0084-understand-feature-limits-and-safe-recovery.md", "docs/planning/work-packets/WRK-0176-deliver-bounded-feature-explanations.md"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 7bcc2166d002ec09813beb8164a2d9b602bd05d8
+claim_id: WRK-0176:21ed9181-7574-4d81-9713-b6ab63c70cfb
+claimed_by: codex-cap-0020
+claimed_at: 2026-10-18T06:28:46Z
 ---
 
 # Agent Work Packet: Deliver Bounded Feature Explanations
@@ -217,3 +217,7 @@ Pending implementation.
   delivers the approved five-condition optional browser explanation through
   the existing protected API while preserving all owning-feature authority and
   deferring cumulative live containment/cleanup to the final SLI-0084 packet.
+- 2026-10-18: Activated from clean base `7bcc216` after confirming current CAP
+  authority, completed WRK-0175 dependency, the exact five-condition scope,
+  interface-language/design obligations, executable checks, and no unresolved
+  decision or active ownership collision.
