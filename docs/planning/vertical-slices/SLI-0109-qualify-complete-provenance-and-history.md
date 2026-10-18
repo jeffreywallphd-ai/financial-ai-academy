@@ -280,6 +280,10 @@ satisfy its acceptance scenarios.
   it discovers every shared-core source, resolves relative imports, enforces
   structural dependency direction, and ignores comments and documentation.
   This bounded evidence correction changes no runtime or public contract.
+- 2026-10-18: Extended that structural closure to the three strict contract
+  mappers documented as shared core and changed standard-library admission from
+  an effect denylist to a reviewed pure-helper allowlist. This closes direct
+  host, filesystem, network, database, cloud, and external-action bypasses.
 - 2026-10-18: Submitted the clean implementation candidate for controller-
   selected affected verification and moved the slice to deterministic
   verification; no new scope or decision was introduced.

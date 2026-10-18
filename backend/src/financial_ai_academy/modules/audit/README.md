@@ -185,9 +185,10 @@ closed, portable evidence has only its six documented fields, retention and
 storage policy do not enter provenance identity, and the shared v1/v2/history
 core imports no host, database, cloud, network, filesystem, or provider
 framework. The qualification discovers every Python source under Audit domain,
-application, and ports plus its public surface, resolves relative imports, and
-enforces the allowed inward dependency layers; it does not search comments or
-documentation text. This is a policy-neutral retention seam: later authorized
-adapters may manage lifecycle, but the current evidence does not select a
-duration, deletion rule, legal hold, tenant policy, storage product, or
-managed-cloud behavior.
+application, and ports plus its public surface and the three designated strict
+v1/v2/history contract-mapping adapters. It resolves relative imports, enforces
+the allowed inward dependency layers, and permits only an explicit set of pure
+standard-library helpers; it does not search comments or documentation text.
+This is a policy-neutral retention seam: later authorized adapters may manage
+lifecycle, but the current evidence does not select a duration, deletion rule,
+legal hold, tenant policy, storage product, or managed-cloud behavior.

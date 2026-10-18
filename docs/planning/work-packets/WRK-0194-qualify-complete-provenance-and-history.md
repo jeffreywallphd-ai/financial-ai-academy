@@ -230,3 +230,7 @@ tenancy/admin, financial, managed-retention, or managed-cloud behavior changed.
   closure. The cumulative portability test now discovers the complete Audit
   shared-core Python surface, resolves relative imports, applies structural
   inward-layer and effect-dependency rules, and no longer scans harmless prose.
+- 2026-10-18: Completed the portability closure by adding the three designated
+  strict contract-mapping adapters and replacing the incomplete effect denylist
+  with an explicit reviewed pure-standard-library allowlist. Host, filesystem,
+  network, database, cloud, and external-action imports now fail closed.

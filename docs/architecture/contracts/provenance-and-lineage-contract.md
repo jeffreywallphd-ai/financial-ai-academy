@@ -232,8 +232,9 @@ expiry, deletion, legal hold, tenant, provider payload, and storage location are
 not provenance or export identity. The shared provenance/history core also
 remains free of host, database, cloud, network, filesystem, and
 provider-framework imports. That evidence structurally discovers the complete
-Audit domain/application/ports/public Python surface, resolves relative imports,
-and enforces inward layer dependencies instead of scanning prose. This proves a
-policy-neutral adapter seam and local/shared-core behavior, not a retention
-duration, legal policy, immutable store, tenant policy, recovery posture, or
-managed-cloud deployment.
+Audit domain/application/ports/public Python surface and the three designated
+strict v1/v2/history contract-mapping adapters, resolves relative imports, and
+enforces inward layer dependencies plus an explicit pure-standard-library
+allowlist instead of scanning prose. This proves a policy-neutral adapter seam
+and local/shared-core behavior, not a retention duration, legal policy,
+immutable store, tenant policy, recovery posture, or managed-cloud deployment.

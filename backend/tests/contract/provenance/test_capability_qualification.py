@@ -5,13 +5,31 @@ from __future__ import annotations
 import ast
 import json
 from pathlib import Path
-import sys
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[4]
 CONTRACTS = ROOT / "contracts"
 AUDIT = ROOT / "backend/src/financial_ai_academy/modules/audit"
+PURE_CONTRACT_ADAPTERS = (
+    "adapters/accountable_history_contract.py",
+    "adapters/cross_domain_provenance_contract.py",
+    "adapters/provenance_contract.py",
+)
+PURE_STDLIB_ROOTS = {
+    "__future__",
+    "collections",
+    "dataclasses",
+    "datetime",
+    "enum",
+    "hashlib",
+    "json",
+    "re",
+    "types",
+    "typing",
+    "unicodedata",
+    "uuid",
+}
 
 
 def _load(relative: str) -> dict[str, Any]:
@@ -53,7 +71,11 @@ def _shared_core_sources() -> tuple[Path, ...]:
             (source for root in roots for source in root.rglob("*.py")),
             key=lambda source: source.as_posix(),
         )
-    ) + (AUDIT / "__init__.py", AUDIT / "public.py")
+    ) + (
+        AUDIT / "__init__.py",
+        AUDIT / "public.py",
+        *(AUDIT / relative for relative in PURE_CONTRACT_ADAPTERS),
+    )
 
 
 def _resolved_imports(source: Path) -> set[str]:
@@ -95,6 +117,8 @@ def _allowed_internal_prefixes(source: Path) -> tuple[str, ...]:
             f"{base}.ports",
             f"{base}.public",
         )
+    if relative.parts[0] == "adapters":
+        return (f"{base}.domain",)
     return (f"{base}.domain", f"{base}.public")
 
 
@@ -175,25 +199,8 @@ def test_retention_seam_is_closed_and_policy_neutral() -> None:
 
 
 def test_shared_provenance_core_dependency_closure_is_adapter_neutral() -> None:
-    """Every shared-core file stays inside its layer and pure standard library."""
+    """Every shared-core file stays inward and uses only reviewed pure helpers."""
 
-    effect_roots = {
-        "azure",
-        "boto3",
-        "fastapi",
-        "google",
-        "httpx",
-        "os",
-        "pathlib",
-        "psycopg",
-        "requests",
-        "shutil",
-        "socket",
-        "sqlalchemy",
-        "sqlite3",
-        "tempfile",
-        "urllib",
-    }
     core_sources = _shared_core_sources()
 
     assert core_sources
@@ -202,11 +209,10 @@ def test_shared_provenance_core_dependency_closure_is_adapter_neutral() -> None:
         allowed_internal = _allowed_internal_prefixes(source)
         for imported in _resolved_imports(source):
             root = imported.split(".", 1)[0]
-            assert root not in effect_roots, (relative, imported)
             if imported.startswith("financial_ai_academy."):
                 assert _is_allowed_internal(imported, allowed_internal), (
                     relative,
                     imported,
                 )
             else:
-                assert root in sys.stdlib_module_names, (relative, imported)
+                assert root in PURE_STDLIB_ROOTS, (relative, imported)
