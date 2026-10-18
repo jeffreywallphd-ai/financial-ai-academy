@@ -51,6 +51,8 @@ from financial_ai_academy.modules.audit.public import (
     AuditError,
     AuditErrorCode,
     AuditOperations,
+    ReadKnowledgeCheckCompletionLineageRequest,
+    ReadPublishedLessonLineageRequest,
     ReconcileLessonCompletionAuditRequest,
     ReconcileProjectCompletionAuditRequest,
 )
@@ -163,6 +165,8 @@ from .models import (
     KnowledgeCheckSubmissionRequestModel,
     LearningOpportunityBrowseResponseModel,
     LearningOpportunityQueryPageResponseModel,
+    LearningLineageRequestModel,
+    LearningLineageResponseModel,
     LearningProjectStartOptionResponseModel,
     LearningProjectStartOptionListResponseModel,
     LearnerPreferenceExportResponseModel,
@@ -227,6 +231,7 @@ from .models import (
     learner_preference_history_response,
     learner_preference_mutation_intent,
     learner_preference_profile_response,
+    learning_lineage_response,
     presentation_preference_export_response,
     presentation_preference_history_response,
     presentation_preference_mutation_intent,
@@ -772,6 +777,19 @@ def create_app(services: ApiServices) -> FastAPI:
             raise IdentityError(
                 IdentityErrorCode.FORBIDDEN,
                 "The learner session cannot read platform help.",
+            )
+        return context
+
+    def learning_lineage_context(
+        context: LearnerContext = Depends(resolved_context),
+    ) -> LearnerContext:
+        if not {
+            "audit.lineage.read",
+            "curriculum.lesson.read",
+        }.issubset(context.permissions):
+            raise IdentityError(
+                IdentityErrorCode.FORBIDDEN,
+                "The learner session cannot read learning history sources.",
             )
         return context
 
@@ -2165,6 +2183,45 @@ def create_app(services: ApiServices) -> FastAPI:
         )
         return lesson_completion_response(view)
 
+    @app.post(
+        "/api/v1/audit/learning-lineage",
+        response_model=LearningLineageResponseModel,
+        operation_id="readLearningLineage",
+        responses=_ERROR_RESPONSES,
+        tags=["audit"],
+    )
+    def read_learning_lineage(
+        request: Request,
+        request_model: LearningLineageRequestModel,
+        context: LearnerContext = Depends(learning_lineage_context),
+    ) -> LearningLineageResponseModel | JSONResponse:
+        if request.query_params:
+            return _error_response(
+                status.HTTP_400_BAD_REQUEST,
+                "invalid_request",
+                "Learning lineage does not accept query input.",
+                request.state.correlation_id,
+            )
+        audit = _audit_service(services.audit)
+        if request_model.root_kind == "published_lesson":
+            view = audit.read_published_lesson_lineage(
+                ReadPublishedLessonLineageRequest(
+                    package_id=request_model.package_id,
+                    package_version=request_model.package_version,
+                    package_digest=request_model.package_digest,
+                )
+            )
+        else:
+            view = audit.read_knowledge_check_completion_lineage(
+                ReadKnowledgeCheckCompletionLineageRequest(
+                    learner_id=context.learner_id,
+                    placement_id=request_model.placement_id,
+                    evidence_id=request_model.evidence_id,
+                    occurrence=request_model.occurrence,
+                )
+            )
+        return learning_lineage_response(view)
+
     @app.get(
         "/api/v1/learner-preferences",
         response_model=LearnerPreferenceProfileResponseModel,
@@ -2549,6 +2606,10 @@ def create_app(services: ApiServices) -> FastAPI:
             assistance_preference_mutation_operation["responses"].pop(
                 "422", None
             )
+            learning_lineage_operation = schema["paths"][
+                "/api/v1/audit/learning-lineage"
+            ]["post"]
+            learning_lineage_operation["responses"].pop("422", None)
             app.openapi_schema = schema
         return app.openapi_schema
 

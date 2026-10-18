@@ -89,6 +89,19 @@ assert.match(schema, /operations\["getLearnerAssistancePreferenceHistory"\]/);
 assert.match(schema, /operations\["exportLearnerAssistancePreferences"\]/);
 assert.match(schema, /AssistancePreferenceMutationRequestModel/);
 assert.match(schema, /AssistancePreferenceExportResponseModel/);
+assert.match(schema, /\/api\/v1\/audit\/learning-lineage/);
+assert.match(schema, /operations\["readLearningLineage"\]/);
+assert.match(schema, /PublishedLessonLineageRequestModel/);
+assert.match(schema, /KnowledgeCheckCompletionLineageRequestModel/);
+assert.match(schema, /LearningLineageResponseModel/);
+const lineageSchema =
+  schema.match(
+    /readonly "LearningLineageResponseModel": \{[\s\S]*?^    \};/m,
+  )?.[0] ?? "";
+assert.doesNotMatch(
+  lineageSchema,
+  /learner_id|session_id|locator|selected_option|feedback|permission/,
+);
 assert.match(schema, /"available" \| "stale" \| "unavailable"/);
 for (const model of [
   "PersonalLearningOpportunityReferenceModel",

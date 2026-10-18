@@ -2214,6 +2214,75 @@
         "title": "HealthResponseModel",
         "type": "object"
       },
+      "IncompleteLineageLinkResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "enum": [
+              "not_found",
+              "unavailable",
+              "redacted"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "relation": {
+            "enum": [
+              "published_from",
+              "defined_by",
+              "produced",
+              "recorded_as"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "source_node_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Source Node Id",
+            "type": "string"
+          },
+          "target_owner_module": {
+            "enum": [
+              "content",
+              "assessment",
+              "audit"
+            ],
+            "title": "Target Owner Module",
+            "type": "string"
+          },
+          "target_resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Target Resource Id",
+            "type": "string"
+          },
+          "target_resource_kind": {
+            "enum": [
+              "educational_source",
+              "published_lesson",
+              "assessment_definition",
+              "knowledge_check_event",
+              "completion_evidence",
+              "audit_reference"
+            ],
+            "title": "Target Resource Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_node_id",
+          "relation",
+          "target_owner_module",
+          "target_resource_kind",
+          "target_resource_id",
+          "reason"
+        ],
+        "title": "IncompleteLineageLinkResponseModel",
+        "type": "object"
+      },
       "IndependentProjectOriginModel": {
         "additionalProperties": false,
         "properties": {
@@ -2265,6 +2334,49 @@
           "value"
         ],
         "title": "InlineTextModel",
+        "type": "object"
+      },
+      "KnowledgeCheckCompletionLineageRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "occurrence": {
+            "minimum": 1.0,
+            "title": "Occurrence",
+            "type": "integer"
+          },
+          "placement_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Placement Id",
+            "type": "string"
+          },
+          "root_kind": {
+            "const": "knowledge_check_completion",
+            "title": "Root Kind",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "root_kind",
+          "placement_id",
+          "evidence_id",
+          "occurrence"
+        ],
+        "title": "KnowledgeCheckCompletionLineageRequestModel",
         "type": "object"
       },
       "KnowledgeCheckFeedbackModel": {
@@ -3130,6 +3242,64 @@
         "title": "LearnerPreferenceProfileResponseModel",
         "type": "object"
       },
+      "LearningLineageResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/LineageEdgeResponseModel"
+            },
+            "maxItems": 128,
+            "title": "Edges",
+            "type": "array"
+          },
+          "incomplete_links": {
+            "items": {
+              "$ref": "#/components/schemas/IncompleteLineageLinkResponseModel"
+            },
+            "maxItems": 32,
+            "title": "Incomplete Links",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/LineageNodeResponseModel"
+            },
+            "maxItems": 64,
+            "minItems": 1,
+            "title": "Nodes",
+            "type": "array"
+          },
+          "root": {
+            "$ref": "#/components/schemas/LineageRootResponseModel"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "view_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "View Digest",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "root",
+          "nodes",
+          "edges",
+          "incomplete_links",
+          "truncated",
+          "view_digest"
+        ],
+        "title": "LearningLineageResponseModel",
+        "type": "object"
+      },
       "LearningOpportunityBrowseResponseModel": {
         "additionalProperties": false,
         "properties": {
@@ -3851,6 +4021,298 @@
           "provenance"
         ],
         "title": "LessonReadingResponseModel",
+        "type": "object"
+      },
+      "LineageEdgeResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "relation": {
+            "enum": [
+              "published_from",
+              "defined_by",
+              "produced",
+              "recorded_as"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "source_node_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Source Node Id",
+            "type": "string"
+          },
+          "target_node_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Target Node Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_node_id",
+          "target_node_id",
+          "relation"
+        ],
+        "title": "LineageEdgeResponseModel",
+        "type": "object"
+      },
+      "LineageNodeResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "envelope": {
+            "$ref": "#/components/schemas/ProvenanceEnvelopeResponseModel"
+          },
+          "node_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Node Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "envelope"
+        ],
+        "title": "LineageNodeResponseModel",
+        "type": "object"
+      },
+      "LineageOccurrenceReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "integrity_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Integrity Digest",
+            "type": "string"
+          },
+          "occurrence": {
+            "minimum": 1.0,
+            "title": "Occurrence",
+            "type": "integer"
+          },
+          "owner_module": {
+            "enum": [
+              "content",
+              "assessment",
+              "audit"
+            ],
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_kind": {
+            "enum": [
+              "knowledge_check_event",
+              "completion_evidence",
+              "audit_reference"
+            ],
+            "title": "Resource Kind",
+            "type": "string"
+          },
+          "validation_status": {
+            "enum": [
+              "validated",
+              "incomplete"
+            ],
+            "title": "Validation Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner_module",
+          "resource_id",
+          "integrity_digest",
+          "recorded_at",
+          "validation_status",
+          "resource_kind",
+          "occurrence"
+        ],
+        "title": "LineageOccurrenceReferenceModel",
+        "type": "object"
+      },
+      "LineageProducerResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "producer_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Producer Id",
+            "type": "string"
+          },
+          "producer_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+            "title": "Producer Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "producer_id",
+          "producer_version"
+        ],
+        "title": "LineageProducerResponseModel",
+        "type": "object"
+      },
+      "LineageRootResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "resource": {
+            "discriminator": {
+              "mapping": {
+                "assessment_definition": "#/components/schemas/LineageVersionedReferenceModel",
+                "audit_reference": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "completion_evidence": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "educational_source": "#/components/schemas/LineageVersionedReferenceModel",
+                "knowledge_check_event": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "published_lesson": "#/components/schemas/LineageVersionedReferenceModel"
+              },
+              "propertyName": "resource_kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LineageVersionedReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/LineageOccurrenceReferenceModel"
+              }
+            ],
+            "title": "Resource"
+          },
+          "root_kind": {
+            "enum": [
+              "published_lesson",
+              "knowledge_check_completion"
+            ],
+            "title": "Root Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "root_kind",
+          "resource"
+        ],
+        "title": "LineageRootResponseModel",
+        "type": "object"
+      },
+      "LineageSourceResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "reference": {
+            "discriminator": {
+              "mapping": {
+                "assessment_definition": "#/components/schemas/LineageVersionedReferenceModel",
+                "audit_reference": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "completion_evidence": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "educational_source": "#/components/schemas/LineageVersionedReferenceModel",
+                "knowledge_check_event": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "published_lesson": "#/components/schemas/LineageVersionedReferenceModel"
+              },
+              "propertyName": "resource_kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LineageVersionedReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/LineageOccurrenceReferenceModel"
+              }
+            ],
+            "title": "Reference"
+          },
+          "relation": {
+            "enum": [
+              "published_from",
+              "defined_by",
+              "produced",
+              "recorded_as"
+            ],
+            "title": "Relation",
+            "type": "string"
+          }
+        },
+        "required": [
+          "relation",
+          "reference"
+        ],
+        "title": "LineageSourceResponseModel",
+        "type": "object"
+      },
+      "LineageVersionedReferenceModel": {
+        "additionalProperties": false,
+        "properties": {
+          "integrity_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Integrity Digest",
+            "type": "string"
+          },
+          "owner_module": {
+            "enum": [
+              "content",
+              "assessment",
+              "audit"
+            ],
+            "title": "Owner Module",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "resource_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "resource_kind": {
+            "enum": [
+              "educational_source",
+              "published_lesson",
+              "assessment_definition"
+            ],
+            "title": "Resource Kind",
+            "type": "string"
+          },
+          "resource_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+            "title": "Resource Version",
+            "type": "string"
+          },
+          "validation_status": {
+            "enum": [
+              "validated",
+              "incomplete"
+            ],
+            "title": "Validation Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner_module",
+          "resource_id",
+          "integrity_digest",
+          "recorded_at",
+          "validation_status",
+          "resource_kind",
+          "resource_version"
+        ],
+        "title": "LineageVersionedReferenceModel",
         "type": "object"
       },
       "ListItemModel": {
@@ -11130,6 +11592,57 @@
         "title": "ProjectWorkspaceResponseModel",
         "type": "object"
       },
+      "ProvenanceEnvelopeResponseModel": {
+        "additionalProperties": false,
+        "properties": {
+          "producer": {
+            "$ref": "#/components/schemas/LineageProducerResponseModel"
+          },
+          "resource": {
+            "discriminator": {
+              "mapping": {
+                "assessment_definition": "#/components/schemas/LineageVersionedReferenceModel",
+                "audit_reference": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "completion_evidence": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "educational_source": "#/components/schemas/LineageVersionedReferenceModel",
+                "knowledge_check_event": "#/components/schemas/LineageOccurrenceReferenceModel",
+                "published_lesson": "#/components/schemas/LineageVersionedReferenceModel"
+              },
+              "propertyName": "resource_kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/LineageVersionedReferenceModel"
+              },
+              {
+                "$ref": "#/components/schemas/LineageOccurrenceReferenceModel"
+              }
+            ],
+            "title": "Resource"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/LineageSourceResponseModel"
+            },
+            "maxItems": 20,
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "resource",
+          "producer",
+          "sources"
+        ],
+        "title": "ProvenanceEnvelopeResponseModel",
+        "type": "object"
+      },
       "PublicationProvenanceModel": {
         "additionalProperties": false,
         "properties": {
@@ -11159,6 +11672,47 @@
           "educational_use_notice"
         ],
         "title": "PublicationProvenanceModel",
+        "type": "object"
+      },
+      "PublishedLessonLineageRequestModel": {
+        "additionalProperties": false,
+        "properties": {
+          "package_digest": {
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest",
+            "type": "string"
+          },
+          "package_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[^\\s._:/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF][^\\s/\\\\?#\\x00-\\x1F\\x7F-\\x9F\\u200B-\\u200F\\u202A-\\u202E\\u2060-\\u206F\\uFEFF]{0,127}$",
+            "title": "Package Id",
+            "type": "string"
+          },
+          "package_version": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+            "title": "Package Version",
+            "type": "string"
+          },
+          "root_kind": {
+            "const": "published_lesson",
+            "title": "Root Kind",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0.0",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "root_kind",
+          "package_id",
+          "package_version",
+          "package_digest"
+        ],
+        "title": "PublishedLessonLineageRequestModel",
         "type": "object"
       },
       "RemoveLearnerExperienceMutationModel": {
@@ -12550,6 +13104,117 @@
         "summary": "Get Curriculum Navigation State",
         "tags": [
           "adaptation"
+        ]
+      }
+    },
+    "/api/v1/audit/learning-lineage": {
+      "post": {
+        "operationId": "readLearningLineage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "knowledge_check_completion": "#/components/schemas/KnowledgeCheckCompletionLineageRequestModel",
+                    "published_lesson": "#/components/schemas/PublishedLessonLineageRequestModel"
+                  },
+                  "propertyName": "root_kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/PublishedLessonLineageRequestModel"
+                  },
+                  {
+                    "$ref": "#/components/schemas/KnowledgeCheckCompletionLineageRequestModel"
+                  }
+                ],
+                "title": "Request Model"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningLineageResponseModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Invalid request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unavailable"
+          }
+        },
+        "security": [
+          {
+            "OpaqueSessionCookie": []
+          }
+        ],
+        "summary": "Read Learning Lineage",
+        "tags": [
+          "audit"
         ]
       }
     },

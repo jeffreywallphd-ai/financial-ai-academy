@@ -88,7 +88,11 @@ One exact completion occurrence correlates evidence, event, retained Audit
 reference, definition, lesson, and zero-to-many educational sources without
 copying body, answer, feedback, learner, locator, or provider payloads.
 
-Protected HTTP, generated clients, browser presentation, export, retention,
-and live-host qualification remain separate delivery seams. A shared-core
-lineage request does not itself grant authorization, and implemented local
-composition does not imply those transport or operational capabilities exist.
+The protected `POST /api/v1/audit/learning-lineage` operation exposes that same
+core to generated and direct/headless clients. Its closed union selects one
+exact lesson or completion occurrence, completion learner identity comes only
+from the server session, and the host requires both Audit-lineage and lesson-
+read permissions before invoking Audit. The response is the canonical bounded
+view and cannot grant authorization or disclose owner payloads. Browser
+presentation, export, retention policy, and live-host qualification remain
+separate delivery seams.

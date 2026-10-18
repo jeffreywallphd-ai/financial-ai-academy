@@ -56,6 +56,9 @@ from financial_ai_academy.modules.assessment.application.service import (
 from financial_ai_academy.modules.audit.adapters.assessment_gateway import (
     AssessmentAuditEventSource,
 )
+from financial_ai_academy.modules.audit.adapters.learning_lineage import (
+    ContentLearningLineageSource,
+)
 from financial_ai_academy.modules.audit.adapters.postgres_repository import (
     PostgresAuditRepository,
 )
@@ -319,6 +322,7 @@ def build_application_services(
         AssessmentAuditEventSource(assessment),
         PostgresAuditRepository(settings.postgres_dsn),
         AuditUtcClock(),
+        ContentLearningLineageSource(content),
     )
     identity = IdentityService(
         PostgresIdentityRepository(settings.postgres_dsn),

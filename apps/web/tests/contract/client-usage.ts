@@ -61,6 +61,31 @@ type PresentationPreferenceMutation =
   components["schemas"]["PresentationPreferenceMutationRequestModel"];
 type AssistancePreferenceMutation =
   components["schemas"]["AssistancePreferenceMutationRequestModel"];
+type PublishedLessonLineageRequest =
+  components["schemas"]["PublishedLessonLineageRequestModel"];
+type CompletionLineageRequest =
+  components["schemas"]["KnowledgeCheckCompletionLineageRequestModel"];
+
+const publishedLessonLineage: PublishedLessonLineageRequest = {
+  schema_version: "1.0.0",
+  root_kind: "published_lesson",
+  package_id: "intro-risk-return",
+  package_version: "1.1.0",
+  package_digest: "7".repeat(64),
+};
+const completionLineage: CompletionLineageRequest = {
+  schema_version: "1.0.0",
+  root_kind: "knowledge_check_completion",
+  placement_id: "intro-risk-return",
+  evidence_id: "evidence-check-1",
+  occurrence: 1,
+};
+void client.POST("/api/v1/audit/learning-lineage", {
+  body: publishedLessonLineage,
+});
+void client.POST("/api/v1/audit/learning-lineage", {
+  body: completionLineage,
+});
 
 function exerciseFlexibleCurriculumGraphResponse(
   graph: CurriculumGraphResponse,

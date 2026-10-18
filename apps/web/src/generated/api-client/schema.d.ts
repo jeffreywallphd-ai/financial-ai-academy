@@ -21,6 +21,15 @@ export interface paths {
       };
       readonly get: operations["getCurriculumNavigationState"];
     };
+  readonly "/api/v1/audit/learning-lineage": {
+      readonly parameters: {
+        readonly query?: never;
+        readonly header?: never;
+        readonly path?: never;
+        readonly cookie?: never;
+      };
+      readonly post: operations["readLearningLineage"];
+    };
   readonly "/api/v1/curriculum/graphs/{curriculum_id}/versions/{curriculum_version}": {
       readonly parameters: {
         readonly query?: never;
@@ -790,6 +799,14 @@ export interface components {
     readonly "HTTPValidationError": {
       readonly "detail"?: ReadonlyArray<components["schemas"]["ValidationError"]>;
     };
+    readonly "IncompleteLineageLinkResponseModel": {
+      readonly "reason": "not_found" | "unavailable" | "redacted";
+      readonly "relation": "published_from" | "defined_by" | "produced" | "recorded_as";
+      readonly "source_node_id": string;
+      readonly "target_owner_module": "content" | "assessment" | "audit";
+      readonly "target_resource_id": string;
+      readonly "target_resource_kind": "educational_source" | "published_lesson" | "assessment_definition" | "knowledge_check_event" | "completion_evidence" | "audit_reference";
+    };
     readonly "IndependentProjectOriginModel": {
       readonly "origin_type"?: "independent";
     };
@@ -800,6 +817,13 @@ export interface components {
     readonly "InlineTextModel": {
       readonly "kind"?: "text";
       readonly "value": string;
+    };
+    readonly "KnowledgeCheckCompletionLineageRequestModel": {
+      readonly "evidence_id": string;
+      readonly "occurrence": number;
+      readonly "placement_id": string;
+      readonly "root_kind": "knowledge_check_completion";
+      readonly "schema_version": "1.0.0";
     };
     readonly "KnowledgeCheckFeedbackModel": {
       readonly "feedback_id": string;
@@ -927,6 +951,15 @@ export interface components {
       readonly "schema_version": "1.0.0";
       readonly "updated_at": string;
     };
+    readonly "LearningLineageResponseModel": {
+      readonly "edges": ReadonlyArray<components["schemas"]["LineageEdgeResponseModel"]>;
+      readonly "incomplete_links": ReadonlyArray<components["schemas"]["IncompleteLineageLinkResponseModel"]>;
+      readonly "nodes": ReadonlyArray<components["schemas"]["LineageNodeResponseModel"]>;
+      readonly "root": components["schemas"]["LineageRootResponseModel"];
+      readonly "schema_version": "1.0.0";
+      readonly "truncated": boolean;
+      readonly "view_digest": string;
+    };
     readonly "LearningOpportunityBrowseResponseModel": {
       readonly "projected_at": string;
       readonly "projection_generation": string;
@@ -1035,6 +1068,45 @@ export interface components {
       readonly "provenance": components["schemas"]["PublicationProvenanceModel"];
       readonly "sources": ReadonlyArray<components["schemas"]["EducationalSourceModel"]>;
       readonly "title": string;
+    };
+    readonly "LineageEdgeResponseModel": {
+      readonly "relation": "published_from" | "defined_by" | "produced" | "recorded_as";
+      readonly "source_node_id": string;
+      readonly "target_node_id": string;
+    };
+    readonly "LineageNodeResponseModel": {
+      readonly "envelope": components["schemas"]["ProvenanceEnvelopeResponseModel"];
+      readonly "node_id": string;
+    };
+    readonly "LineageOccurrenceReferenceModel": {
+      readonly "integrity_digest": string;
+      readonly "occurrence": number;
+      readonly "owner_module": "content" | "assessment" | "audit";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "knowledge_check_event" | "completion_evidence" | "audit_reference";
+      readonly "validation_status": "validated" | "incomplete";
+    };
+    readonly "LineageProducerResponseModel": {
+      readonly "producer_id": string;
+      readonly "producer_version": string;
+    };
+    readonly "LineageRootResponseModel": {
+      readonly "resource": components["schemas"]["LineageVersionedReferenceModel"] | components["schemas"]["LineageOccurrenceReferenceModel"];
+      readonly "root_kind": "published_lesson" | "knowledge_check_completion";
+    };
+    readonly "LineageSourceResponseModel": {
+      readonly "reference": components["schemas"]["LineageVersionedReferenceModel"] | components["schemas"]["LineageOccurrenceReferenceModel"];
+      readonly "relation": "published_from" | "defined_by" | "produced" | "recorded_as";
+    };
+    readonly "LineageVersionedReferenceModel": {
+      readonly "integrity_digest": string;
+      readonly "owner_module": "content" | "assessment" | "audit";
+      readonly "recorded_at": string;
+      readonly "resource_id": string;
+      readonly "resource_kind": "educational_source" | "published_lesson" | "assessment_definition";
+      readonly "resource_version": string;
+      readonly "validation_status": "validated" | "incomplete";
     };
     readonly "ListItemModel": {
       readonly "blocks": ReadonlyArray<components["schemas"]["HeadingModel"] | components["schemas"]["ParagraphModel"] | components["schemas"]["CodeBlockModel"] | components["schemas"]["ThematicBreakModel"] | components["schemas"]["BulletListModel"] | components["schemas"]["OrderedListModel"]>;
@@ -2062,11 +2134,24 @@ export interface components {
       readonly "updated_at": string;
       readonly "workspace_revision": number;
     };
+    readonly "ProvenanceEnvelopeResponseModel": {
+      readonly "producer": components["schemas"]["LineageProducerResponseModel"];
+      readonly "resource": components["schemas"]["LineageVersionedReferenceModel"] | components["schemas"]["LineageOccurrenceReferenceModel"];
+      readonly "schema_version": "1.0.0";
+      readonly "sources": ReadonlyArray<components["schemas"]["LineageSourceResponseModel"]>;
+    };
     readonly "PublicationProvenanceModel": {
       readonly "content_reviewed_on": string;
       readonly "educational_use_notice": string;
       readonly "published_at": string;
       readonly "published_by": string;
+    };
+    readonly "PublishedLessonLineageRequestModel": {
+      readonly "package_digest": string;
+      readonly "package_id": string;
+      readonly "package_version": string;
+      readonly "root_kind": "published_lesson";
+      readonly "schema_version": "1.0.0";
     };
     readonly "RemoveLearnerExperienceMutationModel": {
       readonly "entry_id": string;
@@ -2318,6 +2403,63 @@ export interface operations {
           readonly headers: Record<string, unknown>;
           readonly content: {
             readonly "application/json": components["schemas"]["NavigationStateResponseModel"];
+          };
+        };
+        readonly 400: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 401: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 403: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 404: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 409: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+        readonly 503: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["ApiErrorEnvelope"];
+          };
+        };
+      };
+  };
+  readonly readLearningLineage: {
+    readonly parameters: {
+      readonly query?: never;
+      readonly header?: never;
+      readonly path?: never;
+      readonly cookie?: never;
+    };
+    readonly requestBody: {
+        readonly content: {
+          readonly "application/json": components["schemas"]["PublishedLessonLineageRequestModel"] | components["schemas"]["KnowledgeCheckCompletionLineageRequestModel"];
+        };
+      };
+    readonly responses: {
+        readonly 200: {
+          readonly headers: Record<string, unknown>;
+          readonly content: {
+            readonly "application/json": components["schemas"]["LearningLineageResponseModel"];
           };
         };
         readonly 400: {

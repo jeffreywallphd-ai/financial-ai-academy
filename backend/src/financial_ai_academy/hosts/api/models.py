@@ -43,6 +43,10 @@ from financial_ai_academy.modules.assessment.domain.project_submission import (
     ProjectValidationResult,
     SnapshotResource,
 )
+from financial_ai_academy.modules.audit.domain.provenance import (
+    LineageView,
+    lineage_view_payload,
+)
 from financial_ai_academy.modules.content import public as content_public
 from financial_ai_academy.modules.curriculum.public import (
     AppliedLearningOpportunityQuery,
@@ -153,6 +157,200 @@ from financial_ai_academy.modules.personal_workspace.public import (
 
 class ApiModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+_LINEAGE_IDENTIFIER_PATTERN = (
+    r"^[^\s._:/\\?#\x00-\x1F\x7F-\x9F\u200B-\u200F"
+    r"\u202A-\u202E\u2060-\u206F\uFEFF]"
+    r"[^\s/\\?#\x00-\x1F\x7F-\x9F\u200B-\u200F"
+    r"\u202A-\u202E\u2060-\u206F\uFEFF]{0,127}$"
+)
+_LINEAGE_VERSION_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+_LINEAGE_DIGEST_PATTERN = r"^[a-f0-9]{64}$"
+
+
+class PublishedLessonLineageRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    root_kind: Literal["published_lesson"]
+    package_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    package_version: str = Field(pattern=_LINEAGE_VERSION_PATTERN)
+    package_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
+
+
+class KnowledgeCheckCompletionLineageRequestModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    root_kind: Literal["knowledge_check_completion"]
+    placement_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    evidence_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    occurrence: int = Field(ge=1, strict=True)
+
+
+LearningLineageRequestModel = Annotated[
+    Union[
+        PublishedLessonLineageRequestModel,
+        KnowledgeCheckCompletionLineageRequestModel,
+    ],
+    Field(discriminator="root_kind"),
+]
+
+
+class _LineageReferenceBase(ApiModel):
+    owner_module: Literal["content", "assessment", "audit"]
+    resource_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    integrity_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
+    recorded_at: datetime
+    validation_status: Literal["validated", "incomplete"]
+
+
+class LineageVersionedReferenceModel(_LineageReferenceBase):
+    resource_kind: Literal[
+        "educational_source",
+        "published_lesson",
+        "assessment_definition",
+    ]
+    resource_version: str = Field(pattern=_LINEAGE_VERSION_PATTERN)
+
+
+class LineageOccurrenceReferenceModel(_LineageReferenceBase):
+    resource_kind: Literal[
+        "knowledge_check_event",
+        "completion_evidence",
+        "audit_reference",
+    ]
+    occurrence: int = Field(ge=1)
+
+
+LineageReferenceResponseModel = Annotated[
+    Union[
+        LineageVersionedReferenceModel,
+        LineageOccurrenceReferenceModel,
+    ],
+    Field(discriminator="resource_kind"),
+]
+
+
+class LineageProducerResponseModel(ApiModel):
+    producer_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    producer_version: str = Field(pattern=_LINEAGE_VERSION_PATTERN)
+
+
+class LineageSourceResponseModel(ApiModel):
+    relation: Literal[
+        "published_from",
+        "defined_by",
+        "produced",
+        "recorded_as",
+    ]
+    reference: LineageReferenceResponseModel
+
+
+class ProvenanceEnvelopeResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    resource: LineageReferenceResponseModel
+    producer: LineageProducerResponseModel
+    sources: list[LineageSourceResponseModel] = Field(max_length=20)
+
+
+class LineageRootResponseModel(ApiModel):
+    root_kind: Literal["published_lesson", "knowledge_check_completion"]
+    resource: LineageReferenceResponseModel
+
+
+class LineageNodeResponseModel(ApiModel):
+    node_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    envelope: ProvenanceEnvelopeResponseModel
+
+
+class LineageEdgeResponseModel(ApiModel):
+    source_node_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    target_node_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    relation: Literal[
+        "published_from",
+        "defined_by",
+        "produced",
+        "recorded_as",
+    ]
+
+
+class IncompleteLineageLinkResponseModel(ApiModel):
+    source_node_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    relation: Literal[
+        "published_from",
+        "defined_by",
+        "produced",
+        "recorded_as",
+    ]
+    target_owner_module: Literal["content", "assessment", "audit"]
+    target_resource_kind: Literal[
+        "educational_source",
+        "published_lesson",
+        "assessment_definition",
+        "knowledge_check_event",
+        "completion_evidence",
+        "audit_reference",
+    ]
+    target_resource_id: str = Field(
+        min_length=1,
+        max_length=128,
+        pattern=_LINEAGE_IDENTIFIER_PATTERN,
+    )
+    reason: Literal["not_found", "unavailable", "redacted"]
+
+
+class LearningLineageResponseModel(ApiModel):
+    schema_version: Literal["1.0.0"]
+    root: LineageRootResponseModel
+    nodes: list[LineageNodeResponseModel] = Field(min_length=1, max_length=64)
+    edges: list[LineageEdgeResponseModel] = Field(max_length=128)
+    incomplete_links: list[IncompleteLineageLinkResponseModel] = Field(
+        max_length=32
+    )
+    truncated: bool
+    view_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
+
+
+def learning_lineage_response(
+    view: LineageView,
+) -> LearningLineageResponseModel:
+    return LearningLineageResponseModel.model_validate(
+        lineage_view_payload(view)
+    )
 
 
 class PlatformHelpHeadingNodeModel(ApiModel):

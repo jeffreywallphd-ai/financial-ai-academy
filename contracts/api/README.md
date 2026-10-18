@@ -4,6 +4,18 @@ The reviewed OpenAPI 3.1 snapshot is generated from validated API models and
 committed here. Generated TypeScript clients must be reproducible from that
 snapshot.
 
+`POST /api/v1/audit/learning-lineage` is the protected exact lineage read. It
+requires the opaque session plus both `audit.lineage.read` and
+`curriculum.lesson.read`. Its discriminated v1 request selects either one
+published lesson by exact ID, version, and digest or one knowledge-check
+completion by exact placement, attempt, evidence, and occurrence. For the
+completion variant, learner identity is always supplied by the server session.
+The response is the complete bounded canonical lineage view with explicit
+incomplete links and no lesson body, answer, feedback, learner/session identity,
+permission, provider payload, storage locator, or executable content. Browser,
+command-line, service, and future headless-AI clients use the same generated
+operation and cannot choose a latest version or alternate authority path.
+
 `GET /api/v1/guidance/platform-help` and
 `GET /api/v1/guidance/platform-help/{topic_id}/versions/{topic_version}` are
 the protected platform-help boundary. Both require the opaque session and the

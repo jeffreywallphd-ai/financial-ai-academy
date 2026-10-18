@@ -141,3 +141,15 @@ reviewed OpenAPI/generated-client seam and are directly callable by browser or
 headless clients. The host does not read module tables, score responses, infer
 mastery, or create a separate AI mode.
 
+Learning lineage is exposed at `POST /api/v1/audit/learning-lineage`. The
+closed discriminated request names either one exact published lesson or one
+exact knowledge-check completion occurrence. The host derives the learner
+from the opaque session for completion reads, requires both
+`audit.lineage.read` and `curriculum.lesson.read`, and delegates composition to
+Audit through public Content and Assessment operations. Responses preserve the
+bounded canonical graph and explicit incomplete links while excluding lesson
+bodies, answers, feedback, learner identity, provider payloads, storage
+locators, and permission state. Browser and authenticated headless clients use
+the same reviewed OpenAPI operation; a caller cannot select a learner or gain
+new authority through the lineage request.
+

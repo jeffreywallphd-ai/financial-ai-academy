@@ -36,10 +36,13 @@ from financial_ai_academy.modules.identity.public import (
 )
 from financial_ai_academy.modules.audit.public import (
     AuditReconciliationReceipt,
+    ReadKnowledgeCheckCompletionLineageRequest,
+    ReadPublishedLessonLineageRequest,
     ProjectAuditReconciliationReceipt,
     ReconcileLessonCompletionAuditRequest,
     ReconcileProjectCompletionAuditRequest,
 )
+from financial_ai_academy.modules.audit.domain.provenance import LineageView
 from financial_ai_academy.modules.learner_model.public import (
     AssistancePreferenceExport,
     AssistancePreferenceHistory,
@@ -223,6 +226,16 @@ class _SchemaGuidance:
 
 
 class _SchemaAudit:
+    def read_published_lesson_lineage(
+        self, request: ReadPublishedLessonLineageRequest
+    ) -> LineageView:
+        raise NotImplementedError
+
+    def read_knowledge_check_completion_lineage(
+        self, request: ReadKnowledgeCheckCompletionLineageRequest
+    ) -> LineageView:
+        raise NotImplementedError
+
     def reconcile_lesson_completion(
         self, request: ReconcileLessonCompletionAuditRequest
     ) -> AuditReconciliationReceipt:

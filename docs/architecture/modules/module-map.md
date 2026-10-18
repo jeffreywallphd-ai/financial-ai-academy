@@ -19,7 +19,7 @@
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
 | Guidance | accepted; topic/context/feature contracts, immutable corpus and registries, application seam, protected Help APIs, generated clients, optional browser presentation, and isolated local live qualification implemented | Safe versioned platform explanations, exact contextual and feature-condition mappings, canonical-source facts, topic integrity, and deterministic literal search | Additive exact topic, context, and feature-condition projections |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
-| Audit | accepted; knowledge-check and Project completion references plus learning-lineage v1 shared core implemented | Append-oriented decision, provenance, administrative evidence, source-event integrity references, and bounded owner-reference correlation | Protected lineage transport and exportable audit records remain future work |
+| Audit | accepted; knowledge-check and Project completion references plus learning-lineage v1 shared core and protected generated-client transport implemented | Append-oriented decision, provenance, administrative evidence, source-event integrity references, and bounded owner-reference correlation | Learner-facing lineage presentation, broader owner correlation, and exportable audit records remain future work |
 
 ## Boundary Notes
 
@@ -42,7 +42,10 @@
   Assessment, and Audit references in a bounded deterministic graph. It adds no
   owner payload, cross-schema read, or permission. The first runtime core uses
   Content and Assessment public operations plus an exact Audit-owned record
-  read; protected transport remains a separate delivery seam.
+  read. The protected API binds completion learners to the server session,
+  checks Audit-lineage and lesson-read permissions, and returns that canonical
+  bounded view through the reviewed generated-client contract without adding
+  owner payload or authority.
 - Personal workspace owns learner organization and learner-authored note content.
   Its typed references never copy target business state, grant permission, or
   mutate Content, Curriculum, Assessment, Learner model, Project, or later
