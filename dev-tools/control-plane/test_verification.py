@@ -34,6 +34,9 @@ from check_approved_lesson import (  # noqa: E402
 from check_presentation_preferences import (  # noqa: E402
     execute as execute_presentation_check,
 )
+from check_assistance_preferences import (  # noqa: E402
+    execute as execute_assistance_check,
+)
 from financial_academy_checks import catalog as repository_catalog  # noqa: E402
 from store import StateStore, atomic_write, canonical_bytes  # noqa: E402
 from verification import (  # noqa: E402
@@ -373,6 +376,19 @@ class SelectionTests(unittest.TestCase):
                 "presentation:browser",
                 "web:build",
             ],
+            "apps/web/tests/browser/assistance-preferences/example.spec.ts": [
+                "web:typecheck",
+                "web:lint",
+                "assistance:browser",
+            ],
+            "apps/web/src/features/assistance-preferences/AssistancePreferencesPage.tsx": [
+                "learner-language:changed",
+                "web:typecheck",
+                "web:lint",
+                "web:unit",
+                "assistance:browser",
+                "web:build",
+            ],
             "apps/web/tests/browser/project-workspace/example.spec.ts": [
                 "web:typecheck",
                 "web:lint",
@@ -484,6 +500,11 @@ class SelectionTests(unittest.TestCase):
                 "control-plane:unit",
                 "control-plane:verification",
                 "presentation:browser",
+            ],
+            "dev-tools/control-plane/check_assistance_preferences.py": [
+                "control-plane:unit",
+                "control-plane:verification",
+                "assistance:browser",
             ],
             "dev-tools/control-plane/financial_academy_checks.py": [
                 "control-plane:unit",
@@ -836,6 +857,32 @@ class RepositoryWebCheckTests(unittest.TestCase):
         self.assertEqual(1, len(commands))
         self.assertIn(
             "apps/web/tests/browser/presentation-preferences",
+            commands[0],
+        )
+        self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])
+
+    def test_assistance_browser_check_runs_only_its_focused_suite(self) -> None:
+        commands: list[tuple[str, ...]] = []
+
+        def runner(command: tuple[str, ...], *, root: Path) -> None:
+            del root
+            commands.append(command)
+
+        with tempfile.TemporaryDirectory(prefix="assistance-browser-check-") as directory:
+            with mock.patch(
+                "check_assistance_preferences.resolve_runtime",
+                return_value=self.runtime,
+            ):
+                execute_assistance_check(
+                    "assistance-browser",
+                    root=Path(directory),
+                    command_runner=runner,
+                    version_reader=self.versions,
+                )
+
+        self.assertEqual(1, len(commands))
+        self.assertIn(
+            "apps/web/tests/browser/assistance-preferences",
             commands[0],
         )
         self.assertNotIn("apps/web/tests/browser/lesson-reading", commands[0])

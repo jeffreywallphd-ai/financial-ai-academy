@@ -4201,3 +4201,323 @@ def test_presentation_preference_storage_accepts_bounded_history_window(
         profile=profile,
         history=history,
     )
+
+
+def assistance_preference_profile(
+    revision: int = 3,
+    *,
+    assistance_mode: str = "off",
+) -> dict[str, Any]:
+    document: dict[str, Any] = {
+        "schema_version": "1.0.0",
+        "profile_id": "assistance.qualification",
+        "learner_id": "11111111-1111-4111-8111-111111111111",
+        "revision": revision,
+        "assistance_mode": assistance_mode,
+        "created_at": "2026-10-18T00:00:00Z",
+        "updated_at": f"2026-10-18T00:00:{revision:02d}Z",
+    }
+    document["profile_digest"] = runner._canonical_sha256(document)
+    return document
+
+
+def assistance_preference_history(profile: dict[str, Any]) -> dict[str, Any]:
+    changes = []
+    for revision in range(max(2, profile["revision"] - 99), profile["revision"] + 1):
+        accepted = assistance_preference_profile(
+            revision,
+            assistance_mode="off" if revision == profile["revision"] else "on_request",
+        )
+        changes.append(
+            {
+                "schema_version": "1.0.0",
+                "revision": revision,
+                "operation": (
+                    "reset_profile"
+                    if revision == profile["revision"]
+                    else "replace_preferences"
+                ),
+                "object_kind": "profile",
+                "object_id": None,
+                "occurred_at": accepted["updated_at"],
+                "resulting_profile_digest": accepted["profile_digest"],
+            }
+        )
+    return {
+        "schema_version": "1.0.0",
+        "profile_id": profile["profile_id"],
+        "current_revision": profile["revision"],
+        "changes": changes,
+    }
+
+
+def local_reminder_envelope(
+    revision: int,
+    *,
+    reminder_mode: str,
+) -> dict[str, Any]:
+    changes = [
+        {
+            "schema_version": "1.0.0",
+            "revision": current,
+            "operation": "reset_preference" if current == 3 else "replace_preference",
+            "occurred_at": f"2026-10-18T00:01:{current:02d}Z",
+        }
+        for current in range(2, revision + 1)
+    ]
+    document: dict[str, Any] = {
+        "schema_version": "1.0.0",
+        "revision": revision,
+        "reminder_mode": reminder_mode,
+        "updated_at": f"2026-10-18T00:01:{revision:02d}Z",
+        "changes": changes,
+    }
+    document["integrity_code"] = runner._canonical_sha256(document)
+    return document
+
+
+def assistance_preference_capture() -> dict[str, Any]:
+    profile = assistance_preference_profile()
+    history = assistance_preference_history(profile)
+    saved_local = local_reminder_envelope(
+        2,
+        reminder_mode="in_app_when_available",
+    )
+    reset_local = local_reminder_envelope(3, reminder_mode="off")
+
+    def replace(key: str, revision: int, mode: str) -> dict[str, Any]:
+        return {
+            "schema_version": "1.0.0",
+            "idempotency_key": key,
+            "expected_revision": revision,
+            "mutation": {
+                "operation": "replace_preferences",
+                "assistance_mode": mode,
+            },
+        }
+
+    def reset(key: str, revision: int) -> dict[str, Any]:
+        return {
+            "schema_version": "1.0.0",
+            "idempotency_key": key,
+            "expected_revision": revision,
+            "mutation": {"operation": "reset_profile"},
+        }
+
+    return {
+        "schema_version": "1.0.0",
+        "profile": profile,
+        "history": history,
+        "export": {
+            "schema_version": "1.0.0",
+            "purpose": "A portable copy of the AI-help choice you selected.",
+            "limitations": ["This choice does not enable or call an AI service."],
+            "exported_at": "2026-10-18T00:00:04Z",
+            "profile": profile,
+            "history": history,
+        },
+        "exact_replay_request": {
+            "schema_version": "1.0.0",
+            "idempotency_key": "11111111-1111-4111-8111-111111111134",
+            "expected_revision": 2,
+            "mutation": {"operation": "reset_profile"},
+        },
+        "exact_replay_response": profile,
+        "local": {
+            "saved": saved_local,
+            "export": {
+                "schema_version": "1.0.0",
+                "purpose": "Review a learning-reminder choice stored in this browser.",
+                "limitations": [
+                    "This download has no learner identity or headless meaning.",
+                    "The choice does not schedule or send a reminder.",
+                ],
+                "preference": saved_local,
+            },
+            "reset": reset_local,
+        },
+        "races": {
+            "same_key_same_payload": {
+                "requests": [
+                    replace("11111111-1111-4111-8111-111111111135", 3, "on_request")
+                    for _ in range(2)
+                ],
+                "expected": ["accepted", "accepted"],
+            },
+            "same_key_changed_payload": {
+                "requests": [
+                    replace("11111111-1111-4111-8111-111111111136", 4, "off"),
+                    reset("11111111-1111-4111-8111-111111111136", 4),
+                ],
+                "expected": ["accepted", "conflict"],
+            },
+            "different_key_same_revision": {
+                "requests": [
+                    replace(key, 5, "on_request")
+                    for key in (
+                        "11111111-1111-4111-8111-111111111137",
+                        "11111111-1111-4111-8111-111111111138",
+                    )
+                ],
+                "expected": ["accepted", "stale"],
+            },
+        },
+        "expected": {
+            "first_open_server_revision": 1,
+            "local_saved_revision": 2,
+            "local_reset_revision": 3,
+            "reset_recorded": True,
+        },
+    }
+
+
+def test_assistance_preference_capture_is_closed_correlated_and_private(
+    tmp_path: Path,
+) -> None:
+    capture = assistance_preference_capture()
+    path = tmp_path / "assistance-preferences-capture.json"
+    path.write_text(json.dumps(capture), encoding="utf-8")
+    assert runner.load_assistance_preference_capture(path, data_root=tmp_path) == capture
+
+    leaked = deepcopy(capture)
+    leaked["expected"]["model"] = "private"
+    path.write_text(json.dumps(leaked), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="private authority"):
+        runner.load_assistance_preference_capture(path, data_root=tmp_path)
+
+    local_identity = deepcopy(capture)
+    local_identity["local"]["saved"]["learner_id"] = profile_id = capture["profile"][
+        "learner_id"
+    ]
+    assert profile_id
+    path.write_text(json.dumps(local_identity), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="not closed"):
+        runner.load_assistance_preference_capture(path, data_root=tmp_path)
+
+    invalid_integrity = deepcopy(capture)
+    invalid_integrity["local"]["saved"]["integrity_code"] = "0" * 64
+    path.write_text(json.dumps(invalid_integrity), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="integrity"):
+        runner.load_assistance_preference_capture(path, data_root=tmp_path)
+
+    changed_expected = deepcopy(capture)
+    changed_expected["expected"]["local_reset_revision"] = 4
+    path.write_text(json.dumps(changed_expected), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="expected summary"):
+        runner.load_assistance_preference_capture(path, data_root=tmp_path)
+
+    no_op_conflict = deepcopy(capture)
+    no_op_conflict["races"]["same_key_changed_payload"]["requests"][1][
+        "mutation"
+    ] = {"operation": "replace_preferences", "assistance_mode": "on_request"}
+    path.write_text(json.dumps(no_op_conflict), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="conflict race"):
+        runner.load_assistance_preference_capture(path, data_root=tmp_path)
+
+    no_op_stale = deepcopy(capture)
+    no_op_stale["races"]["different_key_same_revision"]["requests"][0][
+        "mutation"
+    ]["assistance_mode"] = "off"
+    path.write_text(json.dumps(no_op_stale), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="stale race"):
+        runner.load_assistance_preference_capture(path, data_root=tmp_path)
+
+
+def test_assistance_preference_profile_accepts_both_closed_choices() -> None:
+    for mode in ("off", "on_request"):
+        profile = assistance_preference_profile(3, assistance_mode=mode)
+        assert runner.stable_assistance_preference_profile(profile) == profile
+
+
+def test_assistance_preference_race_requires_one_durable_change() -> None:
+    before_profile = assistance_preference_profile()
+    accepted = assistance_preference_profile(4, assistance_mode="on_request")
+    before = _presentation_race_storage(before_profile, changes=2, mutations=2)
+    after = _presentation_race_storage(accepted, changes=3, mutations=3)
+    capture = assistance_preference_capture()
+    requests = capture["races"]["same_key_same_payload"]["requests"]
+    assert runner.assert_assistance_preference_race_outcomes(
+        name="same_key_same_payload",
+        requests=requests,
+        results=[(200, accepted), (200, deepcopy(accepted))],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
+
+    denial = {
+        "error_version": "1.0",
+        "code": "immutable_conflict",
+        "message": "The request key already names a different AI-help change.",
+        "correlation_id": "22222222-2222-4222-8222-222222222222",
+    }
+    conflict_requests = capture["races"]["same_key_changed_payload"]["requests"]
+    assert runner.assert_assistance_preference_race_outcomes(
+        name="same_key_changed_payload",
+        requests=conflict_requests,
+        results=[(200, accepted), (409, denial)],
+        before_storage=before,
+        after_storage=after,
+    ) == accepted
+
+    duplicate = deepcopy(after)
+    duplicate["changes"].append(["change", 4])
+    with pytest.raises(RuntimeError, match="row count"):
+        runner.assert_assistance_preference_race_outcomes(
+            name="same_key_same_payload",
+            requests=requests,
+            results=[(200, accepted), (200, accepted)],
+            before_storage=before,
+            after_storage=duplicate,
+        )
+
+
+def test_assistance_preference_restart_requires_exact_rows() -> None:
+    capture = assistance_preference_capture()
+    profile = capture["profile"]
+    history = capture["history"]
+    accepted_profiles = [
+        assistance_preference_profile(2, assistance_mode="on_request"),
+        profile,
+    ]
+    storage = {
+        "profiles": [[
+            profile["profile_id"],
+            profile["learner_id"],
+            profile["revision"],
+            profile,
+            profile["profile_digest"],
+        ]],
+        "changes": [
+            [profile["learner_id"], change["revision"], change, change["resulting_profile_digest"]]
+            for change in history["changes"]
+        ],
+        "mutations": [
+            [
+                profile["learner_id"],
+                (
+                    capture["exact_replay_request"]["idempotency_key"]
+                    if accepted["revision"] == profile["revision"]
+                    else "assistance.initial"
+                ),
+                accepted["revision"],
+                accepted,
+            ]
+            for accepted in accepted_profiles
+        ],
+    }
+    runner.assert_assistance_preference_storage(
+        storage,
+        profile=profile,
+        history=history,
+        exact_replay_request=capture["exact_replay_request"],
+        exact_replay_response=capture["exact_replay_response"],
+    )
+
+    changed = deepcopy(storage)
+    changed["profiles"][0][2] += 1
+    with pytest.raises(RuntimeError, match="stored profile"):
+        runner.assert_assistance_preference_storage(
+            changed,
+            profile=profile,
+            history=history,
+        )

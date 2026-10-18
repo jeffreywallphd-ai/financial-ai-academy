@@ -190,6 +190,12 @@ Project suite or the broader live approved-lesson qualification. The Project
 stylesheet is part of that behavioral boundary, and changes to the check
 catalog or its web executor self-qualify the focused command.
 
+Assistance-preference feature, browser-local reminder adapter, stylesheet, and
+browser-spec changes likewise select the focused
+`apps/web/tests/browser/assistance-preferences` Chromium suite. The wrapper is
+digest-bound by the current catalog, so exact-candidate verification cannot
+silently omit this browser behavior or substitute a historical command.
+
 Repository web checks use the current catalog's trusted wrapper implementation
 and pass the submitted candidate root explicitly. The wrapper prepares runtimes
 and command semantics from the current control plane while reading source,

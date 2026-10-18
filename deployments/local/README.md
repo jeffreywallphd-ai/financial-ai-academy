@@ -4,8 +4,9 @@ The intended complete local profile includes the static web application,
 Python API and worker, PostgreSQL, filesystem object storage, and DuckDB/Parquet
 analytics. Only the bounded approved-lesson, curriculum-graph, discovery-query,
 deterministic-navigation-state, deterministic assessment, answer-safe practice
-opening, retained-completion, Project list/create/reopen, and Personal-workspace
-Saved Learning `single_profile` path is qualified today. The Personal-workspace
+opening, retained-completion, Project list/create/reopen, learner preference,
+display preference, AI-help preference, and Personal-workspace Saved Learning
+`single_profile` paths are qualified today. The Personal-workspace
 journey uses the same protected public API from generated-browser and ordinary
 headless clients, survives a normal host restart without reseeding, and is
 included in one stopped-source, empty-target disposable recovery exercise.
@@ -158,6 +159,17 @@ privacy-safe fingerprints prove unrelated application state did not change.
 Chromium also checks keyboard operation, 320-pixel reflow with 200-percent
 text, forced colors, reduced motion, focus visibility, and axe results before
 the runner removes the capture and disposable topology.
+The same run drives the AI help and reminders route with both choices initially
+off. Browser and ordinary headless clients read the same learner-owned profile,
+history, and export, exactly replay an accepted reset, and exercise same-key
+replay, changed-payload conflict, and different-key stale-revision races.
+PostgreSQL inspection correlates only the bounded assistance rows before and
+after a normal restart. The reminder envelope remains browser-local, contains
+no learner identity, survives only a browser reload, and is absent from every
+public API document. Network and platform observation records no provider or
+model call, notification permission, service worker, schedule, subscription,
+or delivery side effect, while privacy-safe fingerprints prove unrelated
+application state did not change.
 The runner also exercises the generated Saved Learning browser against the
 same live host: it creates a Unicode note and bookmark for the exact approved
 lesson, reorders them, creates ordered collection membership, archives and
@@ -268,6 +280,10 @@ confidential exact refresh/restore replay and conflict handling, source-state
 isolation, Personal-workspace restart durability, and the stopped-source
 disposable populated-target-refusal/empty-target recovery exercise described
 above,
+generated-browser/headless AI-help profile/history/export parity, exact replay,
+safe simultaneous-write outcomes, browser-local reminder separation, normal-
+restart durability, unrelated-state noninterference, and absence of model or
+notification execution,
 application-restart reconstruction of derived Learner-model state from
 unchanged Assessment evidence without fixture reseeding.
 

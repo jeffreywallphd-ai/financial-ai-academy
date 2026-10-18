@@ -280,6 +280,14 @@ subscription, or delivery action. Malformed data fails closed without partial
 display or download. Focused component and Chromium coverage verifies separate
 authority, reset, download, failure, reload, accessibility, narrow reflow,
 scaled text, forced colors, reduced motion, and no execution side effect.
+The complete isolated qualification also proves browser and ordinary headless
+profile/history/export parity, exact replay, changed-payload conflict, stale-
+revision handling, PostgreSQL row correlation, normal host restart, unrelated-
+state noninterference, and cleanup. Network and platform observation confirms
+that the journey makes no provider or model request, notification-permission
+request, service-worker registration, schedule, subscription, or delivery
+action. The focused assistance Chromium wrapper is part of affected-candidate
+selection whenever this feature or its browser-local adapter changes.
 
 `/preferences/display` validates one coherent profile/history export before it
 shows private details, previews complete drafts through the four semantic root

@@ -454,6 +454,62 @@ PRESENTATION_PREFERENCE_TABLES = frozenset(
         "presentation_preference_mutations",
     }
 )
+ASSISTANCE_PREFERENCE_CAPTURE_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "profile",
+        "history",
+        "export",
+        "exact_replay_request",
+        "exact_replay_response",
+        "local",
+        "races",
+        "expected",
+    }
+)
+ASSISTANCE_PREFERENCE_EXPECTED_KEYS = frozenset(
+    {
+        "first_open_server_revision",
+        "local_saved_revision",
+        "local_reset_revision",
+        "reset_recorded",
+    }
+)
+ASSISTANCE_PREFERENCE_PRIVATE_CAPTURE_KEYS = (
+    LEARNER_PREFERENCE_PRIVATE_CAPTURE_KEYS
+    | frozenset(
+        {
+            "destination",
+            "email",
+            "model",
+            "notification",
+            "phone",
+            "prompt",
+            "schedule",
+            "subscription",
+        }
+    )
+)
+ASSISTANCE_PREFERENCE_PROFILE_KEYS = frozenset(
+    {
+        "schema_version",
+        "profile_id",
+        "learner_id",
+        "revision",
+        "assistance_mode",
+        "created_at",
+        "updated_at",
+        "profile_digest",
+    }
+)
+ASSISTANCE_PREFERENCE_DENIAL_KEYS = LEARNER_PREFERENCE_DENIAL_KEYS
+ASSISTANCE_PREFERENCE_TABLES = frozenset(
+    {
+        "assistance_preference_profiles",
+        "assistance_preference_changes",
+        "assistance_preference_mutations",
+    }
+)
 PROJECT_LEARNING_CAPTURE_ROOT_KEYS = frozenset(
     {
         "artifact_sha256",
@@ -6245,6 +6301,712 @@ def qualify_presentation_preference_races(
     }
 
 
+def stable_assistance_preference_profile(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != ASSISTANCE_PREFERENCE_PROFILE_KEYS:
+        raise RuntimeError("Assistance preference profile has an open or incomplete shape.")
+    if (
+        document.get("schema_version") != "1.0.0"
+        or not _preference_identifier(document.get("profile_id"))
+        or not isinstance(document.get("learner_id"), str)
+        or not isinstance(document.get("revision"), int)
+        or isinstance(document.get("revision"), bool)
+        or document["revision"] < 1
+        or document.get("assistance_mode") not in {"off", "on_request"}
+        or not isinstance(document.get("profile_digest"), str)
+        or re.fullmatch(r"[a-f0-9]{64}", document["profile_digest"]) is None
+    ):
+        raise RuntimeError("Assistance preference profile identity or choice is invalid.")
+    try:
+        learner_id = UUID(document["learner_id"])
+    except ValueError as error:
+        raise RuntimeError("Assistance preference learner identity is invalid.") from error
+    if str(learner_id) != document["learner_id"]:
+        raise RuntimeError("Assistance preference learner identity is not canonical.")
+    created_at = _preference_time(
+        document.get("created_at"), label="Assistance preference created time"
+    )
+    updated_at = _preference_time(
+        document.get("updated_at"), label="Assistance preference updated time"
+    )
+    if updated_at < created_at:
+        raise RuntimeError("Assistance preference chronology is invalid.")
+    material = {
+        key: copy.deepcopy(value)
+        for key, value in document.items()
+        if key != "profile_digest"
+    }
+    if _canonical_sha256(material) != document["profile_digest"]:
+        raise RuntimeError("Assistance preference profile digest is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_assistance_preference_history(
+    document: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+) -> dict[str, Any]:
+    stable = stable_presentation_preference_history(document, profile=profile)
+    expected_revisions = list(
+        range(max(2, profile["revision"] - 99), profile["revision"] + 1)
+    )
+    if [change["revision"] for change in stable["changes"]] != expected_revisions:
+        raise RuntimeError("Assistance preference history coverage is invalid.")
+    return stable
+
+
+def stable_assistance_preference_export(
+    document: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+    history: dict[str, Any],
+) -> dict[str, Any]:
+    return stable_presentation_preference_export(
+        document,
+        profile=profile,
+        history=history,
+    )
+
+
+def stable_assistance_preference_request(
+    document: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != PRESENTATION_PREFERENCE_REQUEST_KEYS or (
+        document.get("schema_version") != "1.0.0"
+        or not _preference_identifier(document.get("idempotency_key"))
+        or not isinstance(document.get("expected_revision"), int)
+        or isinstance(document.get("expected_revision"), bool)
+        or document["expected_revision"] < 1
+        or not isinstance(document.get("mutation"), dict)
+    ):
+        raise RuntimeError("Assistance preference mutation request is invalid.")
+    mutation = document["mutation"]
+    if mutation.get("operation") == "reset_profile":
+        if set(mutation) != {"operation"}:
+            raise RuntimeError("Assistance preference reset request is open.")
+    elif mutation.get("operation") == "replace_preferences":
+        if set(mutation) != {"operation", "assistance_mode"} or mutation.get(
+            "assistance_mode"
+        ) not in {"off", "on_request"}:
+            raise RuntimeError("Assistance preference replacement request is invalid.")
+    else:
+        raise RuntimeError("Assistance preference mutation operation is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_local_reminder_envelope(document: dict[str, Any]) -> dict[str, Any]:
+    if set(document) != {
+        "schema_version",
+        "revision",
+        "reminder_mode",
+        "updated_at",
+        "changes",
+        "integrity_code",
+    }:
+        raise RuntimeError("Local reminder envelope is not closed.")
+    revision = document.get("revision")
+    if (
+        document.get("schema_version") != "1.0.0"
+        or not isinstance(revision, int)
+        or isinstance(revision, bool)
+        or revision < 1
+        or document.get("reminder_mode") not in {"off", "in_app_when_available"}
+        or not isinstance(document.get("changes"), list)
+        or len(document["changes"]) > 100
+        or not isinstance(document.get("integrity_code"), str)
+        or re.fullmatch(r"[a-f0-9]{64}", document["integrity_code"]) is None
+    ):
+        raise RuntimeError("Local reminder envelope values are invalid.")
+    updated_at = _preference_time(
+        document.get("updated_at"), label="Local reminder update time"
+    )
+    first_revision = max(2, revision - 99)
+    expected_revisions = list(range(first_revision, revision + 1))
+    observed_revisions: list[int] = []
+    previous_time: datetime | None = None
+    for change in document["changes"]:
+        if not isinstance(change, dict) or set(change) != {
+            "schema_version",
+            "revision",
+            "operation",
+            "occurred_at",
+        }:
+            raise RuntimeError("Local reminder change is not closed.")
+        occurred_at = _preference_time(
+            change.get("occurred_at"), label="Local reminder change time"
+        )
+        if (
+            change.get("schema_version") != "1.0.0"
+            or change.get("operation")
+            not in {"replace_preference", "reset_preference"}
+            or not isinstance(change.get("revision"), int)
+            or isinstance(change.get("revision"), bool)
+            or occurred_at > updated_at
+            or previous_time is not None
+            and occurred_at < previous_time
+        ):
+            raise RuntimeError("Local reminder change is invalid.")
+        observed_revisions.append(change["revision"])
+        previous_time = occurred_at
+    if observed_revisions != expected_revisions:
+        raise RuntimeError("Local reminder history coverage is invalid.")
+    material = {
+        key: copy.deepcopy(value)
+        for key, value in document.items()
+        if key != "integrity_code"
+    }
+    if _canonical_sha256(material) != document["integrity_code"]:
+        raise RuntimeError("Local reminder integrity code is invalid.")
+    return copy.deepcopy(document)
+
+
+def stable_local_reminder_export(
+    document: dict[str, Any],
+    *,
+    expected_preference: dict[str, Any],
+) -> dict[str, Any]:
+    if set(document) != {"schema_version", "purpose", "limitations", "preference"} or (
+        document.get("schema_version") != "1.0.0"
+        or not isinstance(document.get("purpose"), str)
+        or not document["purpose"]
+        or not isinstance(document.get("limitations"), list)
+        or not 1 <= len(document["limitations"]) <= 8
+        or not all(isinstance(item, str) and item for item in document["limitations"])
+        or document.get("preference") != expected_preference
+    ):
+        raise RuntimeError("Local reminder export is invalid.")
+    stable_local_reminder_envelope(document["preference"])
+    if "learner_id" in _nested_mapping_keys(document):
+        raise RuntimeError("Local reminder export contains learner identity.")
+    return copy.deepcopy(document)
+
+
+def load_assistance_preference_capture(
+    path: Path,
+    *,
+    data_root: Path,
+) -> dict[str, Any]:
+    if path.is_symlink() or not path.is_file():
+        raise RuntimeError("The bounded assistance preference capture is absent.")
+    resolved = path.resolve()
+    if resolved.parent != data_root.resolve() or resolved.stat().st_size > 524_288:
+        raise RuntimeError("Assistance preference capture escaped its bounded root.")
+    capture = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(capture, dict) or set(capture) != ASSISTANCE_PREFERENCE_CAPTURE_ROOT_KEYS:
+        raise RuntimeError("Assistance preference capture has an invalid shape.")
+    leaked = ASSISTANCE_PREFERENCE_PRIVATE_CAPTURE_KEYS & _nested_mapping_keys(capture)
+    if leaked:
+        raise RuntimeError("Assistance preference capture contains private authority data.")
+    if capture.get("schema_version") != "1.0.0" or not all(
+        isinstance(capture.get(key), dict)
+        for key in (
+            "profile",
+            "history",
+            "export",
+            "exact_replay_request",
+            "exact_replay_response",
+            "local",
+            "races",
+            "expected",
+        )
+    ):
+        raise RuntimeError("Assistance preference capture documents are invalid.")
+    profile = stable_assistance_preference_profile(capture["profile"])
+    history = stable_assistance_preference_history(capture["history"], profile=profile)
+    stable_assistance_preference_export(
+        capture["export"], profile=profile, history=history
+    )
+    exact_request = stable_assistance_preference_request(
+        capture["exact_replay_request"]
+    )
+    exact_response = stable_assistance_preference_profile(
+        capture["exact_replay_response"]
+    )
+    if (
+        exact_response != profile
+        or exact_request["expected_revision"] + 1 != profile["revision"]
+        or exact_request["mutation"] != {"operation": "reset_profile"}
+        or profile["assistance_mode"] != "off"
+    ):
+        raise RuntimeError("Assistance preference exact replay is not correlated.")
+
+    local = capture["local"]
+    if set(local) != {"saved", "export", "reset"}:
+        raise RuntimeError("Local reminder capture is not closed.")
+    saved_local = stable_local_reminder_envelope(local["saved"])
+    reset_local = stable_local_reminder_envelope(local["reset"])
+    stable_local_reminder_export(local["export"], expected_preference=saved_local)
+    expected = capture["expected"]
+    reset_revisions = {
+        change["revision"]
+        for change in history["changes"]
+        if change["operation"] == "reset_profile"
+    }
+    if (
+        set(expected) != ASSISTANCE_PREFERENCE_EXPECTED_KEYS
+        or expected.get("first_open_server_revision") != 1
+        or expected.get("local_saved_revision") != saved_local["revision"]
+        or expected.get("local_reset_revision") != reset_local["revision"]
+        or saved_local["reminder_mode"] != "in_app_when_available"
+        or reset_local["reminder_mode"] != "off"
+        or reset_local["revision"] != saved_local["revision"] + 1
+        or expected.get("reset_recorded") is not True
+        or profile["revision"] not in reset_revisions
+    ):
+        raise RuntimeError("Assistance preference expected summary is not correlated.")
+
+    races = capture["races"]
+    expected_classes = {
+        "same_key_same_payload": ["accepted", "accepted"],
+        "same_key_changed_payload": ["accepted", "conflict"],
+        "different_key_same_revision": ["accepted", "stale"],
+    }
+    if set(races) != set(expected_classes):
+        raise RuntimeError("Assistance preference race matrix is incomplete.")
+    for offset, (name, expected_outcomes) in enumerate(expected_classes.items()):
+        case = races.get(name)
+        if not isinstance(case, dict) or set(case) != {"requests", "expected"}:
+            raise RuntimeError("Assistance preference race case is not closed.")
+        requests = case.get("requests")
+        if not isinstance(requests, list) or len(requests) != 2:
+            raise RuntimeError("Assistance preference race request pair is invalid.")
+        stable_requests = [
+            stable_assistance_preference_request(request)
+            if isinstance(request, dict)
+            else (_ for _ in ()).throw(
+                RuntimeError("Assistance preference race request is invalid.")
+            )
+            for request in requests
+        ]
+        if (
+            sorted(case.get("expected", [])) != sorted(expected_outcomes)
+            or any(
+                request["expected_revision"] != profile["revision"] + offset
+                for request in stable_requests
+            )
+        ):
+            raise RuntimeError("Assistance preference race expectations are invalid.")
+        keys = [request["idempotency_key"] for request in stable_requests]
+        mutations = [request["mutation"] for request in stable_requests]
+        if name == "same_key_same_payload" and not (
+            keys[0] == keys[1]
+            and mutations[0] == mutations[1]
+            and mutations[0] == {
+                "operation": "replace_preferences",
+                "assistance_mode": "on_request",
+            }
+        ):
+            raise RuntimeError("Assistance exact replay race does not match.")
+        if name == "same_key_changed_payload" and not (
+            keys[0] == keys[1]
+            and {
+                json.dumps(mutation, sort_keys=True)
+                for mutation in mutations
+            }
+            == {
+                json.dumps(
+                    {
+                        "operation": "replace_preferences",
+                        "assistance_mode": "off",
+                    },
+                    sort_keys=True,
+                ),
+                json.dumps({"operation": "reset_profile"}, sort_keys=True),
+            }
+        ):
+            raise RuntimeError("Assistance conflict race is not key-scoped.")
+        if name == "different_key_same_revision" and not (
+            keys[0] != keys[1]
+            and mutations[0] == mutations[1]
+            and mutations[0] == {
+                "operation": "replace_preferences",
+                "assistance_mode": "on_request",
+            }
+        ):
+            raise RuntimeError("Assistance stale race is not revision-scoped.")
+    return copy.deepcopy(capture)
+
+
+def observe_headless_assistance_preferences(
+    *,
+    origin: str,
+    expected_profile: dict[str, Any],
+    expected_history: dict[str, Any],
+    expected_export: dict[str, Any],
+    exact_replay_request: dict[str, Any],
+    exact_replay_response: dict[str, Any],
+) -> dict[str, Any]:
+    opener = open_learner_preference_session(origin)
+    root = "/api/v1/learner-assistance-preferences"
+    profile = stable_assistance_preference_profile(
+        _request_json(opener, origin=origin, path=root)
+    )
+    history = stable_assistance_preference_history(
+        _request_json(opener, origin=origin, path=f"{root}/history"),
+        profile=profile,
+    )
+    export_document = stable_assistance_preference_export(
+        _request_json(opener, origin=origin, path=f"{root}/export"),
+        profile=profile,
+        history=history,
+    )
+    if profile != expected_profile or history != expected_history or any(
+        export_document[key] != expected_export[key]
+        for key in PRESENTATION_PREFERENCE_EXPORT_KEYS - {"exported_at"}
+    ):
+        raise RuntimeError("Headless assistance preferences changed browser meaning.")
+    replayed = stable_assistance_preference_profile(
+        _request_json(
+            opener,
+            origin=origin,
+            path=f"{root}/mutations",
+            method="POST",
+            payload=exact_replay_request,
+        )
+    )
+    if replayed != exact_replay_response:
+        raise RuntimeError("Headless assistance replay changed accepted meaning.")
+    for suffix in ("?learner_id=someone-else", "/history?limit=1", "/export?private=true"):
+        status, denial = _request_json_read_status(
+            opener, origin=origin, path=f"{root}{suffix}"
+        )
+        if status != 400 or denial.get("code") != "invalid_request":
+            raise RuntimeError("Assistance preference guessed input was not denied.")
+    return {"profile": profile, "history": history, "export": export_document}
+
+
+def assistance_preference_source_fingerprint(postgres_dsn: str) -> dict[str, Any]:
+    with psycopg.connect(postgres_dsn) as connection:
+        tables = [
+            (str(row[0]), str(row[1]))
+            for row in connection.execute(
+                """
+                SELECT table_schema, table_name
+                FROM information_schema.tables
+                WHERE table_type = 'BASE TABLE'
+                  AND table_schema NOT IN ('information_schema', 'pg_catalog', 'identity')
+                  AND table_schema NOT LIKE 'pg\\_%' ESCAPE '\\'
+                ORDER BY table_schema, table_name
+                """
+            ).fetchall()
+            if not (
+                str(row[0]) == "learner_model"
+                and str(row[1]) in ASSISTANCE_PREFERENCE_TABLES
+            )
+        ]
+        digest = hashlib.sha256()
+        row_count = 0
+        for schema, table in tables:
+            rows = connection.execute(
+                sql.SQL(
+                    "SELECT to_jsonb(row_value)::text FROM {}.{} AS row_value "
+                    "ORDER BY to_jsonb(row_value)::text"
+                ).format(sql.Identifier(schema), sql.Identifier(table))
+            ).fetchall()
+            row_count += len(rows)
+            digest.update(f"{schema}.{table}\0{len(rows)}\0".encode("utf-8"))
+            for row in rows:
+                digest.update(str(row[0]).encode("utf-8"))
+                digest.update(b"\0")
+    return {
+        "table_count": len(tables),
+        "row_count": row_count,
+        "sha256": digest.hexdigest(),
+    }
+
+
+def assistance_preference_storage_snapshot(postgres_dsn: str) -> dict[str, Any]:
+    with psycopg.connect(postgres_dsn) as connection:
+        profiles = connection.execute(
+            """
+            SELECT profile_id, learner_id::text, revision, profile, profile_digest
+            FROM learner_model.assistance_preference_profiles ORDER BY profile_id
+            """
+        ).fetchall()
+        changes = connection.execute(
+            """
+            SELECT learner_id::text, revision, change, resulting_profile_digest
+            FROM learner_model.assistance_preference_changes ORDER BY learner_id, revision
+            """
+        ).fetchall()
+        mutations = connection.execute(
+            """
+            SELECT learner_id::text, idempotency_key, accepted_revision, accepted_profile
+            FROM learner_model.assistance_preference_mutations
+            ORDER BY learner_id, accepted_revision, idempotency_key
+            """
+        ).fetchall()
+    return {
+        "profiles": [
+            [str(row[0]), str(row[1]), int(row[2]), copy.deepcopy(row[3]), str(row[4])]
+            for row in profiles
+        ],
+        "changes": [
+            [str(row[0]), int(row[1]), copy.deepcopy(row[2]), str(row[3])]
+            for row in changes
+        ],
+        "mutations": [
+            [str(row[0]), str(row[1]), int(row[2]), copy.deepcopy(row[3])]
+            for row in mutations
+        ],
+    }
+
+
+def assert_assistance_preference_storage(
+    snapshot: dict[str, Any],
+    *,
+    profile: dict[str, Any],
+    history: dict[str, Any],
+    exact_replay_request: dict[str, Any] | None = None,
+    exact_replay_response: dict[str, Any] | None = None,
+) -> None:
+    profiles = snapshot.get("profiles")
+    changes = snapshot.get("changes")
+    mutations = snapshot.get("mutations")
+    if (
+        not isinstance(profiles, list)
+        or len(profiles) != 1
+        or not isinstance(changes, list)
+        or len(changes) != len(history["changes"])
+        or not isinstance(mutations, list)
+        or len(mutations) != profile["revision"] - 1
+    ):
+        raise RuntimeError("Assistance preference storage row counts are uncorrelated.")
+    stored = profiles[0]
+    if (
+        stored[0] != profile["profile_id"]
+        or stored[1] != profile["learner_id"]
+        or stored[2] != profile["revision"]
+        or stable_assistance_preference_profile(stored[3]) != profile
+        or stored[4] != profile["profile_digest"]
+    ):
+        raise RuntimeError("Assistance preference stored profile is uncorrelated.")
+    if [row[2] for row in changes] != history["changes"] or any(
+        row[0] != profile["learner_id"]
+        or row[1] != row[2]["revision"]
+        or row[3] != row[2]["resulting_profile_digest"]
+        for row in changes
+    ):
+        raise RuntimeError("Assistance preference stored history is uncorrelated.")
+    expected_mutation_revisions = list(range(2, profile["revision"] + 1))
+    history_by_revision = {
+        change["revision"]: change for change in history["changes"]
+    }
+    mutation_keys = [row[1] for row in mutations]
+    if (
+        [row[2] for row in mutations] != expected_mutation_revisions
+        or len(set(mutation_keys)) != len(mutation_keys)
+        or not all(_preference_identifier(key) for key in mutation_keys)
+        or any(
+            row[0] != profile["learner_id"]
+            or row[2] != row[3].get("revision")
+            or stable_assistance_preference_profile(row[3]) != row[3]
+            or row[2] in history_by_revision
+            and row[3]["profile_digest"]
+            != history_by_revision[row[2]]["resulting_profile_digest"]
+            for row in mutations
+        )
+    ):
+        raise RuntimeError("Assistance preference replay storage is uncorrelated.")
+    if (exact_replay_request is None) != (exact_replay_response is None):
+        raise RuntimeError("Assistance preference exact replay evidence is incomplete.")
+    if exact_replay_request is not None and exact_replay_response is not None:
+        replay_request = stable_assistance_preference_request(exact_replay_request)
+        replay_response = stable_assistance_preference_profile(exact_replay_response)
+        replay_rows = [
+            row for row in mutations if row[1] == replay_request["idempotency_key"]
+        ]
+        if (
+            len(replay_rows) != 1
+            or replay_rows[0][2] != replay_response["revision"]
+            or replay_rows[0][3] != replay_response
+        ):
+            raise RuntimeError("Assistance preference exact replay row is uncorrelated.")
+
+
+def _assert_safe_assistance_preference_denial(
+    status: int,
+    document: dict[str, Any],
+    *,
+    expected_code: str | tuple[str, ...],
+    requests: list[dict[str, Any]],
+) -> None:
+    expected_codes = (
+        frozenset(expected_code) if isinstance(expected_code, tuple) else {expected_code}
+    )
+    if status != 409 or set(document) != ASSISTANCE_PREFERENCE_DENIAL_KEYS or (
+        document.get("error_version") != "1.0"
+        or document.get("code") not in expected_codes
+    ):
+        raise RuntimeError(
+            "Assistance preference denial changed public meaning: "
+            f"status={status}, code={document.get('code')!r}, "
+            f"keys={sorted(document)}."
+        )
+    try:
+        correlation_id = UUID(str(document.get("correlation_id")))
+    except ValueError as error:
+        raise RuntimeError("Assistance preference denial correlation is invalid.") from error
+    if str(correlation_id) != document.get("correlation_id"):
+        raise RuntimeError("Assistance preference denial correlation is not canonical.")
+    serialized = json.dumps(document, ensure_ascii=False, sort_keys=True).casefold()
+    keys = {str(request["idempotency_key"]).casefold() for request in requests}
+    if any(key in serialized for key in keys) or any(
+        marker in serialized
+        for marker in (
+            "learner_id",
+            "assistance_preference_mutations",
+            "request_fingerprint",
+            "postgres",
+            "traceback",
+        )
+    ):
+        raise RuntimeError("Assistance preference denial disclosed private details.")
+
+
+def _run_assistance_preference_race(
+    *,
+    origin: str,
+    requests: list[dict[str, Any]],
+) -> list[tuple[int, dict[str, Any]]]:
+    openers = open_learner_preference_sessions(origin, len(requests))
+    barrier = threading.Barrier(len(requests))
+
+    def send(
+        opener: urllib.request.OpenerDirector,
+        request: dict[str, Any],
+    ) -> tuple[int, dict[str, Any]]:
+        barrier.wait(timeout=10)
+        return _request_json_status(
+            opener,
+            origin=origin,
+            path="/api/v1/learner-assistance-preferences/mutations",
+            method="POST",
+            payload=request,
+        )
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        futures = [
+            pool.submit(send, opener, request)
+            for opener, request in zip(openers, requests, strict=True)
+        ]
+        return [future.result(timeout=20) for future in futures]
+
+
+def assert_assistance_preference_race_outcomes(
+    *,
+    name: str,
+    requests: list[dict[str, Any]],
+    results: list[tuple[int, dict[str, Any]]],
+    before_storage: dict[str, Any],
+    after_storage: dict[str, Any],
+) -> dict[str, Any]:
+    accepted = [document for status, document in results if status == 200]
+    denials = [(status, document) for status, document in results if status != 200]
+    expected_accepted = 2 if name == "same_key_same_payload" else 1
+    if len(results) != 2 or len(accepted) != expected_accepted:
+        raise RuntimeError("Assistance preference race acceptance matrix is invalid.")
+    stable_accepted = [stable_assistance_preference_profile(item) for item in accepted]
+    if name == "same_key_same_payload" and stable_accepted[0] != stable_accepted[1]:
+        raise RuntimeError("Assistance exact concurrent replays did not converge.")
+    if name != "same_key_same_payload":
+        if len(denials) != 1:
+            raise RuntimeError("Assistance preference race denial matrix is invalid.")
+        _assert_safe_assistance_preference_denial(
+            denials[0][0],
+            denials[0][1],
+            expected_code=(
+                ("immutable_conflict", "stale_revision")
+                if name == "same_key_changed_payload"
+                else "stale_revision"
+            ),
+            requests=requests,
+        )
+    for key in ("profiles", "changes", "mutations"):
+        before = before_storage.get(key)
+        after = after_storage.get(key)
+        if not isinstance(before, list) or not isinstance(after, list):
+            raise RuntimeError("Assistance preference race storage is invalid.")
+        if key == "profiles":
+            if len(before) != 1 or len(after) != 1 or after[0][2] != before[0][2] + 1:
+                raise RuntimeError("Assistance preference race revision is invalid.")
+        elif len(after) != len(before) + 1:
+            raise RuntimeError("Assistance preference race appended an invalid row count.")
+    current = after_storage["profiles"][0][3]
+    if current not in stable_accepted:
+        raise RuntimeError("Assistance preference race result did not persist.")
+    return stable_assistance_preference_profile(current)
+
+
+def qualify_assistance_preference_races(
+    *,
+    origin: str,
+    postgres_dsn: str,
+    capture: dict[str, Any],
+) -> dict[str, Any]:
+    outcomes: dict[str, list[str]] = {}
+    current_profile = capture["profile"]
+    for name in (
+        "same_key_same_payload",
+        "same_key_changed_payload",
+        "different_key_same_revision",
+    ):
+        requests = capture["races"][name]["requests"]
+        before = assistance_preference_storage_snapshot(postgres_dsn)
+        results = _run_assistance_preference_race(origin=origin, requests=requests)
+        after = assistance_preference_storage_snapshot(postgres_dsn)
+        current_profile = assert_assistance_preference_race_outcomes(
+            name=name,
+            requests=requests,
+            results=results,
+            before_storage=before,
+            after_storage=after,
+        )
+        outcomes[name] = [
+            "accepted"
+            if status == 200
+            else "conflict"
+            if document.get("code") == "immutable_conflict"
+            else "stale"
+            for status, document in results
+        ]
+        expected = sorted(capture["races"][name]["expected"])
+        allowed = (
+            {("accepted", "conflict"), ("accepted", "stale")}
+            if name == "same_key_changed_payload"
+            else {tuple(expected)}
+        )
+        if tuple(sorted(outcomes[name])) not in allowed:
+            raise RuntimeError("Assistance preference race outcome classes changed.")
+    opener = open_learner_preference_session(origin)
+    root = "/api/v1/learner-assistance-preferences"
+    history = stable_assistance_preference_history(
+        _request_json(opener, origin=origin, path=f"{root}/history"),
+        profile=current_profile,
+    )
+    export_document = stable_assistance_preference_export(
+        _request_json(opener, origin=origin, path=f"{root}/export"),
+        profile=current_profile,
+        history=history,
+    )
+    storage = assistance_preference_storage_snapshot(postgres_dsn)
+    assert_assistance_preference_storage(
+        storage,
+        profile=current_profile,
+        history=history,
+        exact_replay_request=capture["exact_replay_request"],
+        exact_replay_response=capture["exact_replay_response"],
+    )
+    return {
+        "profile": current_profile,
+        "history": history,
+        "export": export_document,
+        "storage": storage,
+        "outcomes": outcomes,
+    }
+
+
 def _storage_counts(connection: psycopg.Connection[Any]) -> dict[str, int]:
     row = connection.execute(COMPLETION_STORAGE_COUNTS).fetchone()
     if row is None or len(row) != 4:
@@ -6420,6 +7182,7 @@ def main() -> int:
     project_learning_capture = data_root / "project-learning-capture.json"
     learner_preferences_capture = data_root / "learner-preferences-capture.json"
     presentation_preferences_capture = data_root / "presentation-preferences-capture.json"
+    assistance_preferences_capture = data_root / "assistance-preferences-capture.json"
     port = free_loopback_port()
     origin = f"http://127.0.0.1:{port}"
     primary_error: BaseException | None = None
@@ -6468,6 +7231,9 @@ def main() -> int:
         )
         environment["FINANCIAL_AI_ACADEMY_PRESENTATION_PREFERENCES_CAPTURE"] = str(
             presentation_preferences_capture
+        )
+        environment["FINANCIAL_AI_ACADEMY_ASSISTANCE_PREFERENCES_CAPTURE"] = str(
+            assistance_preferences_capture
         )
         run_checked(
             npm_e2e_command(
@@ -6653,6 +7419,60 @@ def main() -> int:
         ):
             raise RuntimeError(
                 "Presentation preferences changed unrelated application state."
+            )
+
+        assistance_source_before = assistance_preference_source_fingerprint(
+            postgres_dsn
+        )
+        empty_assistance_storage = assistance_preference_storage_snapshot(postgres_dsn)
+        if any(empty_assistance_storage.values()):
+            raise RuntimeError(
+                "Assistance preference qualification did not start empty."
+            )
+        run_checked(
+            npm_e2e_command("assistance-preferences.e2e.ts"),
+            env=environment,
+        )
+        assistance_capture = load_assistance_preference_capture(
+            assistance_preferences_capture,
+            data_root=data_root,
+        )
+        assistance_storage_after_browser = assistance_preference_storage_snapshot(
+            postgres_dsn
+        )
+        assert_assistance_preference_storage(
+            assistance_storage_after_browser,
+            profile=assistance_capture["profile"],
+            history=assistance_capture["history"],
+            exact_replay_request=assistance_capture["exact_replay_request"],
+            exact_replay_response=assistance_capture["exact_replay_response"],
+        )
+        observe_headless_assistance_preferences(
+            origin=origin,
+            expected_profile=assistance_capture["profile"],
+            expected_history=assistance_capture["history"],
+            expected_export=assistance_capture["export"],
+            exact_replay_request=assistance_capture["exact_replay_request"],
+            exact_replay_response=assistance_capture["exact_replay_response"],
+        )
+        if (
+            assistance_preference_storage_snapshot(postgres_dsn)
+            != assistance_storage_after_browser
+        ):
+            raise RuntimeError(
+                "Headless assistance reads or replay changed durable state."
+            )
+        assistance_race_result = qualify_assistance_preference_races(
+            origin=origin,
+            postgres_dsn=postgres_dsn,
+            capture=assistance_capture,
+        )
+        if (
+            assistance_preference_source_fingerprint(postgres_dsn)
+            != assistance_source_before
+        ):
+            raise RuntimeError(
+                "Assistance preferences changed unrelated application state."
             )
 
         (
@@ -6883,6 +7703,28 @@ def main() -> int:
         if presentation_storage_after_restart != presentation_race_result["storage"]:
             raise RuntimeError(
                 "Presentation preference storage changed after normal restart."
+            )
+        assistance_after_restart = observe_headless_assistance_preferences(
+            origin=origin,
+            expected_profile=assistance_race_result["profile"],
+            expected_history=assistance_race_result["history"],
+            expected_export=assistance_race_result["export"],
+            exact_replay_request=assistance_capture["exact_replay_request"],
+            exact_replay_response=assistance_capture["exact_replay_response"],
+        )
+        assistance_storage_after_restart = assistance_preference_storage_snapshot(
+            postgres_dsn
+        )
+        assert_assistance_preference_storage(
+            assistance_storage_after_restart,
+            profile=assistance_after_restart["profile"],
+            history=assistance_after_restart["history"],
+            exact_replay_request=assistance_capture["exact_replay_request"],
+            exact_replay_response=assistance_capture["exact_replay_response"],
+        )
+        if assistance_storage_after_restart != assistance_race_result["storage"]:
+            raise RuntimeError(
+                "Assistance preference storage changed after normal restart."
             )
 
         if container_name is not None:
@@ -7135,6 +7977,23 @@ def main() -> int:
                 "normal_restart_without_reseeding": True,
                 "profile_id": presentation_race_result["profile"]["profile_id"],
                 "protective_browser_precedence": True,
+                "public_api_shared": True,
+                "same_key_changed_payload_race": True,
+                "same_key_same_payload_race": True,
+                "source_state_unchanged": True,
+            },
+            "assistance_preferences": {
+                "browser_generated_client": True,
+                "browser_headless_export_parity": True,
+                "browser_headless_profile_history_parity": True,
+                "confidential_race_denials": True,
+                "different_key_same_revision_race": True,
+                "exact_headless_replay": True,
+                "local_reminder_excluded_from_api": True,
+                "local_reminder_reload_only": True,
+                "no_model_or_notification_execution": True,
+                "normal_restart_without_reseeding": True,
+                "profile_id": assistance_race_result["profile"]["profile_id"],
                 "public_api_shared": True,
                 "same_key_changed_payload_race": True,
                 "same_key_same_payload_race": True,

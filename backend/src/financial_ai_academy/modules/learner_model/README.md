@@ -200,3 +200,13 @@ permission, model call, AI output, local reminder, evidence, or recommendation.
 The platform-owned browser-local learning-reminder envelope is outside this
 module and has no learner identity, public API, or headless meaning. Its future
 local intent cannot authorize scheduling or delivery.
+
+The isolated local qualification drives the generated browser and an ordinary
+cookie-backed headless client through the same protected operations, including
+exact replay, changed-payload conflict, stale revision, bounded history/export,
+direct PostgreSQL correlation, and normal host restart. It separately reloads
+the browser-local reminder envelope, proves that the envelope never enters the
+public API, compares unrelated state before and after, and observes no model,
+provider, notification, worker, timer, schedule, subscription, or delivery
+effect. These checks qualify only the local single-profile development topology;
+they do not enable an AI provider or notification channel.

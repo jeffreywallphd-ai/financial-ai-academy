@@ -230,4 +230,11 @@ financial behavior changed, then leave SLI-0076 closure-ready.
 - 2026-10-18: Reactivated from recorded base `a01b0fc` after WRK-0163
   completed. The original qualification changes were restored with their exact
   ownership and without widening product behavior or decision authority.
+- 2026-10-18: The complete isolated workflow passed with generated-browser and
+  ordinary headless API parity, exact replay and all three concurrency cases,
+  PostgreSQL correlation, normal restart, local-reminder separation, unrelated-
+  state noninterference, no model or notification execution, recovery/replay,
+  and bounded cleanup. Focused Chromium, pure replay, full Web, typecheck,
+  zero-warning lint, Python compilation, and all 29 aggregate readiness checks
+  also passed before exact-candidate submission.
 
