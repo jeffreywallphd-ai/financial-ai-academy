@@ -190,8 +190,8 @@ The dependency-ordered seams are:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0184](../work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md) | Freeze the additive cross-domain provenance schemas, profile catalog, compatibility corpus, ownership rules, and contract tests | none | none | ready |
-| [WRK-0185](../work-packets/WRK-0185-extend-cross-domain-provenance-core.md) | Extend the pure provenance core for closed typed owner profiles, exact identities, deterministic canonicalization, and isolated failures | WRK-0184 | none | ready |
+| [WRK-0184](../work-packets/WRK-0184-freeze-cross-domain-provenance-contracts.md) | Freeze the additive cross-domain provenance schemas, profile catalog, compatibility corpus, ownership rules, and contract tests | none | none | complete |
+| [WRK-0185](../work-packets/WRK-0185-extend-cross-domain-provenance-core.md) | Extend the pure provenance core for closed typed owner profiles, exact identities, deterministic canonicalization, and isolated failures | WRK-0184 | none | complete |
 | WRK-0186 | Build the reusable cross-domain conformance kit, synthetic reference adapters, property evidence, and contributor instructions | WRK-0185 | none | captured |
 | WRK-0187 | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | captured |
 | WRK-0188 | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | captured |
@@ -269,3 +269,7 @@ aggregate readiness, migration status, residual gaps, and CAP conformance.
   separate additive v2 type/mapping core, exact frozen identity semantics, and
   focused isolation evidence. V1, product adapters, conformance-kit integration,
   persistence, and public operations remain outside this packet.
+- 2026-10-18: Completed WRK-0185 at exact candidate `406fbc1`. The separate
+  pure v2 core now enforces closed exact types, immutable profile rules,
+  deterministic canonicalization, bounded denial, and frozen-runner digest
+  parity. WRK-0186 is the next dependency-ready conformance seam.

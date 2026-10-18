@@ -1,7 +1,7 @@
 ---
 id: WRK-0185
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -210,6 +210,29 @@ contract corpus, product owner adapter, persistence, public API/client, UI,
 provider/model, identity/tenant/admin, external-action, or financial authority
 changed.
 
+## Completion Evidence
+
+- Exact implementation candidate:
+  `406fbc18062d2168c76c0d9168b21a4916de90cd`.
+- Qualifying affected-check receipt:
+  `sha256:76ec6e3f5f78e4c6dc09a94cc776e49f08098fa7462fb966f261f6bf8ee16991`.
+- The separate immutable v2 core covers all nine profiles and both financial
+  identity variants. It derives Market resource IDs from the normalized exact
+  identity tuple, preserves frozen-runner canonical digests, sorts sources
+  deterministically, and rejects duplicate or conflicting identities.
+- Closed values require exact concrete types, profile rules are process-
+  immutable, invalid aware times fail boundedly, and oversized source lists
+  fail before element parsing. Focused v1/v2 and unit qualification passed 72
+  tests, including adversarial subclass, timezone, count, Unicode, and private-
+  field cases.
+- Architecture passed 18 checks, security passed ten control groups, and
+  documentation, planning, whitespace, and all 30 aggregate-readiness checks
+  passed.
+- No v1 contract, frozen corpus, migration, production owner adapter,
+  persistence, public API/client, UI, provider/model, tenant/administrator,
+  external action, or financial authority changed. WRK-0186 may consume this
+  core without reinterpreting its accepted mapping.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0184 completion. The packet
@@ -232,3 +255,7 @@ changed.
 - 2026-10-18: Closed the remaining public-helper type seam so Market resource
   identifiers accept only the exact Market identity value and reject unrelated
   closed identities with the same bounded error contract.
+- 2026-10-18: Completed at exact candidate `406fbc1` after fresh affected-check
+  qualification, focused v1/v2 evidence, architecture and security isolation,
+  documentation/planning integrity, and aggregate readiness passed with no
+  remaining technical gap in the packet scope.
