@@ -1,7 +1,7 @@
 ---
 id: WRK-0171
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -213,6 +213,35 @@ and live-qualification gaps. Confirm no persistence, migration, browser
 feature, provider/model, external content/action, learner authority, or
 financial behavior changed.
 
+## Completion Evidence
+
+- Exact candidate `e790c98021052cb3f318757fcbe327be68e30065` produced
+  qualifying receipt
+  `.local-codex/control-plane/receipts/WRK-0171/e790c98021052cb3f318757fcbe327be68e30065/20261018T043016Z-331ef75e-e6f2-4656-a7de-bb47d9a97fee.json`;
+  its SHA-256 digest is
+  `ce2a774acf37d6974ed95f2fed57160f963576e93bb585ca8b811b7653f68983`.
+- One shared admitted Help corpus now feeds both exact topic reads and the
+  immutable context registry. Guidance exposes the exact context operation
+  through its public port and the protected
+  `GET /api/v1/guidance/contextual-help/{context_key}/versions/{context_version}`
+  route, using the existing `guidance.platform_help.read` permission.
+- Closed Pydantic, reviewed OpenAPI, and generated TypeScript client shapes
+  preserve the complete `contextual-help/v1` record for browser and future
+  headless callers. Tests prove authorization happens before registry access,
+  unknown exact versions are not substituted, and path, query, and body input
+  remain bounded.
+- Eighty focused Guidance, API, and architecture tests and 491 Web/generated-
+  client tests passed with TypeScript checking, zero-warning lint, static build,
+  generated-artifact reproduction, architecture, security, documentation,
+  planning, learner-language, Python compilation, whitespace, and aggregate
+  readiness checks. Controller verification passed all nine selected checks on
+  the exact candidate, and independent technical review accepted it with no
+  findings.
+- No persistence, migration, browser feature, provider or model execution,
+  external content or action, learner authority, or financial behavior changed.
+  Bounded feature links and live qualification remain in dependent SLI-0083
+  packets.
+
 ## Planning History
 
 - 2026-10-18: Authored just in time after WRK-0170 completed. The packet
@@ -223,3 +252,7 @@ financial behavior changed.
 - 2026-10-18: Activated from clean recorded base `8b3aa2e` after confirming the
   current CAP binding, completed WRK-0170 dependency, API-first exact-read
   scope, executable checks, and no unresolved decision or ownership collision.
+- 2026-10-18: Completed after exact-revision controller verification and an
+  independent technical review accepted the candidate without findings. The
+  API-first operation is ready for bounded generated-client feature links; no
+  lower-level approval or presentation-only re-review was required.
