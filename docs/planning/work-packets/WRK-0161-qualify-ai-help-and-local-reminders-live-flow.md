@@ -1,9 +1,9 @@
 ---
 id: WRK-0161
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0018
 updated: 2026-10-18
 parent: SLI-0076
 capability: CAP-0018
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/assistance-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "dev-tools/control-plane/check_assistance_preferences.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0161-qualify-ai-help-and-local-reminders-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: 80b8eef62c09e0bf47953a13da0ff859832e4eb6
-claim_id: WRK-0161:9cffd43f-89aa-43e2-8ef6-693a80018442
+base_revision: a01b0fc3baffdddd0fa1361ddff84a272d71972c
+claim_id: WRK-0161:92a5e8ee-06a4-4186-bc23-b8c41cf6ff77
 claimed_by: codex-cap-0018
-claimed_at: 2026-10-18T01:15:28Z
+claimed_at: 2026-10-18T01:30:28Z
 ---
 
 # Agent Work Packet: Qualify AI Help and Local Reminders Live Flow
@@ -227,4 +227,7 @@ financial behavior changed, then leave SLI-0076 closure-ready.
 - 2026-10-18: WRK-0163 completed with exact microsecond-preserving correlation
   and a qualifying affected-check receipt. This packet is unblocked to resume
   complete live qualification from the corrected candidate.
+- 2026-10-18: Reactivated from recorded base `a01b0fc` after WRK-0163
+  completed. The original qualification changes were restored with their exact
+  ownership and without widening product behavior or decision authority.
 
