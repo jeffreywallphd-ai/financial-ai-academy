@@ -3,10 +3,12 @@ import type { LoaderFunctionArgs } from "react-router";
 import type { FinancialAcademyApiClient } from "../../generated/api-client";
 import type { SingleProfileSession } from "../../platform/auth/singleProfileSession";
 import {
+  contextualHelpIsSafe,
   platformHelpSearchHref,
   platformHelpSearchPageIsSafe,
   platformHelpTextIsSafe,
   platformHelpTopicIsSafe,
+  type ContextualHelpReader,
   type PlatformHelpSearchParameters,
   type PlatformHelpSearchRouteState,
   type PlatformHelpSearchSelection,
@@ -29,6 +31,8 @@ const TOPIC_KINDS = new Set([
 ]);
 const IDENTIFIER = /^[a-z0-9][a-z0-9._-]{2,63}$/;
 const VERSION = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/;
+const CONTENT_VERSION =
+  /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$/;
 const CURSOR = /^[A-Za-z0-9_-]{1,4096}$/;
 
 function oneParameter(
@@ -99,9 +103,78 @@ export function parsePlatformHelpSearch(
   return { parameters, href: platformHelpSearchHref(parameters) };
 }
 
-function parseReturnTo(request: URL): string | null {
+function exactFeatureReturn(
+  candidate: URL,
+): { href: string; label: string } | null {
+  if (
+    candidate.username !== "" ||
+    candidate.password !== "" ||
+    candidate.hash !== ""
+  ) {
+    return null;
+  }
+  if (candidate.pathname === "/preferences/assistance") {
+    return candidate.search === ""
+      ? { href: candidate.pathname, label: "Return to AI help choices" }
+      : null;
+  }
+  const project = /^\/projects\/([a-z0-9][a-z0-9._-]{2,63})$/.exec(
+    candidate.pathname,
+  );
+  if (project) {
+    return candidate.search === ""
+      ? { href: candidate.pathname, label: "Return to Project" }
+      : null;
+  }
+  const practice =
+    /^\/learn\/placements\/([a-z0-9][a-z0-9._-]{2,63})\/practice$/.exec(
+      candidate.pathname,
+    );
+  if (practice) {
+    return candidate.search === ""
+      ? { href: candidate.pathname, label: "Return to practice" }
+      : null;
+  }
+  const lesson =
+    /^\/learn\/placements\/([a-z0-9][a-z0-9._-]{2,63})$/.exec(
+      candidate.pathname,
+    );
+  if (!lesson) return null;
+  if (candidate.search === "") {
+    return { href: candidate.pathname, label: "Return to lesson" };
+  }
+  const keys = [...candidate.searchParams.keys()].sort();
+  const expected = ["activity_id", "curriculum_id", "curriculum_version"];
+  if (
+    keys.length !== expected.length ||
+    keys.some((key, index) => key !== expected[index]) ||
+    expected.some((key) => candidate.searchParams.getAll(key).length !== 1)
+  ) {
+    return null;
+  }
+  const activity = candidate.searchParams.get("activity_id");
+  const curriculum = candidate.searchParams.get("curriculum_id");
+  const version = candidate.searchParams.get("curriculum_version");
+  return activity &&
+    IDENTIFIER.test(activity) &&
+    curriculum &&
+    IDENTIFIER.test(curriculum) &&
+    version &&
+    CONTENT_VERSION.test(version)
+    ? {
+        href: `${candidate.pathname}?${candidate.searchParams.toString()}`,
+        label: "Return to lesson",
+      }
+    : null;
+}
+
+function parseReturnTo(
+  request: URL,
+): { href: string; label: string } | null {
   const values = request.searchParams.getAll("return_to");
-  if (values.length === 0) return "/help";
+  if (values.length === 0) {
+    return { href: "/help", label: "Return to platform guide" };
+  }
   const raw = values[0];
   if (values.length !== 1 || raw === undefined || raw.length > 4096) return null;
   let candidate: URL;
@@ -112,15 +185,19 @@ function parseReturnTo(request: URL): string | null {
   }
   if (
     candidate.origin !== request.origin ||
-    candidate.pathname !== "/help" ||
     candidate.username !== "" ||
     candidate.password !== "" ||
     candidate.hash !== ""
   ) {
     return null;
   }
-  const parsed = parsePlatformHelpSearch(candidate.toString());
-  return parsed?.href ?? null;
+  if (candidate.pathname === "/help") {
+    const parsed = parsePlatformHelpSearch(candidate.toString());
+    return parsed
+      ? { href: parsed.href, label: "Return to platform guide" }
+      : null;
+  }
+  return exactFeatureReturn(candidate);
 }
 
 export function parsePlatformHelpTopicSelection(
@@ -143,8 +220,15 @@ export function parsePlatformHelpTopicSelection(
   ) {
     return null;
   }
-  const returnTo = parseReturnTo(request);
-  return returnTo === null ? null : { topicId, topicVersion, returnTo };
+  const returnTarget = parseReturnTo(request);
+  return returnTarget === null
+    ? null
+    : {
+        topicId,
+        topicVersion,
+        returnTo: returnTarget.href,
+        returnLabel: returnTarget.label,
+      };
 }
 
 function sessionFailure(
@@ -271,4 +355,69 @@ export function createPlatformHelpTopicLoader(
     if (established.status === "error") return sessionFailure(established.kind);
     return readTopic(client, session, request.signal, selection, true);
   };
+}
+
+async function readContextualHelp(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+  contextKey: string,
+  contextVersion: string,
+  signal: AbortSignal,
+  retryUnauthorized: boolean,
+) {
+  if (!IDENTIFIER.test(contextKey) || !VERSION.test(contextVersion)) {
+    return { status: "unavailable" } as const;
+  }
+  try {
+    const result = await client.GET(
+      "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}",
+      {
+        params: {
+          path: {
+            context_key: contextKey,
+            context_version: contextVersion,
+          },
+        },
+        signal,
+      },
+    );
+    if (result.response.status === 200 && result.data) {
+      return contextualHelpIsSafe(result.data, contextKey, contextVersion)
+        ? ({ status: "ready", context: result.data } as const)
+        : ({ status: "unavailable" } as const);
+    }
+    if (result.response.status === 401 && retryUnauthorized) {
+      session.invalidate();
+      const renewed = await session.ensure(signal);
+      if (renewed.status === "ready") {
+        return readContextualHelp(
+          client,
+          session,
+          contextKey,
+          contextVersion,
+          signal,
+          false,
+        );
+      }
+    }
+    return { status: "unavailable" } as const;
+  } catch (error) {
+    if (signal.aborted) throw error;
+    return { status: "unavailable" } as const;
+  }
+}
+
+export function createContextualHelpReader(
+  client: FinancialAcademyApiClient,
+  session: SingleProfileSession,
+): ContextualHelpReader {
+  return (contextKey, contextVersion, signal) =>
+    readContextualHelp(
+      client,
+      session,
+      contextKey,
+      contextVersion,
+      signal,
+      true,
+    );
 }

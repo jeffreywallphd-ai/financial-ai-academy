@@ -2,13 +2,14 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { ProjectCreatePage } from "../../src/features/project-workspace/ProjectCreatePage";
 import { ProjectDetailPage } from "../../src/features/project-workspace/ProjectDetailPage";
 import { ProjectListPage } from "../../src/features/project-workspace/ProjectListPage";
 import { ProjectSubmissionPage } from "../../src/features/project-workspace/ProjectSubmissionPage";
 import type { LearningProjectStartOption, ProjectActivityCompletion, ProjectCompletionEvidence, ProjectCompletionHistory, ProjectShell, ProjectSnapshot, ProjectSubmissionCandidate, ProjectWorkspace } from "../../src/features/project-workspace/model";
+import { contextualHelpFixture } from "./platformHelpFixture";
 
 const origin = {
   origin_type: "learning" as const,
@@ -207,13 +208,14 @@ describe("Project learner pages", () => {
       domain_links: [{ link_id: "link-one", link_type: "context", owner_module: "portfolio", resource_type: "simulated_portfolio", resource_id: "portfolio-one", resource_version: "1.0.0", owner_reference_digest: "a".repeat(64), target_status: "available", provenance: "Validated by the owning module.", validated_at: workspace.created_at, created_at: workspace.created_at }],
     };
     const snapshot: ProjectSnapshot = { schema_version: "1.0.0", snapshot_id: "snapshot-one", snapshot_digest: "f".repeat(64), closed_at: workspace.updated_at, snapshot: { project_id: project.project_id, learner_id: project.learner_id, project_revision: 1, project_shell_digest: "a".repeat(64), workspace_revision: 6, workspace_created_at: workspace.created_at, workspace_updated_at: workspace.updated_at, notes: [], references: [], artifacts: [], domain_links: [] } };
-    const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} snapshots={[snapshot]} workspace={varied} /> }], { initialEntries: [`/projects/${project.project_id}`] });
+    const router = createMemoryRouter([{ path: "/projects/:projectId", element: <ProjectDetailPage actionState={undefined} busy={false} downloadArtifact={downloadArtifact} exportSnapshot={exportSnapshot} project={project} readContextualHelp={vi.fn().mockResolvedValue({ status: "ready", context: { ...contextualHelpFixture, context_key: "project-result", feature_label: "Project result and source details" } })} snapshots={[snapshot]} workspace={varied} /> }], { initialEntries: [`/projects/${project.project_id}`] });
     render(<RouterProvider router={router} />);
 
     expect(screen.getByText("Résumé")).toBeVisible();
     expect(document.querySelector(".project-preserved-text")?.textContent).toBe("Line one\nLine two");
     expect(screen.getByRole("link", { name: "Open source in a new tab" })).toHaveAttribute("href", "https://example.test/source");
     expect(screen.getByRole("button", { name: "Download original file" })).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Questions about Project result and source details" })).toBeVisible();
     expect(screen.getByRole("link", { name: "Save file to Saved learning" })).toHaveAttribute("href", "/saved-learning/new?kind=project_artifact&project=project-alpha&artifact=artifact-one&version=1");
     expect(document.getElementById("artifact-artifact-one-v1")).not.toBeNull();
     expect(screen.getAllByText(/does not run, expand, or actively preview/i)).not.toHaveLength(0);

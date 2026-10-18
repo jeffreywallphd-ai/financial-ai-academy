@@ -1,11 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { LessonReadingPage } from "../../src/features/lesson-reading/LessonReadingPage";
 import { LessonRouteView } from "../../src/features/lesson-reading/LessonRoute";
 import { lessonFixture } from "./lessonFixture";
+import { contextualHelpFixture } from "./platformHelpFixture";
 
 
 describe("LessonReadingPage", () => {
@@ -79,6 +80,36 @@ describe("LessonReadingPage", () => {
     ).toHaveAttribute(
       "href",
       "/learn/curricula/investing-foundations/versions/1.0.0?activity=activity-risk-return-lesson",
+    );
+  });
+
+  it("shows server-owned contextual questions beside publication details", async () => {
+    render(
+      <MemoryRouter
+        initialEntries={[`/learn/placements/${lessonFixture.placement_id}`]}
+      >
+        <LessonReadingPage
+          lesson={lessonFixture}
+          readContextualHelp={vi.fn().mockResolvedValue({
+            status: "ready",
+            context: contextualHelpFixture,
+          })}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Questions about Lesson publication details",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("link", {
+        name: "How to use source and history details",
+      }),
+    ).toHaveAttribute(
+      "href",
+      `/help/topics/source-and-history/versions/1.0.0?return_to=%2Flearn%2Fplacements%2F${lessonFixture.placement_id}`,
     );
   });
 });

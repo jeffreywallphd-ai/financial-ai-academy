@@ -11,6 +11,8 @@ import type {
   AssistancePreferencesRouteState,
   LocalReminderExporter,
 } from "./model";
+import type { ContextualHelpReader } from "../platform-help/model";
+import { unavailableContextualHelpReader } from "../platform-help/ContextualHelpLinks";
 import { AssistancePreferencesPage } from "./AssistancePreferencesPage";
 
 
@@ -34,9 +36,11 @@ export function AssistancePreferencesLoadingState() {
 export function AssistancePreferencesRoute({
   exportLocalReminder,
   exportPreferences,
+  readContextualHelp = unavailableContextualHelpReader,
 }: {
   exportLocalReminder: LocalReminderExporter;
   exportPreferences: AssistancePreferencesExporter;
+  readContextualHelp?: ContextualHelpReader;
 }) {
   const state = useLoaderData<AssistancePreferencesRouteState>();
   const actionState = useActionData<AssistancePreferencesActionState>();
@@ -52,6 +56,7 @@ export function AssistancePreferencesRoute({
       exportLocalReminder={exportLocalReminder}
       exportPreferences={exportPreferences}
       onRetry={() => revalidator.revalidate()}
+      readContextualHelp={readContextualHelp}
       state={state}
     />
   );

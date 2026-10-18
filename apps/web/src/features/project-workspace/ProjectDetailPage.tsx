@@ -1,6 +1,11 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { Form, Link } from "react-router";
 
+import {
+  ContextualHelpLinks,
+  unavailableContextualHelpReader,
+} from "../platform-help/ContextualHelpLinks";
+import type { ContextualHelpReader } from "../platform-help/model";
 import type {
   ProjectArtifact,
   ProjectDownloadOutcome,
@@ -237,6 +242,7 @@ export function ProjectDetailPage({
   downloadArtifact,
   exportSnapshot,
   project,
+  readContextualHelp = unavailableContextualHelpReader,
   snapshots,
   workspace,
 }: {
@@ -245,6 +251,7 @@ export function ProjectDetailPage({
   downloadArtifact: ArtifactDownloader;
   exportSnapshot: SnapshotExporter;
   project: ProjectShell;
+  readContextualHelp?: ContextualHelpReader;
   snapshots: readonly ProjectSnapshot[];
   workspace: ProjectWorkspace;
 }) {
@@ -346,6 +353,12 @@ export function ProjectDetailPage({
 
       <section className="project-section" aria-labelledby="project-files-heading">
         <div><p className="eyebrow">Saved evidence</p><h2 id="project-files-heading">Files</h2><p>The Academy stores files for safe download but does not run, expand, or actively preview them.</p></div>
+        {readContextualHelp === unavailableContextualHelpReader ? null : (
+          <ContextualHelpLinks
+            contextKey="project-result"
+            readContextualHelp={readContextualHelp}
+          />
+        )}
         {workspace.artifacts.length === 0 ? <p className="project-empty">No files yet.</p> : <ul className="project-work-list">{workspace.artifacts.map((artifact) => <li className="project-panel" id={`artifact-${artifact.artifact_id}-v${artifact.artifact_version}`} key={`${artifact.artifact_id}-${artifact.artifact_version}`}>
           <h3>{artifact.logical_path}</h3><dl className="project-facts"><TechnicalFact label="Kind">{artifactKindLabels[artifact.artifact_kind]}</TechnicalFact><TechnicalFact label="Source">{artifact.provenance.source_title}</TechnicalFact><TechnicalFact label="Size">{artifact.byte_count.toLocaleString()} bytes</TechnicalFact>{artifact.result_classification ? <TechnicalFact label="Result type">{artifact.result_classification}</TechnicalFact> : null}</dl>
           <div className="project-form__actions">

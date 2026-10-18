@@ -1,7 +1,52 @@
 import type {
+  ContextualHelp,
   PlatformHelpSearchPage,
   PlatformHelpTopic,
 } from "../../src/features/platform-help/model";
+
+export const contextualHelpFixture: ContextualHelp = {
+  schema_version: "1.0.0",
+  context_key: "lesson-publication",
+  context_version: "1.0.0",
+  feature_label: "Lesson publication details",
+  applicability: [
+    {
+      scope_key: "lesson-publication",
+      label: "Published lesson sources, versions, and review dates",
+    },
+  ],
+  help_references: [
+    {
+      topic_id: "source-and-history",
+      topic_version: "1.0.0",
+      purpose: "source",
+      label: "How to use source and history details",
+    },
+    {
+      topic_id: "education-not-advice",
+      topic_version: "1.0.0",
+      purpose: "education_boundary",
+      label: "Why this is education, not investment advice",
+    },
+  ],
+  publication: {
+    state: "approved",
+    reviewed_on: "2026-10-18",
+    updated_at: "2026-10-18T00:00:00Z",
+  },
+  source_references: [
+    {
+      source_key: "architecture-principles",
+      title: "Architecture principles",
+      area: "architecture",
+      source_version: "2026-10-18",
+      content_fingerprint:
+        "7ed7fc91381b48fb6b63c66b7f0caf24799fbe46cad8cd0762268ebb58f371ea",
+    },
+  ],
+  context_digest:
+    "69f9faa5275e5b4106f7c827692d970fac09fbaf143c0ba68020e46cc1b742c3",
+};
 
 export const platformHelpTopicFixture: PlatformHelpTopic = {
   schema_version: "1.0.0",

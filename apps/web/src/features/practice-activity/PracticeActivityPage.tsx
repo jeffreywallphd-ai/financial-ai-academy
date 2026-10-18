@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Icon } from "../../components/Icon";
+import {
+  ContextualHelpLinks,
+  unavailableContextualHelpReader,
+} from "../platform-help/ContextualHelpLinks";
+import type { ContextualHelpReader } from "../platform-help/model";
 import type {
   PracticeItem,
   PracticePresentation,
@@ -231,9 +236,11 @@ function submittedAnswer(
 
 function ResultPanel({
   practice,
+  readContextualHelp = unavailableContextualHelpReader,
   result,
 }: {
   practice: PracticePresentation;
+  readContextualHelp?: ContextualHelpReader;
   result: PracticeSubmissionResult;
 }) {
   const references = new Map(
@@ -281,6 +288,12 @@ function ResultPanel({
         This result checks this practice activity only. It does not show
         mastery, certification, investment suitability, or investment advice.
       </p>
+      {readContextualHelp === unavailableContextualHelpReader ? null : (
+        <ContextualHelpLinks
+          contextKey="practice-result"
+          readContextualHelp={readContextualHelp}
+        />
+      )}
       <details>
         <summary aria-label="Technical record for saved practice result">
           Technical record
@@ -473,12 +486,14 @@ function draftStatusMessage(status: DraftViewState["status"]): {
 export function PracticeActivityPage({
   practice,
   progress: initialProgress,
+  readContextualHelp = unavailableContextualHelpReader,
   readProgress,
   saveDraft,
   submitPractice,
 }: {
   practice: PracticePresentation;
   progress: PracticeProgress;
+  readContextualHelp?: ContextualHelpReader;
   readProgress: PracticeProgressReader;
   saveDraft: PracticeDraftSaver;
   submitPractice: PracticeSubmitter;
@@ -801,7 +816,11 @@ export function PracticeActivityPage({
           {submission.status === "submitting" ? <p role="status">Checking your answers…</p> : null}
           {submission.status === "result" ? (
             <div ref={(element) => { statusRef.current = element; }} tabIndex={-1}>
-              <ResultPanel practice={practice} result={submission.result} />
+              <ResultPanel
+                practice={practice}
+                readContextualHelp={readContextualHelp}
+                result={submission.result}
+              />
               {progressRefresh === "loading" ? <p role="status">Updating your saved attempts…</p> : null}
               {progressRefresh === "unavailable" ? (
                 <p>Reload this activity to see the latest saved attempt and retry status.</p>

@@ -2,17 +2,20 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { FinancialAcademyApiClient } from "../../src/generated/api-client";
 import {
+  createContextualHelpReader,
   createPlatformHelpSearchLoader,
   createPlatformHelpTopicLoader,
   parsePlatformHelpSearch,
   parsePlatformHelpTopicSelection,
 } from "../../src/features/platform-help/api";
 import {
+  contextualHelpIsSafe,
   platformHelpSearchPageIsSafe,
   platformHelpTopicIsSafe,
 } from "../../src/features/platform-help/model";
 import type { SingleProfileSession } from "../../src/platform/auth/singleProfileSession";
 import {
+  contextualHelpFixture,
   platformHelpSearchFixture,
   platformHelpTopicFixture,
 } from "../component/platformHelpFixture";
@@ -94,6 +97,19 @@ describe("platform help query boundaries", () => {
       topicId: "platform-methods",
       topicVersion: "1.0.0",
       returnTo: "/help?query=calculations&page_size=20",
+      returnLabel: "Return to platform guide",
+    });
+    expect(
+      parsePlatformHelpTopicSelection(
+        "source-and-history",
+        "1.0.0",
+        "http://academy.test/help/topics/source-and-history/versions/1.0.0?return_to=%2Fprojects%2Fproject-one",
+      ),
+    ).toEqual({
+      topicId: "source-and-history",
+      topicVersion: "1.0.0",
+      returnTo: "/projects/project-one",
+      returnLabel: "Return to Project",
     });
     expect(
       parsePlatformHelpTopicSelection(
@@ -107,6 +123,13 @@ describe("platform help query boundaries", () => {
         "platform-methods",
         "1.0.0",
         "http://academy.test/help?return_to=https%3A%2F%2Fevil.test%2Fhelp",
+      ),
+    ).toBeNull();
+    expect(
+      parsePlatformHelpTopicSelection(
+        "platform-methods",
+        "1.0.0",
+        "http://academy.test/help?return_to=%2Fprojects%2Fproject-one%3Fadmin%3Dtrue",
       ),
     ).toBeNull();
   });
@@ -128,6 +151,43 @@ describe("platform help response validation", () => {
         "1.0.0",
       ),
     ).toBe(true);
+    expect(
+      contextualHelpIsSafe(
+        contextualHelpFixture,
+        "lesson-publication",
+        "1.0.0",
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects substituted, extended, duplicate, or malformed contextual Help", () => {
+    const changedIdentity = {
+      ...contextualHelpFixture,
+      context_key: "practice-result",
+    };
+    expect(
+      contextualHelpIsSafe(changedIdentity, "lesson-publication", "1.0.0"),
+    ).toBe(false);
+    expect(
+      contextualHelpIsSafe(
+        { ...contextualHelpFixture, hidden_route: "/admin" },
+        "lesson-publication",
+        "1.0.0",
+      ),
+    ).toBe(false);
+    expect(
+      contextualHelpIsSafe(
+        {
+          ...contextualHelpFixture,
+          help_references: [
+            contextualHelpFixture.help_references[0]!,
+            contextualHelpFixture.help_references[0]!,
+          ],
+        },
+        "lesson-publication",
+        "1.0.0",
+      ),
+    ).toBe(false);
   });
 
   it("accepts the server-owned Unicode case-folded query without duplicating ranking rules", () => {
@@ -188,6 +248,40 @@ describe("platform help response validation", () => {
 });
 
 describe("platform help loaders", () => {
+  it("reads one exact generated contextual-help operation and fails closed", async () => {
+    const GET = vi
+      .fn()
+      .mockResolvedValueOnce(response(200, contextualHelpFixture))
+      .mockResolvedValueOnce(
+        response(200, { ...contextualHelpFixture, hidden_route: "/admin" }),
+      );
+    const reader = createContextualHelpReader(
+      { GET } as unknown as FinancialAcademyApiClient,
+      session(),
+    );
+    const controller = new AbortController();
+
+    await expect(
+      reader("lesson-publication", "1.0.0", controller.signal),
+    ).resolves.toEqual({ status: "ready", context: contextualHelpFixture });
+    expect(GET).toHaveBeenNthCalledWith(
+      1,
+      "/api/v1/guidance/contextual-help/{context_key}/versions/{context_version}",
+      {
+        params: {
+          path: {
+            context_key: "lesson-publication",
+            context_version: "1.0.0",
+          },
+        },
+        signal: controller.signal,
+      },
+    );
+    await expect(
+      reader("lesson-publication", "1.0.0", controller.signal),
+    ).resolves.toEqual({ status: "unavailable" });
+  });
+
   it("rejects unsafe query categories before session or content access", async () => {
     for (const query of ["unsafe\u0001control", "bidi\u202Etext", "private\uE000text", "unassigned\u0378text"]) {
       const GET = vi.fn();

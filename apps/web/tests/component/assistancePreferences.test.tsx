@@ -12,6 +12,8 @@ import type {
   AssistancePreferencesRouteState,
   LocalReminderExporter,
 } from "../../src/features/assistance-preferences/model";
+import type { ContextualHelpReader } from "../../src/features/platform-help/model";
+import { contextualHelpFixture } from "./platformHelpFixture";
 
 
 const profile: AssistancePreferenceProfile = {
@@ -74,12 +76,14 @@ const readyState: AssistancePreferencesRouteState = {
 
 function renderPage({
   actionState,
+  contextualReader = async () => ({ status: "unavailable" }),
   localExporter = async () => ({ status: "unavailable" }),
   serverExporter = async () => ({ status: "unavailable" }),
   state = readyState,
   submissions = [],
 }: {
   actionState?: AssistancePreferencesActionState;
+  contextualReader?: ContextualHelpReader;
   localExporter?: LocalReminderExporter;
   serverExporter?: AssistancePreferencesExporter;
   state?: AssistancePreferencesRouteState;
@@ -98,6 +102,7 @@ function renderPage({
         exportLocalReminder={localExporter}
         exportPreferences={serverExporter}
         onRetry={() => undefined}
+        readContextualHelp={contextualReader}
         state={state}
       />
     ),
@@ -107,13 +112,27 @@ function renderPage({
 
 describe("AI help and reminders page", () => {
   it("leads with availability and purpose while keeping technical facts optional", async () => {
-    renderPage();
+    renderPage({
+      contextualReader: vi.fn().mockResolvedValue({
+        status: "ready",
+        context: {
+          ...contextualHelpFixture,
+          context_key: "ai-assistance",
+          feature_label: "AI help preferences",
+        },
+      }),
+    });
 
     expect(screen.getByRole("heading", { level: 1, name: "AI help and reminders" })).toBeVisible();
     expect(screen.getByRole("heading", { name: "Nothing runs in the background" })).toBeVisible();
     expect(screen.getByText(/AI help is not available on this screen/i)).toBeVisible();
     expect(screen.getAllByText(/Reminders are not available yet/i)).toHaveLength(2);
     expect(screen.getByText(/not permission to share data or use an AI provider/i)).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: "Questions about AI help preferences",
+      }),
+    ).toBeVisible();
     expect(screen.queryByText(profile.profile_digest)).not.toBeVisible();
 
     await userEvent.setup().click(screen.getByText("Technical record for AI-help choice"));

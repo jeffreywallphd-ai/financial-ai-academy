@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 import type { Page, Route } from "@playwright/test";
 
 import { lessonFixture } from "../../component/lessonFixture";
+import {
+  contextualHelpFixture,
+  platformHelpTopicFixture,
+} from "../../component/platformHelpFixture";
 
 
 const LESSON_PATH =
@@ -14,6 +18,10 @@ const COMPLETION_PATTERN =
   "**/api/v1/curriculum/placements/*/completion";
 const KNOWLEDGE_CHECK_PATTERN =
   "**/api/v1/curriculum/placements/*/knowledge-check**";
+const CONTEXTUAL_HELP_PATTERN =
+  "**/api/v1/guidance/contextual-help/*/versions/*";
+const HELP_TOPIC_PATTERN =
+  "**/api/v1/guidance/platform-help/*/versions/*";
 const KNOWLEDGE_CHECK = {
   schema_version: "1.0.0",
   placement_id: "intro-risk-return-primary",
@@ -86,6 +94,7 @@ async function mockReadyLesson(
   page: Page,
   lesson: unknown = lessonFixture,
   completion: unknown = INCOMPLETE_COMPLETION,
+  contextualHelp: unknown | null = null,
 ) {
   await page.route(SESSION_PATTERN, (route) =>
     json(route, 201, {
@@ -130,6 +139,23 @@ async function mockReadyLesson(
     }
     return json(route, 200, KNOWLEDGE_CHECK);
   });
+  await page.route(CONTEXTUAL_HELP_PATTERN, (route) =>
+    contextualHelp === null
+      ? json(route, 404, { code: "contextual_help_unavailable" })
+      : json(route, 200, contextualHelp),
+  );
+  await page.route(HELP_TOPIC_PATTERN, (route) => {
+    const match = /platform-help\/([^/]+)\/versions\/([^/?]+)/.exec(
+      route.request().url(),
+    );
+    return json(route, 200, {
+      ...platformHelpTopicFixture,
+      topic_id: match?.[1] ?? "source-and-history",
+      topic_version: match?.[2] ?? "1.0.0",
+      title: "Source and history",
+      related_topics: [],
+    });
+  });
   await page.route("**/api/v1/content/assets/risk-spectrum", (route) =>
     route.fulfill({
       status: 200,
@@ -142,6 +168,37 @@ async function mockReadyLesson(
     }),
   );
 }
+
+test("opens exact contextual Help and returns to the unchanged lesson", async ({
+  page,
+}) => {
+  await mockReadyLesson(
+    page,
+    lessonFixture,
+    INCOMPLETE_COMPLETION,
+    contextualHelpFixture,
+  );
+  await page.goto(LESSON_PATH);
+
+  const contextualLink = page.getByRole("link", {
+    name: "How to use source and history details",
+  });
+  await expect(contextualLink).toBeVisible();
+  await contextualLink.click();
+  await expect(
+    page.getByRole("heading", { name: "Source and history" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Return to lesson" }),
+  ).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.getByRole("link", { name: "Return to lesson" }).click();
+  await expect(page).toHaveURL(LESSON_PATH);
+  await expect(
+    page.getByRole("heading", { name: lessonFixture.title }),
+  ).toBeVisible();
+});
 
 test("renders equivalent light, dark, and system content accessibly", async ({
   page,

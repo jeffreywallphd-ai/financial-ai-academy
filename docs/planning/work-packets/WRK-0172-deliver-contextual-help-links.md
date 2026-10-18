@@ -10,7 +10,7 @@ capability: CAP-0020
 depends_on: [WRK-0171]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/src/app/router.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesPage.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesRoute.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/features/platform-help/ContextualHelpLinks.tsx", "apps/web/src/features/platform-help/PlatformHelpPage.tsx", "apps/web/src/features/platform-help/PlatformHelpRoute.tsx", "apps/web/src/features/platform-help/api.ts", "apps/web/src/features/platform-help/model.ts", "apps/web/src/features/practice-activity/PracticeActivityPage.tsx", "apps/web/src/features/practice-activity/PracticeActivityRoute.tsx", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/src/features/project-workspace/ProjectRoutes.tsx", "apps/web/src/styles/platform-help.css", "apps/web/tests/browser/assistance-preferences/assistance-preferences.spec.ts", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/browser/platform-help/platform-help.spec.ts", "apps/web/tests/browser/practice-activity/practice-activity.spec.ts", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/assistancePreferences.test.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/tests/component/platformHelp.test.tsx", "apps/web/tests/component/practiceActivity.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/platformHelpModel.test.ts", "docs/architecture/contracts/platform-help-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0172-deliver-contextual-help-links.md"]
+write_scope: ["apps/web/README.md", "apps/web/src/app/router.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesPage.tsx", "apps/web/src/features/assistance-preferences/AssistancePreferencesRoute.tsx", "apps/web/src/features/lesson-reading/LessonReadingPage.tsx", "apps/web/src/features/lesson-reading/LessonRoute.tsx", "apps/web/src/features/platform-help/ContextualHelpLinks.tsx", "apps/web/src/features/platform-help/PlatformHelpPage.tsx", "apps/web/src/features/platform-help/PlatformHelpRoute.tsx", "apps/web/src/features/platform-help/api.ts", "apps/web/src/features/platform-help/model.ts", "apps/web/src/features/practice-activity/PracticeActivityPage.tsx", "apps/web/src/features/practice-activity/PracticeActivityRoute.tsx", "apps/web/src/features/project-workspace/ProjectDetailPage.tsx", "apps/web/src/features/project-workspace/ProjectRoutes.tsx", "apps/web/src/styles/platform-help.css", "apps/web/tests/browser/assistance-preferences/assistance-preferences.spec.ts", "apps/web/tests/browser/lesson-reading/lesson-reading.spec.ts", "apps/web/tests/browser/platform-help/platform-help.spec.ts", "apps/web/tests/browser/practice-activity/practice-activity.spec.ts", "apps/web/tests/browser/project-workspace/project-workspace.spec.ts", "apps/web/tests/component/assistancePreferences.test.tsx", "apps/web/tests/component/lessonReadingPage.test.tsx", "apps/web/tests/component/platformHelp.test.tsx", "apps/web/tests/component/platformHelpFixture.ts", "apps/web/tests/component/practiceActivity.test.tsx", "apps/web/tests/component/projectWorkspace.test.tsx", "apps/web/tests/unit/platformHelpModel.test.ts", "docs/architecture/contracts/platform-help-contract.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0172-deliver-contextual-help-links.md"]
 generated_artifacts: []
 base_revision: 693c936aa2d5e3eda919d76b0f3899810098c089
 claim_id: WRK-0172:b8fc54d6-52e6-40ab-98b5-7764aca9d281
@@ -130,7 +130,7 @@ python dev-tools/planning/check_planning.py
 <pinned npm> --prefix apps/web run build
 python dev-tools/design/check_design_system.py
 python dev-tools/documentation/check_docs.py
-python dev-tools/content/check_learner_language.py
+python dev-tools/learner-language/check_learner_language.py
 git diff --check
 python dev-tools/agent/check_ready.py
 ```
@@ -180,3 +180,6 @@ behavior changed.
 - 2026-10-18: Activated from clean recorded base `693c936` after confirming the
   current CAP binding, completed WRK-0171 dependency, bounded generated-client
   consumer scope, executable checks, and no unresolved decision or collision.
+- 2026-10-18: Refined the focused test scope to include its shared contextual-
+  help fixture. This bounded test-support addition does not change the outcome,
+  CAP boundary, or approval posture.

@@ -241,7 +241,7 @@ export function PlatformHelpTopicPage({
   return (
     <article className="help-page help-topic-page">
       <Link className="help-return-link" to={selection.returnTo}>
-        Return to platform guide
+        {selection.returnLabel}
       </Link>
       <header className="help-page__intro">
         <p className="eyebrow">{topicKindLabel(topic.topic_kind)}</p>

@@ -1,5 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 
 import { PracticeActivityPage } from "../../src/features/practice-activity/PracticeActivityPage";
@@ -22,6 +23,7 @@ import {
   practiceProgressFixture,
   practiceResultFixture,
 } from "./practiceFixture";
+import { contextualHelpFixture } from "./platformHelpFixture";
 
 
 const idleSubmitter: PracticeSubmitter = async () => ({ status: "unexpected" });
@@ -57,13 +59,15 @@ describe("practice activity page", () => {
   it("renders every answer-safe response shape and one API-backed action", async () => {
     const user = userEvent.setup();
     render(
+      <MemoryRouter initialEntries={["/learn/placements/intro-risk-return-primary/practice"]}>
       <PracticeActivityPage
         practice={practiceFixture}
         progress={structuredClone(practiceProgressFixture)}
         readProgress={idleProgressReader}
         saveDraft={idleDraftSaver}
         submitPractice={idleSubmitter}
-      />,
+      />
+      </MemoryRouter>,
     );
 
     expect(
@@ -99,19 +103,34 @@ describe("practice activity page", () => {
       }),
     );
     render(
+      <MemoryRouter initialEntries={["/learn/placements/intro-risk-return-primary/practice"]}>
       <PracticeActivityPage
         practice={practiceFixture}
         progress={structuredClone(practiceProgressFixture)}
+        readContextualHelp={vi.fn().mockResolvedValue({
+          status: "ready",
+          context: {
+            ...contextualHelpFixture,
+            context_key: "practice-result",
+            feature_label: "Saved practice result",
+          },
+        })}
         readProgress={idleProgressReader}
         saveDraft={idleDraftSaver}
         submitPractice={submitPractice}
-      />,
+      />
+      </MemoryRouter>,
     );
 
     await answerEveryQuestion(user);
     await user.click(screen.getByRole("button", { name: "Check answers" }));
 
     expect(await screen.findByRole("heading", { name: "Your result" })).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: "Questions about Saved practice result",
+      }),
+    ).toBeVisible();
     expect(screen.getAllByText("2 of 3")).toHaveLength(2);
     expect(screen.getByRole("heading", { name: /Question 3: Review this question/i })).toBeVisible();
     expect(screen.getByText(practiceResultFixture.item_results[2]!.feedback.text)).toBeVisible();

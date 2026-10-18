@@ -2,6 +2,11 @@ import type { ReactNode } from "react";
 import { Link } from "react-router";
 
 import { Icon } from "../../components/Icon";
+import {
+  ContextualHelpLinks,
+  unavailableContextualHelpReader,
+} from "../platform-help/ContextualHelpLinks";
+import type { ContextualHelpReader } from "../platform-help/model";
 import { LessonBody } from "./LessonBody";
 import type { Lesson } from "./model";
 
@@ -18,10 +23,12 @@ function formatDate(value: string) {
 export function LessonReadingPage({
   knowledgeCheck,
   lesson,
+  readContextualHelp = unavailableContextualHelpReader,
   returnTo,
 }: {
   knowledgeCheck?: ReactNode;
   lesson: Lesson;
+  readContextualHelp?: ContextualHelpReader;
   returnTo?: string | undefined;
 }) {
   return (
@@ -155,6 +162,12 @@ export function LessonReadingPage({
               </div>
             </dl>
           </details>
+          {readContextualHelp === unavailableContextualHelpReader ? null : (
+            <ContextualHelpLinks
+              contextKey="lesson-publication"
+              readContextualHelp={readContextualHelp}
+            />
+          )}
         </section>
 
         <section

@@ -8,6 +8,8 @@ export type PlatformHelpTopic =
   components["schemas"]["PlatformHelpTopicResponseModel"];
 export type PlatformHelpBodyNode = PlatformHelpTopic["body"][number];
 export type PlatformHelpTopicKind = PlatformHelpSearchResult["topic_kind"];
+export type ContextualHelp =
+  components["schemas"]["ContextualHelpResponseModel"];
 export type PlatformHelpSearchParameters = NonNullable<
   operations["searchPlatformHelp"]["parameters"]["query"]
 >;
@@ -21,7 +23,18 @@ export type PlatformHelpTopicSelection = {
   topicId: string;
   topicVersion: string;
   returnTo: string;
+  returnLabel: string;
 };
+
+export type ContextualHelpReadOutcome =
+  | { status: "ready"; context: ContextualHelp }
+  | { status: "unavailable" };
+
+export type ContextualHelpReader = (
+  contextKey: string,
+  contextVersion: string,
+  signal: AbortSignal,
+) => Promise<ContextualHelpReadOutcome>;
 
 export type PlatformHelpSearchRouteState =
   | { status: "loading" }
@@ -64,6 +77,13 @@ const SOURCE_AREAS = new Set([
   "architecture",
   "risk",
   "method",
+]);
+const CONTEXT_PURPOSES = new Set([
+  "method",
+  "source",
+  "data_meaning",
+  "ai_boundary",
+  "education_boundary",
 ]);
 
 function record(value: unknown): Record<string, unknown> | null {
@@ -179,6 +199,79 @@ function sourceReferenceIsSafe(value: unknown): boolean {
     typeof item.content_fingerprint === "string" &&
     DIGEST.test(item.content_fingerprint)
   );
+}
+
+function contextualHelpReferenceIsSafe(value: unknown): boolean {
+  const item = record(value);
+  return (
+    item !== null &&
+    hasExactKeys(item, ["topic_id", "topic_version", "purpose", "label"]) &&
+    typeof item.topic_id === "string" &&
+    IDENTIFIER.test(item.topic_id) &&
+    typeof item.topic_version === "string" &&
+    VERSION.test(item.topic_version) &&
+    typeof item.purpose === "string" &&
+    CONTEXT_PURPOSES.has(item.purpose) &&
+    platformHelpTextIsSafe(item.label, 1, 160)
+  );
+}
+
+export function contextualHelpIsSafe(
+  value: unknown,
+  expectedKey: string,
+  expectedVersion: string,
+): value is ContextualHelp {
+  const context = record(value);
+  if (
+    context === null ||
+    !hasExactKeys(context, [
+      "schema_version",
+      "context_key",
+      "context_version",
+      "feature_label",
+      "applicability",
+      "help_references",
+      "publication",
+      "source_references",
+      "context_digest",
+    ]) ||
+    context.schema_version !== "1.0.0" ||
+    context.context_key !== expectedKey ||
+    context.context_version !== expectedVersion ||
+    typeof context.context_key !== "string" ||
+    !IDENTIFIER.test(context.context_key) ||
+    typeof context.context_version !== "string" ||
+    !VERSION.test(context.context_version) ||
+    !platformHelpTextIsSafe(context.feature_label, 1, 160) ||
+    !Array.isArray(context.applicability) ||
+    context.applicability.length < 1 ||
+    context.applicability.length > 20 ||
+    !context.applicability.every(applicabilityIsSafe) ||
+    !uniqueBy(context.applicability, (item) =>
+      String(record(item)?.scope_key),
+    ) ||
+    !Array.isArray(context.help_references) ||
+    context.help_references.length < 1 ||
+    context.help_references.length > 20 ||
+    !context.help_references.every(contextualHelpReferenceIsSafe) ||
+    !uniqueBy(context.help_references, (item) => {
+      const reference = record(item);
+      return `${String(reference?.topic_id)}@${String(reference?.topic_version)}`;
+    }) ||
+    !publicationIsSafe(context.publication) ||
+    !Array.isArray(context.source_references) ||
+    context.source_references.length < 1 ||
+    context.source_references.length > 20 ||
+    !context.source_references.every(sourceReferenceIsSafe) ||
+    !uniqueBy(context.source_references, (item) =>
+      String(record(item)?.source_key),
+    ) ||
+    typeof context.context_digest !== "string" ||
+    !DIGEST.test(context.context_digest)
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function commonTopicProjectionIsSafe(value: Record<string, unknown>): boolean {

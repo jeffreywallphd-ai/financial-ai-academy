@@ -70,6 +70,18 @@ created. The catalog exposes transient current-page comparison controls; it
 serializes checked identities in learner selection order and never persists
 the selection.
 
+The generated Guidance client includes exact protected platform-topic search,
+topic read, and contextual-help read operations shared with command-line,
+service, and future headless clients. The Web boundary closes the full
+contextual-help response before rendering it. Delivered lesson publication,
+saved practice result, Project file/result, and AI-help preference surfaces
+request only their fixed context key and version, then show the returned plain-
+language labels and exact topic destinations. Optional Help failure never
+blocks or changes the owning task. Exact topic pages accept only a closed
+same-origin return to the guide or those four feature routes; the browser does
+not store routes in Guidance content, select a different topic version, or
+invent a mapping.
+
 Node.js is build/test tooling only. Do not introduce a Node production server, SSR, React Server Components, server actions, a backend-for-frontend, framework-owned business API, React Router Framework Mode, or Next.js without a superseding architecture decision.
 
 Exact dependency patches and integrity data belong in committed project metadata and lockfiles when approved delivery work introduces them. Do not use floating resolution as the framework baseline.

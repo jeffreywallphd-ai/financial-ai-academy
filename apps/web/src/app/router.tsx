@@ -99,6 +99,7 @@ import {
   AssistancePreferencesRoute,
 } from "../features/assistance-preferences/AssistancePreferencesRoute";
 import {
+  createContextualHelpReader,
   createPlatformHelpSearchLoader,
   createPlatformHelpTopicLoader,
 } from "../features/platform-help/api";
@@ -163,6 +164,11 @@ const assistancePreferencesExporter = createAssistancePreferencesExporter(client
 const localReminderExporter = createLocalReminderExporter(window.localStorage, currentTime);
 const platformHelpSearchLoader = createPlatformHelpSearchLoader(client, session);
 const platformHelpTopicLoader = createPlatformHelpTopicLoader(client, session);
+const contextualHelpReader = createContextualHelpReader(client, session);
+
+function LessonRouteWithDependencies() {
+  return <LessonRoute readContextualHelp={contextualHelpReader} />;
+}
 
 function CurriculumGraphRouteWithDependencies() {
   return (
@@ -173,6 +179,7 @@ function CurriculumGraphRouteWithDependencies() {
 function PracticeActivityRouteWithDependencies() {
   return (
     <PracticeActivityRoute
+      readContextualHelp={contextualHelpReader}
       readProgress={practiceProgressReader}
       saveDraft={practiceDraftSaver}
       submitPractice={practiceActivitySubmitter}
@@ -185,6 +192,7 @@ function ProjectDetailRouteWithDependencies() {
     <ProjectDetailRoute
       downloadArtifact={projectArtifactDownloader}
       exportSnapshot={projectSnapshotExporter}
+      readContextualHelp={contextualHelpReader}
     />
   );
 }
@@ -210,6 +218,7 @@ function AssistancePreferencesRouteWithDependencies() {
     <AssistancePreferencesRoute
       exportLocalReminder={localReminderExporter}
       exportPreferences={assistancePreferencesExporter}
+      readContextualHelp={contextualHelpReader}
     />
   );
 }
@@ -333,7 +342,7 @@ export const router = createBrowserRouter([
       {
         path: "learn/placements/:placementId",
         loader: lessonLoader,
-        Component: LessonRoute,
+        Component: LessonRouteWithDependencies,
         HydrateFallback: LessonLoadingState,
       },
       {

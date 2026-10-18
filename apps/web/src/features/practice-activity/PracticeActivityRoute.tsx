@@ -1,6 +1,8 @@
 import { useLoaderData, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
+import type { ContextualHelpReader } from "../platform-help/model";
+import { unavailableContextualHelpReader } from "../platform-help/ContextualHelpLinks";
 import type {
   PracticeActivityRouteState,
   PracticeDraftSaver,
@@ -30,12 +32,14 @@ export function PracticeActivityLoadingState() {
 export function PracticeActivityRouteView({
   onRetry,
   readProgress,
+  readContextualHelp = unavailableContextualHelpReader,
   saveDraft,
   state,
   submitPractice,
 }: {
   onRetry: () => void;
   readProgress: PracticeProgressReader;
+  readContextualHelp?: ContextualHelpReader;
   saveDraft: PracticeDraftSaver;
   state: PracticeActivityRouteState;
   submitPractice: PracticeSubmitter;
@@ -48,6 +52,7 @@ export function PracticeActivityRouteView({
         <PracticeActivityPage
           practice={state.practice}
           progress={state.progress}
+          readContextualHelp={readContextualHelp}
           readProgress={readProgress}
           saveDraft={saveDraft}
           submitPractice={submitPractice}
@@ -118,10 +123,12 @@ export function PracticeActivityRouteView({
 
 export function PracticeActivityRoute({
   readProgress,
+  readContextualHelp = unavailableContextualHelpReader,
   saveDraft,
   submitPractice,
 }: {
   readProgress: PracticeProgressReader;
+  readContextualHelp?: ContextualHelpReader;
   saveDraft: PracticeDraftSaver;
   submitPractice: PracticeSubmitter;
 }) {
@@ -135,6 +142,7 @@ export function PracticeActivityRoute({
     <PracticeActivityRouteView
       onRetry={() => revalidator.revalidate()}
       readProgress={readProgress}
+      readContextualHelp={readContextualHelp}
       saveDraft={saveDraft}
       state={displayedState}
       submitPractice={submitPractice}

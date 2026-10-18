@@ -2,6 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Form } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
+import {
+  ContextualHelpLinks,
+  unavailableContextualHelpReader,
+} from "../platform-help/ContextualHelpLinks";
+import type { ContextualHelpReader } from "../platform-help/model";
 import type { LocalReminderMode } from "../../platform/reminders/localReminderPreference";
 import {
   assistanceChangeLabel,
@@ -117,6 +122,7 @@ export function AssistancePreferencesPage({
   exportLocalReminder,
   exportPreferences,
   onRetry,
+  readContextualHelp = unavailableContextualHelpReader,
   state,
 }: {
   actionState: AssistancePreferencesActionState | undefined;
@@ -124,6 +130,7 @@ export function AssistancePreferencesPage({
   exportLocalReminder: LocalReminderExporter;
   exportPreferences: AssistancePreferencesExporter;
   onRetry: () => void;
+  readContextualHelp?: ContextualHelpReader;
   state: AssistancePreferencesRouteState;
 }) {
   const serverProfile = state.server.status === "ready" ? state.server.profile : undefined;
@@ -238,6 +245,12 @@ export function AssistancePreferencesPage({
           <h2 id="ai-help-heading">AI-help choice</h2>
           <p>This portable choice is available through the same protected API used by browser and headless clients. It is not permission to share data or use an AI provider.</p>
         </header>
+        {readContextualHelp === unavailableContextualHelpReader ? null : (
+          <ContextualHelpLinks
+            contextKey="ai-assistance"
+            readContextualHelp={readContextualHelp}
+          />
+        )}
         {state.server.status === "ready" ? (
           <>
             <Form className="assistance-preferences-form" method="post">

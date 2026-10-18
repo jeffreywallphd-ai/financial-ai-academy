@@ -220,6 +220,25 @@
   font-size: var(--faa-font-size-caption);
 }
 
+.contextual-help-links {
+  margin-top: var(--faa-space-5);
+  padding: var(--faa-space-4);
+  background: var(--faa-color-surface-subtle);
+  border: var(--faa-border-width) solid var(--faa-color-border);
+  border-radius: var(--faa-radius-control);
+}
+
+.contextual-help-links h3 {
+  margin-bottom: var(--faa-space-2);
+  font-size: var(--faa-font-size-body);
+}
+
+.contextual-help-links ul {
+  display: grid;
+  gap: var(--faa-space-2);
+  margin-bottom: var(--faa-space-0);
+}
+
 @media (max-width: 64rem) {
   .help-search {
     grid-template-columns: repeat(2, minmax(0, 1fr));

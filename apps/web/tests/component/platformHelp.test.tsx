@@ -7,11 +7,13 @@ import {
   PlatformHelpSearchPage,
   PlatformHelpTopicPage,
 } from "../../src/features/platform-help/PlatformHelpPage";
+import { ContextualHelpLinks } from "../../src/features/platform-help/ContextualHelpLinks";
 import {
   PlatformHelpSearchRouteView,
   PlatformHelpTopicRouteView,
 } from "../../src/features/platform-help/PlatformHelpRoute";
 import {
+  contextualHelpFixture,
   platformHelpSearchFixture,
   platformHelpTopicFixture,
 } from "./platformHelpFixture";
@@ -92,6 +94,7 @@ describe("PlatformHelpTopicPage", () => {
             topicId: "platform-methods",
             topicVersion: "1.0.0",
             returnTo: "/help?query=calculations&page_size=20",
+            returnLabel: "Return to platform guide",
           }}
           topic={platformHelpTopicFixture}
         />
@@ -127,6 +130,56 @@ describe("PlatformHelpTopicPage", () => {
         platformHelpTopicFixture.publication.updated_at,
       ),
     ).toBeVisible();
+  });
+});
+
+describe("ContextualHelpLinks", () => {
+  it("renders every server-owned label in order with an exact safe return", async () => {
+    render(
+      <MemoryRouter initialEntries={["/learn/placements/lesson-one"]}>
+        <ContextualHelpLinks
+          contextKey="lesson-publication"
+          readContextualHelp={vi.fn().mockResolvedValue({
+            status: "ready",
+            context: contextualHelpFixture,
+          })}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Questions about Lesson publication details",
+      }),
+    ).toBeVisible();
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveTextContent("How to use source and history details");
+    expect(links[0]).toHaveAttribute(
+      "href",
+      "/help/topics/source-and-history/versions/1.0.0?return_to=%2Flearn%2Fplacements%2Flesson-one",
+    );
+  });
+
+  it("leaves the feature unchanged when optional contextual Help is unavailable", async () => {
+    render(
+      <MemoryRouter initialEntries={["/preferences/assistance"]}>
+        <main>
+          <h1>AI help and reminders</h1>
+          <ContextualHelpLinks
+            contextKey="ai-assistance"
+            readContextualHelp={vi.fn().mockResolvedValue({
+              status: "unavailable",
+            })}
+          />
+        </main>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("heading", { name: "AI help and reminders" })).toBeVisible();
+    expect(
+      screen.queryByRole("heading", { name: /Questions about/ }),
+    ).toBeNull();
   });
 });
 

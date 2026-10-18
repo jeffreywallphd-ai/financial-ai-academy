@@ -1,6 +1,8 @@
 import { useLoaderData, useRevalidator } from "react-router";
 
 import { StatusPanel } from "../../components/StatusPanel";
+import type { ContextualHelpReader } from "../platform-help/model";
+import { unavailableContextualHelpReader } from "../platform-help/ContextualHelpLinks";
 import { KnowledgeCheck } from "./KnowledgeCheck";
 import { LessonReadingPage } from "./LessonReadingPage";
 import { curriculumReturnDestination } from "./model";
@@ -26,9 +28,11 @@ export function LessonLoadingState() {
 
 export function LessonRouteView({
   onRetry,
+  readContextualHelp = unavailableContextualHelpReader,
   state,
 }: {
   onRetry: () => void;
+  readContextualHelp?: ContextualHelpReader;
   state: LessonRouteState;
 }) {
   switch (state.status) {
@@ -41,6 +45,7 @@ export function LessonRouteView({
             <KnowledgeCheck placementId={state.lesson.placement_id} />
           }
           lesson={state.lesson}
+          readContextualHelp={readContextualHelp}
           returnTo={
             state.returnContext
               ? curriculumReturnDestination(state.returnContext)
@@ -111,7 +116,11 @@ export function LessonRouteView({
   }
 }
 
-export function LessonRoute() {
+export function LessonRoute({
+  readContextualHelp = unavailableContextualHelpReader,
+}: {
+  readContextualHelp?: ContextualHelpReader;
+}) {
   const state = useLoaderData<LessonRouteState>();
   const revalidator = useRevalidator();
   const displayedState =
@@ -121,6 +130,7 @@ export function LessonRoute() {
   return (
     <LessonRouteView
       onRetry={() => revalidator.revalidate()}
+      readContextualHelp={readContextualHelp}
       state={displayedState}
     />
   );

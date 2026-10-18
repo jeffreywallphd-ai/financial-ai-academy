@@ -135,5 +135,16 @@ It uses the same server-issued Help-read permission as topic reads, authorizes
 before registry access, accepts no query or body, and transports the exact
 record without feature or host reinterpretation. The reviewed OpenAPI snapshot
 and generated client expose the same operation to browser and headless callers.
-Feature links, safe return behavior, and live browser/headless qualification
-remain dependent SLI-0083 work.
+The Web client closes the complete response before it shows any link. The
+delivered lesson-publication, practice-result, Project artifact/result, and
+AI-assistance surfaces request only their fixed context key and version, then
+render the server-owned feature and reference labels in declared order. Missing,
+denied, stale, malformed, or unavailable contextual Help leaves every owning
+feature usable and reveals no partial context.
+
+Each reference opens its exact same-origin topic identity. Browser return state
+is separate from Guidance content and accepts only closed platform-guide,
+lesson, practice, Project-detail, or AI-assistance destinations; cross-origin,
+credentialed, hashed, extended, duplicate, or unrelated destinations fail
+closed. Live browser/headless parity, restart, no-outbound, and read-only
+containment qualification remain dependent SLI-0083 work.
