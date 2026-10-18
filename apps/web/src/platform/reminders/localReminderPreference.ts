@@ -4,6 +4,7 @@ export const LOCAL_REMINDER_STORAGE_KEY =
 const VERSION = "1.0.0" as const;
 const MAX_HISTORY = 100;
 const DIGEST = /^[a-f0-9]{64}$/;
+const CANONICAL_UTC = /^[1-9]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{3})?Z$/;
 
 export type LocalReminderMode = "in_app_when_available" | "off";
 export type LocalReminderOperation = "replace_preference" | "reset_preference";
@@ -58,9 +59,13 @@ function exact(value: Record<string, unknown>, keys: string[]): boolean {
 }
 
 function timestamp(value: unknown): value is string {
-  return typeof value === "string" &&
-    value.endsWith("Z") &&
-    Number.isFinite(Date.parse(value));
+  if (typeof value !== "string" || !CANONICAL_UTC.test(value)) return false;
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return false;
+  const canonical = parsed.toISOString();
+  return value.includes(".")
+    ? canonical === value
+    : canonical.replace(".000Z", "Z") === value;
 }
 
 function mode(value: unknown): value is LocalReminderMode {
@@ -129,17 +134,21 @@ async function envelopeIsSafe(
   ) return false;
 
   const changes = value.changes as LocalReminderChange[];
+  const currentRevision = Number(value.revision);
+  const firstRetainedRevision = Math.max(2, currentRevision - MAX_HISTORY + 1);
+  const expectedHistoryLength = currentRevision === 1
+    ? 0
+    : currentRevision - firstRetainedRevision + 1;
+  if (changes.length !== expectedHistoryLength) return false;
   if (!changes.every((change, index) =>
-    change.revision <= Number(value.revision) &&
+    change.revision === firstRetainedRevision + index &&
     Date.parse(change.occurred_at) <= Date.parse(value.updated_at as string) &&
     (index === 0 || (
-      changes[index - 1]!.revision < change.revision &&
       Date.parse(changes[index - 1]!.occurred_at) <= Date.parse(change.occurred_at)
     )),
   )) return false;
   const latest = changes.at(-1);
-  if (latest && latest.revision !== value.revision) return false;
-  if (!latest && value.revision !== 1) return false;
+  if (latest && latest.revision !== currentRevision) return false;
 
   const { integrity_code: integrityCode, ...material } = value;
   return (await canonicalIntegrity(material)) === integrityCode;
