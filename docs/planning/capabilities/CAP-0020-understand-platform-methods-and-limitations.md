@@ -1,10 +1,10 @@
 ---
 id: CAP-0020
 kind: capability
-planning_status: ready
+planning_status: complete
 authority: noncanonical
-owner: unassigned
-updated: 2026-10-16
+owner: codex-cap-0020
+updated: 2026-10-18
 parent: null
 depends_on: ["CAP-0001"]
 decision_gates: []
@@ -103,3 +103,9 @@ freshness and broken-link checks, and contributor guidance.
 
 - 2026-10-15: Shaped from catalog candidate 17 with manifest SLI-0082 through
   SLI-0085. The package awaits one CAP planning approval.
+- 2026-10-18: Completed CAP-0020 after all four manifest slices closed with
+  versioned source-bound Platform Help, contextual explanations, feature-limit
+  guidance, deterministic source/graph/search quality checks, generated-client
+  browser/headless parity, accessibility, normal-restart, read-only
+  containment, disposable recovery, and anti-rigidity evidence. No material
+  package drift or unresolved decision gate remains.
