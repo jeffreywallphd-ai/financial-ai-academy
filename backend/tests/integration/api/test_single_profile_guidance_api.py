@@ -149,6 +149,29 @@ def test_authorized_search_and_exact_read_preserve_closed_public_facts() -> None
     )
 
 
+def test_search_preserves_required_nullable_cursor_on_every_page() -> None:
+    http = client(
+        Identity(("guidance.platform_help.read",)),
+        Guidance(),
+    )
+
+    continued = http.get(
+        "/api/v1/guidance/platform-help",
+        params={"page_size": 1},
+    )
+    terminal = http.get(
+        "/api/v1/guidance/platform-help",
+        params={"query": "approved help", "page_size": 50},
+    )
+
+    assert continued.status_code == 200
+    assert isinstance(continued.json()["next_cursor"], str)
+    assert continued.json()["next_cursor"]
+    assert terminal.status_code == 200
+    assert "next_cursor" in terminal.json()
+    assert terminal.json()["next_cursor"] is None
+
+
 def test_missing_and_insufficient_context_deny_before_corpus_access() -> None:
     missing_guidance = Guidance()
     missing = client(

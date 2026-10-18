@@ -62,6 +62,10 @@ The cursor binds the normalized query, kind filter, corpus digest, position,
 and prior exact result key; a deterministic integrity digest detects altered
 encodings. It is an integrity check rather than an authorization boundary.
 Altered, cross-query, cross-filter, or stale-corpus cursors fail closed.
+Every successful search page serializes the required `next_cursor` member:
+continued pages carry a nonempty opaque string and terminal pages carry an
+explicit JSON `null`. Clients therefore receive the reviewed shape directly;
+route-level omission of null fields cannot narrow the public contract.
 
 Search uses no embeddings, models, learner history, popularity, hidden
 synonyms, behavioral analytics, provider call, network retrieval, or generated

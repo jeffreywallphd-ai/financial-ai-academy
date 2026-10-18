@@ -1550,7 +1550,7 @@ def create_app(services: ApiServices) -> FastAPI:
     @app.get(
         "/api/v1/guidance/platform-help",
         response_model=PlatformHelpSearchPageResponseModel,
-        response_model_exclude_none=True,
+        response_model_exclude_none=False,
         operation_id="searchPlatformHelp",
         responses=_ERROR_RESPONSES,
         tags=["guidance"],
