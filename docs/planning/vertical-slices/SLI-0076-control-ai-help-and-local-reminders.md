@@ -218,8 +218,8 @@ each packet starts. The proposed dependency-ordered seams are:
 | --- | --- | --- | --- | --- |
 | WRK-0158 | Freeze AI-help preference contracts, closed semantics, local-reminder envelope and adapter rules, privacy limits, compatibility vectors, and pure core | none | none | complete |
 | WRK-0159 | Compose Learner-model application, PostgreSQL persistence and migration, protected API, reviewed OpenAPI, and generated client | WRK-0158 | none | complete |
-| WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | active |
-| Reserved just in time | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | browser packet | none | planned |
+| WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | complete |
+| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160 | none | ready |
 
 Detailed packet plans declare exact files, generated artifacts, checks, and
 stop conditions immediately before each packet starts. Packet identifiers are
@@ -301,3 +301,8 @@ state that no AI or notification execution was implemented or implied.
   SLI-0075 completed. Deterministic selection found SLI-0076 eligible at 14 of
   14 and SLI-0077 dependency-ineligible. The refinement preserves CAP-0018 and
   requires no slice-level approval.
+- 2026-10-18: Authored WRK-0161 just in time after WRK-0160 completed. The
+  final packet qualifies the accepted browser, headless API, browser-local,
+  PostgreSQL, restart, privacy, accessibility, containment, and cleanup path
+  without changing the approved slice outcome or requiring lower-level
+  approval.
