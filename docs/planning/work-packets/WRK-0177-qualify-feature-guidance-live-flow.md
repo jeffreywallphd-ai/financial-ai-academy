@@ -1,7 +1,7 @@
 ---
 id: WRK-0177
 kind: work-packet
-planning_status: verifying
+planning_status: complete
 authority: noncanonical
 owner: codex-cap-0020
 updated: 2026-10-18
@@ -211,8 +211,9 @@ already-approved SLI-0085 qualification slice before CAP-0020 closure.
 
 ## Verification Evidence
 
-Implementation is complete pending exact-candidate qualification and bounded
-technical disposition. The pure replay module passes all 87 cases. The direct
+Implementation is complete on exact candidate
+`1f746a029ff3dbfd3d683eb07cf23213dfab7dfa`. The pure replay module passes all
+87 cases. The direct
 isolated live topology passes every Chromium flow and proves all five exact
 feature-condition resolutions through authenticated browser and fresh ordinary
 headless sessions, confidential missing and invalid-session denial, exact
@@ -226,6 +227,19 @@ GET alongside the existing export and contextual-Help GETs; it preserves the
 no-write, no-provider, and no-notification-execution assertions. TypeScript,
 zero-warning lint, Python compilation, work-packet validation, and the corrected
 full live topology pass.
+
+The controller selected and passed 11 exact-candidate checks: planning tools
+and integrity, documentation integrity, feature-Guidance qualification,
+architecture and local architecture, feature-Guidance security, Web typecheck
+and zero-warning lint, the complete approved-lesson live topology, and
+aggregate readiness. The immutable receipt is
+`.local-codex/control-plane/receipts/WRK-0177/1f746a029ff3dbfd3d683eb07cf23213dfab7dfa/20261018T071021Z-43f7fec6-108e-41f5-a995-042b6e3212aa.json`
+with receipt digest
+`sha256:c886da4956467d370d9665f1ade11b9467a32fa8decc9044f2b40732f37bb322`.
+The aggregate readiness gate reports all 29 checks ready, and no open technical
+finding remains. Direct supplemental evidence also passes all 507 Web tests,
+90 focused Guidance checks, 17 architecture checks, and documentation,
+planning, design-system, Python-compilation, build, and whitespace checks.
 
 ## Planning History
 
@@ -241,3 +255,6 @@ full live topology pass.
   exact topic/source correlation, restart equality, loopback GET observation,
   database containment, and cleanup evidence. Exact-candidate qualification
   remains before closure.
+- 2026-10-18: Closed on exact candidate `1f746a0` after all 11 selected checks
+  and the 29-check aggregate readiness gate passed with no open technical
+  finding. SLI-0084 now has complete packet evidence.
