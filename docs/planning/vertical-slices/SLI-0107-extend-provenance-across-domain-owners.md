@@ -194,7 +194,7 @@ The dependency-ordered seams are:
 | [WRK-0185](../work-packets/WRK-0185-extend-cross-domain-provenance-core.md) | Extend the pure provenance core for closed typed owner profiles, exact identities, deterministic canonicalization, and isolated failures | WRK-0184 | none | complete |
 | [WRK-0186](../work-packets/WRK-0186-build-cross-domain-provenance-conformance-kit.md) | Build the reusable cross-domain conformance kit, synthetic reference adapters, property evidence, and contributor instructions | WRK-0185 | none | complete |
 | [WRK-0187](../work-packets/WRK-0187-prove-project-snapshot-provenance-adapter.md) | Prove the real Project owner adapter through Project's public snapshot seam and focused architecture/security evidence | WRK-0186 | none | complete |
-| [WRK-0188](../work-packets/WRK-0188-qualify-cross-domain-provenance-slice.md) | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | active |
+| [WRK-0188](../work-packets/WRK-0188-qualify-cross-domain-provenance-slice.md) | Qualify v1 compatibility, cross-domain isolation, anti-rigidity, documentation, and slice completion | WRK-0187 | none | verifying |
 
 Sequential delivery is required because each packet freezes the meaning consumed
 by the next. No safe parallel packet is identified inside this small shared
