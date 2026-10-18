@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://financial-ai-academy.org/contracts/guidance/platform-help/v1/search-page.schema.json",
+  "title": "Financial AI Academy platform help search page",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "corpus_digest",
+    "query",
+    "results",
+    "next_cursor"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "corpus_digest": {"$ref": "#/$defs/digest"},
+    "query": {"type": "string", "maxLength": 200},
+    "topic_kind": {"$ref": "#/$defs/topicKind"},
+    "results": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {"$ref": "#/$defs/result"}
+    },
+    "next_cursor": {
+      "oneOf": [
+        {"type": "null"},
+        {"type": "string", "minLength": 1, "maxLength": 4096}
+      ]
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?$"
+    },
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "topicKind": {
+      "enum": ["glossary", "help", "method", "limitation", "troubleshooting"]
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "topic_id",
+        "topic_version",
+        "topic_kind",
+        "title",
+        "summary",
+        "topic_digest"
+      ],
+      "properties": {
+        "topic_id": {"$ref": "#/$defs/identifier"},
+        "topic_version": {"$ref": "#/$defs/version"},
+        "topic_kind": {"$ref": "#/$defs/topicKind"},
+        "title": {"type": "string", "minLength": 1, "maxLength": 160},
+        "summary": {"type": "string", "minLength": 20, "maxLength": 500},
+        "glossary_term": {"type": "string", "minLength": 1, "maxLength": 120},
+        "topic_digest": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

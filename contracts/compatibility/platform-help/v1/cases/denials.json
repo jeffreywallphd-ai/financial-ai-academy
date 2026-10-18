@@ -1,0 +1,57 @@
+[
+  {
+    "id": "private-repository-path",
+    "target": "topic",
+    "op": "set",
+    "path": ["repository_path"],
+    "value": "C:/private/docs/source.md",
+    "expected_code": "platform_help.schema_invalid"
+  },
+  {
+    "id": "active-body-kind",
+    "target": "topic",
+    "op": "set",
+    "path": ["body", 0, "node_kind"],
+    "value": "html",
+    "expected_code": "platform_help.schema_invalid"
+  },
+  {
+    "id": "topic-digest-mismatch",
+    "target": "topic",
+    "op": "set",
+    "path": ["topic_digest"],
+    "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "expected_code": "platform_help.digest_mismatch"
+  },
+  {
+    "id": "private-reviewer-field",
+    "target": "topic",
+    "op": "set",
+    "path": ["source_references", 0, "reviewer"],
+    "value": "private-reviewer",
+    "expected_code": "platform_help.schema_invalid"
+  },
+  {
+    "id": "oversized-page",
+    "target": "search_request",
+    "op": "set",
+    "path": ["page_size"],
+    "value": 51,
+    "expected_code": "platform_help.schema_invalid"
+  },
+  {
+    "id": "missing-corpus-digest",
+    "target": "search_page",
+    "op": "remove",
+    "path": ["corpus_digest"],
+    "expected_code": "platform_help.schema_invalid"
+  },
+  {
+    "id": "result-external-url",
+    "target": "search_page",
+    "op": "set",
+    "path": ["results", 0, "url"],
+    "value": "https://example.invalid/instruction",
+    "expected_code": "platform_help.schema_invalid"
+  }
+]

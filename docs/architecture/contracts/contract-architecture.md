@@ -12,6 +12,7 @@
 | Events | JSON Schema in a standard event envelope | Schema files under `contracts/events/` |
 | Provider/plugin manifests | JSON Schema | Schema files under `contracts/providers/` |
 | Portable learning and finance records | JSON Schema | Schema files under `contracts/learning/` and `contracts/finance/` |
+| Platform guidance projections | JSON Schema | Schema files under `contracts/guidance/` |
 | Internal application operations | Typed Python request/result models | Owning module public application surface |
 | Frontend client | Generated TypeScript | Generated from reviewed OpenAPI; never hand-edited |
 
@@ -127,6 +128,20 @@ The platform browser adapter separately owns the versioned local learning-
 reminder envelope. Its `in_app_when_available` value records future local
 intent only. It has no learner identity, public API, headless meaning,
 permission-prompt, schedule, queue, worker, destination, or delivery authority.
+
+Versioned platform help additionally follows the
+[platform-help contract](platform-help-contract.md). Guidance owns the safe
+projection and literal-search policy only; canonical product, domain,
+architecture, contract, risk, and method sources retain their meaning. Exact
+topic versions use an inert closed body-node union, safe source facts, and a
+canonical digest. The contract has no raw markup, path, arbitrary URL, private
+review data, learner state, model/provider output, or external instruction.
+
+The additive `platform-help/v1` family fixes exact topic, search request, and
+search page shapes plus deterministic canonicalization, atomic corpus
+admission, exact-version lookup, literal ranking, and corpus-bound cursor
+meaning. The initial pure seam persists nothing and exposes no API or browser
+surface; those are separately qualified dependent delivery seams.
 
 Portable financial methods, portfolio records, and simulation results
 additionally follow

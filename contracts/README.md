@@ -5,6 +5,7 @@ This directory is reserved for reviewed, executable, language-neutral contract a
 ```text
 api/             generated OpenAPI snapshot
 common/          shared structural schemas
+guidance/        versioned platform-help and guidance records
 events/          versioned event schemas and envelope
 providers/       provider and plugin manifests/capabilities
 learning/        portable learning records
@@ -18,3 +19,7 @@ Implemented contract families include the versioned lesson package and the
 initial deterministic Assessment v1 learning/evidence records plus its
 Assessment-owned completion event. See `learning/README.md`,
 `events/README.md`, and `compatibility/README.md` for executable evidence.
+
+The Guidance-owned `platform-help/v1` family defines inert exact-version help
+topics and deterministic literal-search records without making repository
+documentation, AI output, or the browser a source of authority.

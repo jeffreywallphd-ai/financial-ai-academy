@@ -17,6 +17,7 @@
 | Portfolio | accepted for initial financial lane; implementation pending | Simulated accounts, cash/transactions, positions, valuation, benchmarks, performance/risk, scenarios, backtests, and simulation results | Portfolio and simulation results |
 | Project | accepted; shell, workspace, inert-artifact, snapshot persistence and protected API implemented | Learner Project identity, charter, immutable accepted origin, lifecycle, mutable workspace, snapshots, and typed references without taking authority from referenced modules | Project shell, live workspace, inert artifact, immutable snapshot, and evidence-export records |
 | Personal workspace | accepted; base contract, persistence, closed Curriculum/Project dispatcher, protected API/generated client, Curriculum browser flow, and Project-reference contract/adapter implemented | Learner-owned notes, bookmarks, collections, organization state, and typed references without taking authority from referenced modules | Project-reference browser entry points and lifecycle events remain CAP-0017 work |
+| Guidance | accepted for platform-help projection; contract and pure search core implemented | Safe versioned platform explanations, canonical-source facts, exact topic integrity, and deterministic literal search | Public API, reviewed corpus, contextual links, browser presentation, and live qualification remain CAP-0020 work |
 | AI orchestration | proposed | Model-provider gateway, prompt/model policy, grounded generation, evaluation hooks | AI execution records |
 | Audit | accepted; knowledge-check and Project completion references implemented | Append-oriented decision, provenance, administrative evidence, and source-event integrity references | Exportable audit records remain future work |
 
@@ -41,6 +42,10 @@
   Its typed references never copy target business state, grant permission, or
   mutate Content, Curriculum, Assessment, Learner model, Project, or later
   domain owners.
+- Guidance owns only safe versioned product projections and their literal-
+  search policy. Product, domain, architecture, contract, risk, and method
+  sources retain semantic authority; Guidance has no grading, eligibility,
+  learner-state, provider/model, financial-action, or external-action power.
 - Content owns ADR-0007 package identity, publication, lesson body, educational-source provenance, and storage references. Assessment owns the meaning and runtime use of packaged assessment definitions.
 - Content owns approved learning-project brief meaning and Curriculum owns its
   exact learning placement. Project accepts exact public references and owns
@@ -116,6 +121,25 @@ aggregate and exact replay without cross-schema foreign keys, while the
 protected API binds learner identity from the server session and is shared by
 generated browser and headless clients. The seam has no provider, model,
 execution, cross-module mutation, or browser-interface dependency.
+
+## Implemented Guidance Platform-Help Baseline
+
+- `platform-help/v1` defines strict exact topic, search request, and search page
+  shapes with no raw markup, private path, arbitrary URL, prompt, reviewer,
+  approval, learner identity, provider payload, or executable instruction.
+- The framework-free domain validates closed safe body nodes, publication and
+  source facts, canonical digests, unique exact identities, and complete
+  related/body references before admitting any topic.
+- Exact reads require ID and semantic version and never substitute another
+  version. Search uses closed Unicode case-folded literal ranking and a cursor
+  bound to query, filter, corpus digest, and position.
+- The core exposes only a Guidance-owned read protocol and a strict mapping
+  adapter. It imports no FastAPI, SQLAlchemy, filesystem, network, Web,
+  provider, model, grading, eligibility, or financial-action code.
+- Contract and pure unit tests cover safe-node and confidentiality denials,
+  canonicalization, Unicode preservation, varied valid corpus sizes/order,
+  deterministic ranking/paging, stale cursor rejection, dangling references,
+  digest/chronology failure, and no latest-version substitution.
 
 ## Implemented Adaptation Deterministic Baseline
 

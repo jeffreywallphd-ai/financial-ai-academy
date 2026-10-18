@@ -1,0 +1,6 @@
+{
+  "schema_version": "1.0.0",
+  "query": " approved   HELP ",
+  "topic_kind": "help",
+  "page_size": 10
+}

@@ -22,3 +22,6 @@ explicitly approved breaking-change records live here.
 - [`learner-model-practice-history/v1/`](learner-model-practice-history/v1/README.md)
   fixes rebuildable ordered attempt summaries, source digests, confidentiality,
   and duplicate-replay behavior.
+- [`platform-help/v1/`](platform-help/v1/README.md) fixes exact-version safe
+  topics, canonical digests, deterministic literal search, cursor binding, and
+  bounded denials without admitting active content or private repository data.
