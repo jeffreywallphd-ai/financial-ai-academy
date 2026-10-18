@@ -572,6 +572,8 @@ def _normalize_document(
             ),
         )
     )
+    if len(transformations) > 128:
+        raise InvalidAccountableHistory("transformations")
     transformation_keys = {
         (item.source_entry_id, item.target_entry_id, item.relation)
         for item in transformations

@@ -115,8 +115,9 @@ The additive `accountable-history/v1` executable contract now freezes a
 purpose-limited read model over an already authorized learning-lineage root.
 It defines reviewed plain display text, bounded exact technical facts, safe
 diagnostics, explicit gaps, redaction category counts, deterministic disclosed-
-content digests, and an ephemeral portable evidence wrapper. This contract-only
-seam imports no Audit product code and currently adds no composer, permission,
+content digests, and an ephemeral portable evidence wrapper. Its executable
+contract runner imports no Audit product code. The shared core described below
+now supplies the composer and strict mapping adapter, but adds no permission,
 public operation, endpoint, generated client, browser, persistence, migration,
 retained export, tenant/admin policy, provider/model action, or history change.
 

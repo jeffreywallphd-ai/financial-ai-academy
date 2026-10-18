@@ -254,6 +254,38 @@ def test_mapping_is_closed_and_copy_cannot_cross_purpose_or_root() -> None:
         accountable_history_document_from_mapping(false_redaction_count)
 
 
+def test_mapping_rejects_more_transformations_than_the_frozen_contract() -> None:
+    document = compose_accountable_history(
+        _lesson_lineage(20), AccountableHistoryPurpose.LEARNER_REVIEW
+    )
+    payload = accountable_history_payload(document)
+    entry_ids = [entry["entry_id"] for entry in payload["entries"]]
+    relations = [relation.value for relation in RelationKind]
+    transformations = [
+        {
+            "source_entry_id": source,
+            "target_entry_id": target,
+            "relation": relation,
+        }
+        for source in entry_ids
+        for target in entry_ids
+        for relation in relations
+        if source != target
+    ][:129]
+    oversized = copy.deepcopy(payload)
+    oversized["transformations"] = transformations
+
+    schema_errors = list(
+        Draft202012Validator(
+            _schema("document.schema.json"), format_checker=FormatChecker()
+        ).iter_errors(oversized)
+    )
+    assert any(error.validator == "maxItems" for error in schema_errors)
+    with pytest.raises(InvalidAccountableHistory) as invalid:
+        accountable_history_document_from_mapping(oversized)
+    assert invalid.value.reference == "transformations"
+
+
 def test_changed_lineage_digest_fails_without_partial_history() -> None:
     lineage = _lineage("lineage-view.json")
     changed = replace(lineage, view_digest="f" * 64)
