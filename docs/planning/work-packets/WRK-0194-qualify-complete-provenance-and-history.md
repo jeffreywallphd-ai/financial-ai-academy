@@ -1,7 +1,7 @@
 ---
 id: WRK-0194
 kind: work-packet
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -223,3 +223,6 @@ tenancy/admin, financial, managed-retention, or managed-cloud behavior changed.
   first topology run reached and passed the provenance/history phases before an
   unrelated presentation-preference race failed; an exact clean rerun passed
   the entire topology and bounded cleanup.
+- 2026-10-18: Submitted exact implementation candidate `366c7ee` and moved to
+  deterministic affected verification. The lifecycle reconciliation below
+  changes only tracked planning state and evidence, not product behavior.

@@ -1,7 +1,7 @@
 ---
 id: SLI-0109
 kind: vertical-slice
-planning_status: active
+planning_status: verifying
 authority: noncanonical
 owner: codex-cap-0026
 updated: 2026-10-18
@@ -185,7 +185,7 @@ existing complete evidence rather than duplicating it:
 
 | Packet ID | Objective | Dependencies | Parallel-safe with | Planning status |
 | --- | --- | --- | --- | --- |
-| [WRK-0194](../work-packets/WRK-0194-qualify-complete-provenance-and-history.md) | Add only the minimum missing retention-seam, bounds, rebuild, adapter-neutral, or cumulative assertions; run complete browser/headless/live qualification; reconcile evidence; and close CAP-0026 | WRK-0183, WRK-0188, WRK-0193 | none | active |
+| [WRK-0194](../work-packets/WRK-0194-qualify-complete-provenance-and-history.md) | Add only the minimum missing retention-seam, bounds, rebuild, adapter-neutral, or cumulative assertions; run complete browser/headless/live qualification; reconcile evidence; and close CAP-0026 | WRK-0183, WRK-0188, WRK-0193 | none | verifying |
 
 Detailed file scope, generated artifacts, selected checks, and stop conditions
 are frozen at packet start. The packet must not create redundant runners or new
@@ -276,3 +276,6 @@ satisfy its acceptance scenarios.
   imports now complement the complete existing replay, rebuild, conflict,
   conformance, API/browser, restart, accessibility, containment, and cleanup
   suites without adding product behavior or selecting a managed policy.
+- 2026-10-18: Submitted the clean implementation candidate for controller-
+  selected affected verification and moved the slice to deterministic
+  verification; no new scope or decision was introduced.
