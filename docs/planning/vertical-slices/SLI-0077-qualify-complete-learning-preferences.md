@@ -1,9 +1,9 @@
 ---
 id: SLI-0077
 kind: vertical-slice
-planning_status: ready
+planning_status: active
 authority: noncanonical
-owner: unassigned
+owner: codex-cap-0018
 updated: 2026-10-18
 parent: CAP-0018
 depends_on: [SLI-0074, SLI-0075, SLI-0076]

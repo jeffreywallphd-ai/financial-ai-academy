@@ -1,7 +1,7 @@
 ---
 id: WRK-0164
 kind: work-packet
-planning_status: ready
+planning_status: active
 authority: noncanonical
 owner: codex-cap-0018
 updated: 2026-10-18
@@ -12,10 +12,10 @@ decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/capabilities/CAP-0018-set-learning-goals-and-preferences.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0077-qualify-complete-learning-preferences.md", "docs/planning/work-packets/WRK-0164-qualify-complete-learning-preferences.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: []
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: d727791781679f9ab8cc22c2353e9ee7083bee48
+claim_id: WRK-0164:1dd5c894-015b-49c9-9495-c7e137fc06c1
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-18T01:46:42Z
 ---
 
 # Agent Work Packet: Qualify Complete Learning Preferences
@@ -224,3 +224,7 @@ SLI-0077 and CAP-0018 deterministically.
   final qualification packets completed. The packet reuses one established
   topology and adds only missing composite isolation evidence. It preserves the
   approved CAP-0018 package and requires no lower-level approval.
+- 2026-10-18: Activated from recorded base `d727791` after validating current
+  CAP authority, all three complete dependencies, the exact write scope, and no
+  active coordination collision. The packet-start manifest selected affected
+  verification and one independent technical review.
