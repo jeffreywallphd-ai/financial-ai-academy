@@ -124,10 +124,20 @@ test("preserves AI-help choice while keeping future reminders in this browser", 
   await page.getByRole("radio", { name: /Allow in-app reminders when available/i }).check();
   await page.getByRole("button", { name: "Save this-browser choice" }).click();
   await expect(page.getByText("This browser is using the saved choice.")).toBeVisible();
-  expect(observedRequests.slice(requestsBeforeLocalSave)).toEqual([{
+  const localSaveRequests = observedRequests.slice(requestsBeforeLocalSave);
+  expect(localSaveRequests).toContainEqual({
     method: "GET",
     path: "/api/v1/learner-assistance-preferences/export",
-  }]);
+  });
+  expect(
+    localSaveRequests.every(
+      ({ method, path }) =>
+        method === "GET" &&
+        (path === "/api/v1/learner-assistance-preferences/export" ||
+          path ===
+            "/api/v1/guidance/contextual-help/ai-assistance/versions/1.0.0"),
+    ),
+  ).toBe(true);
   const savedLocal = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null"), LOCAL_KEY);
   expect(savedLocal).toMatchObject({ revision: 2, reminder_mode: "in_app_when_available" });
   expect(savedLocal).not.toHaveProperty("learner_id");

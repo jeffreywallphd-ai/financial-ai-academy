@@ -4699,11 +4699,96 @@ def platform_help_page(
     return document
 
 
+def contextual_help(
+    context_key: str,
+    references: list[tuple[str, str]],
+) -> dict[str, Any]:
+    return {
+        "schema_version": "1.0.0",
+        "context_key": context_key,
+        "context_version": "1.0.0",
+        "feature_label": context_key.replace("-", " ").title(),
+        "applicability": [
+            {
+                "scope_key": context_key,
+                "label": f"Reviewed {context_key.replace('-', ' ')} context",
+            }
+        ],
+        "help_references": [
+            {
+                "topic_id": topic_id,
+                "topic_version": "1.0.0",
+                "purpose": purpose,
+                "label": f"Open {topic_id.replace('-', ' ')}",
+            }
+            for topic_id, purpose in references
+        ],
+        "publication": {
+            "state": "approved",
+            "reviewed_on": "2026-10-18",
+            "updated_at": "2026-10-18T00:00:00Z",
+        },
+        "source_references": [
+            {
+                "source_key": f"{context_key}-source",
+                "title": "Reviewed context source",
+                "area": "architecture",
+                "source_version": "2026-10-18",
+                "content_fingerprint": hashlib.sha256(
+                    f"{context_key}-source".encode("utf-8")
+                ).hexdigest(),
+            }
+        ],
+        "context_digest": hashlib.sha256(context_key.encode("utf-8")).hexdigest(),
+    }
+
+
 def platform_help_capture() -> dict[str, Any]:
     approved = platform_help_result("approved-help", topic_kind="glossary")
     education = platform_help_result("education-not-advice", topic_kind="limitation")
     ai_help = platform_help_result("how-ai-help-is-controlled", topic_kind="limitation")
     methods = platform_help_result("platform-methods", topic_kind="method")
+    contexts = {
+        "ai-assistance": contextual_help(
+            "ai-assistance", [("how-ai-help-is-controlled", "ai_boundary")]
+        ),
+        "lesson-publication": contextual_help(
+            "lesson-publication",
+            [
+                ("source-and-history", "source"),
+                ("education-not-advice", "education_boundary"),
+            ],
+        ),
+        "practice-result": contextual_help(
+            "practice-result",
+            [
+                ("data-meaning", "data_meaning"),
+                ("education-not-advice", "education_boundary"),
+            ],
+        ),
+        "project-result": contextual_help(
+            "project-result",
+            [
+                ("data-meaning", "data_meaning"),
+                ("source-and-history", "source"),
+                ("platform-methods", "method"),
+                ("education-not-advice", "education_boundary"),
+            ],
+        ),
+    }
+    context_topic_kinds = {
+        "data-meaning": "glossary",
+        "education-not-advice": "limitation",
+        "how-ai-help-is-controlled": "limitation",
+        "platform-methods": "method",
+        "source-and-history": "help",
+    }
+    context_topics = {
+        f"{topic_id}@1.0.0": platform_help_topic(
+            topic_id, topic_kind=topic_kind
+        )
+        for topic_id, topic_kind in context_topic_kinds.items()
+    }
     cursor = "closed-cursor-1"
     limitation_cursor = "closed-cursor-2"
     return {
@@ -4733,6 +4818,8 @@ def platform_help_capture() -> dict[str, Any]:
         "limitation_continuation": platform_help_page(
             [ai_help], topic_kind="limitation"
         ),
+        "contexts": contexts,
+        "context_topics": context_topics,
         "expected": {
             "external_request_count": 0,
             "guidance_methods": ["GET"],
@@ -4752,6 +4839,11 @@ def test_platform_help_capture_is_closed_correlated_and_anti_rigid(
 
     assert runner.load_platform_help_capture(path, data_root=tmp_path) == capture
 
+    reordered = deepcopy(capture)
+    reordered["contexts"]["project-result"]["help_references"].reverse()
+    path.write_text(json.dumps(reordered), encoding="utf-8")
+    assert runner.load_platform_help_capture(path, data_root=tmp_path) == reordered
+
     extra = deepcopy(capture)
     extra["debug"] = "not public"
     path.write_text(json.dumps(extra), encoding="utf-8")
@@ -4762,6 +4854,20 @@ def test_platform_help_capture_is_closed_correlated_and_anti_rigid(
     private["approved_topic"]["learner_id"] = "not-allowed"
     path.write_text(json.dumps(private), encoding="utf-8")
     with pytest.raises(RuntimeError, match="not closed"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    missing_topic = deepcopy(capture)
+    missing_topic["context_topics"].pop("data-meaning@1.0.0")
+    path.write_text(json.dumps(missing_topic), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="bind every exact topic"):
+        runner.load_platform_help_capture(path, data_root=tmp_path)
+
+    duplicate_purpose = deepcopy(capture)
+    duplicate_purpose["contexts"]["project-result"]["help_references"][1][
+        "purpose"
+    ] = "data_meaning"
+    path.write_text(json.dumps(duplicate_purpose), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="invalid or duplicated"):
         runner.load_platform_help_capture(path, data_root=tmp_path)
 
 

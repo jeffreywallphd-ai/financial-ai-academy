@@ -10,7 +10,7 @@ capability: CAP-0020
 depends_on: [WRK-0172]
 decision_gates: []
 parallel_safe_with: []
-write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0173-qualify-contextual-help-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
+write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/assistance-preferences.e2e.ts", "apps/web/tests/browser/approved-lesson/platform-help.e2e.ts", "backend/src/financial_ai_academy/modules/guidance/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0083-open-contextual-method-and-limitation-help.md", "docs/planning/work-packets/WRK-0173-qualify-contextual-help-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
 base_revision: 5fcd3f170bf6b3cd367696871d9d8ef943695766
 claim_id: WRK-0173:f702184a-1eea-4c51-a37e-f47be1e60717
@@ -89,6 +89,7 @@ an ownership collision, or material CAP/slice drift.
 | Boundary | Allowed change | Evidence target |
 | --- | --- | --- |
 | Live Chromium | approved-lesson Help journey | Four feature-context links, exact topics, safe returns, keyboard/accessibility, no non-loopback Help traffic |
+| Existing assistance containment | approved-lesson assistance assertion only | Permit the optional exact contextual GET while retaining the no-unapproved-write rule |
 | Live orchestration | approved-lesson runner | Browser/headless parity, denial, restart, containment, cleanup |
 | Pure qualification | approved-lesson replay tests | Closed capture, varied-valid references/order, restart and path safety |
 | Static browser | `apps/web/dist` generated output | Qualify the exact accepted candidate |
@@ -213,3 +214,7 @@ changed, then leave SLI-0083 closure-ready.
   smallest final qualification seam for SLI-0083 and reuses the established
   disposable Help topology without a new product decision or lower-level
   approval.
+- 2026-10-18: The first isolated live pass reached contextual qualification and
+  exposed one stale assistance-harness assertion that froze an exact GET count.
+  Scope now includes only that assertion so optional exact Help rereads are
+  admitted while every unapproved write remains forbidden.

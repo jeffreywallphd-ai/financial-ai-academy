@@ -3,14 +3,24 @@ import { expect, test, type Page, type Response } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 
 import {
+  contextualHelpIsSafe,
   platformHelpSearchPageIsSafe,
   platformHelpTopicIsSafe,
+  type ContextualHelp,
   type PlatformHelpSearchPage,
   type PlatformHelpTopic,
 } from "../../../src/features/platform-help/model";
 
 
 const HELP_API = "/api/v1/guidance/platform-help";
+const CONTEXT_API = "/api/v1/guidance/contextual-help";
+const CONTEXT_VERSION = "1.0.0";
+const CONTEXT_KEYS = [
+  "ai-assistance",
+  "lesson-publication",
+  "practice-result",
+  "project-result",
+] as const;
 
 function isLoopback(url: URL): boolean {
   return url.hostname === "127.0.0.1" || url.hostname === "localhost" || url.hostname === "[::1]";
@@ -23,6 +33,29 @@ function isSearchResponse(response: Response): boolean {
 function isTopicResponse(response: Response): boolean {
   const url = new URL(response.url());
   return url.pathname.startsWith(`${HELP_API}/`) && response.request().method() === "GET";
+}
+
+function isContextResponse(response: Response, contextKey: string): boolean {
+  const url = new URL(response.url());
+  return url.pathname ===
+    `${CONTEXT_API}/${contextKey}/versions/${CONTEXT_VERSION}` &&
+    response.request().method() === "GET";
+}
+
+async function openContextualFeature(
+  page: Page,
+  url: string,
+  contextKey: string,
+): Promise<ContextualHelp> {
+  const responsePromise = page.waitForResponse((response) =>
+    isContextResponse(response, contextKey),
+  );
+  await page.goto(url);
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+  const document = (await response.json()) as ContextualHelp;
+  expect(contextualHelpIsSafe(document, contextKey, CONTEXT_VERSION)).toBe(true);
+  return document;
 }
 
 async function openSearch(page: Page, url: string): Promise<PlatformHelpSearchPage> {
@@ -50,6 +83,7 @@ async function followTopic(page: Page, action: () => Promise<void>): Promise<Pla
 }
 
 test("keeps reviewed platform help available through one local public API", async ({
+  context,
   page,
 }) => {
   test.setTimeout(90_000);
@@ -58,7 +92,7 @@ test("keeps reviewed platform help available through one local public API", asyn
   page.on("request", (request) => {
     const url = new URL(request.url());
     if (!isLoopback(url)) externalRequests.push(url.origin);
-    if (url.pathname.startsWith(HELP_API)) {
+    if (url.pathname.startsWith(HELP_API) || url.pathname.startsWith(CONTEXT_API)) {
       guidanceRequests.push({ method: request.method(), path: url.pathname });
     }
   });
@@ -135,6 +169,85 @@ test("keeps reviewed platform help available through one local public API", asyn
     limitationPage.results[0]?.topic_id,
   );
 
+  const lessonContext = await openContextualFeature(
+    page,
+    "/learn/placements/intro-risk-return-primary",
+    "lesson-publication",
+  );
+  await expect(
+    page.getByRole("heading", {
+      level: 3,
+      name: `Questions about ${lessonContext.feature_label}`,
+    }),
+  ).toBeVisible();
+  const lessonReference = lessonContext.help_references[0]!;
+  const lessonTopic = await followTopic(page, async () => {
+    await page.getByRole("link", { name: lessonReference.label }).click();
+  });
+  expect(
+    platformHelpTopicIsSafe(
+      lessonTopic,
+      lessonReference.topic_id,
+      lessonReference.topic_version,
+    ),
+  ).toBe(true);
+  const returnedLessonContext = page.waitForResponse((response) =>
+    isContextResponse(response, "lesson-publication"),
+  );
+  await page.getByRole("link", { name: "Return to lesson" }).click();
+  expect((await returnedLessonContext).status()).toBe(200);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Risk and return basics" }),
+  ).toBeVisible();
+
+  const assistanceContext = await openContextualFeature(
+    page,
+    "/preferences/assistance",
+    "ai-assistance",
+  );
+  await expect(
+    page.getByRole("heading", {
+      level: 3,
+      name: `Questions about ${assistanceContext.feature_label}`,
+    }),
+  ).toBeVisible();
+
+  const contexts: Record<string, ContextualHelp> = {
+    "ai-assistance": assistanceContext,
+    "lesson-publication": lessonContext,
+  };
+  for (const contextKey of CONTEXT_KEYS) {
+    if (contexts[contextKey]) continue;
+    const response = await context.request.get(
+      `${CONTEXT_API}/${contextKey}/versions/${CONTEXT_VERSION}`,
+    );
+    expect(response.status()).toBe(200);
+    const document = (await response.json()) as ContextualHelp;
+    expect(contextualHelpIsSafe(document, contextKey, CONTEXT_VERSION)).toBe(true);
+    contexts[contextKey] = document;
+  }
+
+  const contextTopics: Record<string, PlatformHelpTopic> = {};
+  for (const document of Object.values(contexts)) {
+    for (const reference of document.help_references) {
+      const identity = `${reference.topic_id}@${reference.topic_version}`;
+      if (contextTopics[identity]) continue;
+      const response = await context.request.get(
+        `${HELP_API}/${reference.topic_id}/versions/${reference.topic_version}`,
+      );
+      expect(response.status()).toBe(200);
+      const topic = (await response.json()) as PlatformHelpTopic;
+      expect(
+        platformHelpTopicIsSafe(
+          topic,
+          reference.topic_id,
+          reference.topic_version,
+        ),
+      ).toBe(true);
+      contextTopics[identity] = topic;
+    }
+  }
+
   for (const theme of ["light", "dark", "system"] as const) {
     await page.getByLabel("Theme").selectOption(theme);
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
@@ -159,7 +272,9 @@ test("keeps reviewed platform help available through one local public API", asyn
   expect(guidanceRequests.every(({ method }) => method === "GET")).toBe(true);
   expect(
     guidanceRequests.every(({ path }) =>
-      path === HELP_API || /^\/api\/v1\/guidance\/platform-help\/[a-z0-9._-]+\/versions\/\d+\.\d+\.\d+$/.test(path),
+      path === HELP_API ||
+      /^\/api\/v1\/guidance\/platform-help\/[a-z0-9._-]+\/versions\/\d+\.\d+\.\d+$/.test(path) ||
+      /^\/api\/v1\/guidance\/contextual-help\/[a-z0-9._-]+\/versions\/\d+\.\d+\.\d+$/.test(path),
     ),
   ).toBe(true);
 
@@ -178,6 +293,8 @@ test("keeps reviewed platform help available through one local public API", asyn
         related_topic: relatedTopic,
         limitation_page: limitationPage,
         limitation_continuation: limitationContinuation,
+        contexts,
+        context_topics: contextTopics,
         expected: {
           external_request_count: externalRequests.length,
           guidance_methods: [...new Set(guidanceRequests.map(({ method }) => method))],

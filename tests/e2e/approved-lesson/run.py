@@ -253,6 +253,8 @@ PLATFORM_HELP_CAPTURE_ROOT_KEYS = frozenset(
         "related_topic",
         "limitation_page",
         "limitation_continuation",
+        "contexts",
+        "context_topics",
         "expected",
     }
 )
@@ -306,6 +308,31 @@ PLATFORM_HELP_PRIVATE_KEYS = frozenset(
         "storage_locator",
         "token",
     }
+)
+CONTEXTUAL_HELP_KEYS = (
+    "ai-assistance",
+    "lesson-publication",
+    "practice-result",
+    "project-result",
+)
+CONTEXTUAL_HELP_ROOT_KEYS = frozenset(
+    {
+        "schema_version",
+        "context_key",
+        "context_version",
+        "feature_label",
+        "applicability",
+        "help_references",
+        "publication",
+        "source_references",
+        "context_digest",
+    }
+)
+CONTEXTUAL_HELP_REFERENCE_KEYS = frozenset(
+    {"topic_id", "topic_version", "purpose", "label"}
+)
+CONTEXTUAL_HELP_PURPOSES = frozenset(
+    {"method", "source", "data_meaning", "ai_boundary", "education_boundary"}
 )
 PRACTICE_REVIEW_TARGET_COMMON_KEYS = frozenset(
     {
@@ -3627,6 +3654,95 @@ def _stable_platform_help_sources(value: object) -> list[dict[str, Any]]:
     return observed
 
 
+def stable_contextual_help(
+    value: dict[str, Any],
+    *,
+    context_key: str,
+    context_version: str = "1.0.0",
+) -> dict[str, Any]:
+    _exact_keys(value, CONTEXTUAL_HELP_ROOT_KEYS, "Contextual Help document")
+    if (
+        value.get("schema_version") != "1.0.0"
+        or value.get("context_key") != context_key
+        or value.get("context_version") != context_version
+        or re.fullmatch(r"[a-z0-9][a-z0-9._-]{2,63}", context_key) is None
+        or re.fullmatch(
+            r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)",
+            context_version,
+        )
+        is None
+        or not isinstance(value.get("feature_label"), str)
+        or not 1 <= len(value["feature_label"]) <= 160
+    ):
+        raise RuntimeError("Contextual Help identity is invalid.")
+
+    applicability = value.get("applicability")
+    if not isinstance(applicability, list) or not 1 <= len(applicability) <= 20:
+        raise RuntimeError("Contextual Help applicability is invalid.")
+    scope_keys: set[str] = set()
+    for item in applicability:
+        if not isinstance(item, dict):
+            raise RuntimeError("Contextual Help applicability is not an object.")
+        _exact_keys(
+            item,
+            frozenset({"scope_key", "label"}),
+            "Contextual Help applicability",
+        )
+        scope_key = item.get("scope_key")
+        if (
+            not isinstance(scope_key, str)
+            or re.fullmatch(r"[a-z0-9][a-z0-9._-]{2,63}", scope_key) is None
+            or scope_key in scope_keys
+            or not isinstance(item.get("label"), str)
+            or not 1 <= len(item["label"]) <= 160
+        ):
+            raise RuntimeError("Contextual Help applicability is invalid or duplicated.")
+        scope_keys.add(scope_key)
+
+    references = value.get("help_references")
+    if not isinstance(references, list) or not 1 <= len(references) <= 10:
+        raise RuntimeError("Contextual Help references are invalid.")
+    identities: set[str] = set()
+    purposes: set[str] = set()
+    for reference in references:
+        if not isinstance(reference, dict):
+            raise RuntimeError("Contextual Help reference is not an object.")
+        _exact_keys(
+            reference,
+            CONTEXTUAL_HELP_REFERENCE_KEYS,
+            "Contextual Help reference",
+        )
+        topic_id = reference.get("topic_id")
+        topic_version = reference.get("topic_version")
+        purpose = reference.get("purpose")
+        identity = f"{topic_id}@{topic_version}"
+        if (
+            not isinstance(topic_id, str)
+            or re.fullmatch(r"[a-z0-9][a-z0-9._-]{2,63}", topic_id) is None
+            or not isinstance(topic_version, str)
+            or re.fullmatch(
+                r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)",
+                topic_version,
+            )
+            is None
+            or purpose not in CONTEXTUAL_HELP_PURPOSES
+            or identity in identities
+            or purpose in purposes
+            or not isinstance(reference.get("label"), str)
+            or not 1 <= len(reference["label"]) <= 160
+        ):
+            raise RuntimeError("Contextual Help reference is invalid or duplicated.")
+        identities.add(identity)
+        purposes.add(purpose)
+
+    _stable_platform_help_publication(value.get("publication"))
+    _stable_platform_help_sources(value.get("source_references"))
+    _platform_help_digest(
+        value.get("context_digest"), label="Contextual Help context digest"
+    )
+    return copy.deepcopy(value)
+
+
 def _stable_platform_help_result(value: object) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise RuntimeError("Platform Help search result is not an object.")
@@ -3763,6 +3879,37 @@ def load_platform_help_capture(path: Path, *, data_root: Path) -> dict[str, Any]
             capture["related_topic"], topic_id="education-not-advice", topic_version="1.0.0"
         ),
     }
+    captured_contexts = capture.get("contexts")
+    if (
+        not isinstance(captured_contexts, dict)
+        or set(captured_contexts) != set(CONTEXTUAL_HELP_KEYS)
+    ):
+        raise RuntimeError("Contextual Help capture does not contain every feature context.")
+    contexts = {
+        context_key: stable_contextual_help(
+            captured_contexts[context_key], context_key=context_key
+        )
+        for context_key in CONTEXTUAL_HELP_KEYS
+    }
+    expected_topic_identities = {
+        f"{reference['topic_id']}@{reference['topic_version']}"
+        for context in contexts.values()
+        for reference in context["help_references"]
+    }
+    captured_context_topics = capture.get("context_topics")
+    if (
+        not isinstance(captured_context_topics, dict)
+        or set(captured_context_topics) != expected_topic_identities
+    ):
+        raise RuntimeError("Contextual Help capture does not bind every exact topic.")
+    context_topics: dict[str, dict[str, Any]] = {}
+    for identity in sorted(expected_topic_identities):
+        topic_id, topic_version = identity.split("@", maxsplit=1)
+        context_topics[identity] = stable_platform_help_topic(
+            captured_context_topics[identity],
+            topic_id=topic_id,
+            topic_version=topic_version,
+        )
     corpus_digests = {page["corpus_digest"] for page in pages.values()}
     if len(corpus_digests) != 1:
         raise RuntimeError("Platform Help pages disagree on the corpus digest.")
@@ -3794,6 +3941,11 @@ def load_platform_help_capture(path: Path, *, data_root: Path) -> dict[str, Any]
         for relation in topics["approved_topic"]["related_topics"]
     ):
         raise RuntimeError("Platform Help exact relation is absent.")
+    for context in contexts.values():
+        for reference in context["help_references"]:
+            identity = f"{reference['topic_id']}@{reference['topic_version']}"
+            if identity not in context_topics:
+                raise RuntimeError("Contextual Help exact topic correlation is absent.")
     expected = capture.get("expected")
     if expected != {"external_request_count": 0, "guidance_methods": ["GET"]}:
         raise RuntimeError("Platform Help request containment was not observed.")
@@ -3840,6 +3992,39 @@ def observe_headless_platform_help(
         )
     ):
         raise RuntimeError("Platform Help authorization denial exposed corpus facts.")
+
+    context_status, context_denial = _request_json_read_status(
+        unauthenticated,
+        origin=origin,
+        path=(
+            "/api/v1/guidance/contextual-help/lesson-publication/"
+            "versions/1.0.0"
+        ),
+    )
+    _exact_keys(
+        context_denial,
+        frozenset({"error_version", "code", "message", "correlation_id"}),
+        "Contextual Help authorization denial",
+    )
+    serialized_context_denial = json.dumps(
+        context_denial, sort_keys=True
+    ).casefold()
+    if (
+        context_status != 401
+        or context_denial.get("code") != "unauthorized"
+        or any(
+            marker in serialized_context_denial
+            for marker in (
+                "context_digest",
+                "education-not-advice",
+                "lesson-publication",
+                "source-and-history",
+            )
+        )
+    ):
+        raise RuntimeError(
+            "Contextual Help authorization denial exposed registry facts."
+        )
 
     cookies = http.cookiejar.CookieJar()
     opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookies))
@@ -3937,6 +4122,40 @@ def observe_headless_platform_help(
             topic_version="1.0.0",
         ),
     }
+    contexts = {
+        context_key: stable_contextual_help(
+            _request_json(
+                opener,
+                origin=origin,
+                path=(
+                    f"/api/v1/guidance/contextual-help/{context_key}/"
+                    "versions/1.0.0"
+                ),
+            ),
+            context_key=context_key,
+        )
+        for context_key in CONTEXTUAL_HELP_KEYS
+    }
+    exact_topic_identities = {
+        f"{reference['topic_id']}@{reference['topic_version']}"
+        for context in contexts.values()
+        for reference in context["help_references"]
+    }
+    context_topics: dict[str, dict[str, Any]] = {}
+    for identity in sorted(exact_topic_identities):
+        topic_id, topic_version = identity.split("@", maxsplit=1)
+        context_topics[identity] = stable_platform_help_topic(
+            _request_json(
+                opener,
+                origin=origin,
+                path=(
+                    f"/api/v1/guidance/platform-help/{topic_id}/"
+                    f"versions/{topic_version}"
+                ),
+            ),
+            topic_id=topic_id,
+            topic_version=topic_version,
+        )
     observed = {
         "first_page": first,
         "continued_page": continued,
@@ -3945,6 +4164,8 @@ def observe_headless_platform_help(
         **topics,
         "limitation_page": limitation,
         "limitation_continuation": limitation_continued,
+        "contexts": contexts,
+        "context_topics": context_topics,
     }
     expected = {key: capture[key] for key in observed}
     if observed != expected:
@@ -8658,6 +8879,14 @@ def main() -> int:
                 "browser_generated_client": True,
                 "browser_headless_parity": True,
                 "checked_in_corpus_available": True,
+                "context_digests": {
+                    context_key: platform_help["contexts"][context_key][
+                        "context_digest"
+                    ]
+                    for context_key in CONTEXTUAL_HELP_KEYS
+                },
+                "contextual_feature_contexts": list(CONTEXTUAL_HELP_KEYS),
+                "contextual_safe_returns": True,
                 "corpus_digest": platform_help["first_page"]["corpus_digest"],
                 "exact_relation_navigation": True,
                 "exact_version_reads": True,
