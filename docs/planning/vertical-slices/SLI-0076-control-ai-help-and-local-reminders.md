@@ -219,7 +219,8 @@ each packet starts. The proposed dependency-ordered seams are:
 | WRK-0158 | Freeze AI-help preference contracts, closed semantics, local-reminder envelope and adapter rules, privacy limits, compatibility vectors, and pure core | none | none | complete |
 | WRK-0159 | Compose Learner-model application, PostgreSQL persistence and migration, protected API, reviewed OpenAPI, and generated client | WRK-0158 | none | complete |
 | WRK-0160 | Deliver the plain-language AI-help and reminders route through the generated client and browser-local adapter | WRK-0159 | none | complete |
-| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160 | none | ready |
+| WRK-0161 | Qualify contracts, browser/headless parity, restart, unavailable behavior, privacy, accessibility, containment, anti-rigidity, and cleanup | WRK-0160, WRK-0162 | none | ready |
+| WRK-0162 | Accept canonical assistance API timestamp precision in the browser validator | WRK-0160 | none | ready |
 
 Detailed packet plans declare exact files, generated artifacts, checks, and
 stop conditions immediately before each packet starts. Packet identifiers are
@@ -306,3 +307,9 @@ state that no AI or notification execution was implemented or implied.
   PostgreSQL, restart, privacy, accessibility, containment, and cleanup path
   without changing the approved slice outcome or requiring lower-level
   approval.
+- 2026-10-18: Activated WRK-0161 from recorded base `860802c` after
+  revalidating the completed dependency, current CAP authority, exact
+  qualification-only scope, and absence of an active coordination collision.
+- 2026-10-18: Routed the live microsecond-timestamp validation defect to
+  bounded corrective packet WRK-0162 and returned WRK-0161 to ready until that
+  correction completes. The slice outcome and CAP authority are unchanged.

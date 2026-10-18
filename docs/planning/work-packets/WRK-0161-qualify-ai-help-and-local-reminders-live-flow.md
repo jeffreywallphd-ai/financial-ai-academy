@@ -7,15 +7,15 @@ owner: codex-cap-0018
 updated: 2026-10-18
 parent: SLI-0076
 capability: CAP-0018
-depends_on: [WRK-0160]
+depends_on: [WRK-0160, WRK-0162]
 decision_gates: []
 parallel_safe_with: []
 write_scope: ["apps/web/README.md", "apps/web/dist", "apps/web/tests/browser/approved-lesson/assistance-preferences.e2e.ts", "backend/src/financial_ai_academy/modules/learner_model/README.md", "deployments/local/README.md", "dev-tools/control-plane/README.md", "dev-tools/control-plane/check_assistance_preferences.py", "dev-tools/control-plane/financial_academy_checks.py", "dev-tools/control-plane/test_verification.py", "docs/architecture/assurance/architecture-verification.md", "docs/assurance/known-verification-gaps.md", "docs/planning/register.md", "docs/planning/vertical-slices/SLI-0076-control-ai-help-and-local-reminders.md", "docs/planning/work-packets/WRK-0161-qualify-ai-help-and-local-reminders-live-flow.md", "tests/e2e/approved-lesson/run.py", "tests/e2e/approved-lesson/test_replay_qualification.py"]
 generated_artifacts: ["apps/web/dist"]
-base_revision: null
-claim_id: null
-claimed_by: null
-claimed_at: null
+base_revision: 860802c5d8557ea161f60bac7a93712972d9380a
+claim_id: WRK-0161:33bf5fd4-7aa6-4cfc-b61b-fd01874caef5
+claimed_by: codex-cap-0018
+claimed_at: 2026-10-18T01:00:45Z
 ---
 
 # Agent Work Packet: Qualify AI Help and Local Reminders Live Flow
@@ -209,4 +209,11 @@ financial behavior changed, then leave SLI-0076 closure-ready.
   existing disposable local topology and adds deterministic focused-browser
   selection for future assistance-preference changes. No durable decision or
   lower-level approval is required.
+- 2026-10-18: Activated from recorded base `860802c` after validating the
+  completed dependency, current CAP authority, exact file ownership, and no
+  active coordination collision. Delivery remains qualification-only.
+- 2026-10-18: Returned to ready after live Chromium received a valid
+  digest-bound microsecond API timestamp that the assistance browser validator
+  rejected. WRK-0162 owns the bounded product correction; this packet resumes
+  afterward without weakening evidence or widening qualification scope.
 
