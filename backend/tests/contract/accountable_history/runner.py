@@ -134,12 +134,35 @@ def _check_display_text(value: Mapping[str, Any]) -> None:
     if any(unicodedata.category(character) in {"Cc", "Cf", "Cs"} for text in display_values for character in text):
         reject("accountable_history.unsafe_text", "display", "History text contains an unsafe detail.")
 
-    approved_titles = {"Source and history", "Portable evidence record"}
+    approved_titles = {
+        "learner_review": "Source and history",
+        "portable_evidence": "Portable evidence record",
+    }
     approved_summaries = {
-        "This lesson is linked to the reviewed source used to publish it.",
-        "This completion is linked to the check, the published lesson, and its audit record.",
-        "The lesson is available, but one source record is not available now.",
-        "This record shows the source and history disclosed for the completion.",
+        ("learner_review", "published_lesson", "valid"):
+            "This lesson is linked to the reviewed source used to publish it.",
+        ("learner_review", "published_lesson", "incomplete"):
+            "The lesson is available, but one source record is not available now.",
+        ("learner_review", "published_lesson", "invalid"):
+            "The lesson history includes a record that does not match the expected facts.",
+        ("learner_review", "knowledge_check_completion", "valid"):
+            "This completion is linked to the check, the published lesson, and its audit record.",
+        ("learner_review", "knowledge_check_completion", "incomplete"):
+            "The completion is available, but one source record is not available now.",
+        ("learner_review", "knowledge_check_completion", "invalid"):
+            "The completion history includes a record that does not match the expected facts.",
+        ("portable_evidence", "published_lesson", "valid"):
+            "This record shows the source and history disclosed for the lesson.",
+        ("portable_evidence", "published_lesson", "incomplete"):
+            "This record shows the available source and history disclosed for the lesson.",
+        ("portable_evidence", "published_lesson", "invalid"):
+            "This record shows lesson history with a record that does not match the expected facts.",
+        ("portable_evidence", "knowledge_check_completion", "valid"):
+            "This record shows the source and history disclosed for the completion.",
+        ("portable_evidence", "knowledge_check_completion", "incomplete"):
+            "This record shows the available source and history disclosed for the completion.",
+        ("portable_evidence", "knowledge_check_completion", "invalid"):
+            "This record shows completion history with a record that does not match the expected facts.",
     }
     approved_entry_text = {
         "educational_source": {("Reviewed source", "This source was used to prepare the lesson.")},
@@ -167,7 +190,8 @@ def _check_display_text(value: Mapping[str, Any]) -> None:
         "identity_conflict": "Two disclosed records use the same identity with different facts.",
         "redacted_detail": "Some details are not shown for this purpose.",
     }
-    if value["title"] not in approved_titles or value["summary"] not in approved_summaries:
+    display_key = (value["purpose"], value["root"]["root_kind"], value["state"])
+    if value["title"] != approved_titles[value["purpose"]] or value["summary"] != approved_summaries[display_key]:
         reject("accountable_history.display_text_invalid", "summary", "History text is not reviewed.")
     if any((item["title"], item["explanation"]) not in approved_entry_text[item["resource_kind"]] for item in value["entries"]):
         reject("accountable_history.display_text_invalid", "entries", "History text is not reviewed.")
@@ -210,7 +234,6 @@ class AccountableHistoryContractValidator:
 
     def validate_document(self, value: Mapping[str, Any], *, verify_digest: bool = True) -> dict[str, Any]:
         self._shape("document", value)
-        _check_display_text(value)
         entries = list(value["entries"])
         expected_sequence = list(range(1, len(entries) + 1))
         actual_sequence = sorted(int(item["sequence"]) for item in entries)
@@ -274,6 +297,7 @@ class AccountableHistoryContractValidator:
             reject("accountable_history.state_invalid", "state", "History state is inconsistent.")
         if state != "invalid" and diagnostic_codes.intersection(invalid_codes):
             reject("accountable_history.state_invalid", "state", "History state is inconsistent.")
+        _check_display_text(value)
         expected_digest = history_digest(value)
         if verify_digest and value["history_digest"] != expected_digest:
             reject("accountable_history.digest_invalid", "history_digest", "History digest is inconsistent.")
@@ -283,8 +307,10 @@ class AccountableHistoryContractValidator:
 
     def validate_export(self, value: Mapping[str, Any], *, verify_digest: bool = True) -> dict[str, Any]:
         self._shape("export", value)
+        if value["document"]["purpose"] != "portable_evidence":
+            reject("accountable_history.export_invalid", "document", "Portable evidence is inconsistent.")
         document = self.validate_document(value["document"], verify_digest=verify_digest)
-        if document["purpose"] != "portable_evidence" or value["document_digest"] != document["history_digest"]:
+        if value["document_digest"] != document["history_digest"]:
             reject("accountable_history.export_invalid", "document", "Portable evidence is inconsistent.")
         latest_instant = max(_parsed_time(item["recorded_at"]) for item in document["entries"])
         latest = _rendered_time(latest_instant)
