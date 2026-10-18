@@ -181,6 +181,9 @@ _ACCOUNTABLE_TIMESTAMP_PATTERN = (
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}"
     r"(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$"
 )
+_ACCOUNTABLE_EXPORT_TIMESTAMP_PATTERN = (
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$"
+)
 
 
 class PublishedLessonLineageRequestModel(ApiModel):
@@ -571,7 +574,7 @@ class PortableEvidenceExportResponseModel(ApiModel):
     ]
     filename_stem: str = Field(pattern=r"^[a-z0-9][a-z0-9-]{0,79}$")
     exported_at: datetime = Field(
-        json_schema_extra={"pattern": _ACCOUNTABLE_TIMESTAMP_PATTERN}
+        json_schema_extra={"pattern": _ACCOUNTABLE_EXPORT_TIMESTAMP_PATTERN}
     )
     document_digest: str = Field(pattern=_LINEAGE_DIGEST_PATTERN)
     document: AccountableHistoryResponseModel

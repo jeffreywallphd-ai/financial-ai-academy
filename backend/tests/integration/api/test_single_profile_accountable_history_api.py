@@ -346,12 +346,12 @@ def test_openapi_contains_two_cookie_protected_headless_operations() -> None:
 
 def test_openapi_preserves_frozen_history_identity_and_time_constraints() -> None:
     generated = json.loads(generate_bytes())
-    schema = {
+    document_schema = {
         "$ref": "#/components/schemas/AccountableHistoryResponseModel",
         "components": generated["components"],
     }
-    validator = Draft202012Validator(
-        schema,
+    document_validator = Draft202012Validator(
+        document_schema,
         format_checker=FormatChecker(),
     )
     valid = accountable_history_payload(
@@ -360,14 +360,36 @@ def test_openapi_preserves_frozen_history_identity_and_time_constraints() -> Non
             AccountableHistoryPurpose.LEARNER_REVIEW,
         )
     )
-    assert list(validator.iter_errors(valid)) == []
+    assert list(document_validator.iter_errors(valid)) == []
 
     wrong_owner = json.loads(json.dumps(valid))
     wrong_owner["entries"][0]["owner_module"] = "audit"
-    owner_errors = list(validator.iter_errors(wrong_owner))
+    owner_errors = list(document_validator.iter_errors(wrong_owner))
     assert owner_errors
 
     missing_offset = json.loads(json.dumps(valid))
     missing_offset["entries"][0]["recorded_at"] = "2026-08-05T12:00:00"
-    time_errors = list(validator.iter_errors(missing_offset))
+    time_errors = list(document_validator.iter_errors(missing_offset))
     assert time_errors
+
+    export_schema = {
+        "$ref": "#/components/schemas/PortableEvidenceExportResponseModel",
+        "components": generated["components"],
+    }
+    export_validator = Draft202012Validator(
+        export_schema,
+        format_checker=FormatChecker(),
+    )
+    valid_export = portable_evidence_payload(
+        build_portable_evidence(_lineage("lineage-view.json"))
+    )
+    assert list(export_validator.iter_errors(valid_export)) == []
+
+    numeric_offset_export = json.loads(json.dumps(valid_export))
+    numeric_offset_export["exported_at"] = (
+        numeric_offset_export["exported_at"].removesuffix("Z") + "+00:00"
+    )
+    export_time_errors = list(
+        export_validator.iter_errors(numeric_offset_export)
+    )
+    assert export_time_errors
