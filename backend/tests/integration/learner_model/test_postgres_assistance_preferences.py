@@ -240,6 +240,33 @@ def test_newest_one_hundred_history_and_export_are_coherent() -> None:
     assert counts() == (1, 100, 105)
 
 
+def test_history_and_export_fail_closed_when_a_retained_summary_is_missing() -> None:
+    subject = service()
+    mutate(subject, intent("assistance.integrity-1", 1))
+    mutate(subject, intent("assistance.integrity-2", 2, "off"))
+    mutate(subject, intent("assistance.integrity-3", 3))
+
+    assert POSTGRES_DSN is not None
+    with psycopg.connect(POSTGRES_DSN) as connection:
+        connection.execute(
+            "DELETE FROM learner_model.assistance_preference_changes "
+            "WHERE learner_id = %s AND revision = 3",
+            (LEARNER_ID,),
+        )
+
+    for operation in (
+        lambda: subject.read_assistance_preference_history(
+            ReadAssistancePreferenceHistoryRequest(LEARNER_ID)
+        ),
+        lambda: subject.export_assistance_preferences(
+            ExportAssistancePreferencesRequest(LEARNER_ID)
+        ),
+    ):
+        with pytest.raises(LearnerModelError) as captured:
+            operation()
+        assert captured.value.code is LearnerModelErrorCode.INTEGRITY_FAILURE
+
+
 def test_simultaneous_writers_accept_one_and_reject_one_without_partial_state() -> None:
     commands = (
         intent("assistance.concurrent-a", 1),

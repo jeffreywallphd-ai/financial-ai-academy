@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -284,6 +285,87 @@ def test_history_retains_newest_one_hundred_varied_revisions() -> None:
     assert len(history.changes) == 100
     assert history.changes[0].revision == 7
     assert history.changes[-1].revision == 106
+
+
+def test_history_window_uses_exact_revision_boundaries() -> None:
+    subject, _ = service()
+    mode = "on_request"
+    for revision in range(1, 101):
+        subject.mutate_assistance_preferences(
+            MutateAssistancePreferencesRequest(
+                LEARNER_ID, intent(revision, mode=mode)
+            )
+        )
+        mode = "off" if mode == "on_request" else "on_request"
+
+    revision_101 = subject.read_assistance_preference_history(
+        ReadAssistancePreferenceHistoryRequest(LEARNER_ID)
+    )
+    assert tuple(change.revision for change in revision_101.changes) == tuple(
+        range(2, 102)
+    )
+
+    subject.mutate_assistance_preferences(
+        MutateAssistancePreferencesRequest(
+            LEARNER_ID, intent(101, mode=mode)
+        )
+    )
+    revision_102 = subject.read_assistance_preference_history(
+        ReadAssistancePreferenceHistoryRequest(LEARNER_ID)
+    )
+    assert tuple(change.revision for change in revision_102.changes) == tuple(
+        range(3, 103)
+    )
+
+
+def test_history_and_export_reject_missing_or_gapped_revision_windows() -> None:
+    def assert_integrity_failure(subject: LearnerModelService) -> None:
+        for operation in (
+            lambda: subject.read_assistance_preference_history(
+                ReadAssistancePreferenceHistoryRequest(LEARNER_ID)
+            ),
+            lambda: subject.export_assistance_preferences(
+                ExportAssistancePreferencesRequest(LEARNER_ID)
+            ),
+        ):
+            with pytest.raises(LearnerModelError) as captured:
+                operation()
+            assert captured.value.code is LearnerModelErrorCode.INTEGRITY_FAILURE
+
+    empty_subject, empty_repository = service()
+    empty_subject.mutate_assistance_preferences(
+        MutateAssistancePreferencesRequest(
+            LEARNER_ID, intent(1, mode="on_request")
+        )
+    )
+    empty_repository.changes.clear()
+    assert_integrity_failure(empty_subject)
+
+    gap_subject, gap_repository = service()
+    for revision, mode in ((1, "on_request"), (2, "off"), (3, "on_request")):
+        gap_subject.mutate_assistance_preferences(
+            MutateAssistancePreferencesRequest(
+                LEARNER_ID, intent(revision, mode=mode)
+            )
+        )
+    gap_repository.changes = [
+        change for change in gap_repository.changes if change.revision != 3
+    ]
+    assert_integrity_failure(gap_subject)
+
+    boundary_subject, boundary_repository = service()
+    mode = "on_request"
+    for revision in range(1, 102):
+        boundary_subject.mutate_assistance_preferences(
+            MutateAssistancePreferencesRequest(
+                LEARNER_ID, intent(revision, mode=mode)
+            )
+        )
+        mode = "off" if mode == "on_request" else "on_request"
+    boundary_repository.changes[0] = replace(
+        boundary_repository.changes[0], revision=2
+    )
+    assert_integrity_failure(boundary_subject)
 
 
 def test_invalid_context_and_unconfigured_boundary_fail_safely() -> None:

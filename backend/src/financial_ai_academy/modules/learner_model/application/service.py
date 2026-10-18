@@ -691,7 +691,10 @@ class LearnerModelService:
             )
         except LearnerModelError:
             raise
-        except AssistancePreferenceContractFailure as error:
+        except (
+            AssistancePreferenceContractFailure,
+            InvalidAssistancePreference,
+        ) as error:
             raise self._assistance_preference_integrity(error.reference) from error
         except Exception as error:
             raise self._assistance_preference_unavailable("export") from error
@@ -735,7 +738,22 @@ class LearnerModelService:
             profile, history = snapshot
         current = self._revalidate_assistance_preference(profile, contract)
         validate_assistance_preference_history(history, current)
+        self._validate_assistance_preference_history_window(history, current)
         return current, history
+
+    @staticmethod
+    def _validate_assistance_preference_history_window(
+        history: AssistancePreferenceHistory,
+        profile: AssistancePreferenceProfile,
+    ) -> None:
+        expected_revisions = tuple(
+            range(max(2, profile.revision - 99), profile.revision + 1)
+        )
+        actual_revisions = tuple(change.revision for change in history.changes)
+        if actual_revisions != expected_revisions:
+            raise InvalidAssistancePreference(
+                "history_mismatch", "history.changes"
+            )
 
     @staticmethod
     def _default_assistance_preferences(
